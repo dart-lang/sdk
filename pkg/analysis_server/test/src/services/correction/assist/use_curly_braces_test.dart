@@ -36,6 +36,41 @@ void f() {
 ''');
   }
 
+  Future<void> test_comment_body1() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/while (true)
+    // something
+    print(0);
+}
+''');
+    await assertHasAssist('''
+void f() {
+  while (true) {
+    // something
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_comment_body2() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/while (true) // something
+    print(0);
+}
+''');
+    await assertHasAssist('''
+void f() {
+  while (true) {
+    // something
+    print(0);
+  }
+}
+''');
+  }
+
   Future<void> test_comment_outside() async {
     await resolveTestCode('''
 void f() {

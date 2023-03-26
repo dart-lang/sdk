@@ -94,7 +94,7 @@ class DataDrivenFix extends CorrectionProducer {
     }
     var data = <Object>[];
     for (var change in changes) {
-      var result = change.validate(this) as Object?;
+      var result = change.validate(this);
       if (result == null) {
         return;
       }

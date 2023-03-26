@@ -71,6 +71,14 @@ class ClosureRepresentation {
       _instantiationFunctionThunk!();
   w.DefinedFunction Function()? _instantiationFunctionThunk;
 
+  /// The function that takes instantiation context of this generic closure and
+  /// another instantiation context (both as `ref
+  /// #InstantiationClosureContextBase`) and compares types in the contexts.
+  /// This function is used to implement function equality of instantiations.
+  late final w.DefinedFunction instantiationTypeComparisonFunction =
+      _instantiationTypeComparisonFunctionThunk!();
+  w.DefinedFunction Function()? _instantiationTypeComparisonFunctionThunk;
+
   /// The signature of the function that instantiates this generic closure.
   w.FunctionType get instantiationFunctionType {
     assert(isGeneric);
@@ -155,8 +163,17 @@ class ClosureLayouter extends RecursiveVisitor {
   // The member currently being visited while collecting function signatures.
   Member? currentMember;
 
+  // For non-generic closures. The entries are:
+  // 0: Dynamic call entry
+  // 1-...: Entries for calling the closure
   static const int vtableBaseIndexNonGeneric = 1;
-  static const int vtableBaseIndexGeneric = 2;
+
+  // For generic closures. The entries are:
+  // 0: Dynamic call entry
+  // 1: Instantiation type comparison function
+  // 2: Instantiation function
+  // 3-...: Entries for calling the closure
+  static const int vtableBaseIndexGeneric = 3;
 
   // Base struct for vtables without the dynamic call entry added. Referenced
   // by [closureBaseStruct] instead of the fully initialized version
@@ -164,12 +181,41 @@ class ClosureLayouter extends RecursiveVisitor {
   late final w.StructType _vtableBaseStructBare =
       m.addStructType("#VtableBase");
 
-  // Base struct for vtables.
+  /// Base struct for instantiation closure contexts. Type tests against this
+  /// type is used in `_Closure._equals` to check if a closure is an
+  /// instantiation.
+  late final w.StructType instantiationContextBaseStruct =
+      m.addStructType("#InstantiationClosureContextBase", fields: [
+    w.FieldType(w.RefType.def(closureBaseStruct, nullable: false),
+        mutable: false),
+  ]);
+
+  /// Base struct for non-generic closure vtables.
   late final w.StructType vtableBaseStruct = _vtableBaseStructBare
     ..fields.add(w.FieldType(
         w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
             nullable: false),
         mutable: false));
+
+  /// Base struct for generic closure vtables.
+  late final w.StructType genericVtableBaseStruct = m.addStructType(
+      "#GenericVtableBase",
+      fields: vtableBaseStruct.fields.toList()
+        ..add(w.FieldType(
+            w.RefType.def(instantiationClosureTypeComparisonFunctionType,
+                nullable: false),
+            mutable: false)),
+      superType: vtableBaseStruct);
+
+  /// Type of [ClosureRepresentation.instantiationTypeComparisonFunction].
+  late final w.FunctionType instantiationClosureTypeComparisonFunctionType =
+      m.addFunctionType(
+    [
+      w.RefType.def(instantiationContextBaseStruct, nullable: false),
+      w.RefType.def(instantiationContextBaseStruct, nullable: false)
+    ],
+    [w.NumType.i32], // bool
+  );
 
   // Base struct for closures.
   late final w.StructType closureBaseStruct = _makeClosureStruct(
@@ -179,6 +225,25 @@ class ClosureLayouter extends RecursiveVisitor {
       translator.classInfo[translator.typeClass]!.nonNullableType;
   late final w.RefType functionTypeType =
       translator.classInfo[translator.functionTypeClass]!.nonNullableType;
+
+  final Map<int, w.StructType> _instantiationContextBaseStructs = {};
+
+  w.StructType _getInstantiationContextBaseStruct(int numTypes) =>
+      _instantiationContextBaseStructs.putIfAbsent(
+          numTypes,
+          () => m.addStructType("#InstantiationClosureContextBase-$numTypes",
+              fields: [
+                w.FieldType(w.RefType.def(closureBaseStruct, nullable: false),
+                    mutable: false),
+                ...List.filled(numTypes, w.FieldType(typeType, mutable: false))
+              ],
+              superType: instantiationContextBaseStruct));
+
+  final Map<int, w.DefinedFunction> _instantiationTypeComparisonFunctions = {};
+
+  w.DefinedFunction _getInstantiationTypeComparisonFunction(int numTypes) =>
+      _instantiationTypeComparisonFunctions.putIfAbsent(
+          numTypes, () => _createInstantiationTypeComparisonFunction(numTypes));
 
   w.StructType _makeClosureStruct(
       String name, w.StructType vtableStruct, w.StructType superType) {
@@ -281,7 +346,8 @@ class ClosureLayouter extends RecursiveVisitor {
     List<String> nameTags = ["$typeCount", "$positionalCount", ...names];
     String vtableName = ["#Vtable", ...nameTags].join("-");
     String closureName = ["#Closure", ...nameTags].join("-");
-    w.StructType parentVtableStruct = parent?.vtableStruct ?? vtableBaseStruct;
+    w.StructType parentVtableStruct = parent?.vtableStruct ??
+        (typeCount == 0 ? vtableBaseStruct : genericVtableBaseStruct);
     w.StructType vtableStruct = m.addStructType(vtableName,
         fields: parentVtableStruct.fields, superType: parentVtableStruct);
     w.StructType closureStruct = _makeClosureStruct(
@@ -322,7 +388,7 @@ class ClosureLayouter extends RecursiveVisitor {
                 mutable: false),
             ...List.filled(typeCount, w.FieldType(typeType, mutable: false))
           ],
-          superType: parent?.instantiationContextStruct);
+          superType: _getInstantiationContextBaseStruct(typeCount));
     }
 
     // Add vtable fields for additional entry points relative to the parent.
@@ -412,6 +478,9 @@ class ClosureLayouter extends RecursiveVisitor {
             closureStruct,
             instantiationFunctionName);
       };
+
+      representation._instantiationTypeComparisonFunctionThunk =
+          () => _getInstantiationTypeComparisonFunction(typeCount);
     }
 
     return representation;
@@ -620,6 +689,67 @@ class ClosureLayouter extends RecursiveVisitor {
     b.end();
 
     return instantiationFunction;
+  }
+
+  w.DefinedFunction _createInstantiationTypeComparisonFunction(int numTypes) {
+    final function = m.addFunction(
+        instantiationClosureTypeComparisonFunctionType,
+        "#InstantiationTypeComparison-$numTypes");
+
+    final w.Instructions b = function.body;
+
+    final contextStructType = _getInstantiationContextBaseStruct(numTypes);
+    final contextRefType = w.RefType.def(contextStructType, nullable: false);
+
+    final thisContext = function.locals[0];
+    final otherContext = function.locals[1];
+
+    final thisContextLocal = function.addLocal(contextRefType);
+    final otherContextLocal = function.addLocal(contextRefType);
+
+    // Call site (`_Closure._equals`) checks that closures are instantiations
+    // of the same function, so we can assume they have the right instantiation
+    // context types.
+    b.local_get(otherContext);
+    b.ref_cast(contextRefType);
+    b.local_set(otherContextLocal);
+
+    b.local_get(thisContext);
+    b.ref_cast(contextRefType);
+    b.local_set(thisContextLocal);
+
+    for (int i = 0; i < numTypes; i += 1) {
+      final typeFieldIdx = FieldIndex.instantiationContextTypeArgumentsBase + i;
+      b.local_get(thisContextLocal);
+      b.struct_get(contextStructType, typeFieldIdx);
+      b.local_get(otherContextLocal);
+      b.struct_get(contextStructType, typeFieldIdx);
+
+      // Virtual call to `Object.==`
+      final selector = translator.dispatchTable
+          .selectorForTarget(translator.coreTypes.objectEquals.reference);
+      final selectorOffset = selector.offset!;
+      b.local_get(thisContextLocal);
+      b.struct_get(contextStructType, typeFieldIdx);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      if (selectorOffset != 0) {
+        b.i32_const(selectorOffset);
+        b.i32_add();
+      }
+      b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
+      b.if_();
+    }
+
+    b.i32_const(1); // true
+    b.return_();
+
+    for (int i = 0; i < numTypes; i += 1) {
+      b.end();
+    }
+
+    b.i32_const(0); // false
+    b.end(); // end of function
+    return function;
   }
 
   ClosureRepresentationsForParameterCount _representationsForCounts(

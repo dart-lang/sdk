@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:collection/collection.dart';
@@ -1803,6 +1804,15 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (isNotSerializableMarker(node)) {
+      return;
+    }
+
+    super.visitSimpleIdentifier(node);
+  }
+
   void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
@@ -2029,6 +2039,39 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.rightParenthesis);
     super.visitRecordLiteral(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
+    _tokenOrNull(node.question);
+    super.visitRecordTypeAnnotation(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    _tokenOrNull(node.name);
+    super.visitRecordTypeAnnotationNamedField(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitRecordTypeAnnotationNamedFields(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    _tokenOrNull(node.name);
+    super.visitRecordTypeAnnotationPositionalField(node);
   }
 
   @override

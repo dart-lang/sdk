@@ -9,9 +9,6 @@ class EvalRepository extends M.EvalRepository {
       {bool disableBreakpoints = false}) async {
     S.Isolate isolate = i as S.Isolate;
     S.ServiceObject object = o as S.HeapObject;
-    assert(isolate != null);
-    assert(object != null);
-    assert(e != null);
     return await isolate.eval(object, e,
         disableBreakpoints: disableBreakpoints);
   }

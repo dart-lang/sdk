@@ -2,11 +2,9 @@
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:web_gl library.
 
-/**
- * 3D programming in the browser.
- *
- * {@category Web}
- */
+/// 3D programming in the browser.
+///
+/// {@category Web}
 library dart.dom.web_gl;
 
 import 'dart:async';

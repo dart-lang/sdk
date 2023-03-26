@@ -202,6 +202,113 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
     );
   }
 
+  Future<void> test_getter_method() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get oldGetter => 0;
+
+  int newMethod() => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace an instance getter with a method'
+    date: 2022-12-16
+    element:
+      uris: ['$importUri']
+      getter: 'oldGetter'
+      inClass: 'C'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          method: 'newMethod'
+          inClass: 'C'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = C().oldGetter;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var x = C().newMethod();
+''');
+  }
+
+  Future<void> test_method_getter() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int oldMethod() => 0;
+
+  int get newGetter => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace an instance method with a getter'
+    date: 2022-12-16
+    element:
+      uris: ['$importUri']
+      method: 'oldMethod'
+      inClass: 'C'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          getter: 'newGetter'
+          inClass: 'C'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = C().oldMethod();
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var x = C().newGetter;
+''');
+  }
+
+  Future<void> test_method_getter_multipleParameters() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int oldMethod(int i) => 0;
+
+  int get newGetter => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace an instance method with multiple parameters, with a getter'
+    date: 2022-12-16
+    element:
+      uris: ['$importUri']
+      method: 'oldMethod'
+      inClass: 'C'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          getter: 'newGetter'
+          inClass: 'C'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = C().oldMethod(1);
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_namedConstructor_defaultConstructor() async {
     await _assertReplacement(
       _Element.namedConstructor(isDeprecated: true, isOld: true),

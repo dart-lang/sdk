@@ -629,8 +629,6 @@ class Harness {
 
   bool? _patternsEnabled;
 
-  bool errorOnSwitchExhaustiveness = false;
-
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -642,8 +640,7 @@ class Harness {
       this,
       TypeAnalyzerOptions(
           nullSafetyEnabled: !_operations.legacy,
-          patternsEnabled: patternsEnabled,
-          errorOnSwitchExhaustiveness: errorOnSwitchExhaustiveness));
+          patternsEnabled: patternsEnabled));
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -875,10 +872,13 @@ class MiniAstOperations
     'Object': false,
     'Object?': false,
     'String': false,
+    'String?': false,
   };
 
   static final Map<String, Type> _coreGlbs = {
     '?, int': Type('int'),
+    '(int,), ?': Type('(int,)'),
+    '(num,), ?': Type('(num,)'),
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
     'double, int': Type('Never'),
@@ -919,6 +919,7 @@ class MiniAstOperations
     'int': Type('int'),
     'int?': Type('int?'),
     'num': Type('num'),
+    'String?': Type('String?'),
     'List<int>': Type('List<int>'),
   };
 
@@ -1232,6 +1233,9 @@ abstract class Pattern extends Node
   Pattern get nullCheck =>
       _NullCheckOrAssertPattern(this, false, location: computeLocation());
 
+  Pattern get parenthesized =>
+      _ParenthesizedPattern(this, location: computeLocation());
+
   @override
   GuardedPattern get _asGuardedPattern {
     return GuardedPattern._(
@@ -1294,7 +1298,8 @@ class PatternVariableJoin extends Var {
   /// of `true` either means that the variable is consistent or that analysis
   /// has not yet completed.
   @override
-  bool isConsistent = true;
+  JoinedPatternVariableInconsistency inconsistency =
+      JoinedPatternVariableInconsistency.none;
 
   /// Indicates whether [VariableBinder.joinPatternVariables] has been called
   /// for this variable join yet.
@@ -1316,10 +1321,10 @@ class PatternVariableJoin extends Var {
 
   @override
   String toString() {
-    var isConsistent = this.isConsistent;
     var declarationStr = <String>[
       if (_type != null) ...[
-        if (!isConsistent) 'notConsistent',
+        if (inconsistency != JoinedPatternVariableInconsistency.none)
+          'notConsistent:${inconsistency.name}',
         if (isFinal) 'final',
         type.type,
       ],
@@ -1331,14 +1336,16 @@ class PatternVariableJoin extends Var {
   }
 
   /// Called by [VariableBinder.joinPatternVariables].
-  void _handleJoin(
-      {required List<Var> components, required bool isConsistent}) {
+  void _handleJoin({
+    required List<Var> components,
+    required JoinedPatternVariableInconsistency inconsistency,
+  }) {
     expect(isJoined, false);
     expect(components.map((c) => c.identity),
         expectedComponents.map((c) => c.identity),
         reason: 'at $location');
     expect(components, expectedComponents, reason: 'at $location');
-    this.isConsistent = isConsistent;
+    this.inconsistency = inconsistency;
     this.isJoined = true;
   }
 }
@@ -1493,7 +1500,9 @@ class Var extends Node implements Promotable {
   LValue get expr =>
       new _VariableReference(this, null, location: computeLocation());
 
-  bool get isConsistent => true;
+  JoinedPatternVariableInconsistency get inconsistency {
+    return JoinedPatternVariableInconsistency.none;
+  }
 
   /// The string that should be used to check variables in a set.
   String get stringToCheckVariables => identity;
@@ -2727,8 +2736,9 @@ class _ListPattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    var requiredType = h.typeAnalyzer.analyzeListPattern(context, this,
+    var listPatternResult = h.typeAnalyzer.analyzeListPattern(context, this,
         elementType: _elementType, elements: _elements);
+    var requiredType = listPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -2919,8 +2929,9 @@ class _MapPattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    var requiredType = h.typeAnalyzer.analyzeMapPattern(context, this,
+    var mapPatternResult = h.typeAnalyzer.analyzeMapPattern(context, this,
         typeArguments: _typeArguments, elements: _elements);
+    var requiredType = mapPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -2966,7 +2977,8 @@ class _MapPatternEntry extends Node implements MapPatternElement {
 
 class _MiniAstErrors
     implements
-        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type, Pattern>,
+        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type, Pattern,
+            void>,
         VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 
@@ -2975,19 +2987,6 @@ class _MiniAstErrors
   /// errors are reported by the end of running the test, we can use it to
   /// highlight the point of failure.
   StackTrace? _assertInErrorRecoveryStack;
-
-  @override
-  void argumentTypeNotAssignable({
-    required Expression argument,
-    required Type argumentType,
-    required Type parameterType,
-  }) {
-    _recordError('argumentTypeNotAssignable', {
-      'argument': argument,
-      'argumentType': argumentType,
-      'parameterType': parameterType,
-    });
-  }
 
   @override
   void assertInErrorRecovery() {
@@ -3122,12 +3121,6 @@ class _MiniAstErrors
   }
 
   @override
-  void nonExhaustiveSwitch({required Node node, required Type scrutineeType}) {
-    _recordError(
-        'nonExhaustiveSwitch', {'node': node, 'scrutineeType': scrutineeType});
-  }
-
-  @override
   void patternDoesNotAllowLate({required Node pattern}) {
     _recordError('patternDoesNotAllowLate', {'pattern': pattern});
   }
@@ -3164,6 +3157,19 @@ class _MiniAstErrors
       {required Node pattern, required Node context}) {
     _recordError('refutablePatternInIrrefutableContext',
         {'pattern': pattern, 'context': context});
+  }
+
+  @override
+  void relationalPatternOperandTypeNotAssignable({
+    required Pattern pattern,
+    required Type operandType,
+    required Type parameterType,
+  }) {
+    _recordError('relationalPatternOperandTypeNotAssignable', {
+      'pattern': pattern,
+      'operandType': operandType,
+      'parameterType': parameterType,
+    });
   }
 
   @override
@@ -3238,7 +3244,7 @@ class _MiniAstErrors
 }
 
 class _MiniAstTypeAnalyzer
-    with TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern> {
+    with TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern, void> {
   final Harness _harness;
 
   @override
@@ -3262,6 +3268,7 @@ class _MiniAstTypeAnalyzer
   @override
   late final Type intType = Type('int');
 
+  @override
   late final Type neverType = Type('Never');
 
   late final Type nullType = Type('Null');
@@ -3609,15 +3616,13 @@ class _MiniAstTypeAnalyzer
   void finishJoinedPatternVariable(
     covariant PatternVariableJoin variable, {
     required JoinedPatternVariableLocation location,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
     required Type type,
   }) {
     variable.isFinal = isFinal;
     variable.type = type;
-    if (!isConsistent) {
-      variable.isConsistent = false;
-    }
+    variable.inconsistency = variable.inconsistency.maxWith(inconsistency);
   }
 
   @override
@@ -3658,7 +3663,7 @@ class _MiniAstTypeAnalyzer
           covariant _SwitchStatement node, int caseIndex) {
     _SwitchStatementMember case_ = node.cases[caseIndex];
     return SwitchStatementMemberInfo(
-      [
+      heads: [
         for (var element in case_.elements)
           if (element is _SwitchHeadCase)
             CaseHeadOrDefaultInfo(
@@ -3673,8 +3678,8 @@ class _MiniAstTypeAnalyzer
               guard: null,
             )
       ],
-      case_._body.statements,
-      case_._candidateVariables,
+      body: case_._body.statements,
+      variables: case_._candidateVariables,
       hasLabels: case_.hasLabels,
     );
   }
@@ -3714,7 +3719,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleCaseHead(Node node,
+  CaseHeadOrDefaultInfo<Node, Expression, Var> handleCaseHead(
+      Node node, CaseHeadOrDefaultInfo<Node, Expression, Var> head,
       {required int caseIndex, required int subIndex}) {
     Iterable<Var> variables = [];
     if (node is _SwitchExpression) {
@@ -3735,6 +3741,8 @@ class _MiniAstTypeAnalyzer
     _irBuilder.apply(
         'head', [Kind.pattern, Kind.expression, Kind.variables], Kind.caseHead,
         location: node.location);
+
+    return head;
   }
 
   void handleDeclaredVariablePattern(covariant _VariablePattern node,
@@ -3774,7 +3782,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleMapPatternEntry(Pattern container, Node entryElement) {
+  void handleMapPatternEntry(
+      Pattern container, Node entryElement, Type keyType) {
     _irBuilder.apply('mapPatternEntry', [Kind.expression, Kind.pattern],
         Kind.mapPatternElement,
         location: entryElement.location);
@@ -4130,8 +4139,9 @@ class _ObjectPattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    var requiredType =
+    var objectPatternResult =
         h.typeAnalyzer.analyzeObjectPattern(context, this, fields: fields);
+    var requiredType = objectPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4171,6 +4181,29 @@ class _ParenthesizedExpression extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeParenthesizedExpression(this, expr, context);
   }
+}
+
+class _ParenthesizedPattern extends Pattern {
+  final Pattern _inner;
+
+  _ParenthesizedPattern(this._inner, {required super.location}) : super._();
+
+  @override
+  Type computeSchema(Harness h) => _inner.computeSchema(h);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+          {required bool isInAssignment}) =>
+      _inner.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+
+  @override
+  void visit(Harness h, SharedMatchContext context) {
+    _inner.visit(h, context);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) =>
+      '(${_inner._debugString(needsKeywordOrType: false)})';
 }
 
 class _PatternAssignment extends Expression {
@@ -4377,8 +4410,9 @@ class _RecordPattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    var requiredType =
+    var recordPatternResult =
         h.typeAnalyzer.analyzeRecordPattern(context, this, fields: fields);
+    var requiredType = recordPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4574,12 +4608,11 @@ class _SwitchStatement extends Statement {
 
   @override
   void visit(Harness h) {
-    if (h.patternsEnabled && isLegacyExhaustive != null) {
-      fail('isLegacyExhaustive should not be specified when patterns enabled, '
-          'at $location');
-    } else if (!h.patternsEnabled && isLegacyExhaustive == null) {
-      fail('isLegacyExhaustive should be specified when patterns disabled, '
-          'at $location');
+    bool needsLegacyExhaustive = !h.patternsEnabled;
+    if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
+      fail('isLegacyExhaustive should not be specified at $location');
+    } else if (needsLegacyExhaustive && isLegacyExhaustive == null) {
+      fail('isLegacyExhaustive should be specified at $location');
     }
     var previousBreakTarget = h.typeAnalyzer._currentBreakTarget;
     h.typeAnalyzer._currentBreakTarget = this;
@@ -4814,14 +4847,16 @@ class _VariableBinder extends VariableBinder<Node, Var> {
   Var joinPatternVariables({
     required Object? key,
     required List<Var> components,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
   }) {
     var joinedVariable = components[0]._joinedVar;
     if (joinedVariable == null) {
       fail('No joined variable for ${components[0].location}');
     }
     joinedVariable._handleJoin(
-        components: components, isConsistent: isConsistent);
+      components: components,
+      inconsistency: inconsistency,
+    );
     return joinedVariable;
   }
 }
@@ -4869,8 +4904,10 @@ class _VariablePattern extends Pattern {
       h.typeAnalyzer.handleAssignedVariablePattern(this);
     } else {
       var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-      var staticType = h.typeAnalyzer.analyzeDeclaredVariablePattern(
-          context, this, variable, variable.name, declaredType);
+      var declaredVariablePatternResult = h.typeAnalyzer
+          .analyzeDeclaredVariablePattern(
+              context, this, variable, variable.name, declaredType);
+      var staticType = declaredVariablePatternResult.staticType;
       h.typeAnalyzer.handleDeclaredVariablePattern(this,
           matchedType: matchedType, staticType: staticType);
     }

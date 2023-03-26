@@ -18,7 +18,7 @@ class Supertype {
   }
 }
 
-abstract class Mixin {
+mixin Mixin {
   foo() {
     print("I'm Mixin.foo");
   }

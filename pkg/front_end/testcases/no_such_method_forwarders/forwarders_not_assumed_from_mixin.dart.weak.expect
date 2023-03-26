@@ -8,7 +8,7 @@ abstract class I extends core::Object {
     ;
   abstract method foo() → void;
 }
-class A extends core::Object implements self::I {
+mixin class A extends core::Object implements self::I {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
@@ -37,5 +37,5 @@ constants  {
   #C1 = #foo
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
 }

@@ -339,13 +339,10 @@ class MemoryProfile {
       return '0' * (length - result.length) + result;
     }
 
-    return toStringLength(value.hour, 2) +
-        ':' +
-        toStringLength(value.minute, 2) +
-        ':' +
-        toStringLength(value.second, 2) +
-        '.' +
-        toStringLength(value.millisecond, 3);
+    return '${toStringLength(value.hour, 2)}:'
+        '${toStringLength(value.minute, 2)}:'
+        '${toStringLength(value.second, 2)}.'
+        '${toStringLength(value.millisecond, 3)}';
   }
 }
 

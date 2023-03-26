@@ -337,8 +337,13 @@ class Fixtures {
       identifier: myClassType.identifier,
       typeParameters: [],
       interfaces: [myInterfaceType],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: false,
+      hasSealed: false,
       mixins: [myMixinType],
       superclass: mySuperclassType);
   static final myConstructor = ConstructorDeclarationImpl(
@@ -378,8 +383,13 @@ class Fixtures {
       identifier: myInterfaceType.identifier,
       typeParameters: [],
       interfaces: [],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: true,
+      hasMixin: false,
+      hasSealed: false,
       mixins: [],
       superclass: null);
   static final myMethod = MethodDeclarationImpl(
@@ -401,8 +411,13 @@ class Fixtures {
       identifier: myMixinType.identifier,
       typeParameters: [],
       interfaces: [],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: true,
+      hasSealed: false,
       mixins: [],
       superclass: null);
   static final mySuperclass = ClassDeclarationImpl(
@@ -410,8 +425,13 @@ class Fixtures {
       identifier: mySuperclassType.identifier,
       typeParameters: [],
       interfaces: [],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: false,
+      hasSealed: false,
       mixins: [],
       superclass: null);
 

@@ -19,17 +19,28 @@ class DeprecatedExtendsFunctionTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A extends Function {}
 ''', [
-      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 16, 8),
     ]);
   }
 
-  test_local() async {
+  test_core_language219() async {
     await assertErrorsInCode('''
+// @dart = 2.19
+class A extends Function {}
+''', [
+      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8),
+    ]);
+  }
+
+  test_local_language219() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
 class Function {}
 class A extends Function {}
 ''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
-      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 34, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 22, 8),
+      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 50, 8),
     ]);
   }
 }

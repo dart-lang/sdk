@@ -1,1 +1,11 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 # This options file exists to reset the settings from the parent directory.
+# It also excludes tests which use experimental language features which
+# are not fully supported in the analyzer.
+
+analyzer:
+  exclude:
+    - patterns_local_vars_test.dart

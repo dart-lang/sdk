@@ -168,7 +168,28 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.name) {
       return;
     }
-    if (entity == node.rightBracket) {
+    if (entity == node.classKeyword) {
+      var previous = node.findPrevious(node.classKeyword);
+      if (previous != null && previous.keyword != Keyword.ABSTRACT) {
+        if (request.featureSet.isEnabled(Feature.class_modifiers) &&
+            previous.keyword == Keyword.BASE) {
+          // base ^ class A {}
+          // abstract base ^ class A {}
+          _addSuggestion(Keyword.MIXIN);
+        }
+      } else {
+        // Suggest all modifiers.
+        // ^ class A {}
+        // abstract ^ class A {}
+        if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+          _addSuggestions(
+              [Keyword.BASE, Keyword.FINAL, Keyword.INTERFACE, Keyword.MIXIN]);
+        }
+        if (request.featureSet.isEnabled(Feature.sealed_class)) {
+          _addSuggestion(Keyword.SEALED);
+        }
+      }
+    } else if (entity == node.rightBracket) {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
@@ -741,7 +762,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.name) {
       return;
     }
-    if (entity == node.rightBracket) {
+    if (entity == node.mixinKeyword) {
+      var previous = node.findPrevious(node.mixinKeyword);
+      if (previous == null) {
+        // ^ mixin M {}
+        if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+          _addSuggestions([Keyword.BASE, Keyword.FINAL, Keyword.INTERFACE]);
+        }
+        if (request.featureSet.isEnabled(Feature.sealed_class)) {
+          _addSuggestion(Keyword.SEALED);
+        }
+      }
+    } else if (entity == node.rightBracket) {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
@@ -1079,6 +1111,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);
+    }
+    if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+      _addSuggestions([Keyword.BASE, Keyword.INTERFACE, Keyword.MIXIN]);
+    }
+    if (request.featureSet.isEnabled(Feature.sealed_class)) {
+      _addSuggestion(Keyword.SEALED);
     }
   }
 

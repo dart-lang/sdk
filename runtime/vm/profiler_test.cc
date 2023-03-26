@@ -80,9 +80,7 @@ class ProfileSampleBufferTestHelper : public SampleVisitor {
   intptr_t sum_ = 0;
 };
 
-void VisitSamples(SampleBlockBuffer* buffer, SampleVisitor* visitor) {
-  // Mark the completed blocks as free so they can be re-used.
-  buffer->ProcessCompletedBlocks();
+static void VisitSamples(SampleBlockBuffer* buffer, SampleVisitor* visitor) {
   visitor->Reset();
   buffer->VisitSamples(visitor);
 }
@@ -119,35 +117,38 @@ TEST_CASE(Profiler_SampleBufferWrapTest) {
   Sample* s;
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 2);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(2, visitor.sum());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 4);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(6, visitor.sum());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 6);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(12, visitor.sum());
 
   // Mark the completed blocks as free so they can be re-used.
-  sample_buffer->ProcessCompletedBlocks();
+  sample_buffer->FreeCompletedBlocks();
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 8);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(18, visitor.sum());
-  {
-    MutexLocker ml(isolate->current_sample_block_lock());
-    isolate->set_current_sample_block(nullptr);
-  }
+
+  // The overridden sample buffer will be freed before isolate shutdown.
+  isolate->set_current_sample_block(nullptr);
 }
 
 TEST_CASE(Profiler_SampleBufferIterateTest) {
@@ -163,33 +164,35 @@ TEST_CASE(Profiler_SampleBufferIterateTest) {
   EXPECT_EQ(0, visitor.visited());
   Sample* s;
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(1, visitor.visited());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(2, visitor.visited());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(3, visitor.visited());
 
   s = sample_buffer->ReserveCPUSample(isolate);
+  EXPECT_NOTNULL(s);
   s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, kValidPc);
   VisitSamples(sample_buffer, &visitor);
   EXPECT_EQ(3, visitor.visited());
 
-  {
-    MutexLocker ml(isolate->current_sample_block_lock());
-    isolate->set_current_sample_block(nullptr);
-  }
+  // The overridden sample buffer will be freed before isolate shutdown.
+  isolate->set_current_sample_block(nullptr);
 }
 
 TEST_CASE(Profiler_AllocationSampleTest) {
@@ -534,109 +537,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NullSampleBuffer) {
 
   EXPECT_EQ(0, profile.sample_count());
 }
-
-#if defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&               \
-    defined(DEBUG) && defined(HOST_ARCH_X64)
-
-DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
-  ASSERT(result != NULL);
-  *result = static_cast<char*>(malloc(sizeof(char) * 1024));
-}
-
-ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
-  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
-  FLAG_profiler_native_memory = true;
-
-  EnableProfiler();
-
-  MallocHooks::Init();
-  MallocHooks::ResetStats();
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(true);
-
-  char* result = NULL;
-  const int64_t before_allocations_micros = Dart_TimelineGetMicros();
-  NativeAllocationSampleHelper(&result);
-
-  // Disable stack allocation stack trace collection to avoid muddying up
-  // results.
-  MallocHooks::set_stack_trace_collection_enabled(false);
-  const int64_t after_allocations_micros = Dart_TimelineGetMicros();
-  const int64_t allocation_extent_micros =
-      after_allocations_micros - before_allocations_micros;
-
-  // Walk the trie and do a sanity check of the allocation values associated
-  // with each node.
-  {
-    Thread* thread = Thread::Current();
-    StackZone zone(thread);
-    Profile profile;
-
-    // Filter for the class in the time range.
-    NativeAllocationSampleFilter filter(before_allocations_micros,
-                                        allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::allocation_sample_buffer());
-    // We should have 1 allocation sample.
-    EXPECT_EQ(1, profile.sample_count());
-    ProfileStackWalker walker(&profile);
-
-    // Move down from the root.
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT_EQ(1024ul, profile.SampleAt(0)->native_allocation_size_bytes());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::Dart_TestProfiler_NativeAllocation()",
-                 walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCase::Run()", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunTest()", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunAll()", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT(!walker.Down());
-  }
-
-  MallocHooks::set_stack_trace_collection_enabled(true);
-  free(result);
-  MallocHooks::set_stack_trace_collection_enabled(false);
-
-  // Check to see that the native allocation sample associated with the memory
-  // freed above is marked as free and is no longer reported.
-  {
-    Thread* thread = Thread::Current();
-    StackZone zone(thread);
-    Profile profile;
-
-    // Filter for the class in the time range.
-    NativeAllocationSampleFilter filter(before_allocations_micros,
-                                        allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_block_buffer());
-    // We should have 0 allocation samples since we freed the memory.
-    EXPECT_EQ(0, profile.sample_count());
-  }
-
-  // Query with a time filter where no allocations occurred.
-  {
-    Thread* thread = Thread::Current();
-    StackZone zone(thread);
-    Profile profile;
-    NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profiler::sample_block_buffer());
-    // We should have no allocation samples because none occurred within
-    // the specified time range.
-    EXPECT_EQ(0, profile.sample_count());
-  }
-
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
-  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
-}
-#endif  // defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&        \
-        // defined(DEBUG) && defined(HOST_ARCH_X64)
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
   EnableProfiler();

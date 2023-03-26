@@ -164,13 +164,19 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
       } else if (expression is InstanceInvocation) {
-        VariableDeclaration receiver = createVariable(
-            expression.receiver, inferredReceiverType ?? const DynamicType());
-        expression.receiver = createVariableGet(receiver)..parent = expression;
-        return createLet(
-            receiver,
-            InvocationInferenceResult._insertHoistedExpressions(
-                expression, hoistedArguments));
+        if (!isPureExpression(expression.receiver)) {
+          VariableDeclaration receiver = createVariable(
+              expression.receiver, inferredReceiverType ?? const DynamicType());
+          expression.receiver = createVariableGet(receiver)
+            ..parent = expression;
+          return createLet(
+              receiver,
+              InvocationInferenceResult._insertHoistedExpressions(
+                  expression, hoistedArguments));
+        } else {
+          return InvocationInferenceResult._insertHoistedExpressions(
+              expression, hoistedArguments);
+        }
       } else if (expression is LocalFunctionInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);

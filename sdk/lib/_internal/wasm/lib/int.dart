@@ -26,16 +26,13 @@ class int {
 }
 
 @pragma("wasm:entry-point")
-class _BoxedInt extends int {
+final class _BoxedInt extends int {
   // A boxed int contains an unboxed int.
   @pragma("wasm:entry-point")
   int value = 0;
 
   /// Dummy factory to silence error about missing superclass constructor.
   external factory _BoxedInt();
-
-  @override
-  Type get runtimeType => int;
 
   external num operator +(num other);
   external num operator -(num other);
@@ -688,18 +685,6 @@ class _BoxedInt extends int {
     const int MINUS_SIGN = 0x2d;
     // Character code for '0'.
     const int DIGIT_ZERO = 0x30;
-    if (negSmi > -10) {
-      return _OneByteString._allocate(2)
-        .._setAt(0, MINUS_SIGN)
-        .._setAt(1, DIGIT_ZERO - negSmi);
-    }
-    if (negSmi > -100) {
-      int digitIndex = 2 * -negSmi;
-      return _OneByteString._allocate(3)
-        .._setAt(0, MINUS_SIGN)
-        .._setAt(1, _digitTable[digitIndex])
-        .._setAt(2, _digitTable[digitIndex + 1]);
-    }
     // Number of digits, not including minus.
     int digitCount = _negativeBase10Length(negSmi);
     _OneByteString result = _OneByteString._allocate(digitCount + 1);

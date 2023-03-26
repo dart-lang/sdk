@@ -21,22 +21,38 @@ void testRuntimeTypeEquality(bool expected, Object a, Object b) {
   Expect.equals(expected, result2);
 }
 
-main() {
-  Expect.equals(bool, getType1(true));
-  Expect.equals(getType2<bool>(), getType1(false));
-  Expect.equals(getType2<int>(), getType1(1));
-  Expect.equals(getType2<(bool, int)>(), getType1((true, 3)));
-  Expect.equals(getType2<({int bar, bool foo})>(), getType1((foo: true, bar: 2)));
-  Expect.equals(getType2<(int, bool, {int bar, bool foo})>(), getType1((1, foo: true, false, bar: 2)));
+class Base {}
 
-  testRuntimeTypeEquality(true, (1, 2), (3, 4));
-  testRuntimeTypeEquality(false, (1, 2), (1, 2, 3));
-  testRuntimeTypeEquality(false, (1, 2), (1, false));
-  testRuntimeTypeEquality(true, (1, 2, foo: true), (foo: false, 5, 4));
-  testRuntimeTypeEquality(false, (1, 2, foo: true), (bar: false, 5, 4));
-  testRuntimeTypeEquality(true, (foo: 1, bar: 2), (bar: 3, foo: 4));
-  testRuntimeTypeEquality(false, (foo: 1, bar: 2), (1, foo: 2));
-  testRuntimeTypeEquality(false, (1, 2), 3);
-  testRuntimeTypeEquality(false, (1, 2), 'hey');
-  testRuntimeTypeEquality(false, (1, 2), [1, 2]);
+class A extends Base {}
+
+class B extends Base {}
+
+final Base a1 = A();
+final Base a2 = A();
+final Base a3 = A();
+final Base a4 = A();
+final Base a5 = A();
+
+final Base b1 = B();
+final Base b2 = B();
+
+main() {
+  Expect.equals(B, getType1(b1));
+  Expect.equals(getType2<B>(), getType1(b2));
+  Expect.equals(getType2<A>(), getType1(a1));
+  Expect.equals(getType2<(B, A)>(), getType1((b1, a3)));
+  Expect.equals(getType2<({A bar, B foo})>(), getType1((foo: b1, bar: a2)));
+  Expect.equals(
+      getType2<(A, B, {A bar, B foo})>(), getType1((a1, foo: b1, b2, bar: a2)));
+
+  testRuntimeTypeEquality(true, (a1, a2), (a3, a4));
+  testRuntimeTypeEquality(false, (a1, a2), (a1, a2, a3));
+  testRuntimeTypeEquality(false, (a1, a2), (a1, b2));
+  testRuntimeTypeEquality(true, (a1, a2, foo: b1), (foo: b2, a5, a4));
+  testRuntimeTypeEquality(false, (a1, a2, foo: b1), (bar: b2, a5, a4));
+  testRuntimeTypeEquality(true, (foo: a1, bar: a2), (bar: a3, foo: a4));
+  testRuntimeTypeEquality(false, (foo: a1, bar: a2), (a1, foo: a2));
+  testRuntimeTypeEquality(false, (a1, a2), a3);
+  testRuntimeTypeEquality(false, (a1, a2), 'hey');
+  testRuntimeTypeEquality(false, (a1, a2), [a1, a2]);
 }

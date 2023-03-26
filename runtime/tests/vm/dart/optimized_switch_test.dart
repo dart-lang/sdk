@@ -237,6 +237,7 @@ int? duplicateEnum(L v) {
       return 2;
     case L._1:
       return 3;
+    default:
   }
 }
 
@@ -263,6 +264,7 @@ int? nullableEnum(L? v) {
       return 1;
     case L._2:
       return 2;
+    default:
   }
 }
 
@@ -307,6 +309,7 @@ int? binarySearchEnumHole(S v) {
       return 0;
     case S._2:
       return 2;
+    default:
   }
 }
 
@@ -316,6 +319,7 @@ int? binarySearchEnumNoLowerBound(S v) {
       return 1;
     case S._2:
       return 2;
+    default:
   }
 }
 
@@ -325,6 +329,7 @@ int? binarySearchEnumNoUpperBound(S v) {
       return 0;
     case S._1:
       return 1;
+    default:
   }
 }
 
@@ -462,6 +467,7 @@ int? jumpTableEnumHole(L v) {
       return 15;
     case L._16:
       return 16;
+    default:
   }
 }
 
@@ -499,6 +505,7 @@ int? jumpTableEnumNoLowerBound(L v) {
       return 15;
     case L._16:
       return 16;
+    default:
   }
 }
 
@@ -536,6 +543,7 @@ int? jumpTableEnumNoUpperBound(L v) {
       return 14;
     case L._15:
       return 15;
+    default:
   }
 }
 

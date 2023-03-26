@@ -8,7 +8,7 @@ class A<T> {}
 
 class S {}
 
-class M<T> {}
+mixin M<T> {}
 
 class C1 = S with M;
 class C2 = S with C2;

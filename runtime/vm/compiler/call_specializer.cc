@@ -207,7 +207,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 void CallSpecializer::ReplaceCallWithResult(Definition* call,
                                             Instruction* replacement,
                                             Definition* result) {
-  ASSERT(!call->HasPushArguments());
+  ASSERT(!call->HasMoveArguments());
   if (result == nullptr) {
     ASSERT(replacement->IsDefinition());
     call->ReplaceWith(replacement->AsDefinition(), current_iterator());
@@ -1268,7 +1268,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       // One result only.
       AddReceiverCheck(call);
       ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
-      ASSERT(!call->HasPushArguments());
+      ASSERT(!call->HasMoveArguments());
       call->ReplaceUsesWith(bool_const);
       ASSERT(current_iterator()->Current() == call);
       current_iterator()->RemoveCurrentFromGraph();

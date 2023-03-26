@@ -209,6 +209,8 @@
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
+  FIELD(ReceivePort, send_port_offset)                                         \
+  FIELD(ReceivePort, handler_offset)                                           \
   FIELD(Record, shape_offset)                                                  \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \

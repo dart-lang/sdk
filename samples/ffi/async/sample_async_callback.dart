@@ -27,7 +27,7 @@ main() async {
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
   Expect.isTrue(NativeApi.majorVersion == 2);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.minorVersion >= 2);
   final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
@@ -105,7 +105,7 @@ final stopWorkSimulator =
 final executeCallback = dl.lookupFunction<Void Function(Pointer<Work>),
     void Function(Pointer<Work>)>('ExecuteCallback');
 
-class Work extends Opaque {}
+final class Work extends Opaque {}
 
 Future asyncSleep(int ms) {
   return new Future.delayed(Duration(milliseconds: ms));

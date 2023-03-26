@@ -882,7 +882,7 @@ abstract class _JsonStringifier {
 /// [Map] objects using the specified indent value.
 ///
 /// Subclasses should implement [writeIndentation].
-abstract class _JsonPrettyPrintMixin implements _JsonStringifier {
+mixin _JsonPrettyPrintMixin implements _JsonStringifier {
   int _indentLevel = 0;
 
   /// Add [indentLevel] indentations to the JSON output.

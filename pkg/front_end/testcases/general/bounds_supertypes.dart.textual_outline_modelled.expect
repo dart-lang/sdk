@@ -1,5 +1,3 @@
-class Class<T> {}
-
 class ConcreteClass implements Class<ConcreteClass> {}
 
 class ExtendsS1 extends G {}
@@ -33,8 +31,6 @@ class ExtendsT6 extends F<Class<ConcreteClass>> {}
 class ExtendsT7 extends F<Object> {}
 
 class ExtendsT8 extends F<int> {}
-
-class G<X extends Class<X>> {}
 
 class ImplementsS1 implements G {}
 
@@ -213,4 +209,9 @@ mixin MixinOnT5 on F<ConcreteClass> {}
 mixin MixinOnT6 on F<Class<ConcreteClass>> {}
 mixin MixinOnT7 on F<Object> {}
 mixin MixinOnT8 on F<int> {}
+
+mixin class Class<T> {}
+
+mixin class G<X extends Class<X>> {}
+
 typedef F<X extends Class<X>> = Class<X>;

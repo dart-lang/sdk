@@ -11,12 +11,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SuperFormalParameterTest);
+    defineReflectiveTests(SuperFormalParameterResolutionTest);
   });
 }
 
 @reflectiveTest
-class SuperFormalParameterTest extends PubPackageResolutionTest {
+class SuperFormalParameterResolutionTest extends PubPackageResolutionTest {
   test_element_typeParameterSubstitution_chained() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -102,10 +102,10 @@ SuperFormalParameter
         type: int
       name: b
       declaredElement: self::@class::B::@constructor::new::@parameter::a::@parameter::b
-      declaredElementType: int
+        type: int
     rightParenthesis: )
   declaredElement: self::@class::B::@constructor::new::@parameter::a
-  declaredElementType: T Function<T>(int)
+    type: T Function<T>(int)
 ''');
   }
 
@@ -123,7 +123,7 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: self::@function::f::@parameter::a
-  declaredElementType: dynamic
+    type: dynamic
 ''');
   }
 
@@ -145,7 +145,7 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: self::@class::B::@constructor::new::@parameter::a
-  declaredElementType: int?
+    type: int?
 ''');
   }
 
@@ -167,7 +167,7 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: self::@class::B::@constructor::new::@parameter::a
-  declaredElementType: int?
+    type: int?
 ''');
   }
 
@@ -190,7 +190,7 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: self::@class::B::@constructor::new::@parameter::a
-  declaredElementType: int
+    type: int
 ''');
   }
 
@@ -212,7 +212,7 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: self::@class::B::@constructor::new::@parameter::a
-  declaredElementType: int
+    type: int
 ''');
   }
 

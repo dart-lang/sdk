@@ -315,6 +315,7 @@ class StaticError implements Comparable<StaticError> {
     throw UnsupportedError("ErrorSource ${source.name}");
   }
 
+  @override
   String toString() {
     var buffer = StringBuffer("StaticError(");
     buffer.write("line: $line, column: $column");
@@ -599,7 +600,7 @@ class _ErrorExpectationParser {
         var messageMatch = _errorMessageRestRegExp.firstMatch(nextLine);
         if (messageMatch == null) break;
 
-        message += "\n" + messageMatch[1]!;
+        message += "\n${messageMatch[1]!}";
         _advance();
         sourceLines.add(_currentLine);
       }

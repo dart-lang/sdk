@@ -1,22 +1,21 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method test1(dynamic x) → dynamic {
   {
-    core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
         core::int y;
         {
-          final dynamic #0#0 = #t1;
+          final synthesized dynamic #0#0 = #t1;
           function ##0#6#initializer() → dynamic
             return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-          late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+          late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
           if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#6{core::int} in true))))
-            throw new _in::ReachabilityError::•();
+            throw new core::StateError::•("Pattern matching error");
         }
         if(y.{core::num::%}(10){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
           return y;
@@ -28,21 +27,21 @@ static method test1(dynamic x) → dynamic {
 }
 static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
   {
-    core::Iterator<core::List<core::String>> :sync-for-iterator = x.{core::Iterable::iterator}{core::Iterator<core::List<core::String>>};
+    synthesized core::Iterator<core::List<core::String>> :sync-for-iterator = x.{core::Iterable::iterator}{core::Iterator<core::List<core::String>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::List<core::String> #t3 = :sync-for-iterator.{core::Iterator::current}{core::List<core::String>};
       {
         core::String y;
         {
-          final dynamic #0#0 = #t3;
+          final synthesized dynamic #0#0 = #t3;
           function ##0#1#initializer() → core::int
             return #0#0{core::List<core::String>}.{core::List::length}{core::int};
-          late final core::int #0#1 = ##0#1#initializer(){() → core::int};
+          late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
           function ##0#4#initializer() → core::String
             return #0#0{core::List<core::String>}.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String};
-          late final core::String #0#4 = ##0#4#initializer(){() → core::String};
+          late final synthesized core::String #0#4 = ##0#4#initializer(){() → core::String};
           if(!(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#4 in true))))
-            throw new _in::ReachabilityError::•();
+            throw new core::StateError::•("Pattern matching error");
         }
         if(y.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
           return y;
@@ -54,18 +53,18 @@ static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
 }
 static method test3(core::Iterable<dynamic> x) → dynamic {
   {
-    core::Iterator<dynamic> :sync-for-iterator = x.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = x.{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
         core::int y;
         {
-          final dynamic #0#0 = #t5;
+          final synthesized dynamic #0#0 = #t5;
           function ##0#6#initializer() → dynamic
             return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-          late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+          late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
           if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = y = #0#6{core::int} in true))))
-            throw new _in::ReachabilityError::•();
+            throw new core::StateError::•("Pattern matching error");
         }
         return y;
       }

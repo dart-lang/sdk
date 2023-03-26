@@ -113,7 +113,7 @@ void DartDevIsolate::DartDevRunner::Run(
   int result = Thread::Start("DartDev Runner", RunCallback,
                              reinterpret_cast<uword>(this));
   if (result != 0) {
-    FATAL1("Failed to start DartDev thread: %d", result);
+    FATAL("Failed to start DartDev thread: %d", result);
   }
   monitor_->WaitMicros(Monitor::kNoTimeout);
 

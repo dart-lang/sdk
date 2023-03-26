@@ -243,16 +243,6 @@ void Expect::Null(const T p) {
   dart::Assert(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
 #endif
 
-// Leaving old non-varargs versions to avoid having to rewrite all uses.
-
-#define FATAL1(format, p1) dart::Assert(__FILE__, __LINE__).Fail(format, (p1))
-
-#define FATAL2(format, p1, p2)                                                 \
-  dart::Assert(__FILE__, __LINE__).Fail(format, (p1), (p2))
-
-#define FATAL3(format, p1, p2, p3)                                             \
-  dart::Assert(__FILE__, __LINE__).Fail(format, (p1), (p2), (p3))
-
 #define UNIMPLEMENTED() FATAL("unimplemented code")
 
 #define UNREACHABLE() FATAL("unreachable code")

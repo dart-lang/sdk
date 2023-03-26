@@ -4,7 +4,7 @@
 
 part of "core_patch.dart";
 
-abstract class _IntegerImplementation implements int {
+abstract final class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
@@ -558,7 +558,7 @@ abstract class _IntegerImplementation implements int {
 }
 
 @pragma("vm:entry-point")
-class _Smi extends _IntegerImplementation {
+final class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
     throw "Unreachable";
   }
@@ -733,18 +733,6 @@ class _Smi extends _IntegerImplementation {
     const int MINUS_SIGN = 0x2d;
     // Character code for '0'.
     const int DIGIT_ZERO = 0x30;
-    if (negSmi > -10) {
-      return _OneByteString._allocate(2)
-        .._setAt(0, MINUS_SIGN)
-        .._setAt(1, DIGIT_ZERO - negSmi);
-    }
-    if (negSmi > -100) {
-      int digitIndex = 2 * -negSmi;
-      return _OneByteString._allocate(3)
-        .._setAt(0, MINUS_SIGN)
-        .._setAt(1, _digitTable[digitIndex])
-        .._setAt(2, _digitTable[digitIndex + 1]);
-    }
     // Number of digits, not including minus.
     int digitCount = _negativeBase10Length(negSmi);
     _OneByteString result = _OneByteString._allocate(digitCount + 1);
@@ -772,7 +760,7 @@ class _Smi extends _IntegerImplementation {
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 @pragma("vm:entry-point")
-class _Mint extends _IntegerImplementation {
+final class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
     throw "Unreachable";
   }

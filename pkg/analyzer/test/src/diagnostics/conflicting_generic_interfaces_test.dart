@@ -81,7 +81,7 @@ class C extends B implements A<int> {}
     await assertErrorsInCode('''
 class I<T> {}
 class A implements I<int> {}
-class B implements I<String> {}
+mixin B implements I<String> {}
 class C extends A with B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),

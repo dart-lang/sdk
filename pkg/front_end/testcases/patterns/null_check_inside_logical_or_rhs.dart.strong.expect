@@ -5,10 +5,12 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #0#0 = x;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || (!(#0#0 == null) ?{core::bool} #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 : false)) {
-      {
-        break #L1;
+    final synthesized dynamic #0#0 = x;
+    {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || (!(#0#0 == null) ?{core::bool} #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 : false)) {
+        {
+          break #L1;
+        }
       }
     }
   }

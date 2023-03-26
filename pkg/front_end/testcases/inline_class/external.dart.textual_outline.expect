@@ -1,6 +1,6 @@
 abstract class A {}
-inline
-class B {
+
+inline class B {
   final A a;
   external B(A a);
   external B.named(int i);
@@ -15,4 +15,5 @@ class B {
   external static B get staticGetter;
   external static void set staticSetter(B b);
 }
+
 void method(A a) {}

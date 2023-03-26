@@ -14,7 +14,7 @@ class A<X> {
   A(X x);
 }
 
-class B {}
+mixin B {}
 
 class C1 = A<int> with B;
 class C2 = A<String> with B;

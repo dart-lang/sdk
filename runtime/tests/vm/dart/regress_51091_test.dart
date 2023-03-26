@@ -19,11 +19,9 @@ void test1() {
 }
 
 void test2(int arg) {
-  switch(arg) {
-    case == 0 && var x:
-      Expect.equals(0, x);
-    case == 1 && var x:
-      Expect.equals(1, x);
+  switch (arg) {
+    case == 0 && var x: Expect.equals(0, x);
+    case == 1 && var x: Expect.equals(1, x);
   }
   var x = 1;
   Expect.equals(1, x);

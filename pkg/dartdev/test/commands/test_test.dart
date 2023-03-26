@@ -11,10 +11,10 @@ import 'package:test/test.dart';
 import '../experiment_util.dart';
 import '../utils.dart';
 
-Future<void> main() async {
+void main() {
   ensureRunFromSdkBinDart();
 
-  final experiments = await experimentsWithValidation();
+  final experiments = experimentsWithValidation();
   group('test', () => defineTest(experiments), timeout: longTimeout);
 }
 
@@ -43,7 +43,7 @@ Usage: dart test [files or directories...]
     final result = await p.run(['help', 'test']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains(' tests for a project'));
+    expect(result.stdout, contains('Usage: dart test [arguments]'));
     expect(result.stderr, isEmpty);
   });
 
@@ -63,16 +63,8 @@ No pubspec.yaml file found - run this command in your project folder.
     var resultHelp = await p.run(['test', '--help']);
 
     expect(resultHelp.stderr, isEmpty);
-    expect(resultHelp.stdout, '''
-No pubspec.yaml file found - run this command in your project folder.
-
-Run tests for a project.
-
-Usage: dart test [arguments]
-
-
-Run "dart help" to see global options.
-''');
+    expect(resultHelp.stdout, contains('No pubspec.yaml file found'));
+    expect(resultHelp.stdout, contains('Usage: dart test [arguments]'));
     expect(resultHelp.exitCode, 65);
   });
 
@@ -101,7 +93,7 @@ void main() {
     p.file('pubspec.yaml', '''
 name: ${p.name}
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 ''');
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';

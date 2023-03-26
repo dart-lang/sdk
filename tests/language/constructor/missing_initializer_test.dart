@@ -8,7 +8,7 @@
 // generative constructors.
 
 // Has factory, hence no default, hence no generative constructors.
-abstract class A {
+abstract mixin class A {
   final dynamic n;
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED

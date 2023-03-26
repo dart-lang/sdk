@@ -6450,14 +6450,15 @@ main() {
           });
         });
 
-        test('Promotes scrutinee', () {
+        test('Does not promote scrutinee', () {
           // The code below is equivalent to:
           //     int x;
           //     dynamic y = ...;
           //     (x && _) = y;
-          //     // y is now promoted to `int`.
-          // The promotion occurs because the assignment to `x` performs an
-          // implicit downcast.
+          //     // y is *not* promoted to `int`.
+          // Although the assignment to `x` performs an implicit downcast, we
+          // don't promote `y` because patterns in irrefutable contexts don't
+          // trigger scrutinee promotion.
           var x = Var('x');
           var y = Var('y');
           h.run([
@@ -6468,7 +6469,7 @@ main() {
                 .and(wildcard()..errorId = 'WILDCARD')
                 .assign(y.expr)
                 .stmt,
-            checkPromoted(y, 'int'),
+            checkNotPromoted(y),
           ], expectedErrors: {
             'unnecessaryWildcardPattern(pattern: WILDCARD, '
                 'kind: logicalAndPatternOperand)',
@@ -6494,6 +6495,20 @@ main() {
             declare(x, type: 'int?'),
             declare(b, type: 'bool'),
             b.pattern().assign(x.expr.notEq(nullLiteral)).stmt,
+            if_(b.expr, [
+              // `x` is promoted because `b` is known to equal `x != null`.
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('As parenthesized pattern', () {
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            b.pattern().parenthesized.assign(x.expr.notEq(nullLiteral)).stmt,
             if_(b.expr, [
               // `x` is promoted because `b` is known to equal `x != null`.
               checkPromoted(x, 'int'),
@@ -6530,9 +6545,16 @@ main() {
           h.run([
             declare(x, initializer: expr('(dynamic,)')),
             declare(y, type: 'int'),
-            recordPattern([y.pattern().recordField()]).assign(x.expr).stmt,
-            checkPromoted(x, '(int,)'),
-          ]);
+            recordPattern([y.pattern().recordField()])
+                .and(wildcard(expectInferredType: '(int,)')
+                  ..errorId = 'WILDCARD')
+                .assign(x.expr)
+                .stmt,
+            checkNotPromoted(x),
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
         });
 
         test('Supertype of matched value type', () {
@@ -6541,9 +6563,16 @@ main() {
           h.run([
             declare(x, initializer: expr('(int,)')),
             declare(y, type: 'num'),
-            recordPattern([y.pattern().recordField()]).assign(x.expr).stmt,
+            recordPattern([y.pattern().recordField()])
+                .and(wildcard(expectInferredType: '(int,)')
+                  ..errorId = 'WILDCARD')
+                .assign(x.expr)
+                .stmt,
             checkNotPromoted(x),
-          ]);
+          ], expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)'
+          });
         });
       });
     });
@@ -6810,6 +6839,36 @@ main() {
           ifCase(x.expr, recordPattern([intLiteral(1).pattern.recordField()]), [
             checkNotPromoted(x),
           ]),
+        ]);
+      });
+    });
+
+    group('For-in statement:', () {
+      test('does not promote iterable', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<dynamic>')),
+          patternForIn(
+            wildcard(type: 'int'),
+            x.expr,
+            [],
+          ),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group('For-in collection element:', () {
+      test('does not promote iterable', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<dynamic>')),
+          patternForInElement(
+            wildcard(type: 'int'),
+            x.expr,
+            expr('Object').asCollectionElement,
+          ).inContextElementType('Object'),
+          checkNotPromoted(x),
         ]);
       });
     });
@@ -7961,23 +8020,23 @@ main() {
     });
 
     group('Pattern assignment:', () {
-      test('Promotes RHS', () {
+      test('Does not promote RHS', () {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
           wildcard().as_('int').assign(x.expr).stmt,
-          checkPromoted(x, 'int'),
+          checkNotPromoted(x),
         ]);
       });
     });
 
     group('Pattern variable declaration:', () {
-      test('Promotes RHS', () {
+      test('Does not promote RHS', () {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
           match(wildcard().as_('int'), x.expr),
-          checkPromoted(x, 'int'),
+          checkNotPromoted(x),
         ]);
       });
     });
@@ -8545,6 +8604,13 @@ main() {
           ]).stmt,
         ]);
       });
+
+      test('no cases', () {
+        h.run([
+          switchExpr(expr('A'), []).stmt,
+          checkReachable(false),
+        ]);
+      });
     });
 
     group('Switch statement:', () {
@@ -8978,6 +9044,38 @@ main() {
             ]),
           ]);
         });
+
+        test('Complex example', () {
+          // This is based on the code sample from
+          // https://github.com/dart-lang/sdk/issues/51644, except that the type
+          // of the scrutinee has been changed from `dynamic` to `Object?`.
+          var a1 = Var('a', identity: 'a1');
+          var a2 = Var('a', identity: 'a2');
+          var a3 = Var('a', identity: 'a3');
+          var a = PatternVariableJoin('a', expectedComponents: [a1, a2, a3]);
+          h.run([
+            switch_(expr('Object?'), [
+              switchStatementMember([
+                a1
+                    .pattern(type: 'String?')
+                    .nullCheck
+                    .when(a1.expr.is_('Never'))
+                    .switchCase,
+                a2
+                    .pattern(type: 'String?')
+                    .when(a2.expr.notEq(nullLiteral))
+                    .switchCase,
+                a3
+                    .pattern(type: 'String?')
+                    .nullAssert
+                    .when(a3.expr.eq(intLiteral(1)))
+                    .switchCase,
+              ], [
+                checkPromoted(a, 'String'),
+              ]),
+            ]),
+          ]);
+        });
       });
 
       group(
@@ -9134,6 +9232,31 @@ main() {
               [
                 checkPromoted(x, 'int'),
               ]),
+        ]);
+      });
+
+      test('Promotes to non-nullable if matched type is non-nullable', () {
+        // When the matched value type is non-nullable, and the variable's
+        // declared type is nullable, a successful match promotes the variable.
+        // This allows a case pattern of the form `T? x?` to promote `x` to
+        // non-nullable `T`.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Object'), x.pattern(type: 'int?'), [
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+
+      test('Does not promote to non-nullable if matched type is `Null`', () {
+        // Since `Null` is handled specially by `TypeOperations.classifyType`,
+        // make sure that we don't accidentally promote the variable to
+        // non-nullable when the matched value type is `Null`.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int?'), [
+            checkNotPromoted(x),
+          ]),
         ]);
       });
 

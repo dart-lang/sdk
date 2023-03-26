@@ -15,11 +15,32 @@ main() {
 
 @reflectiveTest
 class ClassUsedAsMixinTest extends PubPackageResolutionTest {
-  test_inside() async {
+  test_coreLib() async {
+    await assertErrorsInCode(r'''
+class Bar with Comparable<int> {
+  int compareTo(int x) => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 15, 15),
+    ]);
+  }
+
+  test_coreLib_language219() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.19
+class Bar with Comparable<int> {
+  int compareTo(int x) => 0;
+}
+''');
+  }
+
+  test_inside() async {
+    await assertErrorsInCode(r'''
 class Foo {}
 class Bar with Foo {}
-''');
+''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 28, 3),
+    ]);
   }
 
   test_inside_language219() async {

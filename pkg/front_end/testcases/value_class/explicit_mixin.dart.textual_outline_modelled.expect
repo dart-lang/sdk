@@ -1,3 +1,4 @@
+// @dart = 2.19
 import 'value_class_support_lib.dart';
 
 @valueClass

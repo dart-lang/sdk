@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' show max;
+import 'dart:typed_data' show Uint8List;
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
@@ -12,6 +13,17 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+/// Values for the type category table. Entries for masqueraded classes contain
+/// the class ID of the masquerade.
+class TypeCategory {
+  static const abstractClass = 0;
+  static const function = 1;
+  static const record = 2;
+  static const notMasqueraded = 3;
+  static const minMasqueradeClassId = 4;
+  static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
+}
 
 class InterfaceTypeEnvironment {
   final Map<TypeParameter, int> _typeOffsets = {};
@@ -86,6 +98,9 @@ class Types {
   /// Index value for function type parameter types, indexing into the type
   /// parameter index range of their corresponding function type.
   Map<TypeParameter, int> functionTypeParameterIndex = Map.identity();
+
+  /// An `i8` array of type category values, indexed by class ID.
+  late final w.Global typeCategoryTable = _buildTypeCategoryTable();
 
   Types(this.translator);
 
@@ -243,19 +258,64 @@ class Types {
   w.ValueType makeTypeNames(w.Instructions b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
-    DartType stringType = InterfaceType(
-        translator.stringBaseClass,
-        Nullability.nonNullable,
-        [translator.coreTypes.stringNonNullableRawType]);
     List<StringConstant> listStringConstant = [];
     for (String name in typeNames) {
       listStringConstant.add(StringConstant(name));
     }
     DartType listStringType = InterfaceType(
-        translator.immutableListClass, Nullability.nonNullable, [stringType]);
+        translator.immutableListClass,
+        Nullability.nonNullable,
+        [translator.coreTypes.stringNonNullableRawType]);
     translator.constants.instantiateConstant(null, b,
         ListConstant(listStringType, listStringConstant), expectedType);
     return expectedType;
+  }
+
+  /// Build a global array of byte values used to categorize runtime types.
+  w.Global _buildTypeCategoryTable() {
+    Set<Class> recordClasses = Set.from(translator.recordClasses.values);
+    Uint8List table = Uint8List(translator.classes.length);
+    for (int i = 0; i < translator.classes.length; i++) {
+      ClassInfo info = translator.classes[i];
+      ClassInfo? masquerade = info.masquerade;
+      Class? cls = info.cls;
+      int category;
+      if (cls == null || cls.isAbstract) {
+        category = TypeCategory.abstractClass;
+      } else if (cls == translator.closureClass) {
+        category = TypeCategory.function;
+      } else if (recordClasses.contains(cls)) {
+        category = TypeCategory.record;
+      } else if (masquerade == null || masquerade.classId == i) {
+        category = TypeCategory.notMasqueraded;
+      } else {
+        // Masqueraded class
+        assert(cls.enclosingLibrary.importUri.scheme == "dart");
+        assert(cls.name.startsWith('_'));
+        assert(masquerade.classId >= TypeCategory.minMasqueradeClassId);
+        assert(masquerade.classId <= TypeCategory.maxMasqueradeClassId);
+        category = masquerade.classId;
+      }
+      table[i] = category;
+    }
+
+    w.DataSegment segment = translator.m.addDataSegment(table);
+    w.ArrayType arrayType =
+        translator.wasmArrayType(w.PackedType.i8, "const i8", mutable: false);
+    w.DefinedGlobal global = translator.m
+        .addGlobal(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
+    // Initialize the global to a dummy array, since `array.new_data` is not
+    // a constant instruction and thus can't be used in the initializer.
+    global.initializer.array_new_fixed(arrayType, 0);
+    global.initializer.end();
+    // Create the actual table in the init function.
+    w.Instructions b = translator.initFunction.body;
+    b.i32_const(0);
+    b.i32_const(table.length);
+    b.array_new_data(arrayType, segment);
+    b.global_set(global);
+
+    return global;
   }
 
   bool isFunctionTypeParameter(TypeParameterType type) =>

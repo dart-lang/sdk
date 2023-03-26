@@ -173,7 +173,9 @@ class ExportCreator extends Transformer {
     returnType ??= _typeEnvironment.coreTypes.objectNonNullableRawType;
 
     var dartInstance = VariableDeclaration('#dartInstance',
-        initializer: node.arguments.positional[0], type: dartType)
+        initializer: node.arguments.positional[0],
+        type: dartType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
     block.add(dartInstance);
@@ -193,7 +195,8 @@ class ExportCreator extends Transformer {
 
     var jsExporter = VariableDeclaration('#jsExporter',
         initializer: AsExpression(getLiteral(proto), returnType),
-        type: returnType)
+        type: returnType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
     block.add(jsExporter);
@@ -258,7 +261,7 @@ class ExportCreator extends Transformer {
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
         var getSetMap = VariableDeclaration('#${exportName}Mapping',
-            initializer: getLiteral(), type: _objectType)
+            initializer: getLiteral(), type: _objectType, isSynthesized: true)
           ..fileOffset = node.fileOffset
           ..parent = node.parent;
         block.add(getSetMap);
@@ -283,10 +286,10 @@ class ExportCreator extends Transformer {
                   ]))));
         }
         if (setter != null) {
-          var setterParameter =
-              VariableDeclaration('#val', type: setter.setterType)
-                ..fileOffset = node.fileOffset
-                ..parent = node.parent;
+          var setterParameter = VariableDeclaration('#val',
+              type: setter.setterType, isSynthesized: true)
+            ..fileOffset = node.fileOffset
+            ..parent = node.parent;
           block.add(setProperty(
               VariableGet(getSetMap),
               'set',

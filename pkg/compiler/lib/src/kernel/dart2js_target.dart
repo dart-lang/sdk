@@ -111,6 +111,7 @@ class Dart2jsTarget extends Target {
         'dart:_js_helper',
         'dart:_late_helper',
         'dart:js',
+        'dart:js_interop',
         'dart:js_util'
       ];
 
@@ -153,6 +154,7 @@ class Dart2jsTarget extends Target {
     _nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsInteropChecks = JsInteropChecks(
         coreTypes,
+        hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
     // Process and validate first before doing anything with exports.

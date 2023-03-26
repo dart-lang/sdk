@@ -12,6 +12,7 @@ import 'dartfuzz.dart';
 
 const debug = false;
 const sigkill = 9;
+const negSigkill = -sigkill;
 const timeout = 60; // in seconds
 const dartHeapSize = 128; // in Mb
 
@@ -416,7 +417,7 @@ class DartFuzzTest {
             return ReportStatus.reported;
           }
           break;
-        case -sigkill:
+        case negSigkill:
           // Both had a time out.
           numTimeout++;
           timeoutSeeds.add(seed);
@@ -433,7 +434,7 @@ class DartFuzzTest {
         // When only true divergences are requested, any divergence
         // with at least one time out or out of memory error is
         // treated as a regular time out or skipped test, respectively.
-        if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
+        if (result1.exitCode == negSigkill || result2.exitCode == negSigkill) {
           numTimeout++;
           timeoutSeeds.add(seed);
           return ReportStatus.ignored;

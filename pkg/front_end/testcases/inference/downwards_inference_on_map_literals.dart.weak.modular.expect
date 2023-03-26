@@ -157,5 +157,5 @@ static method main() → dynamic {}
 constants  {
   #C1 = 1
   #C2 = "hello"
-  #C3 = <core::int*, core::String*>{#C1:#C2)
+  #C3 = <core::int*, core::String*>{#C1:#C2}
 }

@@ -24,7 +24,7 @@ library /*isNonNullableByDefault*/;
 //   void extendedAbstractMixedInConcreteMethod();
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:19:13: Error: The non-abstract class 'Mixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractMethod
 //  - Mixin.extendedConcreteMixedInAbstractMethod
 //  - Mixin.mixedInAbstractMethod
@@ -34,8 +34,8 @@ library /*isNonNullableByDefault*/;
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
 //
-// class Mixin {
-//       ^^^^^
+// mixin class Mixin {
+//             ^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.
 //   void extendedAbstractMixedInAbstractMethod(int i);
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -202,7 +202,7 @@ class Super extends core::Object {
   method extendedConcreteMixedInAbstractMethod() → void {}
   abstract method extendedAbstractMixedInAbstractMethod() → void;
 }
-class Mixin extends core::Object {
+mixin class Mixin extends core::Object {
   synthetic constructor •() → self::Mixin
     : super core::Object::•()
     ;

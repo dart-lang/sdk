@@ -94,6 +94,7 @@ class ThreadInterrupterWin : public AllStatic {
     // here as the thread which is being queried is suspended.
     Thread* thread = static_cast<Thread*>(os_thread->thread());
     if (thread != NULL) {
+      ThreadInterruptScope signal_handler_scope;
       Profiler::SampleThread(thread, its);
     }
     ResumeThread(handle);

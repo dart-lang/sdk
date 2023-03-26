@@ -230,7 +230,7 @@ const a = 1;
 ''');
     await resolveTestFile();
 
-    var directive = findNode.libraryDirective;
+    var directive = findNode.singleLibraryDirective;
 
     expect(directive.metadata, hasLength(1));
     Annotation annotation = directive.metadata[0];

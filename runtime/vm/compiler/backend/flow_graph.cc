@@ -14,6 +14,7 @@
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -158,7 +159,7 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   if (current->ArgumentCount() != 0) {
-    ASSERT(!current->HasPushArguments());
+    ASSERT(!current->HasMoveArguments());
   }
   iterator->RemoveCurrentFromGraph();
 }
@@ -436,7 +437,7 @@ void FlowGraph::ComputeIsReceiverRecursive(
   phi->set_is_receiver(PhiInstr::kReceiver);
   for (intptr_t i = 0; i < phi->InputCount(); ++i) {
     Definition* def = phi->InputAt(i)->definition();
-    if (def->IsParameter() && (def->AsParameter()->index() == 0)) continue;
+    if (def->IsParameter() && (def->AsParameter()->env_index() == 0)) continue;
     if (!def->IsPhi()) {
       phi->set_is_receiver(PhiInstr::kNotReceiver);
       break;
@@ -472,7 +473,7 @@ void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
 
 bool FlowGraph::IsReceiver(Definition* def) const {
   def = def->OriginalDefinition();  // Could be redefined.
-  if (def->IsParameter()) return (def->AsParameter()->index() == 0);
+  if (def->IsParameter()) return (def->AsParameter()->env_index() == 0);
   if (!def->IsPhi() || graph_entry()->HasSingleEntryPoint()) {
     return false;
   }
@@ -506,15 +507,21 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     // we allow nullable types, which may result in just generating
     // a null check rather than the more elaborate class check
     CompileType* type = receiver->Type();
-    const AbstractType* atype = type->ToAbstractType();
-    if (atype->IsInstantiated() && atype->HasTypeClass() &&
-        !atype->IsDynamicType()) {
-      if (type->is_nullable()) {
-        receiver_maybe_null = true;
-      }
-      receiver_class = atype->type_class();
-      if (receiver_class.is_implemented()) {
-        receiver_class = Class::null();
+    const intptr_t receiver_cid = type->ToNullableCid();
+    if (receiver_cid != kDynamicCid) {
+      receiver_class = isolate_group()->class_table()->At(receiver_cid);
+      receiver_maybe_null = type->is_nullable();
+    } else {
+      const AbstractType* atype = type->ToAbstractType();
+      if (atype->IsInstantiated() && atype->HasTypeClass() &&
+          !atype->IsDynamicType()) {
+        if (type->is_nullable()) {
+          receiver_maybe_null = true;
+        }
+        receiver_class = atype->type_class();
+        if (receiver_class.is_implemented()) {
+          receiver_class = Class::null();
+        }
       }
     }
   }
@@ -1216,18 +1223,21 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
 
     if (index >= 0 && function().is_unboxed_integer_parameter_at(index)) {
       constexpr intptr_t kCorrection = compiler::target::kIntSpillFactor - 1;
-      param = new (zone()) ParameterInstr(i, param_offset + kCorrection,
+      param = new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
+                                          param_offset + kCorrection,
                                           function_entry, kUnboxedInt64);
       param_offset += compiler::target::kIntSpillFactor;
     } else if (index >= 0 && function().is_unboxed_double_parameter_at(index)) {
       constexpr intptr_t kCorrection = compiler::target::kDoubleSpillFactor - 1;
-      param = new (zone()) ParameterInstr(i, param_offset + kCorrection,
+      param = new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
+                                          param_offset + kCorrection,
                                           function_entry, kUnboxedDouble);
       param_offset += compiler::target::kDoubleSpillFactor;
     } else {
       ASSERT(index < 0 || !function().is_unboxed_parameter_at(index));
       param =
-          new (zone()) ParameterInstr(i, param_offset, function_entry, kTagged);
+          new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
+                                      param_offset, function_entry, kTagged);
       param_offset++;
     }
     AllocateSSAIndex(param);
@@ -1302,8 +1312,11 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
   const intptr_t parameter_count = osr_variable_count();
   ASSERT(parameter_count == env->length());
   for (intptr_t i = 0; i < parameter_count; i++) {
-    ParameterInstr* param =
-        new (zone()) ParameterInstr(i, i, osr_entry, kTagged);
+    const intptr_t param_index = (i < num_direct_parameters())
+                                     ? i
+                                     : ParameterInstr::kNotFunctionParameter;
+    ParameterInstr* param = new (zone())
+        ParameterInstr(/*env_index=*/i, param_index, i, osr_entry, kTagged);
     AllocateSSAIndex(param);
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
@@ -1335,7 +1348,10 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
       param = new (Z) SpecialParameterInstr(SpecialParameterInstr::kStackTrace,
                                             DeoptId::kNone, catch_entry);
     } else {
-      param = new (Z) ParameterInstr(i, i, catch_entry, kTagged);
+      param = new (Z)
+          ParameterInstr(/*env_index=*/i,
+                         /*param_index=*/ParameterInstr::kNotFunctionParameter,
+                         i, catch_entry, kTagged);
     }
 
     AllocateSSAIndex(param);  // New SSA temp.
@@ -1558,7 +1574,7 @@ void FlowGraph::RenameRecursive(
         break;
       }
 
-      case Instruction::kPushArgument:
+      case Instruction::kMoveArgument:
         UNREACHABLE();
         break;
 
@@ -1628,7 +1644,7 @@ void FlowGraph::RenameRecursive(
           // Rename input operand.
           Definition* input = (*env)[i];
           ASSERT(input != nullptr);
-          ASSERT(!input->IsPushArgument());
+          ASSERT(!input->IsMoveArgument());
           Value* use = new (zone()) Value(input);
           phi->SetInputAt(pred_index, use);
         }
@@ -2013,9 +2029,13 @@ void FlowGraph::InsertRecordBoxing(Definition* def) {
     UNREACHABLE();
   }
   ASSERT(target != nullptr && !target->IsNull());
-  const auto& type = AbstractType::Handle(Z, target->result_type());
-  ASSERT(type.IsRecordType());
-  const RecordShape shape = RecordType::Cast(type).shape();
+
+  kernel::UnboxingInfoMetadata* unboxing_metadata =
+      kernel::UnboxingInfoMetadataOf(*target, Z);
+  ASSERT(unboxing_metadata != nullptr);
+  const RecordShape shape = unboxing_metadata->return_info.record_shape;
+  ASSERT(shape.num_fields() == 2);
+
   auto* x = new (Z)
       ExtractNthOutputInstr(new (Z) Value(def), 0, kTagged, kDynamicCid);
   auto* y = new (Z)
@@ -2414,7 +2434,7 @@ void FlowGraph::WidenSmiToInt32() {
         if (use_defn == NULL) {
           // We assume that tagging before returning or pushing argument costs
           // very little compared to the cost of the return/call itself.
-          ASSERT(!instr->IsPushArgument());
+          ASSERT(!instr->IsMoveArgument());
           if (!instr->IsReturn() &&
               (use->use_index() >= instr->ArgumentCount())) {
             gain--;
@@ -2998,7 +3018,7 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
   return phi;
 }
 
-void FlowGraph::InsertPushArguments() {
+void FlowGraph::InsertMoveArguments() {
   intptr_t max_argument_slot_count = 0;
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
@@ -3010,37 +3030,37 @@ void FlowGraph::InsertPushArguments() {
       if (arg_count == 0) {
         continue;
       }
-      PushArgumentsArray* arguments =
-          new (Z) PushArgumentsArray(zone(), arg_count);
+      MoveArgumentsArray* arguments =
+          new (Z) MoveArgumentsArray(zone(), arg_count);
       arguments->EnsureLength(arg_count, nullptr);
 
-      intptr_t top_of_stack_relative_index = 0;
+      intptr_t sp_relative_index = 0;
       for (intptr_t i = arg_count - 1; i >= 0; --i) {
         Value* arg = instruction->ArgumentValueAt(i);
         const auto rep = instruction->RequiredInputRepresentation(i);
-        (*arguments)[i] = new (Z) PushArgumentInstr(
-            arg->CopyWithType(Z), rep, top_of_stack_relative_index);
+        (*arguments)[i] = new (Z)
+            MoveArgumentInstr(arg->CopyWithType(Z), rep, sp_relative_index);
 
         static_assert(compiler::target::kIntSpillFactor ==
                           compiler::target::kDoubleSpillFactor,
                       "double and int are expected to be of the same size");
         RELEASE_ASSERT(rep == kTagged || rep == kUnboxedDouble ||
                        rep == kUnboxedInt64);
-        top_of_stack_relative_index +=
+        sp_relative_index +=
             (rep == kTagged) ? 1 : compiler::target::kIntSpillFactor;
       }
       max_argument_slot_count =
-          Utils::Maximum(max_argument_slot_count, top_of_stack_relative_index);
+          Utils::Maximum(max_argument_slot_count, sp_relative_index);
 
-      for (auto push_arg : *arguments) {
-        // Insert all PushArgument instructions immediately before call.
-        // PushArgumentInstr::EmitNativeCode may generate more efficient
-        // code for subsequent PushArgument instructions (ARM, ARM64).
-        InsertBefore(instruction, push_arg, /*env=*/nullptr, kEffect);
+      for (auto move_arg : *arguments) {
+        // Insert all MoveArgument instructions immediately before call.
+        // MoveArgumentInstr::EmitNativeCode may generate more efficient
+        // code for subsequent MoveArgument instructions (ARM, ARM64).
+        InsertBefore(instruction, move_arg, /*env=*/nullptr, kEffect);
       }
-      instruction->ReplaceInputsWithPushArguments(arguments);
+      instruction->ReplaceInputsWithMoveArguments(arguments);
       if (instruction->env() != nullptr) {
-        instruction->RepairPushArgsInEnvironment();
+        instruction->RepairArgumentUsesInEnvironment();
       }
     }
   }

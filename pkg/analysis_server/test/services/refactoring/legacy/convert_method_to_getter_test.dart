@@ -204,7 +204,7 @@ void test() {}
         'Cannot convert function returning void.');
   }
 
-  Future _assertInitialConditions_fatal(String message) async {
+  Future<void> _assertInitialConditions_fatal(String message) async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
@@ -212,7 +212,7 @@ void test() {}
 
   /// Checks that all conditions are OK and the result of applying the [Change]
   /// to [testUnit] is [expectedCode].
-  Future _assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;

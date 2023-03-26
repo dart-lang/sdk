@@ -16,6 +16,34 @@ main() {
 
 @reflectiveTest
 class CastFromNullAlwaysFailsTest extends PubPackageResolutionTest {
+  test_castPattern_Null_nonNullable() async {
+    await assertErrorsInCode('''
+void f(Null n, num m) {
+  (m as int) = n;
+}
+''', [
+      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 27, 8),
+    ]);
+  }
+
+  test_castPattern_Null_nullable() async {
+    await assertErrorsInCode('''
+void f(Null n, num? m) {
+  (m as int?) = n;
+}
+''', [
+      error(WarningCode.UNNECESSARY_CAST_PATTERN, 30, 2),
+    ]);
+  }
+
+  test_castPattern_nullable_nullable() async {
+    await assertNoErrorsInCode('''
+void f(num? n, num? m) {
+  (m as int?) = n;
+}
+''');
+  }
+
   test_Null_dynamic() async {
     await assertNoErrorsInCode('''
 void f(Null n) {

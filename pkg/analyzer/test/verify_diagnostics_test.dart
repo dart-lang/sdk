@@ -45,6 +45,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
+    // Also reports CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanatory text not part of the example), but there's
     // currently no way to do that.
@@ -89,6 +91,9 @@ class DocumentationValidator {
     'FfiCode.FIELD_INITIALIZER_IN_STRUCT',
     // This is not reported after 2.12, and the examples don't compile after 3.0.
     'FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER',
+    // The examples has more than one error message in 3.0.
+    // Also: CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY.
+    'FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
 
     // This no longer works in 3.0.
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
@@ -120,6 +125,8 @@ class DocumentationValidator {
     'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
 
+    // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+    'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
     // Produces more than one error range by design.
     // TODO: update verification to allow for multiple highlight ranges.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
@@ -189,15 +196,23 @@ class DocumentationValidator {
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
       _reportProblem('More than one error range in example');
     }
+    String content;
+    try {
+      content = snippet.substring(0, rangeStart) +
+          snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +
+          snippet.substring(rangeEnd + errorRangeEnd.length);
+    } on RangeError catch (exception) {
+      _reportProblem(exception.message.toString());
+      content = '';
+    }
     return _SnippetData(
-        snippet.substring(0, rangeStart) +
-            snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +
-            snippet.substring(rangeEnd + errorRangeEnd.length),
-        rangeStart,
-        rangeEnd - rangeStart - 2,
-        auxiliaryFiles,
-        experiments,
-        languageVersion);
+      content,
+      rangeStart,
+      rangeEnd - rangeStart - 2,
+      auxiliaryFiles,
+      experiments,
+      languageVersion,
+    );
   }
 
   /// Extract the snippets of Dart code from [documentationParts] that are

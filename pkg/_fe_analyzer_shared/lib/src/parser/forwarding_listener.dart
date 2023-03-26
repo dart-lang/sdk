@@ -2050,8 +2050,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
-    listener?.handleValuedFormalParameter(equals, token);
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
+    listener?.handleValuedFormalParameter(equals, token, kind);
   }
 
   @override

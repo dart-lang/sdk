@@ -97,7 +97,7 @@ Thread::Thread(bool is_vm_isolate)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
 #endif
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       next_(nullptr),
       heap_sampler_(this) {
 #else
@@ -451,16 +451,12 @@ ErrorPtr Thread::HandleInterrupts() {
     }
 
 #if !defined(PRODUCT)
-    // Don't block system isolates to process CPU samples to avoid blocking
-    // them during critical tasks (e.g., initial compilation).
-    if (!Isolate::IsSystemIsolate(isolate())) {
-      // Processes completed SampleBlocks and sends CPU sample events over the
-      // service protocol when applicable.
-      SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
-      if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
-        sample_buffer->ProcessCompletedBlocks();
-      }
+    if (isolate()->TakeHasCompletedBlocks()) {
+      Profiler::ProcessCompletedBlocks(this);
     }
+#endif  // !defined(PRODUCT)
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     HeapProfileSampler& sampler = heap_sampler();
     if (sampler.ShouldSetThreadSamplingInterval()) {
       sampler.SetThreadSamplingInterval();
@@ -468,7 +464,7 @@ ErrorPtr Thread::HandleInterrupts() {
     if (sampler.ShouldUpdateThreadEnable()) {
       sampler.UpdateThreadEnable();
     }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =

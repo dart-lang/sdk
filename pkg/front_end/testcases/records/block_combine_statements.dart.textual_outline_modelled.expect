@@ -1,0 +1,6 @@
+Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) => 
+switch (it) {}
+void main() {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

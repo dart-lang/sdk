@@ -65,9 +65,8 @@ Future runTests(Process process) {
   String outFile = path.join(tmpDir.path, 'out.js');
   String outFile2 = path.join(tmpDir.path, 'out2.js');
 
-  // TODO(48820): remove null safety flag.
-  process.stdin.writeln('--no-sound-null-safety --out="$outFile" "$inFile"');
-  process.stdin.writeln('--no-sound-null-safety --out="$outFile2" "$inFile"');
+  process.stdin.writeln('--out="$outFile" "$inFile"');
+  process.stdin.writeln('--out="$outFile2" "$inFile"');
   process.stdin.writeln('too many arguments');
   process.stdin.writeln(r'"nonexistent file.dart"');
   process.stdin.close();

@@ -14,10 +14,7 @@ class NoUnnamedConstructor extends core::Object {
     : super core::Object::•()
     ;
 }
-class MixMeIn extends core::Object {
-  synthetic constructor •() → self::MixMeIn
-    : super core::Object::•()
-    ;
+abstract class MixMeIn extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _Foo&NoUnnamedConstructor&MixMeIn = self::NoUnnamedConstructor with self::MixMeIn /*isAnonymousMixin*/  {
   synthetic constructor _() → self::_Foo&NoUnnamedConstructor&MixMeIn

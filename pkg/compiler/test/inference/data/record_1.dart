@@ -4,18 +4,35 @@
 
 /*member: main:[null]*/
 main() {
-  getRecord1();
   useRecord1();
+  useRecord2();
+  useRecord3();
 }
 
-// TODO(50701): This should be a record type.
-/*member: getRecord1:[null|subclass=Object]*/
+/*member: getRecord1:[Record(RecordShape(2), [[exact=JSUInt31], [exact=JSUInt31]])]*/
 (num, num) getRecord1() => (1, 1);
+/*member: getRecord2:[Record(RecordShape(2), [Value([exact=JSBool], value: true), Value([exact=JSBool], value: false)])]*/
+(bool, bool) getRecord2() => (true, false);
+/*member: getRecord3:[Record(RecordShape(2), [Value([exact=JSString], value: "a"), Value([exact=JSString], value: "b")])]*/
+dynamic getRecord3() => ('a', 'b');
 
-
-// TODO(50701): This should be a constant or JSUint31.
-/*member: useRecord1:[subclass=JSNumber]*/
+/*member: useRecord1:[exact=JSUInt31]*/
 useRecord1() {
   final r = getRecord1();
-  return r.$1;
+  return r
+      . /*[Record(RecordShape(2), [[exact=JSUInt31], [exact=JSUInt31]])]*/ $1;
+}
+
+/*member: useRecord2:Value([exact=JSBool], value: false)*/
+useRecord2() {
+  final r = getRecord2();
+  return r
+      . /*[Record(RecordShape(2), [Value([exact=JSBool], value: true), Value([exact=JSBool], value: false)])]*/ $2;
+}
+
+/*member: useRecord3:Value([exact=JSString], value: "b")*/
+useRecord3() {
+  final r = getRecord3();
+  return r
+      . /*[Record(RecordShape(2), [Value([exact=JSString], value: "a"), Value([exact=JSString], value: "b")])]*/ $2;
 }

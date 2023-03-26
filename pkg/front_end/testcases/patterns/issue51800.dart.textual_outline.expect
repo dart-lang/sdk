@@ -1,0 +1,16 @@
+class ExpansionTile {
+  const ExpansionTile({
+    this.expandedCrossAxisAlignment,
+  }) : assert(expandedCrossAxisAlignment != CrossAxisAlignment.baseline);
+  final CrossAxisAlignment? expandedCrossAxisAlignment;
+}
+
+enum CrossAxisAlignment {
+  start,
+  end,
+  center,
+  stretch,
+  baseline,
+}
+
+void main() {}

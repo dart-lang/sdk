@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(core::String? x) → dynamic {
+  #L1:
+  {
+    final synthesized core::String? #0#0 = x;
+    dynamic #t1;
+    {
+      lowered core::String? foobar#case#0;
+      lowered core::String? foobar#case#1;
+      lowered core::String? foobar#case#2;
+      if((!(#0#0 == null) ?{core::bool} #0#0{core::String} is{ForNonNullableByDefault} core::String? && (let final dynamic #t2 = foobar#case#0 = #0#0{core::String} in true) : false) && foobar#case#0{core::String} is{ForNonNullableByDefault} Never && (let final dynamic #t3 = #t1 = foobar#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::String? && (let final dynamic #t4 = foobar#case#1 = #0#0 in true) && !(foobar#case#1 == null) && (let final dynamic #t5 = #t1 = foobar#case#1 in true) || (let final dynamic #t6 = #0#0! in #0#0! is{ForNonNullableByDefault} core::String? && (let final dynamic #t7 = foobar#case#2 = #0#0! in true)) && foobar#case#2{core::String} =={core::String::==}{(core::Object) → core::bool} "foobar" && (let final dynamic #t8 = #t1 = foobar#case#2 in true)) {
+        core::String? foobar = #t1{core::String?};
+        {
+          return foobar{core::String}.{core::String::startsWith}("foo"){(core::Pattern, [core::int]) → core::bool};
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+}

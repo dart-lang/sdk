@@ -21,7 +21,7 @@ class C extends B {
   int get x => super.x;
 }
 
-class GetterConcrete {
+mixin class GetterConcrete {
   var _foo;
 
   get foo => _foo;

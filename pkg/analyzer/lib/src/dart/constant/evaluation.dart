@@ -32,21 +32,29 @@ import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ConstantEvaluationConfiguration {
-  /// During evaluation of enum constants we might need to report an error
-  /// that is associated with the [InstanceCreationExpression], but this
-  /// expression is synthetic. Instead, we remember the corresponding
-  /// [EnumConstantDeclaration] and report the error on it.
-  final Map<Expression, EnumConstantDeclaration> _enumConstants = {};
+  final Map<AstNode, AstNode> _errorNodes = {};
 
-  void addEnumConstant({
-    required EnumConstantDeclaration declaration,
-    required Expression initializer,
+  /// We evaluate constant values using expressions stored in elements.
+  /// But these expressions don't have offsets set.
+  /// This includes elements and expressions of the file being resolved.
+  /// So, to make sure that we report errors at right offsets, we "replace"
+  /// these constant expressions.
+  ///
+  /// A similar issue happens for enum values, which are desugared into
+  /// synthetic [InstanceCreationExpression], which never had any offsets.
+  /// So, we remember that any errors should be reported at the corresponding
+  /// [EnumConstantDeclaration]s.
+  void addErrorNode({
+    required AstNode? fromElement,
+    required AstNode? fromAst,
   }) {
-    _enumConstants[initializer] = declaration;
+    if (fromElement != null && fromAst != null) {
+      _errorNodes[fromElement] = fromAst;
+    }
   }
 
   AstNode errorNode(AstNode node) {
-    return _enumConstants[node] ?? node;
+    return _errorNodes[node] ?? node;
   }
 }
 
@@ -544,6 +552,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         _substitution = substitution {
     _dartObjectComputer = DartObjectComputer(
       typeSystem,
+      _library.featureSet,
       _errorReporter,
     );
   }
@@ -613,7 +622,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (operatorType == TokenType.CARET) {
       return _dartObjectComputer.eagerXor(node, leftResult, rightResult);
     } else if (operatorType == TokenType.EQ_EQ) {
-      return _dartObjectComputer.lazyEqualEqual(node, leftResult, rightResult);
+      return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
       return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT_EQ) {
@@ -927,6 +936,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
     if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
       return super.visitNamedType(node);
+    } else {
+      node.name.accept(this);
     }
 
     if (_substitution != null) {
@@ -1417,7 +1428,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
     // error code.
-    _error(node, null);
+    final errorNode = evaluationEngine.configuration.errorNode(node);
+    _error(errorNode, null);
     return null;
   }
 
@@ -1566,11 +1578,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 /// class and for collecting errors during evaluation.
 class DartObjectComputer {
   final TypeSystemImpl _typeSystem;
+  final FeatureSet _featureSet;
 
   /// The error reporter that we are using to collect errors.
   final ErrorReporter _errorReporter;
 
-  DartObjectComputer(this._typeSystem, this._errorReporter);
+  DartObjectComputer(this._typeSystem, this._featureSet, this._errorReporter);
 
   DartObjectImpl? add(BinaryExpression node, DartObjectImpl? leftOperand,
       DartObjectImpl? rightOperand) {
@@ -1698,7 +1711,7 @@ class DartObjectComputer {
       DartObjectImpl? rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.equalEqual(_typeSystem, rightOperand);
+        return leftOperand.equalEqual(_typeSystem, _featureSet, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1759,18 +1772,6 @@ class DartObjectComputer {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyAnd(_typeSystem, rightOperandComputer);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
-  DartObjectImpl? lazyEqualEqual(Expression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.lazyEqualEqual(_typeSystem, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1878,7 +1879,7 @@ class DartObjectComputer {
       DartObjectImpl? rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.notEqual(_typeSystem, rightOperand);
+        return leftOperand.notEqual(_typeSystem, _featureSet, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }

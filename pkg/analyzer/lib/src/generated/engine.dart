@@ -13,6 +13,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -144,6 +145,11 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
 class AnalysisOptionsImpl implements AnalysisOptions {
+  static bool get _runsByDartSdkAtLeast300 {
+    final sdkVersion = runningSdkVersion;
+    return sdkVersion != null && sdkVersion >= Version.parse('3.0.0');
+  }
+
   /// The cached [unlinkedSignature].
   Uint32List? _unlinkedSignature;
 
@@ -159,7 +165,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
   VersionConstraint? sourceLanguageConstraint =
-      noSoundNullSafety ? VersionConstraint.parse('>= 2.12.0') : null;
+      _runsByDartSdkAtLeast300 && noSoundNullSafety
+          ? VersionConstraint.parse('>= 2.12.0')
+          : null;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 

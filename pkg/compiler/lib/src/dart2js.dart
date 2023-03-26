@@ -664,6 +664,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.soundNullSafety, setNullSafetyMode),
     _OneOption(Flags.noSoundNullSafety, setNullSafetyMode),
     _OneOption(Flags.dumpUnusedLibraries, passThrough),
+    _OneOption(Flags.writeResources, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
@@ -731,13 +732,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   parseCommandLine(handlers, argv);
 
-  if (invoker == null) {
-    warning("The 'dart2js' entrypoint script is deprecated, "
-        "please use 'dart compile js' instead.");
-  } else if (verbose != null && !wantHelp) {
-    print("Compiler invoked from: '$invoker'");
-  }
-
   final diagnostic = diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnostic.verbose = verbose!;
@@ -775,6 +769,22 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   if (wantHelp || wantVersion) {
     helpAndExit(wantHelp, wantVersion, diagnostic.verbose);
+  }
+
+  if (invoker == null) {
+    final message = "The 'dart2js' entrypoint script is deprecated, "
+        "please use 'dart compile js' instead.";
+    // Aside from asking for `-h`, dart2js fails when it is invoked from its
+    // snapshot directly and not using the supported workflows.  However, we
+    // allow invoking dart2js from Dart sources to support the dart2js team
+    // local workflows and testing.
+    if (!Platform.script.path.endsWith(".dart")) {
+      _fail(message);
+    } else {
+      warning(message);
+    }
+  } else if (verbose != null) {
+    print("Compiler invoked from: '$invoker'");
   }
 
   if (arguments.isEmpty &&
@@ -856,8 +866,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       }
       break;
     case WriteStrategy.toData:
-      out ??= Uri.base.resolve('out.dill');
-      writeDataUri ??= Uri.base.resolve('$out.data');
+      writeDataUri ??= Uri.base.resolve('${out ?? 'global'}.data');
       options.add('${Flags.writeData}=${writeDataUri}');
       if (readStrategy == ReadStrategy.fromData) {
         _fail("Cannot read and write serialized data simultaneously.");
@@ -867,10 +876,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       }
       break;
     case WriteStrategy.toCodegen:
-      // TODO(johnniwinther): Avoid the need for an [out] value in this case or
-      // use [out] to pass [writeCodegenUri].
-      out ??= Uri.base.resolve('out');
-      writeCodegenUri ??= Uri.base.resolve('$out.code');
+      writeCodegenUri ??= Uri.base.resolve('${out ?? 'codegen'}.code');
       options.add('${Flags.writeCodegen}=${writeCodegenUri}');
       if (readStrategy == ReadStrategy.fromCodegen) {
         _fail("Cannot read and write serialized codegen simultaneously.");
@@ -930,7 +936,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       options.add('${Flags.codegenShards}=$codegenShards');
       break;
   }
-  options.add('--out=$out');
+  if (out != null) {
+    options.add('--out=$out');
+  }
   if (writeStrategy == WriteStrategy.toJs) {
     sourceMapOut = Uri.parse('$out.map');
     options.add('--source-map=${sourceMapOut}');
@@ -972,7 +980,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   diagnostic.registerFileProvider(inputProvider);
 
   RandomAccessFileOutputProvider outputProvider =
-      RandomAccessFileOutputProvider(out!, sourceMapOut,
+      RandomAccessFileOutputProvider(out, sourceMapOut,
           onInfo: diagnostic.info, onFailure: _fail);
 
   Future<api.CompilationResult> compilationDone(
@@ -980,8 +988,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     if (!result.isSuccess) {
       _fail('Compilation failed.');
     }
-    writeString(
-        Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
+    if (out != null) {
+      writeString(
+          Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
+    }
 
     String input = scriptName;
     int inputSize;
@@ -1082,10 +1092,9 @@ Future<api.CompilationResult> compile(List<String> argv,
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         String dataOutput =
             fe.relativizeUri(Uri.base, writeDataUri!, Platform.isWindows);
-        summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
+        summary += 'serialized to data: ${dataOutput}.';
         break;
       case WriteStrategy.toCodegen:
         processName = 'Serialized';
@@ -1103,7 +1112,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         '${_formatCharacterCount(outputSize)} $outputName in '
         '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
         '${await currentHeapCapacityInMb()} of memory');
-    if (primaryOutputSize != null) {
+    if (primaryOutputSize != null && out != null) {
       diagnostic.info('${_formatCharacterCount(primaryOutputSize)} $outputName '
           'in ${fe.relativizeUri(Uri.base, out!, Platform.isWindows)}');
     }

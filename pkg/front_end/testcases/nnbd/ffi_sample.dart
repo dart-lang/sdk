@@ -9,7 +9,7 @@ import 'dart:ffi';
 import "package:ffi/ffi.dart";
 
 /// Sample struct for dart:ffi library.
-class Coordinate extends Struct {
+final class Coordinate extends Struct {
   @Double()
   external double x;
 

@@ -4,15 +4,29 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import '../utils.dart';
 
 const numRuns = 10;
-final script = Platform.script.resolve('smoke.dart').toString();
+
+final smokeTestScript = r'''
+void main() {
+  print('Smoke test!');
+}
+''';
 
 void main() {
   group(
     'implicit dartdev smoke -',
     () {
+      late final String script;
+
+      setUpAll(() {
+        var p = project(mainSrc: smokeTestScript);
+        script = path.join(p.dirPath, p.relativeFilePath);
+      });
+
       test('dart smoke.dart', () async {
         for (int i = 1; i <= numRuns; ++i) {
           if (i % 5 == 0) {

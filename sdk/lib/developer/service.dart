@@ -8,7 +8,7 @@ part of dart.developer;
 /// could use to access the services provided by the Dart VM for
 /// debugging and inspecting Dart programs. This class encapsulates the
 /// version number and Uri for accessing this service.
-class ServiceProtocolInfo {
+final class ServiceProtocolInfo {
   /// The major version of the protocol. If the running Dart environment does
   /// not support the service protocol, this is 0.
   final int majorVersion = _getServiceMajorVersion();
@@ -56,7 +56,7 @@ class ServiceProtocolInfo {
 /// Access information about the service protocol and control the web server
 /// that provides access to the services provided by the Dart VM for
 /// debugging and inspecting Dart programs.
-class Service {
+final class Service {
   /// Get information about the service protocol (version number and
   /// Uri to access the service).
   static Future<ServiceProtocolInfo> getInfo() async {

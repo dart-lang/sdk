@@ -2,8 +2,6 @@ abstract class A<T> {
   foo(T x);
 }
 
-abstract class B<T> implements A<T> {}
-
 class C {
   foo(num x) {}
 }
@@ -12,3 +10,4 @@ class D<T extends num> extends C with B<T> {}
 
 class E<T extends num> = C with B<T>;
 main() {}
+mixin B<T> implements A<T> {}

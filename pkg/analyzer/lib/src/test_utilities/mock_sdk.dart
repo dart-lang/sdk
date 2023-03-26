@@ -16,6 +16,7 @@ final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary('async', [
     '''
 library dart.async;
 
+import 'dart:_internal' show Since;
 import 'dart:math';
 
 part 'stream.dart';
@@ -72,6 +73,7 @@ abstract class Timer {
   static void run(void callback()) {}
 }
 
+@Since("2.15")
 void unawaited(Future<void>? future) {}
 ''',
   ),
@@ -86,6 +88,7 @@ abstract class Stream<T> {
     throw 0;
   }
 
+  @Since("2.5")
   factory Stream.value(T value) {
     throw 0;
   }
@@ -159,12 +162,13 @@ abstract class HashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
+  @Since("2.1")
   factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
     throw 0;
   }
 }
 
-abstract class IterableMixin<E> implements Iterable<E> { }
+abstract mixin class IterableMixin<E> implements Iterable<E> { }
 
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   external factory LinkedHashMap(
@@ -191,6 +195,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
+  @Since("2.1")
   factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
     throw 0;
   }
@@ -213,11 +218,11 @@ abstract class LinkedHashSet<E> implements Set<E> {
   }
 }
 
-abstract class ListMixin<E> implements List<E> { }
+abstract mixin class ListMixin<E> implements List<E> { }
 
-abstract class MapMixin<K, V> implements Map<K, V> { }
+abstract mixin class MapMixin<K, V> implements Map<K, V> { }
 
-abstract class SetMixin<E> implements Set<E> { }
+abstract mixin class SetMixin<E> implements Set<E> { }
 
 abstract class Queue<E> implements Iterable<E> {
   bool remove(Object? value);
@@ -251,7 +256,7 @@ class JsonCodec {
 
 abstract class StringConversionSink { }
 
-abstract class StringConversionSinkMixin implements StringConversionSink { }
+abstract mixin class StringConversionSinkMixin implements StringConversionSink { }
 ''',
     )
   ],
@@ -268,6 +273,7 @@ library dart.core;
 import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 
+@Since("2.1")
 export 'dart:async' show Future, Stream;
 
 const deprecated = const Deprecated("next release");
@@ -281,6 +287,7 @@ void print(Object? object) {}
 class ArgumentError extends Error {
   ArgumentError([message]);
 
+  @Since("2.1")
   static T checkNotNull<T>(T argument, [String, name]) => argument;
 }
 
@@ -290,14 +297,19 @@ class BigInt implements Comparable<BigInt> {
   static BigInt parse(String source, {int? radix}) => throw 0;
 }
 
-abstract class bool extends Object {
+abstract final class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue = false});
 
   external const factory bool.hasEnvironment(String name);
 
+  @Since("2.1")
   bool operator &(bool other);
+
+  @Since("2.1")
   bool operator |(bool other);
+
+  @Since("2.1")
   bool operator ^(bool other);
 }
 
@@ -326,7 +338,7 @@ class pragma {
   const pragma(this.name, [this.options]);
 }
 
-abstract class double extends num {
+abstract final class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
   static const double negativeInfinity = -infinity;
@@ -364,6 +376,7 @@ class Duration implements Comparable<Duration> {
   int compareTo(Duration other) => 0;
 }
 
+@Since("2.14")
 abstract class Enum {
   int get index; // Enum
   String get _name;
@@ -389,9 +402,9 @@ class Exception {
 
 class FormatException implements Exception {}
 
-class Function {}
+abstract final class Function {}
 
-abstract class int extends num {
+abstract final class int extends num {
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 
@@ -465,7 +478,10 @@ abstract class Iterator<E> {
 
 class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
+
+  @Since("2.9")
   external factory List.empty({bool growable = false});
+
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
   external factory List.generate(int length, E generator(int index),
@@ -518,7 +534,7 @@ abstract class Map<K, V> {
   V? remove(Object? key);
 }
 
-class Null extends Object {
+final class Null extends Object {
   factory Null._uninstantiable() {
     throw 0;
   }
@@ -531,7 +547,7 @@ class MapEntry<K, V> {
   const MapEntry._(this.key, this.value);
 }
 
-abstract class num implements Comparable<num> {
+sealed class num implements Comparable<num> {
   num operator %(num other);
   num operator *(num other);
   num operator +(num other);
@@ -574,8 +590,13 @@ class Object {
   external String toString();
   external dynamic noSuchMethod(Invocation invocation);
 
+  @Since("2.14")
   static int hash(Object? object1, Object? object2) => 0;
+
+  @Since("2.14")
   static int hashAll(Iterable<Object?> objects) => 0;
+
+  @Since("2.14")
   static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
@@ -583,7 +604,7 @@ abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
 
-abstract class Record {}
+abstract final class Record {}
 
 abstract class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
@@ -617,7 +638,7 @@ abstract class Sink {
 
 class StackTrace {}
 
-abstract class String implements Comparable<String>, Pattern {
+abstract final class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]);
 
@@ -684,63 +705,66 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
   MockSdkLibraryUnit(
     'ffi/ffi.dart',
     '''
+@Since('2.6')
 library dart.ffi;
 
-class NativeType {
+final class NativeType {
   const NativeType();
 }
 
-class Handle extends NativeType {}
+@Since('2.9')
+abstract final class Handle extends NativeType {}
 
-abstract class Opaque extends NativeType {}
+@Since('2.12')
+abstract base class Opaque extends NativeType {}
 
-class Void extends NativeType {}
+final class Void extends NativeType {}
 
-class Int8 extends NativeType {
+final class Int8 extends NativeType {
   const Int8();
 }
 
-class Uint8 extends NativeType {
+final class Uint8 extends NativeType {
   const Uint8();
 }
 
-class Int16 extends NativeType {
+final class Int16 extends NativeType {
   const Int16();
 }
 
-class Uint16 extends NativeType {
+final class Uint16 extends NativeType {
   const Uint16();
 }
 
-class Int32 extends NativeType {
+final class Int32 extends NativeType {
   const Int32();
 }
 
-class Uint32 extends NativeType {
+final class Uint32 extends NativeType {
   const Uint32();
 }
 
-class Int64 extends NativeType {
+final class Int64 extends NativeType {
   const Int64();
 }
 
-class Uint64 extends NativeType {
+final class Uint64 extends NativeType {
   const Uint64();
 }
 
-class Float extends NativeType {
+final class Float extends NativeType {
   const Float();
 }
 
-class Double extends NativeType {
+final class Double extends NativeType {
   const Double();
 }
 
-class IntPtr extends NativeType {
+final class IntPtr extends NativeType {
   const IntPtr();
 }
 
-class Pointer<T extends NativeType> extends NativeType {
+final class Pointer<T extends NativeType> extends NativeType {
   external factory Pointer.fromAddress(int ptr);
 
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
@@ -755,19 +779,22 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-class _Compound extends NativeType {}
+final class _Compound extends NativeType {}
 
-class Struct extends _Compound {}
+@Since('2.12')
+base class Struct extends _Compound {}
 
-class Union extends _Compound {}
+@Since('2.14')
+base class Union extends _Compound {}
 
-class Packed {
+@Since('2.13')
+final class Packed {
   final int memberAlignment;
 
   const Packed(this.memberAlignment);
 }
 
-abstract class DynamicLibrary {
+abstract final class DynamicLibrary {
   external factory DynamicLibrary.open(String name);
 }
 
@@ -776,13 +803,14 @@ extension DynamicLibraryExtension on DynamicLibrary {
       String symbolName, {bool isLeaf:false});
 }
 
-abstract class NativeFunction<T extends Function> extends NativeType {}
+abstract final class NativeFunction<T extends Function> extends NativeType {}
 
-class DartRepresentationOf {
+final class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
-class Array<T extends NativeType> extends NativeType {
+@Since('2.13')
+final class Array<T extends NativeType> extends NativeType {
   const factory Array(int dimension1,
       [int dimension2,
       int dimension3,
@@ -792,7 +820,7 @@ class Array<T extends NativeType> extends NativeType {
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
 }
 
-class _ArraySize<T extends NativeType> implements Array<T> {
+final class _ArraySize<T extends NativeType> implements Array<T> {
   final int? dimension1;
   final int? dimension2;
   final int? dimension3;
@@ -819,13 +847,14 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
-class FfiNative<T> {
+final class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;
   const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
-class Native<T> {
+@Since('2.19')
+final class Native<T> {
   final String? symbol;
   final String? asset;
   final bool isLeaf;
@@ -837,12 +866,12 @@ class Native<T> {
   });
 }
 
-class Asset {
+final class Asset {
   final String asset;
   const Asset(this.asset);
 }
 
-class Abi {
+final class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;
   static const androidIA32 = _androidIA32;
@@ -878,22 +907,25 @@ enum _OS {
   windows,
 }
 
-
-class AbiSpecificInteger extends NativeType {
+@Since('2.16')
+base class AbiSpecificInteger extends NativeType {
   const AbiSpecificInteger();
 }
 
-class AbiSpecificIntegerMapping {
+@Since('2.16')
+final class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
-abstract class Finalizable {
+@Since('2.17')
+abstract interface class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
 
-abstract class VarArgs<T extends Record> extends NativeType {}
+@Since('3.0')
+abstract final class VarArgs<T extends Record> extends NativeType {}
 ''',
   )
 ]);
@@ -1365,8 +1397,10 @@ void createMockSdk({
         json.encode({
           'version': 1,
           'experimentSets': {
-            'sdkExperiments': <String>[],
-            'nullSafety': ['non-nullable']
+            'sdkExperiments': <String>[
+              'class-modifiers',
+              'sealed-class',
+            ],
           },
           'sdk': {
             'default': {'experimentSet': 'sdkExperiments'},

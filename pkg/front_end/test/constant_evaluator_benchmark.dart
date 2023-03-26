@@ -86,7 +86,6 @@ void benchmark(Component component, List<Library> libraries) {
             environment,
             new SilentErrorReporter(),
             evaluationMode,
-            null,
             evaluateAnnotations: true,
             enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
             enableConstFunctions:

@@ -87,8 +87,6 @@ dart2js:              Compile to JavaScript using dart2js.
 dart2analyzer:        Perform static analysis on Dart code using the analyzer.
 compare_analyzer_cfe: Compare analyzer and common front end representations.
 ddc:                  Compile to JavaScript using dartdevc.
-dartdevc:             Compile to JavaScript using dartdevc (same as ddc).
-dartdevk:             Compile to JavaScript using dartdevc (same as ddc).
 app_jitk:             Compile the Dart code into Kernel and then into an app
                       snapshot.
 dartk:                Compile the Dart code into Kernel before running test.
@@ -281,11 +279,6 @@ compact, color, line, verbose, silent, status, buildbot''')
         help: '''Which set of non-nullable type features to use.
 
 Allowed values are: legacy, weak, strong''')
-    // TODO(rnystrom): This does not appear to be used. Remove?
-    ..addOption('build-directory',
-        aliases: ['build_directory'],
-        help: 'The name of the build directory, where products are placed.',
-        hide: true)
     ..addOption('output-directory',
         aliases: ['output_directory'],
         defaultsTo: "logs",
@@ -504,8 +497,8 @@ has been specified on the command line.''')
 
     var allSuiteDirectories = [
       ...testSuiteDirectories,
-      "tests/co19",
-      "tests/co19_2",
+      Path('tests/co19'),
+      Path('tests/co19_2'),
     ];
 
     var selectors = <String>[];
@@ -515,20 +508,24 @@ has been specified on the command line.''')
       // the command line.
       for (var suiteDirectory in allSuiteDirectories) {
         var path = suiteDirectory.toString();
-        if (selector.startsWith("$path/") || selector.startsWith("$path\\")) {
-          selector = selector.substring(path.lastIndexOf("/") + 1);
+        final separator = Platform.pathSeparator;
+        if (separator != '/') {
+          selector = selector.replaceAll(separator, '/');
+        }
+        if (selector.startsWith('$path/')) {
+          selector = selector.substring(path.lastIndexOf('/') + 1);
 
           // Remove the `src/` subdirectories from the co19 and co19_2
           // directories that do not appear in the test names.
-          if (selector.startsWith("co19")) {
-            selector = selector.replaceFirst(RegExp("src[/\]"), "");
+          if (selector.startsWith('co19')) {
+            selector = selector.replaceFirst(RegExp('src/'), '');
           }
           break;
         }
       }
 
       // If they tab complete to a single test, ignore the ".dart".
-      if (selector.endsWith(".dart")) {
+      if (selector.endsWith('.dart')) {
         selector = selector.substring(0, selector.length - 5);
       }
 

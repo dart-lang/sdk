@@ -381,7 +381,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       VariableUse usage) {
     assert(variable is ir.VariableDeclaration ||
         variable is TypeVariableTypeWithContext);
-    assert((usage as dynamic) != null); // TODO(48820): Remove.
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -971,7 +970,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitRecordLiteral(ir.RecordLiteral node) {
     EvaluationComplexity complexity = visitExpressions(node.positional);
-    return visitNamedExpressions(node.named, complexity);
+    complexity = visitNamedExpressions(node.named, complexity);
+    if (complexity.isConstant) return _evaluateImplicitConstant(node);
+    return complexity;
   }
 
   @override
@@ -1494,7 +1495,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       (node is ir.Procedure && node.isFactory);
 
   void _analyzeTypeVariable(ir.TypeParameterType type, VariableUse usage) {
-    assert((usage as dynamic) != null); // TODO(48820): Remove.
     final outermost = _outermostNode;
     if (outermost is ir.Member) {
       TypeVariableTypeWithContext typeVariable =

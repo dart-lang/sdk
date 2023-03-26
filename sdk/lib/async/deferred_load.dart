@@ -5,8 +5,8 @@
 part of dart.async;
 
 /// Thrown when a deferred library fails to load.
-class DeferredLoadException implements Exception {
-  DeferredLoadException(String message) : _s = message;
-  String toString() => "DeferredLoadException: '$_s'";
-  final String _s;
+final class DeferredLoadException implements Exception {
+  final String _message;
+  DeferredLoadException(String message) : _message = message;
+  String toString() => "DeferredLoadException: '$_message'";
 }

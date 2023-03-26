@@ -10,6 +10,8 @@ import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
 
 void main() async {
+  // Set to `true` for debug output.
+  final debug = false;
   var driver = await TestDriver.init();
 
   group('(Sound null safety)', () {
@@ -22,6 +24,7 @@ void main() async {
           soundNullSafety: true,
           legacyCode: false,
           moduleFormat: ModuleFormat.amd);
+      setup.options.verbose = debug;
       runAgnosticSharedTests(setup, driver);
       runNullSafeSharedTests(setup, driver);
     });

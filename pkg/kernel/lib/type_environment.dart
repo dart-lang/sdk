@@ -35,6 +35,8 @@ abstract class TypeEnvironment extends Types {
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
+  InterfaceType get objectNonNullableRawType =>
+      coreTypes.objectNonNullableRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
@@ -544,6 +546,9 @@ abstract class StaticTypeContext {
   /// The static type of a `this` expression.
   InterfaceType? get thisType;
 
+  /// The enclosing library of this context.
+  Library get enclosingLibrary;
+
   /// Creates a static type context for computing static types in the body
   /// of [member].
   factory StaticTypeContext(Member member, TypeEnvironment typeEnvironment,
@@ -622,6 +627,9 @@ class StaticTypeContextImpl implements StaticTypeContext {
       Library library, TypeEnvironment typeEnvironment,
       {StaticTypeCache? cache})
       : this.direct(library, typeEnvironment, cache: cache);
+
+  @override
+  Library get enclosingLibrary => _library;
 
   /// The [Nullability] used for non-nullable types.
   ///
@@ -727,6 +735,9 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   _FlatStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
 
+  @override
+  Library get enclosingLibrary => _library;
+
   Library get _library {
     Library? library = _currentLibrary ?? _currentMember?.enclosingLibrary;
     assert(library != null,
@@ -831,6 +842,9 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   _StackedStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
+
+  @override
+  Library get enclosingLibrary => _library;
 
   Library get _library {
     assert(_contextStack.isNotEmpty,

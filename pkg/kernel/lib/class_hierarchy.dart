@@ -42,6 +42,17 @@ abstract class ClassHierarchyBase {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+      {required bool isNonNullableByDefault});
+
+  /// Returns the type arguments of the instantiation of [superclass] that is
+  /// implemented by [type], or `null` if [type] does not implement [superclass]
+  /// at all.
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass);
+
   /// True if [subtype] inherits from [superclass] though zero or more
   /// `extends`, `with`, and `implements` relationships.
   bool isSubtypeOf(Class subtype, Class superclass);
@@ -64,6 +75,58 @@ abstract class ClassHierarchyBase {
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2,
       {required bool isNonNullableByDefault});
+}
+
+mixin ClassHierarchyInlineClassMixin {
+  CoreTypes get coreTypes;
+
+  InlineType? getInlineClassAsInstanceOf(
+      InlineClass subclass, InlineClass superclass,
+      {required bool isNonNullableByDefault}) {
+    // TODO(johnniwinther): Improve lookup performance.
+    if (identical(subclass, superclass)) {
+      return coreTypes.thisInlineType(
+          subclass,
+          isNonNullableByDefault
+              ? Nullability.nonNullable
+              : Nullability.legacy);
+    }
+    for (InlineType implement in subclass.implements) {
+      InlineType? supertype = getInlineClassAsInstanceOf(
+          implement.inlineClass, superclass,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (supertype != null) {
+        if (implement.typeArguments.isNotEmpty) {
+          supertype = Substitution.fromInlineType(implement)
+              .substituteType(supertype) as InlineType;
+        }
+        return supertype;
+      }
+    }
+    return null;
+  }
+
+  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+      {required bool isNonNullableByDefault}) {
+    InlineType? supertype = getInlineClassAsInstanceOf(
+        type.inlineClass, superclass,
+        isNonNullableByDefault: isNonNullableByDefault);
+    if (supertype != null) {
+      if (type.typeArguments.isNotEmpty) {
+        supertype = Substitution.fromInlineType(type).substituteType(supertype)
+            as InlineType;
+      }
+      return supertype;
+    }
+    return null;
+  }
+
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass) {
+    return getInlineTypeAsInstanceOf(type, superclass,
+            isNonNullableByDefault: true)
+        ?.typeArguments;
+  }
 }
 
 abstract class ClassHierarchyMembers {
@@ -455,7 +518,9 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 }
 
 /// Implementation of [ClassHierarchy] for closed world.
-class ClosedWorldClassHierarchy implements ClassHierarchy {
+class ClosedWorldClassHierarchy
+    with ClassHierarchyInlineClassMixin
+    implements ClassHierarchy {
   @override
   CoreTypes coreTypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypes;

@@ -110,7 +110,7 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/general/constants/const_collections.dart:49:48: Error: Constant evaluation error:
 // const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
 //                                                ^
-// pkg/front_end/testcases/general/constants/const_collections.dart:49:55: Context: The element 'WithEquals {i: 42}' does not have a primitive operator '=='.
+// pkg/front_end/testcases/general/constants/const_collections.dart:49:55: Context: The element 'WithEquals {i: 42}' does not have a primitive equality.
 //  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
 // const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
 //                                                       ^
@@ -161,7 +161,7 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/general/constants/const_collections.dart:65:56: Error: Constant evaluation error:
 // const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
 //                                                        ^
-// pkg/front_end/testcases/general/constants/const_collections.dart:66:9: Context: The key 'WithEquals {i: 42}' does not have a primitive operator '=='.
+// pkg/front_end/testcases/general/constants/const_collections.dart:66:9: Context: The key 'WithEquals {i: 42}' does not have a primitive equality.
 //  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
 //   const WithEquals(42): 42
 //         ^
@@ -314,7 +314,7 @@ static const field core::Set<core::String> quxWithCustomIterableSpread3 = invali
  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
 const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
                                                           ^";
-static const field core::Set<dynamic> setWithNonPrimitiveEquals = invalid-expression "The element 'WithEquals {i: 42}' does not have a primitive operator '=='.
+static const field core::Set<dynamic> setWithNonPrimitiveEquals = invalid-expression "The element 'WithEquals {i: 42}' does not have a primitive equality.
  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.";
 static const field core::Set<dynamic> setWithDuplicates = invalid-expression "The element '42' conflicts with another existing element in the set.";
 static const field core::Map<core::String, core::String>? nullMap = #C2;
@@ -334,7 +334,7 @@ static const field core::Map<core::String, core::String> mapWithCustomMap1 = inv
 static const field core::Map<core::String, core::String> mapWithCustomMap2 = invalid-expression "Only maps can be used in spreads in constant maps.";
 static const field core::Map<core::String, core::String> customMap = #C15;
 static const field core::Map<core::String, core::String> mapWithCustomMap3 = invalid-expression "Only maps can be used in spreads in constant maps.";
-static const field core::Map<dynamic, core::int> mapWithNonPrimitiveEqualsKey = invalid-expression "The key 'WithEquals {i: 42}' does not have a primitive operator '=='.
+static const field core::Map<dynamic, core::int> mapWithNonPrimitiveEqualsKey = invalid-expression "The key 'WithEquals {i: 42}' does not have a primitive equality.
  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.";
 static const field core::Map<core::int, core::int> mapWithDuplicates = invalid-expression "The key '42' conflicts with another existing key in the map.";
 static get fooAsGetter() → core::List<core::String>
@@ -372,9 +372,9 @@ constants  {
   #C9 = self::CustomIterable {}
   #C10 = <core::String>{#C4, #C5}
   #C11 = <core::String>{#C4, #C5, #C7}
-  #C12 = <core::String, core::String>{#C4:#C5)
+  #C12 = <core::String, core::String>{#C4:#C5}
   #C13 = "bye!"
-  #C14 = <core::String, core::String>{#C4:#C5, #C7:#C13)
+  #C14 = <core::String, core::String>{#C4:#C5, #C7:#C13}
   #C15 = self::CustomMap {}
   #C16 = <core::String>{#C4}
 }

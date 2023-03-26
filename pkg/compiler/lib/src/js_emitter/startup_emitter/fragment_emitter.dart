@@ -23,7 +23,7 @@ part of dart2js.js_emitter.startup_emitter.model_emitter;
 ///
 ///     // Inheritance is achieved by updating the prototype objects (hidden in
 ///     // a helper function):
-///     A.Point.prototype.__proto__ = H.Object.prototype;
+///     Object.setPrototypeOf(A.Point.prototype, H.Object.prototype);
 ///
 /// The emitter doesn't try to be clever and emits everything beforehand. This
 /// increases the output size, but improves performance.
@@ -93,7 +93,7 @@ function inherit(cls, sup) {
     if (supportsDirectProtoAccess) {
       // Firefox doesn't like to update the prototypes, but when setting up
       // the hierarchy chain it's ok.
-      cls.prototype.__proto__ = sup.prototype;
+      Object.setPrototypeOf(cls.prototype, sup.prototype);
       return;
     }
     var clsPrototype = Object.create(sup.prototype);
@@ -481,14 +481,14 @@ convertToFastObject(#staticState);
 })();
 ''';
 
-/// An expression that returns `true` if `__proto__` can be assigned to stitch
+/// An expression that returns `true` if `setPrototypeOf` can be called to stitch
 /// together a prototype chain, and the performance is good.
 const String _directAccessTestExpression = r'''
   (function () {
     var cls = function () {};
     cls.prototype = {'p': {}};
     var object = new cls();
-    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+    if (!(Object.getPrototypeOf(object) && Object.getPrototypeOf(object).p === cls.prototype.p))
       return false;
 
     try {

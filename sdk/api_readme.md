@@ -28,4 +28,4 @@ The main site for learning and using Dart is
 This API reference is automatically generated from source code in the [Dart
 SDK project](https://github.com/dart-lang/sdk).
 If you'd like to give feedback or edit this documentation, see
-[Contributing](https://github.com/dart-lang/sdk/wiki/Contributing).
+[Contributing](https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md).

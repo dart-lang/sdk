@@ -38,7 +38,7 @@ constants  {
   #C6 = 3
   #C7 = "key3"
   #C8 = 4
-  #C9 = <core::String, core::int>{#C4:#C2, #C5:#C6, #C7:#C8)
+  #C9 = <core::String, core::int>{#C4:#C2, #C5:#C6, #C7:#C8}
   #C10 = "key"
-  #C11 = <core::String, core::int>{#C10:#C2)
+  #C11 = <core::String, core::int>{#C10:#C2}
 }

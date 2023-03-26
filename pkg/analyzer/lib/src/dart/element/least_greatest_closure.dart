@@ -94,3 +94,36 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
     return super.visitTypeParameterType(type);
   }
 }
+
+class PatternGreatestClosureHelper extends ReplacementVisitor {
+  final TypeImpl topType;
+  final TypeImpl bottomType;
+  bool _isCovariant = true;
+
+  PatternGreatestClosureHelper({
+    required this.topType,
+    required this.bottomType,
+  });
+
+  @override
+  void changeVariance() {
+    _isCovariant = !_isCovariant;
+  }
+
+  /// Returns a supertype of [type] for all values of type parameters.
+  DartType eliminateToGreatest(DartType type) {
+    _isCovariant = true;
+    return type.accept(this) ?? type;
+  }
+
+  @override
+  DartType? visitTypeParameterType(TypeParameterType type) {
+    final replacement = _isCovariant ? topType : bottomType;
+    return replacement.withNullability(
+      uniteNullabilities(
+        replacement.nullabilitySuffix,
+        type.nullabilitySuffix,
+      ),
+    );
+  }
+}

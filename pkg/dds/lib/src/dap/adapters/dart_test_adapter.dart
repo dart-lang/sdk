@@ -47,8 +47,10 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// debug session.
   ///
   /// Since we do not support attaching for tests, this is always false.
+  @override
   bool get terminateOnVmServiceClose => false;
 
+  @override
   Future<void> debuggerConnected(vm.VM vmInfo) async {
     // Capture the PID from the VM Service so that we can terminate it when
     // cleaning up. Terminating the process might not be enough as it could be
@@ -63,6 +65,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   /// Called by [disconnectRequest] to request that we forcefully shut down the
   /// app being run (or in the case of an attach, disconnect).
+  @override
   Future<void> disconnectImpl() async {
     terminatePids(ProcessSignal.sigkill);
   }
@@ -72,6 +75,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   ///
   /// For debugging, this should start paused, connect to the VM Service, set
   /// breakpoints, and resume.
+  @override
   Future<void> launchImpl() async {
     final args = this.args as DartLaunchRequestArguments;
     File? vmServiceInfoFile;
@@ -163,6 +167,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   /// Called by [attachRequest] to request that we actually connect to the app
   /// to be debugged.
+  @override
   Future<void> attachImpl() async {
     sendOutput('console', '\nAttach is not supported for test runs');
     handleSessionTerminate();
@@ -170,8 +175,18 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
+  @override
   Future<void> terminateImpl() async {
     terminatePids(ProcessSignal.sigterm);
+
+    // Sending a kill signal to pkg:test doesn't cause it to exit immediately,
+    // instead it waits for the current test to complete. If the user is at
+    // a breakpoint this will never happen, which will encourage them to click
+    // Stop again. In VS Code, a second Stop is a non-graceful shutdown which
+    // may leave orphaned processes. To avoid this, attempt to resume and avoid
+    // any further pausing.
+    await preventBreakingAndResume();
+
     await _process?.exitCode;
   }
 

@@ -163,7 +163,7 @@ main() {
       otherFileResult.errors,
       expectedErrorsByNullability(
         nullable: [
-          error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
+          error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
         ],
         legacy: [],
       ),

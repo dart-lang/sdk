@@ -301,6 +301,21 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_functionInPattern() async {
+    final contents = '''
+bool [[greater]](int x, int y) => x > y;
+
+foo(int m) {
+  switch (pair) {
+    case (int a, int b) when g^reater(a,b):
+      break;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_locationLink_field() async {
     final mainContents = '''
     import 'referenced.dart';
@@ -527,6 +542,18 @@ class [[A]] {}
 
     newFile(mainFilePath, withoutMarkers(contents));
     await testContents(contents, inOpenFile: false);
+  }
+
+  Future<void> test_variableInPattern() async {
+    final contents = '''
+foo() {
+  var m = <String,int>{};
+  const [[str]] = 'h';
+  if (m case {'d':3, s^tr:4, ... }){}
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_varKeyword() async {

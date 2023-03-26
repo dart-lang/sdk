@@ -16,7 +16,7 @@ class Super {
   abstract int extendedAbstractMixedInAbstractField;
 }
 
-class Mixin {
+mixin Mixin {
   int mixedInConcreteField = 0;
 
   abstract int mixedInAbstractField;

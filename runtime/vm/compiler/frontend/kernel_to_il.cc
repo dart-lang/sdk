@@ -785,16 +785,6 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
 
 #ifdef DEBUG
-  // If we attached the native name to the function after it's creation (namely
-  // after reading the constant table from the kernel blob), we must have done
-  // so before building flow graph for the functions (since FGB depends needs
-  // the native name to be there).
-  const Script& script = Script::Handle(Z, function.script());
-  const KernelProgramInfo& info =
-      KernelProgramInfo::Handle(script.kernel_program_info());
-  ASSERT(info.IsNull() ||
-         info.potential_natives() == GrowableObjectArray::null());
-
   // Check that all functions that are explicitly marked as recognized with the
   // vm:recognized annotation are in fact recognized. The check can't be done on
   // function creation, since the recognized status isn't set until later.
@@ -802,13 +792,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
        MethodRecognizer::IsMarkedAsRecognized(function)) &&
       !function.IsDynamicInvocationForwarder()) {
     if (function.IsRecognized()) {
-      FATAL1(
-          "Recognized method %s is not marked with the vm:recognized pragma.",
-          function.ToQualifiedCString());
+      FATAL("Recognized method %s is not marked with the vm:recognized pragma.",
+            function.ToQualifiedCString());
     } else {
-      FATAL1(
-          "Non-recognized method %s is marked with the vm:recognized pragma.",
-          function.ToQualifiedCString());
+      FATAL("Non-recognized method %s is marked with the vm:recognized pragma.",
+            function.ToQualifiedCString());
     }
   }
 #endif
@@ -876,6 +864,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerEntry_getValue, FinalizerEntry_value)                             \
   V(NativeFinalizer_getCallback, NativeFinalizer_callback)                     \
   V(GrowableArrayLength, GrowableObjectArray_length)                           \
+  V(ReceivePort_getSendPort, ReceivePort_send_port)                            \
+  V(ReceivePort_getHandler, ReceivePort_handler)                               \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
   V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
   V(LinkedHashBase_getData, LinkedHashBase_data)                               \
@@ -901,6 +891,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(FinalizerBase_setDetachments, FinalizerBase_detachments)                   \
   V(FinalizerEntry_setToken, FinalizerEntry_token)                             \
   V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
+  V(ReceivePort_setHandler, ReceivePort_handler)                               \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
   V(SuspendState_setFunctionData, SuspendState_function_data)                  \

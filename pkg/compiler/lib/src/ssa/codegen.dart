@@ -39,6 +39,7 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart' show Tracer;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/resource_identifier.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import 'codegen_helpers.dart';
@@ -2101,6 +2102,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           node.sourceInformation));
     } else {
       StaticUse staticUse;
+      Object? resourceIdentifierAnnotation;
       if (element is ConstructorEntity) {
         CallStructure callStructure =
             CallStructure.unnamed(arguments.length, node.typeArguments.length);
@@ -2115,11 +2117,59 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             CallStructure.unnamed(arguments.length, node.typeArguments.length);
         staticUse =
             StaticUse.staticInvoke(element, callStructure, node.typeArguments);
+        if (_closedWorld.annotationsData.methodIsResourceIdentifier(element)) {
+          resourceIdentifierAnnotation = _methodResourceIdentifier(
+              element, callStructure, node.inputs, node.sourceInformation);
+        }
       }
       _registry.registerStaticUse(staticUse);
       push(_emitter.staticFunctionAccess(element));
       push(
           js.Call(pop(), arguments, sourceInformation: node.sourceInformation));
+      if (resourceIdentifierAnnotation != null) {
+        push(pop().withAnnotation(resourceIdentifierAnnotation));
+      }
+    }
+  }
+
+  ResourceIdentifier _methodResourceIdentifier(
+      FunctionEntity element,
+      CallStructure callStructure,
+      List<HInstruction> arguments,
+      SourceInformation? sourceInformation) {
+    ConstantValue? findConstant(HInstruction node) {
+      while (node is HLateValue) node = node.target;
+      return node is HConstant ? node.constant : null;
+    }
+
+    final definition = _closedWorld.elementMap.getMemberDefinition(element);
+    final uri = definition.location.uri;
+
+    final builder = ResourceIdentifierBuilder(element.name!, uri);
+
+    if (sourceInformation != null) {
+      _addSourceInformationToResourceIdentiferBuilder(
+          builder, sourceInformation);
+    }
+    for (int i = 0; i < arguments.length; i++) {
+      builder.add('${i + 1}', findConstant(arguments[i]));
+    }
+
+    return builder.finish();
+  }
+
+  void _addSourceInformationToResourceIdentiferBuilder(
+      ResourceIdentifierBuilder builder, SourceInformation sourceInformation) {
+    SourceLocation? location = sourceInformation.startPosition ??
+        sourceInformation.innerPosition ??
+        sourceInformation.endPosition;
+    if (location != null) {
+      final sourceUri = location.sourceUri;
+      if (sourceUri != null) {
+        // Is [sourceUri] normalized in some way or does that need to be done
+        // here?
+        builder.addLocation(sourceUri, location.line, location.column);
+      }
     }
   }
 

@@ -135,7 +135,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// Verifies that executing the given code actions command on the server
   /// results in an edit being sent to the client that updates the file to match
   /// the expected content.
-  Future verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
+  Future<void> verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
       String content, String expectedContent,
       {bool expectDocumentChanges = false,
       ProgressToken? workDoneToken}) async {

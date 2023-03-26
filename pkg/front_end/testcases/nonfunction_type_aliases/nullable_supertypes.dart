@@ -5,7 +5,9 @@
 import 'nullable_supertypes.dart' as prefix;
 
 class A {}
-class B {}
+
+mixin B {}
+
 class C {}
 
 typedef AAlias = A?;
@@ -53,5 +55,4 @@ mixin N2 on A, TAlias<B> {}
 
 mixin N3 on A implements TAlias<B> {}
 
-main() {
-}
+main() {}

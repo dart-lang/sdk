@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.19
+
 mixin M1 on Enum {
   final int values = 42; // Error.
 }

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
   test_left_equals() async {
-    await verifyVersion('2.5.0', '''
+    await verifyVersion('>=2.5.0', '''
 class A {
   const A();
 }
@@ -26,7 +26,7 @@ const c = a == null;
   }
 
   test_left_lessThan() async {
-    await verifyVersion('2.2.0', '''
+    await verifyVersion('>=2.2.0', '''
 class A {
   const A();
 }
@@ -38,7 +38,7 @@ const c = a == null;
   }
 
   test_right_equals() async {
-    await verifyVersion('2.5.0', '''
+    await verifyVersion('>=2.5.0', '''
 class A {
   const A();
 }
@@ -48,7 +48,7 @@ const c = 0 == a;
   }
 
   test_right_lessThan() async {
-    await verifyVersion('2.2.0', '''
+    await verifyVersion('>=2.2.0', '''
 class A {
   const A();
 }

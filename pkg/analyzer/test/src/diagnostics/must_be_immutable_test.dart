@@ -73,7 +73,7 @@ class A {
 import 'package:meta/meta.dart';
 @immutable
 class A {}
-class B {
+mixin B {
   int x = 0;
 }
 class C extends A with B {}
@@ -87,7 +87,7 @@ class C extends A with B {}
 import 'package:meta/meta.dart';
 @immutable
 class A {}
-class B {
+mixin B {
   int x = 0;
 }
 class C = A with B;
@@ -102,7 +102,7 @@ import 'package:meta/meta.dart';
 class A {
   int x = 0;
 }
-class B {}
+mixin B {}
 @immutable
 class C = A with B;
 ''', [

@@ -156,15 +156,13 @@ void f(bool? x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_alwaysExhaustive_boolNullable_true_false_null() async {
     await assertNoErrorsInCode(r'''
 void f(bool? x) {
   switch (x) {
     case true:
     case false:
-    case Null:
+    case null:
       break;
   }
 }
@@ -223,8 +221,6 @@ void f(E x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
   test_alwaysExhaustive_enum_2at2_logicalOr() async {
     await assertNoErrorsInCode(
       r'''
@@ -345,24 +341,6 @@ void f(M x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
-  test_alwaysExhaustive_sealedMixin_2at2() async {
-    await assertNoErrorsInCode(r'''
-sealed mixin M {}
-class A with M {}
-class B with M {}
-
-void f(M x) {
-  switch (x) {
-    case A():
-    case B():
-      break;
-  }
-}
-''');
-  }
-
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
     await assertErrorsInCode(r'''
 void f<T extends bool>(T x) {
@@ -406,7 +384,7 @@ void f<T>(T x) {
   }
 
   /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51275')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51819')
   test_alwaysExhaustive_typeVariable_promoted_bool_true_false() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T x) {

@@ -140,10 +140,10 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
     ASSERT1((arg_count + after_args_input_count) <= env_count, call);
     const intptr_t env_base = env_count - arg_count - after_args_input_count;
     for (intptr_t i = 0; i < arg_count; i++) {
-      if (call->HasPushArguments()) {
+      if (call->HasMoveArguments()) {
         ASSERT1(call->ArgumentAt(i) == env->ValueAt(env_base + i)
                                            ->definition()
-                                           ->AsPushArgument()
+                                           ->AsMoveArgument()
                                            ->value()
                                            ->definition(),
                 call);

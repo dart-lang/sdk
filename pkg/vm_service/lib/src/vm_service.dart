@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.1.0';
+const String vmServiceVersion = '4.4.0';
 
 /// @optional
 const String optional = 'optional';
@@ -211,6 +211,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences'],
   'getInstances': const ['InstanceSet'],
+  'getInstancesAsList': const ['InstanceRef'],
   'getIsolate': const ['Isolate'],
   'getIsolateGroup': const ['IsolateGroup'],
   'getMemoryUsage': const ['MemoryUsage'],
@@ -282,7 +283,7 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
@@ -319,7 +320,7 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
@@ -341,7 +342,7 @@ abstract class VmServiceInterface {
   /// entrypoint of some function.
   ///
   /// If no breakpoint is possible at the function entry, the `102` (Cannot add
-  /// breakpoint) [RPC error] code is returned.
+  /// breakpoint) RPC error code is returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -393,7 +394,7 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// If invocation triggers a failed compilation then [RPC error] 113
+  /// If invocation triggers a failed compilation then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If a runtime error occurs while evaluating the invocation, an [ErrorRef]
@@ -439,7 +440,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [RPC error] 113
+  /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -474,7 +475,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [RPC error] 113
+  /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -518,9 +519,9 @@ abstract class VmServiceInterface {
 
   /// The `getAllocationTraces` RPC allows for the retrieval of allocation
   /// traces for objects of a specific set of types (see
-  /// [setTraceClassAllocation]). Only samples collected in the time range
-  /// `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
-  /// reported.
+  /// [VmServiceInterface.setTraceClassAllocation]). Only samples collected in
+  /// the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  /// will be reported.
   ///
   /// If `classId` is provided, only traces for allocations with the matching
   /// `classId` will be reported.
@@ -554,7 +555,7 @@ abstract class VmServiceInterface {
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
   /// timeOriginMicros + timeExtentMicros]` will be reported.
   ///
-  /// If the profiler is disabled, an [RPC error] response will be returned.
+  /// If the profiler is disabled, an [RPCError] response will be returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -614,7 +615,7 @@ abstract class VmServiceInterface {
   /// yet been garbage collected.
   ///
   /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
-  /// must be the ID of a `Class`, otherwise an [RPC error] is returned.
+  /// must be the ID of a `Class`, otherwise an [RPCError] is returned.
   ///
   /// `limit` is the maximum number of instances to be returned.
   ///
@@ -636,6 +637,43 @@ abstract class VmServiceInterface {
     String isolateId,
     String objectId,
     int limit, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  });
+
+  /// The `getInstancesAsList` RPC is used to retrieve a set of instances which
+  /// are of a specific class. This RPC returns an `InstanceRef` corresponding
+  /// to a Dart `List<dynamic>` that contains the requested instances. This
+  /// `List` is not growable, but it is otherwise mutable. The response type is
+  /// what distinguishes this RPC from `getInstances`, which returns an
+  /// `InstanceSet`.
+  ///
+  /// The order of the instances is undefined (i.e., not related to allocation
+  /// order) and unstable (i.e., multiple invocations of this method against the
+  /// same class can give different answers even if no Dart code has executed
+  /// between the invocations).
+  ///
+  /// The set of instances may include objects that are unreachable but have not
+  /// yet been garbage collected.
+  ///
+  /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
+  /// must be the ID of a `Class`, otherwise an [RPCError] is returned.
+  ///
+  /// If `includeSubclasses` is true, instances of subclasses of the specified
+  /// class will be included in the set.
+  ///
+  /// If `includeImplementers` is true, instances of implementers of the
+  /// specified class will be included in the set. Note that subclasses of a
+  /// class are also considered implementers of that class.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<InstanceRef> getInstancesAsList(
+    String isolateId,
+    String objectId, {
     bool? includeSubclasses,
     bool? includeImplementers,
   });
@@ -884,8 +922,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter timeline events. It uses the same monotonic clock as
   /// dart:developer's `Timeline.now` and the VM embedding API's
-  /// `Dart_TimelineGetMicros`. See [getVMTimelineMicros] for access to this
-  /// clock through the service protocol.
+  /// `Dart_TimelineGetMicros`. See [VmServiceInterface.getVMTimelineMicros] for
+  /// access to this clock through the service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter timeline events should be.
@@ -895,18 +933,18 @@ abstract class VmServiceInterface {
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is Callback, an
-  /// [RPC error] with error code `114`, `invalid timeline request`, will be
+  /// [RPCError] with error code `114`, `invalid timeline request`, will be
   /// returned as timeline events are handled by the embedder in this mode.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
-  /// or Macos or Systrace, an [RPC error] with error code `114`, `invalid
+  /// or Macos or Systrace, an [RPCError] with error code `114`, `invalid
   /// timeline request`, will be returned as timeline events are handled by the
   /// OS in these modes.
   ///
-  /// If `getVMTimeline` is invoked while the current recorder is File, an [RPC
-  /// error] with error code `114`, `invalid timeline request`, will be returned
-  /// as timeline events are written directly to a file, and thus cannot be
-  /// retrieved through the VM Service, in this mode.
+  /// If `getVMTimeline` is invoked while the current recorder is File, an
+  /// [RPCError] with error code `114`, `invalid timeline request`, will be
+  /// returned as timeline events are written directly to a file, and thus
+  /// cannot be retrieved through the VM Service, in this mode.
   Future<Timeline> getVMTimeline(
       {int? timeOriginMicros, int? timeExtentMicros});
 
@@ -914,7 +952,7 @@ abstract class VmServiceInterface {
   /// timeline configuration.
   ///
   /// To change which timeline streams are currently enabled, see
-  /// [setVMTimelineFlags].
+  /// [VmServiceInterface.setVMTimelineFlags].
   ///
   /// See [TimelineFlags].
   Future<TimelineFlags> getVMTimelineFlags();
@@ -923,7 +961,7 @@ abstract class VmServiceInterface {
   /// clock used by the timeline, similar to `Timeline.now` in `dart:developer`
   /// and `Dart_TimelineGetMicros` in the VM embedding API.
   ///
-  /// See [Timestamp] and [getVMTimeline].
+  /// See [Timestamp] and [VmServiceInterface.getVMTimeline].
   Future<Timestamp> getVMTimelineMicros();
 
   /// The `pause` RPC is used to interrupt a running isolate. The RPC enqueues
@@ -1222,7 +1260,7 @@ abstract class VmServiceInterface {
   /// stream as a result of invoking this RPC.
   ///
   /// To get the list of currently enabled timeline streams, see
-  /// [getVMTimelineFlags].
+  /// [VmServiceInterface.getVMTimelineFlags].
   ///
   /// See [Success].
   Future<Success> setVMTimelineFlags(List<String> recordedStreams);
@@ -1230,7 +1268,7 @@ abstract class VmServiceInterface {
   /// The `streamCancel` RPC cancels a stream subscription in the VM.
   ///
   /// If the client is not subscribed to the stream, the `104` (Stream not
-  /// subscribed) [RPC error] code is returned.
+  /// subscribed) RPC error code is returned.
   ///
   /// See [Success].
   Future<Success> streamCancel(String streamId);
@@ -1248,7 +1286,7 @@ abstract class VmServiceInterface {
   /// the client will begin receiving events from the stream.
   ///
   /// If the client is already subscribed to the stream, the `103` (Stream
-  /// already subscribed) [RPC error] code is returned.
+  /// already subscribed) RPC error code is returned.
   ///
   /// The `streamId` parameter may have the following published values:
   ///
@@ -1474,6 +1512,14 @@ class VmServerConnection {
             params!['isolateId'],
             params['objectId'],
             params['limit'],
+            includeSubclasses: params['includeSubclasses'],
+            includeImplementers: params['includeImplementers'],
+          );
+          break;
+        case 'getInstancesAsList':
+          response = await _serviceImplementation.getInstancesAsList(
+            params!['isolateId'],
+            params['objectId'],
             includeSubclasses: params['includeSubclasses'],
             includeImplementers: params['includeImplementers'],
           );
@@ -1745,6 +1791,12 @@ class VmServerConnection {
         'id': id,
         'result': response.toJson(),
       });
+    } on SentinelException catch (e) {
+      _responseSink.add({
+        'jsonrpc': '2.0',
+        'id': request['id'],
+        'result': e.sentinel.toJson(),
+      });
     } catch (e, st) {
       final error = e is RPCError
           ? e.toMap()
@@ -2013,6 +2065,21 @@ class VmService implements VmServiceInterface {
         'isolateId': isolateId,
         'objectId': objectId,
         'limit': limit,
+        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
+        if (includeImplementers != null)
+          'includeImplementers': includeImplementers,
+      });
+
+  @override
+  Future<InstanceRef> getInstancesAsList(
+    String isolateId,
+    String objectId, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  }) =>
+      _call('getInstancesAsList', {
+        'isolateId': isolateId,
+        'objectId': objectId,
         if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
         if (includeImplementers != null)
           'includeImplementers': includeImplementers,
@@ -2801,6 +2868,9 @@ class InstanceKind {
 
   /// An instance of the Dart class ReceivePort.
   static const String kReceivePort = 'ReceivePort';
+
+  /// An instance of the Dart class UserTag.
+  static const String kUserTag = 'UserTag';
 }
 
 /// A `SentinelKind` is used to distinguish different kinds of `Sentinel`
@@ -3253,6 +3323,21 @@ class Class extends Obj implements ClassRef {
   /// Is this a const class?
   bool? isConst;
 
+  /// Is this a sealed class?
+  bool? isSealed;
+
+  /// Is this a mixin class?
+  bool? isMixinClass;
+
+  /// Is this a base class?
+  bool? isBaseClass;
+
+  /// Is this an interface class?
+  bool? isInterfaceClass;
+
+  /// Is this a final class?
+  bool? isFinal;
+
   /// Are allocations of this class being traced?
   bool? traceAllocations;
 
@@ -3292,6 +3377,11 @@ class Class extends Obj implements ClassRef {
     this.library,
     this.isAbstract,
     this.isConst,
+    this.isSealed,
+    this.isMixinClass,
+    this.isBaseClass,
+    this.isInterfaceClass,
+    this.isFinal,
     this.traceAllocations,
     this.interfaces,
     this.fields,
@@ -3322,6 +3412,11 @@ class Class extends Obj implements ClassRef {
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     isAbstract = json['abstract'] ?? false;
     isConst = json['const'] ?? false;
+    isSealed = json['isSealed'] ?? false;
+    isMixinClass = json['isMixinClass'] ?? false;
+    isBaseClass = json['isBaseClass'] ?? false;
+    isInterfaceClass = json['isInterfaceClass'] ?? false;
+    isFinal = json['isFinal'] ?? false;
     traceAllocations = json['traceAllocations'] ?? false;
     superClass =
         createServiceObject(json['super'], const ['ClassRef']) as ClassRef?;
@@ -3355,6 +3450,11 @@ class Class extends Obj implements ClassRef {
       'library': library?.toJson(),
       'abstract': isAbstract ?? false,
       'const': isConst ?? false,
+      'isSealed': isSealed ?? false,
+      'isMixinClass': isMixinClass ?? false,
+      'isBaseClass': isBaseClass ?? false,
+      'isInterfaceClass': isInterfaceClass ?? false,
+      'isFinal': isFinal ?? false,
       'traceAllocations': traceAllocations ?? false,
       'interfaces': interfaces?.map((f) => f.toJson()).toList(),
       'fields': fields?.map((f) => f.toJson()).toList(),
@@ -3705,7 +3805,7 @@ class ContextElement {
   String toString() => '[ContextElement value: $value]';
 }
 
-/// See [getCpuSamples] and [CpuSample].
+/// See [VmServiceInterface.getCpuSamples] and [CpuSample].
 class CpuSamples extends Response {
   static CpuSamples? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSamples._fromJson(json);
@@ -3870,7 +3970,7 @@ class CpuSamplesEvent {
       'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, functions: $functions, samples: $samples]';
 }
 
-/// See [getCpuSamples] and [CpuSamples].
+/// See [VmServiceInterface.getCpuSamples] and [CpuSamples].
 class CpuSample {
   static CpuSample? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSample._fromJson(json);
@@ -4009,7 +4109,7 @@ class ErrorRef extends ObjRef {
 }
 
 /// An `Error` represents a Dart language level error. This is distinct from an
-/// [RPC error].
+/// [RPCError].
 class Error extends Obj implements ErrorRef {
   static Error? parse(Map<String, dynamic>? json) =>
       json == null ? null : Error._fromJson(json);
@@ -5130,6 +5230,13 @@ class InstanceRef extends ObjRef {
   @optional
   String? debugName;
 
+  /// The label associated with a UserTag.
+  ///
+  /// Provided for instance kinds:
+  ///  - UserTag
+  @optional
+  String? label;
+
   InstanceRef({
     this.kind,
     this.identityHashCode,
@@ -5150,6 +5257,7 @@ class InstanceRef extends ObjRef {
     this.portId,
     this.allocationLocation,
     this.debugName,
+    this.label,
   }) : super(
           id: id,
         );
@@ -5193,6 +5301,7 @@ class InstanceRef extends ObjRef {
         createServiceObject(json['allocationLocation'], const ['InstanceRef'])
             as InstanceRef?;
     debugName = json['debugName'];
+    label = json['label'];
   }
 
   @override
@@ -5224,6 +5333,7 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'portId', portId);
     _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
     _setIfNotNull(json, 'debugName', debugName);
+    _setIfNotNull(json, 'label', label);
     return json;
   }
 
@@ -5578,6 +5688,14 @@ class Instance extends Obj implements InstanceRef {
   @override
   String? debugName;
 
+  /// The label associated with a UserTag.
+  ///
+  /// Provided for instance kinds:
+  ///  - UserTag
+  @optional
+  @override
+  String? label;
+
   Instance({
     this.kind,
     this.identityHashCode,
@@ -5614,6 +5732,7 @@ class Instance extends Obj implements InstanceRef {
     this.portId,
     this.allocationLocation,
     this.debugName,
+    this.label,
   }) : super(
           id: id,
           classRef: classRef,
@@ -5691,6 +5810,7 @@ class Instance extends Obj implements InstanceRef {
         createServiceObject(json['allocationLocation'], const ['InstanceRef'])
             as InstanceRef?;
     debugName = json['debugName'];
+    label = json['label'];
   }
 
   @override
@@ -5739,6 +5859,7 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'portId', portId);
     _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
     _setIfNotNull(json, 'debugName', debugName);
+    _setIfNotNull(json, 'label', label);
     return json;
   }
 
@@ -6153,7 +6274,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       'isolates: $isolates]';
 }
 
-/// See [getInboundReferences].
+/// See [VmServiceInterface.getInboundReferences].
 class InboundReferences extends Response {
   static InboundReferences? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReferences._fromJson(json);
@@ -6190,7 +6311,7 @@ class InboundReferences extends Response {
   String toString() => '[InboundReferences references: $references]';
 }
 
-/// See [getInboundReferences].
+/// See [VmServiceInterface.getInboundReferences].
 class InboundReference {
   static InboundReference? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReference._fromJson(json);
@@ -6249,7 +6370,7 @@ class InboundReference {
   String toString() => '[InboundReference source: $source]';
 }
 
-/// See [getInstances].
+/// See [VmServiceInterface.getInstances].
 class InstanceSet extends Response {
   static InstanceSet? parse(Map<String, dynamic>? json) =>
       json == null ? null : InstanceSet._fromJson(json);
@@ -6341,7 +6462,7 @@ class LibraryRef extends ObjRef {
 
 /// A `Library` provides information about a Dart language library.
 ///
-/// See [setLibraryDebuggable].
+/// See [VmServiceInterface.setLibraryDebuggable].
 class Library extends Obj implements LibraryRef {
   static Library? parse(Map<String, dynamic>? json) =>
       json == null ? null : Library._fromJson(json);
@@ -7070,7 +7191,7 @@ class Parameter {
 
 /// A `PortList` contains a list of ports associated with some isolate.
 ///
-/// See [getPort].
+/// See [VmServiceInterface.getPorts].
 class PortList extends Response {
   static PortList? parse(Map<String, dynamic>? json) =>
       json == null ? null : PortList._fromJson(json);
@@ -7166,7 +7287,7 @@ class ProfileFunction {
 /// A `ProtocolList` contains a list of all protocols supported by the service
 /// instance.
 ///
-/// See [Protocol] and [getSupportedProtocols].
+/// See [Protocol] and [VmServiceInterface.getSupportedProtocols].
 class ProtocolList extends Response {
   static ProtocolList? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProtocolList._fromJson(json);
@@ -7201,7 +7322,7 @@ class ProtocolList extends Response {
   String toString() => '[ProtocolList protocols: $protocols]';
 }
 
-/// See [getSupportedProtocols].
+/// See [VmServiceInterface.getSupportedProtocols].
 class Protocol {
   static Protocol? parse(Map<String, dynamic>? json) =>
       json == null ? null : Protocol._fromJson(json);
@@ -7242,7 +7363,7 @@ class Protocol {
       '[Protocol protocolName: $protocolName, major: $major, minor: $minor]';
 }
 
-/// Set [getProcessMemoryUsage].
+/// See [VmServiceInterface.getProcessMemoryUsage].
 class ProcessMemoryUsage extends Response {
   static ProcessMemoryUsage? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProcessMemoryUsage._fromJson(json);
@@ -7417,7 +7538,7 @@ class RetainingObject {
   String toString() => '[RetainingObject value: $value]';
 }
 
-/// See [getRetainingPath].
+/// See [VmServiceInterface.getRetainingPath].
 class RetainingPath extends Response {
   static RetainingPath? parse(Map<String, dynamic>? json) =>
       json == null ? null : RetainingPath._fromJson(json);
@@ -8003,7 +8124,7 @@ class SourceReportRange {
 /// The `Stack` class represents the various components of a Dart stack trace
 /// for a given isolate.
 ///
-/// See [getStack].
+/// See [VmServiceInterface.getStack].
 class Stack extends Response {
   static Stack? parse(Map<String, dynamic>? json) =>
       json == null ? null : Stack._fromJson(json);

@@ -9,11 +9,8 @@ class A extends core::Object {
     : self::A::v1 = v1, self::A::v2 = v2, super core::Object::•()
     ;
 }
-class M1 extends core::Object {
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   field core::num v2 = 1.{core::int::unary-}(){() → core::int};
-  synthetic constructor •() → self::M1
-    : super core::Object::•()
-    ;
 }
 class C = self::A with self::M1 {
   synthetic constructor •(core::bool v1, core::num v2) → self::C

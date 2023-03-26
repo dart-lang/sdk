@@ -526,8 +526,8 @@ class B extends A {
     assertNoImplementedMember('m() => 0');
   }
 
-  Future waitForImplementedElements() {
-    Future waitForNotification(int times) {
+  Future<void> waitForImplementedElements() {
+    Future<void> waitForNotification(int times) {
       if (times == 0 || implementedClasses != null) {
         return Future.value();
       }

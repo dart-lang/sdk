@@ -102,7 +102,6 @@ nnbd_mixed/no_null_shorting_explicit_extension: semiFuzzFailureOnForceRebuildBod
 nnbd_mixed/no_null_shorting_extension: semiFuzzFailureOnForceRebuildBodies # private field in class
 nnbd_mixed/nullable_extension_on_opt_out: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd_mixed/object_bound_redirecting_factory/main: semiFuzzFailureOnForceRebuildBodies # private constructor
-nnbd_mixed/unsound_checks: RuntimeError # https://github.com/dart-lang/sdk/issues/51053
 nnbd/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 nnbd/issue42504: semiFuzzFailureOnForceRebuildBodies # private class
 nnbd/issue43918: semiFuzzFailureOnForceRebuildBodies # private class
@@ -232,7 +231,6 @@ nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 nnbd_mixed/mixin_from_opt_in/main: RuntimeError
 patterns/pattern_types: TypeCheckError
-patterns/shared_errors: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

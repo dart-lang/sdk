@@ -31,9 +31,6 @@ class InstanceRefElement extends CustomElement implements Renderable {
   factory InstanceRefElement(
       M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
       {RenderingQueue? queue, bool expandable = true}) {
-    assert(isolate != null);
-    assert(instance != null);
-    assert(objects != null);
     InstanceRefElement e = new InstanceRefElement.created();
     e._r = new RenderingScheduler<InstanceRefElement>(e, queue: queue);
     e._isolate = isolate;

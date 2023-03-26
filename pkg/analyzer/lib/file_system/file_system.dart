@@ -149,6 +149,15 @@ abstract class Folder implements Resource {
   ResourceWatcher watch();
 }
 
+/// Exception thrown when a file operation fails because a file or directory
+/// does not exist.
+class PathNotFoundException extends FileSystemException {
+  PathNotFoundException(super.path, super.message);
+
+  @override
+  String toString() => 'PathNotFoundException(path=$path; message=$message)';
+}
+
 /// The abstract class [Resource] is an abstraction of file or folder.
 abstract class Resource {
   /// Return `true` if this resource exists.

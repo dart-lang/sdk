@@ -99,10 +99,6 @@ class ClassFinalizer : public AllStatic {
       FinalizationKind finalization = kCanonicalize,
       PendingTypes* pending_types = nullptr);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  static void AllocateEnumValues(const Class& enum_cls);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   static void FinalizeTypeParameters(
       Zone* zone,
       const Class& cls,

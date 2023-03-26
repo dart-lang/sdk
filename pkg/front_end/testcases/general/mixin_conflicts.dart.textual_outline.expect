@@ -1,15 +1,13 @@
-class M {
+mixin M {
   foo() {}
 }
-
-class N = Object with M;
+mixin class N = Object with M;
 
 class C extends Object with N {}
 
-abstract class M2 implements M {
+mixin M2 implements M {
   bar() {}
 }
-
 class N2 = Object with M2;
 abstract class N3 = Object with M2;
 

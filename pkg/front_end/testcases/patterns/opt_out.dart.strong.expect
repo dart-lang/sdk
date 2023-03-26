@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  switch(1) {
+    #L1:
+    case #C1:
+      {
+        core::print("one");
+      }
+  }
+}
+
+constants  {
+  #C1 = 1
+}

@@ -20,25 +20,25 @@ impossible to attribute of every single byte from the snapshot to a particular
 place in the program with a 100% accuracy.
 
 * `--print-instructions-sizes-to` attributes _executable code_ from the snapshot
-to a particular Dart function (or internal stub) from which this code
-originated (ignoring deduplication). Executable code usually constitutes around
-half of the snapshot, those this varies depending on the application.
+  to a particular Dart function (or internal stub) from which this code
+  originated (ignoring deduplication). Executable code usually constitutes
+  around half of the snapshot, those this varies depending on the application.
 * `--write-v8-snapshot-profile-to` is a graph representation of the snapshot,
-it attributes bytes written into a snapshot to a node in the heap graph. This
-format covers both data and code sections of the snapshot.
+  it attributes bytes written into a snapshot to a node in the heap graph. This
+  format covers both data and code sections of the snapshot.
 * `--trace-precompiler-to` gives information about dependencies between
-compiled functions, allowing to determine why certain function was pulled into
-the snapshot.
+  compiled functions, allowing to determine why certain function was pulled into
+  the snapshot.
 
 ### Passing flags to the AOT compiler
 
-Both in `dart2native` and Flutter you can use `--extra-gen-snapshot-options` to
-pass flags to the AOT compiler:
+In both Flutter and `dart compile exe` / `dart compile aot-snapshot` you can use
+`--extra-gen-snapshot-options` to pass flags to the AOT compiler:
 
 ```console
 $ flutter build aot --release --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json
 
-$ dart2native --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json -o binary input.dart
+$ dart compile exe --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json -o binary input.dart
 ```
 
 Similarly with `--print-instructions-sizes-to`.

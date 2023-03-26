@@ -23,6 +23,10 @@ void main() {
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
 const String unsoundNullSafetyMessage =
     'Info: Compiling without sound null safety';
+const String unsoundNullSafetyError =
+    'Error: the flag --no-sound-null-safety is not supported in Dart 3.';
+const String unsoundNullSafetyWarning =
+    'Warning: the flag --no-sound-null-safety is deprecated and pending removal.';
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
@@ -385,7 +389,10 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love AOT'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  }, skip: isRunningOnIA32);
+  },
+      skip: isRunningOnIA32 ||
+          // Allow on MacOS after dart-lang/sdk#51707 is fixed.
+          Platform.isMacOS);
 
   test('Compile and run kernel snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
@@ -538,11 +545,10 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stdout, contains(unsoundNullSafetyError));
     expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    expect(result.exitCode, 64);
+    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
   }, skip: isRunningOnIA32);
 
   test('Compile and run exe with --sound-null-safety', () async {
@@ -577,40 +583,6 @@ void main() {}
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(result.stdout, contains('sound'));
-  }, skip: isRunningOnIA32);
-
-  test('Compile and run exe with --no-sound-null-safety', () async {
-    final p = project(mainSrc: '''void main() {
-      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
-    }''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-
-    var result = await p.run(
-      [
-        'compile',
-        'exe',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-
-    result = Process.runSync(
-      outFile,
-      [],
-    );
-
-    expect(result.stdout, contains('unsound'));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
   test('Compile exe without info', () async {
@@ -804,6 +776,7 @@ void main() {}
     );
 
     expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -958,6 +931,7 @@ void main() {}
     );
 
     expect(result.stderr, contains(unsoundNullSafetyMessage));
+    expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1006,6 +980,7 @@ void main() {}
     );
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1126,10 +1101,9 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, contains(unsoundNullSafetyMessage));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    expect(result.stdout, contains(unsoundNullSafetyError));
+    expect(result.exitCode, 64);
+    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
   });
 
   test('Compile JIT snapshot with --sound-null-safety', () async {
@@ -1175,9 +1149,9 @@ void main() {}
     );
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    expect(result.stdout, contains(unsoundNullSafetyError));
+    expect(result.exitCode, 64);
+    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
   });
 
   test('Compile JIT snapshot with training args', () async {
@@ -1310,6 +1284,9 @@ void main() {
       // Now perform the same basic compile and run test with the signed
       // dartaotruntime.
       await basicCompileTest();
-    }, skip: isRunningOnIA32);
+    },
+        skip: isRunningOnIA32 ||
+            // Allow on MacOS after dart-lang/sdk#51707 is fixed.
+            Platform.isMacOS);
   }
 }

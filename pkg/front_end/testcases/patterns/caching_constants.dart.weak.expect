@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+import "dart:collection";
+
+abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> = core::Object with col::MapMixin<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MyMap&Object&MapMixin<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>
+    : super core::Object::•()
+    ;
+  mixin-super-stub method containsKey(core::Object? key) → core::bool
+    return super.{col::MapMixin::containsKey}(key);
+  abstract mixin-stub operator [](core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapMixin::[]
+  abstract mixin-stub operator []=(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class self::_MyMap&Object&MapMixin::V% value) → void; -> col::MapMixin::[]=
+  abstract mixin-stub method clear() → void; -> col::MapMixin::clear
+  abstract mixin-stub method remove(core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapMixin::remove
+  abstract mixin-stub get keys() → core::Iterable<self::_MyMap&Object&MapMixin::K%>; -> col::MapMixin::keys
+  mixin-super-stub method cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>
+    return super.{col::MapMixin::cast}<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>();
+  mixin-super-stub method forEach((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void action) → void
+    return super.{col::MapMixin::forEach}(action);
+  mixin-super-stub method addAll(covariant-by-class core::Map<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> other) → void
+    return super.{col::MapMixin::addAll}(other);
+  mixin-super-stub method containsValue(core::Object? value) → core::bool
+    return super.{col::MapMixin::containsValue}(value);
+  mixin-super-stub method putIfAbsent(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class () → self::_MyMap&Object&MapMixin::V% ifAbsent) → self::_MyMap&Object&MapMixin::V%
+    return super.{col::MapMixin::putIfAbsent}(key, ifAbsent);
+  mixin-super-stub method update(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class (self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_MyMap&Object&MapMixin::V% ifAbsent = #C1}) → self::_MyMap&Object&MapMixin::V%
+    return super.{col::MapMixin::update}(key, update, ifAbsent: ifAbsent);
+  mixin-super-stub method updateAll(covariant-by-class (self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update) → void
+    return super.{col::MapMixin::updateAll}(update);
+  mixin-super-stub get entries() → core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>>
+    return super.{col::MapMixin::entries};
+  mixin-super-stub method map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> transform) → core::Map<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>
+    return super.{col::MapMixin::map}<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>(transform);
+  mixin-super-stub method addEntries(covariant-by-class core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>> newEntries) → void
+    return super.{col::MapMixin::addEntries}(newEntries);
+  mixin-super-stub method removeWhere((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::bool test) → void
+    return super.{col::MapMixin::removeWhere}(test);
+  mixin-super-stub get length() → core::int
+    return super.{col::MapMixin::length};
+  mixin-super-stub get isEmpty() → core::bool
+    return super.{col::MapMixin::isEmpty};
+  mixin-super-stub get isNotEmpty() → core::bool
+    return super.{col::MapMixin::isNotEmpty};
+  mixin-super-stub get values() → core::Iterable<self::_MyMap&Object&MapMixin::V%>
+    return super.{col::MapMixin::values};
+  mixin-super-stub method toString() → core::String
+    return super.{col::MapMixin::toString}();
+}
+class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_MyMap&Object&MapMixin<self::MyMap::K%, self::MyMap::V%> {
+  field core::int containsKeyCount = 0;
+  field core::int indexGetCount = 0;
+  final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
+  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+    : self::MyMap::_map = _map, super self::_MyMap&Object&MapMixin::•()
+    ;
+  method containsKey(core::Object? key) → core::bool {
+    this.{self::MyMap::containsKeyCount} = this.{self::MyMap::containsKeyCount}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::containsKey}(key){(core::Object?) → core::bool};
+  }
+  operator [](core::Object? key) → self::MyMap::V? {
+    this.{self::MyMap::indexGetCount} = this.{self::MyMap::indexGetCount}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::[]}(key){(core::Object?) → self::MyMap::V?};
+  }
+  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
+    return let final core::Map<self::MyMap::K%, self::MyMap::V%> #t1 = this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>} in let final self::MyMap::K% #t2 = key in let final self::MyMap::V% #t3 = value in let final void #t4 = #t1.{core::Map::[]=}(#t2, #t3){(self::MyMap::K%, self::MyMap::V%) → void} in #t3;
+  method clear() → void
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::clear}(){() → void};
+  get keys() → core::Iterable<self::MyMap::K%>
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::keys}{core::Iterable<self::MyMap::K%>};
+  method remove(core::Object? key) → self::MyMap::V?
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::MyMap::V?};
+}
+static method method(core::Map<core::int, core::String> m) → core::int {
+  #L1:
+  {
+    final synthesized core::Map<core::int, core::String> #0#0 = m;
+    late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
+    late final synthesized core::bool #0#4 = #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    late final synthesized core::String? #0#5 = #0#0.{core::Map::[]}(#C2){(core::Object?) → core::String?};
+    {
+      if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+        {
+          return 0;
+        }
+      }
+    }
+    {
+      if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+        {
+          return 1;
+        }
+      }
+    }
+  }
+  return 2;
+}
+static method test(core::Map<core::int, core::String> map, {required core::int expectedValue = #C1, required core::int expectedContainsKeyCount = #C1, required core::int expectedIndexGetCount = #C1}) → dynamic {
+  self::MyMap<core::int, core::String> myMap = new self::MyMap::•<core::int, core::String>(map);
+  self::expect(expectedValue, self::method(myMap), "Unexpected value for ${map}.");
+  self::expect(expectedContainsKeyCount, myMap.{self::MyMap::containsKeyCount}{core::int}, "Unexpected containsKey count for ${map}.");
+  self::expect(expectedIndexGetCount, myMap.{self::MyMap::indexGetCount}{core::int}, "Unexpected indexGet count for ${map}.");
+}
+static method main() → dynamic {
+  self::test(<core::int, core::String>{0: "foo"}, expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: 0);
+  self::test(<core::int, core::String>{1: "foo"}, expectedValue: 0, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+  self::test(<core::int, core::String>{1: "bar"}, expectedValue: 1, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+  self::test(<core::int, core::String>{1: "baz"}, expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+}
+static method expect(dynamic expected, dynamic actual, dynamic message) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "${message} Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = null
+  #C2 = 1
+  #C3 = "foo"
+  #C4 = "bar"
+}

@@ -55,6 +55,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
+import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -108,32 +109,33 @@ static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
   #L1:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L2:
+    case #C3:
       {
         return e;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          return e;
-        }
+    #L3:
+    case #C6:
+      {
+        return e;
       }
+    #L4:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
-  #L2:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L5:
+  switch(e) {
+    #L6:
+    case #C3:
       {
         return e;
       }
-    }
-    else {
-    }
+    #L7:
+    default:
+      {}
   }
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
@@ -180,33 +182,34 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
-    #L3:
-    {
-      final self::Enum #0#0 = e;
-      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    #L8:
+    switch(e) /*isExplicitlyExhaustive*/ {
+      #L9:
+      case #C3:
         {
           return e;
         }
-      }
-      else
-        if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            return e;
-          }
+      #L10:
+      case #C6:
+        {
+          return e;
         }
+      #L11:
+      default:
+        throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {
-    #L4:
-    {
-      final self::Enum #1#0 = e;
-      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #1#0) {
+    #L12:
+    switch(e) {
+      #L13:
+      case #C3:
         {
           return e;
         }
-      }
-      else {
-      }
+      #L14:
+      default:
+        {}
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.

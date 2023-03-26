@@ -8,9 +8,7 @@ class A extends core::Object {
   method foo(core::num n) → core::num
     ;
 }
-abstract class B<X extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::B<self::B::X%>
-    ;
+abstract class B<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
 }
 abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {

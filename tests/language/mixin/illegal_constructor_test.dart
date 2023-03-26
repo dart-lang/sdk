@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Validates mixin behavior that is only relevant pre 3.0.
+// @dart=2.19
+
 class M0 {
   factory M0(a, b, c) => throw "uncalled";
   factory M0.named() => throw "uncalled";

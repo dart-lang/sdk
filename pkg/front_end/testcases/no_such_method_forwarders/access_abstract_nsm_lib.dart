@@ -4,11 +4,11 @@
 
 import 'access_abstract_nsm.dart';
 
-class SuperClass {
+mixin class SuperClass {
   void _inaccessibleMethod1() {}
   void accessibleMethod() {}
 }
 
-class NoSuchMethodClass {
+mixin class NoSuchMethodClass {
   dynamic noSuchMethod(Invocation invocation);
 }

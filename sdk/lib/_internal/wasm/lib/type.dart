@@ -1026,7 +1026,13 @@ _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
 bool _isSubtype(Object? s, _Type t) {
-  return _typeUniverse.isSubtype(s._runtimeType, null, t, null);
+  return _typeUniverse.isSubtype(
+      _getActualRuntimeTypeNullable(s), null, t, null);
+}
+
+@pragma("wasm:entry-point")
+bool _isTypeSubtype(_Type s, _Type t) {
+  return _typeUniverse.isSubtype(s, null, t, null);
 }
 
 /// Checks that argument lists have expected number of arguments for the
@@ -1161,3 +1167,17 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
     }
   }
 }
+
+@pragma("wasm:entry-point")
+external _Type _getActualRuntimeType(Object object);
+
+@pragma("wasm:prefer-inline")
+_Type _getActualRuntimeTypeNullable(Object? object) =>
+    object == null ? const _NullType() : _getActualRuntimeType(object);
+
+@pragma("wasm:entry-point")
+external _Type _getMasqueradedRuntimeType(Object object);
+
+@pragma("wasm:prefer-inline")
+_Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
+    object == null ? const _NullType() : _getMasqueradedRuntimeType(object);

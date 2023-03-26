@@ -45,12 +45,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(cls != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(stronglyReachableInstances != null);
-    assert(objects != null);
     ClassInstancesElement e = new ClassInstancesElement.created();
     e._r = new RenderingScheduler<ClassInstancesElement>(e, queue: queue);
     e._isolate = isolate;

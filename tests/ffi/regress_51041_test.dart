@@ -6,7 +6,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-class Foo extends Struct {
+final class Foo extends Struct {
   @Int32()
   external int // Force `?` to newline.
       ? //# 1: compile-time error

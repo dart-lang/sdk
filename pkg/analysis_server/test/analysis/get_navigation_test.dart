@@ -84,7 +84,7 @@ String f() {
 /// {@tool dartpad}
 /// ** See code in $examplePath **
 /// {@end-tool}
-/// 
+///
 /// {@tool dartpad}
 /// ** See code in $example2Path **
 /// {@end-tool}
@@ -158,7 +158,7 @@ class Bar {
   Future<void> test_fileDoesNotExist() async {
     var file = convertPath('$testPackageLibPath/doesNotExist.dart');
     var request = _createGetNavigationRequest(file, 0, 100);
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     expect(response.error, isNull);
     var result = response.result!;
     expect(result['files'], isEmpty);
@@ -442,7 +442,7 @@ void f() {
     }
 
     var request = _createGetNavigationRequest(file.path, offset, length);
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     var result = AnalysisGetNavigationResult.fromResponse(response);
     targetFiles = result.files;
     targets = result.targets;

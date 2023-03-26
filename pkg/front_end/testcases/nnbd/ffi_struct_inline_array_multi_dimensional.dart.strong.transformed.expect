@@ -9,19 +9,19 @@ import "dart:ffi";
 import "package:ffi/ffi.dart";
 
 @#C8
-class StructInlineArrayMultiDimensional extends ffi::Struct {
+final class StructInlineArrayMultiDimensional extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::•()
     ;
-  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::StructInlineArrayMultiDimensional
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   @#C10
   get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>
     return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Uint8>>>( block {
-      core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
-      core::int #offset = #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C9, #C14);
+      synthesized core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
+      synthesized core::int #offset = #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C9, #C14);
   @#C10
   set a0(ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C11, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
@@ -34,23 +34,23 @@ static method main() → dynamic {
   final self::StructInlineArrayMultiDimensional struct = new self::StructInlineArrayMultiDimensional::#fromTypedDataBase(pointer!);
   final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = block {
-    ffi::Array<dynamic> #array = array!;
-    core::int #index = 0!;
+    synthesized ffi::Array<dynamic> #array = array!;
+    synthesized core::int #index = 0!;
     #array.{ffi::Array::_checkIndex}(#index){(core::int) → dynamic};
-    core::int #singleElementSize = #C18;
-    core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
-    core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
+    synthesized core::int #singleElementSize = #C18;
+    synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+    synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>new ffi::Array::_<ffi::Array<ffi::Uint8>>( block {
-    core::Object #typedDataBase = #array.{ffi::Array::_typedDataBase}{core::Object};
-    core::int #offset = #offset;
-  } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Uint8>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #elementSize){([core::int, core::int?]) → typ::Uint8List}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>});
+    synthesized core::Object #typedDataBase = #array.{ffi::Array::_typedDataBase}{core::Object};
+    synthesized core::int #offset = #offset;
+  } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Uint8>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #elementSize){([core::int, core::int?]) → typ::Uint8List}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>});
   block {
-    ffi::Array<dynamic> #array = array!;
-    core::int #index = 1!;
+    synthesized ffi::Array<dynamic> #array = array!;
+    synthesized core::int #index = 1!;
     #array.{ffi::Array::_checkIndex}(#index){(core::int) → dynamic};
-    core::int #singleElementSize = #C18;
-    core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
-    core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
+    synthesized core::int #singleElementSize = #C18;
+    synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+    synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>ffi::_memCopy(#array.{ffi::Array::_typedDataBase}{core::Object}, #offset, subArray.{ffi::Array::_typedDataBase}{core::Object}, #C11, #elementSize);
   #C17.{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
@@ -67,8 +67,8 @@ constants  {
   #C9 = 2
   #C10 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C9, dimension2:#C9, dimension3:#C9, dimension4:#C6, dimension5:#C6, dimensions:#C6}
   #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
+  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C13 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C14 = <core::int*>[#C9, #C9]
   #C15 = "vm:prefer-inline"
   #C16 = core::pragma {name:#C15, options:#C6}

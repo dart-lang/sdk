@@ -9,7 +9,7 @@ abstract class A {
   int? get x;
 }
 
-class B {
+mixin class B {
   int? get x => 0;
 }
 

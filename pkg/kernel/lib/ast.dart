@@ -87,6 +87,8 @@ import 'src/non_null.dart';
 import 'src/printer.dart';
 import 'src/text_util.dart';
 
+part 'src/ast/patterns.dart';
+
 /// Any type of node in the IR.
 abstract class Node {
   const Node();
@@ -2032,6 +2034,8 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  List<InlineType> implements;
+
   int flags = 0;
 
   @override
@@ -2048,6 +2052,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
       List<TypeParameter>? typeParameters,
       DartType? declaredRepresentationType,
       List<InlineClassMemberDescriptor>? members,
+      List<InlineType>? implements,
       required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
@@ -2056,6 +2061,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
         assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <InlineClassMemberDescriptor>[],
+        this.implements = implements ?? <InlineType>[],
         super(reference) {
     setParents(this.typeParameters, this);
     if (declaredRepresentationType != null) {
@@ -3301,6 +3307,7 @@ class Procedure extends Member {
       bool isExternal = false,
       bool isConst = false,
       bool isExtensionMember = false,
+      bool isInlineClassMember = false,
       bool isSynthetic = false,
       bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
@@ -3314,6 +3321,7 @@ class Procedure extends Member {
             isExternal: isExternal,
             isConst: isConst,
             isExtensionMember: isExtensionMember,
+            isInlineClassMember: isInlineClassMember,
             isSynthetic: isSynthetic,
             isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
@@ -3329,6 +3337,7 @@ class Procedure extends Member {
       bool isExternal = false,
       bool isConst = false,
       bool isExtensionMember = false,
+      bool isInlineClassMember = false,
       bool isSynthetic = false,
       bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
@@ -3347,6 +3356,7 @@ class Procedure extends Member {
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
+    this.isInlineClassMember = isInlineClassMember;
     this.isSynthetic = isSynthetic;
     this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
@@ -3401,6 +3411,7 @@ class Procedure extends Member {
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagIsAbstractFieldAccessor = 1 << 9;
   static const int FlagInlineMember = 1 << 10;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 11;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3565,6 +3576,15 @@ class Procedure extends Member {
       stubKind == ProcedureStubKind.MemberSignature
           ? stubTargetReference?.asMember
           : null;
+
+  bool get hasWeakTearoffReferencePragma =>
+      flags & FlagHasWeakTearoffReferencePragma != 0;
+
+  void set hasWeakTearoffReferencePragma(bool value) {
+    flags = value
+        ? (flags | FlagHasWeakTearoffReferencePragma)
+        : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
 
   @override
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
@@ -11141,8 +11161,8 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// The name of the variable or parameter as provided in the source code.
   ///
   /// If this variable is synthesized, for instance the variable of a [Let]
-  /// expression, the name is in most cases `null`.
-  String? name;
+  /// expression, the name can be `null`.
+  String? _name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
 
@@ -11155,7 +11175,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Should be null in other cases.
   Expression? initializer; // May be null.
 
-  VariableDeclaration(this.name,
+  VariableDeclaration(this._name,
       {this.initializer,
       this.type = const DynamicType(),
       int flags = -1,
@@ -11166,6 +11186,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
+      bool isSynthesized = false,
       bool hasDeclaredInitializer = false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
@@ -11181,7 +11202,10 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isRequired = isRequired;
       this.isLowered = isLowered;
       this.hasDeclaredInitializer = hasDeclaredInitializer;
+      this.isSynthesized = isSynthesized;
     }
+    assert(_name != null || this.isSynthesized,
+        "Only synthesized variables can have no name.");
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
@@ -11203,6 +11227,19 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isRequired = isRequired;
     this.isLowered = isLowered;
     this.hasDeclaredInitializer = true;
+    this.isSynthesized = true;
+  }
+
+  /// The name of the variable as provided in the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  String? get name => _name;
+
+  void set name(String? value) {
+    assert(value != null || isSynthesized,
+        "Only synthesized variables can have no name.");
+    _name = value;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -11214,12 +11251,12 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagRequired = 1 << 6;
   static const int FlagCovariantByDeclaration = 1 << 7;
   static const int FlagLowered = 1 << 8;
+  static const int FlagSynthesized = 1 << 9;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
 
   /// Whether the parameter is declared with the `covariant` keyword.
-  // TODO(johnniwinther): Rename to isCovariantByDeclaration
   bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
 
   /// Whether the variable is declared as an initializing formal parameter of
@@ -11232,7 +11269,6 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// deal with generic covariance.
   ///
   /// When `true`, runtime checks may need to be performed.
-  // TODO(johnniwinther): Rename to isCovariantByClass
   bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the variable is declared with the `late` keyword.
@@ -11256,6 +11292,13 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Lowering is used for instance of encoding of 'this' in extension instance
   /// members and encoding of late locals.
   bool get isLowered => flags & FlagLowered != 0;
+
+  /// Whether this variable is synthesized, that is, it is _not_ declared in
+  /// the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  bool get isSynthesized => flags & FlagSynthesized != 0;
 
   /// Whether the variable has an initializer, either by declaration or copied
   /// from an original declaration.
@@ -11316,6 +11359,12 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   void set isLowered(bool value) {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  void set isSynthesized(bool value) {
+    assert(
+        value || _name != null, "Only synthesized variables can have no name.");
+    flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
   }
 
   void set hasDeclaredInitializer(bool value) {
@@ -11944,7 +11993,7 @@ class NeverType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write("Never");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12094,7 +12143,7 @@ class InterfaceType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeClassName(className, forType: true);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12301,7 +12350,7 @@ class FunctionType extends DartType {
       printer.write("}");
     }
     printer.write(")");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12410,7 +12459,7 @@ class TypedefType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeTypedefName(typedefReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12487,7 +12536,7 @@ class FutureOrType extends DartType {
     printer.write("FutureOr<");
     printer.writeType(typeArgument);
     printer.write(">");
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12609,7 +12658,7 @@ class ExtensionType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeExtensionName(extensionReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -12733,7 +12782,7 @@ class InlineType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeInlineClassName(inlineClassReference);
     printer.writeTypeArguments(typeArguments);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -13128,7 +13177,7 @@ class IntersectionType extends DartType {
     printer.write(" & ");
     printer.writeType(right);
     printer.write(')');
-    printer.write(nullabilityToString(nullability));
+    printer.writeNullability(nullability);
   }
 }
 
@@ -13297,7 +13346,7 @@ class TypeParameterType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeTypeParameterName(parameter);
-    printer.write(nullabilityToString(declaredNullability));
+    printer.writeNullability(declaredNullability);
   }
 }
 
@@ -13309,7 +13358,11 @@ class RecordType extends DartType {
   final Nullability declaredNullability;
 
   RecordType(this.positional, this.named, this.declaredNullability)
-      : assert(() {
+      : /*TODO(johnniwinther): Enabled this assert:
+        assert(named.length == named.map((p) => p.name).toSet().length,
+            "Named field types must have unique names in a RecordType: "
+            "${named}"),*/
+        assert(() {
           // Assert that the named field types are sorted.
           for (int i = 1; i < named.length; i++) {
             if (named[i].name.compareTo(named[i - 1].name) < 0) {
@@ -15594,6 +15647,16 @@ final List<Statement> emptyListOfStatement =
 final List<SwitchCase> emptyListOfSwitchCase =
     List.filled(0, dummySwitchCase, growable: false);
 
+/// Almost const <SwitchExpressionCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<SwitchExpressionCase> emptyListOfSwitchExpressionCase =
+    List.filled(0, dummySwitchExpressionCase, growable: false);
+
+/// Almost const <PatternSwitchCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<PatternSwitchCase> emptyListOfPatternSwitchCase =
+    List.filled(0, dummyPatternSwitchCase, growable: false);
+
 /// Almost const <Catch>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Catch> emptyListOfCatch =
@@ -15687,6 +15750,11 @@ final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<InlineClassMemberDescriptor> emptyListOfInlineClassMemberDescriptor =
     List.filled(0, dummyInlineClassMemberDescriptor, growable: false);
+
+/// Almost const <InlineType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<InlineType> emptyListOfInlineType =
+    List.filled(0, dummyInlineType, growable: false);
 
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -15822,6 +15890,14 @@ final InlineClassMemberDescriptor dummyInlineClassMemberDescriptor =
         kind: InlineClassMemberKind.Getter,
         member: dummyReference);
 
+/// Non-nullable [InlineType] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final InlineType dummyInlineType =
+    new InlineType(dummyInlineClass, Nullability.nonNullable);
+
 /// Non-nullable [Member] dummy value.
 ///
 /// This can be used for instance as a dummy initial value for the
@@ -15895,13 +15971,31 @@ final Expression dummyExpression = new NullLiteral();
 final NamedExpression dummyNamedExpression =
     new NamedExpression('', dummyExpression);
 
+/// Almost const <Pattern>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Pattern> emptyListOfPattern =
+    List.filled(0, dummyPattern, growable: false);
+
+/// Almost const <NamedPattern>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedPattern> emptyListOfNamedPattern =
+    List.filled(0, dummyNamedPattern, growable: false);
+
+/// Almost const <MapPatternEntry>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<MapPatternEntry> emptyListOfMapPatternEntry =
+    List.filled(0, dummyMapPatternEntry, growable: false);
+
 /// Non-nullable [VariableDeclaration] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final VariableDeclaration dummyVariableDeclaration =
-    new VariableDeclaration(null);
+    new VariableDeclaration(null, isSynthesized: true);
 
 /// Non-nullable [TypeParameter] dummy value.
 ///

@@ -384,13 +384,13 @@ class JClosedWorldBuilder {
   }
 
   /// Called once per [shape]. The class can be used for a record with the
-  /// specified shape, or subclassed to provide specialized methods.
-  ClassEntity buildRecordShapeClass(RecordShape shape) {
+  /// specified shape, or subclassed to provide specialized methods. [getters]
+  /// is an out parameter that gathers all the getters created for this shape.
+  ClassEntity buildRecordShapeClass(
+      RecordShape shape, List<MemberEntity> getters) {
     ClassEntity superclass = _commonElements.recordArityClass(shape.fieldCount);
     IndexedClass recordClass = _elementMap.generateRecordShapeClass(
-      shape,
-      _dartTypes.interfaceType(superclass, const []),
-    );
+        shape, _dartTypes.interfaceType(superclass, const []), getters);
 
     // Tell the hierarchy about the superclass so we can use
     // .getSupertypes(class)
@@ -814,9 +814,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
     constant.fields.forEach((f, v) {
-      // TODO(48820): remove the extra '!'. It was only added to get early
-      // signals of the null assertion before we enable sound null safety.
-      FieldEntity backendField = toBackendEntity(f)! as FieldEntity;
+      FieldEntity backendField = toBackendEntity(f) as FieldEntity;
       fields[backendField] = v.accept(this, null);
     });
     return ConstructedConstantValue(type as InterfaceType, fields);

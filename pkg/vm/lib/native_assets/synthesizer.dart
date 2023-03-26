@@ -72,7 +72,10 @@ class NativeAssetsSynthesizer {
           pragmaOptions.fieldReference: nativeAssetsConstant,
         }))
       ],
-    )..nonNullableByDefaultCompiledMode = nonNullableByDefaultCompiledMode;
+    )
+      ..nonNullableByDefaultCompiledMode = nonNullableByDefaultCompiledMode
+      ..isNonNullableByDefault = nonNullableByDefaultCompiledMode ==
+          NonNullableByDefaultCompiledMode.Strong;
   }
 
   /// Loads [nativeAssetsYamlString], validates the contents, and synthesizes

@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -64,7 +65,7 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     var lines = ['// TODO: implement ${functionElement.displayName}'];
 
     var returnValueType = functionElement.returnType;
-    if (!returnValueType.isVoid) {
+    if (returnValueType is! VoidType) {
       lines.add('throw UnimplementedError();');
     }
     return lines;
@@ -85,9 +86,9 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     var returnValueType = returnValue.typeOrThrow;
     var returnValueCode = utils.getNodeText(returnValue);
     var returnCode = '';
-    if (!returnValueType.isVoid &&
+    if (returnValueType is! VoidType &&
         !returnValueType.isBottom &&
-        !functionElement.returnType.isVoid) {
+        functionElement.returnType is! VoidType) {
       returnCode = 'return ';
     }
     returnCode += '$returnValueCode;';

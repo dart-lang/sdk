@@ -37,7 +37,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
     var stopwatchNoCache = Stopwatch()..start();
     await runProcess(
       '$dartSdkPath/bin/dart',
-      ['analyze', ...analyzeThis],
+      ['analyze', '--suppress-analytics', ...analyzeThis],
       cwd: workingDir,
       failOnError: true,
       verbose: false,
@@ -47,7 +47,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
     var stopwatchWithCache = Stopwatch()..start();
     await runProcess(
       '$dartSdkPath/bin/dart',
-      ['analyze', ...analyzeThis],
+      ['analyze', '--suppress-analytics', ...analyzeThis],
       cwd: workingDir,
       failOnError: true,
       verbose: false,
@@ -65,7 +65,13 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
       List<String> stdout = [];
       await runProcess(
         '$dartSdkPath/bin/dart',
-        ['analyze', '--format=json', '--memory', ...analyzeThis],
+        [
+          'analyze',
+          '--suppress-analytics',
+          '--format=json',
+          '--memory',
+          ...analyzeThis
+        ],
         cwd: workingDir,
         failOnError: true,
         verbose: false,
@@ -77,7 +83,13 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
       stdout = [];
       await runProcess(
         '$dartSdkPath/bin/dart',
-        ['analyze', '--format=json', '--memory', ...analyzeThis],
+        [
+          'analyze',
+          '--suppress-analytics',
+          '--format=json',
+          '--memory',
+          ...analyzeThis
+        ],
         cwd: workingDir,
         failOnError: true,
         verbose: false,

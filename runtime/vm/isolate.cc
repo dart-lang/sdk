@@ -489,7 +489,7 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
-  char* name;
+  char* name = nullptr;
   // We retrieve the flag value once to avoid the compiler complaining about the
   // possibly uninitialized value of name, as the compiler is unaware that when
   // the flag variable is non-const, it is set once during VM initialization and
@@ -633,7 +633,7 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->set_safepoint_state(
         Thread::SetBypassSafepoints(bypass_safepoint, 0));
     thread->set_vm_tag(VMTag::kVMTagId);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     thread->heap_sampler().Initialize();
 #endif
     ASSERT(thread->no_safepoint_scope_depth() == 0);
@@ -692,7 +692,7 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().Cleanup();
 #endif
 
@@ -1310,7 +1310,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
 #if defined(DEBUG)
     // Malformed OOB messages are silently ignored in release builds.
     default:
-      FATAL1("Unknown OOB message type: %" Pd "\n", msg_type);
+      FATAL("Unknown OOB message type: %" Pd "\n", msg_type);
       break;
 #endif  // defined(DEBUG)
   }
@@ -2382,97 +2382,6 @@ void Isolate::Run() {
                          reinterpret_cast<uword>(this));
 }
 
-#if !defined(PRODUCT)
-void Isolate::set_current_sample_block(SampleBlock* current) {
-  ASSERT(current_sample_block_lock_.IsOwnedByCurrentThread());
-  if (current != nullptr) {
-    current->set_is_allocation_block(false);
-    current->set_owner(this);
-  }
-  current_sample_block_ = current;
-}
-
-void Isolate::set_current_allocation_sample_block(SampleBlock* current) {
-  if (current != nullptr) {
-    current->set_is_allocation_block(true);
-    current->set_owner(this);
-  }
-  current_allocation_sample_block_ = current;
-}
-
-void Isolate::FreeSampleBlock(SampleBlock* block) {
-  if (block == nullptr) {
-    return;
-  }
-  SampleBlock* head;
-  // We're pushing the freed sample block to the front of the free_block_list_,
-  // which means the last element of the list will be the oldest freed sample.
-  do {
-    head = free_block_list_.load(std::memory_order_acquire);
-    block->next_free_ = head;
-  } while (!free_block_list_.compare_exchange_weak(head, block,
-                                                   std::memory_order_release));
-}
-
-class StreamableSampleFilter : public SampleFilter {
- public:
-  explicit StreamableSampleFilter(Dart_Port port)
-      : SampleFilter(port, kNoTaskFilter, -1, -1) {}
-
-  bool FilterSample(Sample* sample) override {
-    const UserTag& tag =
-        UserTag::Handle(UserTag::FindTagById(sample->user_tag()));
-    return tag.streamable();
-  }
-};
-
-void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
-  SampleBlock* head = free_block_list_.exchange(nullptr);
-  if (head == nullptr) {
-    // No sample blocks to process.
-    return;
-  }
-  // Reverse the list before processing so older blocks are streamed and reused
-  // first.
-  SampleBlock* reversed_head = nullptr;
-  do {
-    SampleBlock* next = head->next_free_;
-    if (reversed_head == nullptr) {
-      reversed_head = head;
-      reversed_head->next_free_ = nullptr;
-    } else {
-      head->next_free_ = reversed_head;
-      reversed_head = head;
-    }
-    head = next;
-  } while (head != nullptr);
-  head = reversed_head;
-  if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
-    StackZone zone(thread);
-    SampleBlockListProcessor buffer(head);
-    if (buffer.HasStreamableSamples(thread)) {
-      HandleScope handle_scope(thread);
-      StreamableSampleFilter filter(main_port());
-      Profile profile;
-      profile.Build(thread, &filter, &buffer);
-      ASSERT(profile.sample_count() > 0);
-      ServiceEvent event(this, ServiceEvent::kCpuSamples);
-      event.set_cpu_profile(&profile);
-      Service::HandleEvent(&event);
-    }
-  }
-
-  do {
-    SampleBlock* next = head->next_free_;
-    head->next_free_ = nullptr;
-    head->evictable_ = true;
-    Profiler::sample_block_buffer()->FreeBlock(head);
-    head = next;
-    thread->CheckForSafepoint();
-  } while (head != nullptr);
-}
-#endif  // !defined(PRODUCT)
-
 void Isolate::RunAndCleanupFinalizersOnShutdown() {
   if (finalizers_ == GrowableObjectArray::null()) return;
 
@@ -2616,25 +2525,7 @@ void Isolate::Shutdown() {
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
     debugger()->Shutdown();
-    // Cleanup profiler state.
-    SampleBlock* cpu_block = current_sample_block();
-    if (cpu_block != nullptr) {
-      cpu_block->release_block();
-    }
-    SampleBlock* allocation_block = current_allocation_sample_block();
-    if (allocation_block != nullptr) {
-      allocation_block->release_block();
-    }
-
-    // Process the previously assigned sample blocks if we're using the
-    // profiler's sample buffer. Some tests create their own SampleBlockBuffer
-    // and handle block processing themselves.
-    if ((cpu_block != nullptr || allocation_block != nullptr) &&
-        Profiler::sample_block_buffer() != nullptr) {
-      StackZone zone(thread);
-      HandleScope handle_scope(thread);
-      Profiler::sample_block_buffer()->ProcessCompletedBlocks();
-    }
+    Profiler::IsolateShutdown(thread);
 #endif
   }
 

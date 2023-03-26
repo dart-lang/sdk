@@ -318,28 +318,32 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final Component? component = results.component;
   final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
-  if (errorDetector.hasCompilationErrors || (component == null)) {
+  if (errorDetector.hasCompilationErrors ||
+      (component == null && nativeAssetsLibrary == null)) {
     return compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(outputFileName).openWrite();
-  final BinaryPrinter printer = new BinaryPrinter(sink,
-      libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
-  if (aot && nativeAssetsLibrary != null && aot) {
-    // If Dart component in  AOT, write the vm:native-assets library _inside_
-    // the Dart component.
-    component.libraries.add(nativeAssetsLibrary);
-    nativeAssetsLibrary.parent = component;
+  if (component != null) {
+    final BinaryPrinter printer = new BinaryPrinter(sink,
+        libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
+    if (aot && nativeAssetsLibrary != null) {
+      // If Dart component in AOT, write the vm:native-assets library _inside_
+      // the Dart component.
+      // TODO(https://dartbug.com/50152): Support AOT dill concatenation.
+      component.libraries.add(nativeAssetsLibrary);
+      nativeAssetsLibrary.parent = component;
+    }
+    printer.writeComponentFile(component);
   }
-  printer.writeComponentFile(component);
-  if (nativeAssetsLibrary != null && !aot) {
+  if ((nativeAssetsLibrary != null && (!aot || component == null))) {
     // If no Dart component, write as separate dill.
     // If Dart component in JIT, write as concatenated dill, to not mess with
     // the incremental compiler.
     final BinaryPrinter printer = new BinaryPrinter(sink);
     printer.writeComponentFile(Component(
       libraries: [nativeAssetsLibrary],
-      mode: NonNullableByDefaultCompiledMode.Strong,
+      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
     ));
   }
   await sink.close();
@@ -398,8 +402,9 @@ class KernelCompilationResults {
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
+/// Either [source], or [nativeAssets], or both must be non-null.
 Future<KernelCompilationResults> compileToKernel(
-  Uri source,
+  Uri? source,
   CompilerOptions options, {
   List<Uri> additionalSources = const <Uri>[],
   Uri? nativeAssets,
@@ -429,6 +434,11 @@ Future<KernelCompilationResults> compileToKernel(
         ? NonNullableByDefaultCompiledMode.Strong
         : NonNullableByDefaultCompiledMode.Weak,
   );
+  if (source == null) {
+    return KernelCompilationResults.named(
+      nativeAssetsLibrary: nativeAssetsLibrary,
+    );
+  }
 
   final target = options.target!;
   options.environmentDefines =

@@ -57,7 +57,7 @@ constants  {
   #C27 = eval #C26
   #C28 = 0
   #C29 = 1
-  #C30 = <core::List<core::int?>, core::int>{#C21:#C28, #C22:#C29)
+  #C30 = <core::List<core::int?>, core::int>{#C21:#C28, #C22:#C29}
   #C31 = "hello"
   #C32 = <core::String>{#C31}
 }

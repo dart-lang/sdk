@@ -23,7 +23,7 @@ class A {}
     await assertErrorsInCode('''
 library root;
 import 'lib1.dart' deferred as a;
-class M {}
+mixin M {}
 class C = a.A with M;
 ''', [
       error(CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS, 69, 3),

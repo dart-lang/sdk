@@ -37,7 +37,7 @@ class Notification {
   Notification(this.event, [this.params]);
 
   /// Initialize a newly created instance based on the given JSON data.
-  factory Notification.fromJson(Map json) {
+  factory Notification.fromJson(Map<Object?, Object?> json) {
     return Notification(json[Notification.EVENT] as String,
         json[Notification.PARAMS] as Map<String, Object?>?);
   }
@@ -58,7 +58,7 @@ class Notification {
 /// A request that was received from the client.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class Request {
+class Request extends RequestOrResponse {
   /// The name of the JSON attribute containing the id of the request.
   static const String ID = 'id';
 
@@ -73,6 +73,7 @@ class Request {
   static const String CLIENT_REQUEST_TIME = 'clientRequestTime';
 
   /// The unique identifier used to identify this request.
+  @override
   final String id;
 
   /// The method being requested.
@@ -131,13 +132,7 @@ class Request {
     return jsonObject;
   }
 
-  bool _equalLists(List? first, List? second) {
-    if (first == null) {
-      return second == null;
-    }
-    if (second == null) {
-      return false;
-    }
+  bool _equalLists(List<Object?> first, List<Object?> second) {
     var length = first.length;
     if (length != second.length) {
       return false;
@@ -150,13 +145,7 @@ class Request {
     return true;
   }
 
-  bool _equalMaps(Map? first, Map? second) {
-    if (first == null) {
-      return second == null;
-    }
-    if (second == null) {
-      return false;
-    }
+  bool _equalMaps(Map<Object?, Object?> first, Map<Object?, Object?> second) {
     if (first.length != second.length) {
       return false;
     }
@@ -283,10 +272,18 @@ abstract class RequestHandler {
   Response? handleRequest(Request request, CancellationToken cancellationToken);
 }
 
+/// A request or response that was received from the client.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class RequestOrResponse {
+  /// The unique identifier associated with this request or response.
+  String get id;
+}
+
 /// A response to a request.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class Response {
+class Response extends RequestOrResponse {
   /// The [Response] instance that is returned when a real [Response] cannot
   /// be provided at the moment.
   static final Response DELAYED_RESPONSE = Response('DELAYED_RESPONSE');
@@ -303,6 +300,7 @@ class Response {
 
   /// The unique identifier used to identify the request that this response is
   /// associated with.
+  @override
   final String id;
 
   /// The error that was caused by attempting to handle the request, or `null`
@@ -548,6 +546,32 @@ class Response {
       }
 
       return Response(id, error: decodedError, result: decodedResult);
+    } catch (exception) {
+      return null;
+    }
+  }
+
+  /// Return a response parsed from the given [data], or `null` if the [data] is
+  /// not a valid json representation of a response. The [data] is expected to
+  /// have the following format:
+  ///
+  ///   {
+  ///     'id': String,
+  ///     'result': {
+  ///       parameter_name: value
+  ///     }
+  ///   }
+  ///
+  /// where the result is optional.
+  ///
+  /// The result can contain any number of name/value pairs.
+  static Response? fromString(String data) {
+    try {
+      var result = json.decode(data);
+      if (result is Map<String, Object?>) {
+        return Response.fromJson(result);
+      }
+      return null;
     } catch (exception) {
       return null;
     }

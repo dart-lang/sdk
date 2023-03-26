@@ -122,8 +122,8 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
   String name = declaration.identifier.name;
   ClassData? expected = expectedClassData[name];
   if (expected != null) {
-    expect(expected.isAbstract, declaration.isAbstract, '$name.isAbstract');
-    expect(expected.isExternal, declaration.isExternal, '$name.isExternal');
+    expect(expected.isAbstract, declaration.hasAbstract, '$name.isAbstract');
+    expect(expected.isExternal, declaration.hasExternal, '$name.isExternal');
     if (typeDeclarationResolver != null) {
       TypeDeclaration? superclass = declaration.superclass == null
           ? null

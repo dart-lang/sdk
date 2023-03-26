@@ -28,7 +28,9 @@ class Utf8Encode extends BenchmarkBase {
     String name = 'Utf8Encode.$language.';
     name += size >= 1000000
         ? '${size ~/ 1000000}M'
-        : size >= 1000 ? '${size ~/ 1000}k' : '$size';
+        : size >= 1000
+            ? '${size ~/ 1000}k'
+            : '$size';
     return name;
   }
 
@@ -43,7 +45,8 @@ class Utf8Encode extends BenchmarkBase {
     final int nChunks = (size < nRunes) ? (nRunes / size).floor() : 1;
     for (int i = 0; i < nChunks; i++) {
       final offset = i * size;
-      benchmarkTextChunks.add(String.fromCharCodes(runes.sublist(offset, offset+size)));
+      benchmarkTextChunks
+          .add(String.fromCharCodes(runes.sublist(offset, offset + size)));
     }
   }
 
@@ -51,7 +54,7 @@ class Utf8Encode extends BenchmarkBase {
   void run() {
     for (int i = 0; i < benchmarkTextChunks.length; i++) {
       final encoded = utf8.encode(benchmarkTextChunks[i]);
-      if (encoded.length < benchmarkTextChunks[i].length)  {
+      if (encoded.length < benchmarkTextChunks[i].length) {
         throw 'There should be at least as many encoded bytes as runes';
       }
     }

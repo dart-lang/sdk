@@ -27,7 +27,7 @@ part of _interceptors;
 /// [tryComputeConstantInterceptor] to avoid most interceptor lookups on
 /// numbers.
 
-class JSNumber extends Interceptor implements double {
+final class JSNumber extends Interceptor implements double {
   const JSNumber();
 
   int compareTo(num b) {
@@ -486,7 +486,7 @@ class JSNumber extends Interceptor implements double {
 /// JavaScript all numbers are doubles, so while we want to treat `2.0` as an
 /// integer for some operations, its interceptor should answer `true` to `is
 /// double`.
-class JSInt extends JSNumber implements int {
+final class JSInt extends JSNumber implements int {
   const JSInt();
 
   @override
@@ -689,13 +689,13 @@ class JSInt extends JSNumber implements int {
 }
 
 /// Interceptor for JavaScript values that are not a subclass of [JSInt].
-class JSNumNotInt extends JSNumber implements double {
+final class JSNumNotInt extends JSNumber implements double {
   const JSNumNotInt();
   Type get runtimeType => double;
 }
 
-class JSPositiveInt extends JSInt {}
+final class JSPositiveInt extends JSInt {}
 
-class JSUInt32 extends JSPositiveInt {}
+final class JSUInt32 extends JSPositiveInt {}
 
-class JSUInt31 extends JSUInt32 {}
+final class JSUInt31 extends JSUInt32 {}

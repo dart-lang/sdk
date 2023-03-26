@@ -196,7 +196,6 @@ abstract class CommonElements {
   /// Used to check for the constructor without computing it until it is likely
   /// to be seen.
   bool isSymbolConstructor(ConstructorEntity element) {
-    assert((element as dynamic) != null); // TODO(48820): Remove.
     _ensureSymbolConstructorDependencies();
     return element == _symbolConstructorImplementationTarget ||
         element == _symbolConstructorTarget;
@@ -368,27 +367,24 @@ abstract class CommonElements {
     return _env.createInterfaceType(cls, typeArguments);
   }
 
-  InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
-      dartTypes.treatAsRawType(sourceType)
-          ? _env.getRawType(jsArrayClass)
-          : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType) {
+    // TODO(51534): Use CONST_CANONICAL_TYPE(T_i) for arguments.
+    return _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
+  }
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool onlyStringKeys = false}) {
+    // TODO(51534): Use CONST_CANONICAL_TYPE(T_i) for arguments.
     ClassEntity classElement =
         onlyStringKeys ? constantStringMapClass : generalConstantMapClass;
-    if (dartTypes.treatAsRawType(sourceType)) {
-      return _env.getRawType(classElement);
-    } else {
-      return _env.createInterfaceType(classElement, sourceType.typeArguments);
-    }
+    return _env.createInterfaceType(classElement, sourceType.typeArguments);
   }
 
-  InterfaceType getConstantSetTypeFor(InterfaceType sourceType) =>
-      dartTypes.treatAsRawType(sourceType)
-          ? _env.getRawType(constSetLiteralClass)
-          : _env.createInterfaceType(
-              constSetLiteralClass, sourceType.typeArguments);
+  InterfaceType getConstantSetTypeFor(InterfaceType sourceType) {
+    // TODO(51534): Use CONST_CANONICAL_TYPE(T_i) for arguments.
+    return _env.createInterfaceType(
+        constSetLiteralClass, sourceType.typeArguments);
+  }
 
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.

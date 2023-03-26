@@ -62,7 +62,7 @@ class A {
 }
 var a = A.named();
 ''', [
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 83, 9),
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 83, 9),
     ]);
   }
 
@@ -75,7 +75,7 @@ class A {
 }
 var a = A();
 ''', [
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 77, 3),
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 77, 3),
     ]);
   }
 
@@ -99,7 +99,7 @@ class A {
 }
 var a = new A();
 ''', [
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 77, 7),
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 77, 7),
     ]);
   }
 }

@@ -251,15 +251,21 @@ class AstRewriter {
       return node;
     }
     var prefix = node.prefix;
-    var element = nameScope.lookup(prefix.name).getter;
-    if (element is InterfaceElement) {
+    var prefixElement = nameScope.lookup(prefix.name).getter;
+    if (parent is ConstantPattern && prefixElement is PrefixElement) {
+      final element = prefixElement.scope.lookup(node.identifier.name).getter;
+      if (element is TypeDefiningElement) {
+        return _toPatternTypeLiteral(parent, node);
+      }
+    }
+    if (prefixElement is InterfaceElement) {
       // Example:
       //     class C { C.named(); }
       //     C.named
       return _toConstructorReference_prefixed(
-          node: node, classElement: element);
-    } else if (element is TypeAliasElement) {
-      var aliasedType = element.aliasedType;
+          node: node, classElement: prefixElement);
+    } else if (prefixElement is TypeAliasElement) {
+      var aliasedType = prefixElement.aliasedType;
       if (aliasedType is InterfaceType) {
         // Example:
         //     class C { C.named(); }
@@ -373,6 +379,18 @@ class AstRewriter {
     // do the latter. Consider doing the work so that the user gets an error in
     // this case about `Lisst` not being a type, or `Lisst.filled` not being a
     // known constructor.
+    return node;
+  }
+
+  AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
+    final parent = node.parent;
+    if (parent is ConstantPattern) {
+      final element = nameScope.lookup(node.name).getter;
+      if (element is TypeDefiningElement) {
+        return _toPatternTypeLiteral(parent, node);
+      }
+    }
+
     return node;
   }
 
@@ -626,5 +644,21 @@ class AstRewriter {
     );
     NodeReplacer.replace(node, methodInvocation);
     return methodInvocation;
+  }
+
+  TypeLiteralImpl _toPatternTypeLiteral(
+    ConstantPattern parent,
+    IdentifierImpl node,
+  ) {
+    final result = TypeLiteralImpl(
+      typeName: NamedTypeImpl(
+        name: node,
+        typeArguments: null,
+        question: null,
+      ),
+    );
+    result.staticType = _typeProvider.typeType;
+    NodeReplacer.replace(node, result, parent: parent);
+    return result;
   }
 }

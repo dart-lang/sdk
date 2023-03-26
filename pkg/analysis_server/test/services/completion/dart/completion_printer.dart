@@ -76,6 +76,8 @@ class CompletionResponsePrinter {
         return 'library';
       } else if (elementKind == ElementKind.LOCAL_VARIABLE) {
         return 'localVariable';
+      } else if (elementKind == ElementKind.MIXIN) {
+        return 'mixin';
       } else if (elementKind == ElementKind.PARAMETER) {
         return 'parameter';
       } else if (elementKind == ElementKind.SETTER) {

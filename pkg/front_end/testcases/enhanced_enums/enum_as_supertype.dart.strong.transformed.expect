@@ -2,14 +2,22 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:9:14: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:5:32: Error: The class 'Enum' can't be extended outside of its library because it's an interface class.
+// abstract mixin class A extends Enum {
+//                                ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:5:32: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
+// abstract mixin class A extends Enum {
+//                                ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:10:14: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
 // enum EA with A { element } // Error.
 //              ^
 //
 import self as self;
 import "dart:core" as core;
 
-abstract class A extends core::Enum {
+abstract mixin class A extends core::Enum {
   synthetic constructor •() → self::A
     : super core::Enum::•()
     ;
@@ -32,7 +40,7 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
   method _enumToString() → core::String
     return "EA.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class B extends core::Object implements core::Enum {
+abstract mixin class B extends core::Object implements core::Enum {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
@@ -101,7 +109,6 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
   }
 }
 static method main() → dynamic {
-  self::expectEquals(#C3.{self::_EA&_Enum&A::foo}{core::int}, #C3.{core::_Enum::index}{core::int});
   self::expectEquals(#C5.{self::_EB&_Enum&B::foo}{core::int}, #C5.{core::_Enum::index}{core::int});
   self::expectEquals(#C7.{self::_EM&_Enum&M::foo}{core::int}, #C7.{core::_Enum::index}{core::int});
   self::expectEquals(#C9.{self::_EN&_Enum&N::foo}{core::int}, #C9.{core::_Enum::index}{core::int});
@@ -123,13 +130,13 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///enum_as_supertype.dart:
-- EA. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
-- _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
+- EA. (from org-dartlang-testcase:///enum_as_supertype.dart:10:6)
+- _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:10:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- EB. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
-- _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
-- EM. (from org-dartlang-testcase:///enum_as_supertype.dart:21:6)
-- _EM&_Enum&M. (from org-dartlang-testcase:///enum_as_supertype.dart:21:6)
-- EN. (from org-dartlang-testcase:///enum_as_supertype.dart:27:6)
-- _EN&_Enum&N. (from org-dartlang-testcase:///enum_as_supertype.dart:27:6)
+- EB. (from org-dartlang-testcase:///enum_as_supertype.dart:17:6)
+- _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:17:6)
+- EM. (from org-dartlang-testcase:///enum_as_supertype.dart:24:6)
+- _EM&_Enum&M. (from org-dartlang-testcase:///enum_as_supertype.dart:24:6)
+- EN. (from org-dartlang-testcase:///enum_as_supertype.dart:31:6)
+- _EN&_Enum&N. (from org-dartlang-testcase:///enum_as_supertype.dart:31:6)

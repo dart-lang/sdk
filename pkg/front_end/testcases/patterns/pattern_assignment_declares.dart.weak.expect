@@ -34,7 +34,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Class extends core::Object {
   field dynamic field1 = null;
@@ -46,7 +45,7 @@ class Class extends core::Object {
 static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   dynamic a;
   block {
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?) && (let final dynamic #t1 = a = #0#0{(core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:12:11: Error: Variable 'b' can't be declared in a pattern assignment.
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   (a, int b, final int c) = x;
@@ -54,32 +53,32 @@ Try using a preexisting variable or changing the assignment to a pattern variabl
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   (a, int b, final int c) = x;
                        ^"))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   block {
-    final dynamic #1#0 = y;
-    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && (let final dynamic #t3 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:13:13: Error: Variable 'd' can't be declared in a pattern assignment.
+    final synthesized dynamic #1#0 = y;
+    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:13:13: Error: Variable 'd' can't be declared in a pattern assignment.
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   [a, final d] = y;
-            ^")))
-      throw new _in::ReachabilityError::•();
+            ^"))
+      throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
   block {
-    final dynamic #2#0 = z;
-    late final dynamic #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic};
-    late final dynamic #2#9 = #2#3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #2#16 = #2#3{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    if(!(#2#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t4 = a = #2#0{self::Class}.{self::Class::field1}{dynamic} in true) && (#2#3 is{ForNonNullableByDefault} core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is{ForNonNullableByDefault} core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t5 = #2#9{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:34: Error: Variable 'e' can't be declared in a pattern assignment.
+    final synthesized dynamic #2#0 = z;
+    late final synthesized dynamic #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic};
+    late final synthesized dynamic #2#9 = #2#3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #2#16 = #2#3{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    if(!(#2#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t3 = a = #2#0{self::Class}.{self::Class::field1}{dynamic} in true) && (#2#3 is{ForNonNullableByDefault} core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is{ForNonNullableByDefault} core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:34: Error: Variable 'e' can't be declared in a pattern assignment.
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   Class(field1: a, field2: [[var e, _], [1, var f]]) = z;
-                                 ^") && (let final dynamic #t6 = #2#9{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true)) && (#2#16 is{ForNonNullableByDefault} core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t7 = #2#16{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:42: Error: Refutable patterns can't be used in an irrefutable context.
+                                 ^") && (#2#16 is{ForNonNullableByDefault} core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:42: Error: Refutable patterns can't be used in an irrefutable context.
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   Class(field1: a, field2: [[var e, _], [1, var f]]) = z;
-                                         ^") && (let final dynamic #t8 = #2#16{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:49: Error: Variable 'f' can't be declared in a pattern assignment.
+                                         ^" && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:49: Error: Variable 'f' can't be declared in a pattern assignment.
 Try using a preexisting variable or changing the assignment to a pattern variable declaration.
   Class(field1: a, field2: [[var e, _], [1, var f]]) = z;
-                                                ^")))))
-      throw new _in::ReachabilityError::•();
+                                                ^"))))
+      throw new core::StateError::•("Pattern matching error");
   } =>#2#0;
 }
 

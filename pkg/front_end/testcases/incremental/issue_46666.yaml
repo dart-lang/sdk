@@ -11,14 +11,14 @@ worlds:
       a.dart: |
         import 'dart:ffi';
 
-        class StructA extends Struct {
+        final class StructA extends Struct {
           external Pointer<Void> a1;
           external Pointer<Void> a2;
           external Pointer<Void> a3;
           external NestedStruct blah;
         }
 
-        class NestedStruct extends Struct {
+        final class NestedStruct extends Struct {
           external Pointer<Void> n1;
           external Pointer<Void> n2;
           external Pointer<Void> n3;
@@ -30,7 +30,7 @@ worlds:
 
         import 'a.dart';
 
-        class StructB extends Struct {
+        final class StructB extends Struct {
           external StructA b1;
         }
 

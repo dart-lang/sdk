@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../kernel/internal_ast.dart';
 import '../type_inference/external_ast_helper.dart';
 import 'matching_cache.dart';
 
@@ -153,7 +154,13 @@ class DelayedAndExpression implements DelayedExpression {
       DelayedExpression? left, DelayedExpression right,
       {required int fileOffset}) {
     if (left != null) {
-      return new DelayedAndExpression(left, right, fileOffset: fileOffset);
+      if (left is BooleanExpression && left.value) {
+        return right;
+      } else if (right is BooleanExpression && right.value) {
+        return left;
+      } else {
+        return new DelayedAndExpression(left, right, fileOffset: fileOffset);
+      }
     } else {
       return right;
     }
@@ -240,7 +247,7 @@ class DelayedConditionExpression implements DelayedExpression {
 // TODO(johnniwinther): Should we instead mark the variable as non-final?
 class VariableSetExpression implements DelayedExpression {
   final VariableDeclaration _variable;
-  final CacheableExpression _value;
+  final DelayedExpression _value;
   final bool allowFinalAssignment;
   final int fileOffset;
 
@@ -249,9 +256,17 @@ class VariableSetExpression implements DelayedExpression {
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createVariableSet(
-        _variable, _value.createExpression(typeEnvironment),
-        allowFinalAssignment: allowFinalAssignment, fileOffset: fileOffset);
+    VariableDeclaration variable = _variable;
+    if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
+      return createLocalFunctionInvocation(variable.lateSetter!,
+          arguments: createArguments([_value.createExpression(typeEnvironment)],
+              fileOffset: fileOffset),
+          fileOffset: fileOffset);
+    } else {
+      return createVariableSet(
+          _variable, _value.createExpression(typeEnvironment),
+          allowFinalAssignment: allowFinalAssignment, fileOffset: fileOffset);
+    }
   }
 
   @override
@@ -337,14 +352,25 @@ class DelayedAsExpression implements DelayedExpression {
   final DelayedExpression _operand;
   final DartType _type;
   final bool isUnchecked;
+  final bool isImplicit;
   final int fileOffset;
 
   DelayedAsExpression(this._operand, this._type,
-      {this.isUnchecked = false, required this.fileOffset});
+      {this.isUnchecked = false,
+      this.isImplicit = false,
+      required this.fileOffset});
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createAsExpression(_operand.createExpression(typeEnvironment), _type,
+    Expression operand = _operand.createExpression(typeEnvironment);
+    if (isImplicit) {
+      DartType operandType = _operand.getType(typeEnvironment);
+      if (typeEnvironment.isSubtypeOf(
+          operandType, _type, SubtypeCheckMode.withNullabilities)) {
+        return operand;
+      }
+    }
+    return createAsExpression(operand, _type,
         forNonNullableByDefault: true,
         isUnchecked: isUnchecked,
         fileOffset: fileOffset);
@@ -644,7 +670,13 @@ class DelayedRecordNameGet implements DelayedExpression {
   final int fileOffset;
 
   DelayedRecordNameGet(this._receiver, this._recordType, this._name,
-      {required this.fileOffset});
+      {required this.fileOffset})
+      : assert(
+            _recordType.named
+                    .where((element) => element.name == _name)
+                    .length ==
+                1,
+            "Invalid record type $_recordType for named access of '$_name'.");
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {

@@ -1,18 +1,18 @@
 Problems reported:
 
-parser/record/record_and_commas:6:4: Record type without fields can't have a trailing comma.
+parser/record/record_and_commas:6:4: A record type without fields can't have a trailing comma.
   (,) emptyRecord2 = ();
    ^
 
-parser/record/record_and_commas:7:22: Record literal without fields can't have a trailing comma.
+parser/record/record_and_commas:7:22: A record literal without fields can't have a trailing comma.
   () emptyRecord3 = (,);
                      ^
 
-parser/record/record_and_commas:8:4: Record type without fields can't have a trailing comma.
+parser/record/record_and_commas:8:4: A record type without fields can't have a trailing comma.
   (,) emptyRecord4 = (,);
    ^
 
-parser/record/record_and_commas:8:23: Record literal without fields can't have a trailing comma.
+parser/record/record_and_commas:8:23: A record literal without fields can't have a trailing comma.
   (,) emptyRecord4 = (,);
                       ^
 

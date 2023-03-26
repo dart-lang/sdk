@@ -19,7 +19,8 @@ import 'package:watcher/watcher.dart';
 
 /// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
 class MockServerChannel implements ServerCommunicationChannel {
-  StreamController<Request> requestController = StreamController<Request>();
+  StreamController<RequestOrResponse> requestController =
+      StreamController<RequestOrResponse>();
   StreamController<Response> responseController =
       StreamController<Response>.broadcast();
   StreamController<Notification> notificationController =
@@ -28,6 +29,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
+  List<Request> serverRequestsSent = [];
 
   bool _closed = false;
 
@@ -41,7 +43,7 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  Stream<Request> get requests => requestController.stream;
+  Stream<RequestOrResponse> get requests => requestController.stream;
 
   @override
   void close() {
@@ -73,21 +75,9 @@ class MockServerChannel implements ServerCommunicationChannel {
     notificationController.add(notification);
   }
 
-  /// Send the given [request] to the server and return a future that will
-  /// complete when a response associated with the [request] has been received.
-  /// The value of the future will be the received response. If [throwOnError] is
-  /// `true` (the default) then the returned future will throw an exception if a
-  /// server error is reported before the response has been received.
-  Future<Response> sendRequest(Request request, {bool throwOnError = true}) {
-    // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
-    // have the default behavior be the only behavior.
-    // No further requests should be sent after the connection is closed.
-    if (_closed) {
-      throw Exception('sendRequest after connection closed');
-    }
-    // Wrap send request in future to simulate WebSocket.
-    Future(() => requestController.add(request));
-    return waitForResponse(request, throwOnError: throwOnError);
+  @override
+  void sendRequest(Request request) {
+    serverRequestsSent.add(request);
   }
 
   @override
@@ -101,14 +91,45 @@ class MockServerChannel implements ServerCommunicationChannel {
     Future(() => responseController.add(response));
   }
 
+  /// Send the given [request] to the server as if it had been sent from the
+  /// client, and return a future that will complete when a response associated
+  /// with the [request] has been received.
+  ///
+  /// The value of the future will be the received response. If [throwOnError]
+  /// is `true` (the default) then the returned future will throw an exception
+  /// if a server error is reported before the response has been received.
+  Future<Response> simulateRequestFromClient(Request request,
+      {bool throwOnError = true}) {
+    // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
+    // have the default behavior be the only behavior.
+    // No further requests should be sent after the connection is closed.
+    if (_closed) {
+      throw Exception('simulateRequestFromClient after connection closed');
+    }
+    // Wrap send request in future to simulate WebSocket.
+    Future(() => requestController.add(request));
+    return waitForResponse(request, throwOnError: throwOnError);
+  }
+
+  /// Send the given [response] to the server as if it had been sent from the
+  /// client.
+  Future<void> simulateResponseFromClient(Response response) {
+    // No further requests should be sent after the connection is closed.
+    if (_closed) {
+      throw Exception('simulateRequestFromClient after connection closed');
+    }
+    // Wrap send request in future to simulate WebSocket.
+    return Future(() => requestController.add(response));
+  }
+
   /// Return a future that will complete when a response associated with the
   /// given [request] has been received. The value of the future will be the
   /// received response. If [throwOnError] is `true` (the default) then the
   /// returned future will throw an exception if a server error is reported
   /// before the response has been received.
   ///
-  /// Unlike [sendRequest], this method assumes that the [request] has already
-  /// been sent to the server.
+  /// Unlike [simulateRequestFromClient], this method assumes that the [request]
+  /// has already been sent to the server.
   Future<Response> waitForResponse(Request request,
       {bool throwOnError = true}) {
     // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and

@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart' as type;
-import '../kernel/internal_ast.dart' as type;
 
 class NullValues {
   static const NullValue<type.Expression> Expression =

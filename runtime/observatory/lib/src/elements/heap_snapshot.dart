@@ -147,16 +147,13 @@ class ClassesShallowTreeMap extends NormalTreeMap<SnapshotClass> {
 
   ClassesShallowTreeMap(this.element, this.snapshot);
 
-  int getSize(SnapshotClass node) =>
-      node == null ? snapshot.size : node.shallowSize;
-  String getType(SnapshotClass node) => node == null ? "Classes" : node.name;
-  String getName(SnapshotClass node) => node == null
-      ? "${snapshot.classes.length} classes"
-      : "${node.instanceCount} instances of ${node.name}";
+  int getSize(SnapshotClass node) => node.shallowSize;
+  String getType(SnapshotClass node) => node.name;
+  String getName(SnapshotClass node) =>
+      "${node.instanceCount} instances of ${node.name}";
 
   SnapshotClass? getParent(SnapshotClass node) => null;
-  Iterable<SnapshotClass> getChildren(SnapshotClass node) =>
-      node == null ? snapshot.classes : <SnapshotClass>[];
+  Iterable<SnapshotClass> getChildren(SnapshotClass node) => [];
   void onSelect(SnapshotClass node) {}
   void onDetails(SnapshotClass node) {
     element.selection = List.from(node.instances);
@@ -173,47 +170,29 @@ class ClassesShallowDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
   ClassesShallowDiffTreeMap(this.element, this.classes);
 
   int getSizeA(SnapshotClassDiff node) {
-    if (node != null) return node.shallowSizeA;
-    int s = 0;
-    for (var cls in classes) s += cls.shallowSizeA;
-    return s;
+    return node.shallowSizeA;
   }
 
   int getSizeB(SnapshotClassDiff node) {
-    if (node != null) return node.shallowSizeB;
-    int s = 0;
-    for (var cls in classes) s += cls.shallowSizeB;
-    return s;
+    return node.shallowSizeB;
   }
 
   int getGain(SnapshotClassDiff node) {
-    if (node != null) return node.shallowSizeGain;
-    int s = 0;
-    for (var cls in classes) s += cls.shallowSizeGain;
-    return s;
+    return node.shallowSizeGain;
   }
 
   int getLoss(SnapshotClassDiff node) {
-    if (node != null) return node.shallowSizeLoss;
-    int s = 0;
-    for (var cls in classes) s += cls.shallowSizeLoss;
-    return s;
+    return node.shallowSizeLoss;
   }
 
   int getCommon(SnapshotClassDiff node) {
-    if (node != null) return node.shallowSizeCommon;
-    int s = 0;
-    for (var cls in classes) s += cls.shallowSizeCommon;
-    return s;
+    return node.shallowSizeCommon;
   }
 
-  String getType(SnapshotClassDiff node) =>
-      node == null ? "Classes" : node.name;
-  String getName(SnapshotClassDiff node) =>
-      node == null ? "${classes.length} classes" : "instances of ${node.name}";
+  String getType(SnapshotClassDiff node) => node.name;
+  String getName(SnapshotClassDiff node) => "instances of ${node.name}";
   SnapshotClassDiff? getParent(SnapshotClassDiff node) => null;
-  Iterable<SnapshotClassDiff> getChildren(SnapshotClassDiff node) =>
-      node == null ? classes : <SnapshotClassDiff>[];
+  Iterable<SnapshotClassDiff> getChildren(SnapshotClassDiff node) => [];
   void onSelect(SnapshotClassDiff node) {}
   void onDetails(SnapshotClassDiff node) {
     element._snapshotA = element._snapshotB;
@@ -230,15 +209,12 @@ class ClassesOwnershipTreeMap extends NormalTreeMap<SnapshotClass> {
 
   ClassesOwnershipTreeMap(this.element, this.snapshot);
 
-  int getSize(SnapshotClass node) =>
-      node == null ? snapshot.size : node.ownedSize;
-  String getType(SnapshotClass node) => node == null ? "classes" : node.name;
-  String getName(SnapshotClass node) => node == null
-      ? "${snapshot.classes.length} Classes"
-      : "${node.instanceCount} instances of ${node.name}";
+  int getSize(SnapshotClass node) => node.ownedSize;
+  String getType(SnapshotClass node) => node.name;
+  String getName(SnapshotClass node) =>
+      "${node.instanceCount} instances of ${node.name}";
   SnapshotClass? getParent(SnapshotClass node) => null;
-  Iterable<SnapshotClass> getChildren(SnapshotClass node) =>
-      node == null ? snapshot.classes : <SnapshotClass>[];
+  Iterable<SnapshotClass> getChildren(SnapshotClass node) => [];
   void onSelect(SnapshotClass node) {}
   void onDetails(SnapshotClass node) {
     element.selection = List.from(node.instances);
@@ -255,47 +231,29 @@ class ClassesOwnershipDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
   ClassesOwnershipDiffTreeMap(this.element, this.classes);
 
   int getSizeA(SnapshotClassDiff node) {
-    if (node != null) return node.ownedSizeA;
-    int s = 0;
-    for (var cls in classes) s += cls.ownedSizeA;
-    return s;
+    return node.ownedSizeA;
   }
 
   int getSizeB(SnapshotClassDiff node) {
-    if (node != null) return node.ownedSizeB;
-    int s = 0;
-    for (var cls in classes) s += cls.ownedSizeB;
-    return s;
+    return node.ownedSizeB;
   }
 
   int getGain(SnapshotClassDiff node) {
-    if (node != null) return node.ownedSizeGain;
-    int s = 0;
-    for (var cls in classes) s += cls.ownedSizeGain;
-    return s;
+    return node.ownedSizeGain;
   }
 
   int getLoss(SnapshotClassDiff node) {
-    if (node != null) return node.ownedSizeLoss;
-    int s = 0;
-    for (var cls in classes) s += cls.ownedSizeLoss;
-    return s;
+    return node.ownedSizeLoss;
   }
 
   int getCommon(SnapshotClassDiff node) {
-    if (node != null) return node.ownedSizeCommon;
-    int s = 0;
-    for (var cls in classes) s += cls.ownedSizeCommon;
-    return s;
+    return node.ownedSizeCommon;
   }
 
-  String getType(SnapshotClassDiff node) =>
-      node == null ? "Classes" : node.name;
-  String getName(SnapshotClassDiff node) =>
-      node == null ? "${classes.length} classes" : "instances of ${node.name}";
+  String getType(SnapshotClassDiff node) => node.name;
+  String getName(SnapshotClassDiff node) => "instances of ${node.name}";
   SnapshotClassDiff? getParent(SnapshotClassDiff node) => null;
-  Iterable<SnapshotClassDiff> getChildren(SnapshotClassDiff node) =>
-      node == null ? classes : <SnapshotClassDiff>[];
+  Iterable<SnapshotClassDiff> getChildren(SnapshotClassDiff node) => [];
   void onSelect(SnapshotClassDiff node) {}
   void onDetails(SnapshotClassDiff node) {
     element._snapshotA = element._snapshotB;
@@ -493,7 +451,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   late M.EventRepository _events;
   late M.NotificationRepository _notifications;
   late M.HeapSnapshotRepository _snapshots;
-  late M.ObjectRepository _objects;
   SnapshotReader? _reader;
   String? _status;
   List<SnapshotGraph> _loadedSnapshots = <SnapshotGraph>[];
@@ -517,12 +474,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       M.HeapSnapshotRepository snapshots,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(snapshots != null);
-    assert(objects != null);
     HeapSnapshotElement e = new HeapSnapshotElement.created();
     e._r = new RenderingScheduler<HeapSnapshotElement>(e, queue: queue);
     e._vm = vm;
@@ -530,7 +481,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     e._events = events;
     e._notifications = notifications;
     e._snapshots = snapshots;
-    e._objects = objects;
     return e;
   }
 
@@ -1406,7 +1356,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       case HeapSnapshotTreeMode.predecessors:
         return 'Predecessors / incoming references';
     }
-    throw new Exception('Unknown HeapSnapshotTreeMode: $mode');
   }
 
   List<Element> _createModeSelect() {

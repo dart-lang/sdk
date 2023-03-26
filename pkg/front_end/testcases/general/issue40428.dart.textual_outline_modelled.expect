@@ -8,9 +8,8 @@ abstract class SuperClass2 {
   final String value;
 }
 
-class Mixin {}
-
 class NamedMixin1 = SuperClass1 with Mixin;
 class NamedMixin2 = SuperClass2 with Mixin;
 errors() {}
+mixin Mixin {}
 void main() {}

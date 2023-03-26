@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
 
@@ -45,7 +46,7 @@ main() {
             _Empty(),
             id: 2,
           ),
-          expectedVariables: {'x: notConsistent [1]'},
+          expectedVariables: {'x: notConsistent:logicalOr [1]'},
           expectErrors: [
             'logicalOrPatternBranchMissingVariable(node: 2, '
                 'hasInLeft: true, name: x, variable: 1)'
@@ -59,7 +60,7 @@ main() {
             _VarPattern('x', 1),
             id: 2,
           ),
-          expectedVariables: {'x: notConsistent [1]'},
+          expectedVariables: {'x: notConsistent:logicalOr [1]'},
           expectErrors: [
             'logicalOrPatternBranchMissingVariable(node: 2, '
                 'hasInLeft: false, name: x, variable: 1)'
@@ -87,7 +88,7 @@ main() {
           _VarPattern('x', 1),
           _Empty(),
         ],
-        expectedVariables: {'x: notConsistent [1]'},
+        expectedVariables: {'x: notConsistent:sharedCaseAbsent [1]'},
       );
     });
     test('Second has', () {
@@ -97,7 +98,7 @@ main() {
           _Empty(),
           _VarPattern('x', 1),
         ],
-        expectedVariables: {'x: notConsistent [1]'},
+        expectedVariables: {'x: notConsistent:sharedCaseAbsent [1]'},
       );
     });
     test('Partial intersection', () {
@@ -110,7 +111,10 @@ main() {
           ),
           _VarPattern('x', 3),
         ],
-        expectedVariables: {'x: [1, 3]', 'y: notConsistent [2]'},
+        expectedVariables: {
+          'x: [1, 3]',
+          'y: notConsistent:sharedCaseAbsent [2]',
+        },
       );
     });
     group('Has default', () {
@@ -121,7 +125,7 @@ main() {
             _VarPattern('x', 1),
           ],
           hasDefaultFirst: true, // does not happen normally
-          expectedVariables: {'x: notConsistent [1]'},
+          expectedVariables: {'x: notConsistent:sharedCaseHasLabel [1]'},
         );
       });
       test('Last', () {
@@ -131,7 +135,7 @@ main() {
             _VarPattern('x', 1),
           ],
           hasDefaultLast: true,
-          expectedVariables: {'x: notConsistent [1]'},
+          expectedVariables: {'x: notConsistent:sharedCaseHasLabel [1]'},
         );
       });
     });
@@ -159,7 +163,9 @@ main() {
             ),
             _VarPattern('x', 2),
           ],
-          expectedVariables: {'x: notConsistent [notConsistent [1], 2]'},
+          expectedVariables: {
+            'x: notConsistent:logicalOr [notConsistent:logicalOr [1], 2]',
+          },
           expectErrors: [
             'logicalOrPatternBranchMissingVariable(node: null, '
                 'hasInLeft: true, name: x, variable: 1)',
@@ -176,7 +182,7 @@ main() {
             ),
             _Empty(),
           ],
-          expectedVariables: {'x: notConsistent [[1, 2]]'},
+          expectedVariables: {'x: notConsistent:sharedCaseAbsent [[1, 2]]'},
         );
       });
       test('Second has', () {
@@ -189,7 +195,7 @@ main() {
               _VarPattern('x', 2),
             ),
           ],
-          expectedVariables: {'x: notConsistent [[1, 2]]'},
+          expectedVariables: {'x: notConsistent:sharedCaseAbsent [[1, 2]]'},
         );
       });
     });
@@ -349,7 +355,7 @@ class _VariableBinder extends VariableBinder<_Node, _VariableElement> {
   _VariableElement joinPatternVariables({
     required Object? key,
     required List<_VariableElement> components,
-    required bool isConsistent,
+    required JoinedPatternVariableInconsistency inconsistency,
   }) {
     return _VariableJoinElement(
       components: [
@@ -359,30 +365,35 @@ class _VariableBinder extends VariableBinder<_Node, _VariableElement> {
           else
             variable
       ],
-      isConsistent: isConsistent && components.every((e) => e.isConsistent),
+      inconsistency: inconsistency.maxWithAll(
+        components.map((e) => e.inconsistency),
+      ),
     );
   }
 }
 
 class _VariableElement {
-  bool get isConsistent => true;
+  JoinedPatternVariableInconsistency get inconsistency {
+    return JoinedPatternVariableInconsistency.none;
+  }
 }
 
 class _VariableJoinElement extends _VariableElement {
   final List<_VariableElement> components;
 
   @override
-  final bool isConsistent;
+  final JoinedPatternVariableInconsistency inconsistency;
 
   _VariableJoinElement({
     required this.components,
-    required this.isConsistent,
+    required this.inconsistency,
   });
 
   @override
   String toString() {
     return [
-      if (!isConsistent) 'notConsistent',
+      if (inconsistency != JoinedPatternVariableInconsistency.none)
+        'notConsistent:${inconsistency.name}',
       components,
     ].join(' ');
   }

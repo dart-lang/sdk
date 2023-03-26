@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/record/record_literal_04:9:21: Record literal with one field requires a trailing comma.
+parser/record/record_literal_04:9:21: A record literal with exactly one positional field requires a trailing comma.
   var r5 = const (42);
                     ^
 
@@ -147,7 +147,7 @@ beginCompilationUnit(void)
                 handleLiteralInt(42)
               endRecordLiteral((, 2, null)
             endFormalParameterDefaultValueExpression()
-            handleValuedFormalParameter(=, ,)
+            handleValuedFormalParameter(=, ,, FormalParameterKind.optionalNamed)
           endFormalParameter(null, null, null, record1, (, ), FormalParameterKind.optionalNamed, MemberKind.TopLevelMethod)
           beginMetadataStar(dynamic)
           endMetadataStar(0)
@@ -164,7 +164,7 @@ beginCompilationUnit(void)
                 endRecordLiteral((, 2, const)
               endConstLiteral(})
             endFormalParameterDefaultValueExpression()
-            handleValuedFormalParameter(=, })
+            handleValuedFormalParameter(=, }, FormalParameterKind.optionalNamed)
           endFormalParameter(null, null, null, record2, const, ), FormalParameterKind.optionalNamed, MemberKind.TopLevelMethod)
         endOptionalFormalParameters(2, {, })
       endFormalParameters(1, (, ), MemberKind.TopLevelMethod)

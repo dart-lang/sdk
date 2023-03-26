@@ -45,6 +45,13 @@ class TargetCPUFeatures : public AllStatic {
   static void Cleanup() { HostCPUFeatures::Cleanup(); }
   static const char* hardware() { return HostCPUFeatures::hardware(); }
   static bool double_truncate_round_supported() { return false; }
+  static bool atomic_memory_supported() {
+#if defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
+    return true;  // Mac ARM64 starts at ARMv8.5.
+#else
+    return false;  // All else start at ARMv8.0.
+#endif
+  }
 };
 
 }  // namespace dart

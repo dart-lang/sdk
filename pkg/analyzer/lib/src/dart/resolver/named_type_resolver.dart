@@ -181,7 +181,7 @@ class NamedTypeResolver with ScopeHelpers {
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
         );
-        var typeArguments = inferrer.upwardsInfer();
+        var typeArguments = inferrer.chooseFinalTypes();
         return element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: _noneOrStarSuffix,

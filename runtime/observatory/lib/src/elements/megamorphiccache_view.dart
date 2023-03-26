@@ -55,17 +55,6 @@ class MegamorphicCacheViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(cache != null);
-    assert(caches != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     MegamorphicCacheViewElement e = new MegamorphicCacheViewElement.created();
     e._r = new RenderingScheduler<MegamorphicCacheViewElement>(e, queue: queue);
     e._vm = vm;

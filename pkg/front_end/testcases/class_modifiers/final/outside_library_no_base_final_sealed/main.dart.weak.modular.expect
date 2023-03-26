@@ -1,0 +1,77 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:7:33: Error: The class 'A' can't be extended outside of its library because it's a final class.
+// class ExtendsFinalClass extends A {} /* Error */
+//                                 ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:9:39: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// class ImplementsFinalClass implements A {} /* Error */
+//                                       ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:11:39: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
+// class ImplementsFinalMixin implements M {} /* Error */
+//                                       ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:13:28: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
+// class MixInFinalMixin with M {} /* Error */
+//                            ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:15:7: Error: The type 'MixinOnA' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// mixin MixinOnA on A {} /* Error */
+//       ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:17:7: Error: The type 'MixinOnM' must be 'base', 'final' or 'sealed' because the supertype 'M' is 'final'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// mixin MixinOnM on M {} /* Error */
+//       ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:19:7: Error: The type 'MixinOnAM' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// mixin MixinOnAM on A, M {} /* Error */
+//       ^
+//
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class ExtendsFinalClass extends mai::A {
+  synthetic constructor •() → self::ExtendsFinalClass
+    : super mai::A::•()
+    ;
+}
+class ImplementsFinalClass extends core::Object implements mai::A {
+  synthetic constructor •() → self::ImplementsFinalClass
+    : super core::Object::•()
+    ;
+}
+class ImplementsFinalMixin extends core::Object implements mai::M {
+  synthetic constructor •() → self::ImplementsFinalMixin
+    : super core::Object::•()
+    ;
+}
+abstract final class _MixInFinalMixin&Object&M = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixInFinalMixin&Object&M
+    : super core::Object::•()
+    ;
+}
+class MixInFinalMixin extends self::_MixInFinalMixin&Object&M {
+  synthetic constructor •() → self::MixInFinalMixin
+    : super self::_MixInFinalMixin&Object&M::•()
+    ;
+}
+abstract class MixinOnA extends mai::A /*isMixinDeclaration*/  {
+}
+abstract class MixinOnM extends mai::M /*isMixinDeclaration*/  {
+}
+abstract class _MixinOnAM&A&M extends core::Object implements mai::A, mai::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MixinOnAM&A&M
+    : super core::Object::•()
+    ;
+}
+abstract class MixinOnAM extends self::_MixinOnAM&A&M /*isMixinDeclaration*/  {
+}

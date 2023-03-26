@@ -495,7 +495,7 @@ void f(() x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 60, 7),
+      error(WarningCode.DEAD_CODE, 60, 7),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''

@@ -4,49 +4,50 @@
 
 mixin class ErrorMixinClass {
   final int foo;
-  ErrorMixinClass(this.foo);
+  ErrorMixinClass(this.foo); /* Error */
 }
 
 mixin class ErrorMixinClassNamed {
   final int foo;
-  ErrorMixinClassNamed.named(this.foo);
+  ErrorMixinClassNamed.named(this.foo); /* Error */
 }
 
 mixin class ErrorMixinClassRedirect {
   int foo = 0;
-  ErrorMixinClassRedirect.named(int f) { this.foo = f; }
-  ErrorMixinClassRedirect.x(int f) : this.named(f);
+  ErrorMixinClassRedirect.named(int f) { this.foo = f; } /* Error */
+  ErrorMixinClassRedirect.x(int f) : this.named(f); /* Error */
+  ErrorMixinClassRedirect() {} /* Error */
 }
 
 mixin class ErrorMixinClassExternal {
-  external ErrorMixinClassExternal();
+  external ErrorMixinClassExternal(); /* Error */
 }
 
 mixin class ErrorMixinClassSuper {
-  ErrorMixinClassSuper(): super();
+  ErrorMixinClassSuper(): super(); /* Error */
 }
 
 mixin class ErrorMixinClassBody {
-  ErrorMixinClassBody() {}
+  ErrorMixinClassBody() {} /* Error */
 }
 
 mixin class MixinClassConstructor {
   int foo = 0;
-  MixinClassConstructor();
-  MixinClassConstructor.named();
+  MixinClassConstructor(); /* Ok */
+  MixinClassConstructor.named(); /* Ok */
 }
 
 mixin class ConstMixinClassConstructor {
   final int foo = 0;
-  const ConstMixinClassConstructor();
-  const ConstMixinClassConstructor.named();
+  const ConstMixinClassConstructor(); /* Ok */
+  const ConstMixinClassConstructor.named(); /* Ok */
 }
 
 mixin class MixinClassFactory {
   int foo = 0;
-  MixinClassFactory();
-  MixinClassFactory.named();
-  factory MixinClassFactory.x() = MixinClassFactory.named;
-  factory MixinClassFactory.y() = MixinClassFactory;
-  factory MixinClassFactory.z() { return MixinClassFactory(); }
+  MixinClassFactory(); /* Ok */
+  MixinClassFactory.named(); /* Ok */
+  factory MixinClassFactory.x() = MixinClassFactory.named; /* Ok */
+  factory MixinClassFactory.y() = MixinClassFactory; /* Ok */
+  factory MixinClassFactory.z() { return MixinClassFactory(); } /* Ok */
 }

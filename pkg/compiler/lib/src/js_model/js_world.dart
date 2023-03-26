@@ -52,7 +52,8 @@ class JClosedWorld implements World {
 
   // [_allFunctions] is created lazily because it is not used when we switch
   // from a frontend to a backend model before inference.
-  late final FunctionSet _allFunctions = FunctionSet(liveInstanceMembers);
+  late final FunctionSet _allFunctions =
+      FunctionSet(liveInstanceMembers.followedBy(recordData.allGetters));
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
 
@@ -526,20 +527,6 @@ class JClosedWorld implements World {
 
   Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
 
-  /// Returns the mask for the potential receivers of a dynamic call to
-  /// [selector] on [receiver].
-  ///
-  /// This will narrow the constraints of [receiver] to an [AbstractValue] of
-  /// the set of classes that actually implement the selected member or
-  /// implement the handling 'noSuchMethod' where the selected member is
-  /// unimplemented.
-  AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
-    if (includesClosureCall(selector, receiver)) {
-      return abstractValueDomain.dynamicType;
-    }
-    return _allFunctions.receiverType(selector, receiver, abstractValueDomain);
-  }
-
   /// Returns all the instance members that may be invoked with the [selector]
   /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
   /// handlers that are potential targets indirectly through the noSuchMethod
@@ -556,12 +543,6 @@ class JClosedWorld implements World {
   Iterable<MemberEntity> locateMembers(
       Selector selector, AbstractValue? receiver) {
     return locateMembersInDomain(selector, receiver, abstractValueDomain);
-  }
-
-  bool hasAnyUserDefinedGetter(Selector selector, AbstractValue receiver) {
-    return _allFunctions
-        .filter(selector, receiver, abstractValueDomain)
-        .any((each) => each.isGetter);
   }
 
   /// Returns the single [MemberEntity] that matches a call to [selector] on the

@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:dart2wasm/record_class_generator.dart'
+    show generateRecordClasses;
 import 'package:dart2wasm/target.dart' show WasmTarget;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
@@ -34,6 +36,10 @@ void runTestCase(Uri source, List<Uri>? linkedDependencies,
       experimentalFlags: experimentalFlags);
 
   final coreTypes = new CoreTypes(component);
+
+  if (target is WasmTarget) {
+    target.recordClasses = generateRecordClasses(component, coreTypes);
+  }
 
   component = transformComponent(target, coreTypes, component,
       matcher: new ConstantPragmaAnnotationParser(coreTypes, target),

@@ -144,6 +144,7 @@ class CodegenImpactTransformer {
         case StaticUseKind.INLINING:
         case StaticUseKind.CLOSURE:
         case StaticUseKind.CLOSURE_CALL:
+        case StaticUseKind.WEAK_STATIC_TEAR_OFF:
           break;
       }
     }

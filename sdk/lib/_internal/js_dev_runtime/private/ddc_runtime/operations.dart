@@ -255,18 +255,18 @@ _toDisplayName(name) => JS('', '''(() => {
 
 Symbol _dartSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(#, #))', const_, PrivateSymbol,
+      ? JS('Symbol', '#(new #.new(#, #))', const_, JS_CLASS_REF(PrivateSymbol),
           _toSymbolName(name), name)
-      : JS('Symbol', '#(new #.new(#))', const_, internal.Symbol,
+      : JS('Symbol', '#(new #.new(#))', const_, JS_CLASS_REF(internal.Symbol),
           _toDisplayName(name));
 }
 
 Symbol _setterSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(# + "=", #))', const_, PrivateSymbol,
-          _toSymbolName(name), name)
-      : JS('Symbol', '#(new #.new(# + "="))', const_, internal.Symbol,
-          _toDisplayName(name));
+      ? JS('Symbol', '#(new #.new(# + "=", #))', const_,
+          JS_CLASS_REF(PrivateSymbol), _toSymbolName(name), name)
+      : JS('Symbol', '#(new #.new(# + "="))', const_,
+          JS_CLASS_REF(internal.Symbol), _toDisplayName(name));
 }
 
 /// Checks for a valid function, receiver and arguments before calling [f].
@@ -856,32 +856,51 @@ _canonicalMember(obj, name) {
   return name;
 }
 
+@notNull
+bool _realDeferredLoading = false;
+
+/// Sets the runtime mode to perform deferred loading (instead of just runtime
+/// correctness checks on loaded libraries).
+///
+/// This is only supported in the DDC module system.
+void realDeferredLoading(bool enable) {
+  _realDeferredLoading = enable;
+}
+
 /// A map from libraries to a set of import prefixes that have been loaded.
 ///
 /// Used to validate deferred library conventions.
 final deferredImports = JS<Object>('!', 'new Map()');
 
-/// Emulates the implicit "loadLibrary" function provided by a deferred library.
+/// Loads the element [importPrefix] in the module [targetModule] from the
+/// context of the library [libraryUri].
 ///
-/// Libraries are not actually deferred in DDC, so this just records the import
-/// for runtime validation, then returns a future that completes immediately.
-Future loadLibrary(
-    @notNull String enclosingLibrary, @notNull String importPrefix) {
-  var result = JS('', '#.get(#)', deferredImports, enclosingLibrary);
-  if (JS<bool>('', '# === void 0', result)) {
-    JS('', '#.set(#, # = new Set())', deferredImports, enclosingLibrary,
-        result);
+/// Will load any modules required by [targetModule] as a side effect.
+/// Only supported in the DDC module system.
+Future<void> loadLibrary(@notNull String libraryUri,
+    @notNull String importPrefix, @notNull String targetModule) {
+  if (!_realDeferredLoading) {
+    var result = JS('', '#.get(#)', deferredImports, libraryUri);
+    if (JS<bool>('', '# === void 0', result)) {
+      JS('', '#.set(#, # = new Set())', deferredImports, libraryUri, result);
+    }
+    JS('', '#.add(#)', result, importPrefix);
+    return Future.value();
+  } else {
+    throw UnimplementedError('realDeferredLoading flag is not yet supported');
   }
-  JS('', '#.add(#)', result, importPrefix);
-  return Future.value();
 }
 
 void checkDeferredIsLoaded(
-    @notNull String enclosingLibrary, @notNull String importPrefix) {
-  var loaded = JS('', '#.get(#)', deferredImports, enclosingLibrary);
-  if (JS<bool>('', '# === void 0', loaded) ||
-      JS<bool>('', '!#.has(#)', loaded, importPrefix)) {
-    throwDeferredIsLoadedError(enclosingLibrary, importPrefix);
+    @notNull String libraryUri, @notNull String importPrefix) {
+  if (!_realDeferredLoading) {
+    var loaded = JS('', '#.get(#)', deferredImports, libraryUri);
+    if (JS<bool>('', '# === void 0', loaded) ||
+        JS<bool>('', '!#.has(#)', loaded, importPrefix)) {
+      throwDeferredIsLoadedError(libraryUri, importPrefix);
+    }
+  } else {
+    throw UnimplementedError('realDeferredLoading flag is not yet supported');
   }
 }
 

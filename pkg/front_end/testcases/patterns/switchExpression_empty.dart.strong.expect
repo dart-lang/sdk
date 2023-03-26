@@ -2,13 +2,17 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/switchExpression_empty.dart:5:9: Error: Switch expressions must contain at least one case.
+// pkg/front_end/testcases/patterns/switchExpression_empty.dart:5:16: Error: The type 'dynamic' is not exhaustively matched by the switch cases.
+// Try adding a default case or cases that match 'Object()'.
 // f(x) => switch(x) {};
-//         ^
+//                ^
 //
 import self as self;
 
 static method f(dynamic x) → dynamic
-  return invalid-expression "pkg/front_end/testcases/patterns/switchExpression_empty.dart:5:9: Error: Switch expressions must contain at least one case.
-f(x) => switch(x) {};
-        ^";
+  return block {
+    Never #t1;
+    #L1:
+    switch(x) /*isExplicitlyExhaustive*/ {
+    }
+  } =>#t1;

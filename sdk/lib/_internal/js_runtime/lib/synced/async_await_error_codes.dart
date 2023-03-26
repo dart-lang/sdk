@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names
+
 /// Contains error codes that transformed async/async* functions use to
 /// communicate with js_helper functions.
 

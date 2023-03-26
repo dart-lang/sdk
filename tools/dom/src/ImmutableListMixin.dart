@@ -4,7 +4,7 @@
 
 part of dart.dom.html;
 
-abstract class ImmutableListMixin<E> implements List<E> {
+abstract mixin class ImmutableListMixin<E> implements List<E> {
   // From Iterable<$E>:
   Iterator<E> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't

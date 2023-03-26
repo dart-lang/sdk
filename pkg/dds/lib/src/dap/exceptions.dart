@@ -10,6 +10,7 @@ class DebugAdapterException implements Exception {
 
   DebugAdapterException(this.message);
 
+  @override
   String toString() => 'DebugAdapterException: $message';
 }
 
@@ -49,5 +50,6 @@ class DebugAdapterInvalidArgumentException implements DebugAdapterException {
       '"$argumentName" argument in $requestName configuration must be a '
       '$expectedType but provided value was a $actualType ($actualValue)';
 
+  @override
   String toString() => 'DebugAdapterInvalidArgumentException: $message';
 }

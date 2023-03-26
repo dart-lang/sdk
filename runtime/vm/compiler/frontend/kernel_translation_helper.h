@@ -73,11 +73,6 @@ class TranslationHelper {
 
   KernelProgramInfo& info() { return info_; }
 
-  GrowableObjectArrayPtr EnsurePotentialPragmaFunctions();
-
-  void AddPotentialExtensionLibrary(const Library& library);
-  GrowableObjectArrayPtr GetPotentialExtensionLibraries();
-
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
 
@@ -416,6 +411,7 @@ class VariableDeclarationHelper {
     kRequired = 1 << 6,
     kCovariant = 1 << 7,
     kLowered = 1 << 8,
+    kSynthesized = 1 << 9,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -435,6 +431,7 @@ class VariableDeclarationHelper {
   bool IsCovariant() const { return (flags_ & kCovariant) != 0; }
   bool IsLate() const { return (flags_ & kLate) != 0; }
   bool IsRequired() const { return (flags_ & kRequired) != 0; }
+  bool IsSynthesized() const { return (flags_ & kSynthesized) != 0; }
   bool HasDeclaredInitializer() const {
     return (flags_ & kHasDeclaredInitializer) != 0;
   }
@@ -445,7 +442,7 @@ class VariableDeclarationHelper {
 
   TokenPosition position_ = TokenPosition::kNoSource;
   TokenPosition equals_position_ = TokenPosition::kNoSource;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
   StringIndex name_index_;
   intptr_t annotation_count_ = 0;
 
@@ -592,10 +589,12 @@ class ProcedureHelper {
     // TODO(29841): Remove this line after the issue is resolved.
     kRedirectingFactory = 1 << 4,
     kExtensionMember = 1 << 5,
+    kIsNonNullableByDefault = 1 << 6,
     kSyntheticProcedure = 1 << 7,
     kInternalImplementation = 1 << 8,
     kIsAbstractFieldAccessor = 1 << 9,
     kInlineClassMember = 1 << 10,
+    kHasWeakTearoffReferencePragma = 1 << 11,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -785,6 +784,16 @@ class ClassHelper {
   bool has_const_constructor() const {
     return (flags_ & Flag::kHasConstConstructor) != 0;
   }
+
+  bool is_sealed() const { return (flags_ & Flag::kIsSealed) != 0; }
+
+  bool is_mixin_class() const { return (flags_ & Flag::kIsMixinClass) != 0; }
+
+  bool is_base() const { return (flags_ & Flag::kIsBase) != 0; }
+
+  bool is_interface() const { return (flags_ & Flag::kIsInterface) != 0; }
+
+  bool is_final() const { return (flags_ & Flag::kIsFinal) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition start_position_ = TokenPosition::kNoSource;
@@ -1176,25 +1185,30 @@ class TableSelectorMetadataHelper : public MetadataHelper {
 // Information about a function regarding unboxed parameters and return value.
 class UnboxingInfoMetadata : public ZoneAllocated {
  public:
-  enum UnboxingInfoTag {
-    kBoxed = 0,
-    kUnboxedIntCandidate = 1 << 0,
-    kUnboxedDoubleCandidate = 1 << 1,
-    kUnboxedRecordCandidate = 1 << 2,
-    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate |
-                         kUnboxedRecordCandidate,
+  // Should match UnboxingKind in pkg/vm/lib/metadata/unboxing_info.dart.
+  enum UnboxingKind {
+    kBoxed,
+    kInt,
+    kDouble,
+    kRecord,
+    kUnknown,
   };
 
-  UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }
+  struct UnboxingType {
+    UnboxingKind kind = kBoxed;
+    RecordShape record_shape = RecordShape::ForUnnamed(0);
+  };
+
+  UnboxingInfoMetadata() : unboxed_args_info(0), return_info() {}
 
   void SetArgsCount(intptr_t num_args) {
     ASSERT(unboxed_args_info.is_empty());
     unboxed_args_info.SetLength(num_args);
-    unboxed_args_info.FillWith(kBoxed, 0, num_args);
+    unboxed_args_info.FillWith(UnboxingType(), 0, num_args);
   }
 
-  GrowableArray<UnboxingInfoTag> unboxed_args_info;
-  UnboxingInfoTag return_info;
+  GrowableArray<UnboxingType> unboxed_args_info;
+  UnboxingType return_info;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
 };
@@ -1207,6 +1221,9 @@ class UnboxingInfoMetadataHelper : public MetadataHelper {
   explicit UnboxingInfoMetadataHelper(KernelReaderHelper* helper);
 
   UnboxingInfoMetadata* GetUnboxingInfoMetadata(intptr_t node_offset);
+
+ private:
+  UnboxingInfoMetadata::UnboxingType ReadUnboxingType() const;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadataHelper);
 };

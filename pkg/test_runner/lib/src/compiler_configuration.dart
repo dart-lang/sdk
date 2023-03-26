@@ -86,8 +86,6 @@ abstract class CompilerConfiguration {
       case Compiler.dart2wasm:
         return Dart2WasmCompilerConfiguration(configuration);
 
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
       case Compiler.ddc:
         return DevCompilerConfiguration(configuration);
 
@@ -173,6 +171,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
   @override
   final bool hasCompiler = false;
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -208,6 +207,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   VMKernelCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   bool get _isAot => false;
 
   // Issue(http://dartbug.com/29840): Currently fasta sometimes does not emit a
@@ -221,8 +221,10 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   // The corresponding http://dartbug.com/29840 tracks to get the frontend to
   // emit all necessary compile-time errors (and *additionally* encode them
   // in the AST in certain cases).
+  @override
   bool get runRuntimeDespiteMissingCompileTimeError => true;
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     final commands = <Command>[
@@ -245,6 +247,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     ];
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -326,6 +329,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       TestConfiguration configuration, this.pipelineCommands)
       : super._subclass(configuration);
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var allCommands = <Command>[];
@@ -354,6 +358,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     return CommandArtifact(allCommands, artifact.filename, artifact.mimeType);
   }
 
+  @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     // The result will be passed as an input to [extractArguments]
@@ -367,6 +372,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     ];
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -386,6 +392,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
   Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   String computeCompilerPath() {
     if (_isHostChecked && _useSdk) {
       // When [_useSdk] is true, dart2js is compiled into a snapshot that was
@@ -419,6 +426,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
         useSdk: _useSdk, alwaysCompile: !_useSdk);
   }
 
+  @override
   List<Uri> bootstrapDependencies() {
     if (!_useSdk) return const <Uri>[];
     return _bootstrapDependenciesCache.putIfAbsent(
@@ -430,6 +438,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
             ]);
   }
 
+  @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
@@ -442,6 +451,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     ];
   }
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = [
@@ -468,6 +478,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     return CommandArtifact(commands, babelOut, 'application/javascript');
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -504,6 +515,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   Dart2WasmCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
     if (_isHostChecked) {
@@ -521,6 +533,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     return '$prefix/dart2wasm$shellScriptExtension';
   }
 
+  @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
@@ -536,7 +549,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   Command computeCompilationCommand(String outputFileName,
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = arguments.toList();
-    arguments.add('$outputFileName');
+    arguments.add(outputFileName);
 
     return CompilationCommand(
         'dart2wasm',
@@ -548,6 +561,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         alwaysCompile: !_useSdk);
   }
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = [
@@ -564,6 +578,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     return CommandArtifact(commands, out, 'application/wasm');
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -585,12 +600,12 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Configuration for "dartdevc", "dartdevk", and "ddc".
-// TODO(nshahan): Cleanup mulitple aliases for the compiler.
+/// Configuration for "ddc".
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   String computeCompilerPath() {
     // DDC is a Dart program and not an executable itself, so the command to
     // spawn as a subprocess is a Dart VM.
@@ -601,6 +616,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     return '$dir/bin/dart$executableExtension';
   }
 
+  @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
@@ -686,6 +702,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         compilerPath: compilerPath, alwaysCompile: false);
   }
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     // The list of arguments comes from a call to our own
@@ -757,6 +774,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     ], runFile, "application/javascript");
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -806,11 +824,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   bool get _isSimRiscv64 =>
       _configuration.architecture == Architecture.simriscv64;
 
+  @override
   bool get _isAot => true;
 
   PrecompilerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   int get timeoutMultiplier {
     var multiplier = 2;
     if (_isDebug) multiplier *= 4;
@@ -818,6 +838,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return multiplier;
   }
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
@@ -856,8 +877,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
-    return CommandArtifact(
-        commands, '$tempDir', 'application/dart-precompiled');
+    return CommandArtifact(commands, tempDir, 'application/dart-precompiled');
   }
 
   /// Creates a command to clean up large temporary kernel files.
@@ -1087,6 +1107,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return filtered;
   }
 
+  @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
@@ -1104,6 +1125,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     ];
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -1136,6 +1158,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   AppJitCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   int get timeoutMultiplier {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
@@ -1143,6 +1166,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return multiplier;
   }
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var snapshot = "$tempDir/out.jitsnapshot";
@@ -1155,16 +1179,24 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   Command computeCompilationCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var snapshot = "$tempDir/out.jitsnapshot";
-    return CompilationCommand(
-        'app_jit',
-        tempDir,
-        bootstrapDependencies(),
-        "${_configuration.buildDirectory}/dart",
-        ["--snapshot=$snapshot", "--snapshot-kind=app-jit", ...arguments],
-        environmentOverrides,
+    var executable = "${_configuration.buildDirectory}/dart";
+    arguments = [
+      "--snapshot=$snapshot",
+      "--snapshot-kind=app-jit",
+      ...arguments
+    ];
+    if (_configuration.useQemu) {
+      final config = QemuConfig.all[_configuration.architecture]!;
+      arguments.insert(0, executable);
+      arguments.insertAll(0, config.arguments);
+      executable = config.executable;
+    }
+    return CompilationCommand('app_jit', tempDir, bootstrapDependencies(),
+        executable, arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
+  @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
@@ -1179,6 +1211,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     ];
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -1203,6 +1236,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   AnalyzerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   int get timeoutMultiplier => 4;
 
   @override
@@ -1238,6 +1272,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   ];
 
   /// [arguments].last must be the Dart source file.
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     // Since this is not a real compilation, no artifacts are produced.
@@ -1271,8 +1306,10 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
   SpecParserCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
+  @override
   String computeCompilerPath() => 'tools/spec_parse.py';
 
+  @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     // Since this is not a real compilation, no artifacts are produced.
@@ -1282,6 +1319,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
         'application/vnd.dart');
   }
 
+  @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
@@ -1311,7 +1349,7 @@ abstract class VMKernelCompilerMixin {
     var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
     var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
-    var kernelBinariesFolder = '${_configuration.buildDirectory}';
+    var kernelBinariesFolder = _configuration.buildDirectory;
     if (_useSdk) {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }

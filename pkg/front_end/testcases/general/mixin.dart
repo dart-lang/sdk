@@ -6,11 +6,11 @@ class B extends Object with M1, M2 {
   B(value);
 }
 
-abstract class M1 {
+mixin M1 {
   m() => print("M1");
 }
 
-abstract class M2 {
+mixin M2 {
   m() => print("M2");
 }
 
@@ -18,7 +18,7 @@ class C extends Object with M1, M2 {
   C(value);
 }
 
-abstract class G1<T> {
+mixin G1<T> {
   m() => print(T);
 }
 

@@ -24,10 +24,12 @@ abstract class ByteStore {
 
   /// Associate [bytes] with [key].
   ///
-  /// If this store supports reference counting, returns the internalized
-  /// version of [bytes], the reference count is set to `1`.
-  ///
-  /// TODO(scheglov) Disable overwriting.
+  /// If this store supports reference counting:
+  /// 1. If there is already data with [key], increments the count and
+  ///    returns the existing data. This can happen when multiple isolates work
+  ///    with the same store (via native code).
+  /// 2. Otherwise, returns the internalized version of [bytes], the reference
+  ///    count is set to `1`.
   Uint8List putGet(String key, Uint8List bytes);
 
   /// If this store supports reference counting, decrements it for every key
@@ -39,6 +41,10 @@ abstract class ByteStore {
 class MemoryByteStore implements ByteStore {
   @visibleForTesting
   final Map<String, MemoryByteStoreEntry> map = {};
+
+  /// Throws [StateError] if [release] invoked when there is no entry.
+  @visibleForTesting
+  bool throwIfReleaseWithoutEntry = false;
 
   @override
   Uint8List? get(String key) {
@@ -53,6 +59,12 @@ class MemoryByteStore implements ByteStore {
 
   @override
   Uint8List putGet(String key, Uint8List bytes) {
+    final entry = map[key];
+    if (entry != null) {
+      entry.refCount++;
+      return entry.bytes;
+    }
+
     map[key] = MemoryByteStoreEntry._(bytes);
     return bytes;
   }
@@ -66,6 +78,8 @@ class MemoryByteStore implements ByteStore {
         if (entry.refCount == 0) {
           map.remove(key);
         }
+      } else if (throwIfReleaseWithoutEntry) {
+        throw StateError('No entry: $key');
       }
     }
   }

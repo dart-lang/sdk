@@ -80,7 +80,7 @@ void main() {
   // tear-off tests.
   expect(external.method(), 'method');
   // expect((external.method)(), 'method');
-  expect(external.differentArgsMethod('method'), 'method');
+  expect(external.differentArgsMethod('method'), 'methodundefined');
   // expect((external.differentArgsMethod)('optional', 'method'),
   //     'optionalmethod');
   expect(external.renamedMethod(), 'method');

@@ -24,7 +24,6 @@
 #include "vm/debugger_api_impl_test.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -2783,9 +2782,6 @@ ISOLATE_UNIT_TEST_CASE(Code) {
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
@@ -2806,8 +2802,6 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
     // is switched off.
     FATAL("Test requires --write-protect-code; skip by forcing expected crash");
   }
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
 }
 
 class CodeTestHelper {
@@ -2823,9 +2817,6 @@ class CodeTestHelper {
 // Test for executability of generated instructions. The test crashes with a
 // segmentation fault when executing the writeable view.
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
@@ -2859,8 +2850,6 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
     // is switched off.
     FATAL("Test requires --dual-map-code; skip by forcing expected crash");
   }
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
 }
 
 // Test for Embedded String object in the instructions.
@@ -6433,7 +6422,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
     EXPECT_SUBSTRING(
         "\"id\":\"\","
-        "\"kind\":\"PlainInstance\",\"length\":0}",
+        "\"kind\":\"UserTag\",\"label\":\"Default\"}",
         buffer);
   }
   // Type reference
@@ -8204,10 +8193,16 @@ static CodePtr CreateInvokeInstantiateTypeArgumentsStub(Thread* thread) {
       zone, Function::New(signature, symbol, UntaggedFunction::kRegularFunction,
                           false, false, false, false, false, klass,
                           TokenPosition::kNoSource));
+
   compiler::ObjectPoolBuilder pool_builder;
-  const auto& invoke_instantiate_tav =
-      Code::Handle(zone, StubCode::Generate("InstantiateTAV", &pool_builder,
-                                            &GenerateInvokeInstantiateTAVStub));
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  compiler::Assembler assembler(&pool_builder);
+  GenerateInvokeInstantiateTAVStub(&assembler);
+  const Code& invoke_instantiate_tav = Code::Handle(
+      Code::FinalizeCodeAndNotify("InstantiateTAV", nullptr, &assembler,
+                                  Code::PoolAttachment::kNotAttachPool,
+                                  /*optimized=*/false));
+
   const auto& pool =
       ObjectPool::Handle(zone, ObjectPool::NewFromBuilder(pool_builder));
   invoke_instantiate_tav.set_object_pool(pool.ptr());

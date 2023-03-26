@@ -201,30 +201,33 @@ class MatchingCache {
     CacheableExpression? result = _intConstantMap[value];
     if (result == null) {
       result = _intConstantMap[value] = createConstantExpression(
-          createIntLiteral(value, fileOffset: fileOffset),
-          _coreTypes.intNonNullableRawType);
+          new IntConstant(value), _coreTypes.intNonNullableRawType,
+          fileOffset: fileOffset);
     }
     return result;
   }
 
-  /// Creates a cacheable expression for the constant [expression] of the
-  /// given [expressionType].
-  // TODO(johnniwinther): Support using constant value identity to determine
-  // the cache key.
+  /// Creates a cacheable expression for the [constant] of the given
+  /// [expressionType].
   CacheableExpression createConstantExpression(
-      Expression expression, DartType expressionType) {
+      Constant constant, DartType expressionType,
+      {required int fileOffset}) {
     assert(isKnown(expressionType));
-    CacheKey cacheKey = new ExpressionKey(expression);
+    CacheKey cacheKey = new ConstantKey(constant);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
       cache = _createCacheableExpression(cacheKey,
           isLate: false,
           isConst: true,
           requiresCaching: true,
-          fileOffset: expression.fileOffset);
+          fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        cacheKey, new FixedExpression(expression, expressionType));
+        cacheKey,
+        new FixedExpression(
+            new ConstantExpression(constant, expressionType)
+              ..fileOffset = fileOffset,
+            expressionType));
   }
 
   /// Creates a cacheable as expression of the [operand] against [type].
@@ -513,7 +516,6 @@ abstract class CacheKey implements AccessKey {
 }
 
 /// A key that is defined by the [expression] node that created it.
-// TODO(johnniwinther): Handle constant expressions differently.
 class ExpressionKey extends CacheKey {
   final Expression expression;
 
@@ -529,6 +531,25 @@ class ExpressionKey extends CacheKey {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ExpressionKey && expression == other.expression;
+  }
+}
+
+/// A key that is defined by the [constant].
+class ConstantKey extends CacheKey {
+  final Constant constant;
+
+  ConstantKey(this.constant);
+
+  @override
+  String get name => '${constant.toText(defaultAstTextStrategy)}';
+
+  @override
+  int get hashCode => constant.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ConstantKey && constant == other.constant;
   }
 }
 

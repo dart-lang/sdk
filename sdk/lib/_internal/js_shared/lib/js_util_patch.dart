@@ -8,31 +8,49 @@ import 'dart:_js_helper'
     show convertDartClosureToJS, assertInterop, assertInteropArgs;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
+import 'dart:typed_data';
+
+bool _noJsifyRequired(Object? o) =>
+    o == null ||
+    o is bool ||
+    o is num ||
+    o is String ||
+    o is Int8List ||
+    o is Uint8List ||
+    o is Uint8ClampedList ||
+    o is Int16List ||
+    o is Uint16List ||
+    o is Int32List ||
+    o is Uint32List ||
+    o is Float32List ||
+    o is Float64List ||
+    o is ByteBuffer ||
+    o is ByteData;
 
 @patch
-dynamic jsify(Object object) {
-  if ((object is! Map) && (object is! Iterable)) {
-    throw ArgumentError("object must be a Map or Iterable");
+dynamic jsify(Object? object) {
+  if (_noJsifyRequired(object)) {
+    return object;
   }
-  return _convertDataTree(object);
-}
-
-Object _convertDataTree(Object data) {
-  var _convertedObjects = HashMap.identity();
+  final _convertedObjects = HashMap<Object?, Object?>.identity();
 
   Object? _convert(Object? o) {
+    // Fast path for primitives.
+    if (_noJsifyRequired(o)) {
+      return o;
+    }
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
-    if (o is Map) {
+    if (o is Map<Object?, Object?>) {
       final convertedMap = JS('=Object', '{}');
       _convertedObjects[o] = convertedMap;
       for (var key in o.keys) {
         JS('=Object', '#[#]=#', convertedMap, key, _convert(o[key]));
       }
       return convertedMap;
-    } else if (o is Iterable) {
-      var convertedList = [];
+    } else if (o is Iterable<Object?>) {
+      final convertedList = [];
       _convertedObjects[o] = convertedList;
       convertedList.addAll(o.map(_convert));
       return convertedList;
@@ -41,7 +59,7 @@ Object _convertDataTree(Object data) {
     }
   }
 
-  return _convert(data)!;
+  return _convert(object);
 }
 
 @patch
@@ -83,13 +101,13 @@ T _setPropertyUnchecked<T>(Object o, Object name, T? value) {
 }
 
 @patch
-T callMethod<T>(Object o, String method, List<Object?> args) {
+T callMethod<T>(Object o, Object method, List<Object?> args) {
   assertInteropArgs(args);
   return JS<dynamic>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
 
 /// Similar to [callMethod] but introduces an unsound implicit cast to `T`.
-T _callMethodTrustType<T>(Object o, String method, List<Object?> args) {
+T _callMethodTrustType<T>(Object o, Object method, List<Object?> args) {
   assertInteropArgs(args);
   return JS<T>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
@@ -100,7 +118,7 @@ T _callMethodTrustType<T>(Object o, String method, List<Object?> args) {
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked0<T>(Object o, String method) {
+T _callMethodUnchecked0<T>(Object o, Object method) {
   return JS<dynamic>('Object|Null', '#[#]()', o, method);
 }
 
@@ -111,7 +129,7 @@ T _callMethodUnchecked0<T>(Object o, String method) {
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType0<T>(Object o, String method) {
+T _callMethodUncheckedTrustType0<T>(Object o, Object method) {
   return JS<T>('Object|Null', '#[#]()', o, method);
 }
 
@@ -121,7 +139,7 @@ T _callMethodUncheckedTrustType0<T>(Object o, String method) {
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
+T _callMethodUnchecked1<T>(Object o, Object method, Object? arg1) {
   return JS<dynamic>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
@@ -132,7 +150,7 @@ T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType1<T>(Object o, String method, Object? arg1) {
+T _callMethodUncheckedTrustType1<T>(Object o, Object method, Object? arg1) {
   return JS<T>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
@@ -143,7 +161,7 @@ T _callMethodUncheckedTrustType1<T>(Object o, String method, Object? arg1) {
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked2<T>(
-    Object o, String method, Object? arg1, Object? arg2) {
+    Object o, Object method, Object? arg1, Object? arg2) {
   return JS<dynamic>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
@@ -155,7 +173,7 @@ T _callMethodUnchecked2<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType2<T>(
-    Object o, String method, Object? arg1, Object? arg2) {
+    Object o, Object method, Object? arg1, Object? arg2) {
   return JS<T>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
@@ -166,7 +184,7 @@ T _callMethodUncheckedTrustType2<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked3<T>(
-    Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
+    Object o, Object method, Object? arg1, Object? arg2, Object? arg3) {
   return JS<dynamic>(
       'Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
@@ -179,7 +197,7 @@ T _callMethodUnchecked3<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType3<T>(
-    Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
+    Object o, Object method, Object? arg1, Object? arg2, Object? arg3) {
   return JS<T>('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
@@ -189,7 +207,7 @@ T _callMethodUncheckedTrustType3<T>(
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
+T _callMethodUnchecked4<T>(Object o, Object method, Object? arg1, Object? arg2,
     Object? arg3, Object? arg4) {
   return JS<dynamic>(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
@@ -202,7 +220,7 @@ T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType4<T>(Object o, String method, Object? arg1,
+T _callMethodUncheckedTrustType4<T>(Object o, Object method, Object? arg1,
     Object? arg2, Object? arg3, Object? arg4) {
   return JS<T>(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
@@ -510,14 +528,56 @@ DateTime _dateToDateTime(date) {
   return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
 }
 
+bool _noDartifyRequired(Object? o) =>
+    o == null ||
+    JS(
+        'bool',
+        '''typeof # === 'boolean' ||
+                      typeof # === 'number' ||
+                      typeof # === 'string' ||
+                      # instanceof Int8Array ||
+                      # instanceof Uint8Array ||
+                      # instanceof Uint8ClampedArray ||
+                      # instanceof Int16Array ||
+                      # instanceof Uint16Array ||
+                      # instanceof Int32Array ||
+                      # instanceof Uint32Array ||
+                      # instanceof Float32Array ||
+                      # instanceof Float64Array ||
+                      # instanceof ArrayBuffer ||
+                      # instanceof DataView''',
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o,
+        o);
+
 @patch
 Object? dartify(Object? o) {
-  var _convertedObjects = HashMap.identity();
+  if (_noDartifyRequired(o)) {
+    return o;
+  }
+
+  final _convertedObjects = HashMap<Object?, Object?>.identity();
+
   Object? convert(Object? o) {
-    if (_convertedObjects.containsKey(o)) {
+    // Fast path for primitives.
+    if (_noDartifyRequired(o)) {
+      return o;
+    }
+
+    if (_convertedObjects.containsKey(o!)) {
       return _convertedObjects[o];
     }
-    if (o == null || o is bool || o is num || o is String) return o;
 
     if (_isJavaScriptDate(o)) {
       return _dateToDateTime(o);
@@ -530,32 +590,32 @@ Object? dartify(Object? o) {
     }
 
     if (_isJavaScriptPromise(o)) {
-      return promiseToFuture(o);
+      return promiseToFuture<Object?>(o);
     }
 
     if (isJavaScriptSimpleObject(o)) {
-      Map<Object?, Object?> dartObject = {};
+      final dartObject = <Object?, Object?>{};
       _convertedObjects[o] = dartObject;
-      List<Object?> originalKeys = objectKeys(o);
-      List<Object?> dartKeys = [];
-      for (Object? key in originalKeys) {
+      final originalKeys = objectKeys(o);
+      final dartKeys = <Object?>[];
+      for (final key in originalKeys) {
         dartKeys.add(dartify(key));
       }
       for (int i = 0; i < originalKeys.length; i++) {
-        Object? jsKey = originalKeys[i];
-        Object? dartKey = dartKeys[i];
+        final jsKey = originalKeys[i];
+        final dartKey = dartKeys[i];
         if (jsKey != null) {
-          dartObject[dartKey] = convert(getProperty(o, jsKey));
+          dartObject[dartKey] = convert(getProperty<Object?>(o, jsKey));
         }
       }
       return dartObject;
     }
 
     if (isJavaScriptArray(o)) {
-      var l = JS<List>('returns:List;creates:;', '#', o);
-      List<Object?> dartObject = [];
+      final l = JS<List<Object?>>('returns:List;creates:;', '#', o);
+      final dartObject = <Object?>[];
       _convertedObjects[o] = dartObject;
-      int length = getProperty(o, 'length');
+      final length = getProperty<int>(o, 'length');
       for (int i = 0; i < length; i++) {
         dartObject.add(convert(l[i]));
       }

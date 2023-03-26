@@ -41,7 +41,7 @@ FieldFormalParameter
   period: .
   name: f
   declaredElement: self::@enum::E::@constructor::new::@parameter::f
-  declaredElementType: int
+    type: int
 ''');
   }
 }

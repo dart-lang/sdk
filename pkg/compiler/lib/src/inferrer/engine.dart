@@ -80,7 +80,11 @@ class InferrerEngine {
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
   /// inferencing on it and give it the dynamic type.
-  final int _MAX_CHANGE_COUNT = 6;
+  ///
+  /// Note: Due to the encoding to track refine count for a given node this
+  /// value must be less than 2^(64-N) where N is the number of values in the
+  /// TypeInformation flags enum.
+  static const int _MAX_CHANGE_COUNT = 6;
 
   int _overallRefineCount = 0;
   int _addedInGraph = 0;
@@ -95,8 +99,8 @@ class InferrerEngine {
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
-  final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
-      Map<MemberEntity, GlobalTypeInferenceElementData>();
+  final Map<MemberEntity, KernelGlobalTypeInferenceElementData> _memberData =
+      Map<MemberEntity, KernelGlobalTypeInferenceElementData>();
 
   ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
@@ -118,7 +122,10 @@ class InferrerEngine {
       this.globalLocalsMap,
       this.inferredDataBuilder)
       : this.types = TypeSystem(closedWorld,
-            KernelTypeSystemStrategy(closedWorld, globalLocalsMap));
+            KernelTypeSystemStrategy(closedWorld, globalLocalsMap)),
+        // Ensure `_MAX_CHANGE_COUNT` conforms to TypeInformation flag encoding.
+        assert(_MAX_CHANGE_COUNT.bitLength <
+            64 - TypeInformation.NUM_TYPE_INFO_FLAGS);
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
@@ -131,7 +138,7 @@ class InferrerEngine {
   }
 
   // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
+  KernelGlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= KernelGlobalTypeInferenceElementData();
 
   /// Update [sideEffects] with the side effects of [callee] being
@@ -208,7 +215,7 @@ class InferrerEngine {
 
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.TreeNode node, Selector? selector, AbstractValue? mask) {
-    final data = dataOfMember(owner) as KernelGlobalTypeInferenceElementData;
+    final data = dataOfMember(owner);
     assert(validCallType(callType, node));
     switch (callType) {
       case CallType.access:
@@ -717,7 +724,7 @@ class InferrerEngine {
       if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {
         _overallRefineCount++;
-        info.refineCount++;
+        info.incrementRefineCount();
         if (info.refineCount > _MAX_CHANGE_COUNT) {
           metrics.exceededMaxChangeCount.add();
           if (debug.ANOMALY_WARN) {
@@ -740,6 +747,7 @@ class InferrerEngine {
     _workQueue.addAll(types.allocatedTypes);
     _workQueue.addAll(types.allocatedClosures);
     _workQueue.addAll(types.allocatedCalls);
+    _workQueue.addAll(types.allocatedRecords.values);
   }
 
   /// Update the inputs to parameters in the graph. [remove] tells whether
@@ -1036,9 +1044,16 @@ class InferrerEngine {
   }
 
   void close() {
-    for (MemberTypeInformation typeInformation
-        in types.memberTypeInformations.values) {
-      typeInformation.computeIsCalledOnce();
+    for (final callSite in types.allocatedCalls) {
+      void markCalled(MemberEntity member) {
+        types.getInferredTypeOfMember(member).markCalled();
+      }
+
+      if (callSite is StaticCallSiteTypeInformation) {
+        markCalled(callSite.calledElement);
+      } else if (callSite is DynamicCallSiteTypeInformation) {
+        callSite.callees.forEach(markCalled);
+      }
     }
   }
 
@@ -1075,9 +1090,22 @@ class InferrerEngine {
     _memberData.clear();
   }
 
+  Map<MemberEntity, Set<MemberEntity>>? _cachedCallersOfForTesting;
+
   Iterable<MemberEntity>? getCallersOfForTesting(MemberEntity element) {
-    MemberTypeInformation info = types.getInferredTypeOfMember(element);
-    return info.callersForTesting;
+    if (_cachedCallersOfForTesting == null) {
+      final callers = _cachedCallersOfForTesting = {};
+      for (final callSite in types.allocatedCalls) {
+        if (callSite is StaticCallSiteTypeInformation) {
+          (callers[callSite.calledElement] ??= {}).add(callSite.caller);
+        } else if (callSite is DynamicCallSiteTypeInformation) {
+          callSite.callees.forEach((callee) {
+            (callers[callee] ??= {}).add(callSite.caller);
+          });
+        }
+      }
+    }
+    return _cachedCallersOfForTesting![element];
   }
 
   /// Returns the type of [element] when being called with [selector].

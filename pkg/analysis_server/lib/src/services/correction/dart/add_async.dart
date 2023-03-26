@@ -77,7 +77,7 @@ class AddAsync extends CorrectionProducer {
   /// Return `true` if the [type] is `Future<void>`.
   bool _isFutureVoid(DartType type) {
     if (type is InterfaceType && type.isDartAsyncFuture) {
-      return type.typeArguments[0].isVoid;
+      return type.typeArguments[0] is VoidType;
     }
     return false;
   }

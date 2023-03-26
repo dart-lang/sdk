@@ -58,7 +58,7 @@ MethodInvocation
     await assertNoErrorsInCode('''
 class A {}
 
-class M {
+mixin M {
   void foo() {}
 }
 
@@ -80,7 +80,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::M::@method::foo
+    staticElement: self::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -92,7 +92,7 @@ MethodInvocation
 
   test_methodInvocation_mixinHasNoSuchMethod() async {
     await assertErrorsInCode('''
-class A {
+mixin A {
   void foo();
   noSuchMethod(im) => 42;
 }
@@ -114,7 +114,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: self::@mixin::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -171,7 +171,7 @@ class A {
   void foo() {}
 }
 
-abstract class B {
+mixin B {
   void foo();
 }
 
@@ -315,7 +315,7 @@ mixin M implements A {
 
   test_propertyAccess_getter_mixinHasNoSuchMethod() async {
     await assertErrorsInCode('''
-class A {
+mixin A {
   int get foo;
   noSuchMethod(im) => 1;
 }
@@ -510,7 +510,7 @@ AssignmentExpression
 
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
     await assertErrorsInCode('''
-class A {
+mixin A {
   set foo(int a);
   noSuchMethod(im) {}
 }
@@ -540,12 +540,12 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    parameter: self::@class::A::@setter::foo::@parameter::a
+    parameter: self::@mixin::A::@setter::foo::@parameter::a
     staticElement: self::@class::B::@setter::foo::@parameter::a
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@class::A::@setter::foo
+  writeElement: self::@mixin::A::@setter::foo
   writeType: int
   staticElement: <null>
   staticType: int

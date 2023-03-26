@@ -400,6 +400,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         break;
       case StaticUseKind.CLOSURE:
       case StaticUseKind.CLOSURE_CALL:
+      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Static use ${staticUse.kind} is not supported during codegen.");
     }

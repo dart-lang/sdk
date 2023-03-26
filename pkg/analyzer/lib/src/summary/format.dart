@@ -235,7 +235,7 @@ class _AnalysisDriverExceptionContextImpl extends Object
   }
 }
 
-abstract class _AnalysisDriverExceptionContextMixin
+mixin _AnalysisDriverExceptionContextMixin
     implements idl.AnalysisDriverExceptionContext {
   @override
   Map<String, Object> toJson() {
@@ -361,7 +361,7 @@ class _AnalysisDriverExceptionFileImpl extends Object
   }
 }
 
-abstract class _AnalysisDriverExceptionFileMixin
+mixin _AnalysisDriverExceptionFileMixin
     implements idl.AnalysisDriverExceptionFile {
   @override
   Map<String, Object> toJson() {
@@ -506,7 +506,7 @@ class _AnalysisDriverResolvedUnitImpl extends Object
   }
 }
 
-abstract class _AnalysisDriverResolvedUnitMixin
+mixin _AnalysisDriverResolvedUnitMixin
     implements idl.AnalysisDriverResolvedUnit {
   @override
   Map<String, Object> toJson() {
@@ -627,8 +627,7 @@ class _AnalysisDriverSubtypeImpl extends Object
   }
 }
 
-abstract class _AnalysisDriverSubtypeMixin
-    implements idl.AnalysisDriverSubtype {
+mixin _AnalysisDriverSubtypeMixin implements idl.AnalysisDriverSubtype {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -852,8 +851,7 @@ class _AnalysisDriverUnitErrorImpl extends Object
   }
 }
 
-abstract class _AnalysisDriverUnitErrorMixin
-    implements idl.AnalysisDriverUnitError {
+mixin _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -1743,8 +1741,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
   }
 }
 
-abstract class _AnalysisDriverUnitIndexMixin
-    implements idl.AnalysisDriverUnitIndex {
+mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -2536,7 +2533,7 @@ class _AvailableDeclarationImpl extends Object
   }
 }
 
-abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
+mixin _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -2937,7 +2934,7 @@ class _AvailableFileImpl extends Object
   }
 }
 
-abstract class _AvailableFileMixin implements idl.AvailableFile {
+mixin _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -3093,7 +3090,7 @@ class _AvailableFileExportImpl extends Object
   }
 }
 
-abstract class _AvailableFileExportMixin implements idl.AvailableFileExport {
+mixin _AvailableFileExportMixin implements idl.AvailableFileExport {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -3229,7 +3226,7 @@ class _AvailableFileExportCombinatorImpl extends Object
   }
 }
 
-abstract class _AvailableFileExportCombinatorMixin
+mixin _AvailableFileExportCombinatorMixin
     implements idl.AvailableFileExportCombinator {
   @override
   Map<String, Object> toJson() {
@@ -3340,7 +3337,7 @@ class _CiderUnitErrorsImpl extends Object
   }
 }
 
-abstract class _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
+mixin _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -3518,7 +3515,7 @@ class _DiagnosticMessageImpl extends Object
   }
 }
 
-abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
+mixin _DiagnosticMessageMixin implements idl.DiagnosticMessage {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
@@ -3666,7 +3663,7 @@ class _DirectiveInfoImpl extends Object
   }
 }
 
-abstract class _DirectiveInfoMixin implements idl.DirectiveInfo {
+mixin _DirectiveInfoMixin implements idl.DirectiveInfo {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};

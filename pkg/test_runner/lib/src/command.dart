@@ -46,6 +46,7 @@ abstract class Command {
       CommandOutput(this, exitCode, timedOut, stdout, stderr, time,
           compilationSkipped, pid);
 
+  @override
   int get hashCode {
     if (_cachedHashCode == null) {
       var builder = HashCodeBuilder();
@@ -55,6 +56,7 @@ abstract class Command {
     return _cachedHashCode!;
   }
 
+  @override
   operator ==(Object other) =>
       identical(this, other) ||
       (runtimeType == other.runtimeType && _equal(other as Command));
@@ -69,6 +71,7 @@ abstract class Command {
       displayName == other.displayName &&
       index == other.index;
 
+  @override
   String toString() => reproductionCommand;
 
   bool get outputIsUpToDate => false;
@@ -100,11 +103,13 @@ class ProcessCommand extends Command {
     }
   }
 
+  @override
   ProcessCommand indexedCopy(int index) {
     return ProcessCommand(displayName, executable, arguments,
         environmentOverrides, workingDirectory, index);
   }
 
+  @override
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(executable);
@@ -113,6 +118,7 @@ class ProcessCommand extends Command {
     builder.addJson(environmentOverrides);
   }
 
+  @override
   bool _equal(ProcessCommand other) =>
       super._equal(other) &&
       executable == other.executable &&
@@ -120,15 +126,14 @@ class ProcessCommand extends Command {
       workingDirectory == other.workingDirectory &&
       deepJsonCompare(environmentOverrides, other.environmentOverrides);
 
+  @override
   String get reproductionCommand {
     var env = StringBuffer();
     environmentOverrides.forEach((key, value) =>
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
-    var command = ([executable]
-          ..addAll(nonBatchArguments)
-          ..addAll(arguments))
+    var command = [executable, ...nonBatchArguments, ...arguments]
         .map(escapeCommandLineArgument)
         .join(' ');
     if (workingDirectory != null) {
@@ -137,6 +142,7 @@ class ProcessCommand extends Command {
     return "$env$command";
   }
 
+  @override
   bool get outputIsUpToDate => false;
 
   /// Additional arguments to prepend before [arguments] when running the
@@ -171,6 +177,7 @@ class CompilationCommand extends ProcessCommand {
         super(displayName, executable, arguments, environmentOverrides,
             workingDirectory, index);
 
+  @override
   CompilationCommand indexedCopy(int index) => CompilationCommand(
       displayName,
       outputFile,
@@ -182,6 +189,7 @@ class CompilationCommand extends ProcessCommand {
       workingDirectory: workingDirectory,
       index: index);
 
+  @override
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
       List<int> stderr, Duration time, bool compilationSkipped,
       [int pid = 0]) {
@@ -197,6 +205,7 @@ class CompilationCommand extends ProcessCommand {
         this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   }
 
+  @override
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;
 
@@ -233,6 +242,7 @@ class CompilationCommand extends ProcessCommand {
     return [...arguments.where((arg) => arg.startsWith('--enable-experiment'))];
   }
 
+  @override
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(outputFile);
@@ -240,6 +250,7 @@ class CompilationCommand extends ProcessCommand {
     builder.addJson(_bootstrapDependencies);
   }
 
+  @override
   bool _equal(CompilationCommand other) =>
       super._equal(other) &&
       outputFile == other.outputFile &&
@@ -327,8 +338,8 @@ class DevCompilerCompilationCommand extends CompilationCommand {
       required bool alwaysCompile,
       String? workingDirectory,
       int index = 0})
-      : super("dartdevc", outputFile, bootstrapDependencies, executable,
-            arguments, environmentOverrides,
+      : super("ddc", outputFile, bootstrapDependencies, executable, arguments,
+            environmentOverrides,
             alwaysCompile: alwaysCompile,
             workingDirectory: workingDirectory,
             index: index);
@@ -407,6 +418,7 @@ class FastaCompilationCommand extends CompilationCommand {
       workingDirectory,
       index: index);
 
+  @override
   FastaCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
           [int? pid = 0]) =>
@@ -451,11 +463,10 @@ class FastaCompilationCommand extends CompilationCommand {
       buffer.write(" ");
     });
     buffer.writeAll(
-        (<String>[executable]
-              ..add(_compilerLocation.toFilePath())
-              ..addAll(arguments))
-            .map(relativizeAndEscape),
-        " ");
+      [executable, _compilerLocation.toFilePath(), ...arguments]
+          .map(relativizeAndEscape),
+      " ",
+    );
     if (workingDirectory != null) {
       if (io.Platform.isWindows) {
         buffer.write(" (working directory: $workingDirectory)");
@@ -491,11 +502,13 @@ class VMKernelCompilationCommand extends CompilationCommand {
             executable, arguments, environmentOverrides,
             alwaysCompile: alwaysCompile, index: index);
 
+  @override
   VMKernelCompilationCommand indexedCopy(int index) =>
       VMKernelCompilationCommand(outputFile, _bootstrapDependencies, executable,
           arguments, environmentOverrides,
           alwaysCompile: _alwaysCompile, index: index);
 
+  @override
   VMKernelCompilationCommandOutput createOutput(
           int exitCode,
           bool timedOut,
@@ -507,6 +520,7 @@ class VMKernelCompilationCommand extends CompilationCommand {
       VMKernelCompilationCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 
+  @override
   int get maxNumRetries => 1;
 }
 
@@ -516,8 +530,10 @@ class AddFlagsKey {
   final Map env;
   AddFlagsKey(this.flags, this.env);
   // Just use object identity for environment map
+  @override
   bool operator ==(Object other) =>
       other is AddFlagsKey && flags == other.flags && env == other.env;
+  @override
   int get hashCode => flags.hashCode ^ env.hashCode;
 }
 
@@ -529,9 +545,11 @@ class BrowserTestCommand extends Command {
   BrowserTestCommand(this.url, this.configuration, {int index = 0})
       : super._(configuration.runtime.name, index: index);
 
+  @override
   BrowserTestCommand indexedCopy(int index) =>
       BrowserTestCommand(url, configuration, index: index);
 
+  @override
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(browser.name);
@@ -539,12 +557,14 @@ class BrowserTestCommand extends Command {
     builder.add(configuration);
   }
 
+  @override
   bool _equal(BrowserTestCommand other) =>
       super._equal(other) &&
       browser == other.browser &&
       url == other.url &&
       identical(configuration, other.configuration);
 
+  @override
   String get reproductionCommand {
     var parts = [
       io.Platform.resolvedExecutable,
@@ -555,6 +575,7 @@ class BrowserTestCommand extends Command {
     return parts.map(escapeCommandLineArgument).join(' ');
   }
 
+  @override
   int get maxNumRetries => 4;
 }
 
@@ -567,10 +588,12 @@ class AnalysisCommand extends ProcessCommand {
       : super('dart2analyzer', executable, arguments, environmentOverrides,
             null, index);
 
+  @override
   AnalysisCommand indexedCopy(int index) => AnalysisCommand(
       executable, arguments, commonAnalyzerCliArguments, environmentOverrides,
       index: index);
 
+  @override
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
           [int? pid = 0]) =>
@@ -598,10 +621,12 @@ class CompareAnalyzerCfeCommand extends ProcessCommand {
       : super('compare_analyzer_cfe', executable, arguments,
             environmentOverrides, null, index);
 
+  @override
   CompareAnalyzerCfeCommand indexedCopy(int index) =>
       CompareAnalyzerCfeCommand(executable, arguments, environmentOverrides,
           index: index);
 
+  @override
   CompareAnalyzerCfeCommandOutput createOutput(
           int exitCode,
           bool timedOut,
@@ -620,10 +645,12 @@ class SpecParseCommand extends ProcessCommand {
       : super('spec_parser', executable, arguments, environmentOverrides, null,
             index);
 
+  @override
   SpecParseCommand indexedCopy(int index) =>
       SpecParseCommand(executable, arguments, environmentOverrides,
           index: index);
 
+  @override
   SpecParseCommandOutput createOutput(
           int exitCode,
           bool timedOut,
@@ -642,9 +669,11 @@ class VMCommand extends ProcessCommand {
       {int index = 0})
       : super('vm', executable, arguments, environmentOverrides, null, index);
 
+  @override
   VMCommand indexedCopy(int index) =>
       VMCommand(executable, arguments, environmentOverrides, index: index);
 
+  @override
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
           [int pid = 0]) =>
@@ -664,14 +693,14 @@ class RRCommand extends Command {
 
   RRCommand(this.originalCommand)
       : super._("rr", index: originalCommand.index) {
-    final suffix = "/rr-trace-" + originalCommand.hashCode.toString();
+    final suffix = "/rr-trace-${originalCommand.hashCode}";
     recordingDir = io.Directory(io.Directory.systemTemp.path + suffix);
-    savedDir = io.Directory("out" + suffix);
+    savedDir = io.Directory("out$suffix");
     final executable = "rr";
     final arguments = <String>[
       "record",
       "--chaos",
-      "--output-trace-dir=" + recordingDir.path,
+      "--output-trace-dir=${recordingDir.path}",
     ];
     arguments.add(originalCommand.executable);
     arguments.addAll(originalCommand.arguments);
@@ -680,6 +709,7 @@ class RRCommand extends Command {
         index: originalCommand.index);
   }
 
+  @override
   RRCommand indexedCopy(int index) =>
       RRCommand(originalCommand.indexedCopy(index));
 
@@ -698,10 +728,10 @@ class RRCommand extends Command {
         await savedDir.delete(recursive: true);
       }
       await recordingDir.rename(savedDir.path);
-      await io.File(savedDir.path + "/command.txt")
+      await io.File("${savedDir.path}/command.txt")
           .writeAsString(wrappedCommand.reproductionCommand);
-      await io.File(savedDir.path + "/stdout.txt").writeAsBytes(output.stdout);
-      await io.File(savedDir.path + "/stderr.txt").writeAsBytes(output.stderr);
+      await io.File("${savedDir.path}/stdout.txt").writeAsBytes(output.stdout);
+      await io.File("${savedDir.path}/stderr.txt").writeAsBytes(output.stderr);
     } else {
       await recordingDir.delete(recursive: true);
     }
@@ -710,14 +740,17 @@ class RRCommand extends Command {
         output.stdout, output.stderr, output.time, output.pid);
   }
 
+  @override
   String get reproductionCommand =>
-      wrappedCommand.reproductionCommand + " (rr replay " + savedDir.path + ")";
+      "${wrappedCommand.reproductionCommand} (rr replay ${savedDir.path})";
 
+  @override
   void _buildHashCode(HashCodeBuilder builder) {
     originalCommand._buildHashCode(builder);
     builder.add(42);
   }
 
+  @override
   bool _equal(RRCommand other) =>
       hashCode == other.hashCode &&
       originalCommand._equal(other.originalCommand);
@@ -729,12 +762,14 @@ abstract class AdbCommand {
 }
 
 class AdbPrecompilationCommand extends Command implements AdbCommand {
+  @override
   final String buildPath; // Path to the output directory of the build.
   final String processTestFilename;
   final String abstractSocketTestFilename;
   final String precompiledTestDirectory;
   final List<String> arguments;
   final bool useElf;
+  @override
   final List<String> extraLibraries;
 
   AdbPrecompilationCommand(
@@ -748,6 +783,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
+  @override
   AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand(
       buildPath,
       processTestFilename,
@@ -758,11 +794,13 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       extraLibraries,
       index: index);
 
+  @override
   VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
           [int pid = 0]) =>
       VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 
+  @override
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(buildPath);
@@ -772,6 +810,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
     extraLibraries.forEach(builder.add);
   }
 
+  @override
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       buildPath == other.buildPath &&
@@ -780,6 +819,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       precompiledTestDirectory == other.precompiledTestDirectory &&
       deepJsonCompare(extraLibraries, other.extraLibraries);
 
+  @override
   String toString() => 'Steps to push precompiled runner and precompiled code '
       'to an attached device. Uses (and requires) adb.';
 
@@ -788,11 +828,13 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
 }
 
 class AdbDartkCommand extends Command implements AdbCommand {
+  @override
   final String buildPath;
   final String processTestFilename;
   final String abstractSocketTestFilename;
   final String kernelFile;
   final List<String> arguments;
+  @override
   final List<String> extraLibraries;
 
   AdbDartkCommand(
@@ -805,6 +847,7 @@ class AdbDartkCommand extends Command implements AdbCommand {
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
+  @override
   AdbDartkCommand indexedCopy(int index) => AdbDartkCommand(
       buildPath,
       processTestFilename,
@@ -814,6 +857,7 @@ class AdbDartkCommand extends Command implements AdbCommand {
       extraLibraries,
       index: index);
 
+  @override
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(buildPath);
@@ -822,6 +866,7 @@ class AdbDartkCommand extends Command implements AdbCommand {
     builder.add(extraLibraries);
   }
 
+  @override
   bool _equal(AdbDartkCommand other) =>
       super._equal(other) &&
       buildPath == other.buildPath &&
@@ -829,11 +874,13 @@ class AdbDartkCommand extends Command implements AdbCommand {
       extraLibraries == other.extraLibraries &&
       kernelFile == other.kernelFile;
 
+  @override
   VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
           [int pid = 0]) =>
       VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 
+  @override
   String toString() => 'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';
 
@@ -848,9 +895,11 @@ class JSCommandLineCommand extends ProcessCommand {
       : super(displayName, executable, arguments, environmentOverrides, null,
             index);
 
+  @override
   JSCommandLineCommand indexedCopy(int index) => JSCommandLineCommand(
       displayName, executable, arguments, environmentOverrides, index);
 
+  @override
   JSCommandLineOutput createOutput(
           int exitCode,
           bool timedOut,
@@ -869,10 +918,12 @@ class Dart2WasmCommandLineCommand extends ProcessCommand {
       : super(displayName, executable, arguments, environmentOverrides, null,
             index);
 
+  @override
   Dart2WasmCommandLineCommand indexedCopy(int index) =>
       Dart2WasmCommandLineCommand(
           displayName, executable, arguments, environmentOverrides, index);
 
+  @override
   Dart2WasmCommandLineOutput createOutput(
           int exitCode,
           bool timedOut,

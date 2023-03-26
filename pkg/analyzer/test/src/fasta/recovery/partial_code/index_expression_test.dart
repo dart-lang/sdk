@@ -70,7 +70,8 @@ class IndexStatementTest extends PartialCodeTest {
             'labeled',
             'localFunctionNonVoid',
             'localFunctionVoid',
-            'return'
+            'return',
+            'switch',
           ],
         ),
         TestDescriptor(

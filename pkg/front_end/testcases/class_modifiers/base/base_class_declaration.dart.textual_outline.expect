@@ -1,7 +1,6 @@
-base
-class A {}
+base class A {}
+
 abstract base class B {}
-base
-mixin M {}
-base
-class C = Object with M;
+
+base mixin M {}
+base class C = Object with M;

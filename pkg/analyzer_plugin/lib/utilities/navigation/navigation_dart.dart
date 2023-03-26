@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -497,6 +498,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitPartOfDirective(PartOfDirective node) {
     computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
     super.visitPartOfDirective(node);
+  }
+
+  @override
+  void visitPatternField(covariant PatternFieldImpl node) {
+    final nameNode = node.name;
+    if (nameNode != null) {
+      final nameToken = nameNode.name ?? node.pattern.variablePattern?.name;
+      if (nameToken != null) {
+        computer._addRegionForToken(nameToken, node.element);
+      }
+    }
+
+    node.pattern.accept(this);
   }
 
   @override

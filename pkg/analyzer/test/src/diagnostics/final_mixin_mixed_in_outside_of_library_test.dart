@@ -18,7 +18,7 @@ class FinalMixinMixedInOutsideOfLibraryTest extends PubPackageResolutionTest {
   test_class_inside() async {
     await assertNoErrorsInCode(r'''
 final mixin Foo {}
-class Bar with Foo {}
+final class Bar with Foo {}
 ''');
   }
 
@@ -29,10 +29,10 @@ final mixin Foo {}
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar with Foo {}
+final class Bar with Foo {}
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY, 34, 3),
+          CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY, 40, 3),
     ]);
   }
 
@@ -44,10 +44,10 @@ typedef FooTypedef = Foo;
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar with FooTypedef {}
+final class Bar with FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY, 34, 10),
+          CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY, 40, 10),
     ]);
   }
 
@@ -59,23 +59,11 @@ final mixin Foo {}
     await assertErrorsInCode(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
-class Bar with FooTypedef {}
+final class Bar with FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY, 60, 10),
+          CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY, 66, 10),
     ]);
-  }
-
-  test_class_subtypeOfBase_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-final mixin Foo {}
-class Bar with Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-class Bar2 extends Bar {}
-''');
   }
 
   test_enum_inside() async {

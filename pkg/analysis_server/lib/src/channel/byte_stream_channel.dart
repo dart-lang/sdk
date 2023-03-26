@@ -56,7 +56,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   );
 
   @override
-  Future close() {
+  Future<void> close() {
     return output.close();
   }
 
@@ -80,13 +80,13 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   final RequestStatisticsHelper? _requestStatistics;
 
   /// Completer that will be signalled when the input stream is closed.
-  final Completer _closed = Completer();
+  final Completer<void> _closed = Completer();
 
   /// True if [close] has been called.
   bool _closeRequested = false;
 
   @override
-  late final Stream<Request> requests = _lines.transform(
+  late final Stream<RequestOrResponse> requests = _lines.transform(
     StreamTransformer.fromHandlers(
       handleData: _readRequest,
       handleDone: (sink) {
@@ -103,7 +103,7 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   }
 
   /// Future that will be completed when the input stream is closed.
-  Future get closed {
+  Future<void> get closed {
     return _closed.future;
   }
 
@@ -136,6 +136,18 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   }
 
   @override
+  void sendRequest(Request request) {
+    // Don't send any further requests after the communication channel is
+    // closed.
+    if (_closeRequested) {
+      return;
+    }
+    var jsonEncoding = json.encode(request.toJson());
+    _outputLine(jsonEncoding);
+    _instrumentationService.logRequest(jsonEncoding);
+  }
+
+  @override
   void sendResponse(Response response) {
     // Don't send any further responses after the communication channel is
     // closed.
@@ -159,21 +171,26 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   /// Read a request from the given [data] and use the given function to handle
   /// the request.
-  void _readRequest(String data, Sink<Request> sink) {
+  void _readRequest(String data, Sink<RequestOrResponse> sink) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;
     }
     _instrumentationService.logRequest(data);
     // Parse the string as a JSON descriptor and process the resulting
-    // structure as a request.
-    var request = Request.fromString(data);
-    if (request == null) {
+    // structure as either a request or a response.
+    var requestOrResponse =
+        Request.fromString(data) ?? Response.fromString(data);
+    if (requestOrResponse == null) {
+      // If the data isn't valid, then assume it was an invalid request so that
+      // clients won't be left waiting for a response.
       sendResponse(Response.invalidRequestFormat());
       return;
     }
-    _requestStatistics?.addRequest(request);
-    sink.add(request);
+    if (requestOrResponse is Request) {
+      _requestStatistics?.addRequest(requestOrResponse);
+    }
+    sink.add(requestOrResponse);
   }
 }
 

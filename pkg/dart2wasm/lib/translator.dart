@@ -571,9 +571,12 @@ class Translator with KernelNodes {
         translateStorageType(type), type.toText(defaultAstTextStrategy));
   }
 
-  w.ArrayType wasmArrayType(w.StorageType type, String name) {
-    return arrayTypeCache.putIfAbsent(type,
-        () => m.addArrayType("Array<$name>", elementType: w.FieldType(type)));
+  w.ArrayType wasmArrayType(w.StorageType type, String name,
+      {bool mutable = true}) {
+    return arrayTypeCache.putIfAbsent(
+        type,
+        () => m.addArrayType("Array<$name>",
+            elementType: w.FieldType(type, mutable: mutable)));
   }
 
   /// Translate a Dart type as it should appear on parameters and returns of
@@ -748,6 +751,7 @@ class Translator with KernelNodes {
     final dynamicCallEntry = makeDynamicCallEntry();
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
+      ib.ref_func(representation.instantiationTypeComparisonFunction);
       ib.ref_func(representation.instantiationFunction);
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {

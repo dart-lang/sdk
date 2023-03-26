@@ -23,13 +23,13 @@ class Graph<T> {
   final StreamController<StateChangedEvent<T>> _changedController;
 
   /// Notifies when the graph is sealed.
-  final Stream<Null> sealed;
-  final StreamController<Null> _sealedController;
+  final Stream<void> sealed;
+  final StreamController<void> _sealedController;
 
   factory Graph() {
     var added = StreamController<Node<T>>();
     var changed = StreamController<StateChangedEvent<T>>();
-    var sealed = StreamController<Null>();
+    var sealed = StreamController<void>();
 
     return Graph._(
         added,
@@ -134,6 +134,7 @@ class NodeState {
 
   const NodeState._(this.name);
 
+  @override
   String toString() => name;
 }
 

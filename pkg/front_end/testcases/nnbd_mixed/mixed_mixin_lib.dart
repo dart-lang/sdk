@@ -4,7 +4,7 @@
 
 import 'mixed_mixin.dart';
 
-class B {
+mixin B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
   int Function(int) m(int Function(int) x) => x;

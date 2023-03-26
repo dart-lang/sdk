@@ -46,10 +46,6 @@ declare_args() {
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false
 
-  # Whether to use mallinfo2 instead of mallinfo which is deprecated starting
-  # with libc 2.33
-  dart_use_mallinfo2 = false
-
   # Whether to link Crashpad library for crash handling. Only supported on
   # Windows for now.
   dart_use_crashpad = false
@@ -81,6 +77,9 @@ declare_args() {
 
   # Whether to use compressed pointers.
   dart_use_compressed_pointers = false
+
+  # Whether the sampling heap profiler should be included in product mode.
+  dart_include_sampling_heap_profiler = false
 }
 
 declare_args() {

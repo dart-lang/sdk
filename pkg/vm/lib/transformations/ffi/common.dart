@@ -617,41 +617,58 @@ class FfiTransformer extends Transformer {
         allowCompounds: true, allowHandle: true);
     if (returnType == null) return null;
     final argumentTypes = <DartType>[];
-    bool seenVarArgs = false;
-    for (final paramDartType in fun.positionalParameters) {
-      if (seenVarArgs) {
-        // VarArgs is not last.
-        return null;
-      }
-      if (paramDartType is InterfaceType &&
-          paramDartType.classNode == varArgsClass) {
-        seenVarArgs = true;
-        final typeArgument = paramDartType.typeArguments.single;
-        if (typeArgument is RecordType) {
-          if (typeArgument.named.isNotEmpty) {
-            // Named record fields are not supported.
-            return null;
-          }
-          for (final paramDartType in typeArgument.positional) {
-            argumentTypes.add(
-              convertNativeTypeToDartType(paramDartType,
-                      allowCompounds: true, allowHandle: true) ??
-                  dummyDartType,
-            );
-          }
-        } else {
-          return null;
-        }
-      } else {
-        argumentTypes.add(
-          convertNativeTypeToDartType(paramDartType,
-                  allowCompounds: true, allowHandle: true) ??
-              dummyDartType,
-        );
-      }
+    for (final paramDartType in flattenVarargs(fun).positionalParameters) {
+      argumentTypes.add(
+        convertNativeTypeToDartType(paramDartType,
+                allowCompounds: true, allowHandle: true) ??
+            dummyDartType,
+      );
     }
     if (argumentTypes.contains(dummyDartType)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
+  }
+
+  /// Removes the VarArgs from a DartType list.
+  ///
+  /// ```
+  /// [Int8, Int8] -> [Int8, Int8]
+  /// [Int8, VarArgs<(Int8,)>] -> [Int8, Int8]
+  /// [Int8, VarArgs<(Int8, Int8)>] -> [Int8, Int8, Int8]
+  /// ```
+  FunctionType flattenVarargs(FunctionType functionTypeWithPossibleVarArgs) {
+    final positionalParameters =
+        functionTypeWithPossibleVarArgs.positionalParameters;
+    if (positionalParameters.isEmpty) {
+      return functionTypeWithPossibleVarArgs;
+    }
+    final lastPositionalParameter = positionalParameters.last;
+    if (lastPositionalParameter is InterfaceType &&
+        lastPositionalParameter.classNode == varArgsClass) {
+      final typeArgument = lastPositionalParameter.typeArguments.single;
+      if (typeArgument is! RecordType) {
+        return functionTypeWithPossibleVarArgs;
+      }
+
+      if (typeArgument.named.isNotEmpty) {
+        // Named record fields are not supported.
+        return functionTypeWithPossibleVarArgs;
+      }
+
+      final positionalParameters = [
+        ...functionTypeWithPossibleVarArgs.positionalParameters.sublist(
+            0, functionTypeWithPossibleVarArgs.positionalParameters.length - 1),
+        for (final paramDartType in typeArgument.positional) paramDartType,
+      ];
+      return FunctionType(
+        positionalParameters,
+        functionTypeWithPossibleVarArgs.returnType,
+        functionTypeWithPossibleVarArgs.declaredNullability,
+        namedParameters: functionTypeWithPossibleVarArgs.namedParameters,
+        typeParameters: functionTypeWithPossibleVarArgs.typeParameters,
+        requiredParameterCount: positionalParameters.length,
+      );
+    }
+    return functionTypeWithPossibleVarArgs;
   }
 
   /// The [NativeType] corresponding to [c]. Returns `null` for user-defined
@@ -737,7 +754,8 @@ class FfiTransformer extends Transformer {
       Expression length, int fileOffset) {
     final typedDataVar = VariableDeclaration("#typedData",
         initializer: typedData,
-        type: InterfaceType(typedDataClass, Nullability.nonNullable))
+        type: InterfaceType(typedDataClass, Nullability.nonNullable),
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return Let(
         typedDataVar,
@@ -783,10 +801,14 @@ class FfiTransformer extends Transformer {
   Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
       Expression length, DartType dartType, int fileOffset) {
     final typedDataBaseVar = VariableDeclaration("#typedDataBase",
-        initializer: typedDataBase, type: coreTypes.objectNonNullableRawType)
+        initializer: typedDataBase,
+        type: coreTypes.objectNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     final offsetVar = VariableDeclaration("#offset",
-        initializer: offset, type: coreTypes.intNonNullableRawType)
+        initializer: offset,
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return BlockExpression(
         Block([typedDataBaseVar, offsetVar]),

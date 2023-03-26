@@ -27,7 +27,7 @@ void testPointer() {
   });
 }
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   external Pointer notEmpty;
 }
 

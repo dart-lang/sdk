@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstructorResolutionTest);
+    defineReflectiveTests(ConstructorDeclarationResolutionTest);
   });
 }
 
 @reflectiveTest
-class ConstructorResolutionTest extends PubPackageResolutionTest {
+class ConstructorDeclarationResolutionTest extends PubPackageResolutionTest {
   test_factory_redirect_generic_instantiated() async {
     await assertNoErrorsInCode(r'''
 class A<T> implements B<T> {

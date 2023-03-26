@@ -55,7 +55,7 @@ class ByteData implements TypedData {
 // This class does not extend ListBase<T> since that would add type arguments
 // to instances of _TypeListBase. Instead the subclasses use type specific
 // mixins (like _IntListMixin, _DoubleListMixin) to implement ListBase<T>.
-abstract class _TypedListBase {
+abstract final class _TypedListBase {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
@@ -829,7 +829,7 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
   }
 }
 
-abstract class _Float32x4ListMixin implements List<Float32x4> {
+mixin _Float32x4ListMixin implements List<Float32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1187,7 +1187,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   }
 }
 
-abstract class _Int32x4ListMixin implements List<Int32x4> {
+mixin _Int32x4ListMixin implements List<Int32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1544,7 +1544,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   }
 }
 
-abstract class _Float64x2ListMixin implements List<Float64x2> {
+mixin _Float64x2ListMixin implements List<Float64x2> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1903,7 +1903,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
 }
 
 @pragma("vm:entry-point")
-class _ByteBuffer implements ByteBuffer {
+final class _ByteBuffer implements ByteBuffer {
   final _TypedList _data;
 
   _ByteBuffer(this._data);
@@ -2046,7 +2046,7 @@ class _ByteBuffer implements ByteBuffer {
   }
 }
 
-abstract class _TypedList extends _TypedListBase {
+abstract final class _TypedList extends _TypedListBase {
   int get elementSizeInBytes;
 
   // Default method implementing parts of the TypedData interface.
@@ -2200,7 +2200,7 @@ class Int8List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int8List extends _TypedList
+final class _Int8List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
   factory _Int8List._uninstantiable() {
@@ -2256,7 +2256,7 @@ class Uint8List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint8List extends _TypedList
+final class _Uint8List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
   factory _Uint8List._uninstantiable() {
@@ -2312,7 +2312,7 @@ class Uint8ClampedList {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint8ClampedList extends _TypedList
+final class _Uint8ClampedList extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
   factory _Uint8ClampedList._uninstantiable() {
@@ -2368,7 +2368,7 @@ class Int16List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int16List extends _TypedList
+final class _Int16List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
   factory _Int16List._uninstantiable() {
@@ -2444,7 +2444,7 @@ class Uint16List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint16List extends _TypedList
+final class _Uint16List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
   factory _Uint16List._uninstantiable() {
@@ -2520,7 +2520,7 @@ class Int32List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int32List extends _TypedList
+final class _Int32List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
   factory _Int32List._uninstantiable() {
@@ -2583,7 +2583,7 @@ class Uint32List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint32List extends _TypedList
+final class _Uint32List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
   factory _Uint32List._uninstantiable() {
@@ -2646,7 +2646,7 @@ class Int64List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int64List extends _TypedList
+final class _Int64List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
   factory _Int64List._uninstantiable() {
@@ -2709,7 +2709,7 @@ class Uint64List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint64List extends _TypedList
+final class _Uint64List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
   factory _Uint64List._uninstantiable() {
@@ -2772,7 +2772,7 @@ class Float32List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Float32List extends _TypedList
+final class _Float32List extends _TypedList
     with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
   factory _Float32List._uninstantiable() {
@@ -2836,7 +2836,7 @@ class Float64List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Float64List extends _TypedList
+final class _Float64List extends _TypedList
     with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
   factory _Float64List._uninstantiable() {
@@ -2899,7 +2899,7 @@ class Float32x4List {
 }
 
 @pragma("vm:entry-point")
-class _Float32x4List extends _TypedList
+final class _Float32x4List extends _TypedList
     with _Float32x4ListMixin
     implements Float32x4List {
   factory _Float32x4List._uninstantiable() {
@@ -2961,7 +2961,7 @@ class Int32x4List {
 }
 
 @pragma("vm:entry-point")
-class _Int32x4List extends _TypedList
+final class _Int32x4List extends _TypedList
     with _Int32x4ListMixin
     implements Int32x4List {
   factory _Int32x4List._uninstantiable() {
@@ -3023,7 +3023,7 @@ class Float64x2List {
 }
 
 @pragma("vm:entry-point")
-class _Float64x2List extends _TypedList
+final class _Float64x2List extends _TypedList
     with _Float64x2ListMixin
     implements Float64x2List {
   factory _Float64x2List._uninstantiable() {
@@ -3069,7 +3069,7 @@ class _Float64x2List extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalInt8Array extends _TypedList
+final class _ExternalInt8Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
   factory _ExternalInt8Array._uninstantiable() {
@@ -3106,7 +3106,7 @@ class _ExternalInt8Array extends _TypedList
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _ExternalUint8Array extends _TypedList
+final class _ExternalUint8Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
   factory _ExternalUint8Array._uninstantiable() {
@@ -3145,7 +3145,7 @@ class _ExternalUint8Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalUint8ClampedArray extends _TypedList
+final class _ExternalUint8ClampedArray extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
   factory _ExternalUint8ClampedArray._uninstantiable() {
@@ -3184,7 +3184,7 @@ class _ExternalUint8ClampedArray extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalInt16Array extends _TypedList
+final class _ExternalInt16Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
   factory _ExternalInt16Array._uninstantiable() {
@@ -3228,7 +3228,7 @@ class _ExternalInt16Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalUint16Array extends _TypedList
+final class _ExternalUint16Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
   factory _ExternalUint16Array._uninstantiable() {
@@ -3272,7 +3272,7 @@ class _ExternalUint16Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalInt32Array extends _TypedList
+final class _ExternalInt32Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
   factory _ExternalInt32Array._uninstantiable() {
@@ -3316,7 +3316,7 @@ class _ExternalInt32Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalUint32Array extends _TypedList
+final class _ExternalUint32Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
   factory _ExternalUint32Array._uninstantiable() {
@@ -3360,7 +3360,7 @@ class _ExternalUint32Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalInt64Array extends _TypedList
+final class _ExternalInt64Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
   factory _ExternalInt64Array._uninstantiable() {
@@ -3404,7 +3404,7 @@ class _ExternalInt64Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalUint64Array extends _TypedList
+final class _ExternalUint64Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
   factory _ExternalUint64Array._uninstantiable() {
@@ -3448,7 +3448,7 @@ class _ExternalUint64Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalFloat32Array extends _TypedList
+final class _ExternalFloat32Array extends _TypedList
     with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
   factory _ExternalFloat32Array._uninstantiable() {
@@ -3492,7 +3492,7 @@ class _ExternalFloat32Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalFloat64Array extends _TypedList
+final class _ExternalFloat64Array extends _TypedList
     with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
   factory _ExternalFloat64Array._uninstantiable() {
@@ -3536,7 +3536,7 @@ class _ExternalFloat64Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalFloat32x4Array extends _TypedList
+final class _ExternalFloat32x4Array extends _TypedList
     with _Float32x4ListMixin
     implements Float32x4List {
   factory _ExternalFloat32x4Array._uninstantiable() {
@@ -3580,7 +3580,7 @@ class _ExternalFloat32x4Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalInt32x4Array extends _TypedList
+final class _ExternalInt32x4Array extends _TypedList
     with _Int32x4ListMixin
     implements Int32x4List {
   factory _ExternalInt32x4Array._uninstantiable() {
@@ -3624,7 +3624,7 @@ class _ExternalInt32x4Array extends _TypedList
 }
 
 @pragma("vm:entry-point")
-class _ExternalFloat64x2Array extends _TypedList
+final class _ExternalFloat64x2Array extends _TypedList
     with _Float64x2ListMixin
     implements Float64x2List {
   factory _ExternalFloat64x2Array._uninstantiable() {
@@ -3717,7 +3717,7 @@ class Float32x4 {
 }
 
 @pragma("vm:entry-point")
-class _Float32x4 implements Float32x4 {
+final class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_add")
@@ -3908,7 +3908,7 @@ class Int32x4 {
 }
 
 @pragma("vm:entry-point")
-class _Int32x4 implements Int32x4 {
+final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_or")
   external Int32x4 operator |(Int32x4 other);
   @pragma("vm:external-name", "Int32x4_and")
@@ -4087,7 +4087,7 @@ class Float64x2 {
 }
 
 @pragma("vm:entry-point")
-class _Float64x2 implements Float64x2 {
+final class _Float64x2 implements Float64x2 {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:external-name", "Float64x2_add")
   external Float64x2 operator +(Float64x2 other);
@@ -4164,7 +4164,7 @@ class _Float64x2 implements Float64x2 {
   external Float64x2 sqrt();
 }
 
-class _TypedListIterator<E> implements Iterator<E> {
+final class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;
   int _position;
@@ -4192,7 +4192,8 @@ class _TypedListIterator<E> implements Iterator<E> {
   E get current => _current as E;
 }
 
-abstract class _TypedListView extends _TypedListBase implements TypedData {
+abstract final class _TypedListView extends _TypedListBase
+    implements TypedData {
   // Method(s) implementing the TypedData interface.
 
   int get lengthInBytes {
@@ -4218,7 +4219,7 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int8ArrayView extends _TypedListView
+final class _Int8ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
   // Constructor.
@@ -4262,7 +4263,7 @@ class _Int8ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint8ArrayView extends _TypedListView
+final class _Uint8ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
   // Constructor.
@@ -4306,7 +4307,7 @@ class _Uint8ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint8ClampedArrayView extends _TypedListView
+final class _Uint8ClampedArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
   // Constructor.
@@ -4350,7 +4351,7 @@ class _Uint8ClampedArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int16ArrayView extends _TypedListView
+final class _Int16ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
   // Constructor.
@@ -4407,7 +4408,7 @@ class _Int16ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint16ArrayView extends _TypedListView
+final class _Uint16ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
   // Constructor.
@@ -4465,7 +4466,7 @@ class _Uint16ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int32ArrayView extends _TypedListView
+final class _Int32ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
   // Constructor.
@@ -4509,7 +4510,7 @@ class _Int32ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint32ArrayView extends _TypedListView
+final class _Uint32ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
   // Constructor.
@@ -4553,7 +4554,7 @@ class _Uint32ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int64ArrayView extends _TypedListView
+final class _Int64ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
   // Constructor.
@@ -4597,7 +4598,7 @@ class _Int64ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Uint64ArrayView extends _TypedListView
+final class _Uint64ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
   // Constructor.
@@ -4641,7 +4642,7 @@ class _Uint64ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Float32ArrayView extends _TypedListView
+final class _Float32ArrayView extends _TypedListView
     with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
   // Constructor.
@@ -4685,7 +4686,7 @@ class _Float32ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Float64ArrayView extends _TypedListView
+final class _Float64ArrayView extends _TypedListView
     with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
   // Constructor.
@@ -4729,7 +4730,7 @@ class _Float64ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Float32x4ArrayView extends _TypedListView
+final class _Float32x4ArrayView extends _TypedListView
     with _Float32x4ListMixin
     implements Float32x4List {
   // Constructor.
@@ -4771,7 +4772,7 @@ class _Float32x4ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Int32x4ArrayView extends _TypedListView
+final class _Int32x4ArrayView extends _TypedListView
     with _Int32x4ListMixin
     implements Int32x4List {
   // Constructor.
@@ -4813,7 +4814,7 @@ class _Int32x4ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _Float64x2ArrayView extends _TypedListView
+final class _Float64x2ArrayView extends _TypedListView
     with _Float64x2ListMixin
     implements Float64x2List {
   // Constructor.
@@ -4855,7 +4856,7 @@ class _Float64x2ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _ByteDataView implements ByteData {
+final class _ByteDataView implements ByteData {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _ByteDataView)
   @pragma("vm:external-name", "TypedDataView_ByteDataView_new")
@@ -5382,7 +5383,7 @@ abstract class UnmodifiableFloat64ListView implements Float64List {
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableInt8ArrayView extends _Int8ArrayView
+final class _UnmodifiableInt8ArrayView extends _Int8ArrayView
     implements UnmodifiableInt8ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt8ArrayView)
@@ -5399,7 +5400,7 @@ class _UnmodifiableInt8ArrayView extends _Int8ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
+final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
     implements UnmodifiableUint8ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint8ArrayView)
@@ -5416,7 +5417,7 @@ class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
+final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
     implements UnmodifiableUint8ClampedListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint8ClampedArrayView)
@@ -5433,7 +5434,7 @@ class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableInt16ArrayView extends _Int16ArrayView
+final class _UnmodifiableInt16ArrayView extends _Int16ArrayView
     implements UnmodifiableInt16ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt16ArrayView)
@@ -5450,7 +5451,7 @@ class _UnmodifiableInt16ArrayView extends _Int16ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
+final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
     implements UnmodifiableUint16ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint16ArrayView)
@@ -5467,7 +5468,7 @@ class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableInt32ArrayView extends _Int32ArrayView
+final class _UnmodifiableInt32ArrayView extends _Int32ArrayView
     implements UnmodifiableInt32ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt32ArrayView)
@@ -5484,7 +5485,7 @@ class _UnmodifiableInt32ArrayView extends _Int32ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
+final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
     implements UnmodifiableUint32ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint32ArrayView)
@@ -5501,7 +5502,7 @@ class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableInt64ArrayView extends _Int64ArrayView
+final class _UnmodifiableInt64ArrayView extends _Int64ArrayView
     implements UnmodifiableInt64ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt64ArrayView)
@@ -5518,7 +5519,7 @@ class _UnmodifiableInt64ArrayView extends _Int64ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
+final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
     implements UnmodifiableUint64ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint64ArrayView)
@@ -5535,7 +5536,7 @@ class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
+final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
     implements UnmodifiableFloat32ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat32ArrayView)
@@ -5552,7 +5553,7 @@ class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
+final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
     implements UnmodifiableFloat64ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat64ArrayView)
@@ -5569,7 +5570,7 @@ class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
+final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
     implements UnmodifiableFloat32x4ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat32x4ArrayView)
@@ -5586,7 +5587,7 @@ class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
+final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
     implements UnmodifiableInt32x4ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt32x4ArrayView)
@@ -5603,7 +5604,7 @@ class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
+final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
     implements UnmodifiableFloat64x2ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat64x2ArrayView)
@@ -5620,7 +5621,7 @@ class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
-class _UnmodifiableByteDataView extends _ByteDataView
+final class _UnmodifiableByteDataView extends _ByteDataView
     implements UnmodifiableByteDataView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableByteDataView)
@@ -5676,7 +5677,7 @@ class _UnmodifiableByteDataView extends _ByteDataView
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
 }
 
-class _UnmodifiableByteBufferView extends _ByteBuffer
+final class _UnmodifiableByteBufferView extends _ByteBuffer
     implements UnmodifiableByteBufferView {
   _UnmodifiableByteBufferView(ByteBuffer data)
       : super(unsafeCast<_ByteBuffer>(data)._data);

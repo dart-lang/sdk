@@ -51,7 +51,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = #eatFood
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
   #C4 = null
   #C5 = #amount
   #C6 = #yetAnother

@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 export '../../../../../benchmarks/IsolateFibonacci/dart2/IsolateFibonacci.dart'
-  show fibonacciRecursive;
+    show fibonacciRecursive;
 
 final bool isDebugMode = Platform.script.path.contains('Debug');
 final bool isSimulator = Platform.script.path.contains('SIM');

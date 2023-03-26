@@ -500,10 +500,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_functionType_18() {
     isSubtype(
       functionTypeStar(
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       functionTypeStar(
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       strT0: 'dynamic Function()*',
       strT1: 'dynamic Function()*',
@@ -513,7 +513,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_functionType_19() {
     isSubtype(
       functionTypeStar(
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       functionTypeStar(
         returnType: voidNone,
@@ -529,7 +529,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
         returnType: voidNone,
       ),
       functionTypeStar(
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       strT0: 'void Function()*',
       strT1: 'dynamic Function()*',
@@ -2151,8 +2151,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_futureOr_15() {
     isSubtype(
-      dynamicNone,
-      futureOrStar(dynamicNone),
+      dynamicType,
+      futureOrStar(dynamicType),
       strT0: 'dynamic',
       strT1: 'FutureOr<dynamic>*',
     );
@@ -2160,7 +2160,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_futureOr_16() {
     isNotSubtype(
-      dynamicNone,
+      dynamicType,
       futureOrStar(stringStar),
       strT0: 'dynamic',
       strT1: 'FutureOr<String*>*',
@@ -3713,7 +3713,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_null_04() {
     isSubtype(
       nullQuestion,
-      dynamicNone,
+      dynamicType,
       strT0: 'Null?',
       strT1: 'dynamic',
     );
@@ -4217,7 +4217,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     isSubtype(
       recordNone,
-      dynamicNone,
+      dynamicType,
       strT0: 'Record',
       strT1: 'dynamic',
     );
@@ -4232,7 +4232,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_special_01() {
     isNotSubtype(
-      dynamicNone,
+      dynamicType,
       intStar,
       strT0: 'dynamic',
       strT1: 'int*',
@@ -4293,7 +4293,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_special_08() {
     isSubtype(
       objectStar,
-      dynamicNone,
+      dynamicType,
       strT0: 'Object*',
       strT1: 'dynamic',
     );
@@ -4310,7 +4310,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_special_10() {
     isSubtype(
-      dynamicNone,
+      dynamicType,
       objectStar,
       strT0: 'dynamic',
       strT1: 'Object*',
@@ -4319,8 +4319,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_special_11() {
     isSubtype(
-      dynamicNone,
-      dynamicNone,
+      dynamicType,
+      dynamicType,
       strT0: 'dynamic',
       strT1: 'dynamic',
     );
@@ -4328,7 +4328,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_special_12() {
     isSubtype(
-      dynamicNone,
+      dynamicType,
       voidNone,
       strT0: 'dynamic',
       strT1: 'void',
@@ -4347,7 +4347,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_special_14() {
     isSubtype(
       voidNone,
-      dynamicNone,
+      dynamicType,
       strT0: 'void',
       strT1: 'dynamic',
     );
@@ -4365,7 +4365,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_top_01() {
     var S = typeParameter('S', bound: objectStar);
     var T = typeParameter('T', bound: voidNone);
-    var U = typeParameter('U', bound: dynamicNone);
+    var U = typeParameter('U', bound: dynamicType);
     var V = typeParameter('V', bound: objectStar);
 
     isSubtype(
@@ -4391,7 +4391,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_top_02() {
-    var T0 = typeParameter('T0', bound: dynamicNone);
+    var T0 = typeParameter('T0', bound: dynamicType);
     var T1 = typeParameter('T1', bound: objectStar);
 
     var f = functionTypeStar(
@@ -4420,7 +4420,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_top_03() {
-    var T0 = typeParameter('T0', bound: dynamicNone);
+    var T0 = typeParameter('T0', bound: dynamicType);
     var T1 = typeParameter('T1', bound: objectStar);
     var T2 = typeParameter('T2', bound: voidNone);
 
@@ -4449,9 +4449,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_top_04() {
     isNotSubtype(
-      dynamicNone,
+      dynamicType,
       functionTypeStar(
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       strT0: 'dynamic',
       strT1: 'dynamic Function()*',
@@ -4502,7 +4502,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
         ),
       ),
       functionTypeStar(
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       strT0: 'T & void Function()*',
       strT1: 'dynamic Function()*',
@@ -4566,9 +4566,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
       ),
       functionTypeStar(
         parameters: [
-          requiredParameter(type: dynamicNone),
+          requiredParameter(type: dynamicType),
         ],
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       strT0: 'T & void Function(void)*',
       strT1: 'dynamic Function(dynamic)*',
@@ -4616,7 +4616,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
         parameters: [
           requiredParameter(type: iterableStar(intStar)),
         ],
-        returnType: dynamicNone,
+        returnType: dynamicType,
       ),
       strT0: 'T & void Function(void)*',
       strT1: 'dynamic Function(Iterable<int*>*)*',
@@ -4717,7 +4717,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      dynamicNone,
+      dynamicType,
       typeParameterTypeNone(T),
       strT0: 'dynamic',
       strT1: 'T',
@@ -4975,7 +4975,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_typeParameter_17() {
-    var T = typeParameter('T', bound: dynamicNone);
+    var T = typeParameter('T', bound: dynamicType);
 
     isSubtype(
       typeParameterTypeStar(T),
@@ -4986,8 +4986,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_typeParameter_18() {
-    var S = typeParameter('S', bound: dynamicNone);
-    var T = typeParameter('T', bound: dynamicNone);
+    var S = typeParameter('S', bound: dynamicType);
+    var T = typeParameter('T', bound: dynamicType);
 
     isNotSubtype(
       typeParameterTypeNone(S),
@@ -5153,11 +5153,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_typeParameter_32() {
-    var T = typeParameter('T', bound: dynamicNone);
+    var T = typeParameter('T', bound: dynamicType);
 
     isNotSubtype(
-      dynamicNone,
-      promotedTypeParameterTypeNone(T, dynamicNone),
+      dynamicType,
+      promotedTypeParameterTypeNone(T, dynamicType),
       strT0: 'dynamic',
       strT1: 'T & dynamic, T extends dynamic',
     );
@@ -5329,7 +5329,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var equivalents = <DartType>[neverStar];
 
     var supertypes = <DartType>[
-      dynamicNone,
+      dynamicType,
       objectStar,
       intStar,
       doubleStar,
@@ -5371,7 +5371,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     ];
 
     _checkGroups(
-      dynamicNone,
+      dynamicType,
       equivalents: equivalents,
       subtypes: subtypes,
     );
@@ -5379,7 +5379,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
 
   test_dynamic_isTop() {
     var equivalents = <DartType>[
-      dynamicNone,
+      dynamicType,
       objectStar,
       voidNone,
     ];
@@ -5569,7 +5569,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       intStar,
       objectQuestion,
       objectStar,
-      dynamicNone,
+      dynamicType,
       voidNone,
     ];
 
@@ -5642,7 +5642,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
 
   test_void_isTop() {
     var equivalents = <DartType>[
-      dynamicNone,
+      dynamicType,
       objectStar,
       voidNone,
     ];

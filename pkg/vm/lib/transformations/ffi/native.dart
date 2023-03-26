@@ -21,7 +21,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'common.dart' show FfiStaticTypeError, FfiTransformer;
 
-/// Transform @FfiNative annotated functions into FFI native function pointer
+/// Transform @Native annotated functions into FFI native function pointer
 /// functions.
 void transformLibraries(
     Component component,
@@ -270,7 +270,10 @@ class FfiNativeTransformer extends FfiTransformer {
             ? nativeFieldWrapperClass1Type
             : dartParameterType);
     return VariableDeclaration(variableDeclarationTemporaryName,
-        initializer: initializer, type: wrappedType, isFinal: true);
+        initializer: initializer,
+        type: wrappedType,
+        isFinal: true,
+        isSynthesized: true);
   }
 
   Expression _getTemporary(
@@ -285,7 +288,9 @@ class FfiNativeTransformer extends FfiTransformer {
 
       if (checkForNullptr) {
         final pointerAddressVar = VariableDeclaration("#pointerAddress",
-            initializer: pointerAddress, type: coreTypes.intNonNullableRawType);
+            initializer: pointerAddress,
+            type: coreTypes.intNonNullableRawType,
+            isSynthesized: true);
         pointerAddress = BlockExpression(
           Block([
             pointerAddressVar,
@@ -383,7 +388,8 @@ class FfiNativeTransformer extends FfiTransformer {
     final result = VariableDeclaration(variableDeclarationTemporaryName,
         initializer: resultInitializer,
         type: dartFunctionType.returnType,
-        isFinal: true);
+        isFinal: true,
+        isSynthesized: true);
 
     invocation.arguments = Arguments(callArguments);
 
@@ -693,8 +699,13 @@ class FfiNativeTransformer extends FfiTransformer {
   ///
   /// For example, for FFI function type `Int8 Function(Double)`, this returns
   /// `int Function(double)`.
-  FunctionType? checkFfiType(Procedure node, FunctionType dartFunctionType,
-      FunctionType ffiFunctionType, bool isLeaf, int annotationOffset) {
+  FunctionType? checkFfiType(
+      Procedure node,
+      FunctionType dartFunctionType,
+      FunctionType ffiFunctionTypeWithPossibleVarArgs,
+      bool isLeaf,
+      int annotationOffset) {
+    final ffiFunctionType = flattenVarargs(ffiFunctionTypeWithPossibleVarArgs);
     if (!_verifySignatures(
         node, dartFunctionType, ffiFunctionType, annotationOffset)) {
       return null;

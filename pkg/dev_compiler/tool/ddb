@@ -14,8 +14,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser;
-import 'package:dev_compiler/src/compiler/js_names.dart'
-    as js_names;
+import 'package:dev_compiler/src/compiler/js_names.dart' as js_names;
 import 'package:path/path.dart' as p;
 
 enum NullSafety { strict, weak, disabled }
@@ -50,7 +49,8 @@ void main(List<String> args) async {
     ..addFlag('sound-null-safety',
         help: 'Compile for sound null safety at runtime. Passed through to the '
             'DDC binary. Defaults to false.',
-        negatable: true, defaultsTo: true)
+        negatable: true,
+        defaultsTo: true)
     ..addFlag('emit-debug-symbols',
         help: 'Pass through flag for DDC, emits debug symbols file along with '
             'the compiled module.',
@@ -62,7 +62,6 @@ void main(List<String> args) async {
     ..addFlag('native-null-assertions',
         help: 'Run with assertions on non-nullable values returned from native '
             'APIs.',
-        defaultsTo: true,
         negatable: true)
     ..addFlag('weak-null-safety-errors',
         help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
@@ -126,7 +125,9 @@ void main(List<String> args) async {
   var soundNullSafety = options['sound-null-safety'] as bool;
   var emitDebugSymbols = options['emit-debug-symbols'] as bool;
   var nonNullAsserts = options['null-assertions'] as bool;
-  var nativeNonNullAsserts = options['native-null-assertions'] as bool;
+  var nativeNonNullAsserts = options.wasParsed('native-null-assertions')
+      ? options['native-null-assertions'] as bool
+      : soundNullSafety;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var canaryFeatures = options['canary'] as bool;
   var entry = p.canonicalize(options.rest.first);
@@ -135,6 +136,14 @@ void main(List<String> args) async {
   var basename = p.basenameWithoutExtension(entry);
   var libname =
       js_names.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
+
+  // This is used in the DDC module system and usually corresponds to the
+  // entrypoint's path.
+  var appname = p.relative(p.withoutExtension(entry));
+
+  // This is used in the DDC module system for multiapp workflows and is
+  // stubbed in ddb.
+  var uuid = "00000000-0000-0000-0000-000000000000";
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -353,7 +362,7 @@ sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
 // Invoke main through the d8 preamble to ensure the code is running
 // within the fake event loop.
 self.dartMainRunner(function () {
-  dart_library.start("$basename", "$libname");
+  dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
 });
 ''';
       var dart2jsD8Preamble =

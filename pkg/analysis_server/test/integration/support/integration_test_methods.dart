@@ -82,6 +82,97 @@ abstract class IntegrationTest {
     outOfTestExpect(result, isNull);
   }
 
+  /// Record the capabilities supported by the client. The default values,
+  /// documented below, will be assumed until this request is received.
+  ///
+  /// Parameters
+  ///
+  /// requests: List<String>
+  ///
+  ///   The names of the requests that the server can safely send to the
+  ///   client. Only requests whose name is in the list will be sent.
+  ///
+  ///   A request should only be included in the list if the client will
+  ///   unconditionally honor the request.
+  ///
+  ///   The default, used before this request is received, is an empty list.
+  ///
+  ///   The following is a list of the names of the requests that can be
+  ///   specified:
+  ///
+  ///   - openUrlRequest
+  ///   - showMessageRequest
+  Future<void> sendServerSetClientCapabilities(List<String> requests) async {
+    var params = ServerSetClientCapabilitiesParams(requests).toJson();
+    var result = await server.send('server.setClientCapabilities', params);
+    outOfTestExpect(result, isNull);
+  }
+
+  /// Note: This is a request from the server to the client.
+  ///
+  /// Request that a URL be opened.
+  ///
+  /// The client is expected to open the URL, either within the client's UI or
+  /// in the default browser.
+  ///
+  /// The request will only be sent from the server to the client if the client
+  /// has indicated that it supports this request by using the
+  /// setClientCapabilities request.
+  ///
+  /// Parameters
+  ///
+  /// url: String
+  ///
+  ///   The URL to be opened.
+  Future<void> sendServerOpenUrlRequest(String url) async {
+    var params = ServerOpenUrlRequestParams(url).toJson();
+    var result = await server.send('server.openUrlRequest', params);
+    outOfTestExpect(result, isNull);
+  }
+
+  /// Note: This is a request from the server to the client.
+  ///
+  /// Request that a message be displayed to the user.
+  ///
+  /// The client is expected to display the message to the user with one or
+  /// more buttons with the specified labels, and to return a response
+  /// consisting of the label of the button that was clicked.
+  ///
+  /// The request will only be sent from the server to the client if the client
+  /// has indicated that it supports this request by using the
+  /// setClientCapabilities request.
+  ///
+  /// This request is modeled after the same request from the LSP
+  /// specification.
+  ///
+  /// Parameters
+  ///
+  /// type: MessageType
+  ///
+  ///   The type of the message.
+  ///
+  /// message: String
+  ///
+  ///   The message to be displayed.
+  ///
+  /// actions: List<MessageAction>
+  ///
+  ///   The labels of the buttons by which the user can dismiss the message.
+  ///
+  /// Returns
+  ///
+  /// action: String
+  ///
+  ///   The label of the action that was selected by the user.
+  Future<ServerShowMessageRequestResult> sendServerShowMessageRequest(
+      MessageType type, String message, List<MessageAction> actions) async {
+    var params =
+        ServerShowMessageRequestParams(type, message, actions).toJson();
+    var result = await server.send('server.showMessageRequest', params);
+    var decoder = ResponseDecoder(null);
+    return ServerShowMessageRequestResult.fromJson(decoder, 'result', result);
+  }
+
   /// Reports that the server is running. This notification is issued once
   /// after the server has started running but before any requests are
   /// processed to let the client know that it started correctly.
@@ -390,6 +481,8 @@ abstract class IntegrationTest {
   ///   from the URI "file:///bar.dart" to them. To check if a specific URI is
   ///   reachable from a given file, clients can check for its presence in the
   ///   resulting key set.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
@@ -644,6 +737,8 @@ abstract class IntegrationTest {
   /// options: AnalysisOptions
   ///
   ///   The options that are to be used to control analysis.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendAnalysisUpdateOptions(AnalysisOptions options) async {
     var params = AnalysisUpdateOptionsParams(options).toJson();
@@ -1105,6 +1200,8 @@ abstract class IntegrationTest {
   ///   from which the client is interested in receiving completion
   ///   suggestions. If one configured path is beneath another, the descendant
   ///   will override the ancestors' configured libraries of interest.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendCompletionRegisterLibraryPaths(
       List<LibraryPathSet> paths) async {
@@ -2329,6 +2426,8 @@ abstract class IntegrationTest {
   /// subscriptions: List<ExecutionService>
   ///
   ///   A list of the services being subscribed to.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) async {

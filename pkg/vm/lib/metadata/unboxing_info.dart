@@ -3,31 +3,101 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:vm/transformations/type_flow/types.dart' show RecordShape;
 
-class UnboxingInfoMetadata {
-  static const kBoxed = 0;
-  static const kUnboxedIntCandidate = 1 << 0;
-  static const kUnboxedDoubleCandidate = 1 << 1;
-  static const kUnboxedRecordCandidate = 1 << 2;
-  static const kUnboxingCandidate =
-      kUnboxedIntCandidate | kUnboxedDoubleCandidate | kUnboxedRecordCandidate;
+enum UnboxingKind {
+  boxed,
+  int,
+  double,
+  record,
+  unknown, // Not calculated yet.
+}
 
-  final List<int> unboxedArgsInfo;
-  int returnInfo;
+class UnboxingType {
+  final UnboxingKind kind;
+  final RecordShape? recordShape;
 
-  UnboxingInfoMetadata(int argsLen)
-      : unboxedArgsInfo = [],
-        returnInfo = kUnboxingCandidate {
-    for (int i = 0; i < argsLen; i++) {
-      unboxedArgsInfo.add(kUnboxingCandidate);
+  const UnboxingType._(this.kind, this.recordShape);
+  UnboxingType.record(RecordShape shape) : this._(UnboxingKind.record, shape);
+
+  static const kUnknown = UnboxingType._(UnboxingKind.unknown, null);
+  static const kInt = UnboxingType._(UnboxingKind.int, null);
+  static const kDouble = UnboxingType._(UnboxingKind.double, null);
+  static const kBoxed = UnboxingType._(UnboxingKind.boxed, null);
+
+  UnboxingType intersect(UnboxingType other) {
+    if (kind == UnboxingKind.unknown) return other;
+    if (other.kind == UnboxingKind.unknown) return this;
+    if (this == other) return this;
+    return kBoxed;
+  }
+
+  @override
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is UnboxingType &&
+          this.kind == other.kind &&
+          this.recordShape == other.recordShape);
+
+  @override
+  int get hashCode => (kind.index * 31) + recordShape.hashCode;
+
+  void writeToBinary(BinarySink sink) {
+    sink.writeUInt30(kind.index);
+    if (kind == UnboxingKind.record) {
+      recordShape!.writeToBinary(sink);
     }
   }
 
-  UnboxingInfoMetadata.readFromBinary(BinarySource source)
-      : unboxedArgsInfo = List<int>.generate(
-            source.readUInt30(), (_) => source.readByte(),
+  factory UnboxingType.readFromBinary(BinarySource source) {
+    final kind = UnboxingKind.values[source.readUInt30()];
+    final recordShape = (kind == UnboxingKind.record)
+        ? RecordShape.readFromBinary(source)
+        : null;
+    return UnboxingType._(kind, recordShape);
+  }
+
+  @override
+  String toString() {
+    switch (kind) {
+      case UnboxingKind.boxed:
+        return 'b';
+      case UnboxingKind.int:
+        return 'i';
+      case UnboxingKind.double:
+        return 'd';
+      case UnboxingKind.record:
+        {
+          final sb = StringBuffer();
+          sb.write('r<');
+          sb.write(recordShape!.numPositionalFields.toString());
+          for (final named in recordShape!.namedFields) {
+            sb.write(',');
+            sb.write(named);
+          }
+          sb.write('>');
+          return sb.toString();
+        }
+      case UnboxingKind.unknown:
+        throw 'Unexpected UnboxingType.kUknown';
+    }
+  }
+}
+
+class UnboxingInfoMetadata {
+  final List<UnboxingType> argsInfo;
+  UnboxingType returnInfo;
+
+  UnboxingInfoMetadata(int argsLen)
+      : argsInfo = List<UnboxingType>.filled(argsLen, UnboxingType.kUnknown,
             growable: true),
-        returnInfo = source.readByte();
+        returnInfo = UnboxingType.kUnknown;
+
+  UnboxingInfoMetadata.readFromBinary(BinarySource source)
+      : argsInfo = List<UnboxingType>.generate(
+            source.readUInt30(), (_) => UnboxingType.readFromBinary(source),
+            growable: true),
+        returnInfo = UnboxingType.readFromBinary(source);
 
   // Returns `true` if all arguments as well as the return value have to be
   // boxed.
@@ -35,49 +105,36 @@ class UnboxingInfoMetadata {
   // We don't have to write out metadata for fully boxed methods, because this
   // is the default.
   bool get isFullyBoxed {
-    if (returnInfo != kBoxed) return false;
-    for (int argInfo in unboxedArgsInfo) {
-      if (argInfo != kBoxed) return false;
+    if (returnInfo != UnboxingType.kBoxed) return false;
+    for (final argInfo in argsInfo) {
+      if (argInfo != UnboxingType.kBoxed) return false;
     }
     return true;
   }
 
   void writeToBinary(BinarySink sink) {
-    sink.writeUInt30(unboxedArgsInfo.length);
-    for (int val in unboxedArgsInfo) {
-      sink.writeByte(val);
+    sink.writeUInt30(argsInfo.length);
+    for (final argInfo in argsInfo) {
+      argInfo.writeToBinary(sink);
     }
-    sink.writeByte(returnInfo);
+    returnInfo.writeToBinary(sink);
   }
 
   @override
   String toString() {
     final sb = StringBuffer();
     sb.write('(');
-    for (int i = 0; i < unboxedArgsInfo.length; ++i) {
-      final argInfo = unboxedArgsInfo[i];
-      sb.write(_stringifyUnboxingInfo(argInfo));
-      if (i != (unboxedArgsInfo.length - 1)) {
+    for (int i = 0; i < argsInfo.length; ++i) {
+      final argInfo = argsInfo[i];
+      sb.write(argInfo.toString());
+      if (i != (argsInfo.length - 1)) {
         sb.write(',');
       }
     }
     sb.write(')');
     sb.write('->');
-    sb.write(_stringifyUnboxingInfo(returnInfo));
+    sb.write(returnInfo.toString());
     return sb.toString();
-  }
-
-  static String _stringifyUnboxingInfo(int info) {
-    switch (info) {
-      case UnboxingInfoMetadata.kUnboxedIntCandidate:
-        return 'i';
-      case UnboxingInfoMetadata.kUnboxedDoubleCandidate:
-        return 'd';
-      case UnboxingInfoMetadata.kUnboxedRecordCandidate:
-        return 'r';
-    }
-    assert(info == UnboxingInfoMetadata.kBoxed);
-    return 'b';
   }
 }
 

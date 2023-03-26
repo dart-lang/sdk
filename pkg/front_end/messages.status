@@ -107,6 +107,10 @@ ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
+ConstEvalElementNotPrimitiveEquality/analyzerCode: Fail
+ConstEvalElementNotPrimitiveEquality/example: Fail
+ConstEvalEqualsOperandNotPrimitiveEquality/analyzerCode: Fail
+ConstEvalEqualsOperandNotPrimitiveEquality/example: Fail
 ConstEvalError/analyzerCode: Fail
 ConstEvalError/example: Fail
 ConstEvalExtension/example: Fail
@@ -138,6 +142,8 @@ ConstEvalIterationInConstList/example: Fail
 ConstEvalIterationInConstMap/example: Fail
 ConstEvalIterationInConstSet/example: Fail
 ConstEvalKeyImplementsEqual/example: Fail
+ConstEvalKeyNotPrimitiveEquality/analyzerCode: Fail
+ConstEvalKeyNotPrimitiveEquality/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantVariableGet/example: Fail
@@ -301,8 +307,6 @@ ExportOptOutFromOptIn/analyzerCode: Fail
 ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
-ExtendFunction/part_wrapped_script: Fail
-ExtendFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
@@ -447,8 +451,6 @@ IllegalRecursiveType/analyzerCode: Fail
 IllegalRecursiveType/part_wrapped_script: Fail
 IllegalRecursiveType/script: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
-ImplementFunction/part_wrapped_script: Fail
-ImplementFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ImplementsBeforeExtends/part_wrapped_script: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeOn/part_wrapped_script: Fail
@@ -629,6 +631,8 @@ JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler s
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
+JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStrictModeViolation/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
@@ -676,8 +680,6 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
-MixinFunction/part_wrapped_script: Fail
-MixinFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
@@ -700,6 +702,10 @@ NeverReachableSwitchDefaultError/analyzerCode: Fail
 NeverReachableSwitchDefaultError/example: Fail
 NeverReachableSwitchDefaultWarning/analyzerCode: Fail
 NeverReachableSwitchDefaultWarning/example: Fail
+NeverReachableSwitchExpressionError/analyzerCode: Fail
+NeverReachableSwitchExpressionError/example: Fail
+NeverReachableSwitchStatementError/analyzerCode: Fail
+NeverReachableSwitchStatementError/example: Fail
 NeverValueError/analyzerCode: Fail
 NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
@@ -792,6 +798,7 @@ NullableTearoffWarning/analyzerCode: Fail
 NullableTearoffWarning/example: Fail
 ObjectMemberNameUsedForRecordField/analyzerCode: Fail
 ObjectMemberNameUsedForRecordField/example: Fail
+ObsoleteColonForDefaultValue/analyzerCode: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
@@ -840,7 +847,8 @@ PatchInjectionFailed/analyzerCode: Fail
 PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
-PatternAssignmentDeclaresVariable/analyzerCode: Fail
+PatternMatchingError/analyzerCode: Fail
+PatternMatchingError/example: Fail
 PlatformPrivateLibraryAccess/example: Fail
 PositionalAfterNamedArgument/example: Fail
 PositionalSuperParametersAndArguments/analyzerCode: Fail
@@ -967,6 +975,8 @@ UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
 UnnamedObjectPatternField/analyzerCode: Fail
+UnreachableSwitchCase/part_wrapped_script: Fail # https://github.com/dart-lang/language/issues/2924
+UnreachableSwitchCase/script: Fail # https://github.com/dart-lang/language/issues/2924
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
@@ -994,6 +1004,18 @@ VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
 VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
+WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: Fail
+WeakReferenceMismatchReturnAndArgumentTypes/example: Fail
+WeakReferenceNotOneArgument/analyzerCode: Fail
+WeakReferenceNotOneArgument/example: Fail
+WeakReferenceNotStatic/analyzerCode: Fail
+WeakReferenceNotStatic/example: Fail
+WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
+WeakReferenceReturnTypeNotNullable/example: Fail
+WeakReferenceTargetHasParameters/analyzerCode: Fail
+WeakReferenceTargetHasParameters/example: Fail
+WeakReferenceTargetNotStaticTearoff/analyzerCode: Fail
+WeakReferenceTargetNotStaticTearoff/example: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Command line entry point for Dart Development Compiler (dartdevc), used to
-/// compile a collection of dart libraries into a single JS module
+/// Command line entry point for Dart Development Compiler (known as ddc,
+/// dartdevc, dev compiler), used to compile a collection of dart libraries into
+/// a single JS module.
 
 import 'dart:async';
 import 'dart:convert';
@@ -90,7 +91,7 @@ class _BatchHelper {
   /// on the terminal (I think `set DDC_LEAK_TEST="true"` on Windows).
   /// Then one could run test.py, say
   /// ```
-  /// python3 tools/test.py -t10000 -c dartdevk --nnbd weak -m release -r none \
+  /// python3 tools/test.py -t10000 -c ddc --nnbd weak -m release -r none \
   ///   --enable-asserts --no-use-sdk -j 1 co19/LanguageFeatures/
   /// ```
   /// and attach the leak tester via

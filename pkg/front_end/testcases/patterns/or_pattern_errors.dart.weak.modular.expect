@@ -41,33 +41,38 @@ class Class extends core::Object {
 static method test(dynamic o) → dynamic {
   #L1:
   {
-    core::int? s1;
-    core::int? s1';
-    core::int? field1;
-    core::int? f;
     core::int? s2;
     core::int? field2;
-    final dynamic #0#0 = o;
-    late final core::int? #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?};
-    late final core::int? #0#3 = #0#0{self::Class}.{self::Class::field2}{core::int?};
-    if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t1 = s1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t2 = s2 = #0#2 in true)) {
-      {
-        break #L1;
-      }
-    }
-    else
-      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t3 = s1' = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t4 = #0#2 in true)) {
+    final synthesized dynamic #0#0 = o;
+    late final synthesized core::int? #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?};
+    late final synthesized core::int? #0#3 = #0#0{self::Class}.{self::Class::field2}{core::int?};
+    {
+      core::int? s1;
+      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t1 = s1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t2 = s2 = #0#2 in true)) {
         {
           break #L1;
         }
       }
-      else
-        if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t5 = field1 = #0#2 in true) && (let final dynamic #t6 = f = #0#3 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t7 = field1 = #0#2 in true) && (let final dynamic #t8 = field2 = #0#3 in true)) {
-          {
-            break #L1;
-          }
+    }
+    {
+      core::int? s1;
+      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t3 = s1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t4 = #0#2 in true)) {
+        {
+          break #L1;
         }
-        else {
+      }
+    }
+    {
+      core::int? field1;
+      core::int? f;
+      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t5 = field1 = #0#2 in true) && (let final dynamic #t6 = f = #0#3 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t7 = field1 = #0#2 in true) && (let final dynamic #t8 = field2 = #0#3 in true)) {
+        {
+          break #L1;
         }
+      }
+    }
+    {
+      {}
+    }
   }
 }

@@ -71,7 +71,7 @@ void buildTestsForAnalysisServer() {
     'lib/src/edit/nnbd_migration/resources/resources.g.dart',
     'test/integration/support/integration_test_methods.dart',
     'test/integration/support/protocol_matchers.dart',
-    // The following are not generated, but can't be sorted because the contain
+    // The following are not generated, but can't be sorted because they contain
     // ignore comments in the directives, which sorting deletes.
     'lib/src/edit/edit_domain.dart',
     'lib/src/services/kythe/schema.dart',

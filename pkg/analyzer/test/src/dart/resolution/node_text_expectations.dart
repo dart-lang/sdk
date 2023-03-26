@@ -18,6 +18,9 @@ class NodeTextExpectationsCollector {
     'ParserDiagnosticsTest.assertParsedNodeText',
     'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',
+    'SearchTest.assertDeclarationsText',
+    'SearchTest.assertElementReferencesText',
+    'SearchTest.assertUnresolvedMemberReferencesText',
   };
 
   static final Map<String, _File> _files = {};
@@ -32,7 +35,11 @@ class NodeTextExpectationsCollector {
       var traceLine = traceLines[traceIndex];
       for (var assertMethod in assertMethods) {
         if (traceLine.contains(' $assertMethod ')) {
-          var invocationLine = traceLines[traceIndex + 1];
+          traceIndex++;
+          if (traceLines[traceIndex] == '<asynchronous suspension>') {
+            traceIndex++;
+          }
+          var invocationLine = traceLines[traceIndex];
           var locationMatch = RegExp(
             r'file://(.+_test.dart):(\d+):',
           ).firstMatch(invocationLine);

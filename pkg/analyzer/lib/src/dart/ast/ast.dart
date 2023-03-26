@@ -1848,6 +1848,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? macroKeyword;
 
   /// The 'inline' keyword, or `null` if the keyword was absent.
+  @override
   final Token? inlineKeyword;
 
   /// The 'sealed' keyword, or `null` if the keyword was absent.
@@ -2859,7 +2860,7 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   }
 
   @override
-  Token get beginToken => expression.beginToken;
+  Token get beginToken => constKeyword ?? expression.beginToken;
 
   @override
   Token get endToken => expression.endToken;
@@ -3439,9 +3440,10 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///      | [LogicalAndPattern]
 ///      | [LogicalOrPattern]
 ///      | [MapPattern]
+///      | [NullAssertPattern]
+///      | [NullCheckPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
-///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
 @experimental
@@ -3662,12 +3664,10 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    declaredElement!.type = resolverVisitor.analyzeDeclaredVariablePattern(
-        context,
-        this,
-        declaredElement!,
-        declaredElement!.name,
-        type?.typeOrThrow);
+    declaredElement!.type = resolverVisitor
+        .analyzeDeclaredVariablePattern(context, this, declaredElement!,
+            declaredElement!.name, type?.typeOrThrow)
+        .staticType;
   }
 
   @override
@@ -4482,7 +4482,7 @@ abstract class ExpressionImpl extends AstNodeImpl
       if (parent is ConstantContextForExpressionImpl) {
         return true;
       } else if (parent is ConstantPatternImpl) {
-        return true;
+        return parent.constKeyword != null;
       } else if (parent is EnumConstantArguments) {
         return true;
       } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {
@@ -5847,6 +5847,7 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @override
   Token? get star => null;
 
+  @Deprecated('Not used by clients')
   @override
   bool isPotentiallyMutatedInClosure(VariableElement variable) {
     if (localVariableInfo == null) {
@@ -8390,6 +8391,7 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within a local function other than the function in which they are
   /// declared.
+  @Deprecated('Not used by clients')
   final Set<VariableElement> potentiallyMutatedInClosure = <VariableElement>{};
 
   /// The set of local variables and parameters that are potentially mutated
@@ -10454,6 +10456,16 @@ class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @override
   Token get beginToken => name?.beginToken ?? pattern.beginToken;
+
+  @override
+  String? get effectiveName {
+    final nameNode = name;
+    if (nameNode != null) {
+      final nameToken = nameNode.name ?? pattern.variablePattern?.name;
+      return nameToken?.lexeme;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => pattern.endToken;
@@ -12911,10 +12923,12 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
     staticType = resolver
         .analyzeSwitchExpression(this, expression, cases.length, contextType)
         .type;
     resolver.popRewrite();
+    resolver.legacySwitchExhaustiveness = previousExhaustiveness;
   }
 
   @override

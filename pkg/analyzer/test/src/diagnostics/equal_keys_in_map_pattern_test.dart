@@ -15,7 +15,29 @@ main() {
 
 @reflectiveTest
 class EqualKeysInMapPatternTest extends PubPackageResolutionTest {
-  test_identical_primitiveEqual_identifier() async {
+  test_identical_double() async {
+    await assertErrorsInCode('''
+void f(x) {
+  if (x case {3.14: 1, 3.14: 2}) {}
+}
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 35, 4,
+          contextMessages: [message('/home/test/lib/test.dart', 26, 4)]),
+    ]);
+  }
+
+  test_identical_int() async {
+    await assertErrorsInCode('''
+void f(x) {
+  if (x case {0: 1, 0: 2}) {}
+}
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 32, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 26, 1)]),
+    ]);
+  }
+
+  test_identical_int_viaIdentifier() async {
     await assertErrorsInCode('''
 const a = 0;
 const b = 0;
@@ -29,18 +51,23 @@ void f(x) {
     ]);
   }
 
-  test_identical_primitiveEqual_integerLiteral() async {
-    await assertErrorsInCode('''
+  test_notIdentical_double() async {
+    await assertNoErrorsInCode('''
 void f(x) {
-  if (x case {0: 1, 0: 2}) {}
+  if (x case {3.14: 1, 2.71: 2}) {}
 }
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 32, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 1)]),
-    ]);
+''');
   }
 
-  test_notIdentical_notPrimitiveEqual_alwaysFalse() async {
+  test_notIdentical_int() async {
+    await assertNoErrorsInCode('''
+void f(x) {
+  if (x case {0: 1, 2: 3}) {}
+}
+''');
+  }
+
+  test_notIdentical_userClass() async {
     await assertNoErrorsInCode('''
 void f(x) {
   if (x case {const A(0): 1, const A(2): 3}) {}
@@ -54,32 +81,23 @@ class A {
 ''');
   }
 
-  test_notIdentical_notPrimitiveEqual_alwaysTrue() async {
+  test_recordType_notPrimitiveEqual_named() async {
     await assertNoErrorsInCode('''
 void f(x) {
-  if (x case {const A(0): 1, const A(2): 3}) {}
+  if (x case {(a: const A()): 1, (a: const A()): 2}) {}
 }
 
 class A {
-  final int field;
-  const A(this.field);
+  const A();
   bool operator ==(other) => true;
 }
 ''');
   }
 
-  test_notIdentical_primitiveEqual_integerLiteral() async {
+  test_recordType_notPrimitiveEqual_positional() async {
     await assertNoErrorsInCode('''
 void f(x) {
-  if (x case {0: 1, 2: 3}) {}
-}
-''');
-  }
-
-  test_recordType_notPrimitiveEqual_named() async {
-    await assertNoErrorsInCode('''
-void f(x) {
-  if (x case {(a: const A()): 1, (a: const A()): 2}) {}
+  if (x case {(0, const A()): 1, (0, const A()): 2}) {}
 }
 
 class A {

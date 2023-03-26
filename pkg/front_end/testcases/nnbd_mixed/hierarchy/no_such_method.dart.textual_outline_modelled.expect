@@ -43,15 +43,6 @@ class InterfaceConcrete {
   noSuchMethod(Invocation invocation) {}
 }
 
-class MixinAbstract {
-  noSuchMethod(Invocation invocation);
-}
-
-class MixinConcrete {
-  @override
-  noSuchMethod(Invocation invocation) {}
-}
-
 class SuperAbstract {
   noSuchMethod(Invocation invocation);
 }
@@ -62,3 +53,12 @@ class SuperConcrete {
 }
 
 main() {}
+
+mixin class MixinAbstract {
+  noSuchMethod(Invocation invocation);
+}
+
+mixin class MixinConcrete {
+  @override
+  noSuchMethod(Invocation invocation) {}
+}

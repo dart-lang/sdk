@@ -12,7 +12,7 @@ class A {
   Thing get thing => new Thing();
 }
 
-abstract class B implements A {
+mixin B implements A {
   @override
   SubThing get thing;
 }

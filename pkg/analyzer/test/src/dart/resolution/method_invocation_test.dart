@@ -13,8 +13,8 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MethodInvocationResolutionWithoutNullSafetyTest);
     defineReflectiveTests(MethodInvocationResolutionTest);
+    defineReflectiveTests(MethodInvocationResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -665,6 +665,130 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_super_class_field() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  late final v = super.foo();
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_super_class_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_super_mixin_field() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo() => 0;
+}
+
+mixin M on A {
+  late final v = super.foo();
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_super_mixin_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+
+    var node = findNode.methodInvocation('super.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_hasReceiver_typeAlias_staticMethod() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1131,6 +1255,11 @@ MethodInvocation
 ''');
   }
 }
+
+@reflectiveTest
+class MethodInvocationResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MethodInvocationResolutionTestCases {}
 
 mixin MethodInvocationResolutionTestCases on PubPackageResolutionTest {
   test_clamp_double_context_double() async {
@@ -2959,7 +3088,7 @@ f(int a, Never b, int c) {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(HintCode.DEAD_CODE, 40, 3),
+          error(WarningCode.DEAD_CODE, 40, 3),
         ], legacy: []));
 
     var node = findNode.methodInvocation('clamp');
@@ -3035,7 +3164,7 @@ f(Never a, int b, int c) {
 ''',
         expectedErrorsByNullability(nullable: [
           error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
-          error(HintCode.DEAD_CODE, 36, 7),
+          error(WarningCode.DEAD_CODE, 36, 7),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),
         ]));
@@ -9472,8 +9601,3 @@ MethodInvocation
     }
   }
 }
-
-@reflectiveTest
-class MethodInvocationResolutionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MethodInvocationResolutionTestCases {}

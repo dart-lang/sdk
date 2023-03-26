@@ -17,13 +17,12 @@ abstract class I<T> {
   void set y(covariant Object value);
 }
 
-class M {
+mixin M {
   int get x => 1;
   void set x(int value) {}
   int get y => 3;
   void set y(int value) {}
 }
-
 class C = B with M implements I<int>;
 void test(I<Object> i) {}
 void main() {}

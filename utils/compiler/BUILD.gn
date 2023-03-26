@@ -60,19 +60,19 @@ application_snapshot("dart2js") {
     "$root_out_dir/dart2js_outline.dill",
     "$root_out_dir/dart2js_outline_unsound.dill",
   ]
-  gen_kernel_args = [ "--no-sound-null-safety" ]
-  vm_args = [ "--no-sound-null-safety" ]
+  vm_args = []
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
-    "--packages=" + rebase_path("../../.dart_tool/package_config.json"),
-    "--libraries-spec=" + rebase_path("$sdk_root/lib/libraries.json"),
+    "--invoker=gn_build",
+    "--packages=" +
+        rebase_path("../../.dart_tool/package_config.json", root_build_dir),
+    "--libraries-spec=" +
+        rebase_path("$sdk_root/lib/libraries.json", root_build_dir),
 
     # Specifying the platform explicitly elides running the CFE on the sdk
     # sources.
-    "--platform-binaries=" + rebase_path("$root_out_dir/"),
+    "--platform-binaries=" + rebase_path("$root_out_dir/", root_build_dir),
 
-    # TODO(48820): remove once dart2js is migrated.
-    "--no-sound-null-safety",
     rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart"),
   ]
 }

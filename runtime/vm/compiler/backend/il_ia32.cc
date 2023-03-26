@@ -251,7 +251,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ leal(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
 }
 
-LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
+LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -262,11 +262,11 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
 
   Location value = locs()->in(0);
-  const compiler::Address dst(ESP, top_of_stack_relative_index() * kWordSize);
+  const compiler::Address dst(ESP, sp_relative_index() * kWordSize);
   if (value.IsConstant()) {
     __ StoreToOffset(value.constant(), dst);
   } else {
@@ -2474,7 +2474,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // Restore ESP from EBP as we are coming from a throw and the code for
@@ -6264,7 +6264,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // We can fall through if the successor is the next block in the list.

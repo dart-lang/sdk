@@ -1461,6 +1461,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
             if (memberLast is ClassBuilder) {
               library.additionalExports.add(memberLast.cls.reference);
+            } else if (memberLast is InlineClassBuilder) {
+              library.additionalExports.add(memberLast.inlineClass.reference);
             } else if (memberLast is TypeAliasBuilder) {
               library.additionalExports.add(memberLast.typedef.reference);
             } else if (memberLast is ExtensionBuilder) {
@@ -2210,6 +2212,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int modifiers,
       String name,
       List<TypeVariableBuilder>? typeVariables,
+      List<TypeBuilder>? interfaces,
       int startOffset,
       int nameOffset,
       int endOffset) {
@@ -2253,6 +2256,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         modifiers,
         declaration.name,
         typeVariables,
+        interfaces,
         memberScope,
         constructorScope,
         this,

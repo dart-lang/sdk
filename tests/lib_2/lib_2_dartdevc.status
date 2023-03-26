@@ -2,16 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
-html/js_dispatch_property_test: Skip # Timeout Issue 31030
-
-[ $system == macos && ($compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
-html/interactive_media_test: Skip # Requires interactive camera, microphone permissions.
-
-[ $system == windows && ($compiler == dartdevc || $compiler == dartdevk || $compiler == ddc) ]
-html/xhr_test: Skip # Times out. Issue 21527
-
-[ $compiler == dartdevc || $compiler == dartdevk || $compiler == ddc ]
+[ $compiler == ddc ]
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/json_utf8_chunk_test: Slow, Pass
 convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 29922
@@ -34,3 +25,15 @@ html/notification_permission_test: Skip # Issue 32002
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/js_util/js_prefix_test: SkipByDesign # JS$ prefix not implemented on ddc.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+
+[ $compiler == ddc && $runtime == chrome ]
+html/js_dispatch_property_test: Skip # Timeout Issue 31030
+
+[ $compiler == ddc && $system == linux ]
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+
+[ $compiler == ddc && $system == macos ]
+html/interactive_media_test: Skip # Requires interactive camera, microphone permissions.
+
+[ $compiler == ddc && $system == windows ]
+html/xhr_test: Skip # Times out. Issue 21527

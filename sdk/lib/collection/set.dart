@@ -20,7 +20,7 @@ part of dart.collection;
 /// Implementations of `Set` using this mixin should consider also implementing
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
-abstract class SetMixin<E> implements Set<E> {
+abstract mixin class SetMixin<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
   // Mixin class from IterableMixin and the new methods of this class.
@@ -341,7 +341,7 @@ abstract class _SetBase<E> with SetMixin<E> {
   Set<E> toSet() => _newSet()..addAll(this);
 }
 
-abstract class _UnmodifiableSetMixin<E> implements Set<E> {
+mixin _UnmodifiableSetMixin<E> implements Set<E> {
   static Never _throwUnmodifiable() {
     throw UnsupportedError("Cannot change an unmodifiable set");
   }

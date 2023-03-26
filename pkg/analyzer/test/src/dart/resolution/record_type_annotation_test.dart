@@ -8,12 +8,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecordTypeAnnotationTest);
+    defineReflectiveTests(RecordTypeAnnotationResolutionTest);
   });
 }
 
 @reflectiveTest
-class RecordTypeAnnotationTest extends PubPackageResolutionTest {
+class RecordTypeAnnotationResolutionTest extends PubPackageResolutionTest {
   test_class_method_formalParameter() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -11,9 +11,3 @@ interface class InterfaceClass {}
 abstract class A extends InterfaceClass {}
 
 class B extends InterfaceClass {}
-
-interface mixin InterfaceMixin {}
-
-class C extends InterfaceClass with InterfaceMixin {}
-
-class D with InterfaceMixin {}

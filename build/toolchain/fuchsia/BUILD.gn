@@ -17,8 +17,6 @@ if (use_goma) {
 }
 
 toolchain("fuchsia") {
-  assert(target_cpu == "x64" || target_cpu == "arm64",
-         "We currently only support 'x64' and 'arm64' for fuchsia.")
   toolchain_bin =
       rebase_path("//buildtools/$host_os-x64/clang/bin", root_out_dir)
   fuchsia_sdk = rebase_path("//third_party/fuchsia/sdk/$host_os", root_out_dir)
@@ -34,9 +32,14 @@ toolchain("fuchsia") {
   nm = "${toolchain_bin}/llvm-nm"
   strip = "${toolchain_bin}/llvm-strip"
 
-  target_triple_flags = "--target=x86_64-fuchsia"
-  if (target_cpu == "arm64") {
+  if (target_cpu == "x64") {
+    target_triple_flags = "--target=x86_64-fuchsia"
+  } else if (target_cpu == "arm64") {
     target_triple_flags = "--target=aarch64-fuchsia"
+  } else if (target_cpu == "riscv64") {
+    target_triple_flags = "--target=riscv64-fuchsia"
+  } else {
+    assert(false, "Unsupported target_cpu: $target_cpu")
   }
 
   sysroot_flags = "--sysroot ${fuchsia_sdk}/arch/${target_cpu}/sysroot"

@@ -14,7 +14,7 @@ library /*isNonNullableByDefault*/;
 // class Class3 with Sealed {}
 //                   ^
 //
-// pkg/front_end/testcases/sealed_class/extends_implements_with/main.dart:11:19: Error: The mixin 'Sealed' can't be mixed in outside of its library because it's a sealed mixin.
+// pkg/front_end/testcases/sealed_class/extends_implements_with/main.dart:11:19: Error: The class 'Sealed' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 // class Class3 with Sealed {}
 //                   ^
 //
@@ -34,7 +34,7 @@ class Class2 extends core::Object implements mai::Sealed {
     : super core::Object::•()
     ;
 }
-abstract class _Class3&Object&Sealed extends core::Object implements mai::Sealed /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+abstract sealed class _Class3&Object&Sealed extends core::Object implements mai::Sealed /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class3&Object&Sealed
     : super core::Object::•()
     ;

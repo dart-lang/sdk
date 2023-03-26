@@ -29,7 +29,7 @@ class Super extends core::Object {
   method method2(core::num n) → void {}
   method method3(core::num n) → void {}
 }
-class Mixin extends core::Object {
+mixin class Mixin extends core::Object {
   synthetic constructor •() → self::Mixin
     : super core::Object::•()
     ;
@@ -58,7 +58,7 @@ class Class = self::Super with self::Mixin implements self::Interface {
 constants  {
   #C1 = #method1
   #C2 = <core::Type*>[]
-  #C3 = <core::Symbol*, dynamic>{)
+  #C3 = <core::Symbol*, dynamic>{}
   #C4 = #method2
   #C5 = #method3
 }

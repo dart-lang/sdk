@@ -4,30 +4,37 @@
 
 // Tests that equality is allowed for receivers of specific types.
 
+// SharedOptions=--enable-experiment=patterns,records
+
 import "package:expect/expect.dart";
 
 main() {
   const c = C(); // Does not override operator==.
   const d = D(); // Overrides operator==.
 
-  // Allowed if receiver is int, double, String, bool or Null, ...
+  // Allowed if receiver has primitive equality...
   Expect.isTrue(const T.eq(1, 1).value);
   Expect.isTrue(const T.eq(1.5, 1.5).value);
   Expect.isTrue(const T.eq("", "").value);
   Expect.isTrue(const T.eq(true, true).value);
   Expect.isTrue(const T.eq(null, null).value);
+  Expect.isTrue(const T.eq(c, c).value);
+  Expect.isTrue(const T.eq(E.value1, E.value1).value);
 
   Expect.isFalse(const T.eq(1, c).value);
   Expect.isFalse(const T.eq(1.5, c).value);
   Expect.isFalse(const T.eq("", c).value);
   Expect.isFalse(const T.eq(true, c).value);
   Expect.isFalse(const T.eq(null, c).value);
+  Expect.isFalse(const T.eq(E.value1, c).value);
 
   Expect.isFalse(const T.eq(1, d).value);
   Expect.isFalse(const T.eq(1.5, d).value);
   Expect.isFalse(const T.eq("", d).value);
   Expect.isFalse(const T.eq(true, d).value);
   Expect.isFalse(const T.eq(null, d).value);
+  Expect.isFalse(const T.eq(c, d).value);
+  Expect.isFalse(const T.eq(E.value1, d).value);
 
   // ... or if second operand is Null.
   Expect.isFalse(const T.eq(1, null).value);
@@ -38,10 +45,10 @@ main() {
   Expect.isFalse(const T.eq(d, null).value);
 
   // Otherwise not allowed.
-  const T.eq(c, c); //# 01: compile-time error
-  const T.eq(c, 1); //# 02: compile-time error
-  const T.eq(c, ""); //# 03: compile-time error
-  const T.eq(E.value1, E.value2); //# 04: compile-time error
+  const T.eq(d, d); //# 01: compile-time error
+  const T.eq(d, 1); //# 02: compile-time error
+  const T.eq(d, ""); //# 03: compile-time error
+  const T.eq(d, c); //# 04: compile-time error
 }
 
 class T {

@@ -243,8 +243,8 @@ void Intrinsifier::InitializeState() {
       if (!func.IsNull()) {
         func.set_is_intrinsic(true);
       } else if (!FLAG_precompiled_mode) {
-        FATAL2("Intrinsifier failed to find method %s in class %s\n",
-               intrinsic->function_name, intrinsic->class_name);
+        FATAL("Intrinsifier failed to find method %s in class %s\n",
+              intrinsic->function_name, intrinsic->class_name);
       }
     }
   }
@@ -288,12 +288,12 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     const auto size_after = compiler->assembler()->CodeSize();                 \
     if (size_before == size_after) return false;                               \
     if (function.HasUnboxedParameters()) {                                     \
-      FATAL1("Unsupported unboxed parameters in asm intrinsic %s",             \
-             function.ToFullyQualifiedCString());                              \
+      FATAL("Unsupported unboxed parameters in asm intrinsic %s",              \
+            function.ToFullyQualifiedCString());                               \
     }                                                                          \
     if (function.HasUnboxedReturnValue()) {                                    \
-      FATAL1("Unsupported unboxed return value in asm intrinsic %s",           \
-             function.ToFullyQualifiedCString());                              \
+      FATAL("Unsupported unboxed return value in asm intrinsic %s",            \
+            function.ToFullyQualifiedCString());                               \
     }                                                                          \
     if (!normal_ir_body.IsBound()) {                                           \
       EMIT_BREAKPOINT();                                                       \

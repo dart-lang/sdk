@@ -16,9 +16,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::C<self::C::T%>
     ;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
 class D = self::C<core::String> with self::M {
   synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::D

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -291,8 +292,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       } else {
         // Something other than a declaration was annotated. Whatever this is,
-        // it probably warrants a Hint, but this has not been specified on
-        // visibleForTemplate or visibleForTesting, so leave it alone for now.
+        // it probably warrants a Warning, but this has not been specified on
+        // `visibleForTemplate` or `visibleForTesting`, so leave it alone for
+        // now.
       }
     }
 
@@ -312,7 +314,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               ? undefinedParam.value
               : undefinedParam.staticParameterElement?.name;
           _errorReporter.reportErrorForNode(
-              HintCode.UNDEFINED_REFERENCED_PARAMETER,
+              WarningCode.UNDEFINED_REFERENCED_PARAMETER,
               undefinedParam,
               [paramName ?? undefinedParam, name]);
         }
@@ -379,6 +381,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCastPattern(CastPattern node) {
+    var type = node.type.type;
+    var matchedValueType = node.matchedValueType;
+    if (type != null &&
+        _typeSystem.isNonNullable(type) &&
+        matchedValueType != null &&
+        matchedValueType.isDartCoreNull) {
+      _errorReporter.reportErrorForNode(
+          WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
+    }
+    super.visitCastPattern(node);
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     super.visitCatchClause(node);
     _checkForNullableTypeInCatchClause(node);
@@ -397,8 +413,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
-      // Commented out until we decide that we want this hint in the analyzer
-      //    checkForOverrideEqualsButNotHashCode(node);
       _checkForImmutable(node);
       _checkForInvalidSealedSuperclass(node);
       super.visitClassDeclaration(node);
@@ -429,11 +443,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstantPattern(ConstantPattern node) {
+    if (node.expression.isDoubleNan) {
+      _errorReporter.reportErrorForNode(
+        WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
+        node,
+      );
+    }
+    super.visitConstantPattern(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && element.isFactory) {
       if (node.body is BlockFunctionBody) {
-        // Check the block for a return statement, if not, create the hint.
+        // Check the block for a return statement.
         if (!ExitDetector.exits(node.body)) {
           _errorReporter.reportErrorForNode(
               WarningCode.MISSING_RETURN, node, [node.returnType.name]);
@@ -476,6 +501,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitEnumDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
@@ -488,6 +525,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForReturnOfDoNotStore(node.expression);
     }
     super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitExtensionDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
@@ -679,8 +728,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
-      // This was determined to not be a good hint, see: dartbug.com/16029
-      //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
@@ -725,7 +772,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _deprecatedVerifier.methodInvocation(node);
-    _checkForNullAwareHints(node, node.operator);
+    _checkForNullAwareWarnings(node, node.operator);
     _errorHandlerVerifier.verifyMethodInvocation(node);
     _nullSafeApiVerifier.methodInvocation(node);
     super.visitMethodInvocation(node);
@@ -762,10 +809,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               (type.isDynamic && name == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
-            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+            WarningCode.UNNECESSARY_QUESTION_MARK, question, [name]);
       }
     }
     super.visitNamedType(node);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    _invalidAccessVerifier.verifyPatternField(node as PatternFieldImpl);
+    super.visitPatternField(node);
   }
 
   @override
@@ -773,7 +826,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
         node.operand.typeOrThrow.isDartCoreNull) {
-      _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
+      _errorReporter.reportErrorForNode(
+          WarningCode.NULL_CHECK_ALWAYS_FAILS, node);
     }
     super.visitPostfixExpression(node);
   }
@@ -786,7 +840,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _checkForNullAwareHints(node, node.operator);
+    _checkForNullAwareWarnings(node, node.operator);
     super.visitPropertyAccess(node);
   }
 
@@ -848,14 +902,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Check for the passed is expression for the unnecessary type check hint
-  /// codes as well as null checks expressed using an is expression.
+  /// Checks for the passed [IsExpression] for the unnecessary type check
+  /// warning codes as well as null checks expressed using an
+  /// [IsExpression].
   ///
-  /// @param node the is expression to check
-  /// @return `true` if and only if a hint code is generated on the passed node
-  /// See [HintCode.TYPE_CHECK_IS_NOT_NULL], [HintCode.TYPE_CHECK_IS_NULL],
-  /// [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
-  /// [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
+  /// Returns `true` if a warning code is generated on [node].
+  /// See [WarningCode.TYPE_CHECK_IS_NOT_NULL],
+  /// [WarningCode.TYPE_CHECK_IS_NULL],
+  /// [WarningCode.UNNECESSARY_TYPE_CHECK_TRUE], and
+  /// [WarningCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
     var leftNode = node.expression;
     var rightNode = node.type;
@@ -864,8 +919,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     void report() {
       _errorReporter.reportErrorForNode(
         node.notOperator == null
-            ? HintCode.UNNECESSARY_TYPE_CHECK_TRUE
-            : HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+            ? WarningCode.UNNECESSARY_TYPE_CHECK_TRUE
+            : WarningCode.UNNECESSARY_TYPE_CHECK_FALSE,
         node,
       );
     }
@@ -928,7 +983,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // named elements, so we can safely assume `entry.value.name` is
       // non-`null`.
       _errorReporter.reportErrorForNode(
-        HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+        WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
         entry.key,
         [entry.value.name!],
       );
@@ -1004,7 +1059,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///
   /// If [node] is marked with [immutable] or inherits from a class or mixin
   /// marked with [immutable], this function searches the fields of [node] and
-  /// its superclasses, reporting a hint if any non-final instance fields are
+  /// its superclasses, reporting a warning if any non-final instance fields are
   /// found.
   void _checkForImmutable(NamedCompilationUnitMember node) {
     /// Return `true` if the given class [element] is annotated with the
@@ -1200,12 +1255,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
-            _errorReporter.reportErrorForNode(HintCode.MIXIN_ON_SEALED_CLASS,
+            _errorReporter.reportErrorForNode(WarningCode.MIXIN_ON_SEALED_CLASS,
                 node, [superclass.name.toString()]);
           } else {
             // This is a regular violation of the sealed class contract.
-            _errorReporter.reportErrorForNode(HintCode.SUBTYPE_OF_SEALED_CLASS,
-                node, [superclass.name.toString()]);
+            _errorReporter.reportErrorForNode(
+                WarningCode.SUBTYPE_OF_SEALED_CLASS,
+                node,
+                [superclass.name.toString()]);
           }
         }
       }
@@ -1214,7 +1271,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvariantNanComparison(BinaryExpression node) {
     void reportStartEnd(
-      HintCode errorCode,
+      ErrorCode errorCode,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
@@ -1226,23 +1283,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
-    bool isDoubleNan(Expression expression) =>
-        expression is PrefixedIdentifier &&
-        expression.prefix.name == 'double' &&
-        expression.identifier.name == 'nan';
-
-    void checkLeftRight(HintCode errorCode) {
-      if (isDoubleNan(node.leftOperand)) {
+    void checkLeftRight(ErrorCode errorCode) {
+      if (node.leftOperand.isDoubleNan) {
         reportStartEnd(errorCode, node.leftOperand, node.operator);
-      } else if (isDoubleNan(node.rightOperand)) {
+      } else if (node.rightOperand.isDoubleNan) {
         reportStartEnd(errorCode, node.operator, node.rightOperand);
       }
     }
 
     if (node.operator.type == TokenType.BANG_EQ) {
-      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_TRUE);
+      checkLeftRight(WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE);
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_FALSE);
+      checkLeftRight(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE);
     }
   }
 
@@ -1250,7 +1302,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullableByDefault) return;
 
     void reportStartEnd(
-      HintCode errorCode,
+      ErrorCode errorCode,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
@@ -1262,7 +1314,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
-    void checkLeftRight(HintCode errorCode) {
+    void checkLeftRight(ErrorCode errorCode) {
       if (node.leftOperand is NullLiteral) {
         var rightType = node.rightOperand.typeOrThrow;
         if (_typeSystem.isStrictlyNonNullable(rightType)) {
@@ -1279,9 +1331,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (node.operator.type == TokenType.BANG_EQ) {
-      checkLeftRight(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE);
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      checkLeftRight(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE);
+      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE);
     }
   }
 
@@ -1304,10 +1356,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
-      HintCode hint = node.keyword?.keyword == Keyword.NEW
-          ? HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
-          : HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
-      _errorReporter.reportErrorForNode(hint, node, [fullConstructorName]);
+      var warning = node.keyword?.keyword == Keyword.NEW
+          ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
+          : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+      _errorReporter.reportErrorForNode(warning, node, [fullConstructorName]);
     }
   }
 
@@ -1337,13 +1389,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Generate a hint for functions or methods that have a return type, but do
-  /// not have a return statement on all branches. At the end of blocks with no
-  /// return, Dart implicitly returns `null`. Avoiding these implicit returns
-  /// is considered a best practice.
-  ///
-  /// Note: for async functions/methods, this hint only applies when the
-  /// function has a return type that Future<Null> is not assignable to.
+  /// Generates a warning for functions that have a potentially non-nullable
+  /// return type, but do not have a return statement on all branches. At the
+  /// end of blocks with no return, Dart implicitly returns `null`. Avoiding
+  /// these implicit returns is considered a best practice.
   ///
   /// See [WarningCode.MISSING_RETURN].
   void _checkForMissingReturn(FunctionBody body, AstNode functionNode) {
@@ -1411,8 +1460,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Produce several null-aware related hints.
-  void _checkForNullAwareHints(Expression node, Token? operator) {
+  /// Produce several null-aware related warnings.
+  void _checkForNullAwareWarnings(Expression node, Token? operator) {
     if (_isNonNullableByDefault) {
       return;
     }
@@ -1511,10 +1560,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Generate a hint for `noSuchMethod` methods that do nothing except of
-  /// calling another `noSuchMethod` that is not defined by `Object`.
+  /// Generates a warning for `noSuchMethod` methods that do nothing except of
+  /// calling another `noSuchMethod` which is not defined by `Object`.
   ///
-  /// Return `true` if and only if a hint code is generated on the passed node.
+  /// Returns `true` if a warning code is generated for [node].
   bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
     if (node.name.lexeme != FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
@@ -1539,7 +1588,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
         _errorReporter.reportErrorForToken(
-            HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
+            WarningCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1549,7 +1598,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
           _errorReporter.reportErrorForToken(
-              HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
+              WarningCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
           return true;
         }
       }
@@ -1576,12 +1625,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (returnType == null) return;
 
       bool isReturnVoid;
-      if (returnType.isVoid) {
+      if (returnType is VoidType) {
         isReturnVoid = true;
       } else if (returnType is ParameterizedType &&
           (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr)) {
         var typeArguments = returnType.typeArguments;
-        isReturnVoid = typeArguments.length == 1 && typeArguments.first.isVoid;
+        isReturnVoid =
+            typeArguments.length == 1 && typeArguments.first is VoidType;
       } else {
         isReturnVoid = false;
       }
@@ -1591,7 +1641,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var elements = expression.elements;
           if (elements.length == 1 && elements.first is Expression) {
             _errorReporter.reportErrorForNode(
-                HintCode.UNNECESSARY_SET_LITERAL, expression);
+                WarningCode.UNNECESSARY_SET_LITERAL, expression);
           }
         }
       }
@@ -1959,18 +2009,18 @@ class _InvalidAccessVerifier {
       : _inTemplateSource =
             _library.source.fullName.contains(_templateExtension);
 
-  /// Produces a hint if [identifier] is accessed from an invalid location.
+  /// Produces a warning if [identifier] is accessed from an invalid location.
   ///
-  /// In particular, a hint is produced in either of the two following cases:
+  /// In particular, a warning is produced in either of the two following cases:
   ///
   /// * The element associated with [identifier] is annotated with [internal],
   ///   and is accessed from outside the package in which the element is
   ///   declared.
   /// * The element associated with [identifier] is annotated with [protected],
-  ///   [visibleForTesting], and/or [visibleForTemplate], and is accessed from a
+  ///   [visibleForTesting], and/or `visibleForTemplate`, and is accessed from a
   ///   location which is invalid as per the rules of each such annotation.
   ///   Conversely, if the element is annotated with more than one of these
-  ///   annotations, the access is valid (and no hint will be produced) if it
+  ///   annotations, the access is valid (and no warning is produced) if it
   ///   conforms to the rules of at least one of the annotations.
   void verify(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext() || _inCommentReference(identifier)) {
@@ -2035,6 +2085,30 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void verifyPatternField(PatternFieldImpl node) {
+    var element = node.element;
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      var fieldName = node.name;
+      if (fieldName == null) {
+        return;
+      }
+      var errorEntity = node.errorEntity;
+
+      _errorReporter.reportErrorForOffset(
+          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+          errorEntity.offset,
+          errorEntity.length,
+          [element.displayName]);
+    }
+
+    _checkForOtherInvalidAccess(node, element);
+  }
+
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
     if (node.constructorName != null) {
       // Named constructor calls are handled by [verify].
@@ -2048,8 +2122,7 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidInternalAccess(
-      SimpleIdentifier identifier, Element element) {
+  void _checkForInvalidInternalAccess(Identifier identifier, Element element) {
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element.library)) {
       String name;
@@ -2070,8 +2143,7 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForOtherInvalidAccess(
-      SimpleIdentifier identifier, Element element) {
+  void _checkForOtherInvalidAccess(AstNode node, Element element) {
     bool hasProtected = _hasProtected(element);
     if (hasProtected) {
       var definingClass = element.enclosingElement as InterfaceElement;
@@ -2080,16 +2152,16 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool hasVisibleForTemplate = _hasVisibleForTemplate(element);
-    if (hasVisibleForTemplate) {
-      if (_inTemplateSource || _inExportDirective(identifier)) {
+    bool isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
+    if (isVisibleForTemplateApplied) {
+      if (_inTemplateSource || _inExportDirective(node)) {
         return;
       }
     }
 
     bool hasVisibleForTesting = _hasVisibleForTesting(element);
     if (hasVisibleForTesting) {
-      if (_inTestDirectory || _inExportDirective(identifier)) {
+      if (_inTestDirectory || _inExportDirective(node)) {
         return;
       }
     }
@@ -2101,37 +2173,49 @@ class _InvalidAccessVerifier {
     // annotation present.
 
     String name;
-    AstNode node;
+    SyntacticEntity errorEntity = node;
 
-    var grandparent = identifier.parent?.parent;
-
-    if (grandparent is ConstructorName) {
-      name = grandparent.toSource();
-      node = grandparent;
+    var grandparent = node.parent?.parent;
+    if (node is Identifier) {
+      if (grandparent is ConstructorName) {
+        name = grandparent.toSource();
+        errorEntity = grandparent;
+      } else {
+        name = node.name;
+      }
+    } else if (node is PatternFieldImpl) {
+      name = element.displayName;
+      errorEntity = node.errorEntity;
     } else {
-      name = identifier.name;
-      node = identifier;
+      throw StateError('Can only handle Identifier or PatternField, but got '
+          '${node.runtimeType}');
     }
 
     var definingClass = element.enclosingElement;
-    if (hasProtected) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          node,
-          [name, definingClass!.source!.uri]);
+    if (definingClass == null) {
+      return;
     }
-    if (hasVisibleForTemplate) {
-      _errorReporter.reportErrorForNode(
+    if (hasProtected) {
+      _errorReporter.reportErrorForOffset(
+          WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          errorEntity.offset,
+          errorEntity.length,
+          [name, definingClass.source!.uri]);
+    }
+    if (isVisibleForTemplateApplied) {
+      _errorReporter.reportErrorForOffset(
           WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
-          node,
-          [name, definingClass!.source!.uri]);
+          errorEntity.offset,
+          errorEntity.length,
+          [name, definingClass.source!.uri]);
     }
 
     if (hasVisibleForTesting) {
-      _errorReporter.reportErrorForNode(
+      _errorReporter.reportErrorForOffset(
           WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
-          node,
-          [name, definingClass!.source!.uri]);
+          errorEntity.offset,
+          errorEntity.length,
+          [name, definingClass.source!.uri]);
     }
 
     if (hasVisibleForOverriding) {
@@ -2141,14 +2225,15 @@ class _InvalidAccessVerifier {
           parent is PropertyAccess && parent.target is SuperExpression) {
         var methodDeclaration =
             grandparent?.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name.lexeme == identifier.name) {
+        if (methodDeclaration?.name.lexeme == name) {
           validOverride = true;
         }
       }
       if (!validOverride) {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForOffset(
             WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
-            node,
+            errorEntity.offset,
+            errorEntity.length,
             [name]);
       }
     }
@@ -2215,6 +2300,10 @@ class _InvalidAccessVerifier {
         element.variable.hasVisibleForTemplate) {
       return true;
     }
+    final enclosingElement = element.enclosingElement;
+    if (_hasVisibleForTemplate(enclosingElement)) {
+      return true;
+    }
     return false;
   }
 
@@ -2236,9 +2325,8 @@ class _InvalidAccessVerifier {
 
   bool _inCurrentLibrary(Element element) => element.library == _library;
 
-  bool _inExportDirective(SimpleIdentifier identifier) =>
-      identifier.parent is Combinator &&
-      identifier.parent!.parent is ExportDirective;
+  bool _inExportDirective(AstNode node) =>
+      node.parent is Combinator && node.parent!.parent is ExportDirective;
 
   bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
@@ -2247,6 +2335,21 @@ class _InvalidAccessVerifier {
       return false;
     }
     return _workspacePackage!.contains(library.source);
+  }
+
+  /// Check if @visibleForTemplate is applied to the given [Element].
+  ///
+  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
+  /// access checks. Instead, the access restriction is cascaded to the
+  /// corresponding class members and enum constants. For other types of
+  /// elements, check if they are annotated based on `hasVisibleForTemplate`
+  /// value.
+  bool _isVisibleForTemplateApplied(Element? element) {
+    if (element is ClassElement || element is EnumElement) {
+      return false;
+    } else {
+      return _hasVisibleForTemplate(element);
+    }
   }
 }
 
@@ -2271,5 +2374,17 @@ class _UsedParameterVisitor extends RecursiveAstVisitor<void> {
     if (_parameters.contains(element)) {
       _usedParameters.add(element as ParameterElement);
     }
+  }
+}
+
+extension on Expression {
+  /// Whether this is the [PrefixedIdentifier] referring to `double.nan`.
+  // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
+  // and for `import 'foo.dart' as double; double.nan`.
+  bool get isDoubleNan {
+    final self = this;
+    return self is PrefixedIdentifier &&
+        self.prefix.name == 'double' &&
+        self.identifier.name == 'nan';
   }
 }

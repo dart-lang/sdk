@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::C::T% t;
+  const constructor •(self::C::T% t) → self::C<self::C::T%>
+    : self::C::t = t, super core::Object::•()
+    ;
+}
+static method foo() → core::Map<self::C<core::String>, core::int>
+  ;
+static method test() → dynamic
+  ;

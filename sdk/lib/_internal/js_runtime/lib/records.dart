@@ -5,7 +5,7 @@
 part of _js_helper;
 
 /// Base class for all records.
-abstract class _Record implements Record {
+abstract final class _Record implements Record {
   const _Record();
 
   int get _shapeTag => JS('JSUInt31', '#[#]', this,
@@ -19,18 +19,25 @@ abstract class _Record implements Record {
 
   Type get runtimeType {
     // TODO(51040): Consider caching.
+    return newRti.getRuntimeTypeOfRecord(this);
+  }
+
+  newRti.Rti _getRti() {
     String recipe =
         JS('', '#[#]', this, JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY));
-    return newRti.getRuntimeTypeOfRecord(recipe, _getFieldValues());
+    return newRti.evaluateRtiForRecord(recipe, _getFieldValues());
   }
 
   @override
-  String toString() {
+  String toString() => _toString(false);
+
+  String _toString(bool safe) {
     final keys = _fieldKeys();
     final values = _getFieldValues();
     assert(keys.length == values.length);
     final sb = StringBuffer();
     String separator = '';
+    if (safe) sb.write('Record ');
     sb.write('(');
     for (int i = 0; i < keys.length; i++) {
       sb.write(separator);
@@ -39,7 +46,12 @@ abstract class _Record implements Record {
         sb.write(key);
         sb.write(': ');
       }
-      sb.write(values[i]);
+      final value = values[i];
+      if (safe) {
+        sb.write(Primitives.safeToString(value));
+      } else {
+        sb.write(value);
+      }
       separator = ', ';
     }
     sb.write(')');
@@ -88,8 +100,15 @@ abstract class _Record implements Record {
   static final List<List<Object>?> _computedFieldKeys = [];
 }
 
+/// Entrypoint for rti library. Calls rti.evaluateRtiForRecord with components
+/// of the record.
+@pragma('dart2js:as:trust')
+newRti.Rti getRtiForRecord(Object? record) {
+  return (record as _Record)._getRti();
+}
+
 /// The empty record.
-class _EmptyRecord extends _Record {
+final class _EmptyRecord extends _Record {
   const _EmptyRecord();
 
   @override
@@ -107,7 +126,7 @@ class _EmptyRecord extends _Record {
 
 /// Base class for all records with two fields.
 // TODO(49718): Generate this class.
-class _Record2 extends _Record {
+final class _Record2 extends _Record {
   final Object? _0;
   final Object? _1;
 
@@ -134,7 +153,7 @@ class _Record2 extends _Record {
   int get hashCode => Object.hash(_shapeTag, _0, _1);
 }
 
-class _Record1 extends _Record {
+final class _Record1 extends _Record {
   final Object? _0;
 
   _Record1(this._0);
@@ -156,7 +175,7 @@ class _Record1 extends _Record {
   int get hashCode => Object.hash(_shapeTag, _0);
 }
 
-class _Record3 extends _Record {
+final class _Record3 extends _Record {
   final Object? _0;
   final Object? _1;
   final Object? _2;
@@ -181,7 +200,7 @@ class _Record3 extends _Record {
   int get hashCode => Object.hash(_shapeTag, _0, _1, _2);
 }
 
-class _RecordN extends _Record {
+final class _RecordN extends _Record {
   final JSArray _values;
 
   _RecordN(this._values);

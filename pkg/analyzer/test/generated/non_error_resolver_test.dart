@@ -121,6 +121,24 @@ class A<E> extends B<E> implements D<E> {
 ''');
   }
 
+  test_mixinDeclaresConstructor() async {
+    await assertNoErrorsInCode(r'''
+mixin class A {
+  m() {}
+}
+class B extends Object with A {}
+''');
+  }
+
+  test_mixinDeclaresConstructor_factory() async {
+    await assertNoErrorsInCode(r'''
+mixin class A {
+  factory A() => throw 0;
+}
+class B extends Object with A {}
+''');
+  }
+
   test_no_call_tearoff_on_promoted_var() async {
     await assertNoErrorsInCode('''
 class B {
@@ -782,7 +800,7 @@ f() {
 class C = D with E;
 
 class D {}
-class E {}
+mixin E {}
 ''');
     CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement!.getClass('C')!;
@@ -2050,7 +2068,7 @@ class C implements B {
 
   test_invalidOverrideReturnType_returnType_mixin() async {
     await assertNoErrorsInCode(r'''
-class A {
+mixin A {
   num m() { return 0; }
 }
 class B extends Object with A {
@@ -2387,24 +2405,6 @@ class C {
 ''');
   }
 
-  test_mixinDeclaresConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  m() {}
-}
-class B extends Object with A {}
-''');
-  }
-
-  test_mixinDeclaresConstructor_factory() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  factory A() => throw 0;
-}
-class B extends Object with A {}
-''');
-  }
-
   test_multipleSuperInitializers_no() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -2628,7 +2628,7 @@ class A {
   const A.b2(bool p) : v = true || p;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 167, 4),
+      error(WarningCode.DEAD_CODE, 167, 4),
     ]);
   }
 
@@ -3320,6 +3320,24 @@ main(p) {
 ''', [
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
     ]);
+  }
+
+  test_mixinDeclaresConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m() {}
+}
+class B extends Object with A {}
+''');
+  }
+
+  test_mixinDeclaresConstructor_factory() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A() => throw 0;
+}
+class B extends Object with A {}
+''');
   }
 
   test_typePromotion_conditional_issue14655() async {

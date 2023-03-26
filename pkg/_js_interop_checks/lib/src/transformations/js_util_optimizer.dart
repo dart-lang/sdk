@@ -14,8 +14,23 @@ import '../js_interop.dart'
         hasInternalJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
+        hasObjectLiteralAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
+
+enum _MethodSpecializationType {
+  constructor,
+  method,
+}
+
+class _MethodCallSiteSpecialization {
+  final bool shouldTrustType;
+  final Expression? maybeReceiver;
+  final _MethodSpecializationType type;
+
+  _MethodCallSiteSpecialization(
+      this.shouldTrustType, this.maybeReceiver, this.type);
+}
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
@@ -32,6 +47,8 @@ class JsUtilOptimizer extends Transformer {
   final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
+  final Map<Procedure, _MethodCallSiteSpecialization> _proceduresToSpecialize =
+      {};
 
   /// Dynamic members in js_util that interop allowed.
   static final Iterable<String> _allowedInteropJsUtilMembers = <String>[
@@ -116,9 +133,17 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
-  @override
-  visitProcedure(Procedure node) {
-    _staticTypeContext.enterMember(node);
+  // TODO(joshualitt): Here and in `js_runtime_generator.dart`, there is
+  // complexity related to the fact that we lower procedures, and also
+  // specialize invocations. We need to do the latter to cleanly support
+  // optional parameters, and we currently do the former to support tearoffs.
+  // However, the tearoffs will not be consistent with the specialized
+  // invocations, and this may be confusing. We should consider disallowing
+  // tearoffs of external procedures, which will ensure consistency.
+  bool tryTransformProcedure(Procedure node) {
+    if (_proceduresToSpecialize.containsKey(node)) {
+      return true;
+    }
     ReturnStatement? transformedBody;
     if (node.isExternal) {
       if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
@@ -163,7 +188,15 @@ class JsUtilOptimizer extends Transformer {
       node.function.body = transformedBody;
       transformedBody.parent = node.function;
       node.isExternal = false;
-    } else {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
+    if (!tryTransformProcedure(node)) {
       node.transformChildren(this);
     }
     _staticTypeContext.leaveMember(node);
@@ -174,8 +207,9 @@ class JsUtilOptimizer extends Transformer {
     if (node.isInlineClassMember) {
       var kind =
           _inlineExtensionIndex.getInlineDescriptor(node.reference)?.kind;
-      return kind == InlineClassMemberKind.Constructor ||
-          kind == InlineClassMemberKind.Factory;
+      return (kind == InlineClassMemberKind.Constructor ||
+              kind == InlineClassMemberKind.Factory) &&
+          !hasObjectLiteralAnnotation(node);
     } else {
       return node.kind == ProcedureKind.Factory &&
           node.enclosingClass != null &&
@@ -346,32 +380,46 @@ class JsUtilOptimizer extends Transformer {
   /// The new function body will call the optimized version of
   /// `js_util.callMethod` for the given external method. If [shouldTrustType]
   /// is true, we call a variant that does not check the return type. If
-  /// [receiver] is non-null, we use that instead of the first positional
+  /// [maybeReceiver] is non-null, we use that instead of the first positional
   /// parameter as the receiver for `js_util.callMethod`.
   ReturnStatement _getExternalMethodBody(Procedure node, bool shouldTrustType,
-      [Expression? receiver]) {
-    var function = node.function;
+      [Expression? maybeReceiver]) {
+    if (_inlineExtensionIndex.isJSInteropMember(node)) {
+      _proceduresToSpecialize[node] = _MethodCallSiteSpecialization(
+          shouldTrustType, maybeReceiver, _MethodSpecializationType.method);
+    }
+    return ReturnStatement(_getExternalMethodInvocation(
+        node,
+        shouldTrustType,
+        node.function.positionalParameters
+            .map<Expression>((v) => VariableGet(v))
+            .toList(),
+        maybeReceiver));
+  }
+
+  StaticInvocation _getExternalMethodInvocation(
+      Procedure node, bool shouldTrustType, List<Expression> arguments,
+      [Expression? maybeReceiver]) {
+    final function = node.function;
     Procedure target =
         shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
-    var positionalParameters = function.positionalParameters;
+    final receiver = maybeReceiver ?? arguments.first;
     if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
       // Ignore `this` for inline and extension members.
-      positionalParameters = positionalParameters.sublist(1);
+      arguments = arguments.sublist(1);
     }
     var callMethodInvocation = StaticInvocation(
         target,
         Arguments([
-          receiver ?? VariableGet(function.positionalParameters.first),
+          receiver,
           StringLiteral(_getMemberJSName(node)),
-          ListLiteral(positionalParameters
-              .map<Expression>((argument) => VariableGet(argument))
-              .toList())
+          ListLiteral(arguments),
         ], types: [
           function.returnType
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(_lowerCallMethod(callMethodInvocation,
-        shouldTrustType: shouldTrustType));
+    return _lowerCallMethod(callMethodInvocation,
+        shouldTrustType: shouldTrustType);
   }
 
   /// Returns a new function body for the given [node] external operator.
@@ -399,20 +447,28 @@ class JsUtilOptimizer extends Transformer {
   /// of the provided external factory.
   ReturnStatement _getExternalConstructorBody(
       Procedure node, Expression constructor) {
+    if (_inlineExtensionIndex.isJSInteropMember(node)) {
+      _proceduresToSpecialize[node] = _MethodCallSiteSpecialization(
+          false, constructor, _MethodSpecializationType.constructor);
+    }
+    return ReturnStatement(_getExternalConstructorInvocation(
+        node,
+        constructor,
+        node.function.positionalParameters
+            .map<Expression>((argument) => VariableGet(argument))
+            .toList()));
+  }
+
+  StaticInvocation _getExternalConstructorInvocation(
+      Procedure node, Expression constructor, List<Expression> parameters) {
     var function = node.function;
     assert(function.namedParameters.isEmpty);
     var callConstructorInvocation = StaticInvocation(
         _callConstructorTarget,
-        Arguments([
-          constructor,
-          ListLiteral(function.positionalParameters
-              .map<Expression>((argument) => VariableGet(argument))
-              .toList())
-        ], types: [
-          function.returnType
-        ]))
+        Arguments([constructor, ListLiteral(parameters)],
+            types: [function.returnType]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(_lowerCallConstructor(callConstructorInvocation));
+    return _lowerCallConstructor(callConstructorInvocation);
   }
 
   /// Returns the underlying JS name.
@@ -453,13 +509,40 @@ class JsUtilOptimizer extends Transformer {
   /// 0-4 arguments and all arguments are guaranteed to be interop allowed.
   @override
   visitStaticInvocation(StaticInvocation node) {
-    if (node.target == _setPropertyTarget) {
+    final target = node.target;
+    if (target == _setPropertyTarget) {
       node = _lowerSetProperty(node);
-    } else if (node.target == _callMethodTarget) {
+    } else if (target == _callMethodTarget) {
       // Never trust types on explicit `js_util` calls.
       node = _lowerCallMethod(node, shouldTrustType: false);
-    } else if (node.target == _callConstructorTarget) {
+    } else if (target == _callConstructorTarget) {
       node = _lowerCallConstructor(node);
+    } else if (target.isExternal) {
+      tryTransformProcedure(target);
+    }
+
+    // Make sure to call [tryTransformProcedure] before specializing, just in
+    // case we haven't visited the [Procedure] yet.
+    if (_proceduresToSpecialize.containsKey(target)) {
+      final function = target.function;
+      final positional = node.arguments.positional;
+      if (positional.length < function.positionalParameters.length) {
+        final specialization = _proceduresToSpecialize[target]!;
+        switch (specialization.type) {
+          case _MethodSpecializationType.method:
+            node = _getExternalMethodInvocation(
+                target,
+                specialization.shouldTrustType,
+                positional,
+                specialization.maybeReceiver)
+              ..fileOffset = node.fileOffset;
+            break;
+          case _MethodSpecializationType.constructor:
+            node = _getExternalConstructorInvocation(
+                target, specialization.maybeReceiver!, positional)
+              ..fileOffset = node.fileOffset;
+        }
+      }
     }
     node.transformChildren(this);
     return node;
@@ -640,6 +723,7 @@ class JsUtilOptimizer extends Transformer {
 
 /// Lazily-initialized indexes for extension members and inline class members.
 class InlineExtensionIndex {
+  late Map<Reference, Annotatable> _extensionAnnotatableIndex;
   Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
   late Map<Reference, InlineClass> _inlineClassIndex;
   Map<Reference, InlineClassMemberDescriptor>? _inlineMemberIndex;
@@ -660,6 +744,7 @@ class InlineExtensionIndex {
     if (_extensionMemberIndex != null) return;
     _extensionMemberIndex = {};
     _shouldTrustType = {};
+    _extensionAnnotatableIndex = {};
     for (var extension in _library.extensions) {
       for (var descriptor in extension.members) {
         var reference = descriptor.member;
@@ -678,9 +763,15 @@ class InlineExtensionIndex {
         if (cls == null) continue;
         if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
           _extensionMemberIndex![reference] = descriptor;
+          _extensionAnnotatableIndex[reference] = cls;
         }
       }
     }
+  }
+
+  Annotatable? getExtensionAnnotatable(Reference reference) {
+    _createExtensionIndexes();
+    return _extensionAnnotatableIndex[reference];
   }
 
   ExtensionMemberDescriptor? getExtensionDescriptor(Reference reference) {
@@ -790,5 +881,30 @@ class InlineExtensionIndex {
           'Operators are only allowed on extensions / inline classes');
     }
     return name;
+  }
+
+  bool isJSInteropMember(Procedure node) {
+    if (hasInternalJSInteropAnnotation(node) ||
+        hasInternalJSInteropAnnotation(node.enclosingLibrary) ||
+        (node.enclosingClass != null &&
+            hasInternalJSInteropAnnotation(node.enclosingClass!))) {
+      return true;
+    }
+
+    if (node.isExtensionMember) {
+      final annotatable = getExtensionAnnotatable(node.reference);
+      if (annotatable != null) {
+        return hasInternalJSInteropAnnotation(annotatable);
+      }
+    }
+
+    if (node.isInlineClassMember) {
+      final cls = getInlineClass(node.reference);
+      if (cls != null) {
+        return hasInternalJSInteropAnnotation(cls);
+      }
+    }
+
+    return false;
   }
 }

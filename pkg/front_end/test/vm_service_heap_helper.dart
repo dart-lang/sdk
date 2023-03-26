@@ -168,16 +168,13 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       vmService.ClassRef classRef,
       List<String> fieldsForClass,
       List<String> fieldsForClassPrettyPrint) async {
-    // Use undocumented (/ private?) method to get all instances of this class.
-    vmService.InstanceRef instancesAsList = (await serviceClient.callMethod(
-      "_getInstancesAsArray",
-      isolateId: isolateRef.id,
-      args: {
-        "objectId": classRef.id,
-        "includeSubclasses": false,
-        "includeImplementors": false,
-      },
-    )) as vmService.InstanceRef;
+    vmService.InstanceRef instancesAsList =
+        (await serviceClient.getInstancesAsList(
+      isolateRef.id!,
+      classRef.id!,
+      includeSubclasses: false,
+      includeImplementers: false,
+    ));
 
     // Create dart code that `toString`s a class instance according to
     // the fields given as wanting printed. Both for finding duplicates (1) and

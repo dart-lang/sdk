@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -165,6 +166,15 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
+  SimpleIdentifier get simpleName {
+    final self = this;
+    if (self is SimpleIdentifier) {
+      return self;
+    } else {
+      return (self as PrefixedIdentifier).identifier;
+    }
+  }
+
   Element? get writeElement {
     return _writeElement(this);
   }
@@ -188,6 +198,25 @@ extension IndexExpressionExtension on IndexExpression {
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
+  }
+}
+
+extension PatternFieldImplExtension on PatternFieldImpl {
+  /// A [SyntacticEntity] which can be used in error reporting, which is valid
+  /// for both explicit getter names (like `Rect(width: var w, height: var h)`)
+  /// and implicit getter names (like `Rect(:var width, :var height)`).
+  SyntacticEntity get errorEntity {
+    var fieldName = name;
+    if (fieldName == null) {
+      return this;
+    }
+    var fieldNameName = fieldName.name;
+    if (fieldNameName == null) {
+      var variablePattern = pattern.variablePattern;
+      return variablePattern?.name ?? this;
+    } else {
+      return fieldNameName;
+    }
   }
 }
 

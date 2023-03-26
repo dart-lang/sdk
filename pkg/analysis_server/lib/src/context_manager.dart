@@ -388,7 +388,7 @@ class ContextManagerImpl implements ContextManager {
             lineInfo: lineInfo, options: driver.analysisOptions);
 
         if (driver.analysisOptions.lint) {
-          var visitors = <LintRule, PubspecVisitor>{};
+          var visitors = <LintRule, PubspecVisitor<Object?>>{};
           for (var linter in driver.analysisOptions.lintRules) {
             if (linter is LintRule) {
               var visitor = linter.getPubspecVisitor();
@@ -769,6 +769,16 @@ class ContextManagerImpl implements ContextManager {
 
   /// On windows, the directory watcher may overflow, and we must recover.
   void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
+    // If the watcher failed because the directory does not exist, rebuilding
+    // the contexts will result in infinite looping because it will just
+    // re-occur.
+    // https://github.com/Dart-Code/Dart-Code/issues/4280
+    if (error is PathNotFoundException) {
+      _instrumentationService.logError('Watcher error; not refreshing contexts '
+          'because PathNotFound.\n$error\n$stackTrace');
+      return;
+    }
+
     // We've handled the error, so we only have to log it.
     _instrumentationService
         .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');

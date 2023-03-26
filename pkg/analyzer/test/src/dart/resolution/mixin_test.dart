@@ -10,12 +10,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MixinDriverResolutionTest);
+    defineReflectiveTests(MixinDeclarationResolutionTest);
   });
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends PubPackageResolutionTest {
+class MixinDeclarationResolutionTest extends PubPackageResolutionTest {
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {

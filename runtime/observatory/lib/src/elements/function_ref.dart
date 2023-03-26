@@ -34,8 +34,6 @@ class FunctionRefElement extends CustomElement implements Renderable {
 
   factory FunctionRefElement(M.IsolateRef? isolate, M.FunctionRef function,
       {bool qualified = true, RenderingQueue? queue}) {
-    assert(function != null);
-    assert(qualified != null);
     FunctionRefElement e = new FunctionRefElement.created();
     e._r = new RenderingScheduler<FunctionRefElement>(e, queue: queue);
     e._isolate = isolate;

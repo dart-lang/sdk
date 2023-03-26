@@ -23,6 +23,14 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 DART_DIR = abspath(join(dirname(__file__), '..', '..'))
 
+GN_ARCH_TO_DEBIAN_ARCH = {
+    "ia32": "i386",
+    "x64": "amd64",
+    "arm": "armhf",
+    "arm64": "arm64",
+    "riscv64": "riscv64",
+}
+
 
 def BuildOptions():
     result = optparse.OptionParser()
@@ -35,7 +43,7 @@ def BuildOptions():
     result.add_option("-a",
                       "--arch",
                       help='Target architectures (comma-separated).',
-                      metavar='[all,ia32,x64,armhf]',
+                      metavar='[all,ia32,x64,arm,arm64,riscv64]',
                       default='x64')
     result.add_option("-t",
                       "--toolchain",
@@ -54,7 +62,7 @@ def RunBuildPackage(opt, cwd, toolchain=None):
     process = subprocess.check_call(cmd, cwd=cwd, env=env)
 
 
-def BuildDebianPackage(tarball, out_dir, arch, toolchain):
+def BuildDebianPackage(tarball, out_dir, arches, toolchain):
     version = utils.GetVersion()
     tarroot = 'dart-%s' % version
     origtarname = 'dart_%s.orig.tar.gz' % version
@@ -74,23 +82,12 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
         print("Building source package")
         RunBuildPackage(['-S', '-us', '-uc'], join(temp_dir, tarroot))
 
-        # Build 32-bit binary package.
-        if 'ia32' in arch:
-            print("Building i386 package")
-            RunBuildPackage(['-B', '-ai386', '-us', '-uc'],
-                            join(temp_dir, tarroot))
-
-        # Build 64-bit binary package.
-        if 'x64' in arch:
-            print("Building amd64 package")
-            RunBuildPackage(['-B', '-aamd64', '-us', '-uc'],
-                            join(temp_dir, tarroot))
-
-        # Build armhf binary package.
-        if 'armhf' in arch:
-            print("Building armhf package")
-            RunBuildPackage(['-B', '-aarmhf', '-us', '-uc'],
-                            join(temp_dir, tarroot), toolchain)
+        # Build binary package(s).
+        for arch in arches:
+            print("Building %s package" % arch)
+            RunBuildPackage(
+                ['-B', '-a', GN_ARCH_TO_DEBIAN_ARCH[arch], '-us', '-uc'],
+                join(temp_dir, tarroot))
 
         # Copy the Debian package files to the build directory.
         debbase = 'dart_%s' % version
@@ -99,21 +96,11 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
             '%s.orig.tar.gz' % debbase,
             '%s-1.debian.tar.xz' % debbase
         ]
-        i386_package = ['%s-1_i386.deb' % debbase]
-        amd64_package = ['%s-1_amd64.deb' % debbase]
-        armhf_package = ['%s-1_armhf.deb' % debbase]
-
         for name in source_package:
             copyfile(join(temp_dir, name), join(out_dir, name))
-        if 'ia32' in arch:
-            for name in i386_package:
-                copyfile(join(temp_dir, name), join(out_dir, name))
-        if 'x64' in arch:
-            for name in amd64_package:
-                copyfile(join(temp_dir, name), join(out_dir, name))
-        if ('armhf' in arch):
-            for name in armhf_package:
-                copyfile(join(temp_dir, name), join(out_dir, name))
+        for arch in arches:
+            name = '%s-1_%s.deb' % (debbase, GN_ARCH_TO_DEBIAN_ARCH[arch])
+            copyfile(join(temp_dir, name), join(out_dir, name))
 
 
 def Main():
@@ -125,7 +112,7 @@ def Main():
     out_dir = options.out_dir
     tar_filename = options.tar_filename
     if options.arch == 'all':
-        options.arch = 'ia32,x64,armhf'
+        options.arch = 'ia32,x64,arm,arm64,riscv64'
     arch = options.arch.split(',')
 
     if not options.out_dir:

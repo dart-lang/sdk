@@ -27,7 +27,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LABEL, 8, 2),
+      error(WarningCode.UNUSED_LABEL, 8, 2),
       error(CompileTimeErrorCode.LABEL_UNDEFINED, 36, 1),
     ]);
   }
@@ -52,7 +52,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LABEL, 8, 2),
+      error(WarningCode.UNUSED_LABEL, 8, 2),
       error(CompileTimeErrorCode.LABEL_UNDEFINED, 39, 1),
     ]);
   }

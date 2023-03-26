@@ -9,7 +9,7 @@ class C<T> {
   C({a = 0, b = T}) : trace = "a: $a, b: $b";
 }
 
-class M {}
+mixin M {}
 
 class D = C<String> with M;
 

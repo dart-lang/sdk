@@ -2,20 +2,29 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/mixin_class_declaration.dart:5:1: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
-// Try passing the '--enable-experiment=class-modifiers' command line option.
+// pkg/front_end/testcases/general/mixin_class_declaration.dart:7:1: Error: The 'class-modifiers' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 // mixin class A {}
 // ^^^^^
+// pkg/front_end/testcases/general/mixin_class_declaration.dart:5:1: Context: This is the annotation that opts out this library from the 'class-modifiers' language feature.
+// // @dart=2.19
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/mixin_class_declaration.dart:7:10: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
-// Try passing the '--enable-experiment=class-modifiers' command line option.
+// pkg/front_end/testcases/general/mixin_class_declaration.dart:9:10: Error: The 'class-modifiers' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 // abstract mixin class B {}
 //          ^^^^^
+// pkg/front_end/testcases/general/mixin_class_declaration.dart:5:1: Context: This is the annotation that opts out this library from the 'class-modifiers' language feature.
+// // @dart=2.19
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/mixin_class_declaration.dart:10:1: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
-// Try passing the '--enable-experiment=class-modifiers' command line option.
+// pkg/front_end/testcases/general/mixin_class_declaration.dart:12:1: Error: The 'class-modifiers' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 // mixin class C = Object with M;
 // ^^^^^
+// pkg/front_end/testcases/general/mixin_class_declaration.dart:5:1: Context: This is the annotation that opts out this library from the 'class-modifiers' language feature.
+// // @dart=2.19
+// ^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

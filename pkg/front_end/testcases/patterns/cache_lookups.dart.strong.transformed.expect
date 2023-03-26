@@ -18,32 +18,35 @@ static field core::int counter = 0;
 static method test(dynamic o) → dynamic {
   #L1:
   {
-    core::int a;
-    final dynamic #0#0 = o;
+    final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
       return #0#0{self::Class}.{self::Class::field}{core::int};
-    late final core::int #0#2 = ##0#2#initializer(){() → core::int};
+    late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#10#initializer() → core::bool
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final core::bool #0#10 = ##0#10#initializer(){() → core::bool};
+    late final synthesized core::bool #0#10 = ##0#10#initializer(){() → core::bool};
     function ##0#12#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#12 = ##0#12#initializer(){() → dynamic};
+    late final synthesized dynamic #0#12 = ##0#12#initializer(){() → dynamic};
     function ##0#13#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    late final dynamic #0#13 = ##0#13#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is{ForNonNullableByDefault} self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
-      {
-        core::print("Class");
-        break #L1;
+    late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is{ForNonNullableByDefault} self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
+        {
+          core::print("Class");
+          break #L1;
+        }
       }
     }
-    else
+    {
+      core::int a;
       if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#10 && (#0#12 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = a = #0#12{core::int} in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#13 || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#10 && (#0#12 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = a = #0#12{core::int} in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#13) {
         {
           core::print("List");
         }
       }
+    }
   }
 }
 static method main() → dynamic {
@@ -284,7 +287,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void {
     core::int i = this.{core::List::length}{core::int};
     {
-      core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
+      synthesized core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         cac::_CustomList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{cac::_CustomList&Object&ListMixin::E%};
         {
@@ -452,7 +455,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
       if(end =={core::num::==}{(core::Object) → core::bool} this.{core::List::length}{core::int}) {
         core::int i = start;
         {
-          core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = newContents.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
+          synthesized core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = newContents.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
             cac::_CustomList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{cac::_CustomList&Object&ListMixin::E%};
             {
@@ -568,7 +571,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     }
     else {
       {
-        core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
+        synthesized core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           cac::_CustomList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{cac::_CustomList&Object&ListMixin::E%};
           {

@@ -40,10 +40,7 @@ import "mixed_mixin.dart" as self;
 
 import "org-dartlang-testcase:///mixed_mixin.dart";
 
-class B extends core::Object {
-  synthetic constructor •() → mix::B
-    : super core::Object::•()
-    ;
+abstract class B extends core::Object /*isMixinDeclaration*/  {
   get a() → core::List<(core::int) → core::int>
     return <(core::int) → core::int>[];
   set a(core::List<(core::int) → core::int> _) → void {}

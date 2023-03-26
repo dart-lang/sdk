@@ -21,9 +21,7 @@ abstract class B extends core::Object implements self::Interface {
     ;
   abstract method method(core::num i) → core::String;
 }
-abstract class D extends core::Object implements self::Interface, self::Interface2 {
-  synthetic constructor •() → self::D
-    ;
+abstract class D extends core::Object implements self::Interface, self::Interface2 /*isMixinDeclaration*/  {
   abstract forwarding-stub method method(covariant-by-declaration core::num i) → core::String;
 }
 abstract class _E&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
@@ -44,9 +42,7 @@ class E extends self::_E&Object&A&D {
   synthetic constructor •() → self::E
     ;
 }
-abstract class F extends core::Object implements self::Interface {
-  synthetic constructor •() → self::F
-    ;
+abstract class F extends core::Object implements self::Interface /*isMixinDeclaration*/  {
 }
 abstract class _G&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A

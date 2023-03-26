@@ -37,7 +37,7 @@ constants  {
   #C8 = self::B {y:#C7}
   #C9 = 4
   #C10 = "hey"
-  #C11 = <core::int, core::Object>{#C6:#C8, #C9:#C10)
+  #C11 = <core::int, core::Object>{#C6:#C8, #C9:#C10}
   #C12 = core::pragma {name:#C5, options:#C11}
   #C13 = "test3"
   #C14 = 12

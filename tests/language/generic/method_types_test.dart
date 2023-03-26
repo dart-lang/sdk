@@ -9,7 +9,7 @@ typedef Convert2<I> = O Function<O>(I input);
 typedef Convert3 = O Function<I, O>(I input);
 typedef Other(a, b);
 
-class Mixin<E> {
+mixin Mixin<E> {
   E convert1<I>(I input) => throw "uncalled";
 }
 

@@ -9,13 +9,13 @@ worlds:
       main.dart: |
         import 'dart:ffi';
         import 'lib.dart';
-        class X extends Struct {
+        final class X extends Struct {
           external COMObject xx;
         }
       lib.dart: |
         import 'dart:ffi';
 
-        class COMObject extends Struct {
+        final class COMObject extends Struct {
           external Pointer<IntPtr> lpVtbl;
 
           // This should not be interpreted as a native field.

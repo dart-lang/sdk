@@ -1,3 +1,9 @@
+## 0.6.9-dev
+
+- Remove dependency on `dart:js`.
+- Update SDK lower constraint to 3.0.0-217.0.dev.
+- Update SDK upper constraint to 4.0.0.
+
 ## 0.6.7
 
 - Remove `example` link to discontinued example.

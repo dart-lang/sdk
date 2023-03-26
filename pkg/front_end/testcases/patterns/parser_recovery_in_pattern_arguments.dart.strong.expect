@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:16: Error: Expected an identifier, but got ':'.
+// Try inserting an identifier before ':'.
+//   var {const C(:var t): a1} = foo();
+//                ^
+//
+// pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:17: Error: Expected an identifier, but got 'var'.
+// Try inserting an identifier before 'var'.
+//   var {const C(:var t): a1} = foo();
+//                 ^^^
+//
+// pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:17: Error: Expected ')' before this.
+//   var {const C(:var t): a1} = foo();
+//                 ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::C::T% t;
+  const constructor •(self::C::T% t) → self::C<self::C::T%>
+    : self::C::t = t, super core::Object::•()
+    ;
+}
+static method foo() → core::Map<self::C<core::String>, core::int>
+  return throw 0;
+static method test() → dynamic {
+  core::int a1;
+  {
+    final synthesized dynamic #0#0 = self::foo();
+    final const synthesized invalid-type #0#4 = invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+  var {const C(:var t): a1} = foo();
+             ^";
+    if(!(#0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+  var {const C(:var t): a1} = foo();
+             ^"){(core::Object?) → core::bool} && (let final dynamic #t1 = a1 = #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+  var {const C(:var t): a1} = foo();
+             ^"){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+}
+
+constants  {
+  #C1 = 1
+}

@@ -139,9 +139,15 @@ ConstEvalElementImplementsEqual:
   problemMessage: "The element '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
 
+ConstEvalElementNotPrimitiveEquality:
+  problemMessage: "The element '#constant' does not have a primitive equality."
+
 ConstEvalKeyImplementsEqual:
   problemMessage: "The key '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+
+ConstEvalKeyNotPrimitiveEquality:
+  problemMessage: "The key '#constant' does not have a primitive equality."
 
 ConstEvalCaseImplementsEqual:
   problemMessage: "Case expression '#constant' does not have a primitive operator '=='."
@@ -154,6 +160,9 @@ ConstEvalInvalidBinaryOperandType:
 
 ConstEvalInvalidEqualsOperandType:
   problemMessage: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
+
+ConstEvalEqualsOperandNotPrimitiveEquality:
+  problemMessage: "Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'."
 
 ConstEvalZeroDivisor:
   problemMessage: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
@@ -337,10 +346,36 @@ EmptyNamedParameterList:
     }
 
 RecordLiteralOnePositionalFieldNoTrailingComma:
-  problemMessage: "Record literal with one field requires a trailing comma."
+  problemMessage: "A record literal with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 127
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record literal with a single
+    positional field doesn't have a trailing comma after the field.
+
+    In some locations a record literal with a single positional field could
+    also be a parenthesized expression. A trailing comma is required to
+    disambiguate these two valid interpretations.
+
+    #### Example
+
+    The following code produces this diagnostic because the record literal has
+    one positional field but doesn't have a trailing comma:
+
+    ```dart
+    var r = const (1[!)!];
+    ```
+
+    #### Common fixes
+
+    Add a trailing comma:
+
+    ```dart
+    var r = const (1,);
+    ```
   experiments: records
   script: >
     main() {
@@ -348,10 +383,39 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
     }
 
 RecordLiteralZeroFieldsWithTrailingComma:
-  problemMessage: "Record literal without fields can't have a trailing comma."
+  problemMessage: "A record literal without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
   index: 128
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record literal that has no
+    fields has a trailing comma. Empty record literals can't contain a comma.
+
+    #### Example
+
+    The following code produces this diagnostic because the empty record
+    literal has a trailing comma:
+
+    ```dart
+    var r = ([!,!]);
+    ```
+
+    #### Common fixes
+
+    If the record is intended to be empty, then remove the comma:
+
+    ```dart
+    var r = ();
+    ```
+
+    If the record is intended to have one or more fields, then add the
+    expressions used to compute the values of those fields:
+
+    ```dart
+    var r = (3, 4);
+    ```
   experiments: records
   script: >
     main() {
@@ -359,10 +423,40 @@ RecordLiteralZeroFieldsWithTrailingComma:
     }
 
 EmptyRecordTypeNamedFieldsList:
-  problemMessage: "Record type named fields list can't be empty."
-  correctionMessage: "Try adding a record type named field to the list."
+  problemMessage: "The list of named fields in a record type can't be empty."
+  correctionMessage: "Try adding a named field to the list."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
   index: 129
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type has an empty list
+    of named fields.
+
+    #### Example
+
+    The following code produces this diagnostic because the record type has an
+    empty list of named fields:
+
+    ```dart
+    void f((int, int, {[!}!]) r) {}
+    ```
+
+    #### Common fixes
+
+    If the record is intended to have named fields, then add the types and
+    names of the fields:
+
+    ```dart
+    void f((int, int, {int z}) r) {}
+    ```
+
+    If the record isn't intended to have named fields, then remove the curly
+    braces:
+
+    ```dart
+    void f((int, int) r) {}
+    ```
   experiments: records
   script: >
     main() {
@@ -370,10 +464,39 @@ EmptyRecordTypeNamedFieldsList:
     }
 
 RecordTypeZeroFieldsButTrailingComma:
-  problemMessage: "Record type without fields can't have a trailing comma."
+  problemMessage: "A record type without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
   index: 130
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type that has no
+    fields has a trailing comma. Empty record types can't contain a comma.
+
+    #### Example
+
+    The following code produces this diagnostic because the empty record type
+    has a trailing comma:
+
+    ```dart
+    void f(([!,!]) r) {}
+    ```
+
+    #### Common fixes
+
+    If the record type is intended to be empty, then remove the comma:
+
+    ```dart
+    void f(() r) {}
+    ```
+
+    If the record type is intended to have one or more fields, then add the
+    types of those fields:
+
+    ```dart
+    void f((int, int) r) {}
+    ```
   experiments: records
   script: >
     main() {
@@ -381,10 +504,36 @@ RecordTypeZeroFieldsButTrailingComma:
     }
 
 RecordTypeOnePositionalFieldNoTrailingComma:
-  problemMessage: "Record type with one entry requires a trailing comma."
+  problemMessage: "A record type with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 131
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type annotation with a
+    single positional field doesn't have a trailing comma after the field.
+
+    In some locations a record type with a single positional field could also
+    be a parenthesized expression. A trailing comma is required to
+    disambiguate these two valid interpretations.
+
+    #### Example
+
+    The following code produces this diagnostic because the record type has
+    one positional field, but doesn't have a trailing comma:
+
+    ```dart
+    void f((int[!)!] r) {}
+    ```
+
+    #### Common fixes
+
+    Add a trailing comma:
+
+    ```dart
+    void f((int,) r) {}
+    ```
   experiments: records
   script: >
     main() {
@@ -541,7 +690,7 @@ WithBeforeExtends:
   problemMessage: "The extends clause must be before the with clause."
   correctionMessage: "Try moving the extends clause before the with clause."
   analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
-  script: "class B {} class C {} class A with B extends C {}"
+  script: "mixin B {} class C {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
   index: 44
@@ -596,8 +745,8 @@ MultipleClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
   index: 121
   script:
-    - "class B {} enum A implements B implements C, D { v; }"
-    - "class B {} enum A with B with C, D { v; }"
+    - "mixin B {} enum A implements B implements C, D { v; }"
+    - "mixin B {} enum A with B with C, D { v; }"
 
 OutOfOrderClauses:
   problemMessage: "The '#string' clause must come before the '#string2' clause."
@@ -802,10 +951,41 @@ AbstractLateField:
     - "abstract class C {abstract late var f;}"
 
 AbstractSealedClass:
-  index: 132
   problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
   correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
+  index: 132
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class is declared using both
+    the modifier `abstract` and the modifier `sealed`. Sealed classes are
+    implicitly abstract, so explicitly using both modifiers is not allowed.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` is
+    declared using both `abstract` and `sealed`:
+
+    ```dart
+    abstract [!sealed!] class C {}
+    ```
+
+    #### Common fixes
+
+    If the class should be abstract but not sealed, then remove the `sealed`
+    modifier:
+
+    ```dart
+    abstract class C {}
+    ```
+
+    If the class should be both abstract and sealed, then remove the
+    `abstract` modifier:
+
+    ```dart
+    sealed class C {}
+    ```
   experiments: sealed-class
   script:
     - "sealed abstract class C {}"
@@ -3440,6 +3620,7 @@ SwitchExpressionNotSubtype:
   problemMessage: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
   script:
     - |
+      // @dart=2.19
       void f() {
         switch (42) {
           case "foo": break;
@@ -5373,6 +5554,10 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
+JsInteropStrictModeViolation:
+  problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
+  correctionMessage: "Use a JS type instead."
+
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING
@@ -5479,27 +5664,6 @@ ExportOptOutFromOptIn:
       // @dart=2.5
       class A {}
 
-ExtendFunction:
-  problemMessage: "Extending 'Function' is deprecated."
-  correctionMessage: "Try removing 'Function' from the 'extends' clause."
-  severity: IGNORED
-  script: |
-    class A extends Function {}
-
-ImplementFunction:
-  problemMessage: "Implementing 'Function' is deprecated."
-  correctionMessage: "Try removing 'Function' from the 'implements' clause."
-  severity: IGNORED
-  script: |
-    class A implements Function {}
-
-MixinFunction:
-  problemMessage: "Mixing in 'Function' is deprecated."
-  correctionMessage: "Try removing 'Function' from the 'with' clause."
-  severity: IGNORED
-  script: |
-    class A extends Object with Function {}
-
 CannotAssignToFinalVariable:
   problemMessage: "Can't assign to the final variable '#name'."
   script: |
@@ -5554,6 +5718,12 @@ NeverReachableSwitchDefaultError:
 NeverReachableSwitchDefaultWarning:
   problemMessage: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
   severity: WARNING
+
+NeverReachableSwitchExpressionError:
+  problemMessage: "`null` encountered as case in a switch expression with a non-nullable type."
+
+NeverReachableSwitchStatementError:
+  problemMessage: "`null` encountered as case in a switch statement with a non-nullable type."
 
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."
@@ -5912,6 +6082,7 @@ MixinInheritsFromNotObject:
   problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
   analyzerCode: MIXIN_INHERITS_FROM_NOT_OBJECT
   script: |
+    // @dart=2.19
     class Base {}
     class Mixin extends Base {}
     class C extends Base with Mixin {}
@@ -6068,6 +6239,33 @@ CantUseClassAsMixin:
     lib.dart:
       class A {}
 
+FinalMixinClass:
+  index: 142
+  problemMessage: "A mixin class can't be declared 'final'."
+  correctionMessage: "Try removing the 'final' keyword."
+  analyzerCode: ParserErrorCode.FINAL_MIXIN_CLASS
+  experiments: class-modifiers
+  script:
+    - "final mixin class C {}"
+
+InterfaceMixinClass:
+  index: 143
+  problemMessage: "A mixin class can't be declared 'interface'."
+  correctionMessage: "Try removing the 'interface' keyword."
+  analyzerCode: ParserErrorCode.INTERFACE_MIXIN_CLASS
+  experiments: class-modifiers
+  script:
+    - "interface mixin class C {}"
+
+SealedMixinClass:
+  index: 144
+  problemMessage: "A mixin class can't be declared 'sealed'."
+  correctionMessage: "Try removing the 'sealed' keyword."
+  analyzerCode: ParserErrorCode.SEALED_MIXIN_CLASS
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed mixin class C {}"
+
 BaseClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
   analyzerCode: BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
@@ -6075,9 +6273,13 @@ BaseClassImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      base class B implements A {}
     lib.dart:
       base class A {}
+
+BaseClassImplementedOutsideOfLibraryCause:
+  problemMessage: "The type '#name' is a subtype of '#name2', and '#name2' is defined here."
+  severity: CONTEXT
 
 BaseMixinImplementedOutsideOfLibrary:
   problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
@@ -6086,7 +6288,7 @@ BaseMixinImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      base class B implements A {}
     lib.dart:
       base mixin A {}
 
@@ -6119,7 +6321,7 @@ FinalClassExtendedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B extends A {}
+      final class B extends A {}
     lib.dart:
       final class A {}
 
@@ -6130,7 +6332,7 @@ FinalClassImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      final class B implements A {}
     lib.dart:
       final class A {}
 
@@ -6141,7 +6343,7 @@ FinalMixinImplementedOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B implements A {}
+      final class B implements A {}
     lib.dart:
       final mixin A {}
 
@@ -6152,9 +6354,27 @@ FinalMixinMixedInOutsideOfLibrary:
   script:
     main.dart:
       import 'lib.dart';
-      class B with A {}
+      final class B with A {}
     lib.dart:
       final mixin A {}
+
+SubtypeOfBaseIsNotBaseFinalOrSealed:
+  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
+  correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
+  analyzerCode: SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED
+  experiments: class-modifiers,sealed-class
+  script: |
+      base class A {}
+      class B extends A {}
+
+SubtypeOfFinalIsNotBaseFinalOrSealed:
+  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'."
+  correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
+  analyzerCode: SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  experiments: class-modifiers,sealed-class
+  script: |
+      final class A {}
+      class B extends A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
@@ -6164,12 +6384,6 @@ UnspecifiedGetterNameInObjectPattern:
     abstract class A { int get foo;}
     test(dynamic x) { if (x case A(: 0)) {} }
 
-SwitchExpressionEmpty:
-  problemMessage: "Switch expressions must contain at least one case."
-  experiments: patterns
-  script: |
-    test(dynamic x) => switch (x) {};
-
 VariablePatternTypeMismatchInSwitchHeads:
   problemMessage: "Variable pattern '#name' doesn't have the same type in all cases."
   experiments: patterns
@@ -6178,7 +6392,7 @@ VariablePatternTypeMismatchInSwitchHeads:
 
 NonExhaustiveSwitch:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
-  correctionMessage: "Try adding a default case or cases that match #string."
+  correctionMessage: "Try adding a default case or cases that match '#string'."
   analyzerCode: NON_EXHAUSTIVE_SWITCH
   experiments: patterns
   script: |
@@ -6442,6 +6656,8 @@ InvalidConstantPatternBinary:
 PatternAssignmentDeclaresVariable:
   problemMessage: "Variable '#name' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
+  analyzerCode: ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE
+  index: 145
   experiments: patterns
   script: |
     method(x) {
@@ -6459,3 +6675,43 @@ PatternAssignmentNotLocalVariable:
     method(x) {
       [global] = x;
     }
+
+WeakReferenceNotStatic:
+  problemMessage: "Weak reference pragma can be used on a static method only."
+
+WeakReferenceNotOneArgument:
+  problemMessage: "Weak reference should take one required positional argument."
+
+WeakReferenceReturnTypeNotNullable:
+  problemMessage: "Return type of a weak reference should be nullable."
+
+WeakReferenceMismatchReturnAndArgumentTypes:
+  problemMessage: "Return and argument types of a weak reference should match."
+
+WeakReferenceTargetNotStaticTearoff:
+  problemMessage: "The target of weak reference should be a tearoff of a static method."
+
+WeakReferenceTargetHasParameters:
+  problemMessage: "The target of weak reference should not take parameters."
+
+ObsoleteColonForDefaultValue:
+  problemMessage: "Using a colon as a separator before a default value is no longer supported."
+  correctionMessage: "Try replacing the colon with an equal sign."
+  script: |
+    method({int x: 3}) {}
+
+EqualKeysInMapPattern:
+  problemMessage: Two keys in a map pattern can't be equal.
+  correctionMessage: Change or remove the duplicate key.
+  analyzerCode: EQUAL_KEYS_IN_MAP_PATTERN
+  script: |
+    method(o) {
+      if (o case {1: 'foo', 1: 'bar'}) {}
+    }
+
+EqualKeysInMapPatternContext:
+  problemMessage: This is the previous use of the same key.
+  severity: CONTEXT
+
+PatternMatchingError:
+  problemMessage: "Pattern matching error"

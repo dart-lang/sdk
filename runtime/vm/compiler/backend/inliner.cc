@@ -197,14 +197,15 @@ class GraphInfoCollector : public ValueObject {
           continue;
         }
         ++instruction_count_;
-        // Count inputs of certain instructions as if separate PushArgument
+        // Count inputs of certain instructions as if separate MoveArgument
         // instructions are used for inputs. This is done in order to
         // preserve inlining behavior and avoid code size growth after
-        // PushArgument instructions are eliminated.
+        // MoveArgument insertion was moved to the end of the
+        // compilation pipeline.
         if (current->IsAllocateObject()) {
           instruction_count_ += current->InputCount();
         } else if (current->ArgumentCount() > 0) {
-          ASSERT(!current->HasPushArguments());
+          ASSERT(!current->HasMoveArguments());
           instruction_count_ += current->ArgumentCount();
         }
         if (current->IsInstanceCall() || current->IsStaticCall() ||
@@ -465,7 +466,7 @@ class CallSites : public ValueObject {
         }
         // For instructions with arguments we don't expect push arguments to
         // be inserted yet.
-        ASSERT(defn->ArgumentCount() == 0 || !defn->HasPushArguments());
+        ASSERT(defn->ArgumentCount() == 0 || !defn->HasMoveArguments());
       }
     };
 
@@ -1159,9 +1160,20 @@ class CallSiteInliner : public ValueObject {
     if (constant != NULL) {
       return graph->GetConstant(constant->value());
     } else {
-      ParameterInstr* param = new (Z)
-          ParameterInstr(i, -1, graph->graph_entry(), kNoRepresentation);
-      param->UpdateType(*argument->Type());
+      ParameterInstr* param =
+          new (Z) ParameterInstr(/*env_index=*/i, /*param_index=*/i, -1,
+                                 graph->graph_entry(), kNoRepresentation);
+      if (i >= 0) {
+        // Compute initial parameter type using static and inferred types
+        // and combine it with an argument type from the caller.
+        param->UpdateType(
+            *CompileType::ComputeRefinedType(param->Type(), argument->Type()));
+      } else {
+        // Parameter stub for function type arguments.
+        // It doesn't correspond to a real parameter, so don't try to
+        // query its static/inferred type.
+        param->UpdateType(*argument->Type());
+      }
       return param;
     }
   }
@@ -1730,7 +1742,7 @@ class CallSiteInliner : public ValueObject {
     ReplaceParameterStubs(zone(), caller_graph_, call_data, NULL);
     exit_collector->ReplaceCall(callee_function_entry);
 
-    ASSERT(!call_data->call->HasPushArguments());
+    ASSERT(!call_data->call->HasMoveArguments());
   }
 
   static intptr_t CountConstants(const GrowableArray<Value*>& arguments) {
@@ -1971,8 +1983,7 @@ class CallSiteInliner : public ValueObject {
       arguments->Add(arg);
       // Create a stub for the argument or use the parameter's default value.
       if (arg != NULL) {
-        param_stubs->Add(
-            CreateParameterStub(first_arg_index + i, arg, callee_graph));
+        param_stubs->Add(CreateParameterStub(i, arg, callee_graph));
       } else {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);
@@ -2411,7 +2422,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     }
   }
 
-  ASSERT(!call_->HasPushArguments());
+  ASSERT(!call_->HasMoveArguments());
 
   // Handle any non-inlined variants.
   if (!non_inlined_variants_->is_empty()) {
@@ -3628,7 +3639,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
       flow_graph->AddExactnessGuard(call, receiver_cid);
     }
 
-    ASSERT(!call->HasPushArguments());
+    ASSERT(!call->HasMoveArguments());
 
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
@@ -3678,7 +3689,7 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     ASSERT((last != nullptr && result != nullptr) ||
            (call->function().recognized_kind() ==
             MethodRecognizer::kObjectConstructor));
-    ASSERT(!call->HasPushArguments());
+    ASSERT(!call->HasMoveArguments());
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(result->HasSSATemp());

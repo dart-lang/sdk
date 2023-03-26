@@ -591,6 +591,12 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain) {
+    return _globalInferenceResults.typeOfRecordLiteral(recordLiteral);
+  }
+
+  @override
   AbstractValue? typeOfIterator(ir.ForInStatement node) {
     return _targetResults.typeOfIterator(node);
   }
@@ -640,9 +646,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue typeFromNativeBehavior(
-      // TODO(48820): remove covariant once interface and implementation match.
-      NativeBehavior nativeBehavior,
-      covariant JClosedWorld closedWorld) {
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

@@ -7,9 +7,12 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Handles textDocument/colorPresentation.
@@ -60,16 +63,20 @@ class DocumentColorPresentationHandler
   /// the code that will be inserted.
   ///
   /// [invocationString] is written immediately after [colorType] in [editRange].
-  Future<ColorPresentation> _createColorPresentation(
-    ResolvedUnitResult unit,
-    SourceRange editRange,
-    InterfaceElement colorType,
-    String label,
-    String invocationString,
-  ) async {
+  Future<ColorPresentation> _createColorPresentation({
+    required ResolvedUnitResult unit,
+    required SourceRange editRange,
+    required InterfaceElement colorType,
+    required String label,
+    required String invocationString,
+    required bool includeConstKeyword,
+  }) async {
     final builder = ChangeBuilder(session: unit.session);
     await builder.addDartFileEdit(unit.path, (builder) {
       builder.addReplacement(editRange, (builder) {
+        if (includeConstKeyword) {
+          builder.write('const ');
+        }
         builder.writeType(colorType.thisType);
         builder.write(invocationString);
       });
@@ -104,6 +111,14 @@ class DocumentColorPresentationHandler
     ColorPresentationParams params,
     ResolvedUnitResult unit,
   ) async {
+    // If this file is outside of analysis roots, we cannot build edits for it
+    // so return null to signal to the client that it should not try to modify
+    // the source.
+    final analysisContext = unit.session.analysisContext;
+    if (!analysisContext.contextRoot.isAnalyzed(unit.path)) {
+      return success([]);
+    }
+
     // The values in LSP are decimals 0-1 so should be scaled up to 255 that
     // we use internally (except for opacity is which 0-1).
     final alpha = (params.color.alpha * 255).toInt();
@@ -122,7 +137,6 @@ class DocumentColorPresentationHandler
         SourceRange(editStart.result, editEnd.result - editStart.result);
 
     final sessionHelper = AnalysisSessionHelper(unit.session);
-    final analysisContext = unit.session.analysisContext;
     final flutter = Flutter.instance;
     final colorType = await sessionHelper.getClass(flutter.widgetsUri, 'Color');
     if (colorType == null) {
@@ -132,39 +146,37 @@ class DocumentColorPresentationHandler
       return success([]);
     }
 
-    // If this file is outside of analysis roots, we cannot build edits for it
-    // so return null to signal to the client that it should not try to modify
-    // the source.
-    if (!analysisContext.contextRoot.isAnalyzed(unit.path)) {
-      return success([]);
-    }
-
+    final requiresConstKeyword =
+        _willRequireConstKeyword(editRange.offset, unit);
     final colorValue = _colorValueForComponents(alpha, red, green, blue);
     final colorValueHex =
         '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
 
     final colorFromARGB = await _createColorPresentation(
-      unit,
-      editRange,
-      colorType,
-      'Color.fromARGB($alpha, $red, $green, $blue)',
-      '.fromARGB($alpha, $red, $green, $blue)',
+      unit: unit,
+      editRange: editRange,
+      colorType: colorType,
+      label: 'Color.fromARGB($alpha, $red, $green, $blue)',
+      invocationString: '.fromARGB($alpha, $red, $green, $blue)',
+      includeConstKeyword: requiresConstKeyword,
     );
 
     final colorFromRGBO = await _createColorPresentation(
-      unit,
-      editRange,
-      colorType,
-      'Color.fromRGBO($red, $green, $blue, $opacity)',
-      '.fromRGBO($red, $green, $blue, $opacity)',
+      unit: unit,
+      editRange: editRange,
+      colorType: colorType,
+      label: 'Color.fromRGBO($red, $green, $blue, $opacity)',
+      invocationString: '.fromRGBO($red, $green, $blue, $opacity)',
+      includeConstKeyword: requiresConstKeyword,
     );
 
     final colorDefault = await _createColorPresentation(
-      unit,
-      editRange,
-      colorType,
-      'Color($colorValueHex)',
-      '($colorValueHex)',
+      unit: unit,
+      editRange: editRange,
+      colorType: colorType,
+      label: 'Color($colorValueHex)',
+      invocationString: '($colorValueHex)',
+      includeConstKeyword: requiresConstKeyword,
     );
 
     return success([
@@ -172,5 +184,30 @@ class DocumentColorPresentationHandler
       colorFromRGBO,
       colorDefault,
     ]);
+  }
+
+  /// Checks whether a `const` keyword is required in front of inserted
+  /// constructor calls to preserve existing semantics.
+  bool _willRequireConstKeyword(int offset, ResolvedUnitResult unit) {
+    // We should insert `const` if the existing expression is constant, but
+    // we are not already in a constant context.
+    var node = NodeLocator2(offset).searchWithin(unit.unit);
+
+    if (node is! SimpleIdentifier) {
+      return false;
+    }
+
+    final parent = node.parent;
+    final staticElement = parent is PrefixedIdentifier
+        ? parent.staticElement
+        : node.staticElement;
+    final target = staticElement is PropertyAccessorElement
+        ? staticElement.variable
+        : staticElement;
+
+    final existingIsConst = target is ConstVariableElement;
+    final isInConstantContext = node.inConstantContext;
+
+    return existingIsConst && !isInConstantContext;
   }
 }

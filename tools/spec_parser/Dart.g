@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+// v0.32 Remove unused non-terminal `patterns`.
+//
+// v0.31 Inline `identifierNotFUNCTION` into `identifier`. Replace all
+// other references with `identifier` to match the spec.
 //
 // v0.30 Add support for the class modifiers `sealed`, `final`, `base`,
 // `interface`, and for `mixin class` declarations. Also add support for
@@ -280,7 +284,7 @@ initializedIdentifierList
     ;
 
 functionSignature
-    :    type? identifierNotFUNCTION formalParameterPart
+    :    type? identifier formalParameterPart
     ;
 
 functionBody
@@ -337,7 +341,7 @@ normalFormalParameterNoMetadata
 
 // NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
 functionFormalParameter
-    :    COVARIANT? type? identifierNotFUNCTION formalParameterPart '?'?
+    :    COVARIANT? type? identifier formalParameterPart '?'?
     ;
 
 simpleFormalParameter
@@ -997,16 +1001,11 @@ assignableSelector
     |    '?' '[' expression ']'
     ;
 
-identifierNotFUNCTION
+identifier
     :    IDENTIFIER
     |    builtInIdentifier
     |    otherIdentifier
     |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
-    ;
-
-identifier
-    :    identifierNotFUNCTION
-    |    FUNCTION // Built-in identifier that can be used as a type.
     ;
 
 qualifiedName
@@ -1039,10 +1038,6 @@ asOperator
 
 pattern
     :    logicalOrPattern
-    ;
-
-patterns
-    :    pattern (',' pattern)* ','?
     ;
 
 logicalOrPattern
@@ -1402,18 +1397,18 @@ type
 typeNotVoid
     :    functionType '?'?
     |    recordType '?'?
-    |    typeNotVoidNotFunction
+    |    typeNotVoidNotFunction '?'?
     ;
 
 typeNotFunction
-    :    typeNotVoidNotFunction
+    :    typeNotVoidNotFunction '?'?
     |    recordType '?'?
     |    VOID
     ;
 
 typeNotVoidNotFunction
-    :    typeName typeArguments? '?'?
-    |    FUNCTION '?'?
+    :    typeName typeArguments?
+    |    FUNCTION
     ;
 
 typeName

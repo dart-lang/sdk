@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -37,11 +39,16 @@ class DartInlayHintComputer {
   /// Adds a parameter name hint before [node] showing a the name for
   /// [parameter].
   ///
+  /// If the parameter has no name, no hint will be added.
+  ///
   /// A colon and padding will be added between the hint and [node]
   /// automatically.
   void _addParameterNamePrefix(
       SyntacticEntity nodeOrToken, ParameterElement parameter) {
     final name = parameter.name;
+    if (name.isEmpty) {
+      return;
+    }
     final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
     final labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
@@ -58,26 +65,90 @@ class DartInlayHintComputer {
     ));
   }
 
+  /// Adds a type hint before [node] showing a label for type arguments [types].
+  ///
+  /// If [types] is null or empty, no hints are added.
+  void _addTypeArgumentsPrefix(
+      SyntacticEntity nodeOrToken, List<DartType>? types) {
+    if (types == null || types.isEmpty) {
+      return;
+    }
+
+    final offset = nodeOrToken.offset;
+    final position = toPosition(_lineInfo.getLocation(offset));
+    final labelParts = <InlayHintLabelPart>[];
+    _appendTypeArgumentParts(labelParts, types);
+
+    _hints.add(InlayHint(
+      label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts.toList()),
+      position: position,
+      kind: InlayHintKind.Type,
+    ));
+  }
+
   /// Adds a type hint before [node] showing a label for the type [type].
   ///
   /// Padding will be added between the hint and [node] automatically.
   void _addTypePrefix(SyntacticEntity nodeOrToken, DartType type) {
     final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
-    final label =
-        type.getDisplayString(withNullability: _isNonNullableByDefault);
-    final labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
-      InlayHintLabelPart(
-        value: label,
-        location: _locationForElement(type.element),
-      )
-    ]);
+    final labelParts = <InlayHintLabelPart>[];
+    _appendTypePart(labelParts, type);
     _hints.add(InlayHint(
-      label: labelParts,
+      label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
       position: position,
       kind: InlayHintKind.Type,
       paddingRight: true,
     ));
+  }
+
+  /// Adds labels to [parts] for each of [types], formatted as type arguments.
+  ///
+  /// If any of [types] have their own type arguments, will run recursively.
+  ///
+  /// `<x1, x2, x...>`
+  void _appendTypeArgumentParts(
+    List<InlayHintLabelPart> parts,
+    List<DartType> types,
+  ) {
+    parts.add(InlayHintLabelPart(value: '<'));
+    for (int i = 0; i < types.length; i++) {
+      _appendTypePart(parts, types[i]);
+      final isLast = i == types.length - 1;
+      if (!isLast) {
+        parts.add(InlayHintLabelPart(value: ', '));
+      }
+    }
+    parts.add(InlayHintLabelPart(value: '>'));
+  }
+
+  /// Adds a label to [parts] for [type].
+  ///
+  /// If [type] has type arguments, will run recursively.
+  void _appendTypePart(List<InlayHintLabelPart> parts, DartType type) {
+    parts.add(InlayHintLabelPart(
+      // Write type without type args or nullability suffix. Type args need
+      // adding as their own parts, and the nullability suffix does after them.
+      value:
+          type.element?.name ?? type.getDisplayString(withNullability: false),
+      location: _locationForElement(type.element),
+    ));
+    // Call recursively for any nested type arguments.
+    if (type is InterfaceType && type.typeArguments.isNotEmpty) {
+      _appendTypeArgumentParts(parts, type.typeArguments);
+    }
+    // Finally add any nullability suffix.
+    if (_isNonNullableByDefault) {
+      switch (type.nullabilitySuffix) {
+        case NullabilitySuffix.question:
+          parts.add(InlayHintLabelPart(value: '?'));
+          break;
+        case NullabilitySuffix.star:
+          parts.add(InlayHintLabelPart(value: '*'));
+          break;
+        default:
+      }
+    }
   }
 
   Location? _locationForElement(Element? element) {
@@ -88,13 +159,27 @@ class DartInlayHintComputer {
         element.thisOrAncestorOfType<CompilationUnitElement>();
     final path = compilationUnit?.source.fullName;
     final lineInfo = compilationUnit?.lineInfo;
-    if (path == null || lineInfo == null) {
+    if (path == null || lineInfo == null || element.nameOffset == -1) {
       return null;
     }
     return Location(
       uri: Uri.file(path),
       range: toRange(lineInfo, element.nameOffset, element.nameLength),
     );
+  }
+
+  /// Adds a Type hint for type arguments of [type] (if it has type arguments).
+  void _maybeAddTypeArguments(Token token, DartType? type) {
+    if (type is! ParameterizedType) {
+      return;
+    }
+
+    final typeArgumentTypes = type.typeArguments;
+    if (typeArgumentTypes.isEmpty) {
+      return;
+    }
+
+    _addTypeArgumentsPrefix(token, typeArgumentTypes);
   }
 }
 
@@ -106,8 +191,6 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    super.visitArgumentList(node);
-
     for (final argument in node.arguments) {
       if (argument is! NamedExpression) {
         final parameter = argument.staticParameterElement;
@@ -116,6 +199,10 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
         }
       }
     }
+
+    // Call super last, to ensure parameter names are always added before
+    // any other hints that may be produced (such as list literal Type hints).
+    super.visitArgumentList(node);
   }
 
   @override
@@ -142,6 +229,47 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    super.visitInstanceCreationExpression(node);
+
+    // Has explicit type arguments.
+    if (node.constructorName.type.typeArguments != null) {
+      return;
+    }
+
+    final token = node.argumentList.leftParenthesis;
+    final type = node.staticType;
+    _computer._maybeAddTypeArguments(token, type);
+  }
+
+  @override
+  void visitInvocationExpression(InvocationExpression node) {
+    super.visitInvocationExpression(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    _computer._addTypeArgumentsPrefix(
+        node.argumentList.leftParenthesis, node.typeArgumentTypes);
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    super.visitListLiteral(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    final token = node.leftBracket;
+    final type = node.staticType;
+    _computer._maybeAddTypeArguments(token, type);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
 
@@ -154,6 +282,20 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     if (declaration != null) {
       _computer._addTypePrefix(node.name, declaration.returnType);
     }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    super.visitSetOrMapLiteral(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    final token = node.leftBracket;
+    final type = node.staticType;
+    _computer._maybeAddTypeArguments(token, type);
   }
 
   @override

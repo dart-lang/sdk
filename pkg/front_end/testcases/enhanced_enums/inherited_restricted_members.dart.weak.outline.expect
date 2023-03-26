@@ -75,7 +75,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A1 extends core::Object {
+mixin class A1 extends core::Object {
   synthetic constructor •() → self::A1
     ;
   get hashCode() → core::int
@@ -96,7 +96,7 @@ class E1 extends self::_E1&_Enum&A1 /*isEnum*/  {
   method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
-class A2 extends core::Object {
+mixin class A2 extends core::Object {
   synthetic constructor •() → self::A2
     ;
   get values() → core::int
@@ -117,7 +117,7 @@ class E2 extends self::_E2&_Enum&A2 /*isEnum*/  {
   method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
-class A3 extends core::Object {
+mixin class A3 extends core::Object {
   synthetic constructor •() → self::A3
     ;
   get index() → core::int
@@ -138,7 +138,7 @@ class E3 extends self::_E3&_Enum&A3 /*isEnum*/  {
   method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
-class A4 extends core::Object {
+mixin class A4 extends core::Object {
   synthetic constructor •() → self::A4
     ;
   operator ==(core::Object other) → core::bool
@@ -235,7 +235,7 @@ class E8 extends self::_E8&_Enum&M8 /*isEnum*/  {
   method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class A9 extends core::Object {
+abstract mixin class A9 extends core::Object {
   synthetic constructor •() → self::A9
     ;
   abstract get index() → core::int;

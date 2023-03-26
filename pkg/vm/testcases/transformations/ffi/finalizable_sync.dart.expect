@@ -12,7 +12,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     ;
   method use() → core::int {
     return block {
-      final core::int :expressionValueWrappedFinalizable = self::doSomething();
+      final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();
       _in::reachabilityFence(this);
     } =>:expressionValueWrappedFinalizable;
   }
@@ -21,7 +21,7 @@ static method doSomething() → core::int
   return 3;
 static method useFinalizableSync(ffi::Finalizable finalizable) → core::int {
   return block {
-    final core::int :expressionValueWrappedFinalizable = self::doSomething();
+    final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();
     _in::reachabilityFence(finalizable);
   } =>:expressionValueWrappedFinalizable;
 }

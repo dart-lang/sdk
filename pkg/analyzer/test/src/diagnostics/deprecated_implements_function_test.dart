@@ -19,7 +19,8 @@ class DeprecatedImplementsFunctionTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A implements Function {}
 ''', [
-      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 19, 8),
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 19,
+          8),
     ]);
   }
 
@@ -27,8 +28,30 @@ class A implements Function {}
     await assertErrorsInCode('''
 class A implements Function, Function {}
 ''', [
-      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 19, 8),
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 19,
+          8),
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 29, 8),
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 29,
+          8),
+    ]);
+  }
+
+  test_core2_language219() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+class A implements Function, Function {}
+''', [
+      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 35, 8),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 45, 8),
+    ]);
+  }
+
+  test_core_language219() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+class A implements Function {}
+''', [
+      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 35, 8),
     ]);
   }
 

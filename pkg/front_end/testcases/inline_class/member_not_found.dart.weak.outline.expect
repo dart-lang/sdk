@@ -10,5 +10,5 @@ static method A|name1(core::int value) → self::A
   ;
 static method A|get#name1(core::int value) → self::A
   return self::A|name1(value);
-static method main() → void
+static method method() → void
   ;

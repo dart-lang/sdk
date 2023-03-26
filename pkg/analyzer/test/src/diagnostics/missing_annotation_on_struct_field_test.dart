@@ -18,18 +18,18 @@ class MissingAnnotationOnStructFieldTest extends PubPackageResolutionTest {
   test_missing_int() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct {
+final class C extends Struct {
   external int x;
 }
 ''', [
-      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 55, 3),
+      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 61, 3),
     ]);
   }
 
   test_notMissing() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct {
+final class C extends Struct {
   @Int32()
   external int x;
 }

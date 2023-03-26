@@ -24,13 +24,16 @@ class RecordShape {
   /// Total number of fields.
   int get numFields => positionals + _names.length;
 
+  /// Create a new [RecordShape] object by given number of
+  /// positional fields and named fields.
+  /// [names] should be sorted.
+  RecordShape(this.positionals, Iterable<String> names)
+      : _names = SplayTreeMap.fromIterables(
+            names, Iterable.generate(names.length, (i) => i + positionals));
+
   RecordShape.fromType(RecordType recordType)
-      : positionals = recordType.positional.length,
-        // RecordType.named is already sorted
-        _names = SplayTreeMap.fromIterables(
-            recordType.named.map((ty) => ty.name),
-            Iterable.generate(recordType.named.length,
-                (i) => i + recordType.positional.length));
+      : this(recordType.positional.length,
+            recordType.named.map((ty) => ty.name));
 
   @override
   String toString() => 'Record(positionals: $positionals, names: $_names)';

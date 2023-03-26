@@ -30,6 +30,7 @@ void main() {
         [p.dir],
         commandName: 'testing',
         argResults: null,
+        suppressAnalytics: true,
       );
       await server.start();
       await server.shutdown();
@@ -42,6 +43,7 @@ void main() {
         [p.dir],
         commandName: 'testing',
         argResults: null,
+        suppressAnalytics: true,
       );
       await server.start();
 

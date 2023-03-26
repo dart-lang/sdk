@@ -23,10 +23,14 @@ class DartGenerator {
   DartGenerator({this.colBoundary = defaultColumnBoundary});
 
   /// Write out the given dartdoc text, wrapping lines as necessary to flow
-  /// along the column boundary. If [preferSingle] is true, and the docs would
-  /// fit on a single line, use `///` dartdoc style.
-  void writeDocs(String? docs) {
-    if (docs == null) return;
+  /// along the column boundary.
+  void writeDocs(String docs) {
+    docs = docs
+        .replaceAll('[RPC error] code', 'RPC error code')
+        .replaceAll('[RPC error]', '[RPCError]')
+        .replaceAllMapped(RegExp(r'\[([gs]et[a-zA-Z]+)\]'), (match) {
+      return '[VmServiceInterface.${match[1]}]';
+    });
 
     docs = wrap(docs.trim(), colBoundary - _indent.length - 4);
     // docs = docs.replaceAll('*/', '/');

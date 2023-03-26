@@ -7,9 +7,9 @@
 
 import "package:expect/expect.dart";
 
-class M {}
+mixin M {}
 
-class P0 {
+mixin P0 {
   foo() {
 
 
@@ -32,7 +32,7 @@ class P0 {
   }
 }
 
-class P1 {
+mixin class P1 {
   bar() {
 
     return 87;
@@ -52,7 +52,7 @@ class P1 {
   }
 }
 
-class P2 {
+mixin class P2 {
   baz() {
 
     return 99;

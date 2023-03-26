@@ -97,10 +97,6 @@ class Selector {
       Map<int, List<Selector>>();
 
   factory Selector(SelectorKind kind, Name name, CallStructure callStructure) {
-    // TODO(48820): Remove this check when callers are migrated.
-    if ((callStructure as dynamic) == null) {
-      throw ArgumentError('callStructure is null');
-    }
     // TODO(johnniwinther): Maybe use equality instead of implicit hashing.
     int hashCode = computeHashCode(kind, name, callStructure);
     List<Selector> list = canonicalizedValues.putIfAbsent(hashCode, () => []);

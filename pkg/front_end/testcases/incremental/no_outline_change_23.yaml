@@ -13,7 +13,7 @@ worlds:
         class A extends Object with B {
           foo() {}
         }
-        class B {
+        mixin B {
           bar() {}
         }
     expectedLibraryCount: 1
@@ -27,7 +27,7 @@ worlds:
         class A extends Object with B {
           foo() {}
         }
-        class B {
+        mixin B {
           bar() {}
         }
     expectedLibraryCount: 1

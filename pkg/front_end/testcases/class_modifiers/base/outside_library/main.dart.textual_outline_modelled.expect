@@ -1,5 +1,16 @@
 import 'main_lib.dart';
-
-class ImplementsBaseClass implements A {}
-
-class ImplementsBaseMixin implements M {}
+base class ImplementsBaseClass implements A {}
+base class ImplementsBaseMixin implements M {}
+enum EnumImplementsBaseMixin implements M { x }
+---- unknown chunk starts ----
+base
+---- unknown chunk ends ----
+mixin MixinOnA on A {}
+---- unknown chunk starts ----
+base
+---- unknown chunk ends ----
+mixin MixinOnM on M {}
+---- unknown chunk starts ----
+base
+---- unknown chunk ends ----
+mixin MixinOnAM on A, M {}

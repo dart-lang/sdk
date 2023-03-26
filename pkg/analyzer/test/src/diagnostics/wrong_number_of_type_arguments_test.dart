@@ -36,7 +36,7 @@ A<A, A>? a;
   test_classAlias() async {
     await assertErrorsInCode(r'''
 class A {}
-class M {}
+mixin M {}
 class B<F extends num> = A<F> with M;
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 4),

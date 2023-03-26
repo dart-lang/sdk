@@ -4,7 +4,7 @@
 
 class A {}
 
-class Mixin {}
+mixin Mixin {}
 
 abstract class B<D> {
   B({

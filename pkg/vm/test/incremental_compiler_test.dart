@@ -313,7 +313,7 @@ main() {
           print("c1");
         }
       }
-      class C3 {
+      mixin C3 {
         c3method() {
           print("c3");
         }

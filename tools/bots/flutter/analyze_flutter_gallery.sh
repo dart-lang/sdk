@@ -31,4 +31,4 @@ cd gallery
 echo Analyzing...
 
 flutter packages get
-$dart analyze --fatal-infos
+$dart analyze --suppress-analytics --fatal-infos

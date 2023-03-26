@@ -827,15 +827,14 @@ TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
   std::cout << "result " << result << "\n";
   CHECK_EQ(result, 625);
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
-  CHECK_EQ(((int64_t)-0x8000000000000000LL),
-           fn(0, 0, 0, -0x8000000000000000LL));
+  CHECK_EQ(((int64_t)0x8000000000000000LL), fn(0, 0, 0, 0x8000000000000000LL));
   return 0;
 }
 
 DART_EXPORT intptr_t
 TestUintComputation(uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
-  CHECK_EQ(-0x8000000000000000LL, fn(0, 0, 0, -0x8000000000000000LL));
+  CHECK_EQ(0x8000000000000000LL, fn(0, 0, 0, 0x8000000000000000LL));
   CHECK_EQ(-1, (int64_t)fn(0, 0, 0, -1));
   return 0;
 }

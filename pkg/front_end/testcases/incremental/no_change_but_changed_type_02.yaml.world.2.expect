@@ -38,7 +38,7 @@ constants  {
   #C1 = #org-dartlang-test:///main.dart::_#A#x
   #C2 = <dart.core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <dart.core::Symbol*, dynamic>{)
+  #C4 = <dart.core::Symbol*, dynamic>{}
   #C5 = #org-dartlang-test:///main.dart::_#A#x=
   #C6 = #org-dartlang-test:///main.dart::_#A#x#isSet
   #C7 = #org-dartlang-test:///main.dart::_#A#x#isSet=

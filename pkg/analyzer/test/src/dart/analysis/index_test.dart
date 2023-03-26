@@ -928,6 +928,26 @@ void f(A a) {}
 ''');
   }
 
+  test_isReferencedBy_commentReference_withAndWithoutPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+import 'lib.dart' as p;
+
+/// A [p.A] and [A].
+void f(p.A a) {}
+''');
+    final element = findElement.function('f').parameters[0].type.element!;
+    assertElementIndexText(element, r'''
+53 4:10 |A| IS_REFERENCED_BY qualified
+61 4:18 |A| IS_REFERENCED_BY
+74 5:10 |A| IS_REFERENCED_BY qualified
+Prefixes: p,(unprefixed)
+''');
+  }
+
   test_isReferencedBy_commentReference_withPrefix() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class A {}
@@ -1281,6 +1301,28 @@ void f(E e) {
     assertElementIndexText(element, r'''
 27 3:8 |E| IS_REFERENCED_BY
 38 4:5 |E| IS_REFERENCED_BY
+''');
+  }
+
+  test_isReferencedBy_enumConstant_withAndWithoutPrefixes() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+enum E {
+  c;
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart' as p;
+import 'lib.dart';
+
+void f(p.E e) {
+  f(E.c);
+}
+''');
+    final element = findElement.function('f').parameters[0].type.element!;
+    assertElementIndexText(element, r'''
+53 4:10 |E| IS_REFERENCED_BY qualified
+64 5:5 |E| IS_REFERENCED_BY
+Prefixes: p,(unprefixed)
 ''');
   }
 
@@ -2025,6 +2067,28 @@ Prefixes: p
 ''');
   }
 
+  test_isReferencedBy_simpleIdentifier_withAndWithoutPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+import 'lib.dart' as p;
+
+var t = A;
+
+class B extends p.A {}
+''');
+    final element = findElement.class_('B').supertype!.element;
+    assertElementIndexText(element, r'''
+52 4:9 |A| IS_REFERENCED_BY
+62 6:7 |B| IS_ANCESTOR_OF
+74 6:19 |A| IS_EXTENDED_BY qualified
+74 6:19 |A| IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
+  }
+
   test_isReferencedBy_simpleIdentifier_withPrefix() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class A {}
@@ -2081,7 +2145,7 @@ void f() {
     assertElementIndexText(variable.getter!, r'''
 103 5:14 |V| IS_REFERENCED_BY qualified
 135 7:9 |V| IS_REFERENCED_BY
-Prefixes: pref
+Prefixes: pref,(unprefixed)
 ''');
 
     assertElementIndexText(variable.setter!, r'''
@@ -2463,8 +2527,16 @@ void f() {
       buffer.writeln();
     }
 
-    final prefixes = index.elementImportPrefixes[elementId];
-    if (prefixes.isNotEmpty) {
+    final prefixString = index.elementImportPrefixes[elementId];
+    // If the only access is unprefixed, omit the line
+    if (prefixString.isNotEmpty) {
+      // Otherwise, use some marker text for unprefixed so it's clearer in the
+      // output than an empty string.
+      final prefixes = prefixString
+          .split(',')
+          .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
+          .join(',');
+
       buffer.writeln('Prefixes: $prefixes');
     }
 

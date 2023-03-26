@@ -51,6 +51,7 @@ ForStatement
         type: int
       name: v
       declaredElement: v@56
+        type: int
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -91,7 +92,8 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: v@22
+      declaredElement: hasImplicitType v@22
+        type: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: <empty> <synthetic>
@@ -133,6 +135,7 @@ ForStatement
         type: dynamic
       name: v
       declaredElement: v@42
+        type: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
@@ -171,7 +174,8 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: v@56
+      declaredElement: hasImplicitType v@56
+        type: Object?
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -209,7 +213,8 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: v@42
+      declaredElement: hasImplicitType v@42
+        type: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
@@ -246,7 +251,8 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: v@38
+      declaredElement: hasImplicitType v@38
+        type: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
@@ -283,7 +289,8 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: v@52
+      declaredElement: hasImplicitType v@52
+        type: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
@@ -322,7 +329,8 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: x
-      declaredElement: x@39
+      declaredElement: hasImplicitType x@39
+        type: int
     inKeyword: in
     iterable: PrefixedIdentifier
       prefix: SimpleIdentifier

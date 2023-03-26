@@ -114,8 +114,12 @@ void checkElementTextWithConfiguration(
 class ElementTextConfiguration {
   bool Function(Object) filter;
   bool withCodeRanges = false;
+  bool withConstantInitializers = true;
+  bool withConstructors = true;
   bool withDisplayName = false;
   bool withExportScope = false;
+  bool withImports = true;
+  bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
   bool withSyntheticDartCoreImport = false;
@@ -319,6 +323,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 
@@ -344,7 +349,7 @@ class _ElementWriter {
       var constructors = e.constructors;
       if (e is MixinElement) {
         expect(constructors, isEmpty);
-      } else {
+      } else if (configuration.withConstructors) {
         expect(constructors, isNotEmpty);
         _writeElements('constructors', constructors, _writeConstructorElement);
       }
@@ -365,13 +370,15 @@ class _ElementWriter {
   }
 
   void _writeConstantInitializer(Element e) {
-    if (e is ConstVariableElement) {
-      var initializer = e.constantInitializer;
-      if (initializer != null) {
-        _writelnWithIndent('constantInitializer');
-        _withIndent(() {
-          _writeNode(initializer);
-        });
+    if (configuration.withConstantInitializers) {
+      if (e is ConstVariableElement) {
+        var initializer = e.constantInitializer;
+        if (initializer != null) {
+          _writelnWithIndent('constantInitializer');
+          _withIndent(() {
+            _writeNode(initializer);
+          });
+        }
       }
     }
   }
@@ -404,6 +411,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeDisplayName(e);
 
@@ -557,6 +565,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeType('extendedType', e.extendedType);
@@ -594,6 +603,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
@@ -641,11 +651,14 @@ class _ElementWriter {
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElement e) {
     _writeDocumentation(e);
     _writeMetadata(e);
+    _writeSinceSdkVersion(e);
 
-    var imports = e.libraryImports.where((import) {
-      return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
-    }).toList();
-    _writeElements('imports', imports, _writeImportElement);
+    if (configuration.withImports) {
+      var imports = e.libraryImports.where((import) {
+        return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
+      }).toList();
+      _writeElements('imports', imports, _writeImportElement);
+    }
 
     _writeElements('exports', e.libraryExports, _writeExportElement);
 
@@ -664,15 +677,17 @@ class _ElementWriter {
   }
 
   void _writeMetadata(Element element) {
-    var annotations = element.metadata;
-    if (annotations.isNotEmpty) {
-      _writelnWithIndent('metadata');
-      _withIndent(() {
-        for (var annotation in annotations) {
-          annotation as ElementAnnotationImpl;
-          _writeNode(annotation.annotationAst);
-        }
-      });
+    if (configuration.withMetadata) {
+      var annotations = element.metadata;
+      if (annotations.isNotEmpty) {
+        _writelnWithIndent('metadata');
+        _withIndent(() {
+          for (var annotation in annotations) {
+            annotation as ElementAnnotationImpl;
+            _writeNode(annotation.annotationAst);
+          }
+        });
+      }
     }
   }
 
@@ -690,6 +705,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeInferenceError(e);
 
@@ -772,6 +788,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeType('type', e.type);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
@@ -860,6 +877,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
 
       expect(e.typeParameters, isEmpty);
@@ -928,6 +946,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeInferenceError(e);
       _writeType('type', e.type);
@@ -946,6 +965,13 @@ class _ElementWriter {
         'shouldUseTypeForInitializerInference: '
         '${e.shouldUseTypeForInitializerInference}',
       );
+    }
+  }
+
+  void _writeSinceSdkVersion(Element e) {
+    final sinceSdkVersion = e.sinceSdkVersion;
+    if (sinceSdkVersion != null) {
+      _writelnWithIndent('sinceSdkVersion: $sinceSdkVersion');
     }
   }
 
@@ -976,6 +1002,7 @@ class _ElementWriter {
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
+      _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 

@@ -12,60 +12,52 @@ import '../../../generated/type_system_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlattenTypeTest);
+    defineReflectiveTests(FutureTypeTest);
   });
 }
 
 @reflectiveTest
 class FlattenTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicNone, 'dynamic');
+    _check(dynamicType, 'dynamic');
   }
 
-  test_interfaceType_none() {
+  test_interfaceType() {
+    _check(intNone, 'int');
+    _check(intQuestion, 'int?');
+    _check(intStar, 'int*');
+  }
+
+  test_interfaceType_none_hasFutureType() {
     _check(futureNone(intNone), 'int');
     _check(futureNone(intQuestion), 'int?');
     _check(futureNone(intStar), 'int*');
 
-    // otherwise if T is FutureOr<S> then flatten(T) = S
+    _check(futureQuestion(intNone), 'int?');
+    _check(futureQuestion(intQuestion), 'int?');
+
     _check(futureOrNone(intNone), 'int');
     _check(futureOrNone(intQuestion), 'int?');
     _check(futureOrNone(intStar), 'int*');
 
-    var A = class_(name: 'A', interfaces: [
-      futureNone(intNone),
-    ]);
-    _check(interfaceTypeNone(A), 'int');
+    _check(futureOrQuestion(intNone), 'int?');
+    _check(futureOrQuestion(intQuestion), 'int?');
+
+    _check(futureOrNone(futureNone(intNone)), 'Future<int>');
+    _check(futureOrNone(futureNone(intQuestion)), 'Future<int?>');
+    _check(futureOrNone(futureNone(intStar)), 'Future<int*>');
+
+    _check(futureOrQuestion(futureNone(intNone)), 'Future<int>?');
+    _check(futureOrQuestion(futureNone(intQuestion)), 'Future<int?>?');
   }
 
   test_interfaceType_question() {
     _check(futureQuestion(intNone), 'int?');
     _check(futureQuestion(intQuestion), 'int?');
-    _check(futureQuestion(intStar), 'int?');
-
-    _check(futureQuestion(listNone(intNone)), 'List<int>?');
-    _check(futureQuestion(listQuestion(intNone)), 'List<int>?');
-    _check(futureQuestion(listStar(intNone)), 'List<int>?');
-
-    _check(futureOrQuestion(intNone), 'int?');
-    _check(futureOrQuestion(intQuestion), 'int?');
-    _check(futureOrQuestion(intStar), 'int?');
-  }
-
-  test_interfaceType_star() {
-    _check(futureStar(intNone), 'int*');
-    _check(futureStar(intQuestion), 'int*');
-    _check(futureStar(intStar), 'int*');
-
-    _check(futureStar(listNone(intNone)), 'List<int>*');
-    _check(futureStar(listQuestion(intNone)), 'List<int>*');
-    _check(futureStar(listStar(intNone)), 'List<int>*');
-
-    _check(futureOrStar(intNone), 'int*');
-    _check(futureOrStar(intQuestion), 'int*');
-    _check(futureOrStar(intStar), 'int*');
   }
 
   test_typeParameterType_none() {
+    // T extends Future<int>
     _check(
       typeParameterTypeNone(
         typeParameter('T', bound: futureNone(intNone)),
@@ -73,6 +65,15 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
       'int',
     );
 
+    // T extends FutureOr<int>
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T', bound: futureOrNone(intNone)),
+      ),
+      'int',
+    );
+
+    // T & Future<int>
     _check(
       typeParameterTypeNone(
         typeParameter('T'),
@@ -80,18 +81,182 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
       ),
       'int',
     );
+
+    // T & FutureOr<int>
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T'),
+        promotedBound: futureOrNone(intNone),
+      ),
+      'int',
+    );
+
+    // T extends int
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T', bound: intNone),
+      ),
+      'T',
+    );
+
+    // T & int
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T'),
+        promotedBound: intNone,
+      ),
+      'T',
+    );
+  }
+
+  test_typeParameterType_question() {
+    // T extends Future<int>
+    _check(
+      typeParameterTypeQuestion(
+        typeParameter('T', bound: futureNone(intNone)),
+      ),
+      'int?',
+    );
+
+    // T extends FutureOr<int>
+    _check(
+      typeParameterTypeQuestion(
+        typeParameter('T', bound: futureOrNone(intNone)),
+      ),
+      'int?',
+    );
   }
 
   test_unknownInferredType() {
-    var type = UnknownInferredType.instance;
+    final type = UnknownInferredType.instance;
     expect(typeSystem.flatten(type), same(type));
   }
 
   void _check(DartType T, String expected) {
-    var result = typeSystem.flatten(T);
+    final result = typeSystem.flatten(T);
     expect(
       result.getDisplayString(withNullability: true),
       expected,
     );
+  }
+}
+
+@reflectiveTest
+class FutureTypeTest extends AbstractTypeSystemTest {
+  test_dynamic() {
+    _check(dynamicType, null);
+  }
+
+  test_functionType() {
+    _check(functionTypeNone(returnType: voidNone), null);
+  }
+
+  test_implements_Future() {
+    final A = class_(name: 'A', interfaces: [
+      futureNone(intNone),
+    ]);
+
+    _check(interfaceTypeNone(A), 'Future<int>');
+    _check(interfaceTypeQuestion(A), null);
+  }
+
+  test_interfaceType() {
+    _check(objectNone, null);
+    _check(objectQuestion, null);
+
+    _check(intNone, null);
+    _check(intQuestion, null);
+
+    _check(listNone(intNone), null);
+    _check(listNone(intQuestion), null);
+
+    _check(listQuestion(intNone), null);
+    _check(listQuestion(intQuestion), null);
+
+    _check(futureNone(intNone), 'Future<int>');
+    _check(futureNone(intQuestion), 'Future<int?>');
+
+    _check(futureQuestion(intNone), 'Future<int>?');
+    _check(futureQuestion(intQuestion), 'Future<int?>?');
+
+    _check(futureOrNone(intNone), 'FutureOr<int>');
+    _check(futureOrNone(intQuestion), 'FutureOr<int?>');
+
+    _check(futureOrQuestion(intNone), 'FutureOr<int>?');
+    _check(futureOrQuestion(intQuestion), 'FutureOr<int?>?');
+
+    _check(futureNone(futureNone(intNone)), 'Future<Future<int>>');
+    _check(futureNone(futureOrNone(intNone)), 'Future<FutureOr<int>>');
+    _check(futureOrNone(futureNone(intNone)), 'FutureOr<Future<int>>');
+    _check(futureOrNone(futureOrNone(intNone)), 'FutureOr<FutureOr<int>>');
+  }
+
+  test_typeParameterType_none() {
+    // T extends Future<int>
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T', bound: futureNone(intNone)),
+      ),
+      'Future<int>',
+    );
+
+    // T extends FutureOr<int>
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T', bound: futureOrNone(intNone)),
+      ),
+      'FutureOr<int>',
+    );
+
+    // T & Future<int>
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T'),
+        promotedBound: futureNone(intNone),
+      ),
+      'Future<int>',
+    );
+
+    // T & FutureOr<int>
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T'),
+        promotedBound: futureOrNone(intNone),
+      ),
+      'FutureOr<int>',
+    );
+
+    // T extends int
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T', bound: intNone),
+      ),
+      null,
+    );
+
+    // T & int
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T'),
+        promotedBound: intNone,
+      ),
+      null,
+    );
+  }
+
+  test_unknownInferredType() {
+    _check(UnknownInferredType.instance, null);
+  }
+
+  void _check(DartType T, String? expected) {
+    final result = typeSystem.futureType(T);
+    if (result == null) {
+      expect(expected, isNull);
+    } else {
+      expect(
+        result.getDisplayString(withNullability: true),
+        expected,
+      );
+    }
   }
 }

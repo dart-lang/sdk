@@ -22,7 +22,6 @@ class ClassRefElement extends CustomElement implements Renderable {
 
   factory ClassRefElement(M.IsolateRef isolate, M.ClassRef cls,
       {RenderingQueue? queue}) {
-    assert(cls != null);
     ClassRefElement e = new ClassRefElement.created();
     e._r = new RenderingScheduler<ClassRefElement>(e, queue: queue);
     e._isolate = isolate;
@@ -47,10 +46,7 @@ class ClassRefElement extends CustomElement implements Renderable {
 
   void render() {
     children = <Element>[
-      new AnchorElement(
-          href: (_isolate == null)
-              ? null
-              : Uris.inspect(_isolate, object: _class))
+      new AnchorElement(href: Uris.inspect(_isolate, object: _class))
         ..text = _class.name
     ];
   }

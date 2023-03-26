@@ -559,7 +559,7 @@ extension on CompositeType {
 }
 
 extension on FunctionType {
-  String dartCallCode({bool isLeaf = false}) {
+  String dartCallCode({required bool isLeaf, required bool isNative}) {
     final a = ArgumentValueAssigner();
     final assignValues = arguments.assignValueStatements(a);
     final argumentFrees = arguments.dartFreeStatements();
@@ -583,13 +583,18 @@ extension on FunctionType {
         break;
     }
 
-    final namePostfix = isLeaf ? "Leaf" : "";
+    var namePostfix = isNative ? "Native" : "";
+    namePostfix += isLeaf ? "Leaf" : "";
     return """
 
+${isNative ? '''
+@Native<$dartCType>(symbol: '$cName'${isLeaf ? ", isLeaf:true" : ""})
+external ${returnValue.dartType} $dartName$namePostfix(${arguments.map((m) => '${m.type.dartType} ${m.name}').join(', ')});
+''' : '''
 final $dartName$namePostfix =
   ffiTestFunctions.lookupFunction<$dartCType, $dartType>(
       "$cName"${isLeaf ? ", isLeaf:true" : ""});
-
+'''}
 ${reason.makeDartDocComment()}
 void $dartTestName$namePostfix() {
 ${arguments.dartAllocateStatements()}
@@ -1011,36 +1016,47 @@ Future<void> writeDartCallTest(
   String nameSuffix,
   List<FunctionType> functions, {
   required bool isLeaf,
+  required bool isNative,
   required bool isVarArgs,
 }) async {
   await Future.wait([
     true,
-    if (!isVarArgs) false,
+    if (!isVarArgs && !isNative) false,
   ].map((isNnbd) async {
     final StringBuffer buffer = StringBuffer();
     buffer.write(headerDartCallTest(
       isNnbd: isNnbd,
-      copyrightYear: isVarArgs
+      copyrightYear: isVarArgs || isNative
           ? 2023
           : isLeaf
               ? 2021
               : 2020,
       vmFlags: isVarArgs ? '--enable-experiment=records' : '',
     ));
-    final suffix = isLeaf ? 'Leaf' : '';
+    var suffix = isNative ? 'Native' : '';
+    suffix += isLeaf ? 'Leaf' : '';
+
+    final forceDlOpen = !isNative
+        ? ''
+        : '''
+  // Force dlopen so @Native lookups in DynamicLibrary.process() succeed.
+  dlopenGlobalPlatformSpecific('ffi_test_functions');
+''';
 
     buffer.write("""
-void main() {
+void main() {$forceDlOpen
   for (int i = 0; i < 100; ++i) {
     ${functions.map((e) => "${e.dartTestName}$suffix();").join("\n    ")}
   }
 }
 """);
-    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: isLeaf)));
+    buffer.writeAll(functions
+        .map((e) => e.dartCallCode(isLeaf: isLeaf, isNative: isNative)));
 
     final path = callTestPath(
         isNnbd: isNnbd,
         isLeaf: isLeaf,
+        isNative: isNative,
         nameSuffix: nameSuffix,
         isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
@@ -1054,12 +1070,14 @@ void main() {
 String callTestPath({
   required bool isNnbd,
   required bool isLeaf,
+  required bool isNative,
   String nameSuffix = '',
   required bool isVarArgs,
 }) {
   final folder = isNnbd ? 'ffi' : 'ffi_2';
   final baseName = isVarArgs ? 'varargs' : 'structs_by_value';
-  final suffix = '$nameSuffix${isLeaf ? '_leaf' : ''}';
+  final suffix =
+      '$nameSuffix${isNative ? '_native' : ''}${isLeaf ? '_leaf' : ''}';
   return Platform.script
       .resolve(
           "../../$folder/function_${baseName}_generated${suffix}_test.dart")
@@ -1139,7 +1157,8 @@ ${functions.map((e) => e.dartCallbackTestConstructor).join("\n")}
     final path = callbackTestPath(isNnbd: isNnbd, isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
     if (!isVarArgs) {
-      // TODO(https://dartbug.com/50798): Dart format support for records.
+      // TODO(https://github.com/dart-lang/dart_style/issues/1128): Dart
+      // format support for records.
       await runProcess("dart", ["format", path]);
     }
   }));
@@ -1220,18 +1239,6 @@ final ccPath = Platform.script
 void printUsage() {
   print("""
 Generates structs by value tests.
-
-Generates:
-- $ccPath
-- ${compoundsPath(isNnbd: true)}
-- ${callbackTestPath(isNnbd: true, isVarArgs: false)}
-- ${callTestPath(isNnbd: true, isLeaf: false, isVarArgs: false)}
-- ${callTestPath(isNnbd: true, isLeaf: true, isVarArgs: false)}
-- ${callTestPath(isNnbd: true, isLeaf: true, isVarArgs: true)}
-- ${compoundsPath(isNnbd: false)}
-- ${callbackTestPath(isNnbd: false, isVarArgs: false)}
-- ${callTestPath(isNnbd: false, isLeaf: false, isVarArgs: false)}
-- ${callTestPath(isNnbd: false, isLeaf: true, isVarArgs: false)}
 """);
 }
 
@@ -1244,13 +1251,36 @@ void main(List<String> arguments) async {
   await Future.wait([
     writeDartCompounds(),
     for (bool isLeaf in [false, true]) ...[
-      writeDartCallTest('_args', functionsStructArguments,
-          isLeaf: isLeaf, isVarArgs: false),
-      writeDartCallTest('_ret', functionsStructReturn,
-          isLeaf: isLeaf, isVarArgs: false),
-      writeDartCallTest('_ret_arg', functionsReturnArgument,
-          isLeaf: isLeaf, isVarArgs: false),
-      writeDartCallTest('', functionsVarArgs, isLeaf: isLeaf, isVarArgs: true),
+      for (bool isNative in [false, true]) ...[
+        writeDartCallTest(
+          '_args',
+          functionsStructArguments,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: false,
+        ),
+        writeDartCallTest(
+          '_ret',
+          functionsStructReturn,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: false,
+        ),
+        writeDartCallTest(
+          '_ret_arg',
+          functionsReturnArgument,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: false,
+        ),
+        writeDartCallTest(
+          '',
+          functionsVarArgs,
+          isLeaf: isLeaf,
+          isNative: isNative,
+          isVarArgs: true,
+        ),
+      ],
     ],
     writeDartCallbackTest(functions, isVarArgs: false),
     writeDartCallbackTest(functionsVarArgs, isVarArgs: true),

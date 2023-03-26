@@ -11,6 +11,9 @@
 #include <sys/resource.h>  // NOLINT
 #include <sys/syscall.h>   // NOLINT
 #include <sys/time.h>      // NOLINT
+#if defined(DART_HOST_OS_ANDROID)
+#include <sys/prctl.h>
+#endif  // defined(DART_HOST_OS_ANDROID)
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
@@ -31,8 +34,8 @@ DEFINE_FLAG(int,
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_buf[kBufferSize];                                               \
-    FATAL2("pthread error: %d (%s)", result,                                   \
-           Utils::StrError(result, error_buf, kBufferSize));                   \
+    FATAL("pthread error: %d (%s)", result,                                    \
+          Utils::StrError(result, error_buf, kBufferSize));                    \
   }
 
 // Variation of VALIDATE_PTHREAD_RESULT for named objects.
@@ -43,8 +46,8 @@ DEFINE_FLAG(int,
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_buf[kBufferSize];                                               \
-    FATAL3("[%s] pthread error: %d (%s)", name_, result,                       \
-           Utils::StrError(result, error_buf, kBufferSize));                   \
+    FATAL("[%s] pthread error: %d (%s)", name_, result,                        \
+          Utils::StrError(result, error_buf, kBufferSize));                    \
   }
 #endif
 
@@ -111,8 +114,8 @@ static void* ThreadStart(void* data_ptr) {
   if (FLAG_worker_thread_priority != kMinInt) {
     if (setpriority(PRIO_PROCESS, syscall(__NR_gettid),
                     FLAG_worker_thread_priority) == -1) {
-      FATAL2("Setting thread priority to %d failed: errno = %d\n",
-             FLAG_worker_thread_priority, errno);
+      FATAL("Setting thread priority to %d failed: errno = %d\n",
+            FLAG_worker_thread_priority, errno);
     }
   }
 #elif defined(DART_HOST_OS_MACOS)
@@ -121,12 +124,12 @@ static void* ThreadStart(void* data_ptr) {
     int policy = SCHED_FIFO;
     struct sched_param schedule;
     if (pthread_getschedparam(thread, &policy, &schedule) != 0) {
-      FATAL1("Obtaining sched param failed: errno = %d\n", errno);
+      FATAL("Obtaining sched param failed: errno = %d\n", errno);
     }
     schedule.sched_priority = FLAG_worker_thread_priority;
     if (pthread_setschedparam(thread, policy, &schedule) != 0) {
-      FATAL2("Setting thread priority to %d failed: errno = %d\n",
-             FLAG_worker_thread_priority, errno);
+      FATAL("Setting thread priority to %d failed: errno = %d\n",
+            FLAG_worker_thread_priority, errno);
     }
   }
 #endif
@@ -230,16 +233,16 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 #endif  // SUPPORT_TIMELINE
 
 char* OSThread::GetCurrentThreadName() {
-#if defined(DART_HOST_OS_ANDROID)
-  // TODO(derekx): |pthread_getname_np| isn't defined on Android, so we need to
-  // find an alternative solution.
-  return nullptr;
-#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
   const intptr_t kNameBufferSize = 16;
   char* name = static_cast<char*>(malloc(kNameBufferSize));
+
+#if defined(DART_HOST_OS_ANDROID)
+  prctl(PR_GET_NAME, name);
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
   pthread_getname_np(pthread_self(), name, kNameBufferSize);
-  return name;
 #endif
+
+  return name;
 }
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
@@ -261,7 +264,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   return static_cast<intptr_t>(id);
 #elif defined(DART_HOST_OS_MACOS)

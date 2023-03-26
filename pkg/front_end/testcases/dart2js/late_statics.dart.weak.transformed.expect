@@ -26,11 +26,11 @@ class Statics extends core::Object {
     return new self::Statics::•();
   static get a() → core::int
     return self::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
-  static set a(core::int value) → void
+  static set a(synthesized core::int value) → void
     return self::Statics::_#a.{_la::_Cell::value} = value;
   static get b() → core::int
     return self::Statics::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
-  static set b(core::int value) → void
+  static set b(synthesized core::int value) → void
     return self::Statics::_#b.{_la::_Cell::finalFieldValue} = value;
 }
 static method main() → void {
@@ -91,11 +91,11 @@ late static field core::int c = 1.{core::int::unary-}(){() → core::int};
 late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
 static get a() → core::int
   return lat::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set a(core::int value) → void
+static set a(synthesized core::int value) → void
   return lat::_#a.{_la::_Cell::value} = value;
 static get b() → core::int
   return lat::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set b(core::int value) → void
+static set b(synthesized core::int value) → void
   return lat::_#b.{_la::_Cell::finalFieldValue} = value;
 
 

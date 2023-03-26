@@ -50,6 +50,7 @@ import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
     show
+        checkNotNullable,
         EfficientLengthIterable,
         MappedIterable,
         IterableElementError,
@@ -63,13 +64,15 @@ import 'dart:_rti' as newRti
     show
         createRuntimeType,
         evalInInstance,
+        evaluateRtiForRecord,
         getRuntimeType,
         getRuntimeTypeOfRecord,
         getTypeFromTypesTable,
         instanceTypeName,
         instantiatedGenericFunctionType,
         pairwiseIsTest,
-        throwTypeError;
+        throwTypeError,
+        Rti;
 
 import 'dart:_load_library_priority';
 
@@ -384,6 +387,33 @@ class Primitives {
     return result;
   }
 
+  static bool? parseBool(String source, bool caseSensitive) {
+    checkNotNullable(source, "source");
+    checkNotNullable(caseSensitive, "caseSensitive");
+    if (caseSensitive) {
+      return source == "true"
+          ? true
+          : source == "false"
+              ? false
+              : null;
+    }
+    return _compareIgnoreCase(source, "true")
+        ? true
+        : _compareIgnoreCase(source, "false")
+            ? false
+            : null;
+  }
+
+  static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
+    if (input.length != lowerCaseTarget.length) return false;
+    for (var i = 0; i < input.length; i++) {
+      if (input.codeUnitAt(i) | 0x20 != lowerCaseTarget.codeUnitAt(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// [: r"$".codeUnitAt(0) :]
   static const int DOLLAR_CHAR_VALUE = 36;
 
@@ -453,6 +483,28 @@ class Primitives {
     return "Instance of '$name'";
   }
 
+  static String stringSafeToString(String string) {
+    return jsonEncodeNative(string);
+  }
+
+  static String safeToString(Object? object) {
+    if (object == null || object is num || object is bool) {
+      return object.toString();
+    }
+    if (object is String) {
+      return stringSafeToString(object);
+    }
+    // Closures all have useful and safe toString methods.
+    if (object is Closure) {
+      return object.toString();
+    }
+    if (object is _Record) {
+      return object._toString(true);
+    }
+
+    return Primitives.objectToHumanReadableString(object);
+  }
+
   static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
@@ -462,6 +514,13 @@ class Primitives {
     if (JS('bool', 'typeof window == "undefined"')) return;
     var window = JS('var', 'window');
     if (window == null) return;
+
+    // This property is set in the preambles that fake `Date.now()` to simulate
+    // the passage of time by advancing the clock rather than waiting. The
+    // simulated passage of time is not implemented for the browser
+    // `Performance` APIs, so we must use `Date.now()` to measure time.
+    if (JS('bool', '!!#.dartUseDateNowForTicks', window)) return;
+
     var performance = JS('var', '#.performance', window);
     if (performance == null) return;
     if (JS('bool', 'typeof #.now != "function"', performance)) return;
@@ -1882,7 +1941,7 @@ convertDartClosureToJS(closure, int arity) {
 ///
 /// All static, tear-off, function declaration and function expression closures
 /// extend this class.
-abstract class Closure implements Function {
+abstract final class Closure implements Function {
   /// Global counter to prevent reusing function code objects.
   ///
   /// V8 will share the underlying function code objects when the same string is
@@ -2369,15 +2428,15 @@ closureFromTearOff(parameters) {
 }
 
 /// Base class for closures with no arguments.
-abstract class Closure0Args extends Closure {}
+abstract final class Closure0Args extends Closure {}
 
 /// Base class for closures with two positional arguments.
-abstract class Closure2Args extends Closure {}
+abstract final class Closure2Args extends Closure {}
 
 /// Represents an implicit closure of a function.
-abstract class TearOffClosure extends Closure {}
+abstract final class TearOffClosure extends Closure {}
 
-class StaticClosure extends TearOffClosure {
+final class StaticClosure extends TearOffClosure {
   String toString() {
     String? name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
@@ -2391,7 +2450,7 @@ class StaticClosure extends TearOffClosure {
 ///
 /// This is a base class that is extended to create a separate closure class for
 /// each instance method. The subclass is created at run time.
-class BoundClosure extends TearOffClosure {
+final class BoundClosure extends TearOffClosure {
   /// The Dart receiver.
   final _receiver;
 
@@ -2699,6 +2758,7 @@ DeferredLoadCallback? deferredLoadHook;
 ///
 ///   - `0` for `LoadLibraryPriority.normal`
 ///   - `1` for `LoadLibraryPriority.high`
+@pragma('dart2js:resource-identifier')
 Future<Null> loadDeferredLibrary(String loadId, int priority) {
   // Validate the priority using the index to allow the actual enum to get
   // tree-shaken.

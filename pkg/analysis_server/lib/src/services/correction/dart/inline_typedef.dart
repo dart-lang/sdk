@@ -142,7 +142,7 @@ class InlineTypedef extends CorrectionProducer {
   }
 }
 
-class _ReferenceFinder extends RecursiveAstVisitor {
+class _ReferenceFinder extends RecursiveAstVisitor<void> {
   final String typeName;
 
   NamedType? reference;

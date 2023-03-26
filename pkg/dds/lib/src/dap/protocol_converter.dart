@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../dap.dart';
-import 'adapters/dart.dart';
 import 'isolate_manager.dart';
 import 'protocol_generated.dart' as dap;
 import 'variables.dart';
@@ -148,17 +147,25 @@ class ProtocolConverter {
       // For lists, map each item (in the requested subset) to a variable.
       final start = startItem ?? 0;
       return Future.wait(elements.cast<vm.Response>().mapIndexed(
-            (index, response) => convertVmResponseToVariable(
-              thread,
-              response,
-              name: '[${start + index}]',
-              evaluateName: _adapter.combineEvaluateName(
-                  evaluateName, '[${start + index}]'),
-              allowCallingToString:
-                  allowCallingToString && index <= maxToStringsPerEvaluation,
-              format: format,
-            ),
-          ));
+        (index, response) {
+          final name = '[${start + index}]';
+          final itemEvaluateName =
+              _adapter.combineEvaluateName(evaluateName, name);
+          if (response is vm.InstanceRef) {
+            _adapter.storeEvaluateName(response, itemEvaluateName);
+          }
+
+          return convertVmResponseToVariable(
+            thread,
+            response,
+            name: name,
+            evaluateName: itemEvaluateName,
+            allowCallingToString:
+                allowCallingToString && index <= maxToStringsPerEvaluation,
+            format: format,
+          );
+        },
+      ));
     } else if (associations != null) {
       // For maps, create a variable for each entry (in the requested subset).
       // Use the keys and values to create a display string in the form
@@ -206,15 +213,17 @@ class ProtocolConverter {
       final elements = _decodeList(instance);
 
       final start = startItem ?? 0;
-      return elements
-          .mapIndexed(
-            (index, element) => dap.Variable(
-              name: '[${start + index}]',
-              value: element.toString(),
-              variablesReference: 0,
-            ),
-          )
-          .toList();
+      return elements.mapIndexed(
+        (index, element) {
+          final name = '[${start + index}]';
+          return dap.Variable(
+            name: name,
+            evaluateName: _adapter.combineEvaluateName(evaluateName, name),
+            value: element.toString(),
+            variablesReference: 0,
+          );
+        },
+      ).toList();
     } else if (fields != null) {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
@@ -227,13 +236,17 @@ class ProtocolConverter {
           } else {
             name ??= field.name;
           }
+          final fieldEvaluateName = name != null
+              ? _adapter.combineEvaluateName(evaluateName, '.$name')
+              : null;
+          if (fieldEvaluateName != null) {
+            _adapter.storeEvaluateName(field.value, fieldEvaluateName);
+          }
           return convertVmResponseToVariable(
             thread,
             field.value,
             name: name ?? '<unnamed field>',
-            evaluateName: name != null
-                ? _adapter.combineEvaluateName(evaluateName, '.$name')
-                : null,
+            evaluateName: fieldEvaluateName,
             allowCallingToString:
                 allowCallingToString && index <= maxToStringsPerEvaluation,
             format: format,
@@ -258,6 +271,11 @@ class ProtocolConverter {
               instance.id!,
               getterName,
             );
+            final fieldEvaluateName =
+                _adapter.combineEvaluateName(evaluateName, '.$getterName');
+            if (response is vm.InstanceRef) {
+              _adapter.storeEvaluateName(response, fieldEvaluateName);
+            }
             // Convert results to variables.
             return convertVmResponseToVariable(
               thread,
@@ -350,10 +368,40 @@ class ProtocolConverter {
         allowCallingToString: allowCallingToString,
         format: format,
       );
+    } else if (response is vm.ErrorRef) {
+      final errorMessage = response.message;
+      return errorMessage != null
+          ? _adapter.extractUnhandledExceptionMessage(errorMessage)
+          : response.kind ?? '<unknown error>';
     } else if (response is vm.Sentinel) {
       return '<sentinel>';
     } else {
       return '<unknown: ${response.type}>';
+    }
+  }
+
+  Future<dap.Variable> convertFieldRefToVariable(
+    ThreadInfo thread,
+    vm.FieldRef fieldRef, {
+    required bool allowCallingToString,
+    required VariableFormat? format,
+  }) async {
+    final field = await thread.getObject(fieldRef);
+    if (field is vm.Field) {
+      return convertVmResponseToVariable(
+        thread,
+        field.staticValue,
+        name: fieldRef.name,
+        allowCallingToString: allowCallingToString,
+        evaluateName: fieldRef.name,
+        format: format,
+      );
+    } else {
+      return Variable(
+        name: fieldRef.name ?? '<unnamed field>',
+        value: '<unavailable>',
+        variablesReference: 0,
+      );
     }
   }
 

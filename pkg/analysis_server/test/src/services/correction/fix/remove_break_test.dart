@@ -24,26 +24,49 @@ class RemoveBreakBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.unnecessary_breaks;
 
-  Future<void> test_singleFile() async {
+  Future<void> test_singleFile_sameLine() async {
     await resolveTestCode('''
-f() {
-  switch (1) {
+void f() {
+  switch (0) {
     case 1:
-      f();
+      1; break;
+    case 2:
+      2; break;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  switch (0) {
+    case 1:
+      1;
+    case 2:
+      2;
+  }
+}
+''');
+  }
+
+  Future<void> test_singleFile_separateLine() async {
+    await resolveTestCode('''
+void f() {
+  switch (0) {
+    case 1:
+      1;
       break;
     case 2:
-      f();
+      2;
       break;
   }
 }
 ''');
     await assertHasFix('''
-f() {
-  switch (1) {
+void f() {
+  switch (0) {
     case 1:
-      f();
+      1;
     case 2:
-      f();
+      2;
   }
 }
 ''');
@@ -61,25 +84,48 @@ class RemoveBreakTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_breaks;
 
-  Future<void> test_single() async {
+  Future<void> test_single_sameLine() async {
     await resolveTestCode('''
-f() {
-  switch (1) {
+void f() {
+  switch (0) {
     case 1:
-      f();
-      break;
+      1; break;
     case 2:
-      f();
+      2;
   }
 }
 ''');
     await assertHasFix('''
-f() {
-  switch (1) {
+void f() {
+  switch (0) {
     case 1:
-      f();
+      1;
     case 2:
-      f();
+      2;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_separateLine() async {
+    await resolveTestCode('''
+void f() {
+  switch (0) {
+    case 1:
+      1;
+      break;
+    case 2:
+      2;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  switch (0) {
+    case 1:
+      1;
+    case 2:
+      2;
   }
 }
 ''');

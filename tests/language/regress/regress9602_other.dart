@@ -5,6 +5,6 @@
 // Regression test case for http://dartbug.com/9602
 library issue9602_other;
 
-class M {
+mixin M {
   var _field;
 }

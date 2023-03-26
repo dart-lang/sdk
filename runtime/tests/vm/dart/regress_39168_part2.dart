@@ -6,7 +6,7 @@ part of regress_39168;
 
 class B {}
 
-abstract class C {}
+mixin C {}
 
 // Mixin application B with C is de-duplicated with mixin application
 // in regress_39168_part1.dart.

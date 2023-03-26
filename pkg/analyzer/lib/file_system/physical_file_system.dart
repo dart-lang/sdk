@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
@@ -183,7 +184,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   ResourceWatcher watch() {
     final watcher = FileWatcher(_entry.path);
-    return ResourceWatcher(watcher.events, watcher.ready);
+    return ResourceWatcher(_wrapWatcherStream(watcher.events), watcher.ready);
   }
 
   @override
@@ -319,7 +320,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
             // Don't suppress "Directory watcher closed," so the outer
             // listener can see the interruption & act on it.
             !error.message.startsWith("Directory watcher closed unexpectedly"));
-    return ResourceWatcher(events, watcher.ready);
+    return ResourceWatcher(_wrapWatcherStream(events), watcher.ready);
   }
 }
 
@@ -408,6 +409,28 @@ abstract class _PhysicalResource implements Resource {
   }
 
   FileSystemException _wrapException(io.FileSystemException e) {
-    return FileSystemException(e.path ?? path, e.message);
+    if (e is io.PathNotFoundException) {
+      return PathNotFoundException(e.path ?? path, e.message);
+    } else {
+      return FileSystemException(e.path ?? path, e.message);
+    }
+  }
+
+  /// Wraps a `Stream<WatchEvent>` to map all known errors through
+  /// [_wrapException] into server types.
+  Stream<WatchEvent> _wrapWatcherStream(Stream<WatchEvent> original) {
+    /// Helper to map thrown `FileSystemException`s to servers abstraction.
+    Object mapException(Object e) {
+      return e is io.FileSystemException ? _wrapException(e) : e;
+    }
+
+    final mappedEventsController = StreamController<WatchEvent>();
+    final subscription = original.listen(
+      mappedEventsController.add,
+      onError: (Object e) => mappedEventsController.addError(mapException(e)),
+      onDone: () => mappedEventsController.close(),
+    );
+    mappedEventsController.onCancel = subscription.cancel;
+    return mappedEventsController.stream;
   }
 }

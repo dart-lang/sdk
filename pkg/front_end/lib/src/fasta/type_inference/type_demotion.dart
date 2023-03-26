@@ -59,8 +59,9 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
 /// If [library] is non-nullable by default all legacy types have been replaced
 /// with non-nullable types. Otherwise all non-legacy types have been replaced
 /// with legacy types.
-DartType demoteTypeInLibrary(DartType type, Library library) {
-  if (library.isNonNullableByDefault) {
+DartType demoteTypeInLibrary(DartType type,
+    {required bool isNonNullableByDefault}) {
+  if (isNonNullableByDefault) {
     return type.accept1(
             const _DemotionNullabilityNormalization(
                 demoteTypeVariables: true, forNonNullableByDefault: true),

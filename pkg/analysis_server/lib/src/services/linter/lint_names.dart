@@ -57,6 +57,10 @@ class LintNames {
       'curly_braces_in_flow_control_structures';
   static const String dangling_library_doc_comments =
       'dangling_library_doc_comments';
+  static const String deprecated_member_use_from_same_package =
+      'deprecated_member_use_from_same_package';
+  static const String deprecated_member_use_from_same_package_with_message =
+      'deprecated_member_use_from_same_package_with_message';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
@@ -79,6 +83,7 @@ class LintNames {
       'no_leading_underscores_for_local_identifiers';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String noop_primitive_operations = 'noop_primitive_operations';
   static const String null_check_on_nullable_type_parameter =
       'null_check_on_nullable_type_parameter';
   static const String null_closures = 'null_closures';

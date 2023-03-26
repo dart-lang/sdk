@@ -356,6 +356,13 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   @override
+  void visitRecordFieldAccessTypeInformation(
+      RecordFieldAccessTypeInformation info) {
+    addNode(info, 'RecordFieldAccess(${info.getterName})',
+        color: callColor, inputs: {'obj': info.receiver});
+  }
+
+  @override
   void visitListTypeInformation(ListTypeInformation info) {
     addNode(info, 'List');
   }
@@ -368,6 +375,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   @override
   void visitMapTypeInformation(MapTypeInformation info) {
     addNode(info, 'Map');
+  }
+
+  @override
+  void visitRecordTypeInformation(RecordTypeInformation info) {
+    addNode(info, 'Record');
   }
 
   @override

@@ -22,7 +22,7 @@ class Super {
   void extendedInstanceImplementedStaticMethod() {}
 }
 
-class Mixin {
+mixin Mixin {
   static void mixedInStaticDeclaredInstanceMethod() {}
   void mixedInInstanceDeclaredStaticMethod() {}
 

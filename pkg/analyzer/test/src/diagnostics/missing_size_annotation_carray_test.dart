@@ -19,7 +19,7 @@ class MissingSizeAnnotationArray extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 }
@@ -30,11 +30,11 @@ class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 56, 12),
+      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 62, 12),
     ]);
   }
 }

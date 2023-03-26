@@ -61,6 +61,7 @@ apis
 app
 apparently
 applicable
+approximation
 architectures
 arg
 args
@@ -235,9 +236,11 @@ co
 codebase
 codec
 codes
+collides
 collision
 coloring
 colorized
+column's
 columns
 com
 combinations
@@ -288,6 +291,7 @@ consumers
 consumption
 container
 containers
+contextually
 continuations
 contra
 contribute
@@ -417,6 +421,7 @@ distribute
 diverged
 divided
 divides
+dividing
 dm
 doc
 docs
@@ -570,6 +575,7 @@ fo
 foo
 foobar
 footer
+forcefully
 forcing
 foreign
 formed
@@ -718,6 +724,8 @@ inferable
 influence
 informative
 infos
+inhabit
+inhabits
 inhibit
 init
 initializations
@@ -745,6 +753,7 @@ intermediate
 internet
 interop
 interpolations
+interpretation
 interrupted
 intersections
 intersects
@@ -819,6 +828,7 @@ leeway
 left's
 legitimately
 len
+lengths
 lets
 letting
 levels
@@ -970,6 +980,7 @@ obj
 obligated
 observatory
 observe
+obsolete
 obstruct
 obtaining
 occasionally
@@ -999,6 +1010,9 @@ outlined
 outputs
 outputting
 ovar
+overapproximate
+overapproximates
+overapproximation
 overestimate
 overhead
 overlap
@@ -1081,6 +1095,7 @@ preexisted
 preexisting
 preferably
 prefixing
+preliminary
 premark
 preorder
 prepares
@@ -1201,6 +1216,7 @@ redefine
 redirectee
 redirector
 redo
+reevaluation
 reexports
 ref
 refactoring
@@ -1358,6 +1374,7 @@ sides
 sigmund
 signaling
 significant
+simplifier
 simplify
 singleton
 sinker
@@ -1483,6 +1500,7 @@ supernode
 supers
 suppose
 surprising
+surrounded
 suspended
 svar
 svg
@@ -1646,6 +1664,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unrestricted
 unreversed
 unseen
 unset
@@ -1655,6 +1674,7 @@ unsound
 unsubstituted
 untouched
 unusual
+unvisited
 unwrapper
 unwraps
 unwritten
@@ -1673,6 +1693,7 @@ usually
 util
 utils
 v
+validates
 validly
 value's
 variable's

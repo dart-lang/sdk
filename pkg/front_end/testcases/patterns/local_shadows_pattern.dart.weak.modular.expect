@@ -5,19 +5,23 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   #L1:
   {
-    core::int x;
-    final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = x = #0#0{core::int} in true)) {
-      {
+    final synthesized dynamic #0#0 = x;
+    {
+      core::int x;
+      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = x = #0#0{core::int} in true)) {
         {
-          core::String x = "foo";
-          return x;
+          {
+            core::String x = "foo";
+            return x;
+          }
         }
       }
     }
-    else {
+    {
       {
-        return "bar";
+        {
+          return "bar";
+        }
       }
     }
   }
@@ -25,21 +29,25 @@ static method test1(dynamic x) → dynamic {
 static method test2(dynamic x) → dynamic {
   #L2:
   {
-    core::int x;
-    core::int x';
-    final dynamic #0#0 = x;
-    late final core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = x = #0#6{core::int} in true)) && (let final dynamic #t3 = #0#7 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t4 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = x' = #0#7{core::int} in true))) {
-      {
-        core::String x = "foo";
-        return x;
+    final synthesized dynamic #0#0 = x;
+    late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
+    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    {
+      lowered core::int x#case#0;
+      lowered core::int x#case#1;
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = x#case#0 = #0#6{core::int} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = x#case#1 = #0#7{core::int} in true))) {
+        {
+          core::String x = "foo";
+          return x;
+        }
       }
     }
-    else {
+    {
       {
-        return "bar";
+        {
+          return "bar";
+        }
       }
     }
   }
@@ -47,8 +55,8 @@ static method test2(dynamic x) → dynamic {
 static method test3(dynamic x) → dynamic {
   {
     core::int x;
-    final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = x = #0#0{core::int} in true)) {
+    final synthesized dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = x = #0#0{core::int} in true)) {
       core::String x = "foo";
       return x;
     }
@@ -61,8 +69,8 @@ static method test4(dynamic x) → dynamic {
   core::Function f = () → core::int => 0;
   {
     core::int x;
-    final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = x = #0#0{core::int} in true)) {
+    final synthesized dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = x = #0#0{core::int} in true)) {
       core::String x = (() → core::String {
         f = () → core::int => 1;
         return "foo";

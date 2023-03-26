@@ -130,21 +130,26 @@ features:
   inference-update-2:
     help: "Type promotion for fields"
 
-  records:
-    help: "Records"
-    experimentalReleaseVersion: "2.19.0"
-
-  patterns:
-    help: "Patterns"
-
   inline-class:
     help: "Inline class"
 
   sealed-class:
     help: "Sealed class"
+    enabledIn: '3.0.0'
+    validation: |
+      sealed class A {}
+      void main() {
+        print('feature enabled');
+      }
 
   class-modifiers:
     help: "Class modifiers"
+    enabledIn: '3.0.0'
+    validation: |
+      interface class A {}
+      void main() {
+        print('feature enabled');
+      }
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -313,3 +318,21 @@ features:
     validation: |
       library;
       void main() => print('feature enabled');
+
+  records:
+    help: "Records"
+    enabledIn: '3.0.0'
+    validation: |
+      final x = ('feature', a: 'enabled');
+      void main() {
+        print('${x.$1} ${x.a}');
+      }
+
+  patterns:
+    help: "Patterns"
+    enabledIn: '3.0.0'
+    validation: |
+      void main() {
+        final [a, b] = ['feature', 'enabled'];
+        print('$a $b');
+      }

@@ -22,7 +22,7 @@ class A {
   int? foo;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
     ]);
   }
 
@@ -74,7 +74,7 @@ enum E {
   final int foo = 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
+      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
     ]);
   }
 

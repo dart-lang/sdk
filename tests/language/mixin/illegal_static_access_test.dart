@@ -8,7 +8,7 @@ class S {
   static foo() => 42;
 }
 
-class M {
+mixin M {
   static bar() => 87;
 }
 

@@ -769,6 +769,28 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
       field.KernelDataProgramOffset(), field.kernel_offset());
 }
 
+static UnboxingInfoMetadata* UnboxingInfoMetadataOf(
+    Zone* zone,
+    const Script& script,
+    const ExternalTypedData& kernel_data,
+    intptr_t kernel_data_program_offset,
+    intptr_t kernel_offset) {
+  TranslationHelper translation_helper(Thread::Current());
+  translation_helper.InitFromScript(script);
+  KernelReaderHelper reader_helper(zone, &translation_helper, script,
+                                   kernel_data, kernel_data_program_offset);
+  UnboxingInfoMetadataHelper unboxing_info_metadata_helper(&reader_helper);
+  return unboxing_info_metadata_helper.GetUnboxingInfoMetadata(kernel_offset);
+}
+
+UnboxingInfoMetadata* UnboxingInfoMetadataOf(const Function& function,
+                                             Zone* zone) {
+  const Script& script = Script::Handle(zone, function.script());
+  return UnboxingInfoMetadataOf(
+      zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
+      function.KernelDataProgramOffset(), function.kernel_offset());
+}
+
 TableSelectorMetadata* TableSelectorMetadataForProgram(
     const KernelProgramInfo& info,
     Zone* zone) {

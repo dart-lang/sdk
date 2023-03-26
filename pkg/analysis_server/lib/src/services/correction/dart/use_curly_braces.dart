@@ -145,6 +145,10 @@ class UseCurlyBraces extends CorrectionProducer {
 
   void _replaceLeftParenthesis(DartFileEditBuilder builder,
       SyntacticEntity left, SyntacticEntity right, String indent) {
+    // Keep any comments preceeding right.
+    if (right is AstNode) {
+      right = right.beginToken.precedingComments ?? right;
+    }
     builder.addSimpleReplacement(
       range.endStart(left, right),
       ' {$eol$indent',

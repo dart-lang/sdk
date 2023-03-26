@@ -341,7 +341,17 @@ Token? _parse(String s, FeatureSet featureSet) {
 class FileEditInformation {
   final OptionalVersionedTextDocumentIdentifier doc;
   final LineInfo lineInfo;
+
+  /// A list of edits to be made to the file.
+  ///
+  /// These edits must be sorted using servers rules (as in `SourceFileEdit`s).
+  ///
+  /// Server works with edits that can be applied sequentially to a [String]. This
+  /// means inserts at the same offset are in the reverse order. For LSP, all
+  /// offsets relate to the original document and inserts with the same offset
+  /// appear in the order they will appear in the final document.
   final List<server.SourceEdit> edits;
+
   final bool newFile;
 
   /// The selection offset, relative to the edit.

@@ -18,7 +18,7 @@ worlds:
       lib.dart: |
         abstract class Interface {
           int method5c([int a = 0, int? b]);
-          int method7b({int a: 0, int? b});
+          int method7b({int a = 0, int? b});
         }
         class Class {
           int method5c([int a = 0, int? b]) => 0;

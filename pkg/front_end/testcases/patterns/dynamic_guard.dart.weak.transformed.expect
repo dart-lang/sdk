@@ -1,0 +1,65 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method guard() → dynamic
+  return true;
+static method main() → dynamic {
+  core::int a;
+  {
+    final synthesized dynamic #0#0 = core::_GrowableList::_literal1<core::int>(5);
+    if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  core::int b;
+  block {
+    final synthesized dynamic #1#0 = core::_GrowableList::_literal1<core::int>(5);
+    if(!(#1#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t2 = b = #1#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  } =>#1#0;
+  {
+    final synthesized core::int #2#0 = a;
+    if(#2#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+      a = 6;
+    }
+  }
+  core::int c = block {
+    core::int #t3;
+    final synthesized core::int #3#0 = a;
+    #L1:
+    {
+      {
+        core::int d;
+        if(#3#0 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = d = #3#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+          #t3 = d;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t3 = 0;
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t3;
+  #L2:
+  {
+    final synthesized core::int #4#0 = b;
+    {
+      core::int e;
+      if(#4#0 is{ForNonNullableByDefault} core::int && (let final core::int #t5 = e = #4#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+        {
+          core::print(a);
+        }
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 5
+}

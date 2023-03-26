@@ -1563,7 +1563,7 @@ class LocalFunctionInfo {
   get disambiguatedName => order == 0 ? name : '$name%${order - 1}';
 }
 
-class LocalFunctionInfoCollector extends ir.RecursiveVisitor {
+class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
   final localFunctions = <ir.LocalFunction, LocalFunctionInfo>{};
   final localFunctionNameCount = <String, int>{};
 

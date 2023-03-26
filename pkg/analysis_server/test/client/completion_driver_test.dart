@@ -209,7 +209,7 @@ name: test
         if (kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION) {
           var completion = suggestion.completion;
-          return RegExp(r'^[a-zA-Z][0-9]+$').hasMatch(completion) ||
+          return RegExp(r'^_?[a-zA-Z][0-9]+$').hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
@@ -869,7 +869,7 @@ void f(List<String> args) {
   Future<void> test_project_suggestMixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin M { }
-class A { }
+mixin class A { }
 ''');
 
     if (isProtocolVersion1) {

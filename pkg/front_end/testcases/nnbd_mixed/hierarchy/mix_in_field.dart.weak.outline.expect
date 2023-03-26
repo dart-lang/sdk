@@ -36,40 +36,6 @@ library /*isNonNullableByDefault*/;
 //   abstract int extendedAbstractMixedInConcreteField;
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
-//  - Mixin.extendedAbstractMixedInAbstractField
-//  - Mixin.extendedAbstractMixedInAbstractField=
-//  - Mixin.extendedConcreteMixedInAbstractField
-//  - Mixin.extendedConcreteMixedInAbstractField=
-//  - Mixin.mixedInAbstractField
-//  - Mixin.mixedInAbstractField=
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-//
-// class Mixin {
-//       ^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:30:16: Context: 'Mixin.extendedAbstractMixedInAbstractField' is defined here.
-//   abstract int extendedAbstractMixedInAbstractField;
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:30:16: Context: 'Mixin.extendedAbstractMixedInAbstractField=' is defined here.
-//   abstract int extendedAbstractMixedInAbstractField;
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:28:16: Context: 'Mixin.extendedConcreteMixedInAbstractField' is defined here.
-//   abstract int extendedConcreteMixedInAbstractField;
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:28:16: Context: 'Mixin.extendedConcreteMixedInAbstractField=' is defined here.
-//   abstract int extendedConcreteMixedInAbstractField;
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:22:16: Context: 'Mixin.mixedInAbstractField' is defined here.
-//   abstract int mixedInAbstractField;
-//                ^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:22:16: Context: 'Mixin.mixedInAbstractField=' is defined here.
-//   abstract int mixedInAbstractField;
-//                ^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:33:7: Error: The non-abstract class 'ClassMixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractField
 //  - Mixin.extendedAbstractMixedInAbstractField=
@@ -170,12 +136,10 @@ class Super extends core::Object {
   abstract get extendedAbstractMixedInAbstractField() → core::int;
   abstract set extendedAbstractMixedInAbstractField(core::int #externalFieldValue) → void;
 }
-class Mixin extends core::Object {
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field core::int mixedInConcreteField;
   field core::int extendedConcreteMixedInConcreteField;
   field core::int extendedAbstractMixedInConcreteField;
-  synthetic constructor •() → self::Mixin
-    ;
   abstract get mixedInAbstractField() → core::int;
   abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract get extendedConcreteMixedInAbstractField() → core::int;

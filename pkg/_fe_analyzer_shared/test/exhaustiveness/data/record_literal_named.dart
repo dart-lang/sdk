@@ -8,17 +8,22 @@ void exhaustiveSwitch(({Enum a, bool b}) r) {
   /*
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
   }
@@ -26,17 +31,21 @@ void exhaustiveSwitch(({Enum a, bool b}) r) {
 
 void nonExhaustiveSwitch1(({Enum a, bool b}) r) {
   /*
-   error=non-exhaustive:({Enum a, bool b})(a: Enum.b, b: false),
+   error=non-exhaustive:(a: Enum.b, b: false),
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
   }
@@ -44,17 +53,20 @@ void nonExhaustiveSwitch1(({Enum a, bool b}) r) {
 
 void nonExhaustiveSwitch2(({Enum a, bool b}) r) {
   /*
-   error=non-exhaustive:({Enum a, bool b})(a: Enum.a, b: false),
+   error=non-exhaustive:(a: Enum.a, b: false),
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
   */switch (r) {
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
   }
@@ -62,11 +74,11 @@ void nonExhaustiveSwitch2(({Enum a, bool b}) r) {
 
 void nonExhaustiveSwitchWithDefault(({Enum a, bool b}) r) {
   /*
-   error=non-exhaustive:({Enum a, bool b})(a: Enum.a, b: true),
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
   */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
     default:
@@ -77,23 +89,29 @@ void nonExhaustiveSwitchWithDefault(({Enum a, bool b}) r) {
 
 void exhaustiveNullableSwitch(({Enum a, bool b})? r) {
   /*
-   fields={},
+   fields={a:-,b:-},
    subtypes={({Enum a, bool b}),Null},
    type=({Enum a, bool b})?
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
-    /*space=Null*/case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }
@@ -101,21 +119,26 @@ void exhaustiveNullableSwitch(({Enum a, bool b})? r) {
 
 void nonExhaustiveNullableSwitch1(({Enum a, bool b})? r) {
   /*
-   error=non-exhaustive:Null,
-   fields={},
+   error=non-exhaustive:null,
+   fields={a:-,b:-},
    subtypes={({Enum a, bool b}),Null},
    type=({Enum a, bool b})?
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
   }
@@ -123,51 +146,57 @@ void nonExhaustiveNullableSwitch1(({Enum a, bool b})? r) {
 
 void nonExhaustiveNullableSwitch2(({Enum a, bool b})? r) {
   /*
-   error=non-exhaustive:({Enum a, bool b})(a: Enum.b, b: false),
-   fields={},
+   error=non-exhaustive:(a: Enum.b, b: false),
+   fields={a:-,b:-},
    subtypes={({Enum a, bool b}),Null},
    type=({Enum a, bool b})?
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
-    /*space=Null*/case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }
 }
 
 void unreachableCase1(({Enum a, bool b}) r) {
-  /*cfe.
-   error=unreachable,
-   fields={a:Enum,b:bool},
-   type=({Enum a, bool b})
-  *//*analyzer.
+  /*
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
   */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false) #1');
       break;
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
-    /*cfe.space=(a: Enum.a, b: false)*//*analyzer.
+    /*
      error=unreachable,
      space=(a: Enum.a, b: false)
-    */case (a: Enum.a, b: false):
+    */
+    case (a: Enum.a, b: false):
       print('(a, false) #2');
       break;
   }
@@ -178,17 +207,22 @@ void unreachableCase2(({Enum a, bool b}) r) {
   /*
    fields={a:Enum,b:bool},
    type=({Enum a, bool b})
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
     /*space=Null*/case null:
@@ -198,35 +232,37 @@ void unreachableCase2(({Enum a, bool b}) r) {
 }
 
 void unreachableCase3(({Enum a, bool b})? r) {
-  /*cfe.
-   error=unreachable,
-   fields={},
+  /*
+   fields={a:-,b:-},
    subtypes={({Enum a, bool b}),Null},
    type=({Enum a, bool b})?
-  *//*analyzer.
-   fields={},
-   subtypes={({Enum a, bool b}),Null},
-   type=({Enum a, bool b})?
-  */switch (r) {
-    /*space=(a: Enum.a, b: false)*/case (a: Enum.a, b: false):
+  */
+  switch (r) {
+    /*space=(a: Enum.a, b: false)*/
+    case (a: Enum.a, b: false):
       print('(a, false)');
       break;
-    /*space=(a: Enum.b, b: false)*/case (a: Enum.b, b: false):
+    /*space=(a: Enum.b, b: false)*/
+    case (a: Enum.b, b: false):
       print('(b, false)');
       break;
-    /*space=(a: Enum.a, b: true)*/case (a: Enum.a, b: true):
+    /*space=(a: Enum.a, b: true)*/
+    case (a: Enum.a, b: true):
       print('(a, true)');
       break;
-    /*space=(a: Enum.b, b: true)*/case (a: Enum.b, b: true):
+    /*space=(a: Enum.b, b: true)*/
+    case (a: Enum.b, b: true):
       print('(b, true)');
       break;
-    /*space=Null*/case null:
+    /*space=Null*/
+    case null:
       print('null #1');
       break;
-    /*cfe.space=Null*//*analyzer.
+    /*
      error=unreachable,
      space=Null
-    */case null:
+    */
+    case null:
       print('null #2');
       break;
   }

@@ -6,7 +6,7 @@ class S0<T> {}
 
 class S<T extends num> extends S0<String> {}
 
-class M<T extends num> {}
+mixin M<T extends num> {}
 
 class A<T extends num> extends S with M {}
 

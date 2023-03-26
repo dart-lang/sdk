@@ -1031,17 +1031,18 @@ bool g(int j) => j.isEven;
   Future<void>
       test_functionDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
-void f(bool b, int i, int j) {
+void _f(bool b, int i, int j) {
   assert(i != null);
   if (b) return;
   assert(j != null);
 }
-void g(int k) {
+void _g(int k) {
   assert(k != null);
 }
 ''');
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
-    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertNoEdge(decoratedTypeAnnotation('int j').node, never);
+    assertEdge(always, decoratedTypeAnnotation('int j').node, hard: false);
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 

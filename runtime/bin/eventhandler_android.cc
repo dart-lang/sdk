@@ -97,7 +97,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   static const int kEpollInitialSize = 64;
   epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
-    FATAL1("Failed creating epoll file descriptor: %i", errno);
+    FATAL("Failed creating epoll file descriptor: %i", errno);
   }
   if (!FDUtils::SetCloseOnExec(epoll_fd_)) {
     FATAL("Failed to set epoll fd close on exec\n");
@@ -179,7 +179,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
     if (result == -1) {
       perror("Interrupt message failure:");
     }
-    FATAL1("Interrupt message failure. Wrote %" Pd " bytes.", result);
+    FATAL("Interrupt message failure. Wrote %" Pd " bytes.", result);
   }
 }
 
@@ -409,7 +409,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
       Thread::Start("dart:io EventHandler", &EventHandlerImplementation::Poll,
                     reinterpret_cast<uword>(handler));
   if (result != 0) {
-    FATAL1("Failed to start event handler thread %d", result);
+    FATAL("Failed to start event handler thread %d", result);
   }
 }
 

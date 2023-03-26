@@ -11,7 +11,8 @@ part of dart._interceptors;
  * argument added to each member.
  */
 @JsPeerInterface(name: 'String')
-class JSString extends Interceptor implements String, JSIndexable<String> {
+final class JSString extends Interceptor
+    implements String, JSIndexable<String> {
   const JSString();
 
   @notNull
@@ -206,10 +207,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
         case 0x0D:
         case 0x20:
         case 0x85:
-        case 0xA0:
-          return true;
-        default:
-          return false;
+        case 0xA0: return true;
+        default: return false;
       }
     }
     switch (codeUnit) {
@@ -230,10 +229,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
       case 0x202F:
       case 0x205F:
       case 0x3000:
-      case 0xFEFF:
-        return true;
-      default:
-        return false;
+      case 0xFEFF: return true;
+      default: return false;
     }
   }
 

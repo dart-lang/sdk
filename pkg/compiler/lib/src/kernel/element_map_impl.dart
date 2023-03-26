@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 import 'package:kernel/ast.dart' as ir;
@@ -337,9 +336,9 @@ class KernelToElementMap implements IrToElementMap {
         data.instantiationToBounds = data.thisType;
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
-            coreTypes.legacyRawType(node),
-            coreTypes.objectClass,
-            node.enclosingLibrary) as ir.InterfaceType);
+            coreTypes.legacyRawType(node), coreTypes.objectClass,
+            isNonNullableByDefault: node
+                .enclosingLibrary.isNonNullableByDefault) as ir.InterfaceType);
       }
     }
   }

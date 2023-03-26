@@ -6,10 +6,11 @@
 
 library line_splitter_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as MATH;
+import 'dart:math';
+
+import "package:expect/expect.dart";
 
 const lineTerminators = const ['\n', '\r', '\r\n'];
 
@@ -21,6 +22,7 @@ void main() {
   testReadLine1();
   testReadLine2();
   testChunkedConversion();
+  testCarry();
 }
 
 void testManyLines() {
@@ -51,7 +53,7 @@ String _getLinesSliced(String str) {
   const chunkSize = 3;
   var index = 0;
   while (index < str.length) {
-    var end = MATH.min(str.length, index + chunkSize);
+    var end = min(str.length, index + chunkSize);
 
     sink.addSlice(str, index, end, false);
     index += chunkSize;
@@ -218,5 +220,73 @@ void testChunkedConversion() {
       sink.addSlice(test, j, test.length, true);
       Expect.listEquals(result, output);
     }
+  }
+}
+
+void testCarry() {
+  // Test, when multiple chunks contribute to the same line,
+  // That the carry-over is combined correctly.
+
+  // Test multiple chunks of carry, ending in linefeeds or not.
+  {
+    var output = [];
+    var splitter = new LineSplitter();
+    var outSink = new ChunkedConversionSink<String>.withCallback(output.addAll);
+    var sink = splitter.startChunkedConversion(outSink);
+
+    sink.add("abcd");
+    sink.add("fghi");
+    sink.add("jklm");
+    sink.add("nopq\r"); // Multiple chunks in carry, ends in \r.
+    sink.add("\nrstu"); // Followed by \n.
+    sink.close();
+
+    Expect.listEquals(["abcdfghijklmnopq", "rstu"], output);
+  }
+
+  {
+    var output = [];
+    var splitter = new LineSplitter();
+    var outSink = new ChunkedConversionSink<String>.withCallback(output.addAll);
+    var sink = splitter.startChunkedConversion(outSink);
+
+    sink.add("abcd");
+    sink.add("fghi");
+    sink.add("jklm");
+    sink.add("nopq\r"); // Multiple chunks in carry, ends in \r.
+    sink.add("rstu"); // Not followed by \n.
+    sink.close();
+
+    Expect.listEquals(["abcdfghijklmnopq", "rstu"], output);
+  }
+
+  {
+    var output = [];
+    var splitter = new LineSplitter();
+    var outSink = new ChunkedConversionSink<String>.withCallback(output.addAll);
+    var sink = splitter.startChunkedConversion(outSink);
+
+    sink.add("abcd");
+    sink.add("fghi");
+    sink.add("jklm");
+    sink.add("nopq\r"); // Multiple chunks in carry, ends in \r.
+    sink.close(); // Not followed by anything.
+
+    Expect.listEquals(["abcdfghijklmnopq"], output);
+  }
+
+  {
+    var output = [];
+    var splitter = new LineSplitter();
+    var outSink = new ChunkedConversionSink<String>.withCallback(output.addAll);
+    var sink = splitter.startChunkedConversion(outSink);
+
+    sink.add("abcd");
+    sink.add("fghi");
+    sink.add("jklm");
+    sink.add("nopq"); // Multiple chunks in carry, no linebreak.
+    sink.close();
+
+    Expect.listEquals(["abcdfghijklmnopq"], output);
   }
 }

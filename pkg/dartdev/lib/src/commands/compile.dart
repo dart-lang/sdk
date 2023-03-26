@@ -25,6 +25,7 @@ class Option {
   final String help;
   final String? abbr;
   final String? defaultsTo;
+  final bool? flagDefaultsTo;
   final String? valueHelp;
   final List<String>? allowed;
   final Map<String, String>? allowedHelp;
@@ -34,6 +35,7 @@ class Option {
     required this.help,
     this.abbr,
     this.defaultsTo,
+    this.flagDefaultsTo,
     this.valueHelp,
     this.allowed,
     this.allowedHelp,
@@ -79,7 +81,6 @@ class CompileJSCommand extends CompileSubcommandCommand {
         ...argResults!.arguments,
       ],
       packageConfigOverride: null,
-      forceNoSoundNullSafety: true,
     );
 
     return 0;
@@ -128,9 +129,10 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       )
-      ..addFlag('sound-null-safety',
-          help: 'Respect the nullability of types at runtime.',
-          defaultsTo: true)
+      ..addFlag(soundNullSafetyOption.flag,
+          help: soundNullSafetyOption.help,
+          defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+          hide: true)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -189,6 +191,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
 
     final bool soundNullSafety = args['sound-null-safety'];
     if (!soundNullSafety) {
+      if (!shouldAllowNoSoundNullSafety()) {
+        return compileErrorExitCode;
+      }
       buildArgs.add('--no-sound-null-safety');
     }
 
@@ -270,9 +275,10 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
       )
-      ..addFlag('sound-null-safety',
-          help: 'Respect the nullability of types at runtime.',
-          defaultsTo: true)
+      ..addFlag(soundNullSafetyOption.flag,
+          help: soundNullSafetyOption.help,
+          defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+          hide: true)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''')
@@ -314,6 +320,10 @@ Remove debugging information from the output and save it separately to the speci
     final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
+    }
+
+    if (!args['sound-null-safety'] && !shouldAllowNoSoundNullSafety()) {
+      return compileErrorExitCode;
     }
 
     try {
@@ -363,6 +373,11 @@ Sets the verbosity level of the compilation.
     allowed: Verbosity.allowedValues,
     allowedHelp: Verbosity.allowedValuesHelp,
   );
+  final soundNullSafetyOption = Option(
+    flag: 'sound-null-safety',
+    help: 'DEPRECATED: Respect the nullability of types at runtime.',
+    flagDefaultsTo: true,
+  );
 
   late final Option defineOption;
   late final Option packagesOption;
@@ -386,6 +401,23 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
 <path> can be relative or absolute.
 For example: dart compile $name --packages=/tmp/pkgs.json main.dart'''),
         super(name, description, verbose, hidden: hidden);
+
+  bool shouldAllowNoSoundNullSafety() {
+    // We need to maintain support for generating AOT snapshots and kernel
+    // files with no-sound-null-safety internal Flutter aplications are
+    // fully null-safe.
+    //
+    // See https://github.com/dart-lang/sdk/issues/51513 for context.
+    if (name == CompileNativeCommand.aotSnapshotCmdName ||
+        name == CompileSnapshotCommand.kernelCmdName) {
+      log.stdout(
+          'Warning: the flag --no-sound-null-safety is deprecated and pending removal.');
+      return true;
+    }
+    log.stdout(
+        'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+    return false;
+  }
 }
 
 class CompileCommand extends DartdevCommand {

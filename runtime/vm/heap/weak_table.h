@@ -141,6 +141,9 @@ class WeakTable {
   }
 
   void Forward(ObjectPointerVisitor* visitor);
+  void ReportSurvivingAllocations(Dart_HeapSamplingReportCallback callback,
+                                  void* context);
+  void CleanupValues(Dart_HeapSamplingDeleteCallback cleanup);
 
   void Reset();
 

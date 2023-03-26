@@ -38,6 +38,7 @@ class JoinEntryInstr;
 class LocalVariable;
 class LocationSummary;
 class MoveOperands;
+class MoveSchedule;
 class NonStreamingWriteStream;
 class OsrEntryInstr;
 class ParsedFunction;
@@ -100,6 +101,7 @@ class NativeCallingConvention;
   V(const LocalVariable&)                                                      \
   V(LocationSummary*)                                                          \
   V(MoveOperands*)                                                             \
+  V(const MoveSchedule*)                                                       \
   V(const compiler::ffi::NativeCallingConvention&)                             \
   V(const Object&)                                                             \
   V(ParallelMoveInstr*)                                                        \

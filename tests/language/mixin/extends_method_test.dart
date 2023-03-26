@@ -9,12 +9,12 @@ class S {
   baz() => "S-baz";
 }
 
-class M1 {
+mixin M1 {
   static m1bar() => "M1-bar";
   bar() => m1bar();
 }
 
-class M2 {
+mixin M2 {
   bar() => "M2-bar";
   baz() => "M2-baz";
   fez() => "M2-fez";

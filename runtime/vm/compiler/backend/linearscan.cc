@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/loops.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/log.h"
 #include "vm/parser.h"
 #include "vm/stack_frame.h"
@@ -214,7 +215,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
             // MaterializeObject instruction is not in the graph.
             // Treat its inputs as part of the environment.
             DeepLiveness(defn->AsMaterializeObject(), live_in);
-          } else if (!defn->IsPushArgument() && !defn->IsConstant()) {
+          } else if (!defn->IsMoveArgument() && !defn->IsConstant()) {
             live_in->Add(defn->vreg(0));
             if (defn->HasPairRepresentation()) {
               live_in->Add(defn->vreg(1));
@@ -697,7 +698,7 @@ bool FlowGraphAllocator::IsSuspendStateParameter(Definition* defn) {
     if ((param->GetBlock()->IsOsrEntry() ||
          param->GetBlock()->IsCatchBlockEntry()) &&
         flow_graph_.SuspendStateVar() != nullptr &&
-        param->index() == flow_graph_.SuspendStateEnvIndex()) {
+        param->env_index() == flow_graph_.SuspendStateEnvIndex()) {
       return true;
     }
   }
@@ -819,7 +820,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     // a synthetic :suspend_state variable as it is already allocated
     // in AllocateSpillSlotForSuspendState.
     ASSERT(defn->IsParameter());
-    ASSERT(defn->AsParameter()->index() == initial_definition_index);
+    ASSERT(defn->AsParameter()->env_index() == initial_definition_index);
     const intptr_t spill_slot_index =
         -compiler::target::frame_layout.VariableIndexForFrameSlot(
             spill_slot.stack_index());
@@ -1058,7 +1059,7 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
         continue;
       }
 
-      if (def->IsPushArgument()) {
+      if (def->IsMoveArgument()) {
         // Frame size is unknown until after allocation.
         locations[i] = Location::NoLocation();
         continue;
@@ -3293,19 +3294,39 @@ void FlowGraphAllocator::AllocateOutgoingArguments() {
 
   for (auto block : flow_graph_.reverse_postorder()) {
     for (auto instr : block->instructions()) {
-      if (auto push = instr->AsPushArgument()) {
+      if (auto move_arg = instr->AsMoveArgument()) {
         Location loc;
 
         const intptr_t spill_index =
-            (total_spill_slot_count - 1) - push->top_of_stack_relative_index();
+            (total_spill_slot_count - 1) - move_arg->sp_relative_index();
         const intptr_t slot_index =
             compiler::target::frame_layout.FrameSlotForVariableIndex(
                 -spill_index);
 
-        push->locs()->set_out(0,
-                              (push->representation() == kUnboxedDouble)
-                                  ? Location::DoubleStackSlot(slot_index, FPREG)
-                                  : Location::StackSlot(slot_index, FPREG));
+        move_arg->locs()->set_out(
+            0, (move_arg->representation() == kUnboxedDouble)
+                   ? Location::DoubleStackSlot(slot_index, FPREG)
+                   : Location::StackSlot(slot_index, FPREG));
+      }
+    }
+  }
+}
+
+void FlowGraphAllocator::ScheduleParallelMoves() {
+  ParallelMoveResolver resolver;
+
+  for (auto block : flow_graph_.reverse_postorder()) {
+    if (block->HasParallelMove()) {
+      resolver.Resolve(block->parallel_move());
+    }
+    for (auto instruction : block->instructions()) {
+      if (auto move = instruction->AsParallelMove()) {
+        resolver.Resolve(move);
+      }
+    }
+    if (auto goto_instr = block->last_instruction()->AsGoto()) {
+      if (goto_instr->HasParallelMove()) {
+        resolver.Resolve(goto_instr->parallel_move());
       }
     }
   }
@@ -3374,6 +3395,8 @@ void FlowGraphAllocator::AllocateRegisters() {
   AllocateOutgoingArguments();
 
   ResolveControlFlow();
+
+  ScheduleParallelMoves();
 
   if (FLAG_print_ssa_liveranges && CompilerState::ShouldTrace()) {
     const Function& function = flow_graph_.function();

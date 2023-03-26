@@ -60,7 +60,7 @@ class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-abstract class _StringBase implements String {
+abstract final class _StringBase implements String {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
@@ -94,9 +94,6 @@ abstract class _StringBase implements String {
   static const int _maxJoinReplaceOneByteStringLength = 500;
 
   _StringBase._();
-
-  @override
-  Type get runtimeType => String;
 
   int get hashCode {
     int hash = _getHash(this);
@@ -1031,7 +1028,7 @@ abstract class _StringBase implements String {
 }
 
 @pragma("wasm:entry-point")
-class _OneByteString extends _StringBase {
+final class _OneByteString extends _StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI8> _array;
 
@@ -1367,7 +1364,7 @@ class _OneByteString extends _StringBase {
 }
 
 @pragma("wasm:entry-point")
-class _TwoByteString extends _StringBase {
+final class _TwoByteString extends _StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI16> _array;
 

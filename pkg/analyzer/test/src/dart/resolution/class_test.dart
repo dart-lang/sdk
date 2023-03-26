@@ -9,17 +9,17 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClassDriverResolutionTest);
+    defineReflectiveTests(ClassDeclarationResolutionTest);
   });
 }
 
 @reflectiveTest
-class ClassDriverResolutionTest extends PubPackageResolutionTest {
+class ClassDeclarationResolutionTest extends PubPackageResolutionTest {
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''
 class A {}
-class B {}
-class C {}
+mixin B {}
+mixin C {}
 class D {}
 class E {}
 
@@ -100,7 +100,19 @@ class X extends A {}
     await assertErrorsInCode(r'''
 class A extends Function {}
 ''', [
-      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 16, 8),
+    ]);
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+  }
+
+  test_element_typeFunction_extends_language219() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+class A extends Function {}
+''', [
+      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8),
     ]);
     var a = findElement.class_('A');
     assertType(a.supertype, 'Object');
@@ -108,11 +120,27 @@ class A extends Function {}
 
   test_element_typeFunction_with() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {}
+mixin A {}
+mixin B {}
 class C extends Object with A, Function, B {}
 ''', [
-      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 53, 8),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 53, 8),
+    ]);
+
+    assertElementTypes(
+      findElement.class_('C').mixins,
+      ['A', 'B'],
+    );
+  }
+
+  test_element_typeFunction_with_language219() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+mixin A {}
+mixin B {}
+class C extends Object with A, Function, B {}
+''', [
+      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 69, 8),
     ]);
 
     assertElementTypes(

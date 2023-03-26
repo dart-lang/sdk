@@ -5,7 +5,7 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/records/issue50515.dart:11:11: Error: Constant evaluation error:
 // test() => const <(A,)>{ (A(),) };
 //           ^
-// pkg/front_end/testcases/records/issue50515.dart:11:25: Context: The element '(A {})' does not have a primitive operator '=='.
+// pkg/front_end/testcases/records/issue50515.dart:11:25: Context: The element '(A {})' does not have a primitive equality.
 //  - 'A' is from 'pkg/front_end/testcases/records/issue50515.dart'.
 // test() => const <(A,)>{ (A(),) };
 //                         ^
@@ -21,7 +21,7 @@ class A extends core::Object /*hasConstConstructor*/  {
     return false;
 }
 static method test() → dynamic
-  return invalid-expression "The element '(A {})' does not have a primitive operator '=='.
+  return invalid-expression "The element '(A {})' does not have a primitive equality.
  - 'A' is from 'pkg/front_end/testcases/records/issue50515.dart'.";
 
 

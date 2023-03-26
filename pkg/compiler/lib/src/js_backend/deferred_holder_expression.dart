@@ -101,8 +101,7 @@ class DeferredHolderExpression extends js.DeferredExpression
   }
 
   set value(js.Expression value) {
-    // TODO(48820): Remove after migration.
-    assert(!isFinalized && (value as dynamic) != null);
+    assert(!isFinalized);
     _value = value;
   }
 
@@ -191,8 +190,7 @@ class DeferredHolderParameter extends js.Expression implements js.Parameter {
   DeferredHolderParameter._(this._name, this.sourceInformation);
 
   set name(String name) {
-    // TODO(48820): Remove after migration.
-    assert(!isFinalized && (name as dynamic) != null);
+    assert(!isFinalized);
     _name = name;
   }
 
@@ -267,8 +265,7 @@ class DeferredHolderResource extends js.DeferredStatement
   bool get isMainFragment => kind == DeferredHolderResourceKind.mainFragment;
 
   set statement(js.Statement statement) {
-    // TODO(48820): Remove after migration.
-    assert(!isFinalized && (statement as dynamic) != null);
+    assert(!isFinalized);
     _statement = statement;
   }
 

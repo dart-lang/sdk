@@ -13,7 +13,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                       ^
 // [analyzer] SYNTACTIC_ERROR.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
-// [cfe] Record type named fields list can't be empty.
+// [cfe] The list of named fields in a record type can't be empty.
 //                               ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] The 'records' language feature is disabled for this library.
@@ -24,7 +24,7 @@ main() {
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                  ^
 // [analyzer] SYNTACTIC_ERROR.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
-// [cfe] Record type with one entry requires a trailing comma.
+// [cfe] A record type with exactly one positional field requires a trailing comma.
 //                                         ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] The 'records' language feature is disabled for this library.

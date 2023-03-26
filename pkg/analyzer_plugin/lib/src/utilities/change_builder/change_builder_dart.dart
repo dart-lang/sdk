@@ -24,6 +24,7 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// An [EditBuilder] used to build edits in Dart files.
@@ -303,7 +304,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (import == null) {
       var library = dartFileEditBuilder._importLibrary(uris[0]);
       var prefix = library.prefix;
-      if (prefix != null) {
+      if (prefix.isNotEmpty) {
         write(prefix);
         write('.');
       }
@@ -484,7 +485,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           selectHere();
           writeln();
         }
-      } else if (returnType.isVoid) {
+      } else if (returnType is VoidType) {
         if (invokeSuper) {
           writeln();
           write(prefix2);
@@ -1176,7 +1177,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var import = dartFileEditBuilder._getImportElement(element);
     if (import != null) {
       var prefix = import.prefix;
-      if (prefix != null) {
+      if (prefix.isNotEmpty) {
         write(prefix);
         write('.');
       }
@@ -1185,7 +1186,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (library != null) {
         var import = dartFileEditBuilder._importLibrary(library);
         var prefix = import.prefix;
-        if (prefix != null) {
+        if (prefix.isNotEmpty) {
           write(prefix);
           write('.');
         }
@@ -1669,15 +1670,22 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     var quote = codeStyleOptions.preferredQuoteForUris(importDirectives);
     void writeImport(EditBuilder builder, _LibraryImport import) {
-      builder.write('import $quote');
-      builder.write(import.uriText);
-      builder.write(quote);
-      var prefix = import.prefix;
-      if (prefix != null) {
-        builder.write(' as ');
-        builder.write(prefix);
+      assert(import.prefixes.isNotEmpty);
+      var isFirst = true;
+      for (var prefix in import.prefixes.sorted()) {
+        if (!isFirst) {
+          builder.writeln();
+        }
+        isFirst = false;
+        builder.write('import $quote');
+        builder.write(import.uriText);
+        builder.write(quote);
+        if (prefix.isNotEmpty) {
+          builder.write(' as ');
+          builder.write(prefix);
+        }
+        builder.write(';');
       }
-      builder.write(';');
     }
 
     // Insert imports: between existing imports.
@@ -1880,8 +1888,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     for (var import in resolvedUnit.libraryElement.libraryImports) {
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
-        return _LibraryImport(import.librarySource.uri.toString(),
-            import.prefix?.element.displayName);
+        return _LibraryImport(
+            uriText: import.librarySource.uri.toString(),
+            prefix: import.prefix?.element.displayName ?? '');
       }
     }
 
@@ -1936,6 +1945,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ///
   /// [uri] may be converted from an absolute URI to a relative URI depending on
   /// user preferences/lints unless [forceAbsolute] or [forceRelative] are `true`.
+  ///
+  /// If [prefix] is an empty string, adds the import without a prefix.
+  /// If [prefix] is null, will use [importPrefixGenerator] to generate one or
+  /// reuse an existing prefix for this import.
   _LibraryImport _importLibrary(
     Uri uri, {
     String? prefix,
@@ -1943,14 +1956,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     bool forceRelative = false,
   }) {
     var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
-    if (import == null) {
+    if (import != null) {
+      if (prefix != null) {
+        import.prefixes.add(prefix);
+      }
+    } else {
       var uriText = _getLibraryUriText(uri,
           forceAbsolute: forceAbsolute, forceRelative: forceRelative);
       prefix ??=
           importPrefixGenerator != null ? importPrefixGenerator!(uri) : null;
-      import = _LibraryImport(uriText, prefix);
+      import = _LibraryImport(uriText: uriText, prefix: prefix ?? '');
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
+
     return import;
   }
 
@@ -2056,17 +2074,29 @@ class _EnclosingElementFinder {
 /// Information about a library import.
 class _LibraryImport {
   final String uriText;
-  final String? prefix;
 
-  _LibraryImport(this.uriText, this.prefix);
+  /// Prefixes that this library is/will be imported using.
+  ///
+  /// An empty string means the import is unprefixed. This can be included along
+  /// with other prefixes for a library that is both prefixed and unprefixed.
+  final Set<String> prefixes = {};
+
+  _LibraryImport({required this.uriText, required String prefix}) {
+    prefixes.add(prefix);
+  }
 
   @override
   int get hashCode => uriText.hashCode;
+
+  /// Returns a prefix that is valid for referencing this library.
+  ///
+  /// An empty string means this library can be used unprefixed.
+  String get prefix => prefixes.first;
 
   @override
   bool operator ==(other) {
     return other is _LibraryImport &&
         other.uriText == uriText &&
-        other.prefix == prefix;
+        !const SetEquality().equals(other.prefixes, prefixes);
   }
 }

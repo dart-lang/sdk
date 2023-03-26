@@ -556,12 +556,12 @@ void FlowGraphSerializer::WriteRefTrait<Definition*>::WriteRef(
     FlowGraphSerializer* s,
     Definition* x) {
   if (!x->HasSSATemp()) {
-    if (auto* push_arg = x->AsPushArgument()) {
-      // Environments of the calls can reference PushArgument instructions
+    if (auto* move_arg = x->AsMoveArgument()) {
+      // Environments of the calls can reference MoveArgument instructions
       // and they don't have SSA temps.
       // Write a reference to the original definition.
-      // When reading it is restored using RepairPushArgsInEnvironment.
-      x = push_arg->value()->definition();
+      // When reading it is restored using RepairArgumentUsesInEnvironment.
+      x = move_arg->value()->definition();
     } else {
       UNREACHABLE();
     }
@@ -1252,7 +1252,9 @@ void Location::Write(FlowGraphSerializer* s) const {
 Location Location::Read(FlowGraphDeserializer* d) {
   const uword value = d->Read<uword>();
   if (value == kPairLocationTag) {
-    return Location::Pair(Location::Read(d), Location::Read(d));
+    const Location first = Location::Read(d);
+    const Location second = Location::Read(d);
+    return Location::Pair(first, second);
   } else if ((value & kConstantTag) == kConstantTag) {
     ConstantInstr* instr = d->ReadRef<Definition*>()->AsConstant();
     ASSERT(instr != nullptr);
@@ -1367,18 +1369,22 @@ template <>
 void FlowGraphSerializer::WriteTrait<MoveOperands*>::Write(
     FlowGraphSerializer* s,
     MoveOperands* x) {
-  ASSERT(x != nullptr);
-  x->src().Write(s);
-  x->dest().Write(s);
+  x->Write(s);
 }
 
 template <>
 MoveOperands* FlowGraphDeserializer::ReadTrait<MoveOperands*>::Read(
     FlowGraphDeserializer* d) {
-  Location src = Location::Read(d);
-  Location dest = Location::Read(d);
-  return new (d->zone()) MoveOperands(dest, src);
+  return new (d->zone()) MoveOperands(d);
 }
+
+void MoveOperands::Write(FlowGraphSerializer* s) const {
+  dest().Write(s);
+  src().Write(s);
+}
+
+MoveOperands::MoveOperands(FlowGraphDeserializer* d)
+    : dest_(Location::Read(d)), src_(Location::Read(d)) {}
 
 template <>
 void FlowGraphSerializer::
@@ -2081,11 +2087,13 @@ OsrEntryInstr::OsrEntryInstr(FlowGraphDeserializer* d)
 void ParallelMoveInstr::WriteExtra(FlowGraphSerializer* s) {
   Instruction::WriteExtra(s);
   s->Write<GrowableArray<MoveOperands*>>(moves_);
+  s->Write<const MoveSchedule*>(move_schedule_);
 }
 
 void ParallelMoveInstr::ReadExtra(FlowGraphDeserializer* d) {
   Instruction::ReadExtra(d);
   moves_ = d->Read<GrowableArray<MoveOperands*>>();
+  move_schedule_ = d->Read<const MoveSchedule*>();
 }
 
 void PhiInstr::WriteTo(FlowGraphSerializer* s) {
@@ -2338,21 +2346,21 @@ void SpecialParameterInstr::ReadExtra(FlowGraphDeserializer* d) {
 template <intptr_t kExtraInputs>
 void TemplateDartCall<kExtraInputs>::WriteExtra(FlowGraphSerializer* s) {
   VariadicDefinition::WriteExtra(s);
-  if (push_arguments_ == nullptr) {
+  if (move_arguments_ == nullptr) {
     s->Write<intptr_t>(-1);
   } else {
-    s->Write<intptr_t>(push_arguments_->length());
+    s->Write<intptr_t>(move_arguments_->length());
 #if defined(DEBUG)
-    // Verify that PushArgument instructions are inserted immediately
+    // Verify that MoveArgument instructions are inserted immediately
     // before this instruction. ReadExtra below relies on
-    // that when restoring push_arguments_.
+    // that when restoring move_arguments_.
     Instruction* instr = this;
-    for (intptr_t i = push_arguments_->length() - 1; i >= 0; --i) {
+    for (intptr_t i = move_arguments_->length() - 1; i >= 0; --i) {
       do {
         instr = instr->previous();
         ASSERT(instr != nullptr);
-      } while (!instr->IsPushArgument());
-      ASSERT(instr == (*push_arguments_)[i]);
+      } while (!instr->IsMoveArgument());
+      ASSERT(instr == (*move_arguments_)[i]);
     }
 #endif
   }
@@ -2361,21 +2369,21 @@ void TemplateDartCall<kExtraInputs>::WriteExtra(FlowGraphSerializer* s) {
 template <intptr_t kExtraInputs>
 void TemplateDartCall<kExtraInputs>::ReadExtra(FlowGraphDeserializer* d) {
   VariadicDefinition::ReadExtra(d);
-  const intptr_t num_push_args = d->Read<intptr_t>();
-  if (num_push_args >= 0) {
-    push_arguments_ =
-        new (d->zone()) PushArgumentsArray(d->zone(), num_push_args);
-    push_arguments_->EnsureLength(num_push_args, nullptr);
+  const intptr_t num_move_args = d->Read<intptr_t>();
+  if (num_move_args >= 0) {
+    move_arguments_ =
+        new (d->zone()) MoveArgumentsArray(d->zone(), num_move_args);
+    move_arguments_->EnsureLength(num_move_args, nullptr);
     Instruction* instr = this;
-    for (int i = num_push_args - 1; i >= 0; --i) {
+    for (int i = num_move_args - 1; i >= 0; --i) {
       do {
         instr = instr->previous();
         ASSERT(instr != nullptr);
-      } while (!instr->IsPushArgument());
-      (*push_arguments_)[i] = instr->AsPushArgument();
+      } while (!instr->IsMoveArgument());
+      (*move_arguments_)[i] = instr->AsMoveArgument();
     }
     if (env() != nullptr) {
-      RepairPushArgsInEnvironment();
+      RepairArgumentUsesInEnvironment();
     }
   }
 }

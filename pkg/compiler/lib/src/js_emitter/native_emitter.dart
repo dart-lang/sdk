@@ -151,7 +151,11 @@ class NativeEmitter {
         needed = true;
       }
       if (_nativeData.isJsInteropClass(classElement)) {
-        needed = true; // TODO(jacobr): we don't need all interop classes.
+        // @staticInterop classes don't need to be emitted as they're purely
+        // static classes whose runtime type is an Interceptor type.
+        if (!_nativeData.isStaticInteropClass(classElement)) {
+          needed = true; // TODO(jacobr): we don't need all interop classes.
+        }
       } else if (cls.isNative &&
           _nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
         needed = true;

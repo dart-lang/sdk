@@ -4,7 +4,7 @@
 
 class S { }
 class G<T> { }
-class M { }
+mixin M { }
 
 class T0 = S with M;
 abstract class T0A = S with M;

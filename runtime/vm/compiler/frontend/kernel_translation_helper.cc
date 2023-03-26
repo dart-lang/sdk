@@ -87,33 +87,6 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetKernelProgramInfo(info);
 }
 
-GrowableObjectArrayPtr TranslationHelper::EnsurePotentialPragmaFunctions() {
-  auto& funcs =
-      GrowableObjectArray::Handle(Z, info_.potential_pragma_functions());
-  if (funcs.IsNull()) {
-    funcs = GrowableObjectArray::New(16, Heap::kNew);
-    info_.set_potential_pragma_functions(funcs);
-  }
-  return funcs.ptr();
-}
-
-void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
-  if (potential_extension_libraries_ == nullptr) {
-    potential_extension_libraries_ =
-        &GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  }
-  potential_extension_libraries_->Add(library);
-}
-
-GrowableObjectArrayPtr TranslationHelper::GetPotentialExtensionLibraries() {
-  if (potential_extension_libraries_ != nullptr) {
-    GrowableObjectArray* result = potential_extension_libraries_;
-    potential_extension_libraries_ = nullptr;
-    return result->ptr();
-  }
-  return GrowableObjectArray::null();
-}
-
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
   string_offsets_ = string_offsets.ptr();
@@ -1579,7 +1552,7 @@ void MetadataHelper::ScanMetadataMappings() {
 
     if (H.StringEquals(tag, tag_)) {
       if ((!FLAG_precompiled_mode) && precompiler_only_) {
-        FATAL1("%s metadata is allowed in precompiled mode only", tag_);
+        FATAL("%s metadata is allowed in precompiled mode only", tag_);
       }
       SetMetadataMappings(offset + kUInt32Size, mappings_num);
       return;
@@ -1913,7 +1886,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
       lib = Library::LookupLibrary(thread, uri);
       if (lib.IsNull()) {
-        FATAL1("Missing library: %s\n", uri.ToCString());
+        FATAL("Missing library: %s\n", uri.ToCString());
       }
       lib.set_loading_unit(unit);
       uris.SetAt(j, uri);
@@ -2009,18 +1982,39 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
   for (intptr_t i = 0; i < num_args; i++) {
-    const intptr_t arg_info = helper_->ReadByte();
-    assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
-           arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
-    info->unboxed_args_info[i] =
-        static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
+    info->unboxed_args_info[i] = ReadUnboxingType();
   }
-  const intptr_t return_info = helper_->ReadByte();
-  assert(return_info >= UnboxingInfoMetadata::kBoxed &&
-         return_info < UnboxingInfoMetadata::kUnboxingCandidate);
-  info->return_info =
-      static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(return_info);
+  info->return_info = ReadUnboxingType();
   return info;
+}
+
+UnboxingInfoMetadata::UnboxingType
+UnboxingInfoMetadataHelper::ReadUnboxingType() const {
+  const auto kind =
+      static_cast<UnboxingInfoMetadata::UnboxingKind>(helper_->ReadByte());
+  ASSERT(kind >= UnboxingInfoMetadata::kBoxed &&
+         kind < UnboxingInfoMetadata::kUnknown);
+  if (kind == UnboxingInfoMetadata::kRecord) {
+    // Read and register record shape.
+    const intptr_t num_positional = helper_->ReadUInt();
+    const intptr_t num_named = helper_->ReadUInt();
+    const Array* field_names = &Array::empty_array();
+    if (num_named > 0) {
+      auto& names = Array::Handle(helper_->zone_, Array::New(num_named));
+      for (intptr_t i = 0; i < num_named; ++i) {
+        const String& name = helper_->translation_helper_.DartSymbolObfuscate(
+            helper_->ReadStringReference());
+        names.SetAt(i, name);
+      }
+      names.MakeImmutable();
+      field_names = &names;
+    }
+    const intptr_t num_fields = num_positional + num_named;
+    const RecordShape shape = RecordShape::Register(
+        helper_->translation_helper_.thread(), num_fields, *field_names);
+    return {kind, shape};
+  }
+  return {kind, RecordShape::ForUnnamed(0)};
 }
 
 intptr_t KernelReaderHelper::ReaderOffset() const {
@@ -2165,8 +2159,8 @@ void KernelReaderHelper::SkipInterfaceMemberNameReference() {
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
-  FATAL3("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
-         variant);
+  FATAL("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
+        variant);
 }
 
 void KernelReaderHelper::ReadUntilFunctionNode() {
@@ -2700,8 +2694,10 @@ void KernelReaderHelper::SkipExpression() {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -2839,6 +2835,11 @@ void KernelReaderHelper::SkipStatement() {
       SkipVariableDeclaration();  // read variable.
       SkipFunctionNode();         // read function node.
       return;
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("statement", tag);
       UNREACHABLE();
@@ -3718,25 +3719,22 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
       param_index + (function.HasThisParameter() ? 1 : 0);
 
   if (param_pos < function.maximum_unboxed_parameter_count()) {
-    switch (metadata->unboxed_args_info[param_index]) {
-      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+    switch (metadata->unboxed_args_info[param_index].kind) {
+      case UnboxingInfoMetadata::kInt:
         function.set_unboxed_integer_parameter_at(param_pos);
         break;
-      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+      case UnboxingInfoMetadata::kDouble:
         if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
           function.set_unboxed_double_parameter_at(param_pos);
         }
         break;
-      case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+      case UnboxingInfoMetadata::kRecord:
         UNREACHABLE();
         break;
-      case UnboxingInfoMetadata::kUnboxingCandidate:
+      case UnboxingInfoMetadata::kUnknown:
         UNREACHABLE();
         break;
       case UnboxingInfoMetadata::kBoxed:
-        break;
-      default:
-        UNREACHABLE();
         break;
     }
   }
@@ -3745,25 +3743,22 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
 static void SetupUnboxingInfoOfReturnValue(
     const Function& function,
     const UnboxingInfoMetadata* metadata) {
-  switch (metadata->return_info) {
-    case UnboxingInfoMetadata::kUnboxedIntCandidate:
+  switch (metadata->return_info.kind) {
+    case UnboxingInfoMetadata::kInt:
       function.set_unboxed_integer_return();
       break;
-    case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+    case UnboxingInfoMetadata::kDouble:
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
         function.set_unboxed_double_return();
       }
       break;
-    case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+    case UnboxingInfoMetadata::kRecord:
       function.set_unboxed_record_return();
       break;
-    case UnboxingInfoMetadata::kUnboxingCandidate:
+    case UnboxingInfoMetadata::kUnknown:
       UNREACHABLE();
       break;
     case UnboxingInfoMetadata::kBoxed:
-      break;
-    default:
-      UNREACHABLE();
       break;
   }
 }

@@ -422,6 +422,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   String? getNamespace(DartDevelopmentServiceClient client) =>
       clientManager.clients.keyOf(client);
 
+  @override
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
   String? get authCode => _authCode;
@@ -430,11 +431,12 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   final bool _enableServicePortFallback;
   final bool shouldLogRequests;
 
+  @override
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
 
   @override
   Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri)!;
-  Uri _remoteVmServiceUri;
+  final Uri _remoteVmServiceUri;
 
   @override
   Uri? get uri => _uri;
@@ -453,6 +455,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return _devToolsUri;
   }
 
+  @override
   void setExternalDevToolsUri(Uri uri) {
     if (_devToolsConfiguration?.enable ?? false) {
       throw StateError('A hosted DevTools instance is already being served.');
@@ -464,15 +467,18 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   final bool _ipv6;
 
+  @override
   bool get isRunning => _uri != null;
 
   final DevToolsConfiguration? _devToolsConfiguration;
 
+  @override
   List<String> get cachedUserTags => UnmodifiableListView(_cachedUserTags);
   final List<String> _cachedUserTags;
 
+  @override
   Future<void> get done => _done.future;
-  Completer _done = Completer<void>();
+  final Completer _done = Completer<void>();
   bool _initializationComplete = false;
   bool _shuttingDown = false;
 

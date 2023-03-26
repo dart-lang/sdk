@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class FutureOrBaseTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicNone, 'dynamic');
+    _check(dynamicType, 'dynamic');
   }
 
   test_futureOr() {
@@ -29,7 +29,7 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
     check(intQuestion, 'int?');
     check(intStar, 'int*');
 
-    check(dynamicNone, 'dynamic');
+    check(dynamicType, 'dynamic');
     check(voidNone, 'void');
 
     check(neverNone, 'Never');

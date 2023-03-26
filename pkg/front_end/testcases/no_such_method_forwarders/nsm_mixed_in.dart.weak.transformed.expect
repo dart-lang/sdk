@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+mixin class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
@@ -31,5 +31,5 @@ constants  {
   #C1 = #foo
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
 }

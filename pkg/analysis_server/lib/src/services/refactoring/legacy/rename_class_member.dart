@@ -456,7 +456,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   }
 
   /// Fills [elements] with [Element]s to rename.
-  Future _prepareElements() async {
+  Future<void> _prepareElements() async {
     final element = this.element;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
@@ -466,7 +466,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   }
 
   /// Fills [references] with all references to [elements].
-  Future _prepareReferences() async {
+  Future<void> _prepareReferences() async {
     await _prepareElements();
     await Future.forEach(elements, (Element element) async {
       var elementReferences = await searchEngine.searchReferences(element);

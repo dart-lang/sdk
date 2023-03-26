@@ -69,6 +69,6 @@ constants  {
   #C2 = #org-dartlang-testcase:///field_promotion_and_no_such_method.dart::_f1
   #C3 = <core::Type*>[]
   #C4 = <dynamic>[]
-  #C5 = <core::Symbol*, dynamic>{)
+  #C5 = <core::Symbol*, dynamic>{}
   #C6 = #org-dartlang-testcase:///field_promotion_and_no_such_method.dart::_f2
 }

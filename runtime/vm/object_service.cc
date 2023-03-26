@@ -127,6 +127,11 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("abstract", is_abstract());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("isSealed", is_sealed());
+  jsobj.AddProperty("isMixinClass", is_mixin_class());
+  jsobj.AddProperty("isBaseClass", is_base_class());
+  jsobj.AddProperty("isInterfaceClass", is_interface_class());
+  jsobj.AddProperty("isFinal", is_final());
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);
@@ -1445,7 +1450,7 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       if (index < num_positional_fields) {
-        jsfield.AddProperty("name", index);
+        jsfield.AddProperty("name", index + 1);
       } else {
         name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());
@@ -1931,7 +1936,7 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       if (index < num_positional_fields) {
-        jsfield.AddProperty("name", index);
+        jsfield.AddProperty("name", index + 1);
       } else {
         name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());
@@ -2104,7 +2109,12 @@ void MirrorReference::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
 void UserTag::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "UserTag");
+
+  String& tag_label = String::Handle(label());
+  jsobj.AddProperty("label", tag_label.ToCString());
 }
 
 void UserTag::PrintImplementationFieldsImpl(

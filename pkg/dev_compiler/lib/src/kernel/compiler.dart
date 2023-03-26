@@ -608,16 +608,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  String libraryToModule(Library library) {
+  String libraryToModule(Library library, {bool throwIfNotFound = true}) {
     if (library.importUri.isScheme('dart')) {
       // TODO(jmesserly): we need to split out HTML.
       return js_ast.dartSdkModule;
     }
-    var summary = _importToSummary[library]!;
+    var summary = _importToSummary[library];
+    if (summary == null) {
+      if (throwIfNotFound) {
+        throw StateError('Could not find summary for library "$library".');
+      }
+      return '';
+    }
     var moduleName = _summaryToModule[summary];
     if (moduleName == null) {
-      throw StateError('Could not find module name for library "$library" '
-          'from component "$summary".');
+      if (throwIfNotFound) {
+        throw StateError('Could not find module name for library "$library" '
+            'from component "$summary".');
+      }
+      return '';
     }
     return moduleName;
   }
@@ -1262,7 +1271,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (shouldDefer(supertype)) {
       var originalSupertype = supertype;
       deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
-            getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
+            getBaseClass(mixinApplications.length),
             emitDeferredType(originalSupertype, emitNullability: false),
           ]));
       // Refers to 'supertype' without type parameters. We remove these from
@@ -1272,54 +1281,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _coreTypes.rawType(supertype.classNode, _currentLibrary!.nonNullable);
     }
     var baseClass = emitClassRef(supertype);
-
-    if (isMixinAliasClass(c)) {
-      // Given `class C = Object with M [implements I1, I2 ...];`
-      // The resulting class C should work as a mixin.
-      //
-      // TODO(jmesserly): is there any way to merge this with the other mixin
-      // code paths, or will these always need special handling?
-      body.add(_emitClassStatement(c, className, baseClass, []));
-
-      var m = c.mixedInType!.asInterfaceType;
-      var deferMixin = shouldDefer(m);
-      var mixinClass = deferMixin
-          ? emitDeferredType(m, emitNullability: false)
-          : emitClassRef(m);
-      var classExpr = deferMixin ? getBaseClass(0) : className;
-
-      var mixinApplication =
-          runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]);
-      if (deferMixin) {
-        deferredSupertypes.add(() => mixinApplication);
-      } else {
-        body.add(mixinApplication);
-      }
-
-      if (methods.isNotEmpty) {
-        // However we may need to add some methods to this class that call
-        // `super` such as covariance checks.
-        //
-        // We do this with the following pattern:
-        //
-        //     applyMixin(C, class C$ extends M { <methods>  });
-        var mixinApplicationWithMethods = runtimeStatement('applyMixin(#, #)', [
-          classExpr,
-          js_ast.ClassExpression(
-              _emitTemporaryId(getLocalClassName(c)), mixinClass, methods)
-        ]);
-        if (deferMixin) {
-          deferredSupertypes.add(() => mixinApplicationWithMethods);
-        } else {
-          body.add(mixinApplicationWithMethods);
-        }
-      }
-
-      emitMixinConstructors(className, m);
-
-      _classEmittingExtends = savedTopLevelClass;
-      return;
-    }
 
     // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
     // classes lack required synthetic members, such as constructors.
@@ -1385,7 +1346,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       baseClass = mixinId;
     }
 
-    if (c.isMixinDeclaration) {
+    if (c.isMixinDeclaration && !c.isMixinClass) {
       _emitMixinStatement(c, className, baseClass, methods, body);
     } else {
       body.add(_emitClassStatement(c, className, baseClass, methods));
@@ -1398,7 +1359,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Statement> _defineConstructors(
       Class c, js_ast.Expression className) {
     var body = <js_ast.Statement>[];
-    if (c.isAnonymousMixin || isMixinAliasClass(c)) {
+    if (c.isAnonymousMixin) {
       // We already handled this when we defined the class.
       return body;
     }
@@ -4843,7 +4804,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Catch? _visitCatch(List<Catch> clauses) {
     if (clauses.isEmpty) return null;
 
-    var caughtError = VariableDeclaration('#e');
+    var caughtError = VariableDeclaration('#e', isSynthesized: true);
     var savedRethrow = _rethrowParameter;
     _rethrowParameter = caughtError;
 
@@ -4851,12 +4812,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // don't shadow any names.
     var exceptionParameter =
         (clauses.length == 1 ? clauses[0].exception : null) ??
-            VariableDeclaration('#ex');
+            VariableDeclaration('#ex', isSynthesized: true);
 
     var stackTraceParameter =
         (clauses.length == 1 ? clauses[0].stackTrace : null) ??
             (clauses.any((c) => c.stackTrace != null)
-                ? VariableDeclaration('#st')
+                ? VariableDeclaration('#st', isSynthesized: true)
                 : null);
 
     js_ast.Statement catchBody = js_ast.Throw(_emitVariableRef(caughtError));
@@ -5018,13 +4979,36 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return id;
   }
 
+  /// Detects temporary variables so we can avoid displaying
+  /// them in the debugger if needed.
+  bool _isTemporaryVariable(VariableDeclaration v) =>
+      v.isLowered ||
+      v.isSynthesized ||
+      v.name == null ||
+      v.name!.startsWith('#');
+
+  /// Creates a temporary name recognized by the debugger.
+  /// Assumes `_isTemporaryVariable(v)`  is true.
+  String? _debuggerFriendlyTemporaryVariableName(VariableDeclaration v) {
+    assert(_isTemporaryVariable(v));
+
+    // Show extension 'this' in the debugger.
+    // Do not show the rest of temporary variables.
+    if (isExtensionThis(v)) {
+      return extractLocalNameFromVariable(v);
+    } else if (v.name != null) {
+      return 't\$${v.name}';
+    }
+    return null;
+  }
+
   js_ast.Identifier _emitVariableRef(VariableDeclaration v) {
-    var name = v.name;
-    if (name == null || name.startsWith('#')) {
-      name = name == null ? 't${_tempVariables.length}' : name.substring(1);
+    if (_isTemporaryVariable(v)) {
+      var name = _debuggerFriendlyTemporaryVariableName(v);
+      name ??= 't\$${_tempVariables.length}';
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name!));
     }
-    return _emitIdentifier(name);
+    return _emitIdentifier(v.name!);
   }
 
   /// Emits the declaration of a variable.
@@ -6088,6 +6072,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
       }
     }
+    if (target.isExternal &&
+        target.isInlineClassMember &&
+        hasObjectLiteralAnnotation(target)) {
+      // Only JS interop inline class object literal constructors have the
+      // `@ObjectLiteral(...)` annotation.
+      assert(node.arguments.positional.isEmpty);
+      return _emitObjectLiteral(
+          Arguments(node.arguments.positional,
+              types: node.arguments.types, named: node.arguments.named),
+          target);
+    }
     if (target == _coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
     }
@@ -7050,9 +7045,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitLoadLibrary(LoadLibrary node) =>
-      runtimeCall('loadLibrary(#, #)', [
-        js.string(jsLibraryName(node.import.enclosingLibrary)),
-        js.string(node.import.name!)
+      runtimeCall('loadLibrary(#, #, #)', [
+        js.string(node.import.enclosingLibrary.importUri.toString()),
+        js.string(node.import.name!),
+        js.string(
+            libraryToModule(node.import.targetLibrary, throwIfNotFound: false))
       ]);
 
   // TODO(jmesserly): DDC loads all libraries eagerly.
@@ -7062,7 +7059,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       runtimeCall('checkDeferredIsLoaded(#, #)', [
-        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.enclosingLibrary.importUri.toString()),
         js.string(node.import.name!)
       ]);
 
@@ -7384,6 +7381,42 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.Comment('Experiments: ${enabledExperiments.join(', ')}')
     ];
     return header;
+  }
+
+  @override
+  js_ast.Statement visitIfCaseStatement(IfCaseStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitIfCaseStatement');
+  }
+
+  @override
+  js_ast.Expression visitPatternAssignment(PatternAssignment node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitPatternAssignment');
+  }
+
+  @override
+  js_ast.Statement visitPatternSwitchStatement(PatternSwitchStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitPatternSwitchStatement');
+  }
+
+  @override
+  js_ast.Statement visitPatternVariableDeclaration(
+      PatternVariableDeclaration node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitPatternVariableDeclaration');
+  }
+
+  @override
+  js_ast.Expression visitSwitchExpression(SwitchExpression node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError('ProgramCompiler.visitSwitchExpression');
   }
 }
 

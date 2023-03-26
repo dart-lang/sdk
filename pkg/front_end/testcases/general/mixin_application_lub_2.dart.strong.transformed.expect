@@ -2,10 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class Diagnosticable extends core::Object {
-  synthetic constructor •() → self::Diagnosticable
-    : super core::Object::•()
-    ;
+abstract class Diagnosticable extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class _SomeClass&Object&Diagnosticable extends core::Object implements self::Diagnosticable /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_SomeClass&Object&Diagnosticable

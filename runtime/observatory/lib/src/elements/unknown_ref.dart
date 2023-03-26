@@ -23,8 +23,6 @@ class UnknownObjectRefElement extends CustomElement implements Renderable {
 
   factory UnknownObjectRefElement(M.IsolateRef isolate, M.UnknownObjectRef obj,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(obj != null);
     UnknownObjectRefElement e = new UnknownObjectRefElement.created();
     e._r = new RenderingScheduler<UnknownObjectRefElement>(e, queue: queue);
     e._isolate = isolate;

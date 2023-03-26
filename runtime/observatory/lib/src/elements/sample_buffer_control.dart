@@ -50,10 +50,6 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
       {M.SampleProfileTag selectedTag = M.SampleProfileTag.none,
       bool showTag = true,
       RenderingQueue? queue}) {
-    assert(progress != null);
-    assert(progressStream != null);
-    assert(selectedTag != null);
-    assert(showTag != null);
     SampleBufferControlElement e = new SampleBufferControlElement.created();
     e._r = new RenderingScheduler<SampleBufferControlElement>(e, queue: queue);
     e._vm = vm;
@@ -253,7 +249,6 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
       case M.SampleProfileTag.none:
         return 'None';
     }
-    throw new Exception('Unknown tagToString');
   }
 
   SampleBufferControlChangedElement _toEvent(_) {

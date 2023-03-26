@@ -198,6 +198,29 @@ void main() {
     ]);
   }
 
+  test_getter_inObjectPattern() async {
+    newFile('$testPackageRootPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  int get g => 7;
+}
+''');
+    newFile('$testPackageRootPath/lib2.dart', r'''
+import 'lib1.dart';
+void f(Object o) {
+  switch (o) {
+    case A(g: 7): print('yes');
+  }
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/lib2.dart', [
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 65, 1),
+    ]);
+  }
+
   test_import_hide() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';

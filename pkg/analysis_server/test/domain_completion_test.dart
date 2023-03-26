@@ -2361,13 +2361,13 @@ extension MyClassExtension on MyClass {
     var request1 =
         CompletionGetSuggestionsParams(testFile.path, completionOffset)
             .toRequest('7');
-    var responseFuture1 = serverChannel.sendRequest(request1);
+    var responseFuture1 = serverChannel.simulateRequestFromClient(request1);
 
     // Make another request before the first request completes
     var request2 =
         CompletionGetSuggestionsParams(testFile.path, completionOffset)
             .toRequest('8');
-    var responseFuture2 = serverChannel.sendRequest(request2);
+    var responseFuture2 = serverChannel.simulateRequestFromClient(request2);
 
     // Await first response
     var response1 = await responseFuture1;

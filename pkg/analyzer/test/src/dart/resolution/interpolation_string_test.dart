@@ -11,12 +11,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InterpolationStringTest);
+    defineReflectiveTests(InterpolationStringResolutionTest);
   });
 }
 
 @reflectiveTest
-class InterpolationStringTest extends PubPackageResolutionTest {
+class InterpolationStringResolutionTest extends PubPackageResolutionTest {
   void test_contents() async {
     var code = r'''
 var bar;

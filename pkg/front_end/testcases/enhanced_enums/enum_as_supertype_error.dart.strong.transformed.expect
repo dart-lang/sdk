@@ -2,6 +2,10 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:5:17: Error: The class 'Enum' can't be extended outside of its library because it's an interface class.
+// class A extends Enum { // Error.
+//                 ^
+//
 // pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:5:7: Error: Non-abstract class 'A' has 'Enum' as a superinterface.
 // class A extends Enum { // Error.
 //       ^
@@ -161,5 +165,5 @@ constants  {
   #C1 = #org-dartlang-testcase:///enum_as_supertype_error.dart::_name
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
 }

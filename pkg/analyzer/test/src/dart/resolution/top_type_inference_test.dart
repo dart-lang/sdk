@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TopTypeInferenceDriverResolutionTest);
+    defineReflectiveTests(TopTypeInferenceResolutionTest);
   });
 }
 
 @reflectiveTest
-class TopTypeInferenceDriverResolutionTest extends PubPackageResolutionTest {
+class TopTypeInferenceResolutionTest extends PubPackageResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
     await assertNoErrorsInCode(r'''
 class A {

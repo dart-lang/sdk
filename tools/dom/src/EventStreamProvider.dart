@@ -219,7 +219,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   bool get isBroadcast => true;
 }
 
-class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+class _EventStreamSubscription<T extends Event>
+    implements StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget? _target;
   final String _eventType;

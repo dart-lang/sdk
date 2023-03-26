@@ -385,13 +385,11 @@ class BaseFlowGraphBuilder {
   // Loads 'receiver' and checks it for null. Throws NoSuchMethod if it is null.
   // 'function_name' is a selector which is being called (reported in
   // NoSuchMethod message).
-  // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
   // Note that this does _not_ use the result of the CheckNullInstr, so it does
   // not create a data dependency and might break with code motion.
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
-                     const String& function_name,
-                     bool clear_the_temp = true);
+                     const String& function_name);
 
   // Pops the top of the stack, checks it for null, and pushes the result on
   // the stack to create a data dependency.
@@ -423,7 +421,7 @@ class BaseFlowGraphBuilder {
   // Builds closure call with given number of arguments. Target closure
   // (in bare instructions mode) or closure function (otherwise) is taken from
   // top of the stack.
-  // PushArgument instructions should be already added for arguments.
+  // MoveArgument instructions should be already added for arguments.
   Fragment ClosureCall(TokenPosition position,
                        intptr_t type_args_len,
                        intptr_t argument_count,

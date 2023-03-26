@@ -48,7 +48,7 @@ class MachineModeCommandHandler {
     required String devToolsUrl,
     required bool headlessMode,
   }) async {
-    final Stream<Map<String, dynamic>> _stdinCommandStream = stdin
+    final Stream<Map<String, dynamic>> stdinCommandStream = stdin
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
         .where((String line) => line.startsWith('{') && line.endsWith('}'))
@@ -64,7 +64,7 @@ class MachineModeCommandHandler {
     //     "uri":"<vm-service-uri-here>",
     //   }
     // }
-    _stdinCommandStream.listen((Map<String, dynamic> json) async {
+    stdinCommandStream.listen((Map<String, dynamic> json) async {
       // ID can be String, int or null
       final dynamic id = json['id'];
       final Map<String, dynamic> params = json['params'] ?? <String, dynamic>{};

@@ -262,13 +262,13 @@ class C {}
 ''');
   }
 
-  Future _assertSorted(String expectedCode) async {
+  Future<void> _assertSorted(String expectedCode) async {
     await _requestSort();
     var resultCode = SourceEdit.applySequence(testFileContent, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
-  Future _requestSort() async {
+  Future<void> _requestSort() async {
     var request = EditSortMembersParams(testFile.path).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     var result = EditSortMembersResult.fromResponse(response);

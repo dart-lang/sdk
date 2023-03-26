@@ -18,13 +18,14 @@ class Pair {
   final int v0;
   final int v1;
   const Pair(this.v0, this.v1);
-  bool operator==(other) => other is Pair && v0 == other.v0 && v1 == other.v1;
+  bool operator ==(other) => other is Pair && v0 == other.v0 && v1 == other.v1;
   int get hashCode => Object.hash(v0, v1);
 }
 
 @pragma('vm:never-inline')
 @pragma('dart2js:never-inline')
-List<Object> getPolymorphicListOfClass(int length, bool growable, bool withValues) {
+List<Object> getPolymorphicListOfClass(
+    int length, bool growable, bool withValues) {
   if (runtimeTrue) {
     if (withValues) {
       return List<Pair>.generate(length, (i) => Pair(i, i), growable: growable);
@@ -38,10 +39,12 @@ List<Object> getPolymorphicListOfClass(int length, bool growable, bool withValue
 
 @pragma('vm:never-inline')
 @pragma('dart2js:never-inline')
-List<Object> getPolymorphicListOfRecords(int length, bool growable, bool withValues) {
+List<Object> getPolymorphicListOfRecords(
+    int length, bool growable, bool withValues) {
   if (runtimeTrue) {
     if (withValues) {
-      return List<(int, int)>.generate(length, (i) => (i, i), growable: growable);
+      return List<(int, int)>.generate(length, (i) => (i, i),
+          growable: growable);
     } else {
       return List<(int, int)>.filled(length, (-1, -1), growable: growable);
     }
@@ -95,7 +98,8 @@ class BenchListAddPolyRecord extends BenchmarkBase {
 
   @override
   void run() {
-    final List<Object> list = getPolymorphicListOfRecords(0, runtimeTrue, false);
+    final List<Object> list =
+        getPolymorphicListOfRecords(0, runtimeTrue, false);
     for (int i = 0; i < N; ++i) {
       list.add((i, i));
     }
@@ -118,7 +122,8 @@ class BenchListSetIndexedClass extends BenchmarkBase {
 }
 
 class BenchListSetIndexedRecord extends BenchmarkBase {
-  BenchListSetIndexedRecord() : super('RecordCollections.ListSetIndexed.Record');
+  BenchListSetIndexedRecord()
+      : super('RecordCollections.ListSetIndexed.Record');
 
   @override
   void run() {
@@ -131,7 +136,8 @@ class BenchListSetIndexedRecord extends BenchmarkBase {
 }
 
 class BenchListSetIndexedPolyClass extends BenchmarkBase {
-  BenchListSetIndexedPolyClass() : super('RecordCollections.ListSetIndexedPoly.Class');
+  BenchListSetIndexedPolyClass()
+      : super('RecordCollections.ListSetIndexedPoly.Class');
 
   @override
   void run() {
@@ -145,11 +151,13 @@ class BenchListSetIndexedPolyClass extends BenchmarkBase {
 }
 
 class BenchListSetIndexedPolyRecord extends BenchmarkBase {
-  BenchListSetIndexedPolyRecord() : super('RecordCollections.ListSetIndexedPoly.Record');
+  BenchListSetIndexedPolyRecord()
+      : super('RecordCollections.ListSetIndexedPoly.Record');
 
   @override
   void run() {
-    final List<Object> list = getPolymorphicListOfRecords(N, !runtimeTrue, false);
+    final List<Object> list =
+        getPolymorphicListOfRecords(N, !runtimeTrue, false);
     for (int i = 0; i < N; ++i) {
       list[i] = (i, i);
     }
@@ -162,8 +170,7 @@ class BenchListGetIndexedClass extends BenchmarkBase {
   BenchListGetIndexedClass() : super('RecordCollections.ListGetIndexed.Class');
 
   final list = <Pair>[
-    for (int i = 0; i < N; ++i)
-      Pair(i, i),
+    for (int i = 0; i < N; ++i) Pair(i, i),
   ];
 
   @override
@@ -177,11 +184,11 @@ class BenchListGetIndexedClass extends BenchmarkBase {
 }
 
 class BenchListGetIndexedRecord extends BenchmarkBase {
-  BenchListGetIndexedRecord() : super('RecordCollections.ListGetIndexed.Record');
+  BenchListGetIndexedRecord()
+      : super('RecordCollections.ListGetIndexed.Record');
 
   final list = <(int, int)>[
-    for (int i = 0; i < N; ++i)
-      (i, i),
+    for (int i = 0; i < N; ++i) (i, i),
   ];
 
   @override
@@ -195,7 +202,8 @@ class BenchListGetIndexedRecord extends BenchmarkBase {
 }
 
 class BenchListGetIndexedPolyClass extends BenchmarkBase {
-  BenchListGetIndexedPolyClass() : super('RecordCollections.ListGetIndexedPoly.Class');
+  BenchListGetIndexedPolyClass()
+      : super('RecordCollections.ListGetIndexedPoly.Class');
 
   final list = getPolymorphicListOfClass(N, runtimeTrue, true) as List<Pair>;
 
@@ -210,9 +218,11 @@ class BenchListGetIndexedPolyClass extends BenchmarkBase {
 }
 
 class BenchListGetIndexedPolyRecord extends BenchmarkBase {
-  BenchListGetIndexedPolyRecord() : super('RecordCollections.ListGetIndexedPoly.Record');
+  BenchListGetIndexedPolyRecord()
+      : super('RecordCollections.ListGetIndexedPoly.Record');
 
-  final list = getPolymorphicListOfRecords(N, runtimeTrue, true) as List<(int, int)>;
+  final list =
+      getPolymorphicListOfRecords(N, runtimeTrue, true) as List<(int, int)>;
 
   @override
   void run() {
@@ -228,8 +238,7 @@ class BenchListIterateClass extends BenchmarkBase {
   BenchListIterateClass() : super('RecordCollections.ListIterate.Class');
 
   final list = <Pair>[
-    for (int i = 0; i < N; ++i)
-      Pair(i, i),
+    for (int i = 0; i < N; ++i) Pair(i, i),
   ];
 
   @override
@@ -246,8 +255,7 @@ class BenchListIterateRecord extends BenchmarkBase {
   BenchListIterateRecord() : super('RecordCollections.ListIterate.Record');
 
   final list = <(int, int)>[
-    for (int i = 0; i < N; ++i)
-      (i, i),
+    for (int i = 0; i < N; ++i) (i, i),
   ];
 
   @override
@@ -261,7 +269,8 @@ class BenchListIterateRecord extends BenchmarkBase {
 }
 
 class BenchListIteratePolyClass extends BenchmarkBase {
-  BenchListIteratePolyClass() : super('RecordCollections.ListIteratePoly.Class');
+  BenchListIteratePolyClass()
+      : super('RecordCollections.ListIteratePoly.Class');
 
   final list = getPolymorphicListOfClass(N, runtimeTrue, true) as List<Pair>;
 
@@ -276,9 +285,11 @@ class BenchListIteratePolyClass extends BenchmarkBase {
 }
 
 class BenchListIteratePolyRecord extends BenchmarkBase {
-  BenchListIteratePolyRecord() : super('RecordCollections.ListIteratePoly.Record');
+  BenchListIteratePolyRecord()
+      : super('RecordCollections.ListIteratePoly.Record');
 
-  final list = getPolymorphicListOfRecords(N, runtimeTrue, true) as List<(int, int)>;
+  final list =
+      getPolymorphicListOfRecords(N, runtimeTrue, true) as List<(int, int)>;
 
   @override
   void run() {
@@ -346,8 +357,7 @@ class BenchMapLookupClass extends BenchmarkBase {
   BenchMapLookupClass() : super('RecordCollections.MapLookup.Class');
 
   final map = <Pair, int>{
-    for (int i = 0; i < N; ++i)
-      Pair(i, i): i,
+    for (int i = 0; i < N; ++i) Pair(i, i): i,
   };
 
   @override
@@ -364,8 +374,7 @@ class BenchMapLookupRecord extends BenchmarkBase {
   BenchMapLookupRecord() : super('RecordCollections.MapLookup.Record');
 
   final map = <(int, int), int>{
-    for (int i = 0; i < N; ++i)
-      (i, i): i,
+    for (int i = 0; i < N; ++i) (i, i): i,
   };
 
   @override
@@ -408,8 +417,7 @@ class BenchSetLookupClass extends BenchmarkBase {
   BenchSetLookupClass() : super('RecordCollections.SetLookup.Class');
 
   final set = <Pair>{
-    for (int i = 0; i < N ~/ 2; ++i)
-      Pair(i * 2, i * 2),
+    for (int i = 0; i < N ~/ 2; ++i) Pair(i * 2, i * 2),
   };
 
   @override
@@ -426,8 +434,7 @@ class BenchSetLookupRecord extends BenchmarkBase {
   BenchSetLookupRecord() : super('RecordCollections.SetLookup.Record');
 
   final set = <(int, int)>{
-    for (int i = 0; i < N ~/ 2; ++i)
-      (i * 2, i * 2),
+    for (int i = 0; i < N ~/ 2; ++i) (i * 2, i * 2),
   };
 
   @override
@@ -449,29 +456,24 @@ void main() {
     BenchListAddRecord(),
     BenchListAddPolyClass(),
     BenchListAddPolyRecord(),
-
     BenchListSetIndexedClass(),
     BenchListSetIndexedRecord(),
     BenchListSetIndexedPolyClass(),
     BenchListSetIndexedPolyRecord(),
-
     BenchListGetIndexedClass(),
     BenchListGetIndexedRecord(),
     BenchListGetIndexedPolyClass(),
     BenchListGetIndexedPolyRecord(),
-
     BenchListIterateClass(),
     BenchListIterateRecord(),
     BenchListIteratePolyClass(),
     BenchListIteratePolyRecord(),
-
     BenchMapAddClassKey(),
     BenchMapAddRecordKey(),
     BenchMapAddClassValue(),
     BenchMapAddRecordValue(),
     BenchMapLookupClass(),
     BenchMapLookupRecord(),
-
     BenchSetAddClass(),
     BenchSetAddRecord(),
     BenchSetLookupClass(),

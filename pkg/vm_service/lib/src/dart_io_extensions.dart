@@ -869,7 +869,7 @@ class OpenFileRef {
   final String name;
 }
 
-/// A [File] contains information about reads and writes to a currently opened file.
+/// Contains information about reads and writes to a currently opened file.
 class OpenFile extends Response implements OpenFileRef {
   static OpenFile? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFile._fromJson(json);

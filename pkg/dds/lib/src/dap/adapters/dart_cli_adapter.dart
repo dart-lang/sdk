@@ -49,8 +49,10 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   ///
   /// If we have a process, we will instead use its termination as a signal to
   /// terminate the debug session. Otherwise, we will use the VM Service close.
+  @override
   bool get terminateOnVmServiceClose => _process == null;
 
+  @override
   Future<void> debuggerConnected(vm.VM vmInfo) async {
     if (!isAttach) {
       // Capture the PID from the VM Service so that we can terminate it when
@@ -67,6 +69,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   /// Called by [disconnectRequest] to request that we forcefully shut down the
   /// app being run (or in the case of an attach, disconnect).
+  @override
   Future<void> disconnectImpl() async {
     if (isAttach) {
       await handleDetach();
@@ -87,6 +90,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   ///
   /// For debugging, this should start paused, connect to the VM Service, set
   /// breakpoints, and resume.
+  @override
   Future<void> launchImpl() async {
     final args = this.args as DartLaunchRequestArguments;
     File? vmServiceInfoFile;
@@ -191,6 +195,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   /// Called by [attachRequest] to request that we actually connect to the app
   /// to be debugged.
+  @override
   Future<void> attachImpl() async {
     final args = this.args as DartAttachRequestArguments;
     final vmServiceUri = args.vmServiceUri;
@@ -224,7 +229,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   }) async {
     final args = this.args as DartLaunchRequestArguments;
     logger?.call('Spawning $executable with $processArgs in $workingDirectory'
-        ' via client ${terminalKind} terminal');
+        ' via client $terminalKind terminal');
 
     // runInTerminal is a DAP request that goes from server-to-client that
     // allows the DA to ask the client editor to run the debugee for us. In this
@@ -287,6 +292,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
+  @override
   Future<void> terminateImpl() async {
     if (isAttach) {
       await handleDetach();

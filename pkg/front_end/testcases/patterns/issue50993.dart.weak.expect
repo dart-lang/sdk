@@ -5,120 +5,138 @@ import "dart:core" as core;
 static method test1(core::int value) → core::String {
   #L1:
   {
-    final core::int #0#0 = value;
-    if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
-      {
-        return "case <2";
+    final synthesized core::int #0#0 = value;
+    {
+      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
+        {
+          return "case <2";
+        }
       }
     }
-    else
+    {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {
           return "case 2";
         }
       }
+    }
   }
   return "not matched";
 }
 static method test2(core::int value) → core::String {
   #L2:
   {
-    final core::int #0#0 = value;
-    if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
-      {
-        return "case <2";
+    final synthesized core::int #0#0 = value;
+    {
+      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
+        {
+          return "case <2";
+        }
       }
     }
-    else
+    {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || true) {
         {
           return "case 2";
         }
       }
+    }
   }
   return "not matched";
 }
 static method test3(core::int value) → core::String {
   #L3:
   {
-    final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-      {
-        return "case 2";
+    final synthesized core::int #0#0 = value;
+    {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return "case 2";
+        }
       }
     }
-    else
+    {
       if(#0#0.{core::num::<}(#C1){(core::num) → core::bool} || true) {
         {
           return "case <2";
         }
       }
+    }
   }
   return "not matched";
 }
 static method test4(core::int value) → core::String {
   #L4:
   {
-    final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-      {
-        return "case 2";
+    final synthesized core::int #0#0 = value;
+    {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return "case 2";
+        }
       }
     }
-    else
+    {
       if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
         {
           return "case <2";
         }
       }
-      else {
+    }
+    {
+      {
         {
           return "default";
         }
       }
+    }
   }
 }
 static method test5(core::int value) → core::String {
   #L5:
   {
-    final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-      {
-        return "case 2";
+    final synthesized core::int #0#0 = value;
+    {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return "case 2";
+        }
       }
     }
-    else
+    {
       if(#0#0.{core::num::<}(#C1){(core::num) → core::bool} || #0#0.{core::num::>}(#C2){(core::num) → core::bool}) {
         {
           return "case <2 >3";
         }
       }
-      else {
+    }
+    {
+      {
         {
           return "default";
         }
       }
+    }
   }
 }
 static method test6(core::int value) → core::String {
   #L6:
-  {
-    final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+  switch(value) {
+    #L7:
+    case #C1:
       {
         return "case 2";
       }
-    }
-    else
-      if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-        {
-          return "case 1/4";
-        }
+    #L8:
+    case #C3:
+    case #C4:
+      {
+        return "case 1/4";
       }
-      else {
-        {
-          return "default";
-        }
+    #L9:
+    default:
+      {
+        return "default";
       }
   }
 }

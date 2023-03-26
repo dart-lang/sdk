@@ -21,15 +21,22 @@ main() async {
       outDir.uri.resolve("dart2js.dart.unlinked dill.txt").toFilePath();
 
   final executable = Platform.executable;
-  if (!executable.endsWith('out/ReleaseX64/dart')) {
+  late final String platformDill;
+  if (executable.endsWith('ReleaseX64/dart')) {
+    platformDill =
+        Uri.parse(executable).resolve('vm_platform_strong.dill').toFilePath();
+  } else if (executable.endsWith('dart-sdk/bin/dart')) {
+    platformDill = Uri.parse(executable)
+        .resolve('../lib/_internal/vm_platform_strong.dill')
+        .toFilePath();
+  } else {
+    print(
+        'Skipping test due to not being run .../ReleaseX64/dart or .../dart-sdk/bin/dart.');
     return;
   }
 
-  final platformDill = Uri.parse(executable).resolve('vm_platform.dill');
-
   try {
     final arguments = <String>[
-      '--no-link-platform',
       '--platform=$platformDill',
       '--output=$dillFile',
       'pkg/compiler/lib/src/dart2js.dart',
@@ -43,8 +50,8 @@ main() async {
 
     // Load the dart2js.dart.dill and write the unlinked version.
     final component = loadComponentFromBinary(dillFile);
-    final IOSink sink = new File(unlinkedDillFile).openWrite();
-    final printer = new BinaryPrinter(sink,
+    final sink = File(unlinkedDillFile).openWrite();
+    final printer = BinaryPrinter(sink,
         libraryFilter: (lib) => !lib.importUri.isScheme('dart'));
     printer.writeComponentFile(component);
     await sink.close();

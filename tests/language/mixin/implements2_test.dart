@@ -8,7 +8,7 @@ class A {}
 
 class S {}
 
-class M {}
+mixin M {}
 
 class C = S with M implements A;
 

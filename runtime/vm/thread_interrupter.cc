@@ -48,11 +48,6 @@ ThreadJoinId ThreadInterrupter::interrupter_thread_id_ =
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
-// Note this initial state means there is one sample buffer reader. This
-// allows the EnterSampleReader during Cleanup (needed to ensure the buffer can
-// be safely freed) to be balanced by a ExitSampleReader during Init.
-std::atomic<intptr_t> ThreadInterrupter::sample_buffer_lock_ = {-1};
-std::atomic<intptr_t> ThreadInterrupter::sample_buffer_waiters_ = {1};
 
 void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
@@ -81,8 +76,6 @@ void ThreadInterrupter::Startup() {
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter running.\n");
   }
-
-  ExitSampleReader();
 }
 
 void ThreadInterrupter::Cleanup() {
@@ -110,9 +103,6 @@ void ThreadInterrupter::Cleanup() {
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter shut down.\n");
   }
-
-  // Wait for outstanding signals.
-  EnterSampleReader();
 }
 
 // Delay between interrupts.

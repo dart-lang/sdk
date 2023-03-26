@@ -10,12 +10,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(VarianceTest);
+    defineReflectiveTests(VarianceResolutionTest);
   });
 }
 
 @reflectiveTest
-class VarianceTest extends PubPackageResolutionTest {
+class VarianceResolutionTest extends PubPackageResolutionTest {
   @override
   List<String> get experiments => [
         ...super.experiments,

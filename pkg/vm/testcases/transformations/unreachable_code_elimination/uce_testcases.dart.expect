@@ -57,7 +57,7 @@ static method testRemovalOfStatementBodies() → dynamic {
   for (; ; ) {
   }
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(1, 2).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(1, 2).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
     }

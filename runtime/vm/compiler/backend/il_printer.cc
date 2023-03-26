@@ -155,7 +155,7 @@ class IlTestPrinter : public AllStatic {
         }
         writer->CloseArray();
       } else if (instr->ArgumentCount() != 0 &&
-                 instr->GetPushArguments() != nullptr) {
+                 instr->GetMoveArguments() != nullptr) {
         writer->OpenArray("i");
         for (intptr_t i = 0; i < instr->ArgumentCount(); i++) {
           writer->PrintValue(
@@ -1222,7 +1222,7 @@ void BitCastInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd, index());
+  f->Printf("%" Pd, env_index());
 }
 
 void SpecialParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1431,9 +1431,9 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(")");
 }
 
-void PushArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void MoveArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
-  f->Printf(", SP+%" Pd "", top_of_stack_relative_index());
+  f->Printf(", SP+%" Pd "", sp_relative_index());
 }
 
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {
@@ -1487,7 +1487,7 @@ void Environment::PrintTo(BaseTextBuffer* f) const {
   int arg_count = 0;
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->AddString(", ");
-    if (values_[i]->definition()->IsPushArgument()) {
+    if (values_[i]->definition()->IsMoveArgument()) {
       f->Printf("a%d", arg_count++);
     } else {
       values_[i]->PrintTo(f);

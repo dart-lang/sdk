@@ -341,31 +341,21 @@ class TimelineEvent {
 
   void DurationBegin(
       const char* label,
-      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
-  void DurationEnd(
-      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
+  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
-  void Duration(const char* label,
-                int64_t start_micros,
-                int64_t end_micros,
-                int64_t thread_start_micros = -1,
-                int64_t thread_end_micros = -1);
+  void Duration(const char* label, int64_t start_micros, int64_t end_micros);
 
-  void Begin(
-      const char* label,
-      int64_t id,
-      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+  void Begin(const char* label,
+             int64_t id,
+             int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
            int64_t id,
-           int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
-           int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+           int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Counter(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
@@ -413,10 +403,6 @@ class TimelineEvent {
   bool IsFinishedDuration() const {
     return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
-
-  bool HasThreadCPUTime() const;
-  int64_t ThreadCPUTimeDuration() const;
-  int64_t ThreadCPUTimeOrigin() const;
 
   int64_t TimeOrigin() const { return timestamp0_; }
   int64_t Id() const {
@@ -536,16 +522,6 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
-  void set_thread_timestamp0(int64_t value) {
-    ASSERT(thread_timestamp0_ == -1);
-    thread_timestamp0_ = value;
-  }
-
-  void set_thread_timestamp1(int64_t value) {
-    ASSERT(thread_timestamp1_ == -1);
-    thread_timestamp1_ = value;
-  }
-
   bool pre_serialized_args() const {
     return PreSerializedArgsBit::decode(state_);
   }
@@ -570,8 +546,6 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
-  int64_t thread_timestamp0_;
-  int64_t thread_timestamp1_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;

@@ -70,12 +70,23 @@ void pub() {
     expect(result.stderr, result2.stderr);
   });
 
-  test('failure', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+  test('solve failure', () async {
+    p = project(pubspec: {
+      'name': 'myapp',
+      'environment': {'sdk': '^2.19.0'},
+      'dependencies': {
+        'foo': {'path': '../not_to_be_found'},
+      },
+    });
     var result = await p.run(['pub', 'deps']);
-    expect(result.exitCode, 65);
+    expect(result.exitCode, 66);
     expect(result.stdout, isEmpty);
-    expect(result.stderr, contains('No pubspec.lock file found'));
+    expect(
+      result.stderr,
+      contains(
+        '(could not find package foo at "../not_to_be_found"), version solving failed.',
+      ),
+    );
   });
 
   test('failure unknown option', () async {

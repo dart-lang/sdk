@@ -65,8 +65,6 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   GlobalTypeInferenceResults buildResults() {
-    inferrer.close();
-
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         <MemberEntity, GlobalTypeInferenceMemberResult>{};
     Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};
@@ -93,7 +91,7 @@ class TypeGraphInferrer implements TypesInferrer {
           // Always throws if the return type was inferred to be non-null empty.
           abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
-      bool isCalledOnce = typeInformation.isCalledOnce();
+      bool isCalledOnce = typeInformation.isCalledExactlyOnce;
 
       memberResults[member] = GlobalTypeInferenceMemberResultImpl(
           data, returnType, type,
@@ -117,7 +115,6 @@ class TypeGraphInferrer implements TypesInferrer {
       if (!memberResults.containsKey(field)) {
         MemberTypeInformation typeInformation =
             inferrer.types.getInferredTypeOfMember(field);
-        typeInformation.computeIsCalledOnce();
         createMemberResults(field, typeInformation);
       }
     }
@@ -129,9 +126,14 @@ class TypeGraphInferrer implements TypesInferrer {
     });
 
     Map<ir.TreeNode, AbstractValue> allocatedLists = {};
+    Map<ir.TreeNode, AbstractValue> allocatedRecords = {};
     inferrer.types.allocatedLists
         .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
       allocatedLists[node] = typeInformation.type;
+    });
+    inferrer.types.allocatedRecords
+        .forEach((ir.TreeNode node, RecordTypeInformation typeInformation) {
+      allocatedRecords[node] = typeInformation.type;
     });
 
     GlobalTypeInferenceResults results = GlobalTypeInferenceResultsImpl(
@@ -141,7 +143,8 @@ class TypeGraphInferrer implements TypesInferrer {
         memberResults,
         parameterResults,
         inferrer.returnsListElementTypeSet,
-        allocatedLists);
+        allocatedLists,
+        allocatedRecords);
 
     inferrer.clear();
 

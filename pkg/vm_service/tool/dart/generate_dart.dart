@@ -805,6 +805,12 @@ class VmServerConnection {
 
     // Close the try block, handle errors
     gen.write(r'''
+      } on SentinelException catch (e) {
+        _responseSink.add({
+          'jsonrpc': '2.0',
+          'id': request['id'],
+          'result': e.sentinel.toJson(),
+        });
       } catch (e, st) {
         final error = e is RPCError
             ? e.toMap()
@@ -1342,7 +1348,7 @@ class Type extends Member {
   @override
   void generate(DartGenerator gen) {
     gen.writeln();
-    if (docs != null) gen.writeDocs(docs);
+    if (docs != null) gen.writeDocs(docs!);
     gen.write('class $name ');
     Type? superType;
     if (superName != null) {
@@ -1876,7 +1882,7 @@ class TypeField extends Member {
     Type? refType = parent.parent.getType('${parent.name}Ref');
     var interfaceOverride = refType?.hasField(name) ?? false;
 
-    if (docs!.isNotEmpty) gen.writeDocs(docs);
+    if (docs!.isNotEmpty) gen.writeDocs(docs!);
     if (optional) gen.write('@optional ');
     if (overrides || interfaceOverride) gen.write('@override ');
     // Special case where Instance extends Obj, but 'classRef' is not optional
@@ -1946,7 +1952,7 @@ class Enum extends Member {
   @override
   void generate(DartGenerator gen) {
     gen.writeln();
-    if (docs != null) gen.writeDocs(docs);
+    if (docs != null) gen.writeDocs(docs!);
     gen.writeStatement('class $name {');
     gen.writeStatement('$name._();');
     gen.writeln();
@@ -1984,7 +1990,7 @@ class EnumValue extends Member {
 
   @override
   void generate(DartGenerator gen) {
-    if (docs != null) gen.writeDocs(docs);
+    if (docs != null) gen.writeDocs(docs!);
     gen.writeStatement("static const String k$name = '$name';");
   }
 }

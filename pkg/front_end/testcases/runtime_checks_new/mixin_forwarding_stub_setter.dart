@@ -43,7 +43,7 @@ abstract class I<T> {
   void set y(covariant Object value);
 }
 
-class M {
+mixin M {
   int get x => 1;
   void set x(int value) {
     expect(value, 2);

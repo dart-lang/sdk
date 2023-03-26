@@ -91,7 +91,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(HintCode.DEAD_CODE, 37, 10),
+      error(WarningCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -313,9 +313,9 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(HintCode.DEAD_CODE, 37, 10),
+      error(WarningCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(HintCode.DEAD_CODE, 48, 10),
+      error(WarningCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -448,7 +448,7 @@ void f(int x) {
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(HintCode.DEAD_CODE, 42, 10),
+      error(WarningCode.DEAD_CODE, 42, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -525,7 +525,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(HintCode.DEAD_CODE, 48, 10),
+      error(WarningCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -553,6 +553,8 @@ LogicalOrPattern
 void f(num x) {
   switch (x) {
     case final int a || 2:
+      return;
+    default:
       return;
   }
 }
@@ -627,7 +629,7 @@ void f(int x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(HintCode.DEAD_CODE, 59, 4),
+      error(WarningCode.DEAD_CODE, 59, 4),
       error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
@@ -661,6 +663,8 @@ void f(num x) {
   switch (x) {
     case final double a:
     case 2:
+      return;
+    default:
       return;
   }
 }
@@ -707,6 +711,8 @@ void f(num x) {
     case final double a:
       return;
     case 2:
+      return;
+    default:
       return;
   }
 }

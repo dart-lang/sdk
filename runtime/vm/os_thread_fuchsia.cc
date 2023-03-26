@@ -24,7 +24,7 @@ namespace dart {
 
 #define VALIDATE_PTHREAD_RESULT(result)                                        \
   if (result != 0) {                                                           \
-    FATAL1("pthread error: %d", result);                                       \
+    FATAL("pthread error: %d", result);                                        \
   }
 
 #if defined(PRODUCT)
@@ -32,7 +32,7 @@ namespace dart {
 #else
 #define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
   if (result != 0) {                                                           \
-    FATAL2("[%s] pthread error: %d", name_, result);                           \
+    FATAL("[%s] pthread error: %d", name_, result);                            \
   }
 #endif
 
@@ -201,7 +201,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
@@ -328,6 +328,8 @@ Mutex::~Mutex() {
 }
 
 void Mutex::Lock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_lock(data_.mutex());
   // Specifically check for dead lock to help debugging.
   ASSERT(result != EDEADLK);
@@ -339,6 +341,8 @@ void Mutex::Lock() {
 }
 
 bool Mutex::TryLock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
   if (result == EBUSY) {
@@ -413,6 +417,8 @@ Monitor::~Monitor() {
 }
 
 bool Monitor::TryEnter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
   if (result == EBUSY) {
@@ -428,6 +434,8 @@ bool Monitor::TryEnter() {
 }
 
 void Monitor::Enter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_lock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
 

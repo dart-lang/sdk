@@ -17,6 +17,10 @@ import '../../metadata/unboxing_info.dart';
 import 'utils.dart';
 
 class UnboxingInfoManager {
+  // Unbox records in return values if they have
+  // exactly this number of fields.
+  static const int numRecordFieldsForReturnValueUnboxing = 2;
+
   final Map<Member, UnboxingInfoMetadata> _memberInfo = {};
 
   final TypeHierarchy _typeHierarchy;
@@ -93,8 +97,8 @@ class UnboxingInfoManager {
           info = UnboxingInfoMetadata(paramCount);
           selectorIdToInfo[selectorId] = info;
         } else {
-          if (paramCount < info.unboxedArgsInfo.length) {
-            info.unboxedArgsInfo.length = paramCount;
+          if (paramCount < info.argsInfo.length) {
+            info.argsInfo.length = paramCount;
           }
         }
       } else {
@@ -121,8 +125,8 @@ class UnboxingInfoManager {
     if (typeFlowAnalysis.isMemberUsed(member)) {
       final UnboxingInfoMetadata unboxingInfo = _memberInfo[member]!;
       if (_cannotUnbox(member)) {
-        unboxingInfo.unboxedArgsInfo.length = 0;
-        unboxingInfo.returnInfo = UnboxingInfoMetadata.kBoxed;
+        unboxingInfo.argsInfo.length = 0;
+        unboxingInfo.returnInfo = UnboxingType.kBoxed;
         return;
       }
       if (member is Procedure || member is Constructor) {
@@ -150,52 +154,51 @@ class UnboxingInfoManager {
         final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
         _applyToReturn(member, unboxingInfo, resultType);
       } else if (member is Field) {
-        final fieldValue = typeFlowAnalysis.getFieldValue(member).value;
+        final inferredType = typeFlowAnalysis.getFieldValue(member).value;
         if (member.hasSetter) {
-          _applyToArg(member, unboxingInfo, 0, fieldValue);
+          _applyToArg(member, unboxingInfo, 0, inferredType);
         }
-        _applyToReturn(member, unboxingInfo, fieldValue);
+        _applyToReturn(member, unboxingInfo, inferredType);
       } else {
         assert(false, "Unexpected member: $member");
       }
     }
   }
 
-  int _getUnboxingType(Member member, Type type, bool isReturn) {
+  UnboxingType _getUnboxingType(Member member, Type type, bool isReturn) {
     if (type is! NullableType) {
       if (type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass)) {
-        return UnboxingInfoMetadata.kUnboxedIntCandidate;
+        return UnboxingType.kInt;
       }
       if (type.isSubtypeOf(_typeHierarchy, _coreTypes.doubleClass)) {
-        return UnboxingInfoMetadata.kUnboxedDoubleCandidate;
+        return UnboxingType.kDouble;
       }
       if (isReturn) {
-        final function = member.function;
-        if (function != null) {
-          final returnType = function.returnType;
-          if (returnType is RecordType &&
-              (returnType.positional.length + returnType.named.length) == 2) {
-            return UnboxingInfoMetadata.kUnboxedRecordCandidate;
-          }
+        if (type is ConcreteType &&
+            type.cls.isRecord &&
+            type.cls.recordShape!.numFields ==
+                numRecordFieldsForReturnValueUnboxing) {
+          return UnboxingType.record(type.cls.recordShape!);
         }
       }
     }
-    return UnboxingInfoMetadata.kBoxed;
+    return UnboxingType.kBoxed;
   }
 
   void _applyToArg(
       Member member, UnboxingInfoMetadata unboxingInfo, int argPos, Type type) {
-    if (argPos < 0 || unboxingInfo.unboxedArgsInfo.length <= argPos) {
+    if (argPos < 0 || unboxingInfo.argsInfo.length <= argPos) {
       return;
     }
     final unboxingType = _getUnboxingType(member, type, false);
-    unboxingInfo.unboxedArgsInfo[argPos] &= unboxingType;
+    unboxingInfo.argsInfo[argPos] =
+        unboxingInfo.argsInfo[argPos].intersect(unboxingType);
   }
 
   void _applyToReturn(
       Member member, UnboxingInfoMetadata unboxingInfo, Type type) {
     final unboxingType = _getUnboxingType(member, type, true);
-    unboxingInfo.returnInfo &= unboxingType;
+    unboxingInfo.returnInfo = unboxingInfo.returnInfo.intersect(unboxingType);
   }
 
   bool _cannotUnbox(Member member) {

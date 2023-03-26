@@ -1,12 +1,12 @@
 library /*isNonNullableByDefault*/;
 import self as self;
-import "dart:_internal" as _in;
+import "dart:core" as core;
 
 static method f(dynamic x) → dynamic {
   dynamic a;
   {
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x;
     if(!(let final dynamic #t1 = a = #0#0 in true))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
 }

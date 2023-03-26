@@ -53,24 +53,6 @@ abstract class Interface2 {
   void set implementedGetterImplementedSetter(int value) {}
 }
 
-abstract class Mixin {
-  String get extendedSetterMixedInGetter => '';
-  String get mixedInGetterDeclaredField => '';
-  String get mixedInGetterDeclaredSetter => '';
-  String get mixedInGetterImplementedField => '';
-  String get mixedInGetterImplementedSetter => '';
-  final String extendedSetterMixedInField = '';
-  final String mixedInFieldDeclaredSetter = '';
-  final String mixedInFieldImplementedSetter = '';
-  int extendedGetterMixedInField = 0;
-  void set extendedFieldMixedInSetter(int value) {}
-  void set extendedGetterMixedInSetter(int value) {}
-  void set mixedInSetterDeclaredField(int value) {}
-  void set mixedInSetterDeclaredGetter(int value) {}
-  void set mixedInSetterImplementedField(int value) {}
-  void set mixedInSetterImplementedGetter(int value) {}
-}
-
 abstract class Super {
   String get extendedGetterDeclaredField => '';
   String get extendedGetterDeclaredSetter => '';
@@ -90,3 +72,20 @@ abstract class Super {
 }
 
 main() {}
+mixin Mixin {
+  String get extendedSetterMixedInGetter => '';
+  String get mixedInGetterDeclaredField => '';
+  String get mixedInGetterDeclaredSetter => '';
+  String get mixedInGetterImplementedField => '';
+  String get mixedInGetterImplementedSetter => '';
+  final String extendedSetterMixedInField = '';
+  final String mixedInFieldDeclaredSetter = '';
+  final String mixedInFieldImplementedSetter = '';
+  int extendedGetterMixedInField = 0;
+  void set extendedFieldMixedInSetter(int value) {}
+  void set extendedGetterMixedInSetter(int value) {}
+  void set mixedInSetterDeclaredField(int value) {}
+  void set mixedInSetterDeclaredGetter(int value) {}
+  void set mixedInSetterImplementedField(int value) {}
+  void set mixedInSetterImplementedGetter(int value) {}
+}

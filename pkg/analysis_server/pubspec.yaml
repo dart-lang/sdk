@@ -22,6 +22,7 @@ dependencies:
   stream_channel: any
   telemetry: any
   test: any
+  unified_analytics: any
   vm_service: any
   watcher: any
   yaml: any
@@ -34,4 +35,5 @@ dev_dependencies:
   lints: any
   logging: any
   matcher: any
+  test_descriptor: any
   test_reflective_loader: any

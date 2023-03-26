@@ -14,7 +14,7 @@ static method useAddAll() → void {
   core::List<core::int*>* list1 = block {
     final core::List<core::int*>* #t1 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -24,7 +24,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -35,7 +35,7 @@ static method useAddAll() → void {
     }
     #t1.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::int*>*) →* void};
     {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = iterableNumList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -45,7 +45,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = iterableNumList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -56,7 +56,7 @@ static method useAddAll() → void {
     }
     #t1.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::int*>*) →* void};
     {
-      core::Iterator<core::num*>* :sync-for-iterator = numList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = numList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -66,7 +66,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::num*>* :sync-for-iterator = numList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = numList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -80,7 +80,7 @@ static method useAddAll() → void {
   core::List<core::num*>* list2 = block {
     final core::List<core::num*>* #t14 = core::_GrowableList::•<core::num*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -90,7 +90,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t17 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -111,7 +111,7 @@ static method useAddAll() → void {
     final core::List<core::int*>* #t19 = core::_GrowableList::•<core::int*>(0);
     final core::Iterable<dynamic>* #t20 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
     if(!(#t20 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t20.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t20.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t21 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -122,7 +122,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t23 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
     if(!(#t23 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t23.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t23.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t24 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -136,7 +136,7 @@ static method useAddAll() → void {
       #t19.{core::List::addAll}{Invariant}(#t26){(core::Iterable<core::int*>*) →* void};
     final core::Iterable<dynamic>* #t27 = iterableNumList1;
     if(!(#t27 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t27.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t27.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t28 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -147,7 +147,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t30 = iterableNumList2;
     if(!(#t30 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t30.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t30.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t31 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -161,7 +161,7 @@ static method useAddAll() → void {
       #t19.{core::List::addAll}{Invariant}(#t33){(core::Iterable<core::int*>*) →* void};
     final core::Iterable<dynamic>* #t34 = numList1;
     if(!(#t34 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t34.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t34.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t35 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -172,7 +172,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t37 = numList2;
     if(!(#t37 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t37.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t37.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t38 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -187,7 +187,7 @@ static method useAddAll() → void {
     final core::List<core::num*>* #t40 = core::_GrowableList::•<core::num*>(0);
     final core::Iterable<dynamic>* #t41 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
     if(!(#t41 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t41.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t41.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t42 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -198,7 +198,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t44 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
     if(!(#t44 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t44.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t44.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t45 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -230,7 +230,7 @@ static method useAddAll() → void {
   core::List<core::int*>* list5 = block {
     final core::List<core::int*>* #t53 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t54 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -240,7 +240,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t56 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -251,7 +251,7 @@ static method useAddAll() → void {
     }
     #t53.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::int*>*) →* void};
     {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = iterableNumList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t58 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -261,7 +261,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = iterableNumList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t60 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -272,7 +272,7 @@ static method useAddAll() → void {
     }
     #t53.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::int*>*) →* void};
     {
-      core::Iterator<core::num*>* :sync-for-iterator = numList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = numList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t62 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -282,7 +282,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::num*>* :sync-for-iterator = numList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      synthesized core::Iterator<core::num*>* :sync-for-iterator = numList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t64 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -308,7 +308,7 @@ static method useAddAll() → void {
     final core::List<core::int*>* #t67 = core::_GrowableList::•<core::int*>(0);
     final core::Iterable<dynamic>* #t68 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
     if(!(#t68 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t68.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t68.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t69 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -319,7 +319,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t71 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
     if(!(#t71 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t71.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t71.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t72 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -333,7 +333,7 @@ static method useAddAll() → void {
       #t67.{core::List::addAll}{Invariant}(#t74){(core::Iterable<core::int*>*) →* void};
     final core::Iterable<dynamic>* #t75 = iterableNumList1;
     if(!(#t75 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t75.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t75.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t76 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -344,7 +344,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t78 = iterableNumList2;
     if(!(#t78 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t78.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t78.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t79 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -358,7 +358,7 @@ static method useAddAll() → void {
       #t67.{core::List::addAll}{Invariant}(#t81){(core::Iterable<core::int*>*) →* void};
     final core::Iterable<dynamic>* #t82 = numList1;
     if(!(#t82 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t82.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t82.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t83 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -369,7 +369,7 @@ static method useAddAll() → void {
     }
     final core::Iterable<dynamic>* #t85 = numList2;
     if(!(#t85 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t85.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = #t85.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t86 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {

@@ -7,8 +7,8 @@ class I {
   void foo();
 }
 
-class M {
+main() {}
+
+mixin class M {
   dynamic noSuchMethod(Invocation i) => null;
 }
-
-main() {}
