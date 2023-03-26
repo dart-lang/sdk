@@ -1160,9 +1160,20 @@ class CallSiteInliner : public ValueObject {
     if (constant != NULL) {
       return graph->GetConstant(constant->value());
     } else {
-      ParameterInstr* param = new (Z)
-          ParameterInstr(i, -1, graph->graph_entry(), kNoRepresentation);
-      param->UpdateType(*argument->Type());
+      ParameterInstr* param =
+          new (Z) ParameterInstr(/*env_index=*/i, /*param_index=*/i, -1,
+                                 graph->graph_entry(), kNoRepresentation);
+      if (i >= 0) {
+        // Compute initial parameter type using static and inferred types
+        // and combine it with an argument type from the caller.
+        param->UpdateType(
+            *CompileType::ComputeRefinedType(param->Type(), argument->Type()));
+      } else {
+        // Parameter stub for function type arguments.
+        // It doesn't correspond to a real parameter, so don't try to
+        // query its static/inferred type.
+        param->UpdateType(*argument->Type());
+      }
       return param;
     }
   }
@@ -1972,8 +1983,7 @@ class CallSiteInliner : public ValueObject {
       arguments->Add(arg);
       // Create a stub for the argument or use the parameter's default value.
       if (arg != NULL) {
-        param_stubs->Add(
-            CreateParameterStub(first_arg_index + i, arg, callee_graph));
+        param_stubs->Add(CreateParameterStub(i, arg, callee_graph));
       } else {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);

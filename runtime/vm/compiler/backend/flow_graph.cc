@@ -437,7 +437,7 @@ void FlowGraph::ComputeIsReceiverRecursive(
   phi->set_is_receiver(PhiInstr::kReceiver);
   for (intptr_t i = 0; i < phi->InputCount(); ++i) {
     Definition* def = phi->InputAt(i)->definition();
-    if (def->IsParameter() && (def->AsParameter()->index() == 0)) continue;
+    if (def->IsParameter() && (def->AsParameter()->env_index() == 0)) continue;
     if (!def->IsPhi()) {
       phi->set_is_receiver(PhiInstr::kNotReceiver);
       break;
@@ -473,7 +473,7 @@ void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
 
 bool FlowGraph::IsReceiver(Definition* def) const {
   def = def->OriginalDefinition();  // Could be redefined.
-  if (def->IsParameter()) return (def->AsParameter()->index() == 0);
+  if (def->IsParameter()) return (def->AsParameter()->env_index() == 0);
   if (!def->IsPhi() || graph_entry()->HasSingleEntryPoint()) {
     return false;
   }
@@ -1223,18 +1223,21 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
 
     if (index >= 0 && function().is_unboxed_integer_parameter_at(index)) {
       constexpr intptr_t kCorrection = compiler::target::kIntSpillFactor - 1;
-      param = new (zone()) ParameterInstr(i, param_offset + kCorrection,
+      param = new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
+                                          param_offset + kCorrection,
                                           function_entry, kUnboxedInt64);
       param_offset += compiler::target::kIntSpillFactor;
     } else if (index >= 0 && function().is_unboxed_double_parameter_at(index)) {
       constexpr intptr_t kCorrection = compiler::target::kDoubleSpillFactor - 1;
-      param = new (zone()) ParameterInstr(i, param_offset + kCorrection,
+      param = new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
+                                          param_offset + kCorrection,
                                           function_entry, kUnboxedDouble);
       param_offset += compiler::target::kDoubleSpillFactor;
     } else {
       ASSERT(index < 0 || !function().is_unboxed_parameter_at(index));
       param =
-          new (zone()) ParameterInstr(i, param_offset, function_entry, kTagged);
+          new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
+                                      param_offset, function_entry, kTagged);
       param_offset++;
     }
     AllocateSSAIndex(param);
@@ -1309,8 +1312,11 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
   const intptr_t parameter_count = osr_variable_count();
   ASSERT(parameter_count == env->length());
   for (intptr_t i = 0; i < parameter_count; i++) {
-    ParameterInstr* param =
-        new (zone()) ParameterInstr(i, i, osr_entry, kTagged);
+    const intptr_t param_index = (i < num_direct_parameters())
+                                     ? i
+                                     : ParameterInstr::kNotFunctionParameter;
+    ParameterInstr* param = new (zone())
+        ParameterInstr(/*env_index=*/i, param_index, i, osr_entry, kTagged);
     AllocateSSAIndex(param);
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
@@ -1342,7 +1348,10 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
       param = new (Z) SpecialParameterInstr(SpecialParameterInstr::kStackTrace,
                                             DeoptId::kNone, catch_entry);
     } else {
-      param = new (Z) ParameterInstr(i, i, catch_entry, kTagged);
+      param = new (Z)
+          ParameterInstr(/*env_index=*/i,
+                         /*param_index=*/ParameterInstr::kNotFunctionParameter,
+                         i, catch_entry, kTagged);
     }
 
     AllocateSSAIndex(param);  // New SSA temp.

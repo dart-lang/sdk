@@ -109,8 +109,8 @@ static void TryCatchOptimizerTest(
   // We should only synchronize state for variables from the synchronized list.
   for (auto defn : *catch_entry->initial_definitions()) {
     if (ParameterInstr* param = defn->AsParameter()) {
-      EXPECT(0 <= param->index() && param->index() < env.length());
-      EXPECT(env[param->index()] != nullptr);
+      EXPECT(0 <= param->env_index() && param->env_index() < env.length());
+      EXPECT(env[param->env_index()] != nullptr);
     }
   }
 }

@@ -1222,7 +1222,7 @@ void BitCastInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd, index());
+  f->Printf("%" Pd, env_index());
 }
 
 void SpecialParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
