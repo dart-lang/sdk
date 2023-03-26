@@ -188,6 +188,7 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the case clause, or restructuring the preceding "
         "patterns.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:

@@ -350,6 +350,7 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 127
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -387,6 +388,7 @@ RecordLiteralZeroFieldsWithTrailingComma:
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
   index: 128
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -427,6 +429,7 @@ EmptyRecordTypeNamedFieldsList:
   correctionMessage: "Try adding a named field to the list."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
   index: 129
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -468,6 +471,7 @@ RecordTypeZeroFieldsButTrailingComma:
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
   index: 130
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -508,6 +512,7 @@ RecordTypeOnePositionalFieldNoTrailingComma:
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 131
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -955,6 +960,7 @@ AbstractSealedClass:
   correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
   index: 132
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
