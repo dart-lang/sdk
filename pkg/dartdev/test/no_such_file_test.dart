@@ -10,7 +10,6 @@ void main() {
   late TestProject p;
 
   setUp(() async => p = project());
-  tearDown(() async => await p.dispose());
 
   test('Ensure parsing fails after encountering invalid file', () async {
     // Regression test for https://github.com/dart-lang/sdk/issues/43991

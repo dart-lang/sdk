@@ -5,6 +5,7 @@
 import 'package:front_end/src/fasta/type_inference/delayed_expressions.dart';
 import 'package:front_end/src/fasta/type_inference/matching_cache.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../names.dart';
 
@@ -13,8 +14,9 @@ import '../names.dart';
 class MatchingExpressionVisitor
     implements PatternVisitor1<DelayedExpression, CacheableExpression> {
   final MatchingCache matchingCache;
+  final CoreTypes coreTypes;
 
-  MatchingExpressionVisitor(this.matchingCache);
+  MatchingExpressionVisitor(this.matchingCache, this.coreTypes);
 
   DelayedExpression visitPattern(
       Pattern node, CacheableExpression matchedExpression) {
@@ -625,6 +627,7 @@ class MatchingExpressionVisitor
                       isImplicit: true, fileOffset: node.fileOffset)
                 ],
                 fileOffset: node.fileOffset);
+
             break;
           case RelationalAccessKind.Static:
             FunctionType functionType = node.functionType!;
@@ -669,6 +672,9 @@ class MatchingExpressionVisitor
                 fileOffset: node.fileOffset);
             break;
         }
+        expression = new DelayedAsExpression(
+            expression, coreTypes.boolNonNullableRawType,
+            isImplicit: true, fileOffset: node.fileOffset);
         return matchingCache.createComparisonExpression(
             matchedExpression, node.name!.text, constant, expression,
             staticTarget: staticTarget, fileOffset: node.fileOffset);

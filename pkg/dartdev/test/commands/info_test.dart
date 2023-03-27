@@ -12,8 +12,6 @@ void main() {
   group('info', () {
     late TestProject p;
 
-    tearDown(() async => await p.dispose());
-
     test('--help', () async {
       p = project();
       final result = await p.run(['info', '--help']);
@@ -55,9 +53,7 @@ void main() {
     test('getProjectInfo', () {
       p = project(
         mainSrc: 'void main() {}',
-        pubspec: {
-          'name': 'foo',
-          'environment': {'sdk': '>=2.10.0 <3.0.0'},
+        pubspecExtras: {
           'dependencies': {'dummy_pkg': '0.0.1'},
         },
       );

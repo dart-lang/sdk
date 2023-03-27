@@ -21,8 +21,6 @@ void main() {
       r'The Resident Frontend Compiler instance at ([a-zA-Z0-9:/=_\-\.\[\]]+) was successfully shutdown.',
     );
 
-    tearDown(() async => await p.dispose());
-
     test('shutdown issued with no server running', () async {
       p = project();
       final serverInfoFile = path.join(p.dirPath, 'info');

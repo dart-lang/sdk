@@ -12,7 +12,6 @@ void main() {
   late TestProject p;
 
   setUp(() => p = project(mainSrc: "void main() { print('Hello World'); }"));
-  tearDown(() async => await p.dispose());
 
   test("Fallback to dartdev.dill from dartdev.dart.snapshot for 'Hello World'",
       () async {

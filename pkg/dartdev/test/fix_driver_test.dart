@@ -18,11 +18,8 @@ Future<FixOutput> runFix(List<String> args) async {
 }
 
 void _driver() {
-  late TestProject p;
-  tearDown(() async => await p.dispose());
-
   test('no fixes', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    final p = project(mainSrc: 'int get foo => 1;\n');
     var result = await runFix(['--apply', p.dirPath]);
     expect(result.stdout, contains('Nothing to fix!'));
     expect(result.returnCode, 0);

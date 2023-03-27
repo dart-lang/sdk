@@ -19,12 +19,10 @@ void main() {
 }
 
 void defineTest(List<Experiment> experiments) {
-  late TestProject p;
-
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
 
     final result = await p.run(['test', '--help']);
 
@@ -38,7 +36,9 @@ Usage: dart test [files or directories...]
   });
 
   test('dart help test', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
 
     final result = await p.run(['help', 'test']);
 
@@ -48,7 +48,9 @@ Usage: dart test [files or directories...]
   });
 
   test('no pubspec.yaml', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
     var pubspec = File(path.join(p.dirPath, 'pubspec.yaml'));
     pubspec.deleteSync();
 
@@ -69,7 +71,9 @@ No pubspec.yaml file found - run this command in your project folder.
   });
 
   test('runs test', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
 
@@ -89,7 +93,12 @@ void main() {
   });
 
   test('no package:test dependency', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    final p = project(
+      mainSrc: 'int get foo => 1;\n',
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'}
+      },
+    );
     p.file('pubspec.yaml', '''
 name: ${p.name}
 environment:
@@ -125,7 +134,12 @@ void main() {
   });
 
   test('has package:test dependency', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    final p = project(
+      mainSrc: 'int get foo => 1;\n',
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'}
+      },
+    );
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
 
@@ -144,6 +158,7 @@ void main() {
   });
 
   group('--enable-experiment', () {
+    late TestProject p;
     Future<ProcessResult> runTestWithExperimentFlag(String? flag) async {
       return await p.run([
         if (flag != null) flag,
@@ -171,8 +186,12 @@ void main() {
       test(experiment.name, () async {
         final currentSdk = Version.parse(Platform.version.split(' ').first);
         p = project(
-            mainSrc: experiment.validation,
-            sdkConstraint: VersionConstraint.compatibleWith(currentSdk));
+          mainSrc: experiment.validation,
+          sdkConstraint: VersionConstraint.compatibleWith(currentSdk),
+          pubspecExtras: {
+            'dev_dependencies': {'test': 'any'}
+          },
+        );
         p.file('test/experiment_test.dart', '''
 import 'package:dartdev_temp/main.dart' as imported;
 import 'package:test/test.dart';

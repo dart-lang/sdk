@@ -13,10 +13,6 @@ void main() {
 }
 
 void pub() {
-  TestProject p = project();
-
-  tearDown(() async => await p.dispose());
-
   void assertPubHelpInvoked(ProcessResult result) {
     expect(result, isNotNull);
     expect(result.exitCode, 0);
@@ -43,7 +39,7 @@ void pub() {
   });
 
   test('help cache', () async {
-    p = project();
+    final p = project();
     var result = await p.run(['help', 'pub', 'cache']);
     var result2 = await p.run(['pub', 'cache', '--help']);
 
@@ -57,7 +53,7 @@ void pub() {
   });
 
   test('help publish', () async {
-    p = project();
+    final p = project();
     var result = await p.run(['help', 'pub', 'publish']);
     var result2 = await p.run(['pub', 'publish', '--help']);
 
@@ -71,7 +67,7 @@ void pub() {
   });
 
   test('solve failure', () async {
-    p = project(pubspec: {
+    final p = project(pubspecExtras: {
       'name': 'myapp',
       'environment': {'sdk': '^2.19.0'},
       'dependencies': {
@@ -91,7 +87,7 @@ void pub() {
   });
 
   test('failure unknown option', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    final p = project(mainSrc: 'int get foo => 1;\n');
     var result = await p.run(['pub', 'deps', '--foo']);
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);

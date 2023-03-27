@@ -168,11 +168,6 @@
 
 ### Tools
 
-#### Observatory
-- Observatory is no longer served by default and users should instead use Dart
-  DevTools. Users requiring specific functionality in Observatory should set
-  the `--serve-observatory` flag.
-
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
 
@@ -189,6 +184,24 @@
 * Don't split after `<` in collection literals.
 * Better indentation of multiline function types inside type argument lists.
 * Fix bug where parameter metadata wouldn't always split when it should.
+
+#### Analyzer
+
+- Most static analysis "hints" are converted to be "warnings," and any
+  remaining hints are intended to be converted soon after the Dart 3.0 release.
+  This means that any (previously) hints reported by `dart analyze` are now
+  considered "fatal" (will result in a non-zero exit code). The previous
+  behavior, where such hints (now warnings) are not fatal, can be achieved by
+  using the `--no-fatal-warnings` flag. This behavior can also be altered, on a
+  code-by-code basis, by [changing the severity of rules] in an analysis
+  options file.
+- Add static enforcement of the SDK-only `@Since` annotation. When code in a
+  package uses a Dart SDK element annotated with `@Since`, analyzer will report
+  a warning if the package's [Dart SDK constraint] allows versions of Dart
+  which don't include that element.
+
+[changing the severity of rules]: https://dart.dev/guides/language/analysis-options#changing-the-severity-of-rules
+[Dart SDK constraint]: https://dart.dev/tools/pub/pubspec#sdk-constraints
 
 #### Linter
 

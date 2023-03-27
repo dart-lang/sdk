@@ -42,8 +42,6 @@ void main() {
   group('info windows', () {
     late TestProject p;
 
-    tearDown(() async => await p.dispose());
-
     test('shows process info', () async {
       p = project(mainSrc: 'void main() {}');
       final runResult = await p.run(['info']);

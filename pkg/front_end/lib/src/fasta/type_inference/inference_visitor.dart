@@ -2300,8 +2300,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       patternGuard.guard = guardError..parent = patternGuard;
-    } else if (!identical(patternGuard.guard, rewrite)) {
-      patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+    } else {
+      if (!identical(patternGuard.guard, rewrite)) {
+        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+      }
+      if (analysisResult.guardType is DynamicType) {
+        patternGuard.guard = _createImplicitAs(patternGuard.guard!.fileOffset,
+            patternGuard.guard!, coreTypes.boolNonNullableRawType)
+          ..parent = patternGuard;
+      }
     }
 
     rewrite = popRewrite();
@@ -4217,8 +4224,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       patternGuard.guard = guardError..parent = patternGuard;
-    } else if (!identical(patternGuard.guard, rewrite)) {
-      patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+    } else {
+      if (!identical(patternGuard.guard, rewrite)) {
+        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+      }
+      if (analysisResult.guardType is DynamicType) {
+        patternGuard.guard = _createImplicitAs(patternGuard.guard!.fileOffset,
+            patternGuard.guard!, coreTypes.boolNonNullableRawType)
+          ..parent = patternGuard;
+      }
     }
 
     rewrite = popRewrite();
