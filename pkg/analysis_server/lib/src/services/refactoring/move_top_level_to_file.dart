@@ -73,8 +73,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
     if (destinationImportUri == null) {
       return;
     }
-    var destinationExists =
-        unitResult.session.resourceProvider.getFile(destinationFilePath).exists;
+    var destinationFile =
+        unitResult.session.resourceProvider.getFile(destinationFilePath);
+    var destinationExists = destinationFile.exists;
+    var insertOffset = 0;
+    var insertLeadingNewline = false;
     String? fileHeader;
     if (!destinationExists) {
       var headerTokens = unitResult.unit.fileHeader;
@@ -83,6 +86,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
         var end = headerTokens.last.end;
         fileHeader = utils.getText(offset, end - offset);
       }
+    } else {
+      // If the file exists, insert at the end because there may be directives
+      // at the start.
+      insertOffset = destinationFile.lengthSync;
+      insertLeadingNewline = true;
     }
 
     // TODO(dantup): Don't show refactor in part files while not supported.
@@ -100,7 +108,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
       if (fileHeader != null) {
         builder.fileHeader = fileHeader + utils.endOfLine;
       }
-      builder.addInsertion(0, (builder) {
+      builder.addInsertion(insertOffset, (builder) {
+        if (insertLeadingNewline) {
+          builder.writeln();
+        }
         for (var i = 0; i < members.groups.length; i++) {
           var group = members.groups[i];
           var sourceRange =
@@ -123,11 +134,6 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.addDeletion(sourceRange);
       }
     });
-    // TODO(brianwilkerson) This doesn't correctly handle prefixes. In order to
-    //  use the correct prefix when adding the import we need to enhance
-    //  `SearchMatch` to know the prefix used for a reference match. The index
-    //  already has the required information, it just isn't available yet in the
-    //  result object.
     var libraries = <LibraryElement, Set<Element>>{};
     for (var element in analyzer.movingDeclarations) {
       var matches = await searchEngine.searchReferences(element);
