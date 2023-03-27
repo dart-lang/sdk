@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -68,11 +69,21 @@ class PreferFinalLocals extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addListPattern(this, visitor);
-    registry.addMapPattern(this, visitor);
-    registry.addObjectPattern(this, visitor);
-    registry.addRecordPattern(this, visitor);
+    registry.addDeclaredVariablePattern(this, visitor);
+    registry.addPatternVariableDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
+  }
+}
+
+class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
+  final List<BindPatternVariableElement> declaredElements = [];
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var element = node.declaredElement;
+    if (element != null) {
+      declaredElements.add(element);
+    }
   }
 }
 
@@ -80,72 +91,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
-
-  void checkPatternElements(AstNode node, List<AstNode> elements) {
-    if (node.isInFinalPatternVariableDeclaration) return;
-
-    var function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function == null) return;
-
-    var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
-
-    for (var element in elements) {
-      if (element is MapPatternEntry) {
-        element = element.value;
-      }
-      if (element.isDeclaredFinal) continue;
-      if (inCaseClause) {
-        if (!isPotentiallyMutated(element, function)) {
-          rule.reportLint(element);
-        }
-      } else {
-        if (isPotentiallyMutated(element, function)) return;
-      }
-    }
-
-    if (!inCaseClause) {
-      rule.reportLint(node);
-    }
-  }
-
-  void checkPatternFields(DartPattern node) {
-    var function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function == null) return;
-
-    late NodeList<PatternField> fields;
-    if (node is RecordPattern) fields = node.fields;
-    if (node is ObjectPattern) fields = node.fields;
-
-    var parent = node.unParenthesized.parent;
-    var inPatternVariableDeclaration = false;
-    if (parent is PatternVariableDeclaration) {
-      if (parent.keyword.keyword == Keyword.FINAL) return;
-      inPatternVariableDeclaration = true;
-    }
-
-    for (var field in fields) {
-      var pattern = field.pattern.declaredVariablePattern;
-      if (pattern is DeclaredVariablePattern) {
-        var element = pattern.declaredElement;
-        if (element == null) continue;
-        if (function.isPotentiallyMutatedInScope(element)) {
-          if (inPatternVariableDeclaration) {
-            return;
-          } else {
-            continue;
-          }
-        }
-        if (inPatternVariableDeclaration) {
-          rule.reportLint((parent! as PatternVariableDeclaration).expression);
-          return;
-        } else {
-          if (!pattern.keyword.isFinal) {
-            rule.reportLintForToken(pattern.name);
-          }
-        }
-      }
-    }
-  }
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
@@ -158,23 +103,57 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitListPattern(ListPattern node) {
-    checkPatternElements(node, node.elements);
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    // [DeclaredVariablePattern]s which are declared by a
+    // [PatternVariableDeclaration] are reported in
+    // [visitPatternVariableDeclaration].
+    if (node.thisOrAncestorOfType<PatternVariableDeclaration>() != null) return;
+    if (node.isDeclaredFinal) return;
+
+    var function = node.thisOrAncestorOfType<FunctionBody>();
+    if (function == null) return;
+
+    var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
+
+    if (inCaseClause) {
+      if (!isPotentiallyMutated(node, function)) {
+        rule.reportLint(node);
+      }
+    } else {
+      if (isPotentiallyMutated(node, function)) return;
+    }
+
+    if (!inCaseClause) {
+      rule.reportLint(node);
+    }
   }
 
   @override
-  void visitMapPattern(MapPattern node) {
-    checkPatternElements(node, node.elements);
-  }
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    if (node.isDeclaredFinal) return;
+    if (node.keyword.isFinal) return;
 
-  @override
-  void visitObjectPattern(ObjectPattern node) {
-    checkPatternFields(node);
-  }
+    var function = node.thisOrAncestorOfType<FunctionBody>();
+    if (function == null) return;
 
-  @override
-  void visitRecordPattern(RecordPattern node) {
-    checkPatternFields(node);
+    var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
+
+    if (inCaseClause) {
+      if (!isPotentiallyMutated(node, function)) {
+        rule.reportLint(node);
+      }
+    } else {
+      var declaredVariableVisitor = _DeclaredVariableVisitor();
+      node.accept(declaredVariableVisitor);
+      var declaredElements = declaredVariableVisitor.declaredElements;
+      for (var element in declaredElements) {
+        if (function.isPotentiallyMutatedInScope(element)) {
+          return;
+        }
+      }
+
+      rule.reportLintForToken(node.keyword);
+    }
   }
 
   @override
@@ -208,12 +187,6 @@ extension on AstNode {
     if (self is DeclaredVariablePattern) return self.keyword.isFinal;
     return false;
   }
-
-  bool get isInFinalPatternVariableDeclaration {
-    var declaration = thisOrAncestorOfType<PatternVariableDeclaration>();
-    if (declaration == null) return false;
-    return declaration.keyword.isFinal;
-  }
 }
 
 extension on Token? {
@@ -221,17 +194,5 @@ extension on Token? {
     var self = this;
     if (self == null) return false;
     return self.keyword == Keyword.FINAL;
-  }
-}
-
-extension on DartPattern {
-  DeclaredVariablePattern? get declaredVariablePattern {
-    var self = this;
-    if (self is DeclaredVariablePattern) return self;
-    // todo(pq): more cases?
-    if (self is LogicalAndPattern) {
-      return self.rightOperand.declaredVariablePattern;
-    }
-    return null;
   }
 }
