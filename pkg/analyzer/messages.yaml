@@ -19266,6 +19266,7 @@ FfiCode:
       }
       ```
   SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
+    removed: 3.0
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't extend '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
@@ -19316,6 +19317,7 @@ FfiCode:
       final class C {}
       ```
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
+    removed: 3.0
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
     correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
@@ -19325,6 +19327,7 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
   SUBTYPE_OF_FFI_CLASS_IN_WITH:
+    removed: 3.0
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."

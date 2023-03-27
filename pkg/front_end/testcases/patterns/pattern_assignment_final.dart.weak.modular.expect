@@ -48,7 +48,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   definitelyAssignedFinal = 10;
   definitelyAssignedLateFinal = 20;
   block {
-    final synthesized dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int, core::int, dynamic);
     if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:31:4: Error: Can't assign to the final variable 'initializedFinal'.
   (initializedFinal, // Error
    ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Late final variable 'initializedLateFinal' definitely assigned.
@@ -57,14 +57,14 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
       throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
   block {
-    final synthesized dynamic #1#0 = y;
+    final synthesized dynamic #1#0 = y as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
     if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = definitelyUnassignedLateFinal = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
     definitelyAssignedFinal] = y; // Error
     ^^^^^^^^^^^^^^^^^^^^^^^"))
       throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
   block {
-    final synthesized dynamic #2#0 = z;
+    final synthesized dynamic #2#0 = z as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class;
     late final synthesized dynamic #2#3 = #2#0{self::Class}.{self::Class::field2}{dynamic};
     late final synthesized dynamic #2#9 = #2#3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #2#16 = #2#3{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};

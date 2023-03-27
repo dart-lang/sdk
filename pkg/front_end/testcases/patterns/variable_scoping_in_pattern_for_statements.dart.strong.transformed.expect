@@ -7,7 +7,7 @@ static method test1(dynamic x) → dynamic {
   {
     dynamic i;
     {
-      final synthesized dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>;
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
         throw new core::StateError::•("Pattern matching error");
     }
@@ -21,7 +21,7 @@ static method test2(dynamic x) → dynamic {
   {
     core::int i;
     {
-      final synthesized dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
@@ -40,7 +40,7 @@ static method test3(dynamic x) → dynamic {
   {
     core::int i;
     {
-      final synthesized dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
@@ -85,4 +85,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///variable_scoping_in_pattern_for_statements.dart:14:13 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///variable_scoping_in_pattern_for_statements.dart:31:28 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 116, effectively constant: 2
+Extra constant evaluation: evaluated: 119, effectively constant: 2

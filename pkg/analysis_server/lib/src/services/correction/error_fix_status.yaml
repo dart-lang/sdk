@@ -1379,11 +1379,11 @@ FfiCode.PACKED_ANNOTATION_ALIGNMENT:
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: needsEvaluation
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: hasFix
+  status: noFix
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-  status: hasFix
+  status: noFix
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
-  status: hasFix
+  status: noFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
