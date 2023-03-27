@@ -785,12 +785,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       }
     }
 
-    for (final parent in nativeTypesClasses.values) {
-      if (hierarchy.isSubtypeOf(klass, parent)) {
-        return parent;
-      }
-    }
-
     return null;
   }
 
