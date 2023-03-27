@@ -1,1 +1,0 @@
-sealed mixin M {}

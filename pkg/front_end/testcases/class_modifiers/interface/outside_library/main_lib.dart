@@ -4,4 +4,4 @@
 
 interface class A {}
 
-interface mixin M {}
+interface class B {}

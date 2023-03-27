@@ -8,16 +8,8 @@ final class ExtendsFinalClass extends A {}
 
 final class ImplementsFinalClass implements A {}
 
-final class ImplementsFinalMixin implements M {}
+enum EnumImplementsFinalMixin implements A { x }
 
-final class MixInFinalMixin with M {}
+base mixin MixinOnA on A {}
 
-enum EnumImplementsFinalMixin implements M { x }
-
-enum EnumMixInFinalMixin with M { x }
-
-final mixin MixinOnA on A {}
-
-final mixin MixinOnM on M {}
-
-final mixin MixinOnAM on A, M {}
+base mixin MixinOnAB on A, B {}

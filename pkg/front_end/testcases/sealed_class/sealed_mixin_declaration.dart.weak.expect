@@ -1,6 +1,0 @@
-library /*isNonNullableByDefault*/;
-import self as self;
-import "dart:core" as core;
-
-abstract sealed class M extends core::Object /*isMixinDeclaration*/  {
-}

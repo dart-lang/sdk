@@ -8,12 +8,6 @@ class ExtendsFinalClass extends A {} /* Error */
 
 class ImplementsFinalClass implements A {} /* Error */
 
-class ImplementsFinalMixin implements M {} /* Error */
-
-class MixInFinalMixin with M {} /* Error */
-
 mixin MixinOnA on A {} /* Error */
 
-mixin MixinOnM on M {} /* Error */
-
-mixin MixinOnAM on A, M {} /* Error */
+mixin MixinOnAB on A, B {} /* Error */
