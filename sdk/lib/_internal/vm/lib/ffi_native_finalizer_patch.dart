@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 @patch
 @pragma("vm:entry-point")
+@vmIsolateUnsendable
 abstract interface class Finalizable {}
 
 @patch

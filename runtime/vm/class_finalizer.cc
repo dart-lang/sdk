@@ -1088,6 +1088,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   bool implements_finalizable =
       cls.Name() == Symbols::Finalizable().ptr() &&
       Library::UrlOf(cls.library()) == Symbols::DartFfi().ptr();
+  bool is_isolate_unsendable = cls.is_isolate_unsendable();
 
   // Finalize super class.
   Class& super_class = Class::Handle(zone, cls.SuperClass());
@@ -1106,6 +1107,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     cls.set_super_type(super_type);
     implements_finalizable |=
         Class::ImplementsFinalizable(super_type.type_class());
+    is_isolate_unsendable |=
+        Class::IsIsolateUnsendable(super_type.type_class());
   }
   // Finalize interface types (but not necessarily interface classes).
   const auto& interface_types = Array::Handle(zone, cls.interfaces());
@@ -1120,9 +1123,12 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     interface_types.SetAt(i, interface_type);
     implements_finalizable |=
         Class::ImplementsFinalizable(interface_type.type_class());
+    is_isolate_unsendable |=
+        Class::IsIsolateUnsendable(interface_type.type_class());
   }
   cls.set_implements_finalizable(implements_finalizable);
   cls.set_is_type_finalized();
+  cls.set_is_isolate_unsendable(is_isolate_unsendable);
 
   RegisterClassInHierarchy(thread->zone(), cls);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

@@ -228,6 +228,7 @@ class KernelLoader : public ValueObject {
                          intptr_t annotation_count,
                          String* native_name,
                          bool* is_invisible_function,
+                         bool* is_isolate_unsendable,
                          bool* has_pragma_annotation);
 
   KernelLoader(const Script& script,

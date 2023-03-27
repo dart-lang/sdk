@@ -116,7 +116,8 @@ import "dart:_internal"
         printToConsole,
         Since,
         typeAcceptsNull,
-        unsafeCast;
+        unsafeCast,
+        vmIsolateUnsendable;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

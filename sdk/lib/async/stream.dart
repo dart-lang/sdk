@@ -133,6 +133,7 @@ typedef void _TimerCallback();
 /// A broadcast stream inheriting from [Stream] must override [isBroadcast]
 /// to return `true` if it wants to signal that it behaves like a broadcast
 /// stream.
+@vmIsolateUnsendable
 abstract mixin class Stream<T> {
   const Stream();
 

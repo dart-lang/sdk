@@ -1018,3 +1018,19 @@ class DoubleLinkedQueueEntry<E> {
   /// The next entry, or `null` if there is none.
   DoubleLinkedQueueEntry<E>? nextEntry() => _nextLink;
 }
+
+/// Annotation on a class preventing instances from being sent between isolates.
+///
+/// Applies to class, mixin or enum declarations, and is inherited by subclasses
+/// along extends, with and implements relations.
+///
+/// An instance of a class with this annotation will be prevented from being
+/// part of isolate communication. It cannot be sent through a SendPort,
+/// not even if both ends are in the same isolate, and it cannot be part of
+/// the initial message of isolate spawn operations.
+///
+/// The annotation is intended for classes which have a dynamic link
+/// to the current isolate, for example being tied to the event loop
+/// through scheduled events or timers, which would put the object into
+/// an inconsistent state if simply being copied.
+const vmIsolateUnsendable = pragma("vm:isolate-unsendable");

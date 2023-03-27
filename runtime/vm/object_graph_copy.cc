@@ -826,29 +826,17 @@ class ObjectCopyBase {
   DART_FORCE_INLINE
   bool CanCopyObject(uword tags, ObjectPtr object) {
     const auto cid = UntaggedObject::ClassIdTag::decode(tags);
+    if (Class::IsIsolateUnsendable(class_table_->At(cid))) {
+      exception_msg_ = OS::SCreate(
+          zone_,
+          "Illegal argument in isolate message: object is unsendable - %s ("
+          "see restrictions listed at `SendPort.send()` documentation "
+          "for more information)",
+          Class::Handle(class_table_->At(cid)).ToCString());
+      exception_unexpected_object_ = object;
+      return false;
+    }
     if (cid > kNumPredefinedCids) {
-      const bool has_native_fields =
-          Class::NumNativeFieldsOf(class_table_->At(cid)) != 0;
-      if (has_native_fields) {
-        exception_msg_ =
-            OS::SCreate(zone_,
-                        "Illegal argument in isolate message: (object extends "
-                        "NativeWrapper - %s)",
-                        Class::Handle(class_table_->At(cid)).ToCString());
-        exception_unexpected_object_ = object;
-        return false;
-      }
-      const bool implements_finalizable =
-          Class::ImplementsFinalizable(class_table_->At(cid));
-      if (implements_finalizable) {
-        exception_msg_ = OS::SCreate(
-            zone_,
-            "Illegal argument in isolate message: (object implements "
-            "Finalizable - %s)",
-            Class::Handle(class_table_->At(cid)).ToCString());
-        exception_unexpected_object_ = object;
-        return false;
-      }
       return true;
     }
 #define HANDLE_ILLEGAL_CASE(Type)                                              \
@@ -1030,12 +1018,9 @@ class RetainingPath {
           }
           // These we are not expected to drill into as they can't be on
           // retaining path, they are illegal to send.
-          if (cid >= kNumPredefinedCids) {
-            klass = class_table->At(cid);
-            if ((klass.num_native_fields() != 0) ||
-                (klass.implements_finalizable())) {
-              break;
-            }
+          klass = class_table->At(cid);
+          if (klass.is_isolate_unsendable()) {
+            break;
           }
         } else {
           ASSERT(traversal_rules_ ==

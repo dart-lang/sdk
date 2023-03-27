@@ -192,7 +192,7 @@ KernelLoader::KernelLoader(Program* program,
       patch_classes_(Array::ZoneHandle(zone_)),
       active_class_(),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
-      correction_offset_(-1),  // Set to the correct value in LoadLibrary
+      correction_offset_(-1),      // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
@@ -1045,6 +1045,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     bool has_pragma_annotation;
     ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
                       /*is_invisible_function=*/nullptr,
+                      /*is_isolate_unsendable=*/nullptr,
                       &has_pragma_annotation);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
@@ -1356,8 +1357,13 @@ void KernelLoader::LoadClass(const Library& library,
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
   bool has_pragma_annotation = false;
+  bool is_isolate_unsendable = false;
   ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                    /*is_invisible_function=*/nullptr, &has_pragma_annotation);
+                    /*is_invisible_function=*/nullptr, &is_isolate_unsendable,
+                    &has_pragma_annotation);
+  if (is_isolate_unsendable) {
+    out_class->set_is_isolate_unsendable(true);
+  }
   if (has_pragma_annotation) {
     out_class->set_has_pragma(true);
   }
@@ -1437,6 +1443,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       bool has_pragma_annotation;
       ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
                         /*is_invisible_function=*/nullptr,
+                        /*is_isolate_unsendable=*/nullptr,
                         &has_pragma_annotation);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
@@ -1563,7 +1570,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     bool has_pragma_annotation;
     bool is_invisible_function;
     ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      &is_invisible_function, &has_pragma_annotation);
+                      &is_invisible_function, /*isolate_unsendable=*/nullptr,
+                      &has_pragma_annotation);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1705,7 +1713,8 @@ void KernelLoader::FinishLoading(const Class& klass) {
                                    class_index, &class_helper);
 }
 
-// Read annotations on a procedure to identify potential VM-specific directives.
+// Read annotations on a procedure or a class to identify potential VM-specific
+// directives.
 //
 // Output parameters:
 //
@@ -1720,6 +1729,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
                                      intptr_t annotation_count,
                                      String* native_name,
                                      bool* is_invisible_function,
+                                     bool* is_isolate_unsendable,
                                      bool* has_pragma_annotation) {
   if (is_invisible_function != nullptr) {
     *is_invisible_function = false;
@@ -1755,6 +1765,12 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
           if (constant_reader.IsStringConstant(name_index,
                                                "vm:external-name")) {
             constant_reader.GetStringConstant(options_index, native_name);
+          }
+        }
+        if (is_isolate_unsendable != nullptr) {
+          if (constant_reader.IsStringConstant(name_index,
+                                               "vm:isolate-unsendable")) {
+            *is_isolate_unsendable = true;
           }
         }
       }
@@ -1796,7 +1812,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_invisible_function;
   const intptr_t annotation_count = helper_.ReadListLength();
   ReadVMAnnotations(library, annotation_count, &native_name,
-                    &is_invisible_function, &has_pragma_annotation);
+                    &is_invisible_function, /*isolate_unsendable=*/nullptr,
+                    &has_pragma_annotation);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =

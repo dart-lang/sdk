@@ -1683,6 +1683,9 @@ class Class : public Object {
     ASSERT(Class::Handle(clazz).is_type_finalized());
     return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
   }
+  static bool IsIsolateUnsendable(ClassPtr clazz) {
+    return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
+  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   CodePtr allocation_stub() const { return untag()->allocation_stub(); }
@@ -1924,6 +1927,12 @@ class Class : public Object {
     kBaseClassBit,
     kInterfaceClassBit,
     kFinalBit,
+    // Whether instances of the class cannot be sent across ports.
+    //
+    // Will be true iff
+    //    - class is marked with `@pramga('vm:isolate-unsendable')
+    //    - super class / super interface classes are marked as unsendable.
+    kIsIsolateUnsendableBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1954,6 +1963,8 @@ class Class : public Object {
   class InterfaceClassBit
       : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
   class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
+  class IsIsolateUnsendableBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1993,7 +2004,12 @@ class Class : public Object {
   void set_num_type_arguments_unsafe(intptr_t value) const;
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
-  void set_has_pragma(bool has_pragma) const;
+  void set_has_pragma(bool value) const;
+
+  void set_is_isolate_unsendable(bool value) const;
+  bool is_isolate_unsendable() const {
+    return IsIsolateUnsendableBit::decode(state_bits());
+  }
 
   bool implements_finalizable() const {
     ASSERT(is_type_finalized());
