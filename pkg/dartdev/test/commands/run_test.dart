@@ -34,8 +34,6 @@ void main() async {
 void run() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
     p = project();
     var result = await p.run(['run', '--help']);
@@ -178,7 +176,7 @@ void run() {
 
   test('from path-dependency with cyclic dependency', () async {
     p = project(name: 'foo');
-    final bar = TestProject(name: 'bar');
+    final bar = project(name: 'bar');
     p.file('pubspec.yaml', '''
 name: foo
 environment:
@@ -191,22 +189,18 @@ import 'package:bar/bar.dart';
 final b = "FOO $bar";
 ''');
 
-    try {
-      bar.file('lib/bar.dart', 'final bar = "BAR";');
+    bar.file('lib/bar.dart', 'final bar = "BAR";');
 
-      bar.file('bin/main.dart', r'''
+    bar.file('bin/main.dart', r'''
 import 'package:foo/foo.dart';
 void main(List<String> args) => print("$b $args");
 ''');
 
-      ProcessResult result = await p.run(['run', 'bar:main', '--arg1', 'arg2']);
+    ProcessResult result = await p.run(['run', 'bar:main', '--arg1', 'arg2']);
 
-      expect(result.stderr, isEmpty);
-      expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
-      expect(result.exitCode, 0);
-    } finally {
-      await bar.dispose();
-    }
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
+    expect(result.exitCode, 0);
   });
 
   test('with absolute file path', () async {
@@ -341,10 +335,7 @@ void main(List<String> args) => print("$b $args");
     expect(result.stderr, isEmpty);
     expect(result.stdout, isEmpty);
     expect(result.exitCode, 0);
-    expect(
-        p
-            .findFile(path.join(p.dirPath, 'dart-timeline.json'))!
-            .readAsStringSync(),
+    expect(p.findFile('dart-timeline.json')!.readAsStringSync(),
         contains('"name":"sync","cat":"Dart"'));
   });
 
@@ -753,11 +744,7 @@ void residentRun() {
         File(path.join(serverInfoDirectory.dirPath, 'info')),
       );
     } catch (_) {}
-
-    serverInfoDirectory.dispose();
   });
-
-  tearDown(() async => await p.dispose());
 
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
@@ -784,7 +771,7 @@ void residentRun() {
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
       sdkConstraint: VersionConstraint.parse(
-        '>=2.19.0 <3.0.0',
+        '^3.0.0',
       ),
     );
     final result = await p.run([
@@ -811,7 +798,6 @@ void residentRun() {
   test('same server used from different directories', () async {
     p = project(mainSrc: "void main() { print('1'); }");
     TestProject p2 = project(mainSrc: "void main() { print('2'); }");
-    addTearDown(() async => p2.dispose());
 
     final runResult1 = await p.run([
       'run',
@@ -1031,13 +1017,11 @@ void residentRun() {
 
   test('custom package_config path', () async {
     p = project(name: 'foo');
-    final bar = TestProject(name: 'bar');
-    final baz = TestProject(name: 'baz', mainSrc: '''
+    final bar = project(name: 'bar');
+    final baz = project(name: 'baz', mainSrc: '''
   import 'package:bar/bar.dart'
   void main() {}
 ''');
-    addTearDown(() async => bar.dispose());
-    addTearDown(() async => baz.dispose());
 
     p.file('custom_packages.json', '''
 {

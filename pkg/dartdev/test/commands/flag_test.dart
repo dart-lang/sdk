@@ -67,8 +67,6 @@ void command() {
 void help() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
     p = project();
     var result = await p.run(['--help']);
@@ -147,8 +145,6 @@ void help() {
 
 void invalidFlags() {
   late TestProject p;
-
-  tearDown(() async => await p.dispose());
 
   test('Regress #49437', () async {
     // Regression test for https://github.com/dart-lang/sdk/issues/49437

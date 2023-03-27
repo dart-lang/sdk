@@ -27,28 +27,36 @@ void initGlobalState() {
   log = Logger.standard();
 }
 
+/// Creates a test-project in a temp-dir that will [dispose] itself at the end
+/// of the test.
 TestProject project(
-        {String? mainSrc,
-        String? analysisOptions,
-        bool logAnalytics = false,
-        String name = TestProject._defaultProjectName,
-        VersionConstraint? sdkConstraint,
-        Map<String, dynamic>? pubspec}) =>
-    TestProject(
-        mainSrc: mainSrc,
-        analysisOptions: analysisOptions,
-        logAnalytics: logAnalytics,
-        sdkConstraint: sdkConstraint,
-        pubspec: pubspec);
+    {String? mainSrc,
+    String? analysisOptions,
+    bool logAnalytics = false,
+    String name = TestProject._defaultProjectName,
+    VersionConstraint? sdkConstraint,
+    Map<String, dynamic>? pubspecExtras}) {
+  var testProject = TestProject(
+      mainSrc: mainSrc,
+      name: name,
+      analysisOptions: analysisOptions,
+      logAnalytics: logAnalytics,
+      sdkConstraint: sdkConstraint,
+      pubspecExtras: pubspecExtras);
+  addTearDown(() => testProject.dispose());
+  return testProject;
+}
 
 class TestProject {
   static const String _defaultProjectName = 'dartdev_temp';
 
-  late Directory dir;
+  late Directory root;
 
-  String get dirPath => dir.path;
+  Directory get dir => Directory(dirPath);
 
-  String get pubCachePath => path.join(dirPath, 'pub_cache');
+  String get dirPath => path.join(root.path, 'myapp');
+
+  String get pubCachePath => path.join(root.path, 'pub_cache');
 
   String get pubCacheBinPath => path.join(pubCachePath, 'bin');
 
@@ -60,33 +68,28 @@ class TestProject {
 
   final bool logAnalytics;
 
-  final VersionConstraint? sdkConstraint;
-
-  final Map<String, dynamic>? pubspec;
-
   Process? _process;
 
-  TestProject(
-      {String? mainSrc,
-      String? analysisOptions,
-      this.name = _defaultProjectName,
-      this.logAnalytics = false,
-      this.sdkConstraint,
-      this.pubspec}) {
+  TestProject({
+    String? mainSrc,
+    String? analysisOptions,
+    this.name = _defaultProjectName,
+    this.logAnalytics = false,
+    VersionConstraint? sdkConstraint,
+    Map<String, dynamic>? pubspecExtras,
+  }) {
     initGlobalState();
-    dir = Directory.systemTemp.createTempSync('a');
+    root = Directory.systemTemp.createTempSync('dartdev');
     file(
-        'pubspec.yaml',
-        pubspec == null
-            ? '''
-name: $name
-environment:
-  sdk: '${sdkConstraint ?? '>=2.19.0 <4.0.0'}'
-
-dev_dependencies:
-  test: any
-'''
-            : json.encode(pubspec));
+      'pubspec.yaml',
+      JsonEncoder.withIndent('  ').convert(
+        {
+          'name': name,
+          'environment': {'sdk': sdkConstraint?.toString() ?? '^2.19.0'},
+          ...?pubspecExtras,
+        },
+      ),
+    );
     if (analysisOptions != null) {
       file('analysis_options.yaml', analysisOptions);
     }
@@ -97,7 +100,7 @@ dev_dependencies:
 
   void file(String name, String contents) {
     var file = File(path.join(dir.path, name));
-    file.parent.createSync();
+    file.parent.createSync(recursive: true);
     file.writeAsStringSync(contents);
   }
 
@@ -111,7 +114,7 @@ dev_dependencies:
     _process?.kill();
     await _process?.exitCode;
     _process = null;
-    await deleteDirectory(dir);
+    await deleteDirectory(root);
   }
 
   Future<ProcessResult> runAnalyze(

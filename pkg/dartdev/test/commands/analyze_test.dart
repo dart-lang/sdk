@@ -195,8 +195,6 @@ void defineAnalysisError() {
 void defineAnalyze() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
     p = project();
     var result = await p.runAnalyze(['--help']);
@@ -219,8 +217,6 @@ void defineAnalyze() {
 
   group('multiple items', () {
     late TestProject secondProject;
-
-    tearDown(() async => await secondProject.dispose());
 
     test('folder and file', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
