@@ -120,7 +120,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 57, 13),
+      error(WarningCode.UNUSED_FIELD, 57, 13),
       lint(57, 13),
     ]);
   }

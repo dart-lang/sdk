@@ -274,7 +274,7 @@ class C {}
 import 'lib.dart' hide C;
 ''', [
       // No lint.
-      error(HintCode.UNUSED_IMPORT, 7, 10),
+      error(WarningCode.UNUSED_IMPORT, 7, 10),
     ]);
   }
 
@@ -286,7 +286,7 @@ class C {}
     await assertDiagnostics(r'''
 import 'lib.dart' show C;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
+      error(WarningCode.UNUSED_IMPORT, 7, 10),
       lint(23, 1),
     ]);
   }
@@ -535,7 +535,7 @@ library a;
 import 'lib.dart';
 ''', [
       lint(0, 18),
-      error(HintCode.UNUSED_IMPORT, 7, 10),
+      error(WarningCode.UNUSED_IMPORT, 7, 10),
     ]);
   }
 
