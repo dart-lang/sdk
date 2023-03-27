@@ -1350,15 +1350,6 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
       MakeReturnTypeNullable.new,
     ],
-    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH: [
-      RemoveNameFromDeclarationClause.new,
-    ],
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS: [
       RemoveNameFromDeclarationClause.new,
     ],

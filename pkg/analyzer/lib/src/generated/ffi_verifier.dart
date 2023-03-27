@@ -99,13 +99,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
               node.name, node.metadata);
-        } else if (className != _allocatorClassName &&
-            className != _opaqueClassName &&
-            className != _abiSpecificIntegerClassName) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
-              superclass.name,
-              [node.name.lexeme, superclass.name.name]);
         }
       } else if (superclass.isCompoundSubtype ||
           superclass.isAbiSpecificIntegerSubtype) {
@@ -117,18 +110,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     // No classes from the FFI may be explicitly implemented.
-    void checkSupertype(NamedType typename, FfiCode subtypeOfFfiCode,
-        FfiCode subtypeOfStructCode) {
+    void checkSupertype(NamedType typename, FfiCode subtypeOfStructCode) {
       final superName = typename.name.staticElement?.name;
       if (superName == _allocatorClassName ||
           superName == _finalizableClassName) {
         return;
       }
-      if (typename.ffiClass != null) {
-        _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
-            [node.name.lexeme, typename.name.toSource()]);
-      } else if (typename.isCompoundSubtype ||
-          typename.isAbiSpecificIntegerSubtype) {
+      if (typename.isCompoundSubtype || typename.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
             [node.name.lexeme, typename.name.toSource()]);
       }
@@ -137,15 +125,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var implementsClause = node.implementsClause;
     if (implementsClause != null) {
       for (NamedType type in implementsClause.interfaces) {
-        checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
-            FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
+        checkSupertype(type, FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
       }
     }
     var withClause = node.withClause;
     if (withClause != null) {
       for (NamedType type in withClause.mixinTypes) {
-        checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
-            FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
+        checkSupertype(type, FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
       }
     }
 
