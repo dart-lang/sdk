@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'always_specify_types_test.dart' as always_specify_types;
+import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
@@ -136,6 +137,7 @@ import 'void_checks_test.dart' as void_checks;
 
 void main() {
   always_specify_types.main();
+  always_use_package_imports.main();
   annotate_overrides.main();
   avoid_annotating_with_dynamic.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
