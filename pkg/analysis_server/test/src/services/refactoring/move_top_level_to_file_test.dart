@@ -508,11 +508,8 @@ class Right extends Either {}
     await expectNoCodeAction(null);
   }
 
-  @failingTest
   Future<void>
       test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
-    // This test fails because we never look in the other parts, we only
-    // look in the current file. This means we will happily move Either.
     addTestSource('''
 part 'part2.dart';
 

@@ -93,8 +93,6 @@ class MoveTopLevelToFile extends RefactoringProducer {
       insertLeadingNewline = true;
     }
 
-    // TODO(dantup): Don't show refactor in part files while not supported.
-
     var lineInfo = unitResult.lineInfo;
     var ranges = members.groups
         .map((group) =>
@@ -257,11 +255,21 @@ class MoveTopLevelToFile extends RefactoringProducer {
       return null;
     }
 
-    // Finally, ensure direct subclasses of any candidate are included.
+    // Include any direct subclasses of any sealed candidate.
     for (var sub in index
         .findSubclassesOfSealedRecursively(candidateMembers.keys.toSet())) {
       candidateMembers[sub] ??=
           sub is NamedCompilationUnitMember ? sub.name.lexeme : null;
+    }
+
+    // Ensure there aren't any subclasses of sealed items in other parts of this
+    // library that could result in invalid code.
+    //
+    // Technically we could allow this is moving to another part of the same
+    // library but at this point we don't know the destination.
+    if (_otherPartsContainDirectSubclassesOfSealedCandidates(
+        candidateMembers.keys)) {
+      return null;
     }
 
     return _MembersToMove(unitPath, [
@@ -269,6 +277,22 @@ class MoveTopLevelToFile extends RefactoringProducer {
           .map((entry) => _Member(entry.key, entry.value))
           .toList())
     ]);
+  }
+
+  /// Checks whether any part files in [libraryResult] that aren't the source
+  /// file contain direct subclasses of any sealed [candidates].
+  bool _otherPartsContainDirectSubclassesOfSealedCandidates(
+    Iterable<CompilationUnitMember> candidates,
+  ) {
+    return libraryResult.units
+        // Exclude the source file.
+        .where((unit) => unit != unitResult)
+        // All sealed superclasses.
+        .expand((unit) => unit.unit.declarations)
+        .expand((declaration) => declaration.sealedSuperclassElements)
+        // Check if any of them are in the source file.
+        .map((element) => element.enclosingElement)
+        .contains(unitResult.unit.declaredElement);
   }
 
   /// Return a list containing the top-level declarations that are selected, or
@@ -443,21 +467,17 @@ class _SealedSubclassIndex {
 
     // Index the declaration against each of its direct superclasses.
     for (var declaration in unit.declarations) {
-      var superclasses = _getSuperclasses(declaration);
-      for (var superclass in superclasses) {
-        var superElement = superclass?.name.staticElement;
-        if (superElement != null && _isSealed(superElement)) {
-          sealedTypeSubclasses
-              .putIfAbsent(superElement, () => {})
-              .add(declaration);
+      for (var superElement in declaration.sealedSuperclassElements) {
+        sealedTypeSubclasses
+            .putIfAbsent(superElement, () => {})
+            .add(declaration);
 
-          // If this declaration is a candidate but it's sealed super is not,
-          // we have an invalid selection.
-          if (isCandidate(declaration.declaredElement) &&
-              !isCandidate(superElement)) {
-            hasInvalidCandidateSet = true;
-            return;
-          }
+        // If this declaration is a candidate but it's sealed super is not,
+        // we have an invalid selection.
+        if (isCandidate(declaration.declaredElement) &&
+            !isCandidate(superElement)) {
+          hasInvalidCandidateSet = true;
+          return;
         }
       }
     }
@@ -477,8 +497,21 @@ class _SealedSubclassIndex {
               sealedTypeSubclasses[member.declaredElement] ?? const {})),
     };
   }
+}
 
-  List<NamedType?> _getSuperclasses(CompilationUnitMember declaration) {
+extension on CompilationUnitMember {
+  /// Gets all sealed [ClassElement]s that are superclasses of this member.
+  Iterable<ClassElement> get sealedSuperclassElements {
+    return superclasses
+        .map((type) => type?.name.staticElement)
+        .whereType<ClassElement>()
+        .where((element) => element.isSealed);
+  }
+
+  /// Gets all [NamedType]s that are superclasses of this member.
+  List<NamedType?> get superclasses {
+    final declaration = this;
+
     if (declaration is ClassDeclaration) {
       final extendsType = declaration.extendsClause?.superclass;
       final implementsTypes = declaration.implementsClause?.interfaces;
@@ -501,7 +534,4 @@ class _SealedSubclassIndex {
 
     return const [];
   }
-
-  bool _isSealed(Element element) =>
-      element is ClassElement && element.isSealed;
 }
