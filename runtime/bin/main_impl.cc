@@ -558,7 +558,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          wait_for_dds_to_advertise_service, Options::enable_observatory())) {
+          wait_for_dds_to_advertise_service, !Options::disable_observatory())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }

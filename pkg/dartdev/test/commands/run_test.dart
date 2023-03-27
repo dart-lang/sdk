@@ -641,7 +641,7 @@ void main(List<String> args) => print("$b $args");
             '--enable-vm-service=0',
             if (!withDds) '--no-dds',
             if (!enableAuthCodes) '--disable-service-auth-codes',
-            if (serve) '--serve-observatory',
+            if (!serve) '--no-serve-observatory',
             p.relativeFilePath,
           ]);
 
