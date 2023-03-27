@@ -1441,14 +1441,6 @@ HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
   status: hasFix
-HintCode.UNUSED_FIELD:
-  status: hasFix
-HintCode.UNUSED_IMPORT:
-  status: hasFix
-HintCode.UNUSED_LOCAL_VARIABLE:
-  status: hasFix
-HintCode.UNUSED_SHOWN_NAME:
-  status: hasFix
 LanguageCode.IMPLICIT_DYNAMIC_FIELD:
   status: needsFix
   notes: |-
@@ -2869,7 +2861,13 @@ WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:
   status: hasFix
+WarningCode.UNUSED_FIELD:
+  status: hasFix
+WarningCode.UNUSED_IMPORT:
+  status: hasFix
 WarningCode.UNUSED_LABEL:
+  status: hasFix
+WarningCode.UNUSED_LOCAL_VARIABLE:
   status: hasFix
 WarningCode.UNUSED_RESULT:
   status: noFix
@@ -2879,3 +2877,5 @@ WarningCode.UNUSED_RESULT_WITH_MESSAGE:
   status: noFix
   notes: |-
     There is no predictable common way in which a result _should_ be used.
+WarningCode.UNUSED_SHOWN_NAME:
+  status: hasFix

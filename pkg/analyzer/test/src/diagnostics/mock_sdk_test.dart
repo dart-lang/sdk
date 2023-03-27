@@ -17,35 +17,37 @@ main() {
 @reflectiveTest
 class MockSdkTest extends PubPackageResolutionTest {
   test_dart_async() async {
-    await _assertOnlyHintsInLibraryUri('dart:async');
+    await _assertOnlyWarningsInLibraryUri('dart:async');
   }
 
   test_dart_convert() async {
-    await _assertOnlyHintsInLibraryUri('dart:convert');
+    await _assertOnlyWarningsInLibraryUri('dart:convert');
   }
 
   test_dart_core() async {
-    await _assertOnlyHintsInLibraryUri('dart:core');
+    await _assertOnlyWarningsInLibraryUri('dart:core');
   }
 
   test_dart_math() async {
-    await _assertOnlyHintsInLibraryUri('dart:math');
+    await _assertOnlyWarningsInLibraryUri('dart:math');
   }
 
   void _assertOnlyHintsInLibrary(ResolvedLibraryResult coreResolvedResult) {
     for (var resolvedUnit in coreResolvedResult.units) {
-      _assertOnlyHintsInUnit(resolvedUnit);
+      _assertOnlyWarningsInUnit(resolvedUnit);
     }
   }
 
-  Future<void> _assertOnlyHintsInLibraryUri(String uriStr) async {
+  Future<void> _assertOnlyWarningsInLibraryUri(String uriStr) async {
     var coreResolvedResult = await _resolvedLibraryByUri(uriStr);
     _assertOnlyHintsInLibrary(coreResolvedResult);
   }
 
-  void _assertOnlyHintsInUnit(ResolvedUnitResult resolvedUnit) {
+  void _assertOnlyWarningsInUnit(ResolvedUnitResult resolvedUnit) {
     var notHints = resolvedUnit.errors
-        .where((element) => element.errorCode.type != ErrorType.HINT)
+        .where((element) =>
+            element.errorCode.type != ErrorType.HINT &&
+            element.errorCode.type != ErrorType.STATIC_WARNING)
         .toList();
     assertErrorsInList(notHints, []);
   }

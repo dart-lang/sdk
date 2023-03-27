@@ -405,8 +405,8 @@ class ImportsVerifier {
       // only way for it to be `null` is if the import contains a string
       // interpolation, in which case the import wouldn't have resolved and
       // would not have been included in [_unusedImports].
-      errorReporter
-          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue!]);
+      errorReporter.reportErrorForNode(
+          WarningCode.UNUSED_IMPORT, uri, [uri.stringValue!]);
     }
   }
 
@@ -432,7 +432,7 @@ class ImportsVerifier {
           // Only generate a hint if we won't also generate a
           // "duplicate_shown_name" hint for the same identifier.
           reporter.reportErrorForNode(
-              HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+              WarningCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
         }
       }
     });

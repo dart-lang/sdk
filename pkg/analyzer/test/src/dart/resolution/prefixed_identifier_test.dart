@@ -32,7 +32,7 @@ main() {
   a.loadLibrary;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 22, 8),
+      error(WarningCode.UNUSED_IMPORT, 22, 8),
     ]);
 
     var import = findElement.importFind('package:test/a.dart');

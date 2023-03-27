@@ -33,7 +33,7 @@ export 'lib1.dart' hide a;
     await assertErrorsInCode(r'''
 import 'lib1.dart' hide a;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
       error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
     ]);
   }

@@ -36,7 +36,7 @@ import 'lib1.dart';
 import 'lib1.dart' as one;
 one.A a = one.A();
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 
@@ -85,7 +85,7 @@ import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a = one.A();
 ''', [
-      error(HintCode.UNUSED_IMPORT, 34, 11),
+      error(WarningCode.UNUSED_IMPORT, 34, 11),
     ]);
   }
 
@@ -147,7 +147,7 @@ import 'dart:io' as prefix;
 import 'a.dart' as prefix;
 prefix.File? f;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 9),
+      error(WarningCode.UNUSED_IMPORT, 7, 9),
     ]);
   }
 
@@ -352,7 +352,7 @@ extension E on String {
     await assertErrorsInCode('''
 import 'lib1.dart' as lib1;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 
@@ -380,7 +380,7 @@ import 'lib1.dart';
 import 'lib1.dart' hide A;
 A? a;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 27, 11),
+      error(WarningCode.UNUSED_IMPORT, 27, 11),
     ]);
   }
 
@@ -424,7 +424,7 @@ f() {
   ''.b();
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 
@@ -438,7 +438,7 @@ import 'lib1.dart' show A;
 import 'lib1.dart' show B;
 A a = A();
 ''', [
-      error(HintCode.UNUSED_IMPORT, 34, 11),
+      error(WarningCode.UNUSED_IMPORT, 34, 11),
     ]);
   }
 
@@ -451,7 +451,7 @@ import 'dart:io';
 import 'lib1.dart';
 File? f;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 9),
+      error(WarningCode.UNUSED_IMPORT, 7, 9),
     ]);
   }
 
@@ -460,7 +460,7 @@ File? f;
     await assertErrorsInCode(r'''
 import 'lib1.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 }

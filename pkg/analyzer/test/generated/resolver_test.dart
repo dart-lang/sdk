@@ -96,7 +96,7 @@ class C {
   }
 }''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 26, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 3),
       error(HintCode.UNUSED_ELEMENT, 30, 1),
       error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 32, 2),
     ]);

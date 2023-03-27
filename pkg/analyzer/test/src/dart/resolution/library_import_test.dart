@@ -29,7 +29,7 @@ import 'c.dart';
 
     await resolveFile2(b.path);
     assertErrorsInResult([
-      error(HintCode.UNUSED_IMPORT, 33, 8),
+      error(WarningCode.UNUSED_IMPORT, 33, 8),
     ]);
 
     final node = findNode.import('c.dart');
