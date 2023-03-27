@@ -89,6 +89,10 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns `true` if [type] has a simple name that can be used as the type
   /// of an object pattern.
   bool hasSimpleName(Type type);
+
+  /// Returns the bound of [type] if is a type variable or a promoted type
+  /// variable. Otherwise returns `null`.
+  Type? getTypeVariableBound(Type type);
 }
 
 /// Interface for looking up fields and their corresponding [StaticType]s of
@@ -209,6 +213,11 @@ class ExhaustivenessCache<
             } else {
               staticType =
                   new TypeBasedStaticType(typeOperations, this, nonNullable);
+              Type? bound = typeOperations.getTypeVariableBound(type);
+              if (bound != null) {
+                staticType =
+                    new WrappedStaticType(getStaticType(bound), staticType);
+              }
             }
           }
         }
@@ -257,24 +266,23 @@ class ExhaustivenessCache<
     return staticType;
   }
 
-  /// Returns a [StaticType] of the list [type] with the given [identity] .
-  StaticType getListStaticType(Type type, ListTypeIdentity<Type> identity) {
+  /// Returns a [StaticType] of the list [type] with the given [restriction] .
+  StaticType getListStaticType(
+      Type type, ListTypeRestriction<Type> restriction) {
     Type nonNullable = typeOperations.getNonNullable(type);
-    StaticType staticType = _uniqueTypeMap[identity] ??=
-        new ListPatternStaticType(
-            typeOperations, this, nonNullable, identity, identity.toString());
+    StaticType staticType = new ListPatternStaticType(
+        typeOperations, this, nonNullable, restriction, restriction.toString());
     if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
     return staticType;
   }
 
-  /// Returns a [StaticType] of the map [type] with the given [identity] .
-  StaticType getMapStaticType(Type type, MapTypeIdentity<Type> identity) {
+  /// Returns a [StaticType] of the map [type] with the given [restriction] .
+  StaticType getMapStaticType(Type type, MapTypeRestriction<Type> restriction) {
     Type nonNullable = typeOperations.getNonNullable(type);
-    StaticType staticType = _uniqueTypeMap[identity] ??=
-        new MapPatternStaticType(
-            typeOperations, this, nonNullable, identity, identity.toString());
+    StaticType staticType = new MapPatternStaticType(
+        typeOperations, this, nonNullable, restriction, restriction.toString());
     if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
@@ -353,11 +361,11 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     return staticType;
   }
 
-  /// Creates the [StaticType] for the list [type] with the given [identity].
-  StaticType createListType(Type type, ListTypeIdentity<Type> identity);
+  /// Creates the [StaticType] for the list [type] with the given [restriction].
+  StaticType createListType(Type type, ListTypeRestriction<Type> restriction);
 
-  /// Creates the [StaticType] for the map [type] with the given [identity].
-  StaticType createMapType(Type type, MapTypeIdentity<Type> identity);
+  /// Creates the [StaticType] for the map [type] with the given [restriction].
+  StaticType createMapType(Type type, MapTypeRestriction<Type> restriction);
 
   /// Creates the [Space] for [pattern] at the given [path].
   ///
@@ -571,7 +579,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       typeArgumentText = '';
     }
 
-    ListTypeIdentity<Type> identity = new ListTypeIdentity(
+    ListTypeRestriction<Type> identity = new ListTypeRestriction(
         elementType, typeArgumentText,
         size: headSize + tailSize, hasRest: hasRest);
 
@@ -630,7 +638,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       typeArgumentsText = '';
     }
 
-    MapTypeIdentity<Type> identity = new MapTypeIdentity(
+    MapTypeRestriction<Type> identity = new MapTypeRestriction(
         keyType, valueType, entries.keys.toSet(), typeArgumentsText,
         hasRest: hasRest);
     StaticType staticType = createMapType(type, identity);

@@ -74,7 +74,7 @@ vars = {
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
   "clang_version": "git_revision:ee3efcf1bc8b327cc04297895529b1088a2b748d",
-  "gn_version": "git_revision:fe330c0ae1ec29db30b6f830e50771a335e071fb",
+  "gn_version": "git_revision:41fef642de70ecdcaaa26be96d56a0398f95abd4",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   "fuchsia_sdk_version": "version:12.20230314.2.1",
@@ -145,7 +145,7 @@ vars = {
   "http_parser_rev": "b3b283b9f139640b932d604e8815460bbd3ecab5",
   "intl_rev": "fca552f2ec5d682b5fa36f02bdd72a5a4e2edcee",
   "json_rpc_2_rev": "0280ac6cb4f3905d81c47ba927123ba2b95f7940",
-  "linter_rev": "7c7db85d29b46af51e3f4a5e0a33440c4e3791fc", # disable rev_sdk_deps.dart
+  "linter_rev": "d116555dc05bd29a17842e36e684cb9b4a608e1e", # disable rev_sdk_deps.dart
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "ecbffa9bf9109d490b9388e9cb1f2bb801aee63c",
@@ -172,7 +172,7 @@ vars = {
   "test_descriptor_rev": "1d4a967dd17874f3835af30720e9820c74977569",
   "test_process_rev": "f76d0b8fcf078d629cb57f859db79be93d6323d5",
   "test_reflective_loader_rev": "c4c2d5c3f94a96f3fc79e9e28944fba391bc544c",
-  "tools_rev": "8d18d01192077e85839539de9afdf679622445c8",
+  "tools_rev": "9ce9f67c3ff2ac835ed0045e71d22188e2a19562",
   "typed_data_rev": "f858046fb420cf644e7d8cb86b7893f2830d8a6c",
   "usage_rev": "399770f45ed2d384d79395c0341a04fb25609a4d",
   "vector_math_rev": "7dec98433b3e016fbe49107ad4320b31f519eb70",

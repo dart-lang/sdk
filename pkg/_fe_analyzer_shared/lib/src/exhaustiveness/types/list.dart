@@ -85,13 +85,13 @@ class ListTypeStaticType<Type extends Object>
       typeArgumentText = '<${_typeOperations.typeToString(elementType)}>';
     }
     for (int size = 0; size < maxSize; size++) {
-      ListTypeIdentity<Type> identity = new ListTypeIdentity(
+      ListTypeRestriction<Type> identity = new ListTypeRestriction(
           elementType, typeArgumentText,
           size: size, hasRest: false);
       subtypes.add(new ListPatternStaticType<Type>(
           _typeOperations, _fieldLookup, _type, identity, identity.toString()));
     }
-    ListTypeIdentity<Type> identity = new ListTypeIdentity(
+    ListTypeRestriction<Type> identity = new ListTypeRestriction(
         elementType, typeArgumentText,
         size: maxSize, hasRest: true);
     subtypes.add(new ListPatternStaticType<Type>(
@@ -100,10 +100,10 @@ class ListTypeStaticType<Type extends Object>
   }
 }
 
-/// [StaticType] for a list pattern type using a [ListTypeIdentity] for its
+/// [StaticType] for a list pattern type using a [ListTypeRestriction] for its
 /// uniqueness.
 class ListPatternStaticType<Type extends Object>
-    extends RestrictedStaticType<Type, ListTypeIdentity<Type>> {
+    extends RestrictedStaticType<Type, ListTypeRestriction<Type>> {
   ListPatternStaticType(super.typeOperations, super.fieldLookup, super.type,
       super.restriction, super.name);
 
@@ -206,19 +206,19 @@ class ListPatternStaticType<Type extends Object>
   }
 }
 
-/// Identity object used for creating a unique [ListPatternStaticType] for a
+/// Restriction object used for creating a unique [ListPatternStaticType] for a
 /// list pattern.
 ///
 /// The uniqueness is defined by the element type, the number of elements at the
 /// start of the list, whether the list pattern has a rest element, and the
 /// number elements at the end of the list, after the rest element.
-class ListTypeIdentity<Type extends Object> implements Restriction<Type> {
+class ListTypeRestriction<Type extends Object> implements Restriction<Type> {
   final Type elementType;
   final int size;
   final bool hasRest;
   final String typeArgumentText;
 
-  ListTypeIdentity(this.elementType, this.typeArgumentText,
+  ListTypeRestriction(this.elementType, this.typeArgumentText,
       {required this.size, required this.hasRest});
 
   @override
@@ -233,7 +233,7 @@ class ListTypeIdentity<Type extends Object> implements Restriction<Type> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ListTypeIdentity<Type> &&
+    return other is ListTypeRestriction<Type> &&
         elementType == other.elementType &&
         size == other.size &&
         hasRest == other.hasRest;
@@ -242,7 +242,7 @@ class ListTypeIdentity<Type extends Object> implements Restriction<Type> {
   @override
   bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
     if (other.isUnrestricted) return true;
-    if (other is! ListTypeIdentity<Type>) return false;
+    if (other is! ListTypeRestriction<Type>) return false;
     if (!typeOperations.isSubtypeOf(elementType, other.elementType)) {
       return false;
     }

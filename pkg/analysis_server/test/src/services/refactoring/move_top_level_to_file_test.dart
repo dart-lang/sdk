@@ -79,8 +79,63 @@ int? a;
 
     /// Expected updated new file contents.
     const expectedNewFileContent = '''
-class A {}
 int? a;
+
+class A {}
+''';
+
+    await initializeServer();
+    final action = await expectCodeAction(simpleClassRefactorTitle);
+    await executeRefactor(action);
+
+    expect(content[newFilePath], expectedNewFileContent);
+  }
+
+  Future<void> test_existingFile_withHeader() async {
+    addTestSource(simpleClassContent);
+
+    /// Existing new file contents where 'ClassToMove' will be moved to.
+    final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    addSource(newFilePath, '''
+// This is a file header
+
+int? a;
+''');
+
+    /// Expected updated new file contents.
+    const expectedNewFileContent = '''
+// This is a file header
+
+int? a;
+
+class A {}
+''';
+
+    await initializeServer();
+    final action = await expectCodeAction(simpleClassRefactorTitle);
+    await executeRefactor(action);
+
+    expect(content[newFilePath], expectedNewFileContent);
+  }
+
+  Future<void> test_existingFile_withImports() async {
+    addTestSource(simpleClassContent);
+
+    /// Existing new file contents where 'ClassToMove' will be moved to.
+    final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    addSource(newFilePath, '''
+import 'dart:async';
+
+FutureOr<int>? a;
+''');
+
+    /// Expected updated new file contents.
+    const expectedNewFileContent = '''
+import 'dart:async';
+
+FutureOr<int>? a;
+
+class A {}
 ''';
 
     await initializeServer();
@@ -453,11 +508,8 @@ class Right extends Either {}
     await expectNoCodeAction(null);
   }
 
-  @failingTest
   Future<void>
       test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
-    // This test fails because we never look in the other parts, we only
-    // look in the current file. This means we will happily move Either.
     addTestSource('''
 part 'part2.dart';
 
@@ -756,6 +808,104 @@ mixin MixinToMove { }
         declarationName: declarationName,
         newFileName: newFileName,
         newFileContent: newFileContent);
+  }
+
+  Future<void> test_single_parts_libraryToPart() async {
+    var originalSource = '''
+part 'class_to_move.dart';
+
+class Clas^sToMove {}
+''';
+    var modifiedSource = '''
+part 'class_to_move.dart';
+''';
+    var declarationName = 'ClassToMove';
+    var destinationFileName = 'class_to_move.dart';
+    var destinationFilePath =
+        join(projectFolderPath, 'lib', destinationFileName);
+    addSource(destinationFilePath, '''
+part of 'main.dart';
+''');
+    var destinationFileContent = '''
+part of 'main.dart';
+
+class ClassToMove {}
+''';
+
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: destinationFileName,
+        newFileContent: destinationFileContent);
+  }
+
+  Future<void> test_single_parts_partToLibrary() async {
+    var originalSource = '''
+part of 'class_to_move.dart';
+
+class Clas^sToMove {}
+''';
+    var modifiedSource = '''
+part of 'class_to_move.dart';
+''';
+    var declarationName = 'ClassToMove';
+    var destinationFileName = 'class_to_move.dart';
+    var destinationFilePath =
+        join(projectFolderPath, 'lib', destinationFileName);
+    addSource(destinationFilePath, '''
+part 'main.dart';
+''');
+    var destinationFileContent = '''
+part 'main.dart';
+
+class ClassToMove {}
+''';
+
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: destinationFileName,
+        newFileContent: destinationFileContent);
+  }
+
+  Future<void> test_single_parts_partToPart() async {
+    var originalSource = '''
+part of 'containing_library.dart';
+
+class Clas^sToMove {}
+''';
+    var modifiedSource = '''
+part of 'containing_library.dart';
+''';
+    var declarationName = 'ClassToMove';
+    var destinationFileName = 'class_to_move.dart';
+    var destinationFilePath =
+        join(projectFolderPath, 'lib', destinationFileName);
+    addSource(destinationFilePath, '''
+part of 'containing_library.dart';
+''');
+    var destinationFileContent = '''
+part of 'containing_library.dart';
+
+class ClassToMove {}
+''';
+    var containingLibraryFilePath =
+        join(projectFolderPath, 'lib', 'containing_library.dart');
+    var containingLibraryFileContent = '''
+part 'main.dart';
+part 'class_to_move.dart';
+''';
+
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: destinationFileName,
+        newFileContent: destinationFileContent,
+        otherFilePath: containingLibraryFilePath,
+        otherFileContent: containingLibraryFileContent);
   }
 
   Future<void> test_single_typedef() async {

@@ -18,14 +18,6 @@ library /*isNonNullableByDefault*/;
 // // @dart=2.19
 // ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/interface_class_declaration.dart:11:1: Error: The 'class-modifiers' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-// interface mixin M {}
-// ^^^^^^^^^
-// pkg/front_end/testcases/general/interface_class_declaration.dart:5:1: Context: This is the annotation that opts out this library from the 'class-modifiers' language feature.
-// // @dart=2.19
-// ^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/general/interface_class_declaration.dart:12:1: Error: The 'class-modifiers' language feature is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 // interface class C = Object with M;

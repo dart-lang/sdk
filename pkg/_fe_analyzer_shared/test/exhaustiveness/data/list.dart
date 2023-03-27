@@ -26,9 +26,9 @@ typedList(List<A> list) {
     [] /*space=<[]>*/=> 0,
     [B b] /*space=<[B]>*/=> 1,
     [C c] /*space=<[C]>*/=> 2,
-    [_, _] /*space=<[(), ()]>*/=> 3,
-    [B b, ..., _] /*space=<[B, ...List<dynamic>, ()]>*/=> 4,
-    [C c, ..., _] /*space=<[C, ...List<dynamic>, ()]>*/=> 5,
+    [_, _] /*space=<[A, A]>*/=> 3,
+    [B b, ..., _] /*space=<[B, ...List<A>, A]>*/=> 4,
+    [C c, ..., _] /*space=<[C, ...List<A>, A]>*/=> 5,
   };
 }
 
@@ -355,7 +355,7 @@ exhaustiveSealed(List<A> list) {
     [] /*space=<[]>*/=> 0,
     [B()] /*space=<[B]>*/=> 1,
     [C()] /*space=<[C]>*/=> 2,
-    [_, _, ...] /*space=<[(), (), ...List<dynamic>]>*/=> 3,
+    [_, _, ...] /*space=<[A, A, ...List<A>]>*/=> 3,
   };
 }
 
@@ -367,7 +367,7 @@ nonExhaustiveSealed(List<A> list) {
   */switch (list) {
     [] /*space=<[]>*/=> 0,
     [B()] /*space=<[B]>*/=> 1,
-    [_, _, ...] /*space=<[(), (), ...List<dynamic>]>*/=> 3,
+    [_, _, ...] /*space=<[A, A, ...List<A>]>*/=> 3,
   };
 }
 
@@ -377,9 +377,12 @@ reachableRest(List<A> list) {
    type=List<A>
   */switch (list) {
     [] /*space=<[]>*/=> 0,
-    [B(), ...] /*space=<[B, ...List<dynamic>]>*/=> 1,
-    [..., B()] /*space=<[...List<dynamic>, B]>*/=> 2,
-    [C(), ...] /*space=<[C, ...List<dynamic>]>*/=> 3,
-    [..., C()] /*space=<[...List<dynamic>, C]>*/=> 4,
+    [B(), ...] /*space=<[B, ...List<A>]>*/=> 1,
+    [..., B()] /*space=<[...List<A>, B]>*/=> 2,
+    [C(), ...] /*space=<[C, ...List<A>]>*/=> 3,
+    [..., C()] /*
+     error=unreachable,
+     space=<[...List<A>, C]>
+    */=> 4,
   };
 }

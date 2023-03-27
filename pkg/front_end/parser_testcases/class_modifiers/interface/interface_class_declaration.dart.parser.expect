@@ -2,7 +2,7 @@ interface class A {}
 
 abstract interface class B {}
 
-interface mixin M {}
+mixin M {}
 interface class C = Object with M;
 
 
@@ -10,6 +10,6 @@ interface[KeywordToken] class[KeywordToken] A[StringToken] {[BeginToken]}[Simple
 
 abstract[KeywordToken] interface[KeywordToken] class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]
 
-interface[KeywordToken] mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
 interface[KeywordToken] class[KeywordToken] C[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
 [SimpleToken]

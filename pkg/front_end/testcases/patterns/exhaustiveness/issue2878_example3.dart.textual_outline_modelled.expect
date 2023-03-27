@@ -1,0 +1,6 @@
+List<List<A>> subs<A>(List<A> list) => 
+switch (list) {}
+void main() {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

@@ -6,7 +6,5 @@
 
 sealed class A {}
 
-sealed mixin M {}
-
-mixin MM {}
-sealed class B = Object with MM;
+mixin M {}
+sealed class B = Object with M;

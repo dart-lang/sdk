@@ -4,4 +4,4 @@
 
 final class A {}
 
-final mixin M {}
+final class B {}

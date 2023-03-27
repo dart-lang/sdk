@@ -4,10 +4,10 @@
 
 part of '../types.dart';
 
-/// [StaticType] for a map pattern type using a [MapTypeIdentity] for its
+/// [StaticType] for a map pattern type using a [MapTypeRestriction] for its
 /// uniqueness.
 class MapPatternStaticType<Type extends Object>
-    extends RestrictedStaticType<Type, MapTypeIdentity<Type>> {
+    extends RestrictedStaticType<Type, MapTypeRestriction<Type>> {
   MapPatternStaticType(super.typeOperations, super.fieldLookup, super.type,
       super.restriction, super.name);
 
@@ -79,7 +79,7 @@ class MapPatternStaticType<Type extends Object>
   }
 }
 
-/// Identity object used for creating a unique [MapPatternStaticType] for a
+/// Restriction object used for creating a unique [MapPatternStaticType] for a
 /// map pattern.
 ///
 /// The uniqueness is defined by the key and value types, the key values of
@@ -87,14 +87,14 @@ class MapPatternStaticType<Type extends Object>
 ///
 /// This identity ensures that we can detect overlap between map patterns with
 /// the same set of keys.
-class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
+class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
   final Type keyType;
   final Type valueType;
   final Set<MapKey> keys;
   final bool hasRest;
   final String typeArgumentsText;
 
-  MapTypeIdentity(
+  MapTypeRestriction(
       this.keyType, this.valueType, this.keys, this.typeArgumentsText,
       {required this.hasRest});
 
@@ -111,7 +111,7 @@ class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! MapTypeIdentity<Type>) return false;
+    if (other is! MapTypeRestriction<Type>) return false;
     if (keyType != other.keyType ||
         valueType != other.valueType ||
         hasRest != other.hasRest) {
@@ -124,7 +124,7 @@ class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
   @override
   bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
     if (other.isUnrestricted) return true;
-    if (other is! MapTypeIdentity<Type>) return false;
+    if (other is! MapTypeRestriction<Type>) return false;
     if (!typeOperations.isSubtypeOf(keyType, other.keyType)) return false;
     if (!typeOperations.isSubtypeOf(valueType, other.valueType)) return false;
     if (other.hasRest) {

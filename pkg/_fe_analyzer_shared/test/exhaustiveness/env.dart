@@ -421,6 +421,12 @@ class _TypeOperations implements TypeOperations<_Type> {
   bool hasSimpleName(_Type type) {
     return type is _InterfaceType;
   }
+
+  @override
+  _Type? getTypeVariableBound(_Type type) {
+    // TODO(johnniwinther): Support type variable bounds in testing.
+    return null;
+  }
 }
 
 class _EnumOperations

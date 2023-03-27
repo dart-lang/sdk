@@ -21,19 +21,6 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
-# TODO(rnystrom): These tests are using modifiers that are no longer valid on
-# mixins. The formatter no longer allows them. When the tests are updated to no
-# longer use those disallowed modifiers, the formatter crashes should be
-# resolved.
-class_modifiers/anonymous_mixin: FormatterCrash
-class_modifiers/final/final_class_declaration: FormatterCrash
-class_modifiers/final/final_subtype_not_base_final_sealed: FormatterCrash
-class_modifiers/final/outside_library/main: FormatterCrash
-class_modifiers/interface/interface_class_declaration: FormatterCrash
-general/final_class_declaration: FormatterCrash
-general/interface_class_declaration: FormatterCrash
-sealed_class/sealed_mixin_declaration: FormatterCrash
-
 class_modifiers/mixin/mixin_class_invalid_modifiers: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash

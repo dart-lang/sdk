@@ -238,6 +238,14 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - update `unreachable_from_main` to track static elements.
 - update `unnecessary_null_checks` to not report on arguments passed to
   `Future.value` or `Completer.complete`.
+- mark `always_use_package_imports` and `prefer_relative_imports` as
+  incompatible rules.
+- update `only_throw_errors` to not report on `Never`-typed expressions.
+- update `unnecessary_lambdas` to not report with `late final` variables.
+- update `avoid_function_literals_in_foreach_calls` to not report with nullable-
+  typed targets.
+- add new lint: `deprecated_member_use_from_same_package` which replaces the
+  soft-deprecated analyzer hint of the same name.
 
 #### Migration tool removal
 
