@@ -30,22 +30,22 @@ static method test(dynamic x) → dynamic {
   }
   {
     final synthesized dynamic #5#0 = x;
-    if(#5#0{dynamic}.<(#C1)) {
+    if(#5#0{dynamic}.<(#C1) as{ForNonNullableByDefault} core::bool) {
     }
   }
   {
     final synthesized dynamic #6#0 = x;
-    if(#6#0{dynamic}.<=(#C1)) {
+    if(#6#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
     }
   }
   {
     final synthesized dynamic #7#0 = x;
-    if(#7#0{dynamic}.>(#C1)) {
+    if(#7#0{dynamic}.>(#C1) as{ForNonNullableByDefault} core::bool) {
     }
   }
   {
     final synthesized dynamic #8#0 = x;
-    if(#8#0{dynamic}.>=(#C1)) {
+    if(#8#0{dynamic}.>=(#C1) as{ForNonNullableByDefault} core::bool) {
     }
   }
 }
