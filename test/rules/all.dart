@@ -98,6 +98,7 @@ import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
 import 'prefer_void_to_null_test.dart' as prefer_void_to_null;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
+import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
@@ -207,6 +208,7 @@ void main() {
   prefer_mixin.main();
   prefer_void_to_null.main();
   recursive_getters.main();
+  secure_pubspec_urls.main();
   sort_constructors_first.main();
   sort_unnamed_constructors_first.main();
   tighten_type_of_initializing_formals.main();

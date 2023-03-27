@@ -24,7 +24,6 @@ import 'integration/exhaustive_cases.dart' as exhaustive_cases;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
 import 'integration/public_member_api_docs.dart' as public_member_api_docs;
-import 'integration/secure_pubspec_urls.dart' as secure_pubspec_urls;
 import 'integration/sort_pub_dependencies.dart' as sort_pub_dependencies;
 import 'integration/use_build_context_synchronously.dart'
     as use_build_context_synchronously;
@@ -158,7 +157,6 @@ void ruleTests() {
     always_require_non_null_named_parameters.main();
     prefer_const_constructors_in_immutables.main();
     public_member_api_docs.main();
-    secure_pubspec_urls.main();
     sort_pub_dependencies.main();
     use_build_context_synchronously.main();
   });
