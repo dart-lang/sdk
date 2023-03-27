@@ -233,6 +233,16 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         // TODO(johnniwinther): What about intersection types?
         type is TypeParameterType;
   }
+
+  @override
+  DartType? getTypeVariableBound(DartType type) {
+    if (type is TypeParameterType) {
+      return type.bound;
+    } else if (type is IntersectionType) {
+      return type.right;
+    }
+    return null;
+  }
 }
 
 class CfeEnumOperations
@@ -384,8 +394,11 @@ class CfeSealedClassOperations
 
 class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, Constant> {
+  final TypeEnvironment typeEnvironment;
+
   CfeExhaustivenessCache(ConstantEvaluator constantEvaluator)
-      : super(
+      : typeEnvironment = constantEvaluator.typeEnvironment,
+        super(
             new CfeTypeOperations(constantEvaluator.typeEnvironment),
             new CfeEnumOperations(constantEvaluator),
             new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
@@ -458,7 +471,10 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
-      DartType elementType = pattern.typeArgument ?? const DynamicType();
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.classNode == cache.typeEnvironment.coreTypes.listClass &&
+          type.typeArguments.length == 1);
+      DartType elementType = type.typeArguments[0];
       bool hasRest = false;
       List<Pattern> headPatterns = [];
       Pattern? restPattern;
@@ -474,7 +490,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         }
       }
       return createListSpace(path,
-          type: pattern.lookupType!,
+          type: pattern.requiredType!,
           elementType: elementType,
           headElements: headPatterns,
           restElement: restPattern,
@@ -482,8 +498,11 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           hasRest: hasRest,
           hasExplicitTypeArgument: pattern.typeArgument != null);
     } else if (pattern is MapPattern) {
-      DartType keyType = pattern.keyType ?? const DynamicType();
-      DartType valueType = pattern.valueType ?? const DynamicType();
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.classNode == cache.typeEnvironment.coreTypes.mapClass &&
+          type.typeArguments.length == 2);
+      DartType keyType = type.typeArguments[0];
+      DartType valueType = type.typeArguments[1];
       bool hasRest = false;
       Map<MapKey, Pattern> entries = {};
       for (MapPatternEntry entry in pattern.entries) {
@@ -560,13 +579,14 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
 
   @override
   StaticType createListType(
-      DartType type, ListTypeIdentity<DartType> identity) {
-    return cache.getListStaticType(type, identity);
+      DartType type, ListTypeRestriction<DartType> restriction) {
+    return cache.getListStaticType(type, restriction);
   }
 
   @override
-  StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
-    return cache.getMapStaticType(type, identity);
+  StaticType createMapType(
+      DartType type, MapTypeRestriction<DartType> restriction) {
+    return cache.getMapStaticType(type, restriction);
   }
 
   @override
@@ -605,7 +625,6 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitFutureOrType(FutureOrType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why? This doesn't work if the value is a Future.
     return type.typeArgument.accept1(this, coreTypes);
   }
 
@@ -629,8 +648,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitIntersectionType(IntersectionType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why don't we use the bound?
-    return false;
+    return type.right.accept1(this, coreTypes);
   }
 
   @override
@@ -665,8 +683,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitTypeParameterType(TypeParameterType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why don't we use the bound?
-    return false;
+    return type.bound.accept1(this, coreTypes);
   }
 
   @override

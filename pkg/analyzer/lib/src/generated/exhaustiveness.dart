@@ -233,6 +233,14 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  DartType? getTypeVariableBound(DartType type) {
+    if (type is TypeParameterType) {
+      return type.bound;
+    }
+    return null;
+  }
+
+  @override
   bool hasSimpleName(DartType type) {
     return type is InterfaceType ||
         type is DynamicType ||
@@ -370,13 +378,14 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
 
   @override
   StaticType createListType(
-      DartType type, ListTypeIdentity<DartType> identity) {
-    return cache.getListStaticType(type, identity);
+      DartType type, ListTypeRestriction<DartType> restriction) {
+    return cache.getListStaticType(type, restriction);
   }
 
   @override
-  StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
-    return cache.getMapStaticType(type, identity);
+  StaticType createMapType(
+      DartType type, MapTypeRestriction<DartType> restriction) {
+    return cache.getMapStaticType(type, restriction);
   }
 
   @override
@@ -462,12 +471,10 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
-      DartType? elementType;
-      var typeArguments = pattern.typeArguments;
-      if (typeArguments != null && typeArguments.arguments.length == 1) {
-        elementType = typeArguments.arguments[0].typeOrThrow;
-      }
-      elementType ??= cache.typeSystem.typeProvider.dynamicType;
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.element == cache.typeSystem.typeProvider.listElement &&
+          type.typeArguments.length == 1);
+      DartType elementType = type.typeArguments[0];
       List<DartPattern> headElements = [];
       DartPattern? restElement;
       List<DartPattern> tailElements = [];
@@ -483,7 +490,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         }
       }
       return createListSpace(path,
-          type: cache.typeSystem.typeProvider.listType(elementType),
+          type: type,
           elementType: elementType,
           headElements: headElements,
           tailElements: tailElements,
@@ -491,15 +498,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           hasRest: hasRest,
           hasExplicitTypeArgument: pattern.typeArguments != null);
     } else if (pattern is MapPattern) {
-      DartType? keyType;
-      DartType? valueType;
-      var typeArguments = pattern.typeArguments;
-      if (typeArguments != null && typeArguments.arguments.length == 2) {
-        keyType = typeArguments.arguments[0].typeOrThrow;
-        valueType = typeArguments.arguments[1].typeOrThrow;
-      }
-      keyType ??= cache.typeSystem.typeProvider.dynamicType;
-      valueType ??= cache.typeSystem.typeProvider.dynamicType;
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.element == cache.typeSystem.typeProvider.mapElement &&
+          type.typeArguments.length == 2);
+      DartType keyType = type.typeArguments[0];
+      DartType valueType = type.typeArguments[1];
       bool hasRest = false;
       Map<MapKey, DartPattern> entries = {};
       for (MapPatternElement entry in pattern.elements) {

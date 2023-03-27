@@ -355,7 +355,7 @@ void f<T extends bool>(T x) {
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true_false() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T extends bool>(T x) {
   switch (x) {
     case true:
@@ -363,9 +363,7 @@ void f<T extends bool>(T x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 32, 6),
-    ]);
+''');
   }
 
   test_alwaysExhaustive_typeVariable_promoted_bool_true() async {
@@ -383,8 +381,6 @@ void f<T>(T x) {
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51819')
   test_alwaysExhaustive_typeVariable_promoted_bool_true_false() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T x) {

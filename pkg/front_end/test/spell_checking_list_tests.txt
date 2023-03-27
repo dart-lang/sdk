@@ -508,6 +508,8 @@ pays
 pc
 periodic
 periodically
+perm
+perms
 person
 phrase
 pink
@@ -651,6 +653,7 @@ stupid
 subcommand
 subdir
 subfolder
+subs
 subtool
 subtools
 successes
