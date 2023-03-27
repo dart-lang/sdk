@@ -22,7 +22,6 @@ class UnnecessaryFinalTestLanguage300 extends LintRuleTest
     await assertDiagnostics(r'''
 f() {
   final [a] = [1];
-  print('$a');
 }
 ''', [
       lint(8, 5),
@@ -32,7 +31,7 @@ f() {
   test_listPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case [int x, final int y]) print('$x$y'); 
+  if (o case [int x, final int y]) {}
 }
 ''', [
       lint(35, 5),
@@ -43,7 +42,6 @@ f(Object o) {
     await assertDiagnostics(r'''
 f() {
   final {'a': a} = {'a': 1};
-  print('$a');
 }
 ''', [
       lint(8, 5),
@@ -53,7 +51,7 @@ f() {
   test_mapPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case {'x': final x, 'y' : var y}) print('$x$y');
+  if (o case {'x': final x, 'y' : var y}) {}
 }
 ''', [
       lint(33, 5),
@@ -69,7 +67,6 @@ class C {
 
 f() {
   final C(:c) = C(1);
-  print(c);
 }
 ''', [
       lint(43, 5),
@@ -85,7 +82,6 @@ class C {
 
 f() {
   var C(:c) = C(1);
-  print(c);
 }
 ''');
   }
@@ -99,7 +95,7 @@ class C {
 }
 
 f(Object o) {
-  if (o case C(c: final x, d: var y)) print('$x$y');
+  if (o case C(c: final x, d: var y)) {}
 }
 ''', [
       lint(84, 5),
@@ -115,7 +111,7 @@ class A {
 
 f() {
   switch (A(1)) {
-    case A(a: >0 && final b): print('$b');
+    case A(a: >0 && final b):
   }
 }
 ''', [
@@ -123,21 +119,47 @@ f() {
     ]);
   }
 
+  test_recordPattern_destructured() async {
+    await assertDiagnostics(r'''
+f() {
+  final (a, b) = (1, 2);
+}
+''', [
+      lint(8, 5),
+    ]);
+  }
+
+  test_recordPattern_destructured_ok() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var (a, b) = (1, 2);
+}
+''');
+  }
+
   test_recordPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case (final int x, int y)) print('$x$y');
+  if (o case (final int x, int y)) {}
 }
 ''', [
       lint(28, 5),
     ]);
   }
 
+  test_recordPattern_ifCase_ok() async {
+    await assertNoDiagnostics(r'''
+f(Object o) {
+  if (o case (int x, int y)) {}
+}
+''');
+  }
+
   test_recordPattern_switch() async {
     await assertDiagnostics(r'''
 f() {
   switch ((1, 2)) {
-    case (final a, final b): print('$a$b');
+    case (final a, final b):
   }
 }
 ''', [
