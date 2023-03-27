@@ -180,33 +180,33 @@ base mixin BaseMixinImplement implements SealedClass {}
 /// It is an error if SealedClass is the `on` type of a mixin.
 
 mixin SimpleMixinOn on SealedClass {}
-// ^
+//                     ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 mixin SimpleMixinOnSealedSimple on SealedClass, SimpleClass {}
-// ^
+//                                 ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 mixin SimpleMixinOnSimpleSealed on SimpleClass, SealedClass {}
-// ^
+//                                              ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 base mixin BaseMixinOn on SealedClass {}
-// ^
+//                        ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 base mixin BaseMixinOnSealedSimple on SealedClass, SimpleClass {}
-// ^
+//                                    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 base mixin BaseMixinOnSimpleSealed on SealedClass, SimpleClass {}
-// ^
+//                                    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 main() {}

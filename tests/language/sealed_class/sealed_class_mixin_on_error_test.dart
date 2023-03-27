@@ -9,8 +9,8 @@ import 'sealed_class_mixin_on_lib.dart';
 // It is an error to declare a mixin with an `on` type which is a sealed class
 // from another library.
 mixin MA on SealedClass {}
-//          ^
-// [analyzer] unspecified
+//          ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
 
 // It is not an error to declare a mixin with an `on` type which is a subtype of

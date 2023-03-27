@@ -10827,6 +10827,9 @@ class._
 _The class '{0}' can't be implemented outside of its library because it's a
 final class._
 
+_The class '{0}' can't be used as a mixin superclass constraint outside of its
+library because it's a final class._
+
 _The mixin '{0}' can't be implemented outside of its library because it's a base
 mixin._
 

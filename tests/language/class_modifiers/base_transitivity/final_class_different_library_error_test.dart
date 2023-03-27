@@ -181,33 +181,36 @@ base mixin BaseMixinImplement implements FinalClass {}
 // FinalClass' library.
 
 mixin SimpleMixinOn on FinalClass {}
-//    ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+//    ^
 // [cfe] The type 'SimpleMixinOn' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+//                     ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 
 mixin SimpleMixinOnFinalSimple on FinalClass, SimpleClass {}
-//    ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+//    ^
 // [cfe] The type 'SimpleMixinOnFinalSimple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+//                                ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 
 mixin SimpleMixinOnSimpleFinal on SimpleClass, FinalClass {}
-//    ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+//    ^
 // [cfe] The type 'SimpleMixinOnSimpleFinal' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+//                                             ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 
 base mixin BaseMixinOn on FinalClass {}
-// ^
+//                        ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 base mixin BaseMixinOnFinalSimple on SimpleClass, FinalClass {}
-// ^
+//                                                ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 base mixin BaseMixinOnSimpleFinal on FinalClass, SimpleClass {}
-// ^
+//                                   ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
-// [analyzer] unspecified
 
 main() {}

@@ -270,6 +270,8 @@ import 'final_class_extended_outside_of_library_test.dart'
     as final_class_extended_outside_of_library;
 import 'final_class_implemented_outside_of_library_test.dart'
     as final_class_implemented_outside_of_library;
+import 'final_class_used_as_mixin_constraint_outside_of_library_test.dart'
+    as final_class_used_as_mixin_constraint_outside_of_library;
 import 'final_initialized_in_declaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
 import 'final_mixin_implemented_outside_of_library_test.dart'
@@ -1060,6 +1062,7 @@ main() {
     field_must_be_external_in_struct.main();
     final_class_extended_outside_of_library.main();
     final_class_implemented_outside_of_library.main();
+    final_class_used_as_mixin_constraint_outside_of_library.main();
     final_mixin_implemented_outside_of_library.main();
     final_mixin_mixed_in_outside_of_library.main();
     final_not_initialized_constructor.main();
