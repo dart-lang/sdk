@@ -78,13 +78,14 @@ void pub() {
         'foo': {'path': '../not_to_be_found'},
       },
     });
+    final s = Platform.pathSeparator;
     var result = await p.run(['pub', 'deps']);
     expect(result.exitCode, 66);
     expect(result.stdout, isEmpty);
     expect(
       result.stderr,
       contains(
-        '(could not find package foo at "../not_to_be_found"), version solving failed.',
+        '(could not find package foo at "..${s}not_to_be_found"), version solving failed.',
       ),
     );
   });
