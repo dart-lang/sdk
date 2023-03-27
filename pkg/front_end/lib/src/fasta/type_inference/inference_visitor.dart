@@ -9338,8 +9338,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionTypeAnalysisResult<DartType> dispatchExpression(
       Expression node, DartType context) {
+    // Normally the CFE performs expression coercion in the process of type
+    // inference of the nodes where an assignment is executed. The inference on
+    // the pattern-related nodes is driven by the shared analysis, and two of
+    // such nodes perform assignments. Here we determine if we're inferring the
+    // expressions of one of such nodes, and perform the coercion if needed.
+    TreeNode? parent = node.parent;
+    bool needsCoercion =
+        parent is PatternVariableDeclaration && parent.initializer == node ||
+            parent is PatternAssignment && parent.expression == node;
+
     ExpressionInferenceResult expressionResult =
         inferExpression(node, context).stopShorting();
+
+    if (needsCoercion) {
+      expressionResult =
+          coerceExpressionForAssignment(context, expressionResult) ??
+              expressionResult;
+    }
+
     pushRewrite(expressionResult.expression);
     return new SimpleTypeAnalysisResult(type: expressionResult.inferredType);
   }

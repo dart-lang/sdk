@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   core::int a;
   block {
-    final synthesized dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
     if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
       throw new core::StateError::•("Pattern matching error");
   } =>#0#0;
@@ -16,12 +16,12 @@ static method test2(dynamic x) → dynamic {
   core::int b;
   core::int c;
   block {
-    final synthesized dynamic #1#0 = block {
-      final synthesized dynamic #0#0 = x;
+    final synthesized dynamic #1#0 = ( block {
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final dynamic #t2 = a = #0#6 as{ForNonNullableByDefault} core::int in true) && (let final dynamic #t3 = b = #0#6{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");
-    } =>#0#0;
+    } =>#0#0) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
     if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t4 = c = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
       throw new core::StateError::•("Pattern matching error");
   } =>#1#0;
