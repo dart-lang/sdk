@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
@@ -524,7 +525,8 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
       .toList();
 
   /// Error codes that by default should be ignored in test expectations.
-  List<HintCode> get ignoredErrorCodes => [WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<AnalyzerErrorCode> get ignoredErrorCodes =>
+      [WarningCode.UNUSED_LOCAL_VARIABLE];
 
   Folder get sdkRoot => newFolder('/sdk');
 
