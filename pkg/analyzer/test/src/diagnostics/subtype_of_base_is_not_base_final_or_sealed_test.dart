@@ -403,18 +403,6 @@ mixin B implements A {}
     ]);
   }
 
-  test_mixin_on() async {
-    await assertErrorsInCode(r'''
-base class A {}
-mixin B on A {}
-''', [
-      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-          22, 1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
-    ]);
-  }
-
   test_mixin_sealed_implements() async {
     await assertErrorsInCode(r'''
 base class A {}

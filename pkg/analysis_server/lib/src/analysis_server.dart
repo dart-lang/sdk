@@ -530,6 +530,81 @@ abstract class AnalysisServer {
     await contextManager.refresh();
   }
 
+  /// Report analytics data related to the number and size of files that were
+  /// analyzed.
+  void reportAnalysisAnalytics() {
+    var packagesFileMap = <String, File?>{};
+    var optionsFileMap = <String, File?>{};
+    var immediateFileCount = 0;
+    var immediateFileLineCount = 0;
+    var transitiveFileCount = 0;
+    var transitiveFileLineCount = 0;
+    var transitiveFilePaths = <String>{};
+    var transitiveFileUniqueLineCount = 0;
+    var driverMap = contextManager.driverMap;
+    for (var entry in driverMap.entries) {
+      var rootPath = entry.key.path;
+      var driver = entry.value;
+      var contextRoot = driver.analysisContext?.contextRoot;
+      if (contextRoot != null) {
+        packagesFileMap[rootPath] = contextRoot.packagesFile;
+        optionsFileMap[rootPath] = contextRoot.optionsFile;
+      }
+      var fileSystemState = driver.fsState;
+      for (var fileState in fileSystemState.knownFiles) {
+        var isImmediate = fileState.path.startsWith(rootPath);
+        if (isImmediate) {
+          immediateFileCount++;
+          immediateFileLineCount += fileState.lineInfo.lineCount;
+        } else {
+          var lineCount = fileState.lineInfo.lineCount;
+          transitiveFileCount++;
+          transitiveFileLineCount += lineCount;
+          if (transitiveFilePaths.add(fileState.path)) {
+            transitiveFileUniqueLineCount += lineCount;
+          }
+        }
+      }
+    }
+    var transitiveFileUniqueCount = transitiveFilePaths.length;
+
+    var rootPaths = packagesFileMap.keys.toList();
+    rootPaths.sort((first, second) => first.length.compareTo(second.length));
+    var styleCounts = [
+      0, // neither
+      0, // only packages
+      0, // only options
+      0, // both
+    ];
+    var packagesFiles = <File>{};
+    var optionsFiles = <File>{};
+    for (var rootPath in rootPaths) {
+      var packagesFile = packagesFileMap[rootPath];
+      var hasUniquePackageFile =
+          packagesFile != null && packagesFiles.add(packagesFile);
+      var optionsFile = optionsFileMap[rootPath];
+      var hasUniqueOptionsFile =
+          optionsFile != null && optionsFiles.add(optionsFile);
+      var style =
+          (hasUniquePackageFile ? 1 : 0) + (hasUniqueOptionsFile ? 2 : 0);
+      styleCounts[style]++;
+    }
+
+    analyticsManager.analysisComplete(
+      numberOfContexts: driverMap.length,
+      contextsWithoutFiles: styleCounts[0],
+      contextsFromPackagesFiles: styleCounts[1],
+      contextsFromOptionsFiles: styleCounts[2],
+      contextsFromBothFiles: styleCounts[3],
+      immediateFileCount: immediateFileCount,
+      immediateFileLineCount: immediateFileLineCount,
+      transitiveFileCount: transitiveFileCount,
+      transitiveFileLineCount: transitiveFileLineCount,
+      transitiveFileUniqueCount: transitiveFileUniqueCount,
+      transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+    );
+  }
+
   Future<ResolvedForCompletionResultImpl?> resolveForCompletion({
     required String path,
     required int offset,

@@ -30,6 +30,40 @@ class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
+  test_deprecatedField_inObjectPattern_explicitName() async {
+    await assertErrorsInCode2(externalCode: r'''
+class C {
+  @Deprecated('')
+  final int foo = 0;
+}
+''', code: '''
+int g(Object s) =>
+  switch (s) {
+    C(foo: var f) => f,
+    _ => 7,
+  };
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 69, 3),
+    ]);
+  }
+
+  test_deprecatedField_inObjectPattern_inferredName() async {
+    await assertErrorsInCode2(externalCode: r'''
+class C {
+  @Deprecated('')
+  final int foo = 0;
+}
+''', code: '''
+int g(Object s) =>
+  switch (s) {
+    C(:var foo) => foo,
+    _ => 7,
+  };
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 74, 3),
+    ]);
+  }
+
   test_inDeprecatedEnum() async {
     await assertNoErrorsInCode2(
       externalCode: r'''

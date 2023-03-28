@@ -3149,6 +3149,11 @@ void Class::set_has_pragma(bool value) const {
   set_state_bits(HasPragmaBit::update(value, state_bits()));
 }
 
+void Class::set_is_isolate_unsendable(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsIsolateUnsendableBit::update(value, state_bits()));
+}
+
 void Class::set_implements_finalizable(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(ImplementsFinalizableBit::update(value, state_bits()));
@@ -4992,6 +4997,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
+    cls.set_is_isolate_unsendable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
     library.AddClass(cls);
     return cls.ptr();

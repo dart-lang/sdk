@@ -250,18 +250,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
         MESSAGE_SNAPSHOT_ILLEGAL(SuspendState);
 
       default:
-        if (cid >= kNumPredefinedCids) {
-          klass = class_table->At(cid);
-          if (klass.num_native_fields() != 0) {
-            illegal_object = raw;
-            exception_message = "is a NativeWrapper";
-            break;
-          }
-          if (klass.implements_finalizable()) {
-            illegal_object = raw;
-            exception_message = "is a Finalizable";
-            break;
-          }
+        klass = class_table->At(cid);
+        if (klass.is_isolate_unsendable()) {
+          illegal_object = raw;
+          exception_message =
+              "is unsendable object (see restrictions listed at"
+              "`SendPort.send()` documentation for more information)";
+          break;
         }
     }
     raw->untag()->VisitPointers(&visitor);

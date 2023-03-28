@@ -1698,6 +1698,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the final class being used as a mixin superclass constraint.
+  static const CompileTimeErrorCode
+      FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The class '{0}' can't be used as a mixin superclass constraint outside of "
+        "its library because it's a final class.",
+    hasPublishedDocs: true,
+    uniqueName: 'FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
   ///  0: the name of the field in question
   static const CompileTimeErrorCode
       FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = CompileTimeErrorCode(

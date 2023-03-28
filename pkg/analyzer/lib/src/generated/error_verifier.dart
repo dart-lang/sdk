@@ -1398,10 +1398,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
           superclass, withClause);
       _checkForFinalSupertypeOutsideOfLibrary(
-          superclass, withClause, implementsClause);
+          superclass, withClause, implementsClause, null);
       _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
-          superclass, withClause, implementsClause);
+          superclass, withClause, implementsClause, null);
       if (node is ClassDeclaration) {
         _checkForNoDefaultSuperConstructorImplicit(node);
       }
@@ -2859,9 +2859,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY].
-  void _checkForFinalSupertypeOutsideOfLibrary(NamedType? superclass,
-      WithClause? withClause, ImplementsClause? implementsClause) {
+  /// [CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.
+  /// FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY].
+  void _checkForFinalSupertypeOutsideOfLibrary(
+      NamedType? superclass,
+      WithClause? withClause,
+      ImplementsClause? implementsClause,
+      OnClause? onClause) {
     if (superclass != null) {
       final type = superclass.type;
       if (type is InterfaceType) {
@@ -2916,6 +2921,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             }
             errorReporter
                 .reportErrorForNode(errorCode, namedType, [element.name]);
+          }
+        }
+      }
+    }
+    if (onClause != null) {
+      for (NamedType namedType in onClause.superclassConstraints) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is ClassElement &&
+              element.isFinal &&
+              !element.isSealed &&
+              element.library != _currentLibrary &&
+              !_mayIgnoreClassModifiers(element.library)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode
+                    .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+                namedType,
+                [element.name]);
           }
         }
       }
@@ -4430,8 +4454,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY].
-  void _checkForSealedSupertypeOutsideOfLibrary(NamedType? superclass,
-      WithClause? withClause, ImplementsClause? implementsClause) {
+  void _checkForSealedSupertypeOutsideOfLibrary(
+      NamedType? superclass,
+      WithClause? withClause,
+      ImplementsClause? implementsClause,
+      OnClause? onClause) {
     void reportErrorsForSealedClassesAndMixins(List<NamedType> namedTypes) {
       for (NamedType namedType in namedTypes) {
         final type = namedType.type;
@@ -4463,6 +4490,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     if (implementsClause != null) {
       reportErrorsForSealedClassesAndMixins(implementsClause.interfaces);
+    }
+    if (onClause != null) {
+      reportErrorsForSealedClassesAndMixins(onClause.superclassConstraints);
     }
   }
 
@@ -5243,8 +5273,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForConflictingGenerics(node);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
-      _checkForFinalSupertypeOutsideOfLibrary(null, null, implementsClause);
-      _checkForSealedSupertypeOutsideOfLibrary(null, null, implementsClause);
+      _checkForFinalSupertypeOutsideOfLibrary(
+          null, null, implementsClause, onClause);
+      _checkForSealedSupertypeOutsideOfLibrary(
+          null, null, implementsClause, onClause);
     }
   }
 

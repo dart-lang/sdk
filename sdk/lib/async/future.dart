@@ -224,6 +224,7 @@ abstract class FutureOr<T> {
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
 @pragma("wasm:entry-point")
+@vmIsolateUnsendable
 abstract interface class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///
@@ -1163,6 +1164,7 @@ class TimeoutException implements Exception {
 ///   }
 /// }
 /// ```
+@vmIsolateUnsendable
 abstract interface class Completer<T> {
   /// Creates a new completer.
   ///

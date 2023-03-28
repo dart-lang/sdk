@@ -46,8 +46,7 @@ class BaseOrFinalTypeVerifier {
       return;
     }
     if (element is MixinElementImpl &&
-        _checkSupertypes(element.superclassConstraints, element,
-            areSuperclassConstraints: true)) {
+        _checkSupertypes(element.superclassConstraints, element)) {
       return;
     }
   }
@@ -77,15 +76,13 @@ class BaseOrFinalTypeVerifier {
   /// Returns true if a 'base' or 'final' subtype modifier error is reported for
   /// a supertype in [supertypes].
   bool _checkSupertypes(
-      List<InterfaceType> supertypes, ClassOrMixinElementImpl subElement,
-      {bool areSuperclassConstraints = false}) {
+      List<InterfaceType> supertypes, ClassOrMixinElementImpl subElement) {
     for (final supertype in supertypes) {
       final supertypeElement = supertype.element;
       if (supertypeElement is ClassOrMixinElementImpl) {
         // Return early if an error has been reported to prevent reporting
         // multiple errors on one element.
-        if (_reportRestrictionError(subElement, supertypeElement,
-            isSuperclassConstraint: areSuperclassConstraints)) {
+        if (_reportRestrictionError(subElement, supertypeElement)) {
           return true;
         }
       }
@@ -163,7 +160,7 @@ class BaseOrFinalTypeVerifier {
   /// Reports an error based on the modifier of the [superElement].
   bool _reportRestrictionError(
       ClassOrMixinElementImpl element, ClassOrMixinElementImpl superElement,
-      {bool isSuperclassConstraint = false, NamedType? implementsNamedType}) {
+      {NamedType? implementsNamedType}) {
     ClassOrMixinElementImpl? baseOrFinalSuperElement;
     if (superElement.isBase || superElement.isFinal) {
       // The 'base' or 'final' modifier may be an induced modifier. Find the
@@ -212,8 +209,7 @@ class BaseOrFinalTypeVerifier {
 
       if (!element.isBase && !element.isFinal && !element.isSealed) {
         if (baseOrFinalSuperElement.isFinal) {
-          if (!isSuperclassConstraint &&
-              baseOrFinalSuperElement.library != element.library) {
+          if (baseOrFinalSuperElement.library != element.library) {
             // If you can't extend, implement or mix in a final element outside of
             // its library anyways, it's not helpful to report a subelement
             // modifier error.

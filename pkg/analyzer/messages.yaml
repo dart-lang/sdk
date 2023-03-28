@@ -5572,6 +5572,13 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the final class being implemented.
+  FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be used as a mixin superclass constraint outside of its library because it's a final class."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the final class being used as a mixin superclass constraint.
   FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
     problemMessage: "'{0}' is final and was given a value when it was declared, so it can't be set to a new value."
     correctionMessage: Try removing one of the initializations.

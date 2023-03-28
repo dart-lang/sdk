@@ -570,6 +570,7 @@ abstract final class ZoneDelegate {
 /// Similarly, zones provide [bindCallbackGuarded] (and the corresponding
 /// [bindUnaryCallbackGuarded] and [bindBinaryCallbackGuarded]), when the
 /// callback should be invoked through [Zone.runGuarded].
+@vmIsolateUnsendable
 abstract final class Zone {
   // Private constructor so that it is not possible instantiate a Zone class.
   Zone._();

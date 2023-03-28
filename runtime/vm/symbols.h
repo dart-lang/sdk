@@ -517,6 +517,7 @@ class ObjectPointerVisitor;
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_invisible, "vm:invisible")                                              \
+  V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \

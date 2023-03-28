@@ -800,6 +800,10 @@ abstract class SendPort implements Capability {
   ///   - [UserTag]
   ///   - `MirrorReference`
   ///
+  /// Instances of classes that either themselves are marked with
+  /// `@pragma('vm:isolate-unsendable')`, extend or implement such classes
+  /// cannot be sent through the ports.
+  ///
   /// Apart from those exceptions any object can be sent. Objects that are
   /// identified as immutable (e.g. strings) will be shared whereas all other
   /// objects will be copied.
