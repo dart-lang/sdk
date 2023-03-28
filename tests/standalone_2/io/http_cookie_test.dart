@@ -112,8 +112,16 @@ void testValidatePath() {
   }, (e) => e.toString().contains('Invalid character'));
 }
 
+void testCookieSameSite() {
+  Cookie cookie1 = Cookie.fromSetCookieValue("name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; HttpOnly; Path=/; SameSite=None");
+  expect(cookie1.sameSite == SameSite.None, isTrue);
+  Cookie cookie2 = Cookie.fromSetCookieValue("name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; Path=/; SameSite=Lax");
+  expect(cookie2.sameSite == SameSite.Lax, isTrue);
+}
+
 void main() {
   testCookies();
   testValidateCookieWithDoubleQuotes();
   testValidatePath();
+  testCookieSameSite();
 }
