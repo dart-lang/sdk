@@ -428,7 +428,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitClassTypeAlias(ClassTypeAlias node) {
     _checkForImmutable(node);
     _checkForInvalidSealedSuperclass(node);
-    super.visitClassTypeAlias(node);
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitClassTypeAlias(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
@@ -655,7 +662,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
-    super.visitFunctionTypeAlias(node);
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitFunctionTypeAlias(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
@@ -681,7 +695,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkStrictInferenceReturnType(
           node.functionType!.returnType, node, node.name.lexeme);
     }
-    super.visitGenericTypeAlias(node);
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitGenericTypeAlias(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
