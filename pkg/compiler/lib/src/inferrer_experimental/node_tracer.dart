@@ -488,18 +488,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     final user = currentUser;
     if (user is MemberTypeInformation) {
-      for (final target in info.concreteTargets) {
-        IterationStep checkMember(MemberEntity member) {
-          if (member == user.member) {
-            addNewEscapeInformation(info);
-            return IterationStep.STOP;
-          }
-          return IterationStep.CONTINUE;
+      bool checkMember(MemberEntity member) {
+        if (member == user.member) {
+          addNewEscapeInformation(info);
+          return false;
         }
-
-        inferrer.memberHierarchyBuilder
-            .forEachTargetMember(target, checkMember);
+        return true;
       }
+
+      info.forEachConcreteTarget(inferrer.memberHierarchyBuilder, checkMember);
     }
   }
 

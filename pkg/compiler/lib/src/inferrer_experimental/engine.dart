@@ -25,7 +25,6 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
-import '../universe/class_set.dart';
 import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
@@ -142,10 +141,7 @@ class InferrerEngine {
     final targets = memberHierarchyBuilder.rootsForCall(mask, selector);
     for (final target in targets) {
       memberHierarchyBuilder.forEachTargetMember(
-          target,
-          (member) => (member.isAbstract || f(member))
-              ? IterationStep.CONTINUE
-              : IterationStep.STOP);
+          target, (member) => member.isAbstract || f(member));
     }
   }
 
@@ -423,16 +419,14 @@ class InferrerEngine {
             // of this closure call are not a root to trace but an intermediate
             // for some other function.
             elements = [];
-            for (final target in info.concreteTargets) {
-              IterationStep processTarget(MemberEntity entity) {
-                if (entity.isFunction && !entity.isAbstract) {
-                  elements.add(entity as FunctionEntity);
-                }
-                return IterationStep.CONTINUE;
+            bool processTarget(MemberEntity entity) {
+              if (entity.isFunction && !entity.isAbstract) {
+                elements.add(entity as FunctionEntity);
               }
-
-              memberHierarchyBuilder.forEachTargetMember(target, processTarget);
+              return true;
             }
+
+            info.forEachConcreteTarget(memberHierarchyBuilder, processTarget);
           } else {
             elements = List<FunctionEntity>.from(
                 info.callees.where((e) => e.isFunction));
@@ -1036,7 +1030,7 @@ class InferrerEngine {
     // There is nothing to do so no need to iterate over target members.
     if (!needsClosurization && !shouldMarkCalled) return;
 
-    IterationStep handleTarget(MemberEntity member) {
+    bool handleTarget(MemberEntity member) {
       if (!member.isAbstract) {
         MemberTypeInformation info = types.getInferredTypeOfMember(member);
         if (shouldMarkCalled) info.markCalled();
@@ -1046,7 +1040,7 @@ class InferrerEngine {
               remove: false, addToQueue: false);
         }
       }
-      return IterationStep.CONTINUE;
+      return true;
     }
 
     memberHierarchyBuilder.forEachTargetMember(target, handleTarget);
@@ -1060,7 +1054,7 @@ class InferrerEngine {
   void _processCalledTargets({required bool shouldMarkCalled}) {
     for (final call in types.allocatedCalls) {
       if (call is DynamicCallSiteTypeInformation) {
-        for (final target in call.concreteTargets) {
+        for (final target in call.targets) {
           _processDynamicTarget(target, call,
               shouldMarkCalled: shouldMarkCalled);
         }
@@ -1352,12 +1346,10 @@ class InferrerEngine {
         if (callSite is StaticCallSiteTypeInformation) {
           (callers[callSite.calledElement] ??= {}).add(callSite.caller);
         } else if (callSite is DynamicCallSiteTypeInformation) {
-          for (final target in callSite.concreteTargets) {
-            memberHierarchyBuilder.forEachTargetMember(target, (member) {
-              (callers[target.member] ??= {}).add(callSite.caller);
-              return IterationStep.CONTINUE;
-            });
-          }
+          callSite.forEachConcreteTarget(memberHierarchyBuilder, (member) {
+            (callers[member] ??= {}).add(callSite.caller);
+            return true;
+          });
         }
       }
     }

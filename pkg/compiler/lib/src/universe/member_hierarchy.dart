@@ -116,47 +116,34 @@ class MemberHierarchyBuilder {
 
   /// Applies [f] to each override of [entity].
   ///
-  /// If [f] returns [IterationStep.CONTINUE] for a given input then that
-  /// member's overrides are also visited. If [f] returns for a member
-  /// [IterationStep.SKIP_SUBCLASSES] then the overrides of that member are
-  /// skipped. If [f] returns [IterationStep.STOP] then iteration is immediately
+  /// If [f] returns `false` for a given input then iteration is immediately
   /// stopped and [f] is not called on any more members.
   void forEachOverride(
-      MemberEntity entity, IterationStep Function(MemberEntity override) f) {
+      MemberEntity entity, bool Function(MemberEntity override) f) {
     _forEachOverrideSkipVisited(entity, f, {entity});
   }
 
   /// Applies [f] to each target represented by [target] including overrides
   /// if the call is virtual.
   ///
-  /// If [f] returns [IterationStep.CONTINUE] for a given input then that
-  /// member's overrides are also visited. If [f] returns for a member
-  /// [IterationStep.SKIP_SUBCLASSES] then the overrides of that member are
-  /// skipped. If [f] returns [IterationStep.STOP] then iteration is immediately
+  /// If [f] returns `false` for a given input then iteration is immediately
   /// stopped and [f] is not called on any more members.
-  void forEachTargetMember(DynamicCallTarget target,
-      IterationStep Function(MemberEntity override) f) {
-    final initialResult = f(target.member);
-    if (initialResult == IterationStep.STOP ||
-        initialResult == IterationStep.SKIP_SUBCLASSES) {
-      return;
-    }
+  void forEachTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    if (!f(target.member)) return;
+
     if (target.isVirtual) {
       forEachOverride(target.member, f);
     }
   }
 
-  void _forEachOverrideSkipVisited(
-      MemberEntity entity,
-      IterationStep Function(MemberEntity override) f,
-      Set<MemberEntity> visited) {
+  void _forEachOverrideSkipVisited(MemberEntity entity,
+      bool Function(MemberEntity override) f, Set<MemberEntity> visited) {
     final overrides = _overrides[entity];
     if (overrides == null) return;
     for (final override in overrides) {
       if (!visited.add(override)) continue;
-      final result = f(override);
-      if (result == IterationStep.SKIP_SUBCLASSES) continue;
-      if (result == IterationStep.STOP) return;
+      if (!f(override)) return;
       _forEachOverrideSkipVisited(override, f, visited);
     }
   }
@@ -170,9 +157,9 @@ class MemberHierarchyBuilder {
       if (classHierarchy.isSubclassOf(override.enclosingClass!, cls) ||
           closedWorld.hasAnySubclassThatMixes(cls, override.enclosingClass!)) {
         needsVirtual = true;
-        return IterationStep.STOP;
+        return false;
       }
-      return IterationStep.CONTINUE;
+      return true;
     });
     return needsVirtual;
   }
