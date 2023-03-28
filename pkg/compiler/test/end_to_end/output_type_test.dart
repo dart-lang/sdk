@@ -45,7 +45,9 @@ late CompileFunc oldCompileFunc;
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
     {List<String> groupOutputs = const <String>[]}) async {
   List<String> options = List<String>.from(arguments)
-    ..add('--platform-binaries=$sdkPlatformBinariesPath')
+    // TODO(nshahan) Should change to sdkPlatformBinariesPath when testing
+    // with unsound null safety is no longer needed.
+    ..add('--platform-binaries=$buildPlatformBinariesPath')
     ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');

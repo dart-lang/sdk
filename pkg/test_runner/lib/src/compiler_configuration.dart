@@ -447,6 +447,10 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
       ..._nnbdModeArgument(_configuration),
+      if (_configuration.nnbdMode == NnbdMode.weak)
+        // Unsound platform dill files are no longer packaged in the SDK and
+        // must be read from the build directory during tests.
+        '--platform-binaries=${_configuration.buildDirectory}',
       ...args
     ];
   }

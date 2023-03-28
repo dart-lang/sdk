@@ -732,6 +732,16 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   parseCommandLine(handlers, argv);
 
+  if (nullSafetyMode == Flags.noSoundNullSafety && platformBinaries == null) {
+    // Compiling without sound null safety is no longer allowed except in the
+    // cases where an unsound platform .dill file is manually provided.
+    // The unsound .dills are no longer packaged in the SDK release so any
+    // compile initiated through `dart compile js --no-sound-null-safety`
+    // will not find a .dill in the default location and should be prevented
+    // from executing.
+    _fail('the flag --no-sound-null-safety is not supported in Dart 3.\n'
+        'See: https://dart.dev/null-safety.');
+  }
   final diagnostic = diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnostic.verbose = verbose!;
