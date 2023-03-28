@@ -16,7 +16,8 @@ class Implements implements FinalClass {} /* Error */
 
 mixin On on FinalClass {} /* Error */
 
-class ExtendsExtends extends Extends {} /* Error */
+// Only report errors on the nearest erroneous subtype.
+class ExtendsExtends extends Extends {} /* Ok */
 
 class Multiple extends RegularClass implements FinalClass {} /* Error */
 

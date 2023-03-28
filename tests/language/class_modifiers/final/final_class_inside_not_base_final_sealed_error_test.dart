@@ -31,8 +31,6 @@ mixin On on FinalClass {}
 // [cfe] The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 
 class ExtendsExtends extends Extends {}
-//    ^
-// [cfe] The type 'ExtendsExtends' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 
 class Multiple extends RegularClass implements FinalClass {}
 //    ^^^^^^^^

@@ -17,17 +17,12 @@ library /*isNonNullableByDefault*/;
 // mixin On on FinalClass {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:19:7: Error: The type 'ExtendsExtends' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// class ExtendsExtends extends Extends {} /* Error */
-//       ^
-//
-// pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:21:7: Error: The type 'Multiple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+// pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:22:7: Error: The type 'Multiple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Multiple extends RegularClass implements FinalClass {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:23:7: Error: The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+// pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:24:7: Error: The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class IndirectSubtype extends SubtypeOfFinal {} /* Error */
 //       ^

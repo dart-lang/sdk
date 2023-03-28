@@ -2,52 +2,47 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:12:7: Error: The type 'Extends' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:17:7: Error: The type 'Extends' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Extends extends BaseClass {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:14:7: Error: The type 'Implements' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:19:7: Error: The type 'Implements' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Implements implements BaseClass {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:16:7: Error: The type 'MixinImplements' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:21:7: Error: The type 'MixinImplements' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // mixin MixinImplements implements BaseMixin {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:18:7: Error: The type 'With' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:23:7: Error: The type 'With' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class With with BaseMixin {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:20:7: Error: The type 'With2' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:25:7: Error: The type 'With2' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class With2 with BaseMixin, BaseMixin2 {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:22:7: Error: The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:27:7: Error: The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // mixin On on BaseClass {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:24:7: Error: The type 'ExtendsExtends' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
-// Try adding 'base', 'final', or 'sealed' to the type.
-// class ExtendsExtends extends Extends {} /* Error */
-//       ^
-//
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:26:7: Error: The type 'Multiple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:32:7: Error: The type 'Multiple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Multiple extends FinalClass implements BaseMixin {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:28:7: Error: The type 'Multiple2' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:34:7: Error: The type 'Multiple2' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Multiple2 extends RegularClass implements BaseClass {} /* Error */
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:30:7: Error: The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
+// pkg/front_end/testcases/class_modifiers/base/base_subtype_not_base_final_sealed.dart:36:7: Error: The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class IndirectSubtype extends SubtypeOfBase {} /* Error */
 //       ^
