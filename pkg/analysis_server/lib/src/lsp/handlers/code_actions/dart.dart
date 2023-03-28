@@ -189,19 +189,19 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     final refactorActions = <Either2<CodeAction, Command>>[];
 
     try {
-      // New refactors.
-      if (server.clientConfiguration.global.experimentalNewRefactors) {
-        final context = RefactoringContext(
-          server: server,
-          resolvedLibraryResult: library,
-          resolvedUnitResult: unit,
-          selectionOffset: offset,
-          selectionLength: length,
-        );
-        final processor = RefactoringProcessor(context);
-        final actions = await processor.compute();
-        refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
-      }
+      // New interactive refactors.
+      final context = RefactoringContext(
+        server: server,
+        resolvedLibraryResult: library,
+        resolvedUnitResult: unit,
+        selectionOffset: offset,
+        selectionLength: length,
+        includeExperimental:
+            server.clientConfiguration.global.experimentalRefactors,
+      );
+      final processor = RefactoringProcessor(context);
+      final actions = await processor.compute();
+      refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {

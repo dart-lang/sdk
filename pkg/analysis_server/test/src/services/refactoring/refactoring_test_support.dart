@@ -115,7 +115,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     bool applyEditSupport = true,
   }) async {
     final config = {
-      if (experimentalOptInFlag) 'experimentalNewRefactors': true,
+      if (experimentalOptInFlag) 'experimentalRefactors': true,
     };
     final experimentalCapabilities = {
       if (commandParameterSupportedKinds != null)

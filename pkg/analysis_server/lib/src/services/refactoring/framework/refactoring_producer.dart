@@ -23,6 +23,10 @@ abstract class RefactoringProducer {
   /// the given [_context].
   RefactoringProducer(this._context);
 
+  /// Return whether this refactor is considered experimental and will only
+  /// be included if the user has opted-in.
+  bool get isExperimental;
+
   /// Return the kind of refactoring this producer produces. Subclasses should
   /// override this method if they produce a subtype of the type
   /// [CodeActionKind.Refactor], such as [CodeActionKind.RefactorExtract],

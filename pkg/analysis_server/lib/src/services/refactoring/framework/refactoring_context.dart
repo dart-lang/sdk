@@ -31,6 +31,9 @@ class RefactoringContext {
   /// The number of selected characters.
   final int selectionLength;
 
+  /// Whether to include refactors marked as experimental.
+  final bool includeExperimental;
+
   /// Utilities available to be used in the process of computing the edits.
   late final CorrectionUtils utils = CorrectionUtils(resolvedUnitResult);
 
@@ -52,6 +55,7 @@ class RefactoringContext {
     required this.resolvedUnitResult,
     required this.selectionOffset,
     required this.selectionLength,
+    required this.includeExperimental,
   });
 
   /// Return the search engine used to search outside the resolved library.
