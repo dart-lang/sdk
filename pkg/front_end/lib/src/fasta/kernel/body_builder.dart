@@ -4080,12 +4080,17 @@ class BodyBuilder extends StackListenerImpl
           kind: ScopeKind.forStatement);
       exitLocalScope();
       enterLocalScope(forScope);
+
+      bool isFinal = keyword.lexeme == "final";
+
       // We use intermediate variables to transfer values between the pattern
       // variables and the replacement internal variables. It allows to avoid
       // using the variables with the same name within the same block.
       List<VariableDeclaration> intermediateVariables = [];
       List<VariableDeclaration> internalVariables = [];
       for (VariableDeclaration variable in pattern.declaredVariables) {
+        variable.isFinal |= isFinal;
+
         VariableDeclaration intermediateVariable =
             forest.createVariableDeclarationForValue(
                 forest.createVariableGet(variable.fileOffset, variable));
@@ -4094,7 +4099,8 @@ class BodyBuilder extends StackListenerImpl
         VariableDeclaration internalVariable = forest.createVariableDeclaration(
             variable.fileOffset, variable.name!,
             initializer: forest.createVariableGet(
-                variable.fileOffset, intermediateVariable));
+                variable.fileOffset, intermediateVariable),
+            isFinal: isFinal);
         internalVariables.add(internalVariable);
 
         declareVariable(internalVariable, scope);
@@ -4104,7 +4110,7 @@ class BodyBuilder extends StackListenerImpl
       push(internalVariables);
       push(forest.createPatternVariableDeclaration(
           offsetForToken(keyword), pattern, toValue(expression),
-          isFinal: keyword.lexeme == "final"));
+          isFinal: isFinal));
     }
 
     // This is matched by the call to [deferNode] in [endForStatement].
@@ -7264,7 +7270,9 @@ class BodyBuilder extends StackListenerImpl
 
     if (pattern is Pattern) {
       pop(); // Metadata.
+      bool isFinal = patternKeyword?.lexeme == 'final';
       for (VariableDeclaration variable in pattern.declaredVariables) {
+        variable.isFinal |= isFinal;
         declareVariable(variable, scope);
         typeInferrer.assignedVariables.declare(variable);
       }
