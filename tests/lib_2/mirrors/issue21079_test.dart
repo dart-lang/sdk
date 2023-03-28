@@ -6,17 +6,15 @@
 
 // Regression test case for http://dartbug.com/21079
 import 'dart:mirrors';
-import 'dart:isolate';
 import "package:expect/expect.dart";
 
 void main() {
-  Expect.isTrue(reflectClass(MyException).superclass.reflectedType ==
-      IsolateSpawnException);
+  Expect.isTrue(
+      reflectClass(MyException).superclass.reflectedType == FormatException);
 
-  Expect.isTrue(reflectClass(IsolateSpawnException).reflectedType ==
-      IsolateSpawnException);
+  Expect.isTrue(reflectClass(FormatException).reflectedType == FormatException);
 }
 
-class MyException extends IsolateSpawnException {
+class MyException extends FormatException {
   MyException() : super("Test") {}
 }
