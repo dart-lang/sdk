@@ -5180,6 +5180,8 @@ const char* Class::GenerateUserVisibleName() const {
   switch (id()) {
     case kFloat32x4Cid:
       return Symbols::Float32x4().ToCString();
+    case kFloat64x2Cid:
+      return Symbols::Float64x2().ToCString();
     case kInt32x4Cid:
       return Symbols::Int32x4().ToCString();
     case kTypedDataInt8ArrayCid:
@@ -5224,13 +5226,10 @@ const char* Class::GenerateUserVisibleName() const {
     case kTypedDataFloat64ArrayCid:
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().ToCString();
-
     case kPointerCid:
       return Symbols::FfiPointer().ToCString();
     case kDynamicLibraryCid:
       return Symbols::FfiDynamicLibrary().ToCString();
-
-#if !defined(PRODUCT)
     case kNullCid:
       return Symbols::Null().ToCString();
     case kDynamicCid:
@@ -5328,7 +5327,6 @@ const char* Class::GenerateUserVisibleName() const {
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
       return Symbols::List().ToCString();
-#endif  // !defined(PRODUCT)
   }
   String& name = String::Handle(Name());
   name = Symbols::New(Thread::Current(), String::ScrubName(name));
