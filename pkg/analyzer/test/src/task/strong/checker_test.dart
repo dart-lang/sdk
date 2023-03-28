@@ -2629,8 +2629,8 @@ class Child extends helper.Base {
   String _m1() => null;
 }
 ''', [
-      error(WarningCode.UNUSED_FIELD, 83, 3),
-      error(WarningCode.UNUSED_FIELD, 94, 3),
+      error(HintCode.UNUSED_FIELD, 83, 3),
+      error(HintCode.UNUSED_FIELD, 94, 3),
       error(HintCode.UNUSED_ELEMENT, 109, 3),
     ]);
   }
@@ -3018,8 +3018,8 @@ void main() {
   print((dyn) ? false : true);
 }
 ''', [
-      error(WarningCode.UNUSED_FIELD, 247, 11),
-      error(WarningCode.UNUSED_FIELD, 273, 9),
+      error(HintCode.UNUSED_FIELD, 247, 11),
+      error(HintCode.UNUSED_FIELD, 273, 9),
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 1311, 1),
     ]);
   }

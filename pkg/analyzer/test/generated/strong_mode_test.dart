@@ -271,7 +271,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     await assertErrorsInCode(code, [
       if (isNullSafetyEnabled)
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 32, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
 
     List<Statement> statements =

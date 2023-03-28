@@ -337,7 +337,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
       errors.removeWhere(
-        (e) => e.errorCode == WarningCode.UNUSED_IMPORT,
+        (e) => e.errorCode == HintCode.UNUSED_IMPORT,
       );
 
       // Also, don't worry about 'unused_local_variable' and related; this may

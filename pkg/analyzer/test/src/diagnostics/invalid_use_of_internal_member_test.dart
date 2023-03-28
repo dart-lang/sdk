@@ -367,7 +367,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/src/a.dart';
 ''', [
       error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 0, 32),
-      error(WarningCode.UNUSED_IMPORT, 7, 24),
+      error(HintCode.UNUSED_IMPORT, 7, 24),
     ]);
   }
 

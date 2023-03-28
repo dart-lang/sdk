@@ -20002,9 +20002,138 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the parameter that is declared but not used
+  UNUSED_FIELD:
+    problemMessage: "The value of the field '{0}' isn't used."
+    correctionMessage: Try removing the field, or using it.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the unused field
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a private field is declared but
+      never read, even if it's written in one or more places.
+
+      #### Example
+
+      The following code produces this diagnostic because the field
+      `_originalValue` isn't read anywhere in the library:
+
+      ```dart
+      class C {
+        final String [!_originalValue!];
+        final String _currentValue;
+
+        C(this._originalValue) : _currentValue = _originalValue;
+
+        String get value => _currentValue;
+      }
+      ```
+
+      It might appear that the field `_originalValue` is being read in the
+      initializer (`_currentValue = _originalValue`), but that is actually a
+      reference to the parameter of the same name, not a reference to the field.
+
+      #### Common fixes
+
+      If the field isn't needed, then remove it.
+
+      If the field was intended to be used, then add the missing code.
+  UNUSED_IMPORT:
+    problemMessage: "Unused import: '{0}'."
+    correctionMessage: Try removing the import directive.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the content of the unused import's URI
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an import isn't needed because
+      none of the names that are imported are referenced within the importing
+      library.
+
+      #### Example
+
+      The following code produces this diagnostic because nothing defined in
+      `dart:async` is referenced in the library:
+
+      ```dart
+      import [!'dart:async'!];
+
+      void main() {}
+      ```
+
+      #### Common fixes
+
+      If the import isn't needed, then remove it.
+
+      If some of the imported names are intended to be used, then add the missing
+      code.
   UNUSED_LOCAL_VARIABLE:
-    aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
-    comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
+    problemMessage: "The value of the local variable '{0}' isn't used."
+    correctionMessage: Try removing the variable or using it.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the unused variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable is declared but
+      never read, even if it's written in one or more places.
+
+      #### Example
+
+      The following code produces this diagnostic because the value of `count` is
+      never read:
+
+      ```dart
+      void main() {
+        int [!count!] = 0;
+      }
+      ```
+
+      #### Common fixes
+
+      If the variable isn't needed, then remove it.
+
+      If the variable was intended to be used, then add the missing code.
+  UNUSED_SHOWN_NAME:
+    problemMessage: "The name {0} is shown, but isn't used."
+    correctionMessage: Try removing the name from the list of shown members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name that is shown but not used
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a show combinator includes a
+      name that isn't used within the library. Because it isn't referenced, the
+      name can be removed.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `max`
+      isn't used:
+
+      ```dart
+      import 'dart:math' show min, [!max!];
+
+      var x = min(0, 1);
+      ```
+
+      #### Common fixes
+
+      Either use the name or remove it:
+
+      ```dart
+      import 'dart:math' show min;
+
+      var x = min(0, 1);
+      ```
 LanguageCode:
   IMPLICIT_DYNAMIC_FIELD:
     problemMessage: "Missing field type for '{0}'."
@@ -25153,74 +25282,11 @@ WarningCode:
     aliasFor: HintCode.UNUSED_ELEMENT_PARAMETER
     comment: This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
   UNUSED_FIELD:
-    problemMessage: "The value of the field '{0}' isn't used."
-    correctionMessage: Try removing the field, or using it.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the unused field
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a private field is declared but
-      never read, even if it's written in one or more places.
-
-      #### Example
-
-      The following code produces this diagnostic because the field
-      `_originalValue` isn't read anywhere in the library:
-
-      ```dart
-      class C {
-        final String [!_originalValue!];
-        final String _currentValue;
-
-        C(this._originalValue) : _currentValue = _originalValue;
-
-        String get value => _currentValue;
-      }
-      ```
-
-      It might appear that the field `_originalValue` is being read in the
-      initializer (`_currentValue = _originalValue`), but that is actually a
-      reference to the parameter of the same name, not a reference to the field.
-
-      #### Common fixes
-
-      If the field isn't needed, then remove it.
-
-      If the field was intended to be used, then add the missing code.
+    aliasFor: HintCode.UNUSED_FIELD
+    comment: This is the new replacement for [HintCode.UNUSED_FIELD].
   UNUSED_IMPORT:
-    problemMessage: "Unused import: '{0}'."
-    correctionMessage: Try removing the import directive.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the content of the unused import's URI
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an import isn't needed because
-      none of the names that are imported are referenced within the importing
-      library.
-
-      #### Example
-
-      The following code produces this diagnostic because nothing defined in
-      `dart:async` is referenced in the library:
-
-      ```dart
-      import [!'dart:async'!];
-
-      void main() {}
-      ```
-
-      #### Common fixes
-
-      If the import isn't needed, then remove it.
-
-      If some of the imported names are intended to be used, then add the missing
-      code.
+    aliasFor: HintCode.UNUSED_IMPORT
+    comment: This is the new replacement for [HintCode.UNUSED_IMPORT].
   UNUSED_LABEL:
     problemMessage: "The label '{0}' isn't used."
     correctionMessage: "Try removing the label, or using it in either a 'break' or 'continue' statement."
@@ -25273,34 +25339,8 @@ WarningCode:
       ```
       TODO(brianwilkerson) Highlight the identifier without the colon.
   UNUSED_LOCAL_VARIABLE:
-    problemMessage: "The value of the local variable '{0}' isn't used."
-    correctionMessage: Try removing the variable or using it.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the unused variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a local variable is declared but
-      never read, even if it's written in one or more places.
-
-      #### Example
-
-      The following code produces this diagnostic because the value of `count` is
-      never read:
-
-      ```dart
-      void main() {
-        int [!count!] = 0;
-      }
-      ```
-
-      #### Common fixes
-
-      If the variable isn't needed, then remove it.
-
-      If the variable was intended to be used, then add the missing code.
+    aliasFor: HintCode.UNUSED_LOCAL_VARIABLE
+    comment: This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].
   UNUSED_RESULT:
     problemMessage: "The value of '{0}' should be used."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
@@ -25388,37 +25428,3 @@ WarningCode:
       Parameters:
       0: the name of the annotated method, property or function
       1: message details
-  UNUSED_SHOWN_NAME:
-    problemMessage: "The name {0} is shown, but isn't used."
-    correctionMessage: Try removing the name from the list of shown members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name that is shown but not used
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a show combinator includes a
-      name that isn't used within the library. Because it isn't referenced, the
-      name can be removed.
-
-      #### Example
-
-      The following code produces this diagnostic because the function `max`
-      isn't used:
-
-      ```dart
-      import 'dart:math' show min, [!max!];
-
-      var x = min(0, 1);
-      ```
-
-      #### Common fixes
-
-      Either use the name or remove it:
-
-      ```dart
-      import 'dart:math' show min;
-
-      var x = min(0, 1);
-      ```

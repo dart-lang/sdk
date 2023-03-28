@@ -35,7 +35,7 @@ main() {
   a.loadLibrary();
 }
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 22, 8),
+      error(HintCode.UNUSED_IMPORT, 22, 8),
     ]);
 
     var node = findNode.methodInvocation('loadLibrary()');
@@ -4473,7 +4473,7 @@ main() {
   math?.loadLibrary();
 }
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
@@ -6199,7 +6199,7 @@ main() {
   math.loadLibrary();
 }
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
 
     var node = findNode.methodInvocation('loadLibrary()');
@@ -6252,7 +6252,7 @@ main() {
   math.loadLibrary(1 + 2);
 }
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
     ]);
 

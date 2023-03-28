@@ -383,7 +383,7 @@ class BulkFixProcessor {
           }
         } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
             errorCode == HintCode.UNNECESSARY_IMPORT ||
-            errorCode == WarningCode.UNUSED_IMPORT) {
+            errorCode == HintCode.UNUSED_IMPORT) {
           unusedImportErrors.add(error);
         }
       }

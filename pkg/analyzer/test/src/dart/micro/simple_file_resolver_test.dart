@@ -1484,6 +1484,14 @@ part of 'b.dart';
     }, throwsArgumentError);
   }
 
+  test_hint() async {
+    await assertErrorsInCode(r'''
+import 'dart:math';
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
+  }
+
   test_hint_in_third_party() async {
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
     newFile(aPath, r'''
@@ -2594,14 +2602,6 @@ void f(MyEnum myEnum) {
 import 'foo:bar';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
-    ]);
-  }
-
-  test_warning() async {
-    await assertErrorsInCode(r'''
-import 'dart:math';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 

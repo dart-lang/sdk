@@ -29,7 +29,7 @@ class C {
 }
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
-      error(WarningCode.UNUSED_FIELD, 68, 2),
+      error(HintCode.UNUSED_FIELD, 68, 2),
     ]);
   }
 
@@ -42,8 +42,8 @@ class C {
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
-      error(WarningCode.UNUSED_FIELD, 68, 2),
-      error(WarningCode.UNUSED_FIELD, 76, 2),
+      error(HintCode.UNUSED_FIELD, 68, 2),
+      error(HintCode.UNUSED_FIELD, 76, 2),
     ]);
   }
 
@@ -95,7 +95,7 @@ class C {
 }
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
-      error(WarningCode.UNUSED_FIELD, 68, 2),
+      error(HintCode.UNUSED_FIELD, 68, 2),
     ]);
   }
 
