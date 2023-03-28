@@ -62,9 +62,9 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
-    if (parent is PatternVariableDeclaration) {
+    if (node is PatternVariableDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = parent.keyword;
+        var keyword = node.keyword;
         if (keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         }
