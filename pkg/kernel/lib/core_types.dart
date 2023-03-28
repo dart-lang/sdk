@@ -259,6 +259,9 @@ class CoreTypes {
   late final Procedure boolFromEnvironment =
       index.getProcedure('dart:core', 'bool', 'fromEnvironment');
 
+  late final Procedure intUnaryMinus =
+      index.getProcedure('dart:core', 'int', 'unary-');
+
   late final Procedure createSentinelMethod =
       index.getTopLevelProcedure('dart:_internal', 'createSentinel');
 

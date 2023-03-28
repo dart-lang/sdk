@@ -888,7 +888,8 @@ class ConstantsTransformer extends RemovingTransformer {
           return new _InlinedBlock([
             createExpressionStatement(createVariableSet(
                 info.switchIndexVariable,
-                createIntLiteral(targetCaseIndex, fileOffset: node.fileOffset),
+                createIntLiteral(typeEnvironment.coreTypes, targetCaseIndex,
+                    fileOffset: node.fileOffset),
                 fileOffset: node.fileOffset)),
             createBreakStatement(info.innerLabeledStatement,
                 fileOffset: node.fileOffset),
@@ -1205,7 +1206,8 @@ class ConstantsTransformer extends RemovingTransformer {
     } else {
       // matchResultVariable: int RVAR = -1;
       VariableDeclaration matchResultVariable = createInitializedVariable(
-          createIntLiteral(-1, fileOffset: node.fileOffset),
+          createIntLiteral(typeEnvironment.coreTypes, -1,
+              fileOffset: node.fileOffset),
           typeEnvironment.coreTypes.intNonNullableRawType,
           fileOffset: node.fileOffset);
       LabeledStatement innerLabeledStatement =
@@ -1383,7 +1385,8 @@ class ConstantsTransformer extends RemovingTransformer {
           Statement setMatchResult = createExpressionStatement(
               createVariableSet(
                   matchResultVariable,
-                  createIntLiteral(continueTargetIndex,
+                  createIntLiteral(
+                      typeEnvironment.coreTypes, continueTargetIndex,
                       fileOffset: node.fileOffset),
                   fileOffset: node.fileOffset));
 
@@ -1395,7 +1398,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
           SwitchCase replacementCase = createSwitchCase(
               [
-                createIntLiteral(continueTargetIndex,
+                createIntLiteral(typeEnvironment.coreTypes, continueTargetIndex,
                     fileOffset: node.fileOffset)
               ],
               [

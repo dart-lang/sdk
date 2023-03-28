@@ -105,7 +105,8 @@ class IntegerExpression implements DelayedExpression {
 
   @override
   Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createIntLiteral(value, fileOffset: fileOffset);
+    return createIntLiteral(typeEnvironment.coreTypes, value,
+        fileOffset: fileOffset);
   }
 
   @override

@@ -73,7 +73,7 @@ class IsolateSpawnException implements Exception {
 /// An `Isolate` object cannot be sent over a `SendPort`, but the control port
 /// and capabilities can be sent, and can be used to create a new functioning
 /// `Isolate` object in the receiving port's isolate.
-class Isolate {
+final class Isolate {
   /// Argument to `ping` and `kill`: Ask for immediate action.
   static const int immediate = 0;
 
@@ -758,7 +758,7 @@ class Isolate {
 /// [SendPort]s can be transmitted to other isolates, and they preserve equality
 /// when sent.
 @pragma("vm:entry-point")
-abstract class SendPort implements Capability {
+abstract interface class SendPort implements Capability {
   /// Sends an asynchronous [message] through this send port, to its
   /// corresponding [ReceivePort].
   ///
@@ -841,7 +841,7 @@ abstract class SendPort implements Capability {
 /// to a broadcast stream.
 ///
 /// A [ReceivePort] may have many [SendPort]s.
-abstract class ReceivePort implements Stream<dynamic> {
+abstract interface class ReceivePort implements Stream<dynamic> {
   /// Opens a long-lived port for receiving messages.
   ///
   /// A [ReceivePort] is a non-broadcast stream. This means that it buffers
@@ -898,7 +898,7 @@ abstract class ReceivePort implements Stream<dynamic> {
 /// message is received, otherwise the message is lost.
 ///
 /// Messages can be sent to this port using [sendPort].
-abstract class RawReceivePort {
+abstract interface class RawReceivePort {
   /// Opens a long-lived port for receiving messages.
   ///
   /// A [RawReceivePort] is low level and does not work with [Zone]s. It
@@ -944,7 +944,7 @@ abstract class RawReceivePort {
 ///
 /// This error has the same `toString()` and `stackTrace.toString()` behavior
 /// as the original error, but has no other features of the original error.
-class RemoteError implements Error {
+final class RemoteError implements Error {
   final String _description;
   final StackTrace stackTrace;
   RemoteError(String description, String stackDescription)
@@ -964,7 +964,7 @@ class RemoteError implements Error {
 /// When sent this way, the local transferable can no longer be materialized,
 /// and the received object is now the only way to materialize the data.
 @Since("2.3.2")
-abstract class TransferableTypedData {
+abstract final class TransferableTypedData {
   /// Creates a new [TransferableTypedData] containing the bytes of [list].
   ///
   /// It must be possible to create a single [Uint8List] containing the
@@ -984,7 +984,7 @@ abstract class TransferableTypedData {
 ///
 /// The [_remoteExecute] function is run in a new isolate with a
 /// [_RemoteRunner] object as argument.
-class _RemoteRunner<R> {
+final class _RemoteRunner<R> {
   /// User computation to run.
   final FutureOr<R> Function() computation;
 
