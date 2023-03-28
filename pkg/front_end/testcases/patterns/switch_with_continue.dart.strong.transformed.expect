@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test(dynamic o) → core::int {
   #L1:
   {
-    core::int #t1 = -1;
+    core::int #t1 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
     #L2:
     {
@@ -105,8 +105,9 @@ constants  {
 }
 
 Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_with_continue.dart:6:3 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_with_continue.dart:23:14 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_with_continue.dart:33:10 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_with_continue.dart:35:10 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_with_continue.dart:36:10 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 62, effectively constant: 4
+Extra constant evaluation: evaluated: 63, effectively constant: 5

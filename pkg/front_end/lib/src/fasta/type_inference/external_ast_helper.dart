@@ -5,6 +5,7 @@
 /// Helper library for creating external AST nodes during inference.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../names.dart';
 import 'inference_results.dart';
@@ -99,8 +100,22 @@ BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
 }
 
 /// Creates an integer literal of [value].
-IntLiteral createIntLiteral(int value, {required int fileOffset}) {
-  return new IntLiteral(value)..fileOffset = fileOffset;
+Expression createIntLiteral(CoreTypes coreTypes, int value,
+    {required int fileOffset}) {
+  if (value < 0) {
+    /// The web backends need this to be encoded as a unary minus on the
+    /// positive value.
+    return new InstanceInvocation(
+        InstanceAccessKind.Instance,
+        new IntLiteral(-value)..fileOffset = fileOffset,
+        unaryMinusName,
+        new Arguments([])..fileOffset = fileOffset,
+        interfaceTarget: coreTypes.intUnaryMinus,
+        functionType: coreTypes.intUnaryMinus.getterType as FunctionType)
+      ..fileOffset = fileOffset;
+  } else {
+    return new IntLiteral(value)..fileOffset = fileOffset;
+  }
 }
 
 /// Creates a string literal of [value].

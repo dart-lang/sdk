@@ -3182,9 +3182,13 @@ class bool {}
 
 class double extends num {}
 
-class int extends num {}
+class int extends num {
+  int operator -() => this;
+}
 
-class num {}
+class num {
+  num operator -() => this;
+}
 
 class Function {}
 
