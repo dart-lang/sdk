@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 import '../fix_processor.dart';
@@ -46,7 +46,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// A method that can be used as an error filter to ignore any unused_import
   /// diagnostics.
   bool ignoreUnusedImport(AnalysisError error) =>
-      error.errorCode != HintCode.UNUSED_IMPORT;
+      error.errorCode != WarningCode.UNUSED_IMPORT;
 
   /// Set the content of the library that defines the element referenced by the
   /// data on which this test is based.

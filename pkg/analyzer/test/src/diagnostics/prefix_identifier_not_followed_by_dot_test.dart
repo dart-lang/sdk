@@ -132,7 +132,7 @@ f() {
   p?.loadLibrary();
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
+      error(WarningCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 41, 1),
     ]);
   }

@@ -150,7 +150,7 @@ import 'package:meta/meta.dart';
     assertErrorsInResult([
       error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
       error(HintCode.UNUSED_ELEMENT, 48, 2),
-      error(HintCode.UNUSED_FIELD, 52, 3),
+      error(WarningCode.UNUSED_FIELD, 52, 3),
     ]);
   }
 
@@ -162,7 +162,7 @@ enum E {@internal _one}
 
     assertErrorsInResult([
       error(WarningCode.INVALID_INTERNAL_ANNOTATION, 41, 9),
-      error(HintCode.UNUSED_FIELD, 51, 4),
+      error(WarningCode.UNUSED_FIELD, 51, 4),
     ]);
   }
 
@@ -197,7 +197,7 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(HintCode.UNUSED_FIELD, 59, 2),
+      error(WarningCode.UNUSED_FIELD, 59, 2),
       error(WarningCode.INVALID_INTERNAL_ANNOTATION, 59, 6),
     ]);
   }
@@ -211,7 +211,7 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(HintCode.UNUSED_FIELD, 66, 2),
+      error(WarningCode.UNUSED_FIELD, 66, 2),
       error(WarningCode.INVALID_INTERNAL_ANNOTATION, 66, 6),
     ]);
   }
