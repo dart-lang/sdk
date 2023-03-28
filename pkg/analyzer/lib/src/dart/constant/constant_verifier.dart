@@ -778,6 +778,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     // Build spaces for cases.
     final patternConverter = PatternConverter(
+      featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
       mapPatternKeyValues: mapPatternKeyValues,
       constantPatternValues: constantPatternValues,

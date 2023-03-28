@@ -406,17 +406,11 @@ class CfeExhaustivenessCache
 
 class PatternConverter with SpaceCreator<Pattern, DartType> {
   final CfeExhaustivenessCache cache;
-  final Map<ConstantPattern, Constant> constantPatternValues;
-  final Map<MapPatternEntry, Constant> mapPatternKeyValues;
   final StaticTypeContext context;
+  final bool Function(Constant) hasPrimitiveEquality;
 
-  PatternConverter(this.cache, this.constantPatternValues,
-      this.mapPatternKeyValues, this.context);
-
-  Space convertExpressionToSpace(Expression expression, Path path) {
-    Constant? constant = constantPatternValues[expression];
-    return convertConstantToSpace(constant, path: path);
-  }
+  PatternConverter(this.cache, this.context,
+      {required this.hasPrimitiveEquality});
 
   @override
   Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
@@ -432,9 +426,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       return createVariableSpace(path, contextType, pattern.variable.type,
           nonNull: nonNull);
     } else if (pattern is ConstantPattern) {
-      return convertConstantToSpace(
-          pattern.value ?? constantPatternValues[pattern],
-          path: path);
+      return convertConstantToSpace(pattern.value!, path: path);
     } else if (pattern is RecordPattern) {
       List<Pattern> positional = [];
       Map<String, Pattern> named = {};
@@ -509,11 +501,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         if (entry is MapPatternRestEntry) {
           hasRest = true;
         } else {
-          // TODO(johnniwinther): Assert that we have a constant value.
-          Constant? constant = entry.keyValue ?? mapPatternKeyValues[entry];
-          if (constant == null) {
-            return createUnknownSpace(path);
-          }
+          Constant constant = entry.keyValue!;
           MapKey key = new MapKey(constant, constant.toText(textStrategy));
           entries[key] = entry.value;
         }
@@ -554,11 +542,15 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         }
         return new Space(path, cache.getStaticType(constant.recordType),
             fields: fields);
-      } else {
+      } else if (hasPrimitiveEquality(constant)) {
+        // Only if [constant] has primitive equality can we tell if it is equal
+        // to itself.
         return new Space(
             path,
             cache.getUniqueStaticType<Constant>(constant.getType(context),
                 constant, constant.toText(textStrategy)));
+      } else {
+        return new Space(path, cache.getUnknownStaticType());
       }
     } else {
       // TODO(johnniwinther): Assert that constant value is available when the

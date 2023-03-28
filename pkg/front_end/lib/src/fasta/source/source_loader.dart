@@ -2292,6 +2292,15 @@ severity: $severity
           !cls.cls.isAnonymousMixin &&
           !mayIgnoreClassModifiers(baseOrFinalSuperClass,
               checkingBaseOrFinalSubtypeError: true)) {
+        if (!superclass.isBase &&
+            !superclass.isFinal &&
+            !superclass.isSealed &&
+            !superclass.cls.isAnonymousMixin) {
+          // Only report an error on the nearest subtype that does not fulfill
+          // the base or final subtype restriction.
+          return;
+        }
+
         if (baseOrFinalSuperClass.isFinal) {
           cls.addProblem(
               templateSubtypeOfFinalIsNotBaseFinalOrSealed.withArguments(

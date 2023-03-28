@@ -1513,8 +1513,10 @@ class ConstantsTransformer extends RemovingTransformer {
       required bool mustBeExhaustive}) {
     StaticType type = exhaustivenessCache.getStaticType(expressionType);
     List<Space> cases = [];
-    PatternConverter patternConverter =
-        new PatternConverter(exhaustivenessCache, {}, {}, staticTypeContext);
+    PatternConverter patternConverter = new PatternConverter(
+        exhaustivenessCache, staticTypeContext,
+        hasPrimitiveEquality: (Constant constant) => constantEvaluator
+            .hasPrimitiveEqual(constant, staticTypeContext: staticTypeContext));
     for (PatternGuard patternGuard in patternGuards) {
       cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));

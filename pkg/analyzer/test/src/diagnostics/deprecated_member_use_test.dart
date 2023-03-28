@@ -343,6 +343,34 @@ void f(A a) {}
     );
   }
 
+  test_class_inDeprecatedFunctionTypeAlias() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+@deprecated
+typedef A T();
+''');
+  }
+
+  test_class_inDeprecatedGenericTypeAlias() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+@deprecated
+typedef T = A Function();
+''');
+  }
+
   test_compoundAssignment() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -884,6 +912,20 @@ void f(A a) {
       error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 3,
           text: "'foo' is deprecated and shouldn't be used. 0.9."),
     ]);
+  }
+
+  test_mixin_inDeprecatedClassTypeAlias() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+mixin A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+@deprecated
+class B = Object with A;
+''');
   }
 
   test_operator() async {

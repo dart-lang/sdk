@@ -62,6 +62,16 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
+    if (node is PatternVariableDeclaration) {
+      await builder.addDartFileEdit(file, (builder) {
+        var keyword = node.keyword;
+        if (keyword.keyword == Keyword.VAR) {
+          builder.addSimpleReplacement(range.token(keyword), 'final');
+        }
+      });
+      return;
+    }
+
     final list = _getVariableDeclarationList(node);
     if (list != null && list.variables.length == 1) {
       await builder.addDartFileEdit(file, (builder) {
