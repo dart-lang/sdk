@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -360,11 +361,13 @@ class ExhaustivenessDataForTesting {
 }
 
 class PatternConverter with SpaceCreator<DartPattern, DartType> {
+  final FeatureSet featureSet;
   final AnalyzerExhaustivenessCache cache;
   final Map<Expression, DartObjectImpl> mapPatternKeyValues;
   final Map<ConstantPattern, DartObjectImpl> constantPatternValues;
 
   PatternConverter({
+    required this.featureSet,
     required this.cache,
     required this.mapPatternKeyValues,
     required this.constantPatternValues,
@@ -567,10 +570,18 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         return Space(path, cache.getEnumElementStaticType(element, value));
       }
     }
-    return Space(
-        path,
-        cache.getUniqueStaticType<DartObjectImpl>(
-            type, value, value.state.toString()));
+
+    StaticType staticType;
+    if (value.hasPrimitiveEquality(featureSet)) {
+      staticType = cache.getUniqueStaticType<DartObjectImpl>(
+          type, value, value.state.toString());
+    } else {
+      // If [value] doesn't have primitive equality we cannot tell if it is
+      // equal to itself.
+      staticType = cache.getUnknownStaticType();
+    }
+
+    return Space(path, staticType);
   }
 }
 
