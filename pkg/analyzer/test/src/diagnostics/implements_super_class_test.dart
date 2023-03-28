@@ -54,7 +54,7 @@ class B = A with M implements A;
 
   test_classAlias_Object() async {
     await assertErrorsInCode(r'''
-class M {}
+mixin M {}
 class A = Object with M implements Object;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 46, 6),

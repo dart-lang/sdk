@@ -14,10 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef A = invalid-type;
-class B extends core::Object {
-  synthetic constructor •() → self::B
-    : super core::Object::•()
-    ;
+abstract class B extends core::Object /*isMixinDeclaration*/  {
 }
 class C extends core::Object implements self::B /*isEliminatedMixin*/  {
   synthetic constructor •() → self::C

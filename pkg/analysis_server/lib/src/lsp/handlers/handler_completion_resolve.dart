@@ -176,8 +176,8 @@ class CompletionResolveHandler
           insertTextMode: item.insertTextMode,
           textEdit: item.textEdit,
           additionalTextEdits: thisFilesChanges
-              .expand((change) =>
-                  change.edits.map((edit) => toTextEdit(result.lineInfo, edit)))
+              .expand((change) => sortSourceEditsForLsp(change.edits)
+                  .map((edit) => toTextEdit(result.lineInfo, edit)))
               .toList(),
           commitCharacters: item.commitCharacters,
           command: command ?? item.command,

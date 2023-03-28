@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -124,12 +125,33 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       _checkUiAsCode ??= !before_2_2_2.intersect(_versionConstraint).isEmpty;
 
   @override
+  void visitArgumentList(ArgumentList node) {
+    // Check (optional) positional arguments.
+    // Named arguments are checked in [NamedExpression].
+    for (final argument in node.arguments) {
+      if (argument is! NamedExpression) {
+        final parameter = argument.staticParameterElement;
+        _checkSinceSdkVersion(parameter, node, errorEntity: argument);
+      }
+    }
+
+    super.visitArgumentList(node);
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
           WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
     }
     super.visitAsExpression(node);
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _checkSinceSdkVersion(node.readElement, node);
+    _checkSinceSdkVersion(node.writeElement, node);
+    super.visitAssignmentExpression(node);
   }
 
   @override
@@ -172,6 +194,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorName(ConstructorName node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitConstructorName(node);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (checkExtensionMethods) {
       _errorReporter.reportErrorForToken(
@@ -200,6 +228,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
   }
@@ -212,6 +246,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     _inUiAsCode = true;
     super.visitIfElement(node);
     _inUiAsCode = wasInUiAsCode;
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitIndexExpression(node);
   }
 
   @override
@@ -230,6 +270,30 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
           WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
     }
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _checkSinceSdkVersion(node.methodName.staticElement, node);
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    _checkSinceSdkVersion(node.name.staticElement, node);
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _checkSinceSdkVersion(node.staticElement, node);
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _checkSinceSdkVersion(node.propertyName.staticElement, node);
+    super.visitPropertyAccess(node);
   }
 
   @override
@@ -254,6 +318,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
+    _checkSinceSdkVersion(node.staticElement, node);
     var element = node.staticElement;
     if (checkFutureAndStream &&
         element is InterfaceElement &&
@@ -287,6 +352,56 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     _inUiAsCode = wasInUiAsCode;
   }
 
+  void _checkSinceSdkVersion(
+    Element? element,
+    AstNode target, {
+    SyntacticEntity? errorEntity,
+  }) {
+    if (element != null) {
+      final sinceSdkVersion = element.sinceSdkVersion;
+      if (sinceSdkVersion != null) {
+        if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
+          if (errorEntity == null) {
+            if (!_shouldReportEnumIndex(target, element)) {
+              return;
+            }
+            if (target is AssignmentExpression) {
+              target = target.leftHandSide;
+            }
+            if (target is ConstructorName) {
+              errorEntity = target.name ?? target.type.name.simpleName;
+            } else if (target is FunctionExpressionInvocation) {
+              errorEntity = target.argumentList;
+            } else if (target is IndexExpression) {
+              errorEntity = target.leftBracket;
+            } else if (target is MethodInvocation) {
+              errorEntity = target.methodName;
+            } else if (target is NamedType) {
+              errorEntity = target.name.simpleName;
+            } else if (target is PrefixedIdentifier) {
+              errorEntity = target.identifier;
+            } else if (target is PropertyAccess) {
+              errorEntity = target.propertyName;
+            } else if (target is SimpleIdentifier) {
+              errorEntity = target;
+            } else {
+              throw UnimplementedError('(${target.runtimeType}) $target');
+            }
+          }
+          _errorReporter.reportErrorForOffset(
+            WarningCode.SDK_VERSION_SINCE,
+            errorEntity.offset,
+            errorEntity.length,
+            [
+              sinceSdkVersion.toString(),
+              _versionConstraint.toString(),
+            ],
+          );
+        }
+      }
+    }
+  }
+
   /// Given that the [node] is only valid when the ui-as-code feature is
   /// enabled, check that the code will not be executed with a version of the
   /// SDK that does not support the feature.
@@ -307,5 +422,49 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
     }
+  }
+
+  /// Returns `false` if [element] is the `index` property, and the target
+  /// of [node] is exactly the `Enum` class from `dart:core`. We have already
+  /// checked that the property is not available to the enclosing package.
+  ///
+  /// Returns `true` if [element] is something else, or if the target is a
+  /// concrete enum. The `index` was always available for concrete enums,
+  /// but there was no common `Enum` supertype for all enums.
+  static bool _shouldReportEnumIndex(AstNode node, Element element) {
+    if (element is PropertyAccessorElement && element.name == 'index') {
+      DartType? targetType;
+      if (node is PrefixedIdentifier) {
+        targetType = node.prefix.staticType;
+      } else if (node is PropertyAccess) {
+        targetType = node.realTarget.staticType;
+      }
+      if (targetType != null) {
+        final targetElement = targetType.element;
+        return targetElement is ClassElement && targetElement.isDartCoreEnum;
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+}
+
+extension on VersionConstraint {
+  bool requiresAtLeast(Version version) {
+    final self = this;
+    if (self is Version) {
+      return self == version;
+    }
+    if (self is VersionRange) {
+      final min = self.min;
+      if (min == null) {
+        return false;
+      } else {
+        return min >= version;
+      }
+    }
+    // We don't know, but will not complain.
+    return true;
   }
 }

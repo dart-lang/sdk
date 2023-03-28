@@ -646,15 +646,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     final arrayVar = VariableDeclaration("#array",
         initializer: NullCheck(node.arguments.positional[0]),
-        type: InterfaceType(arrayClass, Nullability.nonNullable))
+        type: InterfaceType(arrayClass, Nullability.nonNullable),
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final indexVar = VariableDeclaration("#index",
         initializer: NullCheck(node.arguments.positional[1]),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final singleElementSizeVar = VariableDeclaration("#singleElementSize",
         initializer: _inlineSizeOf(elementType as InterfaceType),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final elementSizeVar = VariableDeclaration("#elementSize",
         initializer: multiply(
@@ -663,12 +666,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 arrayNestedDimensionsFlattened.name,
                 interfaceTarget: arrayNestedDimensionsFlattened,
                 resultType: arrayNestedDimensionsFlattened.getterType)),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final offsetVar = VariableDeclaration("#offset",
         initializer:
             multiply(VariableGet(elementSizeVar), VariableGet(indexVar)),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
 
     final checkIndexAndLocalVars = Block([

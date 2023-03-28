@@ -130,10 +130,7 @@ class Super extends core::Object {
   method extendedMethod() → core::num
     return 0;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method mixedInMethod() → core::num
     return 0;
 }
@@ -260,6 +257,6 @@ constants  {
   #C2 = #extendedMethod
   #C3 = <core::Type*>[]
   #C4 = <dynamic>[]
-  #C5 = <core::Symbol*, dynamic>{)
+  #C5 = <core::Symbol*, dynamic>{}
   #C6 = #mixedInMethod
 }

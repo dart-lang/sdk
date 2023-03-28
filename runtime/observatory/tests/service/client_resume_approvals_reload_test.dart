@@ -12,11 +12,10 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void fooBar() {
-  int i = 0;
+  int _ = 0;
   while (true) {
-    i++;
+    _++;
   }
-  print(i);
 }
 
 late WebSocketVM client1;

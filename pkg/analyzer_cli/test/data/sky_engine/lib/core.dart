@@ -34,7 +34,9 @@ abstract class String implements Comparable<String> {
   List<int> get codeUnits;
 }
 
-class bool extends Object {}
+class bool extends Object {
+  static bool parse(String source, {bool caseSensitive = false}) => false;
+}
 
 abstract class num implements Comparable<num> {
   bool operator <(num other);

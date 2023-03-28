@@ -296,7 +296,7 @@ void ThreadPool::Worker::StartThread() {
   int result = OSThread::Start("DartWorker", &Worker::Main,
                                reinterpret_cast<uword>(this));
   if (result != 0) {
-    FATAL1("Could not start worker thread: result = %d.", result);
+    FATAL("Could not start worker thread: result = %d.", result);
   }
 }
 

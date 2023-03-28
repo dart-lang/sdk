@@ -650,6 +650,17 @@ class ParameterInheritanceOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.parameterInheritance;
 }
 
+/// Edge origin arising from arguments of public methods.
+class PublicMethodArgumentOrigin extends EdgeOrigin {
+  PublicMethodArgumentOrigin(super.source, AstNode super.node);
+
+  @override
+  String get description => 'public method argument';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.publicMethodArgument;
+}
+
 /// Edge origin resulting from the presence of a call to quiver's
 /// `checkNotNull`.
 ///

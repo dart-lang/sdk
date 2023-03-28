@@ -74,22 +74,6 @@ class InstanceViewElement extends CustomElement implements Renderable {
       M.BreakpointRepository breakpoints,
       M.FunctionRepository functions,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(instance != null);
-    assert(objects != null);
-    assert(classes != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(scripts != null);
-    assert(eval != null);
-    assert(arguments != null);
-    assert(breakpoints != null);
-    assert(functions != null);
     InstanceViewElement e = new InstanceViewElement.created();
     e._r = new RenderingScheduler<InstanceViewElement>(e, queue: queue);
     e._vm = vm;

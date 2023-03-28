@@ -128,7 +128,8 @@ class LocalVariableTest extends PartialCodeTest {
                 'labeled',
                 'localFunctionNonVoid',
                 'localFunctionVoid',
-                'return'
+                'return',
+                'switch',
               ]),
           TestDescriptor('varNameEqualsExpression', 'var a = b',
               [ParserErrorCode.EXPECTED_TOKEN], "var a = b;"),

@@ -694,6 +694,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    computer._addRegion_token(node.inlineKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);
@@ -1143,12 +1144,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.baseKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(
-        node.interfaceKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(node.finalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.name, HighlightRegionType.MIXIN);
     super.visitMixinDeclaration(node);
   }
 

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:linter/src/rules.dart';
@@ -14,6 +13,20 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
+  late List<String> registeredLintNames;
+
+  setUp(() {
+    if (Registry.ruleRegistry.isEmpty) {
+      registerLintRules();
+    }
+
+    registeredLintNames = [
+      for (var rule in Registry.ruleRegistry)
+        ...rule.lintCodes
+            .map((e) => e.uniqueName.replaceFirst('LintCode.', '')),
+    ];
+  });
+
   /// Ensure server lint name representations correspond w/ actual lint rules.
   /// See, e.g., https://dart-review.googlesource.com/c/sdk/+/95743.
   test('lint_names', () async {
@@ -41,22 +54,6 @@ void main() {
       expect(registeredLintNames, contains(name));
     }
   });
-}
-
-List<LintRule>? _registeredLints;
-
-Iterable<String> get registeredLintNames => registeredLints.map((r) => r.name);
-
-List<LintRule> get registeredLints {
-  var registeredLints = _registeredLints;
-  if (registeredLints == null) {
-    if (Registry.ruleRegistry.isEmpty) {
-      registerLintRules();
-    }
-    registeredLints = Registry.ruleRegistry.toList();
-    _registeredLints = registeredLints;
-  }
-  return registeredLints;
 }
 
 class _FixCollector extends GeneralizingAstVisitor<void> {

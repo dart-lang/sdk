@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 
-class M<T> {
+mixin M<T> {
   Type field = () {
     return T;
   }();

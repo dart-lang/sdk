@@ -1157,6 +1157,50 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(AtomicLoadClear, assembler) {
+  __ mov(R1, R0);
+  __ LoadImmediate(R2, 2);
+  __ ldclr(/*value in*/ R2, /*value out*/ R0, /*address*/ R1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(AtomicLoadClear, test) {
+  typedef intptr_t (*AtomicLoadClear)(intptr_t) DART_UNUSED;
+  intptr_t x = 42;
+  EXPECT_EQ(42,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(AtomicLoadClear, test->entry(),
+                                            reinterpret_cast<intptr_t>(&x)));
+  EXPECT_EQ(40, x);
+
+  EXPECT_DISASSEMBLY(
+      "mov r1, r0\n"
+      "movz r2, #0x2\n"
+      "ldclr r2, r0, [r1]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(AtomicLoadSet, assembler) {
+  __ mov(R1, R0);
+  __ LoadImmediate(R2, 1);
+  __ ldset(/*value in*/ R2, /*value out*/ R0, /*address*/ R1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(AtomicLoadSet, test) {
+  typedef intptr_t (*AtomicLoadSet)(intptr_t) DART_UNUSED;
+  int64_t x = 42;
+  EXPECT_EQ(42,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(AtomicLoadSet, test->entry(),
+                                            reinterpret_cast<intptr_t>(&x)));
+  EXPECT_EQ(43, x);
+
+  EXPECT_DISASSEMBLY(
+      "mov r1, r0\n"
+      "movz r2, #0x1\n"
+      "ldset r2, r0, [r1]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
   // We cannot really test that ldar/stlr have the barrier behavior, but at
   // least we can test that the load/store behavior is correct.

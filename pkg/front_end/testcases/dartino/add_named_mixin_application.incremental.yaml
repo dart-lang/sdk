@@ -4,7 +4,7 @@
 
 main.dart.patch: |
   // Test that we can add a mixin application.
-  class A {}
+  mixin class A {}
   <<<< []
   ==== []
   class C = Object with A;

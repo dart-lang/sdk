@@ -1,3 +1,4 @@
+// @dart = 2.19
 mixin M1 on Enum {
   final int values = 42;
 }

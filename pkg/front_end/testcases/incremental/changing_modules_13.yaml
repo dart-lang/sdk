@@ -10,8 +10,8 @@ modules:
   module:
     module/a.dart: |
       class A { }
-      class B { }
-      class C { }
+      mixin B { }
+      mixin C { }
       class AB = A with B;
     module/.dart_tool/package_config.json: |
       {

@@ -80,7 +80,7 @@ void main() {
 //
 // Test struct.
 //
-class VeryLargeStruct extends Struct {
+final class VeryLargeStruct extends Struct {
   @Int8()
   external int a;
 

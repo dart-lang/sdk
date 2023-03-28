@@ -117,9 +117,9 @@ constants  {
   #C13 = <core::int>{#C4}
   #C14 = <dynamic>{#C7}
   #C15 = "foo"
-  #C16 = <core::int, core::String>{#C4:#C15)
+  #C16 = <core::int, core::String>{#C4:#C15}
   #C17 = null
-  #C18 = <dynamic, dynamic>{#C7:#C15, #C17:#C7)
+  #C18 = <dynamic, dynamic>{#C7:#C15, #C17:#C7}
   #C19 = true
   #C20 = eval const core::bool::fromEnvironment(#C15)
   #C21 = eval #C2<core::int>

@@ -971,6 +971,7 @@ class FileSystemException implements IOException {
 
 /// Exception thrown when a file operation fails because the necessary access
 /// rights are not available.
+@Since("2.19")
 class PathAccessException extends FileSystemException {
   const PathAccessException(String path, OSError osError, [String message = ""])
       : super(message, path, osError);
@@ -980,6 +981,7 @@ class PathAccessException extends FileSystemException {
 
 /// Exception thrown when a file operation fails because the target path
 /// already exists.
+@Since("2.19")
 class PathExistsException extends FileSystemException {
   const PathExistsException(String path, OSError osError, [String message = ""])
       : super(message, path, osError);
@@ -989,6 +991,7 @@ class PathExistsException extends FileSystemException {
 
 /// Exception thrown when a file operation fails because a file or
 /// directory does not exist.
+@Since("2.19")
 class PathNotFoundException extends FileSystemException {
   const PathNotFoundException(String path, OSError osError,
       [String message = ""])

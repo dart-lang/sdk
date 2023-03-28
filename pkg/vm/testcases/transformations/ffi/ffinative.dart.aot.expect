@@ -31,7 +31,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t1 = this;
       final core::int #t2 = #C7;
       final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t1);
+        synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t1);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
           core::StateError::_throwNew(#C9);
         else
@@ -55,7 +55,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
       final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t7);
+        synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t7);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
           core::StateError::_throwNew(#C9);
         else
@@ -68,7 +68,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t10 = this;
       final core::bool #t11 = #C10;
       final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t10);
+        synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t10);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
           core::StateError::_throwNew(#C9);
         else
@@ -80,7 +80,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t13 = this;
       final core::bool #t14 = self::NativeClassy::_blah$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t13);
+        synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t13);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
           core::StateError::_throwNew(#C9);
         else
@@ -92,7 +92,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t15 = this;
       final core::bool #t16 = self::NativeClassy::_myField$Getter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t15);
+        synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t15);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
           core::StateError::_throwNew(#C9);
         else
@@ -105,7 +105,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final nat::NativeFieldWrapperClass1 #t17 = this;
       final core::bool #t18 = value;
       final void #t19 = self::NativeClassy::_myField$Setter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
-        core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t17);
+        synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t17);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
           core::StateError::_throwNew(#C9);
         else

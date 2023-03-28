@@ -424,7 +424,11 @@ class ClassTable : public MallocAllocated {
     cached_allocation_tracing_state_table_.store(
         classes_.GetColumn<kAllocationTracingStateIndex>());
   }
+#else
+  void UpdateCachedAllocationTracingStateTablePointer() {}
+#endif  // !defined(PRODUCT)
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   void PopulateUserVisibleNames();
 
   const char* UserVisibleNameFor(intptr_t cid) {
@@ -438,9 +442,7 @@ class ClassTable : public MallocAllocated {
     ASSERT(classes_.At<kClassNameIndex>(cid) == nullptr);
     classes_.At<kClassNameIndex>(cid) = name;
   }
-#else
-  void UpdateCachedAllocationTracingStateTablePointer() {}
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
   intptr_t NumCids() const {
     return classes_.num_cids();
@@ -529,7 +531,7 @@ class ClassTable : public MallocAllocated {
         top_level_classes_(original.allocator_) {
     classes_.CopyFrom(original.classes_);
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     // Copying classes_ doesn't perform a deep copy. Ensure we duplicate
     // the class names to avoid double free crashes at shutdown.
     for (intptr_t cid = 1; cid < classes_.num_cids(); ++cid) {
@@ -540,7 +542,7 @@ class ClassTable : public MallocAllocated {
         }
       }
     }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
     top_level_classes_.CopyFrom(original.top_level_classes_);
     UpdateCachedAllocationTracingStateTablePointer();
@@ -571,6 +573,8 @@ class ClassTable : public MallocAllocated {
     kUnboxedFieldBitmapIndex,
 #if !defined(PRODUCT)
     kAllocationTracingStateIndex,
+#endif
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     kClassNameIndex,
 #endif
   };
@@ -581,6 +585,13 @@ class ClassTable : public MallocAllocated {
                   uint32_t,
                   UnboxedFieldBitmap,
                   uint8_t,
+                  const char*>
+      classes_;
+#elif defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  CidIndexedTable<ClassIdTagType,
+                  ClassPtr,
+                  uint32_t,
+                  UnboxedFieldBitmap,
                   const char*>
       classes_;
 #else

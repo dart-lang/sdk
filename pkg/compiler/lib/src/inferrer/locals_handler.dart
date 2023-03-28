@@ -91,7 +91,6 @@ class VariableScope {
   }
 
   void operator []=(Local variable, TypeInformation mask) {
-    assert((mask as dynamic) != null); // TODO(48820): Remove when sound.
     (variables ??= <Local, TypeInformation>{})[variable] = mask;
   }
 
@@ -213,8 +212,6 @@ class FieldInitializationScope {
   /// flow through either [thenScope] or [elseScope].
   FieldInitializationScope mergeDiamondFlow(InferrerEngine inferrer,
       FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
-    assert((elseScope as dynamic) != null); // TODO(48820): Remove when sound.
-
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
     // know the code following won't do anything.
     if (isThisExposed) return this;
@@ -397,8 +394,6 @@ class LocalsHandler {
   /// flow through either [thenBranch] or [elseBranch].
   LocalsHandler mergeDiamondFlow(InferrerEngine inferrer,
       LocalsHandler thenBranch, LocalsHandler elseBranch) {
-    assert((elseBranch as dynamic) != null); // TODO(48820): Remove when sound.
-
     void mergeLocal(Local local) {
       final myType = _locals[local];
       if (myType == null) return;

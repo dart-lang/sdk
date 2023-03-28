@@ -59,15 +59,18 @@ ResultClass forwardedClass() => notInlinedClass();
 
 @pragma('vm:prefer-inline')
 @pragma('dart2js:prefer-inline')
-({int result0, String result1}) inlinedRecordNamed() => (result0: input1, result1: input2);
+({int result0, String result1}) inlinedRecordNamed() =>
+    (result0: input1, result1: input2);
 
 @pragma('vm:never-inline')
 @pragma('dart2js:never-inline')
-({int result0, String result1}) notInlinedRecordNamed() => (result0: input1, result1: input2);
+({int result0, String result1}) notInlinedRecordNamed() =>
+    (result0: input1, result1: input2);
 
 @pragma('vm:never-inline')
 @pragma('dart2js:never-inline')
-({int result0, String result1}) forwardedRecordNamed() => notInlinedRecordNamed();
+({int result0, String result1}) forwardedRecordNamed() =>
+    notInlinedRecordNamed();
 
 class BenchInlinedList extends BenchmarkBase {
   BenchInlinedList() : super('MultipleReturns.Inlined.List');
@@ -165,7 +168,6 @@ class BenchForwardedClass extends BenchmarkBase {
   }
 }
 
-
 class BenchInlinedRecord extends BenchmarkBase {
   BenchInlinedRecord() : super('MultipleReturns.Inlined.Record');
 
@@ -231,7 +233,8 @@ class BenchInlinedRecordNamed extends BenchmarkBase {
 }
 
 class BenchNotInlinedRecordNamed extends BenchmarkBase {
-  BenchNotInlinedRecordNamed() : super('MultipleReturns.NotInlined.RecordNamed');
+  BenchNotInlinedRecordNamed()
+      : super('MultipleReturns.NotInlined.RecordNamed');
 
   @override
   void run() {

@@ -40,9 +40,9 @@ constants  {
   #C4 = self::Bar<((Never*) →* core::Object?) →* Never*> {}
   #C5 = <Never*>[]
   #C6 = <(core::Object?) →* Never*>[]
-  #C7 = <Never*, Never*>{)
-  #C8 = <(core::Object?) →* Never*, Never*>{)
-  #C9 = <Never*, (core::Object?) →* Never*>{)
+  #C7 = <Never*, Never*>{}
+  #C8 = <(core::Object?) →* Never*, Never*>{}
+  #C9 = <Never*, (core::Object?) →* Never*>{}
 }
 
 

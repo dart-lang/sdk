@@ -179,7 +179,7 @@ void main() async {
 
   // Promoted type variable; the value of `X` does not matter.
   Future<void> g6<X>(X x) async {
-    if (X is FutureOr<A>) {
+    if (x is FutureOr<A>) {
       var x2 = await x; // The future is awaited.
       x2.expectStaticType<Exactly<A>>();
       Expect.type<C1>(x2);
@@ -203,10 +203,10 @@ void main() async {
     }
   }
 
-  await g7<Object?, Object?>(Future<int>.value(1));
+  await g7<Object?, Future<int>>(Future<int>.value(1));
 
   // S? bounded type: called with `X == Null`.
-  Future<void> h1<X extends Future<A>?>(X x) {
+  Future<void> h1<X extends Future<A>?>(X x) async {
     var x2 = await x; // Remains null.
     x2.expectStaticType<Exactly<A?>>();
     Expect.identical(null, x2);
@@ -215,7 +215,7 @@ void main() async {
   await h1<Null>(null);
 
   // S? bounded type: called with `X == Future<A>`.
-  Future<void> h2<X extends Future<A>?>(X x) {
+  Future<void> h2<X extends Future<A>?>(X x) async {
     var x2 = await x; // The future is awaited.
     x2.expectStaticType<Exactly<A?>>();
     Expect.type<C1>(x2);
@@ -226,7 +226,7 @@ void main() async {
   await h2<Future<A>>(C2());
 
   // S? bounded type: called with `X == Null`.
-  Future<void> h3<X extends FutureOr<A>?>(X x) {
+  Future<void> h3<X extends FutureOr<A>?>(X x) async {
     var x2 = await x; // Remains null.
     x2.expectStaticType<Exactly<A?>>();
     Expect.identical(null, x2);
@@ -235,7 +235,7 @@ void main() async {
   await h3<Null>(null);
 
   // S? bounded type: called with `X == FutureOr<A>`.
-  Future<void> h4<X extends FutureOr<A>?>(X x) {
+  Future<void> h4<X extends FutureOr<A>?>(X x) async {
     var x2 = await x; // The future is awaited.
     x2.expectStaticType<Exactly<A?>>();
     Expect.type<C1>(x2);

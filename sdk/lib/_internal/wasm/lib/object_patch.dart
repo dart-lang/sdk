@@ -8,11 +8,6 @@ part of "core_patch.dart";
 external int _getHash(Object obj);
 external void _setHash(Object obj, int hash);
 
-external _Type _getInterfaceTypeRuntimeType(
-    Object object, List<Type> typeArguments);
-
-external _Type _getFunctionTypeRuntimeType(Object object);
-
 @patch
 class Object {
   @patch
@@ -43,24 +38,21 @@ class Object {
   /// which return their type arguments.
   List<_Type> get _typeArguments => const [];
 
-  /// We use [_runtimeType] for internal type testing, because objects can
-  /// override [runtimeType].
+  // An instance member needs a call from Dart code to be properly included in
+  // the dispatch table. Hence we use an inlined static wrapper as entry point.
+  @pragma("wasm:entry-point")
+  @pragma("wasm:prefer-inline")
+  static List<_Type> _getTypeArguments(Object object) => object._typeArguments;
+
   @patch
   external Type get runtimeType;
-
-  @pragma("wasm:entry-point")
-  _Type get _runtimeType {
-    if (ClassID.getID(this) == ClassID.cid_Closure) {
-      return _getFunctionTypeRuntimeType(this);
-    } else {
-      return _getInterfaceTypeRuntimeType(this, _typeArguments);
-    }
-  }
 
   @patch
   String toString() => _toString(this);
   // A statically dispatched version of Object.toString.
-  static String _toString(obj) => "Instance of '${obj.runtimeType}'";
+  static String _toString(Object obj) {
+    return "Instance of '${_getMasqueradedRuntimeType(obj)}'";
+  }
 
   @patch
   @pragma("wasm:entry-point")

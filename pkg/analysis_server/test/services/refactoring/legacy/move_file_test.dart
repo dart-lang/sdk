@@ -527,7 +527,8 @@ part 'test2.dart';
     assertNoFileChange(testFile);
   }
 
-  Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,
+  Future<void> _assertFailedRefactoring(
+      RefactoringProblemSeverity expectedSeverity,
       {String? expectedMessage}) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, expectedSeverity,
@@ -535,7 +536,7 @@ part 'test2.dart';
   }
 
   /// Checks that all conditions are OK.
-  Future _assertSuccessfulRefactoring() async {
+  Future<void> _assertSuccessfulRefactoring() async {
     await assertRefactoringConditionsOK();
     refactoringChange = await refactoring.createChange();
   }

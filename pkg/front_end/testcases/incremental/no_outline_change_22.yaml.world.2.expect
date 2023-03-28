@@ -212,7 +212,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class dart.core::Iterable<dart.core::int> iterable) → void {
       dart.core::int i = this.{dart.core::List::length}{dart.core::int};
       {
-        dart.core::Iterator<dart.core::int> :sync-for-iterator = iterable.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
+        synthesized dart.core::Iterator<dart.core::int> :sync-for-iterator = iterable.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
         for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(){() → dart.core::bool}; ) {
           dart.core::int element = :sync-for-iterator.{dart.core::Iterator::current}{dart.core::int};
           {
@@ -380,7 +380,7 @@ library from "org-dartlang-test:///main.dart" as main {
         if(end =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} this.{dart.core::List::length}{dart.core::int}) {
           dart.core::int i = start;
           {
-            dart.core::Iterator<dart.core::int> :sync-for-iterator = newContents.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
+            synthesized dart.core::Iterator<dart.core::int> :sync-for-iterator = newContents.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
             for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(){() → dart.core::bool}; ) {
               dart.core::int element = :sync-for-iterator.{dart.core::Iterator::current}{dart.core::int};
               {
@@ -496,7 +496,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       else {
         {
-          dart.core::Iterator<dart.core::int> :sync-for-iterator = iterable.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
+          synthesized dart.core::Iterator<dart.core::int> :sync-for-iterator = iterable.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
           for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(){() → dart.core::bool}; ) {
             dart.core::int element = :sync-for-iterator.{dart.core::Iterator::current}{dart.core::int};
             {

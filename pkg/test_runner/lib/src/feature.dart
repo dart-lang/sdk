@@ -31,5 +31,6 @@ class Feature {
 
   const Feature._(this.name);
 
+  @override
   String toString() => name;
 }

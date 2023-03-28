@@ -349,6 +349,23 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
+  // Used by extension method `onError` to up-cast the result to `R`.
+  //
+  // Not public because we cannot statically ensure that [R] is a supertype
+  // of [T].
+  //
+  // Avoids needing to allocate an extra value handler to do the up cast,
+  // which is needed if using `.then`.
+  Future<R> _safeOnError<R>(FutureOr<R> Function(Object, StackTrace) onError) {
+    assert(this is _Future<R>); // Is up-cast.
+    _Future<R> result = _Future<R>();
+    if (!identical(result._zone, _rootZone)) {
+      onError = result._zone.registerBinaryCallback(onError);
+    }
+    _addListener(_FutureListener<T, R>.catchError(result, onError, null));
+    return result;
+  }
+
   Future<T> whenComplete(dynamic action()) {
     _Future<T> result = new _Future<T>();
     if (!identical(result._zone, _rootZone)) {

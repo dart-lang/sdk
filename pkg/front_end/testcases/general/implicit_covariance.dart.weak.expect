@@ -8,10 +8,7 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
     ;
   abstract method foo(covariant-by-class self::A::T% x) → dynamic;
 }
-abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
-  synthetic constructor •() → self::B<self::B::T%>
-    : super core::Object::•()
-    ;
+abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> /*isMixinDeclaration*/  {
 }
 class C extends core::Object {
   synthetic constructor •() → self::C

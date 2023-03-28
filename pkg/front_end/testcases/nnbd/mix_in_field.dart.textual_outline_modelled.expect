@@ -4,8 +4,7 @@ class Class extends Object with Mixin {
   test(dynamic t1) {}
 }
 
-class Mixin {
+main() {}
+mixin Mixin {
   FutureOr<Null> m;
 }
-
-main() {}

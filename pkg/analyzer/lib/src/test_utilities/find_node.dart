@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
@@ -11,11 +13,6 @@ class FindNode {
   final CompilationUnit unit;
 
   FindNode(this.content, this.unit);
-
-  LibraryDirective get libraryDirective {
-    return unit.directives.singleWhere((d) => d is LibraryDirective)
-        as LibraryDirective;
-  }
 
   List<MethodInvocation> get methodInvocations {
     var result = <MethodInvocation>[];
@@ -27,117 +24,32 @@ class FindNode {
     return result;
   }
 
-  /// Returns the [ForElement], there must be only one.
-  ForElement get singleForElement {
-    var nodes = <ForElement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        forElement: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  Block get singleBlock => _single();
 
-  /// Returns the [ForStatement], there must be only one.
-  ForStatement get singleForStatement {
-    var nodes = <ForStatement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        forStatement: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  ForElement get singleForElement => _single();
 
-  /// Returns the [GuardedPattern], there must be only one.
-  GuardedPattern get singleGuardedPattern {
-    var nodes = <GuardedPattern>[];
-    unit.accept(
-      FunctionAstVisitor(
-        guardedPattern: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  ForStatement get singleForStatement => _single();
 
-  /// Returns the [IfElement], there must be only one.
-  IfElement get singleIfElement {
-    var nodes = <IfElement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        ifElement: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  FunctionBody get singleFunctionBody => _single();
 
-  /// Returns the [IfStatement], there must be only one.
-  IfStatement get singleIfStatement {
-    var nodes = <IfStatement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        ifStatement: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  GuardedPattern get singleGuardedPattern => _single();
 
-  /// Returns the [PatternAssignment], there must be only one.
-  PatternAssignment get singlePatternAssignment {
-    var nodes = <PatternAssignment>[];
-    unit.accept(
-      FunctionAstVisitor(
-        patternAssignment: nodes.add,
-      ),
-    );
-    return nodes.single;
-  }
+  IfElement get singleIfElement => _single();
 
-  /// Returns the [PatternVariableDeclaration], there must be only one.
-  PatternVariableDeclaration get singlePatternVariableDeclaration {
-    var nodes = <PatternVariableDeclaration>[];
-    unit.accept(
-      FunctionAstVisitor(
-        patternVariableDeclaration: nodes.add,
-      ),
-    );
-    return nodes.single;
-  }
+  IfStatement get singleIfStatement => _single();
 
-  /// Returns the [PatternVariableDeclarationStatement], there must be only one.
+  LibraryDirective get singleLibraryDirective => _single();
+
+  PatternAssignment get singlePatternAssignment => _single();
+
+  PatternVariableDeclaration get singlePatternVariableDeclaration => _single();
+
   PatternVariableDeclarationStatement
-      get singlePatternVariableDeclarationStatement {
-    var nodes = <PatternVariableDeclarationStatement>[];
-    unit.accept(
-      FunctionAstVisitor(
-        patternVariableDeclarationStatement: nodes.add,
-      ),
-    );
-    return nodes.single;
-  }
+      get singlePatternVariableDeclarationStatement => _single();
 
-  /// Returns the [SwitchExpression], there must be only one.
-  SwitchExpression get singleSwitchExpression {
-    var nodes = <SwitchExpression>[];
-    unit.accept(
-      FunctionAstVisitor(
-        switchExpression: (node) {
-          nodes.add(node);
-        },
-      ),
-    );
-    return nodes.single;
-  }
+  SwitchExpression get singleSwitchExpression => _single();
+
+  SwitchPatternCase get singleSwitchPatternCase => _single();
 
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
@@ -185,6 +97,11 @@ class FindNode {
 
   BinaryExpression binary(String search) {
     return _node(search, (n) => n is BinaryExpression);
+  }
+
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    final node = declaredVariablePattern(search);
+    return node.declaredElement!;
   }
 
   Block block(String search) {
@@ -856,5 +773,26 @@ class FindNode {
           'The node for |$search| had no matching ancestor in:\n$content\n$unit');
     }
     return result as T;
+  }
+
+  /// If [unit] has exactly one node of type [T], returns it.
+  /// Otherwise, throws.
+  T _single<T extends AstNode>() {
+    final visitor = _TypedNodeVisitor<T>();
+    unit.accept(visitor);
+    return visitor.nodes.single;
+  }
+}
+
+class _TypedNodeVisitor<T extends AstNode>
+    extends GeneralizingAstVisitor<void> {
+  final List<T> nodes = [];
+
+  @override
+  void visitNode(AstNode node) {
+    if (node is T) {
+      nodes.add(node);
+    }
+    super.visitNode(node);
   }
 }

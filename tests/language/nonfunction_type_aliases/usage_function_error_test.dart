@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Introduce an aliased type.
 
 typedef T = Function;
@@ -12,11 +11,31 @@ typedef T = Function;
 abstract class C {
   final T v12;
 
-  C(): v12 = T();
+  C() : v12 = T();
   //         ^
   // [analyzer] unspecified
   // [cfe] unspecified
 }
+
+class D1<X> extends T {}
+//                  ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D2 extends C with T {}
+//                               ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D3<X, Y> implements T {}
+//                                 ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D4 = C with T;
+//                         ^
+// [analyzer] unspecified
+// [cfe] unspecified
 
 X foo<X>(X x) => x;
 

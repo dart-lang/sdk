@@ -50,21 +50,21 @@ class C extends core::Object {
     return new mai::C::•();
   get a() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#a#A}{core::int}, "a");
-  set a(core::int value) → void
+  set a(synthesized core::int value) → void
     this.{mai::C::_#C#a#A} = value;
   get b() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#b#F}{core::int}, "b");
-  set b(core::int value) → void {
+  set b(synthesized core::int value) → void {
     _la::_lateWriteOnceCheck(this.{mai::C::_#C#b#F}{core::int}, "b");
     this.{mai::C::_#C#b#F} = value;
   }
   get c() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#c#A}{core::int}, "c");
-  set c(core::int value) → void
+  set c(synthesized core::int value) → void
     this.{mai::C::_#C#c#A} = value;
   get d() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#d#F}{core::int}, "d");
-  set d(core::int value) → void {
+  set d(synthesized core::int value) → void {
     _la::_lateWriteOnceCheck(this.{mai::C::_#C#d#F}{core::int}, "d");
     this.{mai::C::_#C#d#F} = value;
   }
@@ -80,19 +80,19 @@ class Statics extends core::Object {
     return new mai::Statics::•();
   static get a() → core::int
     return mai::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
-  static set a(core::int value) → void
+  static set a(synthesized core::int value) → void
     return mai::Statics::_#a.{_la::_Cell::value} = value;
   static get b() → core::int
     return mai::Statics::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
-  static set b(core::int value) → void
+  static set b(synthesized core::int value) → void
     return mai::Statics::_#b.{_la::_Cell::finalFieldValue} = value;
   static get c() → core::int
     return mai::Statics::_#c.{_la::_Cell::readField}<core::int>(){() → core::int};
-  static set c(core::int value) → void
+  static set c(synthesized core::int value) → void
     return mai::Statics::_#c.{_la::_Cell::value} = value;
   static get d() → core::int
     return mai::Statics::_#d.{_la::_Cell::readField}<core::int>(){() → core::int};
-  static set d(core::int value) → void
+  static set d(synthesized core::int value) → void
     return mai::Statics::_#d.{_la::_Cell::finalFieldValue} = value;
 }
 static method testNullableUninitializedNonFinalLocal() → void
@@ -123,17 +123,17 @@ static final field _la::_Cell _#c = new _la::_Cell::named("c");
 static final field _la::_Cell _#d = new _la::_Cell::named("d");
 static get a() → core::int
   return self2::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set a(core::int value) → void
+static set a(synthesized core::int value) → void
   return self2::_#a.{_la::_Cell::value} = value;
 static get b() → core::int
   return self2::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set b(core::int value) → void
+static set b(synthesized core::int value) → void
   return self2::_#b.{_la::_Cell::finalFieldValue} = value;
 static get c() → core::int
   return self2::_#c.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set c(core::int value) → void
+static set c(synthesized core::int value) → void
   return self2::_#c.{_la::_Cell::value} = value;
 static get d() → core::int
   return self2::_#d.{_la::_Cell::readField}<core::int>(){() → core::int};
-static set d(core::int value) → void
+static set d(synthesized core::int value) → void
   return self2::_#d.{_la::_Cell::finalFieldValue} = value;

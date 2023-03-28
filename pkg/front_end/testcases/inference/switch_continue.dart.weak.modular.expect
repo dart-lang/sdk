@@ -4,32 +4,19 @@ import "dart:core" as core;
 
 static method test(core::int x, () → void f) → void {
   #L1:
-  {
-    core::int #t1 = -1;
-    final core::int #0#0 = x;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-      #t1 = 0;
-    else
-      if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0)
-        #t1 = 1;
-    switch(#t1) {
-      #L2:
-      case #C1:
-        {
-          {
-            f(){() → void};
-            continue #L3;
-          }
-        }
-      #L3:
-      case #C2:
-        {
-          {
-            f(){() → void};
-            break #L1;
-          }
-        }
-    }
+  switch(x) {
+    #L2:
+    case #C1:
+      {
+        f(){() → void};
+        continue #L3;
+      }
+    #L3:
+    case #C2:
+      {
+        f(){() → void};
+        break #L1;
+      }
   }
 }
 static method main() → dynamic {}

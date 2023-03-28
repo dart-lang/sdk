@@ -43,8 +43,8 @@ void main() {
       final stream2 = service.onExtensionEventWithHistory;
 
       // Subscribe to each stream so `cancel()` doesn't hang.
-      final sub1 = stream1.listen((_) => null);
-      final sub2 = stream2.listen((_) => null);
+      final sub1 = stream1.listen((_) {});
+      final sub2 = stream2.listen((_) {});
 
       // Give some time for the streams to get setup.
       await Future.delayed(const Duration(seconds: 1));

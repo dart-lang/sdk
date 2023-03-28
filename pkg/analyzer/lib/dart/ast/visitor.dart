@@ -2163,9 +2163,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitRecordPattern(RecordPattern node) => null;
 
-  @Deprecated('Use visitPatternField() instead')
-  void visitRecordPatternField(RecordPatternField node) {}
-
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => null;
 

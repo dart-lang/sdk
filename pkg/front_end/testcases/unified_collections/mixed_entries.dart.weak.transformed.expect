@@ -70,7 +70,7 @@ static field core::Map<dynamic, core::int> map4 = block {
   if(self::b)
     #t4.{core::Map::[]=}{Invariant}(0, 1){(dynamic, core::int) → void};
   else {
-    core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current}{dynamic};
       #t4.{core::Map::[]=}{Invariant}(a, 1){(dynamic, core::int) → void};
@@ -80,7 +80,7 @@ static field core::Map<dynamic, core::int> map4 = block {
 static field core::Map<dynamic, core::int> map5 = block {
   final core::Map<dynamic, core::int> #t5 = <dynamic, core::int>{};
   if(self::b) {
-    core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current}{dynamic};
       #t5.{core::Map::[]=}{Invariant}(a, 1){(dynamic, core::int) → void};
@@ -94,7 +94,7 @@ static field core::Map<dynamic, core::int> map6 = block {
   if(self::b)
     #t6.{core::Map::[]=}{Invariant}(0, 1){(dynamic, core::int) → void};
   else {
-    core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current}{dynamic};
       #t6.{core::Map::addAll}{Invariant}(<dynamic, core::int>{a: 1}){(core::Map<dynamic, core::int>) → void};
@@ -104,7 +104,7 @@ static field core::Map<dynamic, core::int> map6 = block {
 static field core::Map<dynamic, core::int> map7 = block {
   final core::Map<dynamic, core::int> #t7 = <dynamic, core::int>{};
   if(self::b) {
-    core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = self::list.{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current}{dynamic};
       #t7.{core::Map::addAll}{Invariant}(<dynamic, core::int>{a: 1}){(core::Map<dynamic, core::int>) → void};

@@ -302,8 +302,8 @@ void f(New o) {}
   Future<void> test_inWith_deprecated() async {
     setPackageContent('''
 @deprecated
-class Old {}
-class New {}
+mixin class Old {}
+mixin class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
     await resolveTestCode('''
@@ -320,7 +320,7 @@ class C with New {}
 
   Future<void> test_inWith_removed() async {
     setPackageContent('''
-class New {}
+mixin class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
     await resolveTestCode('''

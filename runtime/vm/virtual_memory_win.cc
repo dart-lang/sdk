@@ -189,7 +189,7 @@ VirtualMemory::~VirtualMemory() {
     return;
   }
   if (VirtualFree(reserved_.pointer(), 0, MEM_RELEASE) == 0) {
-    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
+    FATAL("VirtualFree failed: Error code %d\n", GetLastError());
   }
 }
 
@@ -201,7 +201,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
   if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
-    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
+    FATAL("VirtualFree failed: Error code %d\n", GetLastError());
   }
   return true;
 }
@@ -237,7 +237,7 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   DWORD old_prot = 0;
   if (VirtualProtect(reinterpret_cast<void*>(page_address),
                      end_address - page_address, prot, &old_prot) == 0) {
-    FATAL1("VirtualProtect failed %d\n", GetLastError());
+    FATAL("VirtualProtect failed %d\n", GetLastError());
   }
 }
 

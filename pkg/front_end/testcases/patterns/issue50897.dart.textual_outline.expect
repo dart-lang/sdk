@@ -1,0 +1,10 @@
+abstract class Square {
+  Unit get size;
+}
+
+class Unit {
+  final double value;
+  const Unit(this.value);
+}
+
+String test(Map map) {}

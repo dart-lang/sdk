@@ -64,6 +64,46 @@ main() {
 // TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
 // test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+  group('Exceptions', () {
+    const exceptionSource = r'''
+    void main() {
+      try {
+        throw Exception('meow!');
+      } catch (e, s) {
+        // Breakpoint: bp
+        print('Cat says: \$e:\$s');
+      }
+    }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, exceptionSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('error', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'e.toString()',
+          expectedResult: 'meow!');
+    });
+
+    test('stack trace', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: 's.toString()', expectedResult: '');
+    });
+
+    test('scope', () async {
+      await driver.checkScope(breakpointId: 'bp', expectedScope: {
+        'e': 'e',
+        's': 's',
+      });
+    });
+  });
+
   group('Records', () {
     const recordsSource = '''
     void main() {
@@ -77,8 +117,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     ''';
 
     setUpAll(() async {
-      await driver
-          .initSource(setup, recordsSource, experiments: {'records': true});
+      await driver.initSource(setup, recordsSource);
     });
 
     tearDownAll(() async {
@@ -96,7 +135,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'r.runtimeType.toString()',
-          expectedResult: 'RecordType(bool, int)');
+          expectedResult: '(bool, int)');
     });
 
     test('simple record field one', () async {
@@ -124,7 +163,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'cr.runtimeType.toString()',
-          expectedResult: 'RecordType(bool, IdentityMap<String, int>)');
+          expectedResult: '(bool, IdentityMap<String, int>)');
     });
 
     test('complex record field one', () async {
@@ -152,7 +191,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'nr.runtimeType.toString()',
-          expectedResult: 'RecordType(bool, RecordType(bool, int))');
+          expectedResult: '(bool, (bool, int))');
     });
 
     test('nested record field one', () async {
@@ -167,6 +206,103 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           breakpointId: 'bp',
           expression: 'nr.\$2.toString()',
           expectedResult: '(false, 3)');
+    });
+  });
+
+  group('Patterns', () {
+    const patternsSource = r'''
+    void main() {
+      int foo(Object? obj) {
+        switch (obj) {
+          case [int a, double b] || [double b, int a]:
+            // Breakpoint: bp1
+            return a;
+          case [int a, String b] || [String a, int b]:
+            // Breakpoint: bp2
+            return a;
+          default:
+            // Breakpoint: bp3
+           return 0;
+        }
+      }
+
+      final one = foo([1,2]);
+      final ten = foo([10,'20']);
+      final zero = foo(0);
+
+      // Breakpoint: bp4
+      print('$one, $ten, $zero');
+    }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, patternsSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('first case match', () async {
+      await driver.check(
+          breakpointId: 'bp1', expression: 'a.toString()', expectedResult: '1');
+    });
+
+    test('second case match', () async {
+      await driver.check(
+          breakpointId: 'bp2',
+          expression: 'a.toString()',
+          expectedResult: '10');
+    });
+
+    test('default case match', () async {
+      await driver.check(
+          breakpointId: 'bp3',
+          expression: 'obj.toString()',
+          expectedResult: '0');
+    });
+
+    test('first case match result', () async {
+      await driver.check(
+          breakpointId: 'bp4',
+          expression: 'one.toString()',
+          expectedResult: '1');
+    });
+
+    test('second case match result', () async {
+      await driver.check(
+          breakpointId: 'bp4',
+          expression: 'ten.toString()',
+          expectedResult: '10');
+    });
+
+    test('default match result', () async {
+      await driver.check(
+          breakpointId: 'bp4',
+          expression: 'zero.toString()',
+          expectedResult: '0');
+    });
+
+    test('first case scope', () async {
+      await driver.checkScope(
+          breakpointId: 'bp1',
+          expectedScope: {'a': '1', 'b': '2', 'obj': 'obj'});
+    });
+
+    test('second case scope', () async {
+      await driver.checkScope(
+          breakpointId: 'bp2',
+          expectedScope: {'a': '10', 'b': '\'20\'', 'obj': 'obj'});
+    });
+
+    test('default case scope', () async {
+      await driver.checkScope(breakpointId: 'bp3', expectedScope: {'obj': '0'});
+    });
+
+    test('result scope', () async {
+      await driver.checkScope(
+          breakpointId: 'bp4',
+          expectedScope: {'foo': 'foo', 'one': '1', 'ten': '10', 'zero': '0'});
     });
   });
 
@@ -461,6 +597,11 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expression: 'e != E2.id2 && E.id2 != E2.id2',
           expectedResult: 'true');
     });
+    test('scope', () async {
+      await driver.checkScope(breakpointId: 'bp', expectedScope: {
+        'e': 'e',
+      });
+    });
   });
 
   group('Automatically inserted argument null checks', () {
@@ -699,11 +840,18 @@ void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expression: 'this',
           expectedError: "Error: Expected identifier, but got 'this'");
     });
+
+    test('scope', () async {
+      await driver.checkScope(breakpointId: 'bp', expectedScope: {
+        r'$this': '\'1234\'',
+        'ret': '1234',
+      });
+    });
   });
 
   group('Expression compiler tests in static function:', () {
     var source = '''
-        int foo(int x, {int y: 0}) {
+        int foo(int x, {int y = 0}) {
           int z = 3;
           // Breakpoint: bp
           return x + y + z;

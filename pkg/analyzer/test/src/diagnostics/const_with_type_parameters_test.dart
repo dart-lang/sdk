@@ -144,6 +144,7 @@ class A<U> {
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           65, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 65, 1),
     ]);
   }
 
@@ -159,6 +160,8 @@ class A<U> {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           60, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 60,
+          1),
     ]);
   }
 

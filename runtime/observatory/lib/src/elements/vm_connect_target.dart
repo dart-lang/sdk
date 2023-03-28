@@ -34,8 +34,6 @@ class VMConnectTargetElement extends CustomElement implements Renderable {
 
   factory VMConnectTargetElement(M.Target target,
       {bool current = false, RenderingQueue? queue}) {
-    assert(target != null);
-    assert(current != null);
     VMConnectTargetElement e = new VMConnectTargetElement.created();
     e._r = new RenderingScheduler<VMConnectTargetElement>(e, queue: queue);
     e._target = target;

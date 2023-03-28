@@ -1,0 +1,16 @@
+import 'main_lib.dart';
+
+sealed class SealedClassExtendsBase extends A {}
+
+class ClassImplementsIndirectBase implements SealedClassExtendsBase {}
+
+final class FinalClassImplementsIndirectBase
+    implements SealedClassExtendsBase {}
+
+interface class InterfaceClassImplementsIndirectBase
+    implements SealedClassExtendsBase {}
+
+sealed class SealedClassImplementsIndirectBase
+    implements SealedClassExtendsBase {}
+
+base class BaseClassImplementsIndirectBase implements SealedClassExtendsBase {}

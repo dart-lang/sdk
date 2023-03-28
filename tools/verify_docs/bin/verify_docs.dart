@@ -239,7 +239,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   final _toplevelDeclarationRE = RegExp(r'^\s*(?:'
       r'library\b(?<libdecl>)|'
       r'''import (['"])(?<importuri>.*?)\2|'''
-      r'class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
+      r'final class\b|class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
       r')');
 
   validateCodeSample(CodeSample sample) async {
@@ -346,14 +346,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         (e) =>
             e.errorCode == HintCode.UNUSED_LOCAL_VARIABLE ||
             e.errorCode == HintCode.UNUSED_ELEMENT,
-      );
-
-      // Remove warnings about deprecated member use from the same library.
-      errors.removeWhere(
-        (e) =>
-            e.errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE ||
-            e.errorCode ==
-                HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
       );
 
       // Handle edge case around dart:_http

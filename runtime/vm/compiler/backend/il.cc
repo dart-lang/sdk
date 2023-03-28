@@ -16,6 +16,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/loops.h"
+#include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/marshaller.h"
@@ -1475,18 +1476,18 @@ void Instruction::UnuseAllInputs() {
   }
 }
 
-void Instruction::RepairPushArgsInEnvironment() const {
+void Instruction::RepairArgumentUsesInEnvironment() const {
   // Some calls (e.g. closure calls) have more inputs than actual arguments.
   // Those extra inputs will be consumed from the stack before the call.
   const intptr_t after_args_input_count = env()->LazyDeoptPruneCount();
-  PushArgumentsArray* push_arguments = GetPushArguments();
-  ASSERT(push_arguments != nullptr);
+  MoveArgumentsArray* move_arguments = GetMoveArguments();
+  ASSERT(move_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
   ASSERT((arg_count + after_args_input_count) <= env()->Length());
   const intptr_t env_base =
       env()->Length() - arg_count - after_args_input_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
-    env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
+    env()->ValueAt(env_base + i)->BindToEnvironment(move_arguments->At(i));
   }
 }
 
@@ -4035,7 +4036,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4065,7 +4066,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4139,7 +4140,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4235,7 +4236,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 }
 
@@ -4680,7 +4681,7 @@ LocationSummary* ParallelMoveInstr::MakeLocationSummary(Zone* zone,
 }
 
 void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  ParallelMoveEmitter(compiler, this).EmitNativeCode();
 }
 
 LocationSummary* ConstraintInstr::MakeLocationSummary(Zone* zone,
@@ -7685,7 +7686,7 @@ SimdOpInstr::Kind SimdOpInstr::KindForMethod(MethodRecognizer::Kind kind) {
       break;
   }
 
-  FATAL1("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
+  FATAL("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
   return kIllegalSimdOp;
 }
 

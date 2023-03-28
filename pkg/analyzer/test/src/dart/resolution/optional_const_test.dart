@@ -11,12 +11,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(OptionalConstDriverResolutionTest);
+    defineReflectiveTests(OptionalConstResolutionTest);
   });
 }
 
 @reflectiveTest
-class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
+class OptionalConstResolutionTest extends PubPackageResolutionTest {
   test_instantiateToBounds_notPrefixed_named() async {
     var node = await _resolveImplicitConst('B.named()');
     assertResolvedNodeText(node, r'''

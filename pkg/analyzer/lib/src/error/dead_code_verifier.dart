@@ -102,21 +102,21 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     Namespace namespace =
         NamespaceBuilder().createExportNamespaceForLibrary(library);
     NodeList<SimpleIdentifier> names;
-    ErrorCode hintCode;
+    ErrorCode warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
-      hintCode = WarningCode.UNDEFINED_HIDDEN_NAME;
+      warningCode = WarningCode.UNDEFINED_HIDDEN_NAME;
     } else {
       names = (combinator as ShowCombinator).shownNames;
-      hintCode = WarningCode.UNDEFINED_SHOWN_NAME;
+      warningCode = WarningCode.UNDEFINED_SHOWN_NAME;
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
       Element? element = namespace.get(nameStr);
       element ??= namespace.get("$nameStr=");
       if (element == null) {
-        _errorReporter
-            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
+        _errorReporter.reportErrorForNode(
+            warningCode, name, [library.identifier, nameStr]);
       }
     }
   }
@@ -129,7 +129,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
         _errorReporter.reportErrorForNode(
-            HintCode.UNUSED_LABEL, label, [label.label.name]);
+            WarningCode.UNUSED_LABEL, label, [label.label.name]);
       }
       _labelTracker = labelTracker.outerTracker;
     }
@@ -168,7 +168,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
             var offset = node.operator.offset;
             var length = node.rightOperand.end - offset;
             _errorReporter.reportErrorForOffset(
-                HintCode.DEAD_CODE, offset, length);
+                WarningCode.DEAD_CODE, offset, length);
             // Only visit the LHS:
             lhsCondition.accept(this);
             return;
@@ -217,13 +217,13 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
         if (result.value?.toBoolValue() == true) {
           // Report error on "else" block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(
-              HintCode.DEAD_CODE, node.elseExpression);
+              WarningCode.DEAD_CODE, node.elseExpression);
           node.thenExpression.accept(this);
           return;
         } else {
           // Report error on "if" block: false ? !1! : 2
           _errorReporter.reportErrorForNode(
-              HintCode.DEAD_CODE, node.thenExpression);
+              WarningCode.DEAD_CODE, node.thenExpression);
           node.elseExpression.accept(this);
           return;
         }
@@ -243,14 +243,15 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
           // Report error on else block: if(true) {} else {!}
           var elseElement = node.elseElement;
           if (elseElement != null) {
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
+            _errorReporter.reportErrorForNode(
+                WarningCode.DEAD_CODE, elseElement);
             node.thenElement.accept(this);
             return;
           }
         } else {
           // Report error on if block: if (false) {!} else {}
           _errorReporter.reportErrorForNode(
-              HintCode.DEAD_CODE, node.thenElement);
+              WarningCode.DEAD_CODE, node.thenElement);
           node.elseElement?.accept(this);
           return;
         }
@@ -271,14 +272,14 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
           var elseStatement = node.elseStatement;
           if (elseStatement != null) {
             _errorReporter.reportErrorForNode(
-                HintCode.DEAD_CODE, elseStatement);
+                WarningCode.DEAD_CODE, elseStatement);
             node.thenStatement.accept(this);
             return;
           }
         } else {
           // Report error on if block: if (false) {!} else {}
           _errorReporter.reportErrorForNode(
-              HintCode.DEAD_CODE, node.thenStatement);
+              WarningCode.DEAD_CODE, node.thenStatement);
           node.elseStatement?.accept(this);
           return;
         }
@@ -336,7 +337,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
       if (result != null) {
         if (result.value?.toBoolValue() == false) {
           // Report error on while block: while (false) {!}
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body);
+          _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node.body);
           return;
         }
       }
@@ -378,7 +379,8 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
         }
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+        _errorReporter.reportErrorForOffset(
+            WarningCode.DEAD_CODE, offset, length);
         return;
       }
     }
@@ -489,7 +491,7 @@ class NullSafetyDeadCodeVerifier {
       }
 
       if (node is SwitchMember && node == firstDeadNode) {
-        _errorReporter.reportErrorForToken(HintCode.DEAD_CODE, node.keyword);
+        _errorReporter.reportErrorForToken(WarningCode.DEAD_CODE, node.keyword);
         _firstDeadNode = null;
         return;
       }
@@ -537,9 +539,9 @@ class NullSafetyDeadCodeVerifier {
             whileOffset = body.rightBracket.offset;
           }
           _errorReporter.reportErrorForOffset(
-              HintCode.DEAD_CODE, doOffset, doEnd - doOffset);
+              WarningCode.DEAD_CODE, doOffset, doEnd - doOffset);
           _errorReporter.reportErrorForOffset(
-              HintCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
+              WarningCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
           offset = parent.semicolon.next!.offset;
           if (parent.hasBreakStatement) {
             offset = node.end;
@@ -560,7 +562,7 @@ class NullSafetyDeadCodeVerifier {
         var length = node.end - offset;
         if (length > 0) {
           _errorReporter.reportErrorForOffset(
-              HintCode.DEAD_CODE, offset, length);
+              WarningCode.DEAD_CODE, offset, length);
         }
       }
 
@@ -664,7 +666,7 @@ class NullSafetyDeadCodeVerifier {
       var beginToken = updaters.beginToken;
       var endToken = updaters.endToken;
       if (beginToken != null && endToken != null) {
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE,
+        _errorReporter.reportErrorForOffset(WarningCode.DEAD_CODE,
             beginToken.offset, endToken.end - beginToken.offset);
       }
     }
@@ -697,7 +699,7 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node);
+        _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node);
       }
     }
   }
@@ -743,7 +745,7 @@ class _CatchClausesVerifier {
         _errorReporter(
           catchClauses[index + 1],
           catchClauses.last,
-          HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+          WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
           const [],
         );
         _done = true;
@@ -758,7 +760,7 @@ class _CatchClausesVerifier {
         _errorReporter(
           catchClause,
           catchClauses.last,
-          HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+          WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE,
           [currentType, type],
         );
         _done = true;

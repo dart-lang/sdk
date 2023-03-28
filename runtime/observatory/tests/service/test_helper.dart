@@ -114,11 +114,6 @@ class _ServiceTesteeLauncher {
       int port,
       List<String>? extraArgs,
       List<String>? executableArgs) {
-    assert(pause_on_start != null);
-    assert(pause_on_exit != null);
-    assert(pause_on_unhandled_exceptions != null);
-    assert(testeeControlsServer != null);
-
     if (_shouldLaunchSkyShell()) {
       return _spawnSkyProcess(
           pause_on_start,
@@ -242,11 +237,9 @@ class _ServiceTesteeLauncher {
     final environment = _TESTEE_SPAWN_ENV;
     final bashEnvironment = new StringBuffer();
     environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
-    if (dartEnvironment != null) {
-      dartEnvironment.forEach((k, v) {
-        arguments.insert(0, '-D$k=$v');
-      });
-    }
+    dartEnvironment.forEach((k, v) {
+      arguments.insert(0, '-D$k=$v');
+    });
     print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
     return Process.start(executable, arguments, environment: environment);
   }

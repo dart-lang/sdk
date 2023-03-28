@@ -38,7 +38,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the completion code running.
   @visibleForTesting
-  static Future? delayAfterResolveForTests;
+  static Future<void>? delayAfterResolveForTests;
 
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;

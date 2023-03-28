@@ -6,7 +6,7 @@
 
 import 'dart:ffi';
 
-class Foo extends Struct {
+final class Foo extends Struct {
   @IntPtr()
   external int bar;
 }

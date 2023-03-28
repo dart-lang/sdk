@@ -549,23 +549,31 @@ class Intrinsifier {
     w.ValueType leftType = typeOfExp(node.left);
     w.ValueType rightType = typeOfExp(node.right);
 
-    // Compare bool or Pointer
-    if (leftType == boolType && rightType == boolType) {
+    // Compare bool, Pointer or WasmI32.
+    if (leftType == w.NumType.i32 && rightType == w.NumType.i32) {
       codeGen.wrap(node.left, w.NumType.i32);
       codeGen.wrap(node.right, w.NumType.i32);
       b.i32_eq();
       return w.NumType.i32;
     }
 
-    // Compare int
-    if (leftType == intType && rightType == intType) {
+    // Compare int or WasmI64.
+    if (leftType == w.NumType.i64 && rightType == w.NumType.i64) {
       codeGen.wrap(node.left, w.NumType.i64);
       codeGen.wrap(node.right, w.NumType.i64);
       b.i64_eq();
       return w.NumType.i32;
     }
 
-    // Compare double
+    // Compare WasmF32.
+    if (leftType == w.NumType.f32 && rightType == w.NumType.f32) {
+      codeGen.wrap(node.left, w.NumType.f32);
+      codeGen.wrap(node.right, w.NumType.f32);
+      b.f32_eq();
+      return w.NumType.i32;
+    }
+
+    // Compare double or WasmF64.
     if (leftType == doubleType && rightType == doubleType) {
       codeGen.wrap(node.left, w.NumType.f64);
       codeGen.wrap(node.right, w.NumType.f64);
@@ -694,25 +702,6 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
-        case "_getFunctionTypeRuntimeType":
-          Expression object = node.arguments.positional[0];
-          w.StructType closureBase =
-              translator.closureLayouter.closureBaseStruct;
-          codeGen.wrap(object, w.RefType.def(closureBase, nullable: false));
-          b.struct_get(closureBase, FieldIndex.closureRuntimeType);
-          return translator.types.typeClassInfo.nonNullableType;
-        case "_getInterfaceTypeRuntimeType":
-          Expression object = node.arguments.positional[0];
-          Expression typeArguments = node.arguments.positional[1];
-          ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
-          b.i32_const(info.classId);
-          b.i32_const(initialIdentityHash);
-          // Runtime types are never nullable.
-          b.i32_const(0);
-          getID(object);
-          codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
-          b.struct_new(info.struct);
-          return info.nonNullableType;
       }
     }
 
@@ -1148,14 +1137,87 @@ class Intrinsifier {
     // Object.runtimeType
     if (member.enclosingClass == translator.coreTypes.objectClass &&
         name == "runtimeType") {
-      // Simple redirect to `_runtimeType`. This is done to keep
-      // `Object.runtimeType` external, which seems to be necessary for the TFA.
-      // If we don't do this, then the TFA assumes things like
-      // `null.runtimeType` are impossible and inserts a throw.
+      // Simple redirect to `_getMasqueradedRuntimeType`. This is done to keep
+      // `Object.runtimeType` external. If `Object.runtimeType` is implemented
+      // in Dart, the TFA will conclude that `null.runtimeType` never returns,
+      // since it dispatches to `Object.runtimeType`, which uses the receiver
+      // as non-nullable.
       w.Local receiver = paramLocals[0];
       b.local_get(receiver);
-      codeGen.call(translator.objectRuntimeType.reference);
+      codeGen.call(translator.getMasqueradedRuntimeType.reference);
       return true;
+    }
+
+    // _getActualRuntimeType and _getMasqueradedRuntimeType
+    if (member.enclosingLibrary == translator.coreTypes.coreLibrary &&
+        (name == "_getActualRuntimeType" ||
+            name == "_getMasqueradedRuntimeType")) {
+      final bool masqueraded = name == "_getMasqueradedRuntimeType";
+
+      final w.Local object = paramLocals[0];
+      final w.Local classId = function.addLocal(w.NumType.i32);
+      final w.Local resultClassId = function.addLocal(w.NumType.i32);
+
+      w.Label interfaceType = b.block();
+      w.Label notMasqueraded = b.block();
+      w.Label recordType = b.block();
+      w.Label functionType = b.block();
+      w.Label abstractClass = b.block();
+
+      // Look up the type category by class ID and switch on it.
+      b.global_get(translator.types.typeCategoryTable);
+      b.local_get(object);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.local_tee(classId);
+      b.array_get_u((translator.types.typeCategoryTable.type.type as w.RefType)
+          .heapType as w.ArrayType);
+      b.local_tee(resultClassId);
+      b.br_table([
+        abstractClass,
+        functionType,
+        recordType,
+        if (masqueraded) notMasqueraded
+      ], masqueraded ? interfaceType : notMasqueraded);
+
+      b.end(); // abstractClass
+      // We should never see class IDs for abstract types.
+      b.unreachable();
+
+      b.end(); // functionType
+      w.StructType closureBase = translator.closureLayouter.closureBaseStruct;
+      b.local_get(object);
+      b.ref_cast(w.RefType.def(closureBase, nullable: false));
+      b.struct_get(closureBase, FieldIndex.closureRuntimeType);
+      b.return_();
+
+      b.end(); // recordType
+      b.local_get(object);
+      translator.convertType(
+          function,
+          object.type,
+          translator.classInfo[translator.coreTypes.recordClass]!.repr
+              .nonNullableType);
+      codeGen.call(translator.recordGetRecordRuntimeType.reference);
+      b.return_();
+
+      b.end(); // notMasqueraded
+      b.local_get(classId);
+      b.local_set(resultClassId);
+
+      b.end(); // interfaceType
+      ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      // Runtime types are never nullable.
+      b.i32_const(0);
+      // Set class ID of interface type.
+      b.local_get(resultClassId);
+      b.i64_extend_i32_u();
+      // Call _typeArguments to get the list of type arguments.
+      b.local_get(object);
+      codeGen.call(translator.objectGetTypeArguments.reference);
+      b.struct_new(info.struct);
+      b.return_();
     }
 
     // identical
@@ -1542,11 +1604,28 @@ class Intrinsifier {
       //
       //   bool _equals(f1, f2) {
       //     if (identical(f1, f2) return true;
-      //     if (f1.vtable == f2.vtable) {
-      //       if (v1.context is #Top && v2.context is #Top) {
-      //         return identical(v1.context, v2.context);
-      //       }
+      //
+      //     if (<f1 and f2 are instantiations>
+      //           ? f1.context.inner.vtable != f2.context.inner.vtable
+      //           : f1.vtable != f2.vtable) {
+      //       return false;
       //     }
+      //
+      //     if (<f1 and f2 are instantiations>) {
+      //       if (typesEqual(f1.context, f2.context)) {
+      //         f1 = f1.context.inner;
+      //         f2 = f2.context.inner;
+      //         if (identical(f1, f2)) return true;
+      //         goto outerClosureContext;
+      //       }
+      //       return false;
+      //     }
+      //
+      //     outerClosureContext:
+      //     if (f1.context is #Top && f2.context is #Top) {
+      //       return identical(f1.context, f2.context);
+      //     }
+      //
       //     return false;
       //   }
 
@@ -1577,14 +1656,114 @@ class Intrinsifier {
           function, function.locals[1].type, closureBaseStructRef);
       b.local_set(fun2);
 
-      // Compare vtable references
+      // Compare vtable references. For instantiation closures compare the
+      // inner vtables
+      final instantiationContextBase = w.RefType(
+          translator.closureLayouter.instantiationContextBaseStruct,
+          nullable: false);
+      final vtableRefType = w.RefType.def(
+          translator.closureLayouter.vtableBaseStruct,
+          nullable: false);
+      // Returns vtables of closures that we compare for equality.
+      final vtablesBlock = b.block([], [vtableRefType, vtableRefType]);
+      // `br` target when fun1 is not an instantiation
+      final fun1NotInstantiationBlock =
+          b.block([], [w.RefType.struct(nullable: false)]);
+      // `br` target when fun1 is an instantiation, but fun2 is not
+      final fun1InstantiationFun2NotInstantiationBlock =
+          b.block([], [w.RefType.struct(nullable: false)]);
       b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(instantiationContextBase, fun1NotInstantiationBlock);
+      b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+          FieldIndex.instantiationContextInner);
       b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
       b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(
+          instantiationContextBase, fun1InstantiationFun2NotInstantiationBlock);
+      b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+          FieldIndex.instantiationContextInner);
       b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.br(vtablesBlock);
+      b.end(); // fun1InstantiationFun2NotInstantiationBlock
+      b.i32_const(0); // false
+      b.return_();
+      b.end(); // fun1NotInstantiationBlock
+      b.drop();
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      // To keep the generated code small and simple, instead of checking that
+      // fun2 is also not an instantiation, we can just return the outer
+      // (potentially instantiation) vtable here. In the rest of the code
+      // `ref.eq` will be `false` (as vtable of an instantiation and
+      // non-instantiation will never be equal) and the function will return
+      // `false` as expected.
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.end(); // vtablesBlock
       b.ref_eq();
 
       b.if_(); // fun1.vtable == fun2.vtable
+
+      // Check if closures are instantiations. Since they have the same vtable
+      // it's enough to check just one of them.
+      final instantiationCheckPassedBlock = b.block();
+
+      final notInstantiationBlock =
+          b.block([], [w.RefType.struct(nullable: false)]);
+
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.br_on_cast_fail(instantiationContextBase, notInstantiationBlock);
+
+      // Closures are instantiations. Compare inner function vtables to check
+      // that instantiations are for the same generic function.
+      void getInstantiationContextInner(w.Local fun) {
+        b.local_get(fun);
+        // instantiation.context
+        b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+        b.ref_cast(instantiationContextBase);
+        // instantiation.context.inner
+        b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+            FieldIndex.instantiationContextInner);
+      }
+
+      // Closures are instantiations of the same function, compare types.
+      b.local_get(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.ref_cast(instantiationContextBase);
+      b.local_get(fun2);
+      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+      b.ref_cast(instantiationContextBase);
+      getInstantiationContextInner(fun1);
+      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+      b.ref_cast(w.RefType.def(
+          translator.closureLayouter.genericVtableBaseStruct,
+          nullable: false));
+      b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
+          FieldIndex.vtableInstantiationTypeComparisonFunction);
+      b.call_ref(translator
+          .closureLayouter.instantiationClosureTypeComparisonFunctionType);
+      b.if_();
+      getInstantiationContextInner(fun1);
+      b.local_tee(fun1);
+      getInstantiationContextInner(fun2);
+      b.local_tee(fun2);
+      b.ref_eq();
+      b.if_();
+      b.i32_const(1); // true
+      b.return_();
+      b.end();
+      b.br(instantiationCheckPassedBlock);
+      b.end();
+      b.i32_const(0); // false
+      b.return_();
+      b.i32_const(0); // false
+      b.return_();
+      b.end(); // notInstantiationBlock
+      b.drop();
+      b.end(); // instantiationCheckPassedBlock
 
       // Compare context references. If context of a function has the top type
       // then the function is an instance tear-off. Otherwise it's a closure.
@@ -1738,8 +1917,13 @@ class Intrinsifier {
       b.end(); // errorBlock
 
       b.local_get(errorLocal);
+      b.struct_get(errorClassInfo.struct, stackTraceFieldIndex);
+      b.ref_is_null();
+      b.if_();
+      b.local_get(errorLocal);
       b.local_get(stackTraceLocal);
       b.struct_set(errorClassInfo.struct, stackTraceFieldIndex);
+      b.end();
 
       b.local_get(objectLocal);
       b.end(); // notErrorBlock

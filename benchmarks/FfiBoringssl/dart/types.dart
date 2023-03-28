@@ -7,13 +7,13 @@
 import 'dart:ffi';
 
 /// digest algorithm.
-class EVP_MD extends Opaque {}
+final class EVP_MD extends Opaque {}
 
 /// digest context.
-class EVP_MD_CTX extends Opaque {}
+final class EVP_MD_CTX extends Opaque {}
 
 /// Type for `void*` used to represent opaque data.
-class Data extends Opaque {
+final class Data extends Opaque {
   static Pointer<Data> fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>();
 }
 
@@ -22,7 +22,7 @@ extension DataPointerAsUint8Pointer on Pointer<Data> {
 }
 
 /// Type for `uint8_t*` used to represent byte data.
-class Bytes extends Opaque {
+final class Bytes extends Opaque {
   static Pointer<Data> fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>();
 }
 

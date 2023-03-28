@@ -16,6 +16,7 @@ void main() {
     defineReflectiveTests(PreferFinalFieldsTest);
     defineReflectiveTests(PreferFinalFieldsWithNullSafetyTest);
     defineReflectiveTests(PreferFinalInForEachTest);
+    defineReflectiveTests(PreferFinalLocalTest);
     defineReflectiveTests(PreferFinalLocalsBulkTest);
     defineReflectiveTests(PreferFinalParametersTest);
     defineReflectiveTests(PreferFinalParametersBulkTest);
@@ -221,6 +222,45 @@ f() {
 f() {
   final x = 0;
   final y = x;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferFinalLocalTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.MAKE_FINAL;
+
+  @override
+  String get lintCode => LintNames.prefer_final_locals;
+
+  Future<void> test_variableDeclarationStatement_type() async {
+    await resolveTestCode('''
+void f() {
+  // ignore:unused_local_variable
+  int v = 0;
+}
+''');
+    await assertHasFix('''
+void f() {
+  // ignore:unused_local_variable
+  final int v = 0;
+}
+''');
+  }
+
+  Future<void> test_variableDeclarationStatement_var() async {
+    await resolveTestCode('''
+void f() {
+  // ignore:unused_local_variable
+  var v = 0;
+}
+''');
+    await assertHasFix('''
+void f() {
+  // ignore:unused_local_variable
+  final v = 0;
 }
 ''');
   }

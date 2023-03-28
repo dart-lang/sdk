@@ -4,7 +4,7 @@
 
 library mixin_lib_extends_method_lib;
 
-class M1 {
+mixin M1 {
   bar() => "M1-bar";
 
   clo(s) {
@@ -13,7 +13,7 @@ class M1 {
   }
 }
 
-class M2 {
+mixin M2 {
   // Make sure mixed-in method has access to library-private names.
   bar() => _M2_bar();
   baz() => _M2_baz;

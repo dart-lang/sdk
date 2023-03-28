@@ -24,9 +24,6 @@ class IsolateLocationElement extends CustomElement implements Renderable {
   factory IsolateLocationElement(
       M.Isolate isolate, M.EventRepository events, M.ScriptRepository scripts,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(events != null);
-    assert(scripts != null);
     IsolateLocationElement e = new IsolateLocationElement.created();
     e._r = new RenderingScheduler<IsolateLocationElement>(e, queue: queue);
     e._isolate = isolate;

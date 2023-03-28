@@ -116,7 +116,6 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
 
   set value(js.Expression value) {
     assert(!isFinalized);
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _value = value;
   }
 
@@ -184,7 +183,6 @@ class StringReferenceResource extends js.DeferredStatement
 
   set statement(js.Statement statement) {
     assert(!isFinalized);
-    assert((statement as dynamic) != null); // TODO(48820): Remove when sound.
     _statement = statement;
   }
 

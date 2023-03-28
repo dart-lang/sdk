@@ -34,15 +34,6 @@ class Interface {
   void set implementedInstanceSetterDeclaredStaticGetter(int value) {}
 }
 
-class Mixin {
-  static void extendedInstanceMixedInStaticMethod() {}
-  static void mixedInStaticDeclaredInstanceMethod() {}
-  static void mixedInStaticImplementedInstanceMethod() {}
-  void extendedStaticMixedInInstanceMethod() {}
-  void mixedInInstanceDeclaredStaticMethod() {}
-  void mixedInInstanceImplementedStaticMethod() {}
-}
-
 class Super {
   int get extendedInstanceGetterDeclaredStaticSetter => 0;
   static int get extendedStaticGetterDeclaredInstanceSetter => 0;
@@ -59,3 +50,11 @@ class Super {
 }
 
 main() {}
+mixin Mixin {
+  static void extendedInstanceMixedInStaticMethod() {}
+  static void mixedInStaticDeclaredInstanceMethod() {}
+  static void mixedInStaticImplementedInstanceMethod() {}
+  void extendedStaticMixedInInstanceMethod() {}
+  void mixedInInstanceDeclaredStaticMethod() {}
+  void mixedInInstanceImplementedStaticMethod() {}
+}

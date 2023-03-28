@@ -25,13 +25,13 @@ NamespaceImpl::NamespaceImpl(fdio_ns_t* fdio_ns)
         cwd_(strdup("/")) {
   rootfd_ = fdio_ns_opendir(fdio_ns);
   if (rootfd_ < 0) {
-    FATAL2("Failed to open file descriptor for namespace: errno=%d: %s", errno,
-           strerror(errno));
+    FATAL("Failed to open file descriptor for namespace: errno=%d: %s", errno,
+          strerror(errno));
   }
   cwdfd_ = dup(rootfd_);
   if (cwdfd_ < 0) {
-    FATAL2("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
-           strerror(errno));
+    FATAL("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
+          strerror(errno));
   }
 }
 
@@ -40,13 +40,13 @@ NamespaceImpl::NamespaceImpl(const char* path)
         cwd_(strdup("/")) {
   rootfd_ = TEMP_FAILURE_RETRY(open(path, O_DIRECTORY));
   if (rootfd_ < 0) {
-    FATAL2("Failed to open file descriptor for namespace: errno=%d: %s", errno,
-           strerror(errno));
+    FATAL("Failed to open file descriptor for namespace: errno=%d: %s", errno,
+          strerror(errno));
   }
   cwdfd_ = dup(rootfd_);
   if (cwdfd_ < 0) {
-    FATAL2("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
-           strerror(errno));
+    FATAL("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
+          strerror(errno));
   }
 }
 

@@ -30,14 +30,14 @@ import 'package:dart2wasm/records.dart';
 ///   Record_2_a(this.$1, this.$2, this.a);
 ///
 ///   @pragma('wasm:entry-point')
-///   _Type get _runtimeType =>
-///     // Uses of `runtimeType` below will be fixed with #51134.
+///   _Type get _recordRuntimeType =>
 ///     _RecordType(
 ///       const ["a"],
-///       [$1.runtimeType, $2.runtimeType, a.runtimeType]);
-///
-///   @pragma('wasm:entry-point')
-///   Type get runtimeType => _runtimeType;
+///       [
+///         _getMasqueradedRuntimeTypeNullable($1),
+///         _getMasqueradedRuntimeTypeNullable($2),
+///         _getMasqueradedRuntimeTypeNullable(a)
+///       ]);
 ///
 ///   @pragma('wasm:entry-point')
 ///   String toString() =>
@@ -73,9 +73,6 @@ class _RecordClassGenerator {
   late final Class recordRuntimeTypeClass =
       coreTypes.index.getClass('dart:core', '_RecordType');
 
-  late final Class internalRuntimeTypeClass =
-      coreTypes.index.getClass('dart:core', '_Type');
-
   late final Constructor recordRuntimeTypeConstructor =
       recordRuntimeTypeClass.constructors.single;
 
@@ -85,9 +82,6 @@ class _RecordClassGenerator {
   late final Procedure objectHashAllProcedure =
       coreTypes.index.getProcedure('dart:core', 'Object', 'hashAll');
 
-  late final Procedure objectRuntimeTypeProcedure =
-      coreTypes.index.getProcedure('dart:core', 'Object', 'get:runtimeType');
-
   late final Procedure objectToStringProcedure =
       coreTypes.index.getProcedure('dart:core', 'Object', 'toString');
 
@@ -96,10 +90,11 @@ class _RecordClassGenerator {
   late final Procedure stringPlusProcedure =
       coreTypes.index.getProcedure('dart:core', 'String', '+');
 
-  DartType get nullableObjectType => coreTypes.objectNullableRawType;
+  late final Procedure getMasqueradedRuntimeTypeNullableProcedure = coreTypes
+      .index
+      .getTopLevelProcedure('dart:core', '_getMasqueradedRuntimeTypeNullable');
 
-  DartType get internalRuntimeTypeType =>
-      InterfaceType(internalRuntimeTypeClass, Nullability.nonNullable);
+  DartType get nullableObjectType => coreTypes.objectNullableRawType;
 
   DartType get nonNullableStringType => coreTypes.stringNonNullableRawType;
 
@@ -150,13 +145,7 @@ class _RecordClassGenerator {
     ));
     library.addClass(cls);
     cls.addProcedure(_generateEquals(shape, fields, cls));
-    final internalRuntimeType = _generateInternalRuntimeType(shape, fields);
-    // With `_runtimeType` we also need to override `runtimeType`, as
-    // `Object.runtimeType` is implemented as a direct call to
-    // `Object._runtimeType` instead of a virtual call.
-    final runtimeType = _generateRuntimeType(internalRuntimeType);
-    cls.addProcedure(internalRuntimeType);
-    cls.addProcedure(runtimeType);
+    cls.addProcedure(_generateRecordRuntimeType(shape, fields));
     return cls;
   }
 
@@ -185,8 +174,9 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<VariableDeclaration> positionalParameters =
-        List.generate(fields.length, (i) => VariableDeclaration('field$i'));
+    final List<VariableDeclaration> positionalParameters = List.generate(
+        fields.length,
+        (i) => VariableDeclaration('field$i', isSynthesized: true));
 
     final List<Initializer> initializers = List.generate(
         fields.length,
@@ -306,8 +296,8 @@ class _RecordClassGenerator {
       Nullability.nonNullable,
     );
 
-    final VariableDeclaration parameter =
-        VariableDeclaration('other', type: nullableObjectType);
+    final VariableDeclaration parameter = VariableDeclaration('other',
+        type: nullableObjectType, isSynthesized: true);
 
     final List<Statement> statements = [];
 
@@ -352,8 +342,7 @@ class _RecordClassGenerator {
   }
 
   /// Generate `_Type get _runtimeType` member.
-  Procedure _generateInternalRuntimeType(
-      RecordShape shape, List<Field> fields) {
+  Procedure _generateRecordRuntimeType(RecordShape shape, List<Field> fields) {
     final List<Statement> statements = [];
 
     // const ["name1", "name2", ...]
@@ -361,16 +350,12 @@ class _RecordClassGenerator {
         nonNullableStringType,
         shape.names.map((name) => StringConstant(name)).toList()));
 
-    // Generate `this.field.runtimeType` for a given field.
-    // TODO(51134): We shouldn't use user-provided runtimeType below.
-    Expression fieldRuntimeTypeExpr(Field field) => InstanceGet(
-          InstanceAccessKind.Object,
+    Expression fieldRuntimeTypeExpr(Field field) => StaticInvocation(
+        getMasqueradedRuntimeTypeNullableProcedure,
+        Arguments([
           InstanceGet(InstanceAccessKind.Instance, ThisExpression(), field.name,
-              interfaceTarget: field, resultType: nullableObjectType),
-          objectRuntimeTypeProcedure.name,
-          interfaceTarget: objectRuntimeTypeProcedure,
-          resultType: runtimeTypeType,
-        );
+              interfaceTarget: field, resultType: nullableObjectType)
+        ]));
 
     // [this.$1.runtimeType, this.x.runtimeType, ...]
     final fieldTypesList = ListLiteral(
@@ -394,26 +379,7 @@ class _RecordClassGenerator {
     );
 
     return _addWasmEntryPointPragma(Procedure(
-      Name('_runtimeType', library),
-      ProcedureKind.Getter,
-      function,
-      fileUri: library.fileUri,
-    ));
-  }
-
-  /// Generate `Type get runtimeType member = _runtimeType;`.
-  Procedure _generateRuntimeType(Procedure internalRuntimeType) {
-    final FunctionNode function = FunctionNode(
-      ReturnStatement(InstanceGet(InstanceAccessKind.Instance, ThisExpression(),
-          internalRuntimeType.name,
-          interfaceTarget: internalRuntimeType,
-          resultType: internalRuntimeTypeType)),
-      positionalParameters: [],
-      returnType: runtimeTypeType,
-    );
-
-    return _addWasmEntryPointPragma(Procedure(
-      Name('runtimeType', library),
+      Name('_recordRuntimeType', library),
       ProcedureKind.Getter,
       function,
       fileUri: library.fileUri,
@@ -421,7 +387,7 @@ class _RecordClassGenerator {
   }
 }
 
-class _RecordVisitor extends RecursiveVisitor {
+class _RecordVisitor extends RecursiveVisitor<void> {
   final _RecordClassGenerator classGenerator;
   final Set<Constant> constantCache = Set.identity();
 

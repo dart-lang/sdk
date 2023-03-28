@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -499,9 +500,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
     final declaredElement = node.declaredElement!;
-    _visitLocalVariableElement(declaredElement);
+    if (!declaredElement.isDuplicate) {
+      _visitLocalVariableElement(declaredElement);
+    }
 
     super.visitDeclaredVariablePattern(node);
   }

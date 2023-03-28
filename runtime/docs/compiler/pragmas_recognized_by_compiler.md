@@ -33,6 +33,22 @@ is always respected.
 
 VM will keep trying to inline the function in new contexts, not giving up after encountered contexts where inlining wasn't effective. With this some compile time is traded for expectation that the function has signficant type specialization, resulting in highly efficient inlined results in contexts where arguments types are known to the compiler. Example of this is `_List.of` constructor in dart core library.
 
+### Declaring a static weak reference intrinsic method
+
+```dart
+@pragma('weak-tearoff-reference')
+T Function()? weakRef<T>(T Function()? x) => x;
+```
+
+Declares a special static method `weakRef` which can be used to create weak references
+to tearoffs of static methods. Weak reference declaration should be a static method taking
+one positional required argument. Its return type should be nullable and should match
+argument type. It should be either `external` or return its argument (for backwards compatibility).
+
+Compiler replaces `weakRef(foo)` expression with either `foo` if method `foo()` is used and retained during
+tree shaking, or `null` if `foo()` is only used through weak references.
+Target `foo` should be a constant tearoff of a static method without arguments.
+
 ## Annotations for return types and field types
 
 The VM is not able to see across method calls (apart from inlining) and

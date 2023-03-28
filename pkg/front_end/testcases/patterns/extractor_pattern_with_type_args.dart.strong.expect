@@ -10,10 +10,12 @@ class C<T extends core::Object? = dynamic> extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} self::C<core::int>) {
-      {
-        break #L1;
+    final synthesized dynamic #0#0 = x;
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::C<core::int>) {
+        {
+          break #L1;
+        }
       }
     }
   }

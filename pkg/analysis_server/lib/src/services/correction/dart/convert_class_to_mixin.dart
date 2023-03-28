@@ -30,6 +30,11 @@ class ConvertClassToMixin extends CorrectionProducer {
         .any((member) => member is ConstructorDeclaration)) {
       return;
     }
+    if (classDeclaration.finalKeyword != null ||
+        classDeclaration.interfaceKeyword != null ||
+        classDeclaration.sealedKeyword != null) {
+      return;
+    }
     var finder = _SuperclassReferenceFinder();
     classDeclaration.accept(finder);
     var referencedClasses = finder.referencedClasses;

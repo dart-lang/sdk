@@ -300,14 +300,14 @@ class TestUtils {
     // deleting them. Use the system tools to delete our long paths.
     // See issue 16264.
     if (Platform.operatingSystem == 'windows') {
-      var native_path = Path(path).toNativePath();
+      var nativePath = Path(path).toNativePath();
       // Running this in a shell sucks, but rmdir is not part of the standard
       // path.
-      return Process.run('rmdir', ['/s', '/q', native_path], runInShell: true)
+      return Process.run('rmdir', ['/s', '/q', nativePath], runInShell: true)
           .then((ProcessResult result) {
         if (result.exitCode != 0) {
-          throw Exception('Can\'t delete path $native_path. '
-              'This path might be too long');
+          throw Exception(
+              "Can't delete path $nativePath. This path might be too long");
         }
       });
     } else {

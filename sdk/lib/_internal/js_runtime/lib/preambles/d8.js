@@ -280,6 +280,10 @@ if (typeof global != "undefined") self = global;  // Node.js.
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
+  self.dartUseDateNowForTicks = true;
+
+  // Some js-interop code accesses 'window' as 'self.window'
+  if (typeof self.window == "undefined") self.window = self;
 
   function computeCurrentScript() {
     try {

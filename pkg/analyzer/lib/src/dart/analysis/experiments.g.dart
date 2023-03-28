@@ -141,7 +141,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.class_modifiers,
     documentation: 'Class modifiers',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final const_functions = ExperimentalFeature(
@@ -305,7 +305,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.patterns,
     documentation: 'Patterns',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final records = ExperimentalFeature(
@@ -314,8 +314,8 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
     documentation: 'Records',
-    experimentalReleaseVersion: Version.parse('2.19.0'),
-    releaseVersion: null,
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final sealed_class = ExperimentalFeature(
@@ -325,7 +325,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.sealed_class,
     documentation: 'Sealed class',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.0.0'),
   );
 
   static final set_literals = ExperimentalFeature(
@@ -414,7 +414,7 @@ class ExperimentalFeatures {
 /// enabled by default.
 class IsEnabledByDefault {
   /// Default state of the experiment "class-modifiers"
-  static const bool class_modifiers = false;
+  static const bool class_modifiers = true;
 
   /// Default state of the experiment "const-functions"
   static const bool const_functions = false;
@@ -462,13 +462,13 @@ class IsEnabledByDefault {
   static const bool nonfunction_type_aliases = true;
 
   /// Default state of the experiment "patterns"
-  static const bool patterns = false;
+  static const bool patterns = true;
 
   /// Default state of the experiment "records"
-  static const bool records = false;
+  static const bool records = true;
 
   /// Default state of the experiment "sealed-class"
-  static const bool sealed_class = false;
+  static const bool sealed_class = true;
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;

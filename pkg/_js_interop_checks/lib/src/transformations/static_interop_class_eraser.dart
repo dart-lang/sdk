@@ -38,7 +38,11 @@ class StaticInteropClassEraser extends Transformer {
   // Visiting core libraries that don't contain `@staticInterop` adds overhead.
   // To avoid this, we use an allowlist that contains libraries that we know use
   // `@staticInterop`.
-  late final Set<String> _erasableCoreLibraries = {'ui', '_engine'};
+  late final Set<String> _erasableCoreLibraries = {
+    'ui',
+    '_engine',
+    '_skwasm_impl'
+  };
 
   StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
       {String libraryForJavaScriptObject = 'dart:_interceptors',

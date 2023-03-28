@@ -37,7 +37,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar extends Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 24),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 24),
     ]);
   }
 
@@ -57,7 +57,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar implements Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
     ]);
   }
 
@@ -79,7 +79,7 @@ import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
     ]);
   }
 
@@ -100,7 +100,7 @@ import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 45, 27),
     ]);
   }
 
@@ -120,7 +120,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 class Bar extends Object with Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 36),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 36),
     ]);
   }
 
@@ -140,12 +140,13 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 mixin Bar implements Foo {}
 ''', [
-      error(HintCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
+      error(WarningCode.SUBTYPE_OF_SEALED_CLASS, 31, 27),
     ]);
   }
 
-  test_withinLibrary_OK() async {
+  test_withinLibrary_language219() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.19
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 
@@ -156,7 +157,7 @@ mixin Bar5 implements Foo {}
 ''');
   }
 
-  test_withinPackageLibDirectory_OK() async {
+  test_withinPackageLibDirectory_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.19
 import 'package:meta/meta.dart';
@@ -173,7 +174,7 @@ mixin Bar5 implements Foo {}
     assertNoErrorsInResult();
   }
 
-  test_withinPackageTestDirectory_OK() async {
+  test_withinPackageTestDirectory_language219() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.19
 import 'package:meta/meta.dart';
@@ -191,17 +192,19 @@ mixin Bar5 implements Foo {}
     assertNoErrorsInResult();
   }
 
-  test_withinPart_OK() async {
+  test_withinPart_language219() async {
     var libPath = '$testPackageLibPath/a.dart';
     var partPath = '$testPackageLibPath/b.dart';
 
     newFile(libPath, r'''
+// @dart = 2.19
 import 'package:meta/meta.dart';
 part 'b.dart';
 @sealed class Foo {}
 ''');
 
     newFile(partPath, r'''
+// @dart = 2.19
 part of 'a.dart';
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}

@@ -1785,6 +1785,9 @@ void TextNode::GetQuickCheckDetails(QuickCheckDetails* details,
       RegExpCharacterClass* tree = elm.char_class();
       ZoneGrowableArray<CharacterRange>* ranges = tree->ranges();
       ASSERT(!ranges->is_empty());
+      if (!CharacterRange::IsCanonical(ranges)) {
+        CharacterRange::Canonicalize(ranges);
+      }
       if (tree->is_negated()) {
         // A quick check uses multi-character mask and compare.  There is no
         // useful way to incorporate a negative char class into this scheme
@@ -5525,8 +5528,9 @@ void CreateSpecializedFunction(Thread* thread,
 
   const FunctionType& signature =
       FunctionType::Handle(zone, FunctionType::New());
+  const String& pattern = String::Handle(zone, regexp.pattern());
   Function& fn =
-      Function::Handle(zone, Function::New(signature, Symbols::ColonMatcher(),
+      Function::Handle(zone, Function::New(signature, pattern,
                                            UntaggedFunction::kIrregexpFunction,
                                            true,   // Static.
                                            false,  // Not const.

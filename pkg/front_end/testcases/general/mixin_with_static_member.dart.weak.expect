@@ -18,10 +18,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    : super core::Object::•()
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   static method m() → core::Object
     return new core::Object::•();
 }

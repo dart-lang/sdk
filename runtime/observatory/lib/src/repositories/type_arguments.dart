@@ -7,8 +7,6 @@ part of repositories;
 class TypeArgumentsRepository implements M.TypeArgumentsRepository {
   Future<M.TypeArguments> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(i != null);
-    assert(id != null);
     return (await isolate.getObject(id)) as M.TypeArguments;
   }
 }

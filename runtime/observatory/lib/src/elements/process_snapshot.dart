@@ -219,9 +219,6 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
   factory ProcessSnapshotElement(
       M.VM vm, M.EventRepository events, M.NotificationRepository notifications,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(events != null);
-    assert(notifications != null);
     ProcessSnapshotElement e = new ProcessSnapshotElement.created();
     e._r = new RenderingScheduler<ProcessSnapshotElement>(e, queue: queue);
     e._vm = vm;
@@ -546,7 +543,6 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
       case ProcessSnapshotTreeMode.treeDiff:
         return 'Tree';
     }
-    throw new Exception('Unknown ProcessSnapshotTreeMode: $mode');
   }
 
   List<Element> _createModeSelect() {

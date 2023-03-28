@@ -67,6 +67,9 @@ abstract class JsToElementMap {
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);
 
+  /// Returns `true` if [node] has been included into this map.
+  bool containsMethod(ir.Procedure node);
+
   /// Returns the [ConstructorEntity] corresponding to the generative or factory
   /// constructor [node].
   ConstructorEntity getConstructor(ir.Member node);
@@ -185,6 +188,10 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred type of [listLiteral].
   AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
+
+  /// Returns the inferred type of [recordLiteral].
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of iterator in [forInStatement].
   AbstractValue? typeOfIterator(ir.ForInStatement forInStatement);

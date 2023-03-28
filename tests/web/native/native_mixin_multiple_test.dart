@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=class-modifiers
+
 import "native_testing.dart";
 
 // Test that native classes can use ordinary Dart classes as mixins.
@@ -17,12 +19,12 @@ class B extends A with M1, M2 {
   bar() => baz();
 }
 
-class M1 {
+mixin class M1 {
   foo() => "M1-foo";
   baz() => "M1-baz";
 }
 
-class M2 {
+mixin class M2 {
   foo() => "M2-foo";
 }
 

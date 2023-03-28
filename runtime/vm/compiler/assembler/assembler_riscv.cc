@@ -3029,13 +3029,21 @@ void Assembler::AddShifted(Register dest,
   } else if (Supports(RV_Zba) && (shift == 3)) {
     sh3add(dest, index, base);
   } else if (shift < 0) {
-    ASSERT(base != dest);
-    srai(dest, index, -shift);
-    add(dest, dest, base);
+    if (base != dest) {
+      srai(dest, index, -shift);
+      add(dest, dest, base);
+    } else {
+      srai(TMP2, index, -shift);
+      add(dest, TMP2, base);
+    }
   } else {
-    ASSERT(base != dest);
-    slli(dest, index, shift);
-    add(dest, dest, base);
+    if (base != dest) {
+      slli(dest, index, shift);
+      add(dest, dest, base);
+    } else {
+      slli(TMP2, index, shift);
+      add(dest, TMP2, base);
+    }
   }
 }
 
@@ -3737,8 +3745,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 
   LoadIsolateGroup(result);
   LoadFromOffset(result, result, table_offset);
-  slli(TMP, class_id, target::kWordSizeLog2);
-  add(result, result, TMP);
+  AddShifted(result, result, class_id, target::kWordSizeLog2);
   lx(result, Address(result, 0));
 }
 void Assembler::CompareClassId(Register object,
@@ -3926,6 +3933,19 @@ void Assembler::ExitFullSafepoint(Register state,
   jalr(addr);
 
   Bind(&done);
+}
+
+void Assembler::CheckFpSpDist(intptr_t fp_sp_dist) {
+  ASSERT(fp_sp_dist <= 0);
+#if defined(DEBUG)
+  Label ok;
+  Comment("CheckFpSpDist");
+  sub(TMP, SP, FP);
+  CompareImmediate(TMP, fp_sp_dist);
+  BranchIf(EQ, &ok, compiler::Assembler::kNearJump);
+  ebreak();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::CheckCodePointer() {
@@ -4627,18 +4647,17 @@ void Assembler::LoadCompressedFieldAddressForRegOffset(
     Register address,
     Register instance,
     Register offset_in_words_as_smi) {
-  slli(TMP, offset_in_words_as_smi,
-       target::kCompressedWordSizeLog2 - kSmiTagShift);
-  add(TMP, TMP, instance);
-  addi(address, TMP, -kHeapObjectTag);
+  AddShifted(address, instance, offset_in_words_as_smi,
+             target::kCompressedWordSizeLog2 - kSmiTagShift);
+  addi(address, address, -kHeapObjectTag);
 }
 
 void Assembler::LoadFieldAddressForRegOffset(Register address,
                                              Register instance,
                                              Register offset_in_words_as_smi) {
-  slli(TMP, offset_in_words_as_smi, target::kWordSizeLog2 - kSmiTagShift);
-  add(TMP, TMP, instance);
-  addi(address, TMP, -kHeapObjectTag);
+  AddShifted(address, instance, offset_in_words_as_smi,
+             target::kWordSizeLog2 - kSmiTagShift);
+  addi(address, address, -kHeapObjectTag);
 }
 
 // Note: the function never clobbers TMP, TMP2 scratch registers.

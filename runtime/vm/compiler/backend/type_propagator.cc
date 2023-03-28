@@ -637,9 +637,14 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
 
   const AbstractType* old_abstract_type = old_type->ToAbstractType();
   const AbstractType* new_abstract_type = new_type->ToAbstractType();
+  CompileType* preferred_type = nullptr;
 
-  CompileType* preferred_type;
-  if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
+  // Prefer 'int' if known.
+  if (old_type->IsNullableInt()) {
+    preferred_type = old_type;
+  } else if (new_type->IsNullableInt()) {
+    preferred_type = new_type;
+  } else if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
     // Prefer old type, as it is clearly more specific.
     preferred_type = old_type;
   } else {
@@ -1166,7 +1171,7 @@ CompileType ParameterInstr::ComputeType() const {
     // In irregexp functions, types of input parameters are known and immutable.
     // Set parameter types here in order to prevent unnecessary CheckClassInstr
     // from being generated.
-    switch (index()) {
+    switch (env_index()) {
       case RegExpMacroAssembler::kParamRegExpIndex:
         return CompileType::FromCid(kRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
@@ -1180,29 +1185,18 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  // Figure out if this Parameter instruction corresponds to a direct
-  // parameter. See FlowGraph::EnvIndex and initialization of
-  // num_direct_parameters_ in FlowGraph constructor.
-  const bool is_direct_parameter =
-      !function.MakesCopyOfParameters() && (index() < function.NumParameters());
-  // Parameter instructions in a function entry are only used for direct
-  // parameters. Parameter instructions in OsrEntry and CatchBlockEntry
-  // correspond to all local variables, not just direct parameters.
-  // OsrEntry is already checked above.
-  ASSERT(is_direct_parameter || block_->IsCatchBlockEntry());
+  const intptr_t param_index = this->param_index();
+  ASSERT((param_index >= 0) || block_->IsCatchBlockEntry());
 
-  // The code below assumes that env index matches parameter index.
-  // This is true only for direct parameters.
-  if (is_direct_parameter) {
-    const intptr_t param_index = index();
+  if (param_index >= 0) {
     // Parameter is the receiver.
     if ((param_index == 0) &&
         (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
       const AbstractType& type = pf.RawParameterVariable(0)->type();
       if (type.IsObjectType() || type.IsNullType()) {
         // Receiver can be null.
-        return CompileType::FromAbstractType(type, CompileType::kCanBeNull,
-                                             CompileType::kCannotBeSentinel);
+        return CompileType(CompileType::kCanBeNull,
+                           CompileType::kCannotBeSentinel, kIllegalCid, &type);
       }
 
       // Receiver can't be null but can be an instance of a subclass.
@@ -1246,16 +1240,23 @@ CompileType ParameterInstr::ComputeType() const {
                                      ? pf.ParameterVariable(param_index)
                                      : pf.RawParameterVariable(param_index);
     ASSERT(param != nullptr);
-    CompileType* inferred_type = NULL;
+
+    CompileType* inferred_type = nullptr;
+    intptr_t inferred_cid = kDynamicCid;
+    bool inferred_nullable = true;
     if (!block_->IsCatchBlockEntry()) {
       inferred_type = param->parameter_type();
-    }
-    // Best bet: use inferred type if it is a concrete class or int.
-    if ((inferred_type != nullptr) &&
-        ((inferred_type->ToNullableCid() != kDynamicCid) ||
-         inferred_type->IsNullableInt())) {
-      TraceStrongModeType(this, inferred_type);
-      return *inferred_type;
+
+      if (inferred_type != nullptr) {
+        // Use inferred type if it is an int.
+        if (inferred_type->IsNullableInt()) {
+          TraceStrongModeType(this, inferred_type);
+          return *inferred_type;
+        }
+        // Otherwise use inferred cid and nullability.
+        inferred_cid = inferred_type->ToNullableCid();
+        inferred_nullable = inferred_type->is_nullable();
+      }
     }
     // If parameter type was checked by caller, then use Dart type annotation,
     // plus non-nullability from inferred type if known.
@@ -1266,15 +1267,17 @@ CompileType ParameterInstr::ComputeType() const {
         (param->was_type_checked_by_caller() ||
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
-      const bool is_nullable =
-          (inferred_type == NULL) || inferred_type->is_nullable();
-      TraceStrongModeType(this, param->type());
-      return CompileType::FromAbstractType(
-          param->type(), is_nullable,
-          block_->IsCatchBlockEntry() && param->is_late());
+      const AbstractType& static_type = param->type();
+      CompileType result(
+          inferred_nullable && !static_type.IsStrictlyNonNullable(),
+          block_->IsCatchBlockEntry() && param->is_late(),
+          inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
+          &static_type);
+      TraceStrongModeType(this, &result);
+      return result;
     }
-    // Last resort: use inferred non-nullability.
-    if (inferred_type != NULL) {
+    // Last resort: use inferred type as is.
+    if (inferred_type != nullptr) {
       TraceStrongModeType(this, inferred_type);
       return *inferred_type;
     }
@@ -1288,7 +1291,7 @@ CompileType ParameterInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-CompileType PushArgumentInstr::ComputeType() const {
+CompileType MoveArgumentInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
@@ -1410,11 +1413,15 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* inferred_type = result_type();
-  if ((inferred_type != nullptr) &&
-      ((inferred_type->ToNullableCid() != kDynamicCid) ||
-       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
-    TraceStrongModeType(this, inferred_type);
-    return *inferred_type;
+  intptr_t inferred_cid = kDynamicCid;
+  bool is_nullable = CompileType::kCanBeNull;
+  if (inferred_type != nullptr) {
+    if (inferred_type->IsNullableInt()) {
+      TraceStrongModeType(this, inferred_type);
+      return *inferred_type;
+    }
+    inferred_cid = inferred_type->ToNullableCid();
+    is_nullable = inferred_type->is_nullable();
   }
 
   // Include special cases of type inference for int operations.
@@ -1450,16 +1457,18 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
     // 1. receiver type inferred by the front-end is not passed to VM.
     // 2. VM collects type arguments through the chain of superclasses but
     // not through implemented interfaces.
-    // So treat non-instantiated generic types as dynamic to avoid pretending
-    // the type is known.
     // TODO(dartbug.com/30480): instantiate generic result_type
-    if (result_type.IsInstantiated()) {
-      TraceStrongModeType(this, result_type);
-      const bool is_nullable =
-          (inferred_type == NULL) || inferred_type->is_nullable();
-      return CompileType::FromAbstractType(result_type, is_nullable,
-                                           CompileType::kCannotBeSentinel);
-    }
+    CompileType result(is_nullable && !result_type.IsStrictlyNonNullable(),
+                       CompileType::kCannotBeSentinel,
+                       inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
+                       &result_type);
+    TraceStrongModeType(this, &result);
+    return result;
+  }
+
+  if (inferred_type != nullptr) {
+    TraceStrongModeType(this, inferred_type);
+    return *inferred_type;
   }
 
   return CompileType::Dynamic();
@@ -1529,14 +1538,17 @@ CompileType StaticCallInstr::ComputeType() const {
     return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
   }
 
-  if ((inferred_type != nullptr) &&
-      ((inferred_type->ToNullableCid() != kDynamicCid) ||
-       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
-    TraceStrongModeType(this, inferred_type);
-    return *inferred_type;
+  intptr_t inferred_cid = kDynamicCid;
+  bool is_nullable = CompileType::kCanBeNull;
+  if (inferred_type != nullptr) {
+    if (inferred_type->IsNullableInt()) {
+      TraceStrongModeType(this, inferred_type);
+      return *inferred_type;
+    }
+    inferred_cid = inferred_type->ToNullableCid();
+    is_nullable = inferred_type->is_nullable();
   }
 
-  bool is_nullable = CompileType::kCanBeNull;
   if (function_.has_pragma()) {
     const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
     if (cid != kDynamicCid) {
@@ -1549,18 +1561,12 @@ CompileType StaticCallInstr::ComputeType() const {
 
   const AbstractType& result_type =
       AbstractType::ZoneHandle(function().result_type());
-  // TODO(dartbug.com/30480): instantiate generic result_type if possible.
-  // Also, consider fixing AbstractType::IsSubtypeOf to handle
-  // non-instantiated types properly.
-  if (result_type.IsInstantiated()) {
-    TraceStrongModeType(this, result_type);
-    is_nullable = is_nullable &&
-                  (inferred_type == nullptr || inferred_type->is_nullable());
-    return CompileType::FromAbstractType(result_type, is_nullable,
-                                         CompileType::kCannotBeSentinel);
-  }
-
-  return CompileType::Dynamic();
+  CompileType result(is_nullable && !result_type.IsStrictlyNonNullable(),
+                     CompileType::kCannotBeSentinel,
+                     inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
+                     &result_type);
+  TraceStrongModeType(this, &result);
+  return result;
 }
 
 CompileType LoadLocalInstr::ComputeType() const {
@@ -1667,14 +1673,23 @@ CompileType LoadClassIdInstr::ComputeType() const {
 
 CompileType LoadFieldInstr::ComputeType() const {
   if (slot().IsRecordField()) {
+    const intptr_t index = compiler::target::Record::field_index_at_offset(
+        slot().offset_in_bytes());
+    if (auto* alloc = instance()->definition()->AsAllocateSmallRecord()) {
+      if (index < alloc->num_fields()) {
+        return *(alloc->InputAt(index)->Type());
+      }
+    }
     const AbstractType* instance_type = instance()->Type()->ToAbstractType();
     if (instance_type->IsRecordType()) {
-      const intptr_t index = compiler::target::Record::field_index_at_offset(
-          slot().offset_in_bytes());
-      const auto& field_type = AbstractType::ZoneHandle(
-          RecordType::Cast(*instance_type).FieldTypeAt(index));
-      return CompileType::FromAbstractType(field_type, CompileType::kCanBeNull,
-                                           CompileType::kCannotBeSentinel);
+      const auto& record_type = RecordType::Cast(*instance_type);
+      if (index < record_type.NumFields()) {
+        const auto& field_type =
+            AbstractType::ZoneHandle(record_type.FieldTypeAt(index));
+        return CompileType::FromAbstractType(field_type,
+                                             CompileType::kCanBeNull,
+                                             CompileType::kCannotBeSentinel);
+      }
     }
   }
   CompileType type = slot().ComputeCompileType();

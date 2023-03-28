@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method method(core::int i) → dynamic {
+  return block {
+    core::int #t1;
+    final synthesized core::int #0#0 = i;
+    #L1:
+    {
+      {
+        if(#0#0.{core::num::<}(#C1 as{ForNonNullableByDefault} core::num){(core::num) → core::bool}) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+      {
+        if(#0#0.{core::num::>}(#C2 as{ForNonNullableByDefault} core::num){(core::num) → core::bool}) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = 2;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+}
+
+constants  {
+  #C1 = 0
+  #C2 = ""
+}
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///relational_assignable.dart:9:5 -> IntConstant(0)
+Extra constant evaluation: evaluated: 12, effectively constant: 1

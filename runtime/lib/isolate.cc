@@ -66,11 +66,6 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePort_get_sendport, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
-  return port.send_port();
-}
-
 DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
@@ -278,7 +273,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
-    args.SetAt(2, String::Handle(zone, String::New(exception_message)));
+    args.SetAt(2, String::Handle(
+                      zone, String::NewFormatted(
+                                "%s%s",
+                                FindRetainingPath(
+                                    zone, isolate, obj, illegal_object,
+                                    TraversalRules::kInternalToIsolateGroup),
+                                exception_message)));
     const Object& exception = Object::Handle(
         zone, Exceptions::Create(Exceptions::kArgumentValue, args));
     return UnhandledException::New(Instance::Cast(exception),

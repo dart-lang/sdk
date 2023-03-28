@@ -8,11 +8,11 @@ class S {
   var foo = "S-foo";
 }
 
-class M1 {
+mixin M1 {
   final bar = "M1-bar";
 }
 
-class M2 {
+mixin M2 {
   var baz = "M2-baz";
 }
 

@@ -6,6 +6,7 @@ library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
+import '../universe/class_set.dart';
 import '../util/util.dart' show Setlet;
 import '../inferrer/abstract_value_domain.dart';
 import 'debug.dart' as debug;
@@ -228,6 +229,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   @override
+  void visitRecordFieldAccessTypeInformation(
+      RecordFieldAccessTypeInformation info) {
+    addNewEscapeInformation(info);
+  }
+
+  @override
   void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
     addNewEscapeInformation(info);
   }
@@ -245,6 +252,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   @override
   void visitMapTypeInformation(MapTypeInformation info) {
     mapsToAnalyze.add(info);
+  }
+
+  @override
+  void visitRecordTypeInformation(RecordTypeInformation info) {
+    // TODO(50701): Implement better inference for records.
+    bailout('Used as field of Record');
   }
 
   @override
@@ -345,7 +358,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     List<TypeInformation> positionalArguments = arguments.positional;
     if (positionalArguments.length == 1) {
       return (selectorName == 'add' && currentUser == positionalArguments[0]);
-    } else if (arguments.length == 2) {
+    } else if (positionalArguments.length == 2) {
       return (selectorName == 'insert' &&
           currentUser == positionalArguments[1]);
     }
@@ -475,8 +488,17 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     final user = currentUser;
     if (user is MemberTypeInformation) {
-      if (info.callees.contains(user.member)) {
-        addNewEscapeInformation(info);
+      for (final target in info.concreteTargets) {
+        IterationStep checkMember(MemberEntity member) {
+          if (member == user.member) {
+            addNewEscapeInformation(info);
+            return IterationStep.STOP;
+          }
+          return IterationStep.CONTINUE;
+        }
+
+        inferrer.memberHierarchyBuilder
+            .forEachTargetMember(target, checkMember);
       }
     }
   }

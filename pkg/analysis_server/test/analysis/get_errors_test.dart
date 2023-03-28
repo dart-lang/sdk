@@ -64,7 +64,7 @@ class A {}
     await setRoots(included: [], excluded: []);
 
     var request = _createGetErrorsRequest(testFile.path);
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     assertResponseFailure(
       response,
       requestId: _requestId,

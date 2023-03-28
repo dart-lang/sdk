@@ -307,10 +307,10 @@ abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/ 
     ;
   get field1() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::Mixin2::_#Mixin2#field1#A}{core::int}, "field1");
-  set field1(core::int value) → void
+  set field1(synthesized core::int value) → void
     this.{mai::Mixin2::_#Mixin2#field1#A} = value;
   get field2() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::Mixin2::_#Mixin2#field2#A}{core::int}, "field2");
-  set field2(core::int value) → void
+  set field2(synthesized core::int value) → void
     this.{mai::Mixin2::_#Mixin2#field2#A} = value;
 }

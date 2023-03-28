@@ -4,12 +4,19 @@ foo3() {}
 foo4() {}
 foo5((int, String?) r, (int, X) Function<X>() f) {}
 foo6((X, Y) Function<X, Y>(X x, Y y) f, int x, String y) {}
-foo7((X, (Y, Z)) Function<X, Y, Z>(X x, Y y, Z z) f, int x, String y, bool? z) {}
+foo7(
+    (X, (Y, Z)) Function<X, Y, Z>(X x, Y y, Z z) f, int x, String y, bool? z) {}
+
 class A8<X extends (X, Y), Y extends num> {}
+
 foo8(A8 a) {}
+
 class A9<X extends (Y, Z), Y extends num, Z extends String?> {}
+
 foo9(A9 a) {}
+
 class A10<X, Y> {}
+
 A10<(T, T), T> foo10<T>() => throw 0;
 bar10() {}
 main() {}

@@ -20,7 +20,7 @@ void main() {
 class OptionsPackagesIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   @override
-  Future startServer({int? diagnosticPort, int? servicePort}) {
+  Future<void> startServer({int? diagnosticPort, int? servicePort}) {
     var fooPath = sourcePath('foo');
     writeFile(
       path.join(fooPath, 'lib', 'foo.dart'),

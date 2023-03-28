@@ -19,12 +19,12 @@ class NonPositiveArrayDimensionTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array.multi([-1])
   external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 68, 2),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 2),
     ]);
   }
 
@@ -32,12 +32,12 @@ class MyStruct extends Struct {
     await assertErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array.multi([1, 2, 3, -4, 5, 6])
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 }
 ''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 77, 2),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 83, 2),
     ]);
   }
 
@@ -45,7 +45,7 @@ class MyStruct extends Struct {
     await assertNoErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array.multi([1])
   external Array<Uint8> a0;
 }
@@ -56,12 +56,12 @@ class MyStruct extends Struct {
     await assertErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array.multi([0])
   external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 68, 1),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 1),
     ]);
   }
 
@@ -69,12 +69,12 @@ class MyStruct extends Struct {
     await assertErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array(-12)
   external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 61, 3),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 3),
     ]);
   }
 
@@ -82,7 +82,7 @@ class MyStruct extends Struct {
     await assertNoErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array(1)
   external Array<Uint8> a0;
 }
@@ -93,12 +93,12 @@ class MyStruct extends Struct {
     await assertErrorsInCode('''
 import "dart:ffi";
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Array(0)
   external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 61, 1),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 1),
     ]);
   }
 }

@@ -150,6 +150,7 @@ abstract class RuntimeConfiguration {
 class NoneRuntimeConfiguration extends RuntimeConfiguration {
   NoneRuntimeConfiguration() : super._subclass();
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -179,6 +180,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   D8RuntimeConfiguration(this.compiler) : super('d8');
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -200,6 +202,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     }
   }
 
+  @override
   List<String> dart2jsPreambles(Uri preambleDir) {
     return [preambleDir.resolve('d8.js').toFilePath()];
   }
@@ -211,6 +214,7 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   JsshellRuntimeConfiguration(this.compiler) : super('jsshell');
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -231,6 +235,7 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     }
   }
 
+  @override
   List<String> dart2jsPreambles(Uri preambleDir) {
     return ['-f', preambleDir.resolve('jsshell.js').toFilePath(), '-f'];
   }
@@ -262,6 +267,7 @@ class QemuConfig {
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
+  @override
   int timeoutMultiplier(
       {required Mode mode,
       bool isChecked = false,
@@ -304,6 +310,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 
 //// The standalone Dart VM binary, "dart" or "dart.exe".
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -344,6 +351,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useElf;
   DartPrecompiledRuntimeConfiguration(this.useElf);
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -377,6 +385,7 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
   static const String deviceDir = '/data/local/tmp/testing';
   static const String deviceTestDir = '/data/local/tmp/testing/test';
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -407,6 +416,7 @@ class DartPrecompiledAdbRuntimeConfiguration
   final bool useElf;
   DartPrecompiledAdbRuntimeConfiguration(this.useElf);
 
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -430,6 +440,7 @@ class DartPrecompiledAdbRuntimeConfiguration
 
 class DartkFuchsiaEmulatorRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,
@@ -461,6 +472,7 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
 /// migrated yet.
 // TODO(ahe): Remove this class.
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
       List<String> arguments,

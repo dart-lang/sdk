@@ -53,7 +53,7 @@ from within any {@link Consumer} method.
 late Api api;
 
 /// Convert documentation references
-/// from spec style of [className] to javadoc style {@link className}
+/// from spec style of `className` to javadoc style {@link className}
 String? convertDocLinks(String? doc) {
   if (doc == null) return null;
   var sb = StringBuffer();
@@ -458,6 +458,12 @@ class MemberType extends Member {
   bool get isEnum => types.length == 1 && api.isEnumName(types.first.name);
 
   bool get isMultipleReturns => types.length > 1;
+
+  List<TypeRef> get subsetOfTypesThatAreSimple =>
+      types.where((TypeRef typeRef) => typeRef.isSimple).toList();
+
+  List<TypeRef> get subsetOfTypesThatAreNotSimple =>
+      types.where((TypeRef typeRef) => !typeRef.isSimple).toList();
 
   bool get isSimple => types.length == 1 && types.first.isSimple;
 
@@ -939,16 +945,40 @@ class TypeField extends Member {
   void generateAccessor(TypeWriter writer) {
     if (type.isMultipleReturns && !type.isValueAndSentinel) {
       writer.addMethod(accessorName, [], (StatementWriter w) {
-        w.addImport('com.google.gson.JsonObject');
-        w.addLine('final JsonObject elem = (JsonObject)json.get("$name");');
+        w.addImport('com.google.gson.JsonElement');
+        w.addLine('final JsonElement elem = json.get("$name");');
         w.addLine('if (elem == null) return null;\n');
-        for (TypeRef t in type.types) {
-          String refName = t.name!;
-          if (refName.endsWith('Ref')) {
-            refName = '@${refName.substring(0, refName.length - 3)}';
+        final subsetOfTypesThatAreSimple = type.subsetOfTypesThatAreSimple;
+        final subsetOfTypesThatAreNotSimple =
+            type.subsetOfTypesThatAreNotSimple;
+        if (subsetOfTypesThatAreSimple.isNotEmpty) {
+          w.addImport('com.google.gson.JsonPrimitive');
+          w.addLine('if (elem.isJsonPrimitive()) {');
+          w.addLine('final JsonPrimitive p = (JsonPrimitive) elem;');
+          for (TypeRef t in subsetOfTypesThatAreSimple) {
+            if (t.name == 'boolean') {
+              w.addLine('if (p.isBoolean()) return p.getAsBoolean();');
+            } else if (t.name == 'int') {
+              w.addLine('if (p.isNumber()) return p.getAsInt();');
+            } else if (t.name == 'String') {
+              w.addLine('if (p.isString()) return p.getAsString();');
+            }
           }
-          w.addLine('if (elem.get("type").getAsString().equals("$refName")) '
-              'return new ${t.name}(elem);');
+          w.addLine('}');
+        }
+        if (subsetOfTypesThatAreNotSimple.isNotEmpty) {
+          w.addImport('com.google.gson.JsonObject');
+          w.addLine('if (elem.isJsonObject()) {');
+          w.addLine('final JsonObject o = (JsonObject) elem;');
+          for (TypeRef t in subsetOfTypesThatAreNotSimple) {
+            String refName = t.name!;
+            if (refName.endsWith('Ref')) {
+              refName = '@${refName.substring(0, refName.length - 3)}';
+            }
+            w.addLine('if (o.get("type").getAsString().equals("$refName")) '
+                'return new ${t.name}(o);');
+          }
+          w.addLine('}');
         }
         w.addLine('return null;');
       }, javadoc: docs, returnType: 'Object');

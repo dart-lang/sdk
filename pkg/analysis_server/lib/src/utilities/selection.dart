@@ -140,7 +140,17 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _fromList(node.metadata);
+  }
+
+  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
+    _fromList(node.metadata);
+  }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     _fromList(node.metadata);
   }
 
@@ -270,6 +280,11 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _fromList(node.metadata);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     _fromList(node.fields);
   }
@@ -315,6 +330,11 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _fromList(node.metadata);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    _fromList(node.elements);
   }
 
   @override

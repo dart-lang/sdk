@@ -5,6 +5,9 @@
 [ !$browser ]
 *: SkipByDesign
 
+[ $compiler == dart2js && $runtime == chrome ]
+*: Slow, Pass # https://github.com/dart-lang/sdk/issues/51651
+
 # custom elements are not supported on old browsers, we don't
 # intend for observatory to work on old browser versions, so
 # skipping.

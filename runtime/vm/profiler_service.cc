@@ -9,7 +9,6 @@
 #include "vm/hash_map.h"
 #include "vm/heap/safepoint.h"
 #include "vm/log.h"
-#include "vm/malloc_hooks.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -1486,7 +1485,6 @@ void Profile::Build(Thread* thread,
                     ProcessedSampleBufferBuilder* sample_buffer) {
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
   ProfileBuilder builder(thread, filter, sample_buffer, this);
   builder.Build();
 }
@@ -1576,8 +1574,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                          counters.bail_out_check_isolate);
     counts.AddProperty64("single_frame_sample_deoptimizing",
                          counters.single_frame_sample_deoptimizing);
-    counts.AddProperty64("single_frame_sample_register_check",
-                         counters.single_frame_sample_register_check);
     counts.AddProperty64(
         "single_frame_sample_get_and_validate_stack_bounds",
         counters.single_frame_sample_get_and_validate_stack_bounds);
@@ -1700,10 +1696,6 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
     }
     if (sample->truncated()) {
       sample_obj.AddProperty("truncated", true);
-    }
-    if (sample->is_native_allocation_sample()) {
-      sample_obj.AddProperty64("_nativeAllocationSizeBytes",
-                               sample->native_allocation_size_bytes());
     }
     {
       JSONArray stack(&sample_obj, "stack");
@@ -1885,16 +1877,6 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
 }
 
-void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
-                                                int64_t time_origin_micros,
-                                                int64_t time_extent_micros,
-                                                bool include_code_samples) {
-  Thread* thread = Thread::Current();
-  NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::allocation_sample_buffer(),
-                include_code_samples);
-}
-
 void ProfilerService::ClearSamples() {
   SampleBlockBuffer* sample_block_buffer = Profiler::sample_block_buffer();
   if (sample_block_buffer == nullptr) {
@@ -1906,7 +1888,6 @@ void ProfilerService::ClearSamples() {
 
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ThreadInterrupter::SampleBufferReaderScope scope;
 
   ClearProfileVisitor clear_profile(isolate);
   sample_block_buffer->VisitSamples(&clear_profile);

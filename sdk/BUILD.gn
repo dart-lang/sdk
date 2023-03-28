@@ -27,6 +27,9 @@ declare_args() {
   dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
   analyze_snapshot_binary = "analyze_snapshot"
+  wasm_opt_stripped_binary = "wasm-opt"
+
+  dart_include_wasm_opt = true
 }
 
 # The directory layout of the SDK is as follows:
@@ -51,7 +54,6 @@ declare_args() {
 # ........kernel_worker.dart.snapshot
 # ......resources/
 # ........dartdoc/
-# ...........packages
 # ..........resources/
 # ..........templates/
 # ....include/
@@ -61,7 +63,6 @@ declare_args() {
 # ....lib/
 # ......libraries.json
 # ......_internal/
-# ........strong.sum
 # ........dart2js_platform.dill
 # ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
@@ -438,18 +439,6 @@ group("copy_dartdoc_files") {
   ]
 }
 
-# This rule copies analyzer summaries to lib/_internal
-copy("copy_analysis_summaries") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../utils/dartanalyzer:generate_summary_strong",
-  ]
-  sources = [ "$root_gen_dir/strong.sum" ]
-  outputs =
-      [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
-}
-
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -516,6 +505,16 @@ copy("copy_dart2wasm_snapshot") {
   sources = [ "$root_out_dir/dart2wasm_product.snapshot" ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
+}
+
+copy("copy_wasm_opt") {
+  visibility = [ ":create_full_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../third_party/binaryen:wasm-opt",
+  ]
+  sources = [ "$root_out_dir/${wasm_opt_stripped_binary}${executable_suffix}" ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/bin/utils/{{source_file_part}}" ]
 }
 
 # Copies DDC's SDK full and outline .dill files to lib/_internal.
@@ -615,10 +614,7 @@ group("copy_libraries") {
 
 # This rule writes the version file.
 action("write_version_file") {
-  visibility = [
-    ":create_common_sdk",
-    "../utils/dartanalyzer:generate_summary_strong",
-  ]
+  visibility = [ ":create_common_sdk" ]
   inputs = [
     "../tools/VERSION",
     "$default_git_folder/logs/HEAD",
@@ -643,21 +639,6 @@ action("write_revision_file") {
     "--output",
     rebase_path(output),
   ]
-}
-
-# Copy libraries.dart to lib/_internal/libraries.dart for backwards
-# compatibility.
-#
-# TODO(sigmund): stop copying libraries.dart. Old versions (<=0.25.1-alpha.4)
-# of the analyzer package do not support the new location of this file. We
-# should be able to remove the old file once we release a newer version of
-# analyzer and popular frameworks have migrated to use it.
-copy("copy_libraries_dart") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [ ":copy_libraries" ]
-  sources = [ "lib/_internal/sdk_library_metadata/lib/libraries.dart" ]
-  outputs =
-      [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
 }
 
 # This rule copies the README file.
@@ -701,13 +682,11 @@ group("create_common_sdk") {
     ":create_sdk",
   ]
   public_deps = [
-    ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
-    ":copy_libraries_dart",
     ":copy_libraries_specification",
     ":copy_license",
     ":copy_prebuilt_devtools",
@@ -756,6 +735,9 @@ group("create_full_sdk") {
       ":copy_dart2wasm_platform",
       ":copy_dart2wasm_snapshot",
     ]
+    if (dart_include_wasm_opt) {
+      public_deps += [ ":copy_wasm_opt" ]
+    }
   }
 }
 

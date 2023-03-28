@@ -122,8 +122,8 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       ),
     );
 
-    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicNone)));
-    T2 = typeParameter('T2', bound: iterableNone(dynamicNone));
+    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicType)));
+    T2 = typeParameter('T2', bound: iterableNone(dynamicType));
     _check(
       functionTypeNone(
         returnType: voidNone,
@@ -263,7 +263,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     }
 
     // * if S is a top type then S
-    check(dynamicNone, dynamicNone);
+    check(dynamicType, dynamicType);
     check(voidNone, voidNone);
     check(objectQuestion, objectQuestion);
 
@@ -295,7 +295,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_primitive() {
-    _check(dynamicNone, dynamicNone);
+    _check(dynamicType, dynamicType);
     _check(neverNone, neverNone);
     _check(voidNone, voidNone);
     _check(intNone, intNone);
@@ -310,7 +310,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     }
 
     // * if S is a top type then S
-    check(futureOrQuestion(dynamicNone), dynamicNone);
+    check(futureOrQuestion(dynamicType), dynamicType);
     check(futureOrQuestion(voidNone), voidNone);
     check(futureOrQuestion(objectQuestion), objectQuestion);
 
@@ -388,7 +388,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     }
 
     // * if S is a top type then S
-    check(futureOrStar(dynamicNone), dynamicNone);
+    check(futureOrStar(dynamicType), dynamicType);
     check(futureOrStar(voidNone), voidNone);
     check(futureOrStar(objectQuestion), objectQuestion);
 

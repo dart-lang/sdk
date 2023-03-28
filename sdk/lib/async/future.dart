@@ -13,7 +13,8 @@ part of dart.async;
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
 ///
-/// # Examples
+/// ### Examples
+///
 /// ```dart
 /// // The `Future<T>.then` function takes a callback [f] that returns either
 /// // an `S` or a `Future<S>`.
@@ -23,7 +24,8 @@ part of dart.async;
 /// void complete(FutureOr<T> value);
 /// ```
 ///
-/// # Advanced
+/// ### Advanced
+///
 /// The `FutureOr<int>` type is actually the "type union" of the types `int` and
 /// `Future<int>`. This type union is defined in such a way that
 /// `FutureOr<Object>` is both a super- and sub-type of `Object` (sub-type
@@ -36,10 +38,10 @@ part of dart.async;
 /// `Future<Object>`.
 @pragma("vm:entry-point")
 abstract class FutureOr<T> {
-  // Private generative constructor, so that it is not subclassable, mixable, or
-  // instantiable.
+  // Private generative constructor, so that it is not subclassable, mixable,
+  // or instantiable.
   FutureOr._() {
-    throw new UnsupportedError("FutureOr can't be instantiated");
+    throw new UnsupportedError("FutureOr cannot be instantiated");
   }
 }
 
@@ -222,7 +224,7 @@ abstract class FutureOr<T> {
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
 @pragma("wasm:entry-point")
-abstract class Future<T> {
+abstract interface class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///
   /// Currently shared with `dart:internal`.
@@ -639,7 +641,8 @@ abstract class Future<T> {
   ///
   /// Any error from [action], synchronous or asynchronous,
   /// will stop the iteration and be reported in the returned [Future].
-  static Future forEach<T>(Iterable<T> elements, FutureOr action(T element)) {
+  static Future<void> forEach<T>(
+      Iterable<T> elements, FutureOr action(T element)) {
     var iterator = elements.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -689,7 +692,7 @@ abstract class Future<T> {
   /// }
   /// // Outputs: 'Finished with 3'
   /// ```
-  static Future doWhile(FutureOr<bool> action()) {
+  static Future<void> doWhile(FutureOr<bool> action()) {
     _Future<void> doneSignal = new _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
@@ -748,8 +751,11 @@ abstract class Future<T> {
   /// and a stack trace for the error.
   /// In the case of `onError`,
   /// if the exception thrown is `identical` to the error argument to `onError`,
+  /// and it is thrown *synchronously*
   /// the throw is considered a rethrow,
   /// and the original stack trace is used instead.
+  /// To rethrow with the same stack trace in an asynchronous callback,
+  /// use [Error.throwWithStackTrace].
   ///
   /// If the callback returns a [Future],
   /// the future returned by `then` will be completed with
@@ -1054,12 +1060,20 @@ extension FutureExtensions<T> on Future<T> {
   Future<T> onError<E extends Object>(
       FutureOr<T> handleError(E error, StackTrace stackTrace),
       {bool test(E error)?}) {
-    // There are various ways to optimize this to avoid the double is E/as E
-    // type check, but for now we are not optimizing the error path.
-    return this.catchError(
-        (Object error, StackTrace stackTrace) =>
-            handleError(error as E, stackTrace),
-        test: (Object error) => error is E && (test == null || test(error)));
+    FutureOr<T> onError(Object error, StackTrace stackTrace) {
+      if (error is! E || test != null && !test(error)) {
+        // Counts as rethrow, preserves stack trace.
+        throw error;
+      }
+      return handleError(error, stackTrace);
+    }
+    if (this is _Future<Object?>) {
+      // Internal method working like `catchError`,
+      // but allows specifying a different result future type.
+      return unsafeCast<_Future<T>>(this)._safeOnError<T>(onError);
+    }
+
+    return this.then<T>((T value) => value, onError: onError);
   }
 
   /// Completely ignores this future and its result.
@@ -1110,7 +1124,7 @@ class TimeoutException implements Exception {
 /// A way to produce Future objects and to complete them later
 /// with a value or error.
 ///
-/// Most of the time, the simplest way to create a future is to just use
+/// Most of the time, the simples t way to create a future is to just use
 /// one of the [Future] constructors to capture the result of a single
 /// asynchronous computation:
 /// ```dart
@@ -1149,7 +1163,7 @@ class TimeoutException implements Exception {
 ///   }
 /// }
 /// ```
-abstract class Completer<T> {
+abstract interface class Completer<T> {
   /// Creates a new completer.
   ///
   /// The general workflow for creating a new future is to 1) create a

@@ -4,6 +4,6 @@
 
 library shared;
 
-class SharedMixin {
+mixin SharedMixin {
   foo() => "SharedMixin";
 }

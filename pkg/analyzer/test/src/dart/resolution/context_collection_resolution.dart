@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
@@ -180,6 +181,8 @@ abstract class ContextResolutionTest
     final buffer = StringBuffer();
     AnalyzerStatePrinter(
       byteStore: _byteStore,
+      unlinkedUnitStore:
+          analysisDriver.fsState.unlinkedUnitStore as UnlinkedUnitStoreImpl,
       idProvider: _idProvider,
       libraryContext: analysisDriver.libraryContext,
       omitSdkFiles: omitSdkFiles,
@@ -252,12 +255,6 @@ abstract class ContextResolutionTest
       registerLintRules();
       _lintRulesAreRegistered = true;
     }
-
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-      additionalLibraries: additionalMockSdkLibraries,
-    );
   }
 
   @mustCallSuper
@@ -296,6 +293,12 @@ abstract class ContextResolutionTest
     if (_analysisContextCollection != null) {
       return;
     }
+
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+      additionalLibraries: additionalMockSdkLibraries,
+    );
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
       byteStore: _byteStore,

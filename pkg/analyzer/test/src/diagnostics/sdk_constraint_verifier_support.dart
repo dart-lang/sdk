@@ -9,15 +9,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 /// SdkConstraintVerifier.
 class SdkConstraintVerifierTest extends PubPackageResolutionTest {
   /// Verify that the [expectedErrors] are produced if the [source] is analyzed
-  /// in a context that specifies the minimum SDK version to be [version].
-  Future<void> verifyVersion(String version, String source,
-      {List<ExpectedError>? expectedErrors}) async {
+  /// in a context that uses given SDK [constraints].
+  Future<void> verifyVersion(String constraints, String source,
+      {List<ExpectedError> expectedErrors = const []}) async {
     writeTestPackagePubspecYamlFile(
       PubspecYamlFileConfig(
-        sdkVersion: '>=$version',
+        sdkVersion: constraints,
       ),
     );
 
-    await assertErrorsInCode(source, expectedErrors ?? []);
+    await assertErrorsInCode(source, expectedErrors);
   }
 }

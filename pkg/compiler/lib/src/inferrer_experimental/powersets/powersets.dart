@@ -6,10 +6,11 @@ import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart' show DartType;
-import '../../ir/class_relation.dart';
+import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/member_hierarchy.dart';
+import '../../universe/record_shape.dart';
 import '../../universe/selector.dart';
 import '../../universe/world_builder.dart';
 import '../../universe/use.dart';
@@ -236,6 +237,31 @@ class PowersetDomain with AbstractValueDomain {
       _abstractValueDomain.isDictionary(value._abstractValue);
 
   @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    AbstractValue abstractValue = _abstractValueDomain.createRecordValue(
+        shape,
+        types
+            .map((e) => (e as PowersetValue)._abstractValue)
+            .toList(growable: false));
+    return PowersetValue(abstractValue, _powersetBitsDomain.powersetTop);
+  }
+
+  @override
+  bool isRecord(covariant PowersetValue value) =>
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
+      _abstractValueDomain.isRecord(value._abstractValue);
+
+  @override
+  bool recordHasGetter(covariant PowersetValue value, String field) =>
+      _abstractValueDomain.recordHasGetter(value._abstractValue, field);
+
+  @override
+  AbstractValue getGetterTypeInRecord(
+          covariant PowersetValue value, String field) =>
+      _abstractValueDomain.getGetterTypeInRecord(value._abstractValue, field);
+
+  @override
   AbstractValue getMapValueType(covariant PowersetValue value) {
     if (_powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse) {
       return dynamicType;
@@ -387,17 +413,17 @@ class PowersetDomain with AbstractValueDomain {
   }
 
   @override
-  AbstractValue unionOfMany(covariant Iterable<PowersetValue> values) {
+  AbstractValue unionOfMany(Iterable<AbstractValue> values) {
     PowersetValue result = PowersetValue(
         _abstractValueDomain.emptyType, _powersetBitsDomain.powersetBottom);
     for (final value in values) {
-      result = union(result, value) as PowersetValue;
+      result = union(result, value as PowersetValue);
     }
     return result;
   }
 
   @override
-  AbstractValue union(covariant PowersetValue a, covariant PowersetValue b) {
+  PowersetValue union(covariant PowersetValue a, covariant PowersetValue b) {
     int powersetBits =
         _powersetBitsDomain.union(a._powersetBits, b._powersetBits);
     AbstractValue abstractValue =
@@ -805,7 +831,8 @@ class PowersetDomain with AbstractValueDomain {
       _abstractValueDomain.functionType, _powersetBitsDomain.functionType);
 
   @override
-  AbstractValue get recordType => throw UnimplementedError();
+  AbstractValue get recordType => PowersetValue(
+      _abstractValueDomain.recordType, _powersetBitsDomain.recordType);
 
   @override
   AbstractValue get typeType => PowersetValue(

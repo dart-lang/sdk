@@ -479,10 +479,15 @@ class TTSTestState : public ValueObject {
         zone, Function::New(
                   signature, symbol, UntaggedFunction::kRegularFunction, false,
                   false, false, false, false, klass, TokenPosition::kNoSource));
+
     compiler::ObjectPoolBuilder pool_builder;
-    const auto& invoke_tts = Code::Handle(
-        zone,
-        StubCode::Generate("InvokeTTS", &pool_builder, &GenerateInvokeTTSStub));
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    compiler::Assembler assembler(&pool_builder);
+    GenerateInvokeTTSStub(&assembler);
+    const Code& invoke_tts = Code::Handle(Code::FinalizeCodeAndNotify(
+        "InvokeTTS", nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
+        /*optimized=*/false));
+
     const auto& pool =
         ObjectPool::Handle(zone, ObjectPool::NewFromBuilder(pool_builder));
     invoke_tts.set_object_pool(pool.ptr());
@@ -1860,7 +1865,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Function) {
 
           createF() => (){};
           createG() => () => 3;
-          createH() => (int x, String y, {int z : 0}) =>  x + z;
+          createH() => (int x, String y, {int z = 0}) =>  x + z;
 
           createAInt() => A<int>();
           createAFunction() => A<Function>();

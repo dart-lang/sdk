@@ -7,7 +7,7 @@ class A6 {
   A6({this.a = 0});
 }
 
-class B6 {}
+mixin B6 {}
 
 // C6 has a synthesized constructor that takes a named parameter.
 class C6 = A6 with B6;
@@ -22,7 +22,7 @@ class A8 {
   A8({this.a});
 }
 
-class B8 {}
+mixin B8 {}
 
 // C8 has a synthesized constructor that takes a named parameter.
 class C8 = A8 with B8;

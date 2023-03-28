@@ -687,7 +687,7 @@ constants  {
   #C1 = TypeLiteralConstant(invalid-type)
   #C2 = <invalid-type>[]
   #C3 = <invalid-type>{}
-  #C4 = <invalid-type, invalid-type>{)
+  #C4 = <invalid-type, invalid-type>{}
   #C5 = true
   #C6 = null
   #C7 = <self::Class<invalid-type>*>[]

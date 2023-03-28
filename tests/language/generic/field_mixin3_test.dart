@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 
-class M<T> {
+mixin M<T> {
   var field = new A<int>() is A<T>;
 }
 

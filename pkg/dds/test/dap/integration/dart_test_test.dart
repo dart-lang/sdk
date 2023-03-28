@@ -124,6 +124,26 @@ main() {
       expectStandardSimpleTestResults(outputEvents);
     });
 
+    test('can cleanly terminate from a breakpoint', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Hit the breakpoint inside the test.
+      await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        cwd: dap.testAppDir.path,
+      );
+
+      // Send a single terinate, and expect a clean exit (with a `terminated`
+      // event).
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.terminate(),
+      ], eagerError: true);
+    });
+
     test('rejects attaching', () async {
       final client = dap.client;
 

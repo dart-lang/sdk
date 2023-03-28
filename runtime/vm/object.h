@@ -150,8 +150,8 @@ class BaseTextBuffer;
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -160,8 +160,8 @@ class BaseTextBuffer;
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -1643,6 +1643,23 @@ class Class : public Object {
   }
   void set_is_transformed_mixin_application() const;
 
+  bool is_sealed() const { return SealedBit::decode(state_bits()); }
+  void set_is_sealed() const;
+
+  bool is_mixin_class() const { return MixinClassBit::decode(state_bits()); }
+  void set_is_mixin_class() const;
+
+  bool is_base_class() const { return BaseClassBit::decode(state_bits()); }
+  void set_is_base_class() const;
+
+  bool is_interface_class() const {
+    return InterfaceClassBit::decode(state_bits());
+  }
+  void set_is_interface_class() const;
+
+  bool is_final() const { return FinalBit::decode(state_bits()); }
+  void set_is_final() const;
+
   bool is_fields_marked_nullable() const {
     return FieldsMarkedNullableBit::decode(state_bits());
   }
@@ -1797,8 +1814,6 @@ class Class : public Object {
   bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(ProgramReloadContext* reload_context,
-                   const Class& old_enum) const;
   void CopyStaticFieldValues(ProgramReloadContext* reload_context,
                              const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
@@ -1854,9 +1869,9 @@ class Class : public Object {
   void MarkFieldBoxedDuringReload(ClassTable* class_table,
                                   const Field& field) const;
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   void SetUserVisibleNameInClassTable();
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
  private:
   TypePtr declaration_type() const {
@@ -1904,6 +1919,11 @@ class Class : public Object {
     kIsLoadedBit,
     kHasPragmaBit,
     kImplementsFinalizableBit,
+    kSealedBit,
+    kMixinClassBit,
+    kBaseClassBit,
+    kInterfaceClassBit,
+    kFinalBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1928,6 +1948,12 @@ class Class : public Object {
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
   class ImplementsFinalizableBit
       : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
+  class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
+  class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
+  class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
+  class InterfaceClassBit
+      : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
+  class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -5234,22 +5260,6 @@ class KernelProgramInfo : public Object {
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
 
-  // If we load a kernel blob with evaluated constants, then we delay setting
-  // the native names of [Function] objects until we've read the constant table
-  // (since native names are encoded as constants).
-  //
-  // This array will hold the functions which might need their native name set.
-  GrowableObjectArrayPtr potential_natives() const {
-    return untag()->potential_natives();
-  }
-  void set_potential_natives(const GrowableObjectArray& candidates) const;
-
-  GrowableObjectArrayPtr potential_pragma_functions() const {
-    return untag()->potential_pragma_functions();
-  }
-  void set_potential_pragma_functions(
-      const GrowableObjectArray& candidates) const;
-
   ScriptPtr ScriptAt(intptr_t index) const;
 
   ArrayPtr libraries_cache() const { return untag()->libraries_cache(); }
@@ -7198,6 +7208,9 @@ class ContextScope : public Object {
   bool IsConstAt(intptr_t scope_index) const;
   void SetIsConstAt(intptr_t scope_index, bool is_const) const;
 
+  bool IsInvisibleAt(intptr_t scope_index) const;
+  void SetIsInvisibleAt(intptr_t scope_index, bool is_invisible) const;
+
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 
@@ -7876,10 +7889,6 @@ class Instance : public Object {
   void RawSetUnboxedFieldAtOffset(intptr_t offset, const T& value) const {
     *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
   }
-
-  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
-                                       classid_t cid,
-                                       Heap::Space heap = Heap::kNew);
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
@@ -10235,6 +10244,7 @@ class OneByteString : public AllStatic {
   friend class Utf8;
   friend class OneByteStringMessageSerializationCluster;
   friend class Deserializer;
+  friend class JSONWriter;
 };
 
 class TwoByteString : public AllStatic {
@@ -10353,6 +10363,7 @@ class TwoByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class TwoByteStringMessageSerializationCluster;
+  friend class JSONWriter;
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -10445,6 +10456,7 @@ class ExternalOneByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class JSONWriter;
 };
 
 class ExternalTwoByteString : public AllStatic {
@@ -10532,6 +10544,7 @@ class ExternalTwoByteString : public AllStatic {
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class JSONWriter;
 };
 
 // Matches null_patch.dart / bool_patch.dart.
@@ -12139,10 +12152,18 @@ class Capability : public Instance {
 class ReceivePort : public Instance {
  public:
   SendPortPtr send_port() const { return untag()->send_port(); }
+  static intptr_t send_port_offset() {
+    return OFFSET_OF(UntaggedReceivePort, send_port_);
+  }
   Dart_Port Id() const { return send_port()->untag()->id_; }
 
   InstancePtr handler() const { return untag()->handler(); }
-  void set_handler(const Instance& value) const;
+  void set_handler(const Instance& value) const {
+    untag()->set_handler(value.ptr());
+  }
+  static intptr_t handler_offset() {
+    return OFFSET_OF(UntaggedReceivePort, handler_);
+  }
 
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
@@ -12929,7 +12950,6 @@ ClassPtr Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  ASSERT(!IsolateGroup::Current()->compaction_in_progress());
   return IsolateGroup::Current()->class_table()->At(ptr()->GetClassId());
 }
 

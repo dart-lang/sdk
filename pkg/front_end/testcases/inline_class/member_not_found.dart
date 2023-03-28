@@ -8,4 +8,4 @@ inline class A {
   A.name1(this.value);
 }
 
-void main() => A.name2(1);
+void method() => A.name2(1); // Error

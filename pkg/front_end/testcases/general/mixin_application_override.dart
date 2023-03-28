@@ -8,15 +8,15 @@ class S {
   foo([x]) {}
 }
 
-class M {
+mixin M {
   foo() {}
 }
 
-class M1 {}
+mixin M1 {}
 
-class M2 {}
+mixin M2 {}
 
-class MX {}
+mixin MX {}
 
 class A0 = S with M;
 class A1 = S with M1, M;

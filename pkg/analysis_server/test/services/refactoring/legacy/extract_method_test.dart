@@ -3299,25 +3299,25 @@ class _ExtractMethodTest extends RefactoringTest {
   @override
   late ExtractMethodRefactoringImpl refactoring;
 
-  Future _assertConditionsError(String message) async {
+  Future<void> _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
-  Future _assertConditionsFatal(String message) async {
+  Future<void> _assertConditionsFatal(String message) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 
-  Future _assertFinalConditionsError(String message) async {
+  Future<void> _assertFinalConditionsError(String message) async {
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
-  Future _assertRefactoringChange(String expectedCode) async {
+  Future<void> _assertRefactoringChange(String expectedCode) async {
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
@@ -3325,7 +3325,7 @@ class _ExtractMethodTest extends RefactoringTest {
 
   /// Checks that all conditions are OK and the result of applying the [Change]
   /// to [testUnit] is [expectedCode].
-  Future _assertSuccessfulRefactoring(String expectedCode) async {
+  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     refactoring.createGetter = false;
     return _assertRefactoringChange(expectedCode);

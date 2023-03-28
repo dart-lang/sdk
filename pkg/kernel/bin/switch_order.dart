@@ -154,9 +154,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
   @override
   Expression readExpression() {
     int tagByte = peekByte();
-    int tag = tagByte & Tag.SpecializedTagHighBit == 0
-        ? tagByte
-        : (tagByte & Tag.SpecializedTagMask);
+    int tag = tagByte & Tag.SpecializedTagHighBits == Tag.SpecializedTagHighBits
+        ? (tagByte & Tag.SpecializedTagMask)
+        : tagByte;
     expressionTypes[tag]++;
     return super.readExpression();
   }

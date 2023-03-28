@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -63,7 +63,7 @@ void f() {
   g(() async => {1});
 }
 ''', [
-      error(HintCode.UNNECESSARY_SET_LITERAL, 67, 3),
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 67, 3),
     ]);
   }
 
@@ -101,7 +101,7 @@ void f() {
   g(() async => {1});
 }
 ''', [
-      error(HintCode.UNNECESSARY_SET_LITERAL, 91, 3),
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 91, 3),
     ]);
   }
 
@@ -153,7 +153,7 @@ void f() {
   g(() => {1});
 }
 ''', [
-      error(HintCode.UNNECESSARY_SET_LITERAL, 53, 3),
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 53, 3),
     ]);
   }
 
@@ -179,7 +179,7 @@ Future<Object> f() async => {1};
     await assertErrorsInCode(r'''
 Future<void> f() async => {1};
 ''', [
-      error(HintCode.UNNECESSARY_SET_LITERAL, 26, 3),
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 26, 3),
     ]);
   }
 
@@ -205,7 +205,7 @@ import 'dart:async';
 
 FutureOr<void> f() async => {1};
 ''', [
-      error(HintCode.UNNECESSARY_SET_LITERAL, 50, 3),
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 50, 3),
     ]);
   }
 
@@ -237,7 +237,7 @@ void f(bool value) => {if (value) print('')};
     await assertErrorsInCode(r'''
 void f() => {1};
 ''', [
-      error(HintCode.UNNECESSARY_SET_LITERAL, 12, 3),
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 12, 3),
     ]);
   }
 }

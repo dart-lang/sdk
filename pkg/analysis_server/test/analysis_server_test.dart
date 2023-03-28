@@ -322,7 +322,7 @@ analyzer:
 
   Future<void> test_shutdown() {
     var request = Request('my28', SERVER_REQUEST_SHUTDOWN);
-    return channel.sendRequest(request).then((Response response) {
+    return channel.simulateRequestFromClient(request).then((Response response) {
       expect(response.id, equals('my28'));
       expect(response.error, isNull);
     });
@@ -330,7 +330,7 @@ analyzer:
 
   Future<void> test_unknownRequest() {
     var request = Request('my22', 'randomRequest');
-    return channel.sendRequest(request).then((Response response) {
+    return channel.simulateRequestFromClient(request).then((Response response) {
       expect(response.id, equals('my22'));
       expect(response.error, isNotNull);
     });

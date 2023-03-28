@@ -8,7 +8,7 @@
 import "package:expect/expect.dart";
 import "inheritance_constraints_lib.dart" deferred as lib;
 
-class Foo {}
+mixin class Foo {}
 
 class Foo2 extends D {}
 

@@ -1384,6 +1384,8 @@ class Assembler : public MicroAssembler {
   void EnterFullSafepoint(Register scratch);
   void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
+  void CheckFpSpDist(intptr_t fp_sp_dist);
+
   void CheckCodePointer();
   void RestoreCodePointer();
   void RestorePoolPointer();

@@ -1,0 +1,22 @@
+import 'dart:collection';
+
+class MyMap<K, V> with MapMixin<K, V> {
+  int containsKeyCount = 0;
+  int indexGetCount = 0;
+  final Map<K, V> _map;
+  MyMap(this._map);
+  bool containsKey(Object? key) {}
+  V? operator [](Object? key) {}
+  void operator []=(K key, V value) => _map[key] = value;
+  void clear() => _map.clear();
+  Iterable<K> get keys => _map.keys;
+  V? remove(Object? key) => _map.remove(key);
+}
+
+int method(Map<int, String> m) {}
+test(Map<int, String> map,
+    {required int expectedValue,
+    required int expectedContainsKeyCount,
+    required int expectedIndexGetCount}) {}
+main() {}
+expect(expected, actual, message) {}

@@ -72,6 +72,7 @@ import 'package:analysis_server/src/handler/legacy/search_get_element_declaratio
 import 'package:analysis_server/src/handler/legacy/search_get_type_hierarchy.dart';
 import 'package:analysis_server/src/handler/legacy/server_cancel_request.dart';
 import 'package:analysis_server/src/handler/legacy/server_get_version.dart';
+import 'package:analysis_server/src/handler/legacy/server_set_client_capabilities.dart';
 import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
@@ -170,7 +171,7 @@ class AnalysisServerOptions {
 class LegacyAnalysisServer extends AnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
-  static final Map<String, HandlerGenerator> handlerGenerators = {
+  static final Map<String, HandlerGenerator> requestHandlerGenerators = {
     ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
     ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
     ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS:
@@ -247,10 +248,12 @@ class LegacyAnalysisServer extends AnalysisServer {
         SearchGetElementDeclarationsHandler.new,
     SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
     //
+    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
     SERVER_REQUEST_GET_VERSION: ServerGetVersionHandler.new,
+    SERVER_REQUEST_SET_CLIENT_CAPABILITIES:
+        ServerSetClientCapabilitiesHandler.new,
     SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
     SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
-    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -277,6 +280,11 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// A table mapping [AnalysisService]s to the file paths for which these
   /// notifications should be sent.
   Map<AnalysisService, Set<String>> analysisServices = {};
+
+  /// The most recently registered set of client capabilities. The default is to
+  /// have no registered requests.
+  ServerSetClientCapabilitiesParams clientCapabilities =
+      ServerSetClientCapabilitiesParams([]);
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
@@ -315,7 +323,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   Set<String>? prevAnalyzedFiles;
 
   /// The controller for [onAnalysisSetChanged].
-  final StreamController _onAnalysisSetChangedController =
+  final StreamController<void> _onAnalysisSetChangedController =
       StreamController.broadcast(sync: true);
 
   /// An optional manager to handle file systems which may not always be
@@ -327,6 +335,14 @@ class LegacyAnalysisServer extends AnalysisServer {
   @visibleForTesting
   final StreamController<Request> discardedRequests =
       StreamController.broadcast(sync: true);
+
+  /// The index of the next request from the server to the client.
+  int nextServerRequestId = 0;
+
+  /// A table mapping the ids of requests sent from the server to the client
+  /// that have not yet received a response, to the completer used to return the
+  /// response when it has been received.
+  Map<String, Completer<Response>> pendingServerRequests = {};
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -383,7 +399,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       ).toNotification(),
     );
     debounceRequests(channel, discardedRequests)
-        .listen(handleRequest, onDone: done, onError: error);
+        .listen(handleRequestOrResponse, onDone: done, onError: error);
     refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
     _newRefactoringManager();
   }
@@ -402,7 +418,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// overlay. This means that the resolved world might have changed.
   ///
   /// The type of produced elements is not specified and should not be used.
-  Stream get onAnalysisSetChanged => _onAnalysisSetChangedController.stream;
+  Stream<void> get onAnalysisSetChanged =>
+      _onAnalysisSetChangedController.stream;
 
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
@@ -424,6 +441,12 @@ class LegacyAnalysisServer extends AnalysisServer {
   String get sdkPath {
     return sdkManager.defaultSdkDirectory;
   }
+
+  bool get supportsOpenUriNotification =>
+      clientCapabilities.requests.contains('openUrlRequest');
+
+  bool get supportsShowMessageRequest =>
+      clientCapabilities.requests.contains('showMessageRequest');
 
   void cancelRequest(String id) {
     cancellationTokens[id]?.cancel();
@@ -472,7 +495,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
         var cancellationToken = CancelableToken();
         cancellationTokens[request.id] = cancellationToken;
-        var generator = handlerGenerators[request.method];
+        var generator = requestHandlerGenerators[request.method];
         if (generator != null) {
           var handler =
               generator(this, request, cancellationToken, performance);
@@ -512,6 +535,23 @@ class LegacyAnalysisServer extends AnalysisServer {
     });
   }
 
+  /// Handle a [request] that was read from the communication channel.
+  void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
+    if (requestOrResponse is Request) {
+      handleRequest(requestOrResponse);
+    } else if (requestOrResponse is Response) {
+      handleResponse(requestOrResponse);
+    }
+  }
+
+  /// Handle a [response] that was read from the communication channel.
+  void handleResponse(Response response) {
+    var completer = pendingServerRequests.remove(response.id);
+    if (completer != null) {
+      completer.complete(response);
+    }
+  }
+
   /// Return `true` if the [path] is both absolute and normalized.
   bool isAbsoluteAndNormalized(String path) {
     var pathContext = resourceProvider.pathContext;
@@ -539,6 +579,22 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
+  }
+
+  Future<void> sendOpenUriNotification(Uri uri) {
+    assert(supportsOpenUriNotification);
+    var requestId = (nextServerRequestId++).toString();
+    var request =
+        ServerOpenUrlRequestParams(uri.toString()).toRequest(requestId);
+    return sendRequest(request);
+  }
+
+  /// Send the given [request] to the client.
+  Future<Response> sendRequest(Request request) {
+    var completer = Completer<Response>();
+    pendingServerRequests[request.id] = completer;
+    channel.sendRequest(request);
+    return completer.future;
   }
 
   /// Send the given [response] to the client.
@@ -694,9 +750,23 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
   }
 
+  Future<String?> showUserPrompt(
+    MessageType type,
+    String message,
+    List<String> actionLabels,
+  ) async {
+    assert(supportsShowMessageRequest);
+    var requestId = (nextServerRequestId++).toString();
+    var actions = actionLabels.map((label) => MessageAction(label)).toList();
+    var request = ServerShowMessageRequestParams(type, message, actions)
+        .toRequest(requestId);
+    final response = await sendRequest(request);
+    return response.result?['action'] as String?;
+  }
+
   @override
-  Future<void> shutdown() {
-    super.shutdown();
+  Future<void> shutdown() async {
+    await super.shutdown();
 
     pubApi.close();
 
@@ -704,21 +774,21 @@ class LegacyAnalysisServer extends AnalysisServer {
     //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
-      analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
+      unawaited(analytics
+          .waitForLastPing(timeout: Duration(milliseconds: 200))
+          .then((_) {
         analytics.close();
-      });
+      }));
     }
 
     detachableFileSystemManager?.dispose();
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
-    Future(() {
+    unawaited(Future(() {
       instrumentationService.shutdown();
       channel.close();
-    });
-
-    return Future.value();
+    }));
   }
 
   /// Implementation for `analysis.updateContent`.

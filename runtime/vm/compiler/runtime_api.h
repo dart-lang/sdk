@@ -998,6 +998,8 @@ class Capability : public AllStatic {
 
 class ReceivePort : public AllStatic {
  public:
+  static word send_port_offset();
+  static word handler_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };

@@ -200,10 +200,17 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
-  /// Return `true` if this class is a base class. A class is a base class if it
-  /// has an explicit `base` modifier.
+  /// Return `true` if this class is a base class.
+  ///
+  /// A class is a base class if it has an explicit `base` modifier, or the
+  /// class has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows the class to be extended but not implemented.
   @experimental
   bool get isBase;
+
+  /// Return `true` if this class can be instantiated.
+  @experimental
+  bool get isConstructable;
 
   /// Return `true` if this class represents the class 'Enum' defined in the
   /// dart:core library.
@@ -219,13 +226,21 @@ abstract class ClassElement
   @experimental
   bool get isExhaustive;
 
-  /// Return `true` if this class is a final class. A class is a final class if
-  /// it has an explicit `final` modifier.
+  /// Return `true` if this class is a final class.
+  ///
+  /// A class is a final class if it has an explicit `final` modifier, or the
+  /// class has a `final` induced modifier and [isSealed] is `true` as well.
+  /// The final modifier prohibits this class from being extended, implemented,
+  /// or mixed in.
   @experimental
   bool get isFinal;
 
-  /// Return `true` if this class is an interface class. A class is an interface
-  /// class if it has an explicit `interface` modifier.
+  /// Return `true` if this class is an interface class.
+  ///
+  /// A class is an interface class if it has an explicit `interface` modifier,
+  /// or the class has an `interface` induced modifier and [isSealed] is `true`
+  /// as well. The interface modifier allows the class to be implemented, but
+  /// not extended or mixed in.
   @experimental
   bool get isInterface;
 
@@ -723,6 +738,23 @@ abstract class Element implements AnalysisTarget {
 
   /// Return the analysis session in which this element is defined.
   AnalysisSession? get session;
+
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
+  Version? get sinceSdkVersion;
 
   @override
   Source? get source;
@@ -1986,8 +2018,11 @@ abstract class MixinElement
   /// Returns the result of applying augmentations to this element.
   AugmentedMixinElement get augmented;
 
-  /// Return `true` if this mixin is a base mixin. A mixin is a base mixin if it
-  /// has an explicit `base` modifier.
+  /// Return `true` if this mixin is a base mixin.
+  ///
+  /// A mixin is a base mixin if it has an explicit `base` modifier, or the
+  /// mixin has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows a mixin to be mixed in but not implemented.
   @experimental
   bool get isBase;
 

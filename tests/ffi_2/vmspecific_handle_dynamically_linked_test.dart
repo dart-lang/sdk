@@ -20,7 +20,7 @@ void main() {
 
 void doDynamicLinking() {
   Expect.isTrue(NativeApi.majorVersion == 2);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.minorVersion >= 2);
   final initializeApi = testLibrary.lookupFunction<
       IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");
@@ -37,9 +37,8 @@ void testHandle() {
 
 void testNativeAPIs() {
   // No need to expect here, `lookupFunction` throws an argument error if lookup fails.
-  testLibrary.lookupFunction<
-      Bool Function(Handle),
-      bool Function(Object)>("Dart_IsNull_DL");
+  testLibrary.lookupFunction<Bool Function(Handle), bool Function(Object)>(
+      "Dart_IsNull_DL");
 }
 
 class SomeClass {

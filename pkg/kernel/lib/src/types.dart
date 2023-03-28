@@ -414,10 +414,11 @@ class Types with StandardBounds {
 
   static List<Object>? typeChecksForTesting;
 
-  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
+  InterfaceType? getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, CoreTypes coreTypes,
+      {required bool isNonNullableByDefault}) {
     return hierarchy.getTypeAsInstanceOf(type, superclass,
-        isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   List<DartType>? getTypeArgumentsAsInstanceOf(
@@ -1129,7 +1130,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   @override
   IsSubtypeOf isRecordRelated(RecordType s, FutureOrType t, Types types) {
     // Rule 11.
-    return types.performNullabilityAwareMutualSubtypesCheck(
+    return types.performNullabilityAwareSubtypeCheck(
         s, t.typeArgument.withDeclaredNullability(t.nullability));
   }
 
@@ -1473,13 +1474,14 @@ class IsInlineTypeSubtypeOf implements TypeRelation<InlineType> {
 
   @override
   IsSubtypeOf isInlineTypeRelated(InlineType s, InlineType t, Types types) {
-    if (s.inlineClass != t.inlineClass) {
-      // TODO(johnniwinther): Support inline class interfaces.
+    List<DartType>? typeArguments =
+        types.hierarchy.getInlineTypeArgumentsAsInstanceOf(s, t.inlineClass);
+    if (typeArguments == null) {
       return const IsSubtypeOf.never();
     }
     return types
         .areTypeArgumentsOfSubtypeKernel(
-            s.typeArguments, t.typeArguments, t.inlineClass.typeParameters)
+            typeArguments, t.typeArguments, t.inlineClass.typeParameters)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 }

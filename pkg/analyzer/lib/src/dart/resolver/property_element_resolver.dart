@@ -77,7 +77,7 @@ class PropertyElementResolver with ScopeHelpers {
     var targetType = target.typeOrThrow;
     targetType = _typeSystem.resolveToBound(targetType);
 
-    if (targetType.isVoid) {
+    if (targetType is VoidType) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
       _reportUnresolvedIndex(
         node,
@@ -431,7 +431,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    if (targetType.isVoid) {
+    if (targetType is VoidType) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
         propertyName,

@@ -1,0 +1,18 @@
+final class FinalClass {}
+final
+mixin FinalMixin {}
+base class BaseClass extends FinalClass {}
+sealed class SubtypeOfFinal extends FinalClass {}
+class RegularClass {}
+final
+mixin FinalMixin2 {}
+class Extends extends FinalClass {}
+class Implements implements FinalClass {}
+mixin MixinImplements implements FinalMixin {}
+class With with FinalMixin {}
+class With2 with FinalMixin, FinalMixin2 {}
+mixin On on FinalClass {}
+class ExtendsExtends extends Extends {}
+class Multiple extends BaseClass implements FinalMixin {}
+class Multiple2 extends RegularClass implements FinalClass {}
+class IndirectSubtype extends SubtypeOfFinal {}

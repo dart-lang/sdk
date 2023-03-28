@@ -135,6 +135,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_statem
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
@@ -360,6 +361,16 @@ class FixInFileProcessor {
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
+  static final Map<String, List<MultiProducerGenerator>> lintMultiProducerMap =
+      {
+    LintNames.deprecated_member_use_from_same_package: [
+      DataDriven.new,
+    ],
+    LintNames.deprecated_member_use_from_same_package_with_message: [
+      DataDriven.new,
+    ],
+  };
+
   /// A map from the names of lint rules to a list of the generators that are
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics
@@ -525,6 +536,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.non_constant_identifier_names: [
       RenameToCamelCase.new,
+    ],
+    LintNames.noop_primitive_operations: [
+      RemoveInvocation.new,
     ],
     LintNames.null_check_on_nullable_type_parameter: [
       ReplaceNullCheckWithCast.new,
@@ -905,7 +919,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
       DataDriven.new,
     ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
     WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
@@ -1003,6 +1017,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
       CreateConstructor.new,
       ConvertToNamedArguments.new,
+    ],
+    CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
       AddLate.new,
@@ -1348,42 +1368,14 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
-
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
-    ],
-    HintCode.DEAD_CODE: [
-      RemoveDeadCode.new,
-    ],
-    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-      RemoveDeadCode.new,
-    ],
-    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-      RemoveDeadCode.new,
     ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
     ],
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
-    ],
-    // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
-//    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
-      RemoveAnnotation.new,
     ],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
@@ -1393,35 +1385,6 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
-    ],
-//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
-// TODO(brianwilkerson) Add a fix to remove the method.
-//    ],
-    HintCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
-      RemoveComparison.new,
-      ReplaceWithIsNan.new,
-    ],
-    HintCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
-      RemoveComparison.new,
-      ReplaceWithIsNan.new,
-    ],
-    HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
-      RemoveComparison.new,
-    ],
-    HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
-      RemoveComparison.new,
-    ],
-    HintCode.UNNECESSARY_QUESTION_MARK: [
-      RemoveQuestionMark.new,
-    ],
-    HintCode.UNNECESSARY_SET_LITERAL: [
-      RemoveSetLiteral.new,
-    ],
-    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
-      RemoveComparison.typeCheck,
-    ],
-    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
-      RemoveComparison.typeCheck,
     ],
     HintCode.UNREACHABLE_SWITCH_CASE: [
       RemoveDeadCode.new,
@@ -1438,16 +1401,12 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_IMPORT: [
       RemoveUnusedImport.new,
     ],
-    HintCode.UNUSED_LABEL: [
-      RemoveUnusedLabel.new,
-    ],
     HintCode.UNUSED_LOCAL_VARIABLE: [
       RemoveUnusedLocalVariable.new,
     ],
     HintCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
     ],
-
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
     ],
@@ -1460,6 +1419,9 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
       AddConst.new,
     ],
+    ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC: [
+      AddConst.new,
+    ],
     ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [
       AddConst.new,
     ],
@@ -1469,13 +1431,18 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.MISSING_FUNCTION_BODY: [
       ConvertIntoBlockBody.new,
     ],
+    ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+      AddTrailingComma.new,
+    ],
+    ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+      AddTrailingComma.new,
+    ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.new,
     ],
     ParserErrorCode.VAR_RETURN_TYPE: [
       RemoveVar.new,
     ],
-
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,
     ],
@@ -1497,9 +1464,21 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN: [
       RemoveNonNullAssertion.new,
     ],
-
     WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,
+    ],
+    WarningCode.DEAD_CODE: [
+      RemoveDeadCode.new,
+    ],
+    WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.new,
+    ],
+    WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.new,
     ],
     WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
       RemoveNameFromDeclarationClause.new,
@@ -1576,6 +1555,21 @@ class FixProcessor extends BaseProcessor {
     WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,
     ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+      AddTrailingComma.new,
+    ],
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
     ],
@@ -1623,11 +1617,40 @@ class FixProcessor extends BaseProcessor {
     WarningCode.UNDEFINED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
     ],
+    WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+      RemoveComparison.new,
+      ReplaceWithIsNan.new,
+    ],
+    WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+      RemoveComparison.new,
+      ReplaceWithIsNan.new,
+    ],
+    WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
+      RemoveComparison.new,
+    ],
+    WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
+      RemoveComparison.new,
+    ],
+    WarningCode.UNNECESSARY_QUESTION_MARK: [
+      RemoveQuestionMark.new,
+    ],
+    WarningCode.UNNECESSARY_SET_LITERAL: [
+      RemoveSetLiteral.new,
+    ],
+    WarningCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+      RemoveComparison.typeCheck,
+    ],
+    WarningCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+      RemoveComparison.typeCheck,
+    ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,
     ],
     WarningCode.UNUSED_CATCH_STACK: [
       RemoveUnusedCatchStack.new,
+    ],
+    WarningCode.UNUSED_LABEL: [
+      RemoveUnusedLabel.new,
     ],
   };
 
@@ -1719,7 +1742,9 @@ class FixProcessor extends BaseProcessor {
       }
     }
 
-    if (errorCode is LintCode || errorCode is HintCode) {
+    if (errorCode is LintCode ||
+        errorCode is HintCode ||
+        errorCode is WarningCode) {
       var generators = [
         IgnoreDiagnosticOnLine.new,
         IgnoreDiagnosticInFile.new,

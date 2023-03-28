@@ -2927,7 +2927,7 @@ import 'dart:async';
 import 'package:foo/foo.dart';
 ''',
       uriList: ['aaa.dart'],
-      prefix: 'aaa',
+      prefixList: ['aaa'],
       expectedCode: '''
 import 'dart:async';
 
@@ -2938,11 +2938,51 @@ import 'aaa.dart' as aaa;
     );
   }
 
+  Future<void> test_withPrefix_andUnprefixed() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+      uriList: ['aaa.dart', 'aaa.dart'],
+      prefixList: ['aaa', ''],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'aaa.dart' as aaa;
+''',
+    );
+  }
+
+  Future<void> test_withPrefix_multiple() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+      uriList: ['aaa.dart', 'aaa.dart'],
+      prefixList: ['aaa1', 'aaa2'],
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart' as aaa1;
+import 'aaa.dart' as aaa2;
+''',
+    );
+  }
+
   Future<void> _assertImportLibrary({
     required String initialCode,
     required List<String> uriList,
     required String expectedCode,
-    String? prefix,
+    List<String?>? prefixList,
     bool createEditsForImports = true,
   }) async {
     var path = convertPath('/home/test/lib/test.dart');
@@ -2952,10 +2992,11 @@ import 'aaa.dart' as aaa;
         createEditsForImports: createEditsForImports, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
-        builder.importLibrary(uri, prefix: prefix);
+        builder.importLibrary(uri, prefix: prefixList?[i]);
       }
 
-      expect(builder.requiredImports.map((uri) => uri.toString()), uriList);
+      expect(builder.requiredImports.map((uri) => uri.toString()),
+          uriList.toSet());
     });
 
     var resultCode = initialCode;

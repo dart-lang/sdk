@@ -23,6 +23,20 @@ void main() {
 
 @reflectiveTest
 class ParameterNameInlayHintTest extends _AbstractInlayHintTest {
+  Future<void> test_beforeTypes() async {
+    final content = '''
+void f(Object a) {
+  f([1, 2]);
+}
+''';
+    final expected = '''
+void f(Object a) {
+  f((Parameter:a:) (Type:<int>)[1, 2]);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_location() async {
     final code = TestCode.parse('''
 void f(int /*[0*/a/*0]*/) {}
@@ -48,7 +62,7 @@ void f({required int? a, int? b}) {
   f(a: a); // already named
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_optionalPositional() async {
@@ -62,7 +76,7 @@ void f([int? a, int? b]) {
   f((Parameter:a:) a);
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_requiredPositional() async {
@@ -76,7 +90,30 @@ void f(int a, int b) {
   f((Parameter:a:) a, (Parameter:b:) b);
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
+  }
+
+  /// Don't try to produce hints for parameters without names.
+  Future<void> test_unnamed() async {
+    final content = '''
+void f(void Function(int) a) => a(1);
+''';
+    await _expectNoHints(content);
+  }
+
+  /// Similar to test_unnamed, this (invalid/incomplete) code triggered an
+  /// additional error where the nameOffset of the parameter element was -1.
+  /// https://github.com/Dart-Code/Dart-Code/issues/4436
+  Future<void> test_unnamed2() async {
+    final content = '''
+void f() {
+  <int, void Function(int)>{
+  0
+  }[0]!(0);
+}
+''';
+
+    await _expectNoHints(content);
   }
 }
 
@@ -93,7 +130,29 @@ class A {
   final (Type:int) i1 = 1;
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_class_typeArguments() async {
+    final content = '''
+class A<T1, T2> {
+  A(T1 a, T2 b) {}
+}
+
+void f() {
+  final a = A('', 1);
+}
+''';
+    final expected = '''
+class A<T1, T2> {
+  A(T1 a, T2 b) {}
+}
+
+void f() {
+  final (Type:A<String, int>) a = A(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
+}
+''';
+    await _expectHints(content, expected);
   }
 
   Future<void> test_documentUpdates() async {
@@ -122,6 +181,24 @@ final a = 1;
     expect(hintsAfterChange, isNotEmpty);
   }
 
+  Future<void> test_function_typeArguments() async {
+    final content = '''
+void f1<T1, T2>(T1 a, T2 b) {}
+
+void f() {
+  f1('', 1);
+}
+''';
+    final expected = '''
+void f1<T1, T2>(T1 a, T2 b) {}
+
+void f() {
+  f1(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_getter() async {
     final content = '''
 get f => 1;
@@ -129,7 +206,7 @@ get f => 1;
     final expected = '''
 (Type:dynamic) get f => 1;
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_leadingAnnotation() async {
@@ -151,7 +228,7 @@ class A {
   (Type:dynamic) f() => '';
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_leadingComment() async {
@@ -173,7 +250,7 @@ class A {
   (Type:dynamic) f() => '';
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_leadingDocumentation() async {
@@ -195,7 +272,7 @@ class A {
   (Type:dynamic) f() => '';
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_localFunction_returnType() async {
@@ -216,7 +293,7 @@ void f() {
   void j() {}
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_location_local() async {
@@ -248,6 +325,45 @@ final a1 = '';
         location.range.start.character + 'String'.length);
   }
 
+  Future<void> test_location_typeArguments() async {
+    final code = TestCode.parse('''
+class /*[0*/A/*0]*/<T> {}
+class /*[1*/B/*1]*/<T> {}
+class /*[2*/C/*2]*/ {}
+final x = A<B<C>>();
+''');
+    final ranges = code.ranges.map((r) => r.range).toList();
+    final hints = await _fetchHints(code.code);
+    final parts = hints.single.labelParts;
+
+    // Check the parts of the label.
+    expect(
+      parts.map((p) => p.value),
+      equals([
+        'A',
+        '<',
+        'B',
+        '<',
+        'C',
+        '>',
+        '>',
+      ]),
+    );
+    // Ensure each part has the correct location.
+    expect(
+      parts.map((p) => p.location?.range),
+      equals([
+        ranges[0], // A
+        null,
+        ranges[1], // B
+        null,
+        ranges[2], // C
+        null,
+        null,
+      ]),
+    );
+  }
+
   Future<void> test_method_parameters() async {
     final content = '''
 class A {
@@ -273,7 +389,7 @@ class B extends A {
   void m3((Type:dynamic) a, {(Type:dynamic) b}) {}
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_method_returnType() async {
@@ -288,7 +404,31 @@ class A {
   (Type:dynamic) f() => '';
 }
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_method_typeArguments() async {
+    final content = '''
+class A {
+  void m1<T1, T2>(T1 a, T2 b) {}
+}
+
+void f() {
+  final a = A();
+  a.m1('', 1);
+}
+''';
+    final expected = '''
+class A {
+  void m1<T1, T2>(T1 a, T2 b) {}
+}
+
+void f() {
+  final (Type:A) a = A();
+  a.m1(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
+}
+''';
+    await _expectHints(content, expected);
   }
 
   Future<void> test_setter() async {
@@ -299,7 +439,7 @@ set f(int i) {}
     final expected = '''
 set f(int i) {}
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelFunction_returnType() async {
@@ -310,7 +450,7 @@ f() => '';
     final expected = '''
 (Type:dynamic) f() => '';
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_closureResult() async {
@@ -322,7 +462,7 @@ int c2 = (() => 3)(); // already typed
 var (Type:int) c1 = (() => 3)();
 int c2 = (() => 3)(); // already typed
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_functionResult() async {
@@ -336,7 +476,7 @@ String f() => '';
 final (Type:String) s1 = f();
 final String s2 = f(); // already typed
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_functionType() async {
@@ -348,7 +488,7 @@ final List<String> Function(List<String>) f2 = (List<String> x) => x; // already
 final (Type:List<String> Function(List<String>)) f1 = (List<String> x) => x;
 final List<String> Function(List<String>) f2 = (List<String> x) => x; // already typed
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_literal() async {
@@ -366,7 +506,7 @@ var (Type:int) i3 = 1;
 final (Type:int) i4 = 2, (Type:String) s1 = '';
 int i5 = 1; // already typed
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_literalList() async {
@@ -375,16 +515,16 @@ final l1 = [1, 2, 3];
 final l2 = [1, '', 3];
 final l3 = ['', null, ''];
 final l4 = <Object>[1, 2, 3];
-final List<Object> l5 = [1, 2, 3]; // already typed
+final List<Object> l5 = [1, 2, 3];
 ''';
     final expected = '''
-final (Type:List<int>) l1 = [1, 2, 3];
-final (Type:List<Object>) l2 = [1, '', 3];
-final (Type:List<String?>) l3 = ['', null, ''];
+final (Type:List<int>) l1 = (Type:<int>)[1, 2, 3];
+final (Type:List<Object>) l2 = (Type:<Object>)[1, '', 3];
+final (Type:List<String?>) l3 = (Type:<String?>)['', null, ''];
 final (Type:List<Object>) l4 = <Object>[1, 2, 3];
-final List<Object> l5 = [1, 2, 3]; // already typed
+final List<Object> l5 = (Type:<Object>)[1, 2, 3];
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_literalMap() async {
@@ -393,16 +533,16 @@ final m1 = {1: '', 2: ''};
 final m2 = {'': [1]};
 final m3 = {'': null};
 final m4 = <Object, String>{1: '', 2: ''};
-final Map<int, String> m1 = {1: '', 2: ''}; // already typed
+final Map<int, String> m1 = {1: '', 2: ''};
 ''';
     final expected = '''
-final (Type:Map<int, String>) m1 = {1: '', 2: ''};
-final (Type:Map<String, List<int>>) m2 = {'': [1]};
-final (Type:Map<String, Null>) m3 = {'': null};
+final (Type:Map<int, String>) m1 = (Type:<int, String>){1: '', 2: ''};
+final (Type:Map<String, List<int>>) m2 = (Type:<String, List<int>>){'': (Type:<int>)[1]};
+final (Type:Map<String, Null>) m3 = (Type:<String, Null>){'': null};
 final (Type:Map<Object, String>) m4 = <Object, String>{1: '', 2: ''};
-final Map<int, String> m1 = {1: '', 2: ''}; // already typed
+final Map<int, String> m1 = (Type:<int, String>){1: '', 2: ''};
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 
   Future<void> test_topLevelVariable_literalSet() async {
@@ -411,16 +551,16 @@ final s1 = {1, 2, 3};
 final s2 = {1, '', 3};
 final s3 = {'', null, ''};
 final s4 = <Object>{1, 2, 3};
-final Set<Object> s5 = {1, 2, 3}; // already typed
+final Set<Object> s5 = {1, 2, 3};
 ''';
     final expected = '''
-final (Type:Set<int>) s1 = {1, 2, 3};
-final (Type:Set<Object>) s2 = {1, '', 3};
-final (Type:Set<String?>) s3 = {'', null, ''};
+final (Type:Set<int>) s1 = (Type:<int>){1, 2, 3};
+final (Type:Set<Object>) s2 = (Type:<Object>){1, '', 3};
+final (Type:Set<String?>) s3 = (Type:<String?>){'', null, ''};
 final (Type:Set<Object>) s4 = <Object>{1, 2, 3};
-final Set<Object> s5 = {1, 2, 3}; // already typed
+final Set<Object> s5 = (Type:<Object>){1, 2, 3};
 ''';
-    await _testHints(content, expected);
+    await _expectHints(content, expected);
   }
 }
 
@@ -462,6 +602,18 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
     return buffer.toString();
   }
 
+  Future<void> _expectHints(
+      String content, String expectedContentWithHints) async {
+    final hints = await _fetchHints(content);
+    final actualContentWithHints = substituteHints(content, hints);
+    expect(actualContentWithHints, expectedContentWithHints);
+  }
+
+  Future<void> _expectNoHints(String content) async {
+    final hints = await _fetchHints(content);
+    expect(hints, isEmpty);
+  }
+
   Future<List<InlayHint>> _fetchHints(String content) async {
     await initialize();
     await openFile(mainFileUri, content);
@@ -470,13 +622,6 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
       rangeOfWholeContent(content),
     );
     return hints;
-  }
-
-  Future<void> _testHints(
-      String content, String expectedContentWithHints) async {
-    final hints = await _fetchHints(content);
-    final actualContentWithHints = substituteHints(content, hints);
-    expect(actualContentWithHints, expectedContentWithHints);
   }
 
   /// Helper to write a text representation of [hint] into [buffer].

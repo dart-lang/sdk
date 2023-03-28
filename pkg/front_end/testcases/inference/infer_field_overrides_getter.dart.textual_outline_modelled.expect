@@ -4,10 +4,6 @@ abstract class A {
   int? get x;
 }
 
-class B {
-  int? get x => 0;
-}
-
 class C extends A {
   var x;
 }
@@ -29,3 +25,7 @@ class G extends Object with B {
 }
 
 main() {}
+
+mixin class B {
+  int? get x => 0;
+}

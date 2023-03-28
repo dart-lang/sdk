@@ -52,7 +52,7 @@ const int _flowEnd = 11;
 ///   doSomething();
 /// }, flow: Flow.end(flow.id));
 /// ```
-class Flow {
+final class Flow {
   final int _type;
 
   /// The flow id of the flow event.
@@ -104,7 +104,7 @@ class Flow {
 ///   doSomething();
 /// });
 /// ```
-class Timeline {
+abstract final class Timeline {
   /// Start a synchronous operation labeled [name]. Optionally takes
   /// a [Map] of [arguments]. This slice may also optionally be associated with
   /// a [Flow] event. This operation must be finished before
@@ -183,7 +183,7 @@ class Timeline {
 /// the current isolate event. To pass a [TimelineTask] to another isolate,
 /// you must first call [pass] to get the task id and then construct a new
 /// [TimelineTask] in the other isolate.
-class TimelineTask {
+final class TimelineTask {
   /// Create a task. The task ID will be set by the system.
   ///
   /// If [parent] is provided, the parent's task ID is provided as argument
@@ -309,7 +309,7 @@ class TimelineTask {
 
 /// An asynchronous block of time on the timeline. This block can be kept
 /// open across isolate messages.
-class _AsyncBlock {
+final class _AsyncBlock {
   /// The name of this block.
   final String name;
 
@@ -331,7 +331,7 @@ class _AsyncBlock {
 
 /// A synchronous block of time on the timeline. This block should not be
 /// kept open across isolate messages.
-class _SyncBlock {
+final class _SyncBlock {
   /// The name of this block.
   final String name;
 

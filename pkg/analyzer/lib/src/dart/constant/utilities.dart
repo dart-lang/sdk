@@ -159,10 +159,9 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     var element = node.declaredElement as ConstFieldElementImpl;
     constantsToCompute.add(element);
 
-    final initializer = element.constantInitializer!;
-    configuration.addEnumConstant(
-      declaration: node,
-      initializer: initializer,
+    configuration.addErrorNode(
+      fromElement: element.constantInitializer,
+      fromAst: node,
     );
   }
 
@@ -178,6 +177,14 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
                 node.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
+      // Fill error nodes.
+      if (element is ConstVariableElement) {
+        final constElement = element as ConstVariableElement;
+        configuration.addErrorNode(
+          fromElement: constElement.constantInitializer,
+          fromAst: node.initializer,
+        );
+      }
     }
   }
 }

@@ -41,9 +41,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:meta/meta.dart';
 
-@Deprecated('Use PatternField and visitPatternField() instead')
-typedef RecordPatternField = PatternField;
-
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
@@ -1011,6 +1008,10 @@ abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
   @override
   ImplementsClause? get implementsClause;
 
+  /// Return the 'inline' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get inlineKeyword;
+
   /// Returns the left curly bracket.
   @override
   Token get leftBracket;
@@ -1959,6 +1960,9 @@ abstract class EnumConstantDeclaration implements Declaration {
   /// not be resolved.
   ConstructorElement? get constructorElement;
 
+  @override
+  FieldElement? get declaredElement;
+
   /// Return the name of the constant.
   Token get name;
 
@@ -2687,6 +2691,7 @@ abstract class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution has not yet been performed.
+  @Deprecated('Not used by clients')
   bool isPotentiallyMutatedInClosure(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within
@@ -4277,8 +4282,13 @@ abstract class PatternAssignment implements Expression {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class PatternField implements AstNode {
-  /// The element referenced explicitly by [name], or implicitly by the
-  /// variable pattern inside [pattern]. Is `null` if not resolved yet,
+  /// The name specified explicitly by [name], or implied by the variable
+  /// pattern inside [pattern]. Always `null` if [name] is `null`. Can be `null`
+  /// if [name] does not have the explicit name and [pattern] is not a variable
+  /// pattern.
+  String? get effectiveName;
+
+  /// The element referenced by [effectiveName]. Is `null` if not resolved yet,
   /// not `null` inside valid [ObjectPattern]s, always `null` inside
   /// [RecordPattern]s.
   Element? get element;

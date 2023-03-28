@@ -10,12 +10,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FieldTest);
+    defineReflectiveTests(FieldDeclarationResolutionTest);
   });
 }
 
 @reflectiveTest
-class FieldTest extends PubPackageResolutionTest {
+class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
   test_session_getterSetter() async {
     await resolveTestCode('''
 class A {

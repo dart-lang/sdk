@@ -7,10 +7,7 @@ class Base extends core::Object {
     : super core::Object::•()
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method foo() → dynamic
     return core::print("foo");
 }

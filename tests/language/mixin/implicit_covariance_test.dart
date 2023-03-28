@@ -8,7 +8,7 @@ abstract class A<T> {
   foo(T x);
 }
 
-abstract class B<T> implements A<T> {}
+mixin B<T> implements A<T> {}
 
 class C {
   foo(num x) {

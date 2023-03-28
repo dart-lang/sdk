@@ -1,0 +1,33 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method bar() → asy::Future<self::Foo>
+  return [@vm.inferred-type.metadata=dart.async::_Future<#lib::Foo>] asy::Future::value<self::Foo>(new self::Foo::•());
+static method main() → void async /* futureValueType= void */ {
+  {
+    synthesized asy::Stream<self::Foo> :stream = [@vm.inferred-type.metadata=dart.async::_MultiStream<#lib::Foo>] asy::Stream::fromIterable<self::Foo>([@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Foo>] core::_GrowableList::_literal1<self::Foo>(await self::bar()));
+    synthesized asy::_StreamIterator<self::Foo>? :for-iterator = new asy::_StreamIterator::•<self::Foo>(:stream);
+    try
+      while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await [@vm.direct-call.metadata=dart.async::_StreamIterator.moveNext] [@vm.inferred-type.metadata=!? (skip check)] :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+        final self::Foo element = [@vm.direct-call.metadata=dart.async::_StreamIterator.current] [@vm.inferred-type.metadata=#lib::Foo] :for-iterator.{asy::_StreamIterator::current}{self::Foo};
+        {
+          core::print(element);
+          _in::reachabilityFence(element);
+        }
+      }
+    finally
+      if(!([@vm.direct-call.metadata=dart.async::_StreamIterator._subscription] :for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::Foo>?} == null))
+        await [@vm.direct-call.metadata=dart.async::_StreamIterator.cancel] [@vm.inferred-type.metadata=!? (skip check)] :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+  }
+}

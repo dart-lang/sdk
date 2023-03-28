@@ -297,7 +297,10 @@ class _CompilationErrorError {
 typedef MessageCallback = void Function(String message);
 
 class RandomAccessFileOutputProvider implements api.CompilerOutput {
-  final Uri out;
+  // The file name to use for the main output. Also used as the filename prefix
+  // for other URIs generated from this output provider. If `null` there is no
+  // primary output but can still write other files.
+  final Uri? out;
   final Uri? sourceMapOut;
   final MessageCallback onInfo;
 
@@ -324,38 +327,39 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
     switch (type) {
       case api.OutputType.js:
         if (name == '') {
-          uri = out;
+          uri = out!;
         } else {
-          uri = out.resolve('$name.$extension');
+          uri = out!.resolve('$name.$extension');
         }
         break;
       case api.OutputType.sourceMap:
         if (name == '') {
           uri = sourceMapOut!;
         } else {
-          uri = out.resolve('$name.$extension');
+          uri = out!.resolve('$name.$extension');
         }
         break;
       case api.OutputType.jsPart:
-        uri = out.resolve('$name.$extension');
+        uri = out!.resolve('$name.$extension');
         break;
       case api.OutputType.dumpInfo:
       case api.OutputType.dumpUnusedLibraries:
       case api.OutputType.deferredMap:
+      case api.OutputType.resourceIdentifiers:
         if (name == '') {
-          name = out.pathSegments.last;
+          name = out!.pathSegments.last;
         }
         if (extension == '') {
-          uri = out.resolve(name);
+          uri = out!.resolve(name);
         } else {
-          uri = out.resolve('$name.$extension');
+          uri = out!.resolve('$name.$extension');
         }
         break;
       case api.OutputType.debug:
         if (name == '') {
-          name = out.pathSegments.last;
+          name = out!.pathSegments.last;
         }
-        uri = out.resolve('$name.$extension');
+        uri = out!.resolve('$name.$extension');
         break;
       default:
         onFailure('Unknown output type: $type');

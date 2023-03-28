@@ -225,7 +225,7 @@ library /*isNonNullableByDefault*/;
 import self as mix2;
 import "dart:core" as core;
 
-class B extends core::Object {
+mixin class B extends core::Object {
   synthetic constructor •() → mix2::B
     : super core::Object::•()
     ;
@@ -235,7 +235,7 @@ class B extends core::Object {
   method m((core::int) → core::int x) → (core::int) → core::int
     return x;
 }
-class Bq extends core::Object {
+mixin class Bq extends core::Object {
   synthetic constructor •() → mix2::Bq
     : super core::Object::•()
     ;

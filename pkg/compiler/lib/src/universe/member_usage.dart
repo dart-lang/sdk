@@ -285,14 +285,7 @@ class PropertyUsage extends MemberUsage {
       required this.reads,
       required this.writes,
       required this.invokes})
-      : // TODO(48820): Remove asserts when sound.
-        assert((potentialReads as dynamic) != null),
-        assert((potentialWrites as dynamic) != null),
-        assert((potentialInvokes as dynamic) != null),
-        assert((reads as dynamic) != null),
-        assert((writes as dynamic) != null),
-        assert((invokes as dynamic) != null),
-        super.cloned();
+      : super.cloned();
 
   PropertyUsage(super.member,
       {required this.potentialReads,
@@ -301,10 +294,6 @@ class PropertyUsage extends MemberUsage {
       : reads = EnumSet(),
         writes = EnumSet(),
         invokes = EnumSet(),
-        // TODO(48820): Remove asserts when sound.
-        assert((potentialReads as dynamic) != null),
-        assert((potentialWrites as dynamic) != null),
-        assert((potentialInvokes as dynamic) != null),
         super.internal();
 
   @override
@@ -398,14 +387,7 @@ class FieldUsage extends MemberUsage {
       required this.reads,
       required this.writes,
       required this.invokes})
-      : // TODO(48820): Remove asserts when sound.
-        assert((potentialReads as dynamic) != null),
-        assert((potentialWrites as dynamic) != null),
-        assert((potentialInvokes as dynamic) != null),
-        assert((reads as dynamic) != null),
-        assert((writes as dynamic) != null),
-        assert((invokes as dynamic) != null),
-        super.cloned();
+      : super.cloned();
 
   FieldUsage(FieldEntity super.field,
       {required this.potentialReads,
@@ -415,10 +397,6 @@ class FieldUsage extends MemberUsage {
         reads = EnumSet(),
         writes = EnumSet(),
         invokes = EnumSet(),
-        // TODO(48820): Remove asserts when sound.
-        assert((potentialReads as dynamic) != null),
-        assert((potentialWrites as dynamic) != null),
-        assert((potentialInvokes as dynamic) != null),
         super.internal();
 
   @override

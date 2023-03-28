@@ -34,7 +34,6 @@ runTests(List<String> args, [int? shardIndex]) {
         testedConfigs: allInternalConfigs,
         perTestOptions: {
           "issue48304.dart": [Flags.soundNullSafety],
-          "record_1.dart": ['--enable-experiment=records'],
         },
         skip: skip,
         shardIndex: shardIndex ?? 0,
@@ -171,6 +170,8 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
       } else if (id.kind == IdKind.moveNext) {
         return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
       }
+    } else if (node is ir.RecordIndexGet || node is ir.RecordNameGet) {
+      return getTypeMaskValue(result.typeOfReceiver(node));
     }
     return null;
   }

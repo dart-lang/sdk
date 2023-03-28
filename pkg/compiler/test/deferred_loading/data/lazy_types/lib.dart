@@ -49,7 +49,7 @@ class Aoo<T> {}
  class_unit=6{libC},
  type_unit=6{libC}
 */
-class Boo<T> implements Aoo<T> {}
+mixin Boo<T> implements Aoo<T> {}
 
 /*class: Coo:
  class_unit=6{libC},
@@ -87,7 +87,7 @@ class B2 extends B {}
  class_unit=6{libC},
  type_unit=6{libC}
 */
-class C1 {}
+mixin C1 {}
 
 /*class: C2:
  class_unit=6{libC},
@@ -107,7 +107,7 @@ class C3 extends C2 with C1 {}
  class_unit=6{libC},
  type_unit=6{libC}
 */
-class D1 {}
+mixin D1 {}
 
 /*class: D2:
  class_unit=6{libC},

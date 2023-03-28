@@ -75,6 +75,10 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   @override
   Future<int> run() async {
     final args = argResults!;
+    final globalArgs = globalResults!;
+    final suppressAnalytics =
+        !globalArgs['analytics'] || globalArgs['suppress-analytics'];
+
     var dryRun = args['dry-run'];
     var inTestMode = args['compare-to-golden'];
     var apply = args['apply'];
@@ -111,6 +115,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       [target],
       commandName: 'fix',
       argResults: argResults,
+      suppressAnalytics: suppressAnalytics,
     );
 
     await server.start(setAnalysisRoots: false);

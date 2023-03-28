@@ -16,19 +16,19 @@ main() {
 @reflectiveTest
 class SdkVersionUiAsCodeInConstContextTest extends SdkConstraintVerifierTest {
   test_equals() async {
-    await verifyVersion('2.5.0', '''
+    await verifyVersion('>=2.5.0', '''
 const zero = [...const [0]];
 ''');
   }
 
   test_greaterThan() async {
-    await verifyVersion('2.5.2', '''
+    await verifyVersion('>=2.5.2', '''
 const zero = [...const [0]];
 ''');
   }
 
   test_lessThan() async {
-    await verifyVersion('2.4.0', '''
+    await verifyVersion('>=2.4.0', '''
 const zero = [if (0 < 1) 0];
 ''', expectedErrors: [
       error(WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, 14, 12),

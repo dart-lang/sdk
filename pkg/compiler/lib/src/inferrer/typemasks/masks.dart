@@ -9,15 +9,17 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements;
+import '../../common/names.dart';
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/class_relation.dart';
+import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/member_hierarchy.dart';
+import '../../universe/record_shape.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
@@ -32,6 +34,7 @@ part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'forwarding_type_mask.dart';
 part 'map_type_mask.dart';
+part 'record_type_mask.dart';
 part 'set_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
@@ -366,6 +369,21 @@ class CommonMasks with AbstractValueDomain {
       return finish(
           TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld),
           false);
+    }
+
+    if (type is RecordType) {
+      final types = <TypeMask>[];
+      final shape = type.shape;
+      final fields = type.fields;
+      for (final field in fields) {
+        final fieldType = createFromStaticType(field, nullable: nullable);
+        types.add(fieldType.abstractValue as TypeMask);
+        isPrecise &= fieldType.isPrecise;
+      }
+      return finish(
+          RecordTypeMask.createRecord(this, types, shape,
+              isNullable: nullable, hasLateSentinel: false),
+          isPrecise);
     }
 
     if (type is NeverType) {
@@ -878,6 +896,31 @@ class CommonMasks with AbstractValueDomain {
       Map<String, AbstractValue> mappings) {
     return DictionaryTypeMask(forwardTo, allocationNode, allocationElement, key,
         value, Map.from(mappings));
+  }
+
+  @override
+  AbstractValue createRecordValue(
+      RecordShape shape, List<AbstractValue> types) {
+    return RecordTypeMask.createRecord(
+        this, List.from(types, growable: false), shape);
+  }
+
+  @override
+  bool isRecord(TypeMask value) {
+    return value is RecordTypeMask;
+  }
+
+  @override
+  bool recordHasGetter(AbstractValue value, String field) {
+    return value is RecordTypeMask && value.shape.nameMatchesGetter(field);
+  }
+
+  @override
+  AbstractValue getGetterTypeInRecord(AbstractValue value, String getterName) {
+    final type = value is RecordTypeMask
+        ? value.types[value.shape.indexOfGetterName(getterName)]
+        : null;
+    return type ?? dynamicType;
   }
 
   @override

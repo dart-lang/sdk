@@ -14,7 +14,7 @@ class A<X> {
   A(X x);
 }
 
-class B {}
+mixin B {}
 
 class C<Y> = A<Y> with B;
 

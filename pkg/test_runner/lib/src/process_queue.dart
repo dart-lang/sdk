@@ -48,7 +48,7 @@ class ProcessQueue {
       [bool verbose = false,
       AdbDevicePool? adbDevicePool]) {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
-      _graph.sealed.listen((Null _) {
+      _graph.sealed.listen((_) {
         var testCases = testCaseEnqueuer.remainingTestCases.toList();
         testCases.sort((a, b) => a.displayName.compareTo(b.displayName));
 
@@ -70,20 +70,18 @@ class ProcessQueue {
     late CommandQueue commandQueue;
 
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
-      Timer? _debugTimer;
+      Timer? debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period
       // something is definitely wrong, so we dump the debugging information.
       final debugTimerDuration = const Duration(minutes: 10);
 
       void cancelDebugTimer() {
-        if (_debugTimer != null) {
-          _debugTimer!.cancel();
-        }
+        debugTimer?.cancel();
       }
 
       void resetDebugTimer() {
         cancelDebugTimer();
-        _debugTimer = Timer(debugTimerDuration, () {
+        debugTimer = Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
               " to dart-engprod@ and provide the following information:");
           print("");
@@ -124,7 +122,7 @@ class ProcessQueue {
       }
 
       // When the graph building is finished, notify event listeners.
-      _graph.sealed.listen((Null _) {
+      _graph.sealed.listen((_) {
         eventAllTestsKnown();
       });
 
@@ -358,7 +356,7 @@ class CommandQueue {
 
   final _runQueue = Queue<Command>();
   final _commandOutputStream = StreamController<CommandOutput>(sync: true);
-  final _completer = Completer<Null>();
+  final _completer = Completer<void>();
 
   int _numProcesses = 0;
   final int _maxProcesses;
@@ -390,7 +388,7 @@ class CommandQueue {
     // state (Successful, Failed or UnableToRun).
     // So we're calling '_checkDone()' to check whether that condition is met
     // and we can cleanup.
-    graph.sealed.listen((Null _) {
+    graph.sealed.listen((_) {
       _checkDone();
     });
   }
@@ -513,11 +511,12 @@ class CommandExecutorImpl implements CommandExecutor {
       this.globalConfiguration, this.maxProcesses, this.maxBrowserProcesses,
       {this.adbDevicePool});
 
+  @override
   Future cleanup() {
     assert(!_finishing);
     _finishing = true;
 
-    Future _terminateBatchRunners() {
+    Future terminateBatchRunners() {
       var futures = <Future>[];
       for (var runners in _batchProcesses.values) {
         futures.addAll(runners.map((runner) => runner.terminate()));
@@ -525,18 +524,19 @@ class CommandExecutorImpl implements CommandExecutor {
       return Future.wait(futures);
     }
 
-    Future _terminateBrowserRunners() async {
+    Future terminateBrowserRunners() async {
       var futures = _browserTestRunners.values
           .map((runner) async => (await runner).terminate());
       return Future.wait(futures);
     }
 
     return Future.wait([
-      _terminateBatchRunners(),
-      _terminateBrowserRunners(),
+      terminateBatchRunners(),
+      terminateBrowserRunners(),
     ]);
   }
 
+  @override
   Future<CommandOutput> runCommand(Command command, int timeout) {
     assert(!_finishing);
 
@@ -569,8 +569,6 @@ class CommandExecutorImpl implements CommandExecutor {
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
         (command.displayName == 'dart2js' ||
-            command.displayName == 'dartdevc' ||
-            command.displayName == 'dartdevk' ||
             command.displayName == 'ddc' ||
             command.displayName == 'fasta') &&
         globalConfiguration.batch) {
@@ -666,13 +664,12 @@ class CommandExecutorImpl implements CommandExecutor {
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
-    steps.add(() => device.runAdbShellCommand(
-        [
+    steps.add(() => device.runAdbShellCommand([
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               '$devicedir/dart_precompiled_runtime',
-          '--android-log-to-stderr'
-        ]..addAll(arguments),
-        timeout: timeoutDuration));
+          '--android-log-to-stderr',
+          ...arguments,
+        ], timeout: timeoutDuration));
 
     var stopwatch = Stopwatch()..start();
     var writer = StringBuffer();
@@ -726,13 +723,12 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
 
-    steps.add(() => device.runAdbShellCommand(
-        [
+    steps.add(() => device.runAdbShellCommand([
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               '$devicedir/dart',
-          '--android-log-to-stderr'
-        ]..addAll(arguments),
-        timeout: timeoutDuration));
+          '--android-log-to-stderr',
+          ...arguments,
+        ], timeout: timeoutDuration));
 
     var stopwatch = Stopwatch()..start();
     var writer = StringBuffer();
@@ -906,7 +902,7 @@ class TestCaseCompleter {
 
     // Listen also for GraphSealedEvents. If there is not a single node in the
     // graph, we still want to finish after the graph was sealed.
-    _graph.sealed.listen((Null _) {
+    _graph.sealed.listen((_) {
       if (!_closed && _enqueuer.remainingTestCases.isEmpty) {
         _controller.close();
         _closed = true;
@@ -966,8 +962,8 @@ class BatchRunnerProcess {
 
   io.Process? _process;
   Map<String, String>? _processEnvironmentOverrides;
-  late Completer<Null> _stdoutCompleter;
-  late Completer<Null> _stderrCompleter;
+  late Completer<void> _stdoutCompleter;
+  late Completer<void> _stderrCompleter;
   late StreamSubscription<String> _stdoutSubscription;
   late StreamSubscription<String> _stderrSubscription;
   late Function _processExitHandler;
@@ -1060,7 +1056,7 @@ class BatchRunnerProcess {
     if (_useJson) {
       return "${jsonEncode(arguments)}\n";
     } else {
-      return arguments.join(' ') + '\n';
+      return '${arguments.join(' ')}\n';
     }
   }
 

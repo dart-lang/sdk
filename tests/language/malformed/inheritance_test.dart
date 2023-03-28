@@ -5,7 +5,7 @@
 // Tests that malformed types used in extends, implements, and with clauses
 // cause compile-time errors.
 
-class A<T> {}
+mixin class A<T> {}
 
 class C
     extends Unresolved

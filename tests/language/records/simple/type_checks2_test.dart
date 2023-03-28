@@ -7,8 +7,7 @@
 
 import "package:expect/expect.dart";
 
-class A<T> {
-}
+class A<T> {}
 
 class B<T> {
   void foo(T x) {}
@@ -28,8 +27,10 @@ class D2 implements C {
 }
 
 B<(num, num)> b1 = (int.parse('1') == 1) ? B<(int, int)>() : B<(num, num)>();
-B<({num foo})?> b2 = (int.parse('1') == 1) ? B<({int foo})>() : B<({num foo})?>();
-B<(num?, {num? foo})?> b3 = (int.parse('1') == 1) ? B<(int, {int? foo})?>() : B<(num?, {num? foo})?>();
+B<({num foo})?> b2 =
+    (int.parse('1') == 1) ? B<({int foo})>() : B<({num foo})?>();
+B<(num?, {num? foo})?> b3 =
+    (int.parse('1') == 1) ? B<(int, {int? foo})?>() : B<(num?, {num? foo})?>();
 C d1 = (int.parse('1') == 1) ? D1() : C();
 C d2 = (int.parse('1') == 1) ? D2() : C();
 

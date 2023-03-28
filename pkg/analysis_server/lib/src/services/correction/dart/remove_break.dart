@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveBreak extends CorrectionProducer {
   @override
@@ -27,9 +26,8 @@ class RemoveBreak extends CorrectionProducer {
     final breakStatement = node;
     if (breakStatement is BreakStatement) {
       await builder.addDartFileEdit(file, (builder) {
-        var start = utils.getLineContentStart(breakStatement.offset);
-        var end = utils.getLineContentEnd(breakStatement.end);
-        builder.addDeletion(range.startOffsetEndOffset(start, end));
+        final breakRange = utils.getLinesRangeStatements([breakStatement]);
+        builder.addDeletion(breakRange);
       });
     }
   }

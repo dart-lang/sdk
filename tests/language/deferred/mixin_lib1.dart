@@ -7,7 +7,7 @@ library lib1;
 import "mixin_shared.dart";
 import "mixin_test.dart";
 
-class Mixin {
+mixin class Mixin {
   foo() => "lib1.Mixin";
 }
 

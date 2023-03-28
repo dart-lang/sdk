@@ -10,7 +10,7 @@ import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
-class MyStruct extends Struct {
+final class MyStruct extends Struct {
   @Int8()
   external int a;
 }

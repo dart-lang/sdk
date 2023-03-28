@@ -62,16 +62,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.EvalRepository eval,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(isolates != null);
-    assert(scripts != null);
-    assert(functions != null);
-    assert(objects != null);
-    assert(eval != null);
-    assert(libraries != null);
     IsolateViewElement e = new IsolateViewElement.created();
     e._r = new RenderingScheduler<IsolateViewElement>(e, queue: queue);
     e._vm = vm;

@@ -46,10 +46,10 @@ var tests = <IsolateTest>[
             .singleWhere((cls) => cls.name == className)
             .id,
         "includeSubclasses": includeSubclasses,
-        "includeImplementors": includeImplementors,
+        "includeImplementers": includeImplementors,
       };
       var result =
-          await isolate.invokeRpcNoUpgrade("_getInstancesAsArray", params);
+          await isolate.invokeRpcNoUpgrade("getInstancesAsList", params);
       expect(result["type"], equals("@Instance"));
       expect(result["kind"], equals("List"));
       return result["length"] as int;

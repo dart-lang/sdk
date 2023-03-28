@@ -4,60 +4,49 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:22:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.c.
+// Try adding a default case or cases that match 'Enum.c'.
 //   switch (e) /* Error */ {
 //           ^
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:33:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.b.
+// Try adding a default case or cases that match 'Enum.b'.
 //   switch (e) /* Error */ {
 //           ^
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:44:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.a.
+// Try adding a default case or cases that match 'Enum.a'.
 //   switch (e) /* Error */ {
 //           ^
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:55:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.a.
+// Try adding a default case or cases that match 'Enum.a'.
 //   switch (e) /* Error */ {
 //           ^
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:91:11: Error: The type 'Enum?' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Null.
+// Try adding a default case or cases that match 'null'.
 //   switch (e) /* Error */ {
 //           ^
 //
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:105:11: Error: The type 'Enum?' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.b.
+// Try adding a default case or cases that match 'Enum.b'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:126:5: Warning: This case is covered by the previous cases.
-//     case Enum.a: // Unreachable
-//     ^
-//
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:143:5: Warning: This case is covered by the previous cases.
-//     case Enum.a: // Unreachable
-//     ^
-//
 // pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:136:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
-// Try adding a default case or cases that match Enum.c.
+// Try adding a default case or cases that match 'Enum.c'.
 //   switch (e) /* Non-exhaustive */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:181:5: Warning: This case is covered by the previous cases.
-//     case null: // Unreachable
-//     ^
-//
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C10;
@@ -83,370 +72,371 @@ class GenericEnum<T extends core::Object? = dynamic> extends core::_Enum /*isEnu
 }
 static method exhaustiveSwitch(self::Enum e) → void {
   #L1:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L2:
+    case #C3:
       {
         core::print("a");
         break #L1;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L1;
-        }
+    #L3:
+    case #C6:
+      {
+        core::print("b");
+        break #L1;
       }
-      else
-        if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("c");
-            break #L1;
-          }
-        }
+    #L4:
+    case #C9:
+      {
+        core::print("c");
+        break #L1;
+      }
+    #L5:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch1(self::Enum e) → void {
-  #L2:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L6:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L7:
+    case #C3:
       {
         core::print("a");
-        break #L2;
+        break #L6;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L2;
-        }
+    #L8:
+    case #C6:
+      {
+        core::print("b");
+        break #L6;
       }
+    #L9:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch2(self::Enum e) → void {
-  #L3:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L10:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L11:
+    case #C3:
       {
         core::print("a");
-        break #L3;
+        break #L10;
       }
-    }
-    else
-      if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("c");
-          break #L3;
-        }
+    #L12:
+    case #C9:
+      {
+        core::print("c");
+        break #L10;
       }
+    #L13:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch3(self::Enum e) → void {
-  #L4:
-  {
-    final self::Enum #0#0 = e;
-    if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L14:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L15:
+    case #C6:
       {
         core::print("b");
-        break #L4;
+        break #L14;
       }
-    }
-    else
-      if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("c");
-          break #L4;
-        }
+    #L16:
+    case #C9:
+      {
+        core::print("c");
+        break #L14;
       }
+    #L17:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch4(self::Enum e) → void {
-  #L5:
-  {
-    final self::Enum #0#0 = e;
-    if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L18:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L19:
+    case #C6:
       {
         core::print("b");
-        break #L5;
+        break #L18;
       }
-    }
+    #L20:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitchWithDefault(self::Enum e) → void {
-  #L6:
-  {
-    final self::Enum #0#0 = e;
-    if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L21:
+  switch(e) {
+    #L22:
+    case #C6:
       {
         core::print("b");
-        break #L6;
+        break #L21;
       }
-    }
-    else {
+    #L23:
+    default:
       {
         core::print("a|c");
-        break #L6;
+        break #L21;
       }
-    }
   }
 }
 static method exhaustiveNullableSwitch(self::Enum? e) → void {
-  #L7:
-  {
-    final self::Enum? #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L24:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L25:
+    case #C3:
       {
         core::print("a");
-        break #L7;
+        break #L24;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L7;
-        }
+    #L26:
+    case #C6:
+      {
+        core::print("b");
+        break #L24;
       }
-      else
-        if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("c");
-            break #L7;
-          }
-        }
-        else
-          if(#0#0 == null) {
-            {
-              core::print("null");
-              break #L7;
-            }
-          }
+    #L27:
+    case #C9:
+      {
+        core::print("c");
+        break #L24;
+      }
+    #L28:
+    case #C15:
+      {
+        core::print("null");
+        break #L24;
+      }
+    #L29:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
-  #L8:
-  {
-    final self::Enum? #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L30:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L31:
+    case #C3:
       {
         core::print("a");
-        break #L8;
+        break #L30;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L8;
-        }
+    #L32:
+    case #C6:
+      {
+        core::print("b");
+        break #L30;
       }
-      else
-        if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("c");
-            break #L8;
-          }
-        }
+    #L33:
+    case #C9:
+      {
+        core::print("c");
+        break #L30;
+      }
+    #L34:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
-  #L9:
-  {
-    final self::Enum? #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L35:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L36:
+    case #C3:
       {
         core::print("a");
-        break #L9;
+        break #L35;
       }
-    }
-    else
-      if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("c");
-          break #L9;
-        }
+    #L37:
+    case #C9:
+      {
+        core::print("c");
+        break #L35;
       }
-      else
-        if(#0#0 == null) {
-          {
-            core::print("null");
-            break #L9;
-          }
-        }
+    #L38:
+    case #C15:
+      {
+        core::print("null");
+        break #L35;
+      }
+    #L39:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase1(self::Enum e) → void {
-  #L10:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L40:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L41:
+    case #C3:
       {
         core::print("a1");
-        break #L10;
+        break #L40;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L10;
-        }
+    #L42:
+    case #C6:
+      {
+        core::print("b");
+        break #L40;
       }
-      else
-        if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("a2");
-            break #L10;
-          }
-        }
-        else
-          if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-            {
-              core::print("c");
-              break #L10;
-            }
-          }
+    #L43:
+    case #C3:
+      {
+        core::print("a2");
+        break #L40;
+      }
+    #L44:
+    case #C9:
+      {
+        core::print("c");
+        break #L40;
+      }
+    #L45:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase2(self::Enum e) → void {
-  #L11:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L46:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L47:
+    case #C3:
       {
         core::print("a1");
-        break #L11;
+        break #L46;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L11;
-        }
+    #L48:
+    case #C6:
+      {
+        core::print("b");
+        break #L46;
       }
-      else
-        if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("a2");
-            break #L11;
-          }
-        }
+    #L49:
+    case #C3:
+      {
+        core::print("a2");
+        break #L46;
+      }
+    #L50:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase3(self::Enum e) → void {
-  #L12:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L51:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L52:
+    case #C3:
       {
         core::print("a");
-        break #L12;
+        break #L51;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L12;
-        }
+    #L53:
+    case #C6:
+      {
+        core::print("b");
+        break #L51;
       }
-      else
-        if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("c");
-            break #L12;
-          }
-        }
-        else
-          if(#0#0 == null) {
-            {
-              core::print("null");
-              break #L12;
-            }
-          }
+    #L54:
+    case #C9:
+      {
+        core::print("c");
+        break #L51;
+      }
+    #L55:
+    case #C15:
+      {
+        core::print("null");
+        break #L51;
+      }
+    #L56:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase4(self::Enum? e) → void {
-  #L13:
-  {
-    final self::Enum? #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L57:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L58:
+    case #C3:
       {
         core::print("a");
-        break #L13;
+        break #L57;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L13;
-        }
+    #L59:
+    case #C6:
+      {
+        core::print("b");
+        break #L57;
       }
-      else
-        if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("c");
-            break #L13;
-          }
-        }
-        else
-          if(#0#0 == null) {
-            {
-              core::print("null1");
-              break #L13;
-            }
-          }
-          else
-            if(#0#0 == null) {
-              {
-                core::print("null2");
-                break #L13;
-              }
-            }
+    #L60:
+    case #C9:
+      {
+        core::print("c");
+        break #L57;
+      }
+    #L61:
+    case #C15:
+      {
+        core::print("null1");
+        break #L57;
+      }
+    #L62:
+    case #C15:
+      {
+        core::print("null2");
+        break #L57;
+      }
+    #L63:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
-  #L14:
-  {
-    final self::GenericEnum<dynamic> #0#0 = e;
-    if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L64:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L65:
+    case #C11:
       {
         core::print("a");
-        break #L14;
+        break #L64;
       }
-    }
-    else
-      if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          core::print("b");
-          break #L14;
-        }
+    #L66:
+    case #C12:
+      {
+        core::print("b");
+        break #L64;
       }
-      else
-        if(#C13 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            core::print("c");
-            break #L14;
-          }
-        }
+    #L67:
+    case #C13:
+      {
+        core::print("c");
+        break #L64;
+      }
+    #L68:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method exhaustiveGenericSwitchTyped(self::GenericEnum<core::int> e) → void {
-  #L15:
-  {
-    final self::GenericEnum<core::int> #0#0 = e;
-    if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L69:
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L70:
+    case #C11:
       {
         core::print("a");
-        break #L15;
+        break #L69;
       }
-    }
+    #L71:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 
@@ -465,6 +455,7 @@ constants  {
   #C12 = self::GenericEnum<core::String*> {index:#C4, _name:#C5}
   #C13 = self::GenericEnum<core::bool*> {index:#C7, _name:#C8}
   #C14 = <self::GenericEnum<dynamic>*>[#C11, #C12, #C13]
+  #C15 = null
 }
 
 

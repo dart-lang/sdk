@@ -8,10 +8,10 @@ part of dart.core;
 ///
 /// This class is implemented by all types and values
 /// introduced using an `enum` declaration.
-/// Non-platform classes cannot implement, extend or
-/// mix in this class.
+/// Non-platform classes cannot extend or mix in this class.
+/// Concrete classes cannot implement the interface.
 @Since("2.14")
-abstract class Enum {
+abstract interface class Enum {
   /// A numeric identifier for the enumerated value.
   ///
   /// The values of a single enumeration are numbered

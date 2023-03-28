@@ -104,8 +104,7 @@ class CallTree<NodeT extends CallTreeNode> {
 class CodeCallTree extends CallTree<CodeCallTreeNode>
     implements M.CodeCallTree {
   CodeCallTree(bool inclusive, CodeCallTreeNode root) : super(inclusive, root) {
-    if ((root.inclusiveNativeAllocations != null) &&
-        (root.inclusiveNativeAllocations != 0)) {
+    if (root.inclusiveNativeAllocations != 0) {
       _setCodeMemoryPercentage(null, root);
     } else {
       _setCodePercentage(null, root);
@@ -115,8 +114,7 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
   CodeCallTree filtered(CallTreeNodeFilter filter) {
     final treeFilter = _FilteredCodeCallTreeBuilder(filter, this);
     treeFilter.build();
-    if ((treeFilter.filtered.root.inclusiveNativeAllocations != null) &&
-        (treeFilter.filtered.root.inclusiveNativeAllocations != 0)) {
+    if (treeFilter.filtered.root.inclusiveNativeAllocations != 0) {
       _setCodeMemoryPercentage(
           null, treeFilter.filtered.root as CodeCallTreeNode);
     } else {
@@ -126,7 +124,6 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
   }
 
   _setCodePercentage(CodeCallTreeNode? parent, CodeCallTreeNode node) {
-    assert(node != null);
     var parentPercentage = 1.0;
     var parentCount = node.count;
     if (parent != null) {
@@ -144,7 +141,6 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
   }
 
   _setCodeMemoryPercentage(CodeCallTreeNode? parent, CodeCallTreeNode node) {
-    assert(node != null);
     var parentPercentage = 1.0;
     var parentMemory = node.inclusiveNativeAllocations;
     if (parent != null) {
@@ -259,9 +255,6 @@ abstract class _FilteredCallTreeBuilder<NodeT extends CallTreeNode> {
 
   /// Build the filtered tree.
   build() {
-    assert(filtered != null);
-    assert(filter != null);
-    assert(_unfilteredTree != null);
     _descend(_unfilteredTree.root);
   }
 
@@ -396,8 +389,7 @@ class FunctionCallTree extends CallTree<FunctionCallTreeNode>
     implements M.FunctionCallTree {
   FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
       : super(inclusive, root) {
-    if ((root.inclusiveNativeAllocations != null) &&
-        (root.inclusiveNativeAllocations != 0)) {
+    if (root.inclusiveNativeAllocations != 0) {
       _setFunctionMemoryPercentage(null, root);
     } else {
       _setFunctionPercentage(null, root);
@@ -407,8 +399,7 @@ class FunctionCallTree extends CallTree<FunctionCallTreeNode>
   FunctionCallTree filtered(CallTreeNodeFilter filter) {
     final treeFilter = _FilteredFunctionCallTreeBuilder(filter, this);
     treeFilter.build();
-    if ((treeFilter.filtered.root.inclusiveNativeAllocations != null) &&
-        (treeFilter.filtered.root.inclusiveNativeAllocations != 0)) {
+    if (treeFilter.filtered.root.inclusiveNativeAllocations != 0) {
       _setFunctionMemoryPercentage(
           null, treeFilter.filtered.root as FunctionCallTreeNode);
     } else {
@@ -420,7 +411,6 @@ class FunctionCallTree extends CallTree<FunctionCallTreeNode>
 
   void _setFunctionPercentage(
       FunctionCallTreeNode? parent, FunctionCallTreeNode node) {
-    assert(node != null);
     var parentPercentage = 1.0;
     var parentCount = node.count;
     if (parent != null) {
@@ -439,7 +429,6 @@ class FunctionCallTree extends CallTree<FunctionCallTreeNode>
 
   void _setFunctionMemoryPercentage(
       FunctionCallTreeNode? parent, FunctionCallTreeNode node) {
-    assert(node != null);
     var parentPercentage = 1.0;
     var parentMemory = node.inclusiveNativeAllocations;
     if (parent != null) {
@@ -513,7 +502,6 @@ class ProfileCode implements M.ProfileCode {
   final callees = <ProfileCode, int>{};
 
   void _processTicks(List<dynamic> profileTicks) {
-    assert(profileTicks != null);
     assert((profileTicks.length % 3) == 0);
     for (var i = 0; i < profileTicks.length; i += 3) {
       // TODO(observatory): Address is not necessarily representable as a JS
@@ -549,9 +537,6 @@ class ProfileCode implements M.ProfileCode {
   }
 
   ProfileCode.fromMap(this.tableIndex, this.profile, this.code, Map data) {
-    assert(profile != null);
-    assert(code != null);
-
     code.profile = this;
 
     if (code.kind == M.CodeKind.stub) {
@@ -804,7 +789,6 @@ class SampleProfile extends M.SampleProfile {
       case M.ProfileTreeDirection.exclusive:
         return _loadCodeTree(false);
     }
-    throw Exception('Unknown ProfileTreeDirection');
   }
 
   FunctionCallTree loadFunctionTree(M.ProfileTreeDirection direction) {
@@ -814,7 +798,6 @@ class SampleProfile extends M.SampleProfile {
       case M.ProfileTreeDirection.exclusive:
         return _loadFunctionTree(false);
     }
-    throw Exception('Unknown ProfileTreeDirection');
   }
 
   buildCodeCallerAndCallees() {
@@ -881,15 +864,11 @@ class SampleProfile extends M.SampleProfile {
     try {
       clear();
       progress?.add(0.0);
-      if (profile == null) {
-        return;
-      }
 
-      if ((owner != null) && (owner is Isolate)) {
+      if (owner is Isolate) {
         isolate = owner;
         isolate!.resetCachedProfileData();
       }
-
       pid = profile[_kPid];
       sampleCount = profile[_kSampleCount];
       samplePeriod = profile[_kSamplePeriod];
@@ -912,7 +891,6 @@ class SampleProfile extends M.SampleProfile {
             await signal(count * 100.0 / length);
           }
           Code code = codeRegion[_kCode];
-          assert(code != null);
           codes.add(ProfileCode.fromMap(tableIndex, this, code, codeRegion));
           ++tableIndex;
         }
@@ -924,7 +902,6 @@ class SampleProfile extends M.SampleProfile {
           await signal(count * 100 / length);
         }
         ServiceFunction function = profileFunction[_kFunction];
-        assert(function != null);
         functions.add(ProfileFunction.fromMap(
             tableIndex, this, function, profileFunction));
         ++tableIndex;

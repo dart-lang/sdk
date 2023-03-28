@@ -2709,7 +2709,7 @@ void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                    RangeBoundary::FromConstant(value));
   } else {
     // Only Smi and Mint supported.
-    FATAL1("Unexpected constant: %s\n", value_.ToCString());
+    FATAL("Unexpected constant: %s\n", value_.ToCString());
   }
 }
 
@@ -2792,6 +2792,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Definition::InferRange(analysis, range);
       break;
 
+    case Slot::Kind::kReceivePort_send_port:
+    case Slot::Kind::kReceivePort_handler:
     case Slot::Kind::kLinkedHashBase_index:
     case Slot::Kind::kImmutableLinkedHashBase_index:
     case Slot::Kind::kLinkedHashBase_data:

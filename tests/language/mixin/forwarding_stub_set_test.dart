@@ -11,7 +11,7 @@ class Super<T> {
   T? field;
 }
 
-class Mixin {
+mixin Mixin {
   int? field;
 }
 

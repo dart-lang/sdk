@@ -16,9 +16,11 @@ main() {
 @reflectiveTest
 class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
   test_cases_empty() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 final a = switch (0) {};
-''');
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 10, 6),
+    ]);
 
     final node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -31,7 +33,7 @@ SwitchExpression
   rightParenthesis: )
   leftBracket: {
   rightBracket: }
-  staticType: dynamic
+  staticType: Never
 ''');
   }
 
@@ -405,7 +407,7 @@ void f(Object? x) {
   });
 }
 ''', [
-      error(HintCode.DEAD_CODE, 52, 8),
+      error(WarningCode.DEAD_CODE, 52, 8),
     ]);
 
     final node = findNode.switchExpression('switch');

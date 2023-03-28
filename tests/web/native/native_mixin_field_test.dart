@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=class-modifiers
+
 import "native_testing.dart";
 
 // Test that native classes can use ordinary Dart classes with fields
@@ -17,11 +19,11 @@ class B extends A with M1, M2 {
   var bar;
 }
 
-class M1 {
+mixin class M1 {
   var baz; // This field is not a native field, even when mixed in.
 }
 
-class M2 {
+mixin class M2 {
   var bar;
   var buz;
 }

@@ -11,7 +11,7 @@
 enum ExperimentalFlag {
   classModifiers(
       name: 'class-modifiers',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
@@ -123,21 +123,21 @@ enum ExperimentalFlag {
 
   patterns(
       name: 'patterns',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
   records(
       name: 'records',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(2, 19)),
+      experimentReleasedVersion: const Version(3, 0)),
 
   sealedClass(
       name: 'sealed-class',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),

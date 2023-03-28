@@ -21,9 +21,23 @@ class SubtypeOfFfiClassInExtendsTest extends PubPackageResolutionTest {
   test_Double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
+final class C extends Double {}
+''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 41, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 41, 6),
+    ]);
+  }
+
+  test_Double_language219() async {
+    await assertErrorsInCode(r'''
+// @dart=2.19
+import 'dart:ffi';
 class C extends Double {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 49, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 49, 6),
     ]);
   }
 
@@ -43,6 +57,8 @@ class C extends Finalizable {}
 import 'dart:ffi';
 class C extends Float {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
@@ -52,6 +68,8 @@ class C extends Float {}
 import 'dart:ffi';
 class C extends Int16 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
@@ -61,6 +79,8 @@ class C extends Int16 {}
 import 'dart:ffi';
 class C extends Int32 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
@@ -70,6 +90,8 @@ class C extends Int32 {}
 import 'dart:ffi';
 class C extends Int64 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
@@ -79,6 +101,8 @@ class C extends Int64 {}
 import 'dart:ffi';
 class C extends Int8 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 4),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 4),
     ]);
   }
@@ -90,6 +114,8 @@ class C extends Pointer {
   external factory C();
 }
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 7),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 7),
     ]);
   }
@@ -97,7 +123,7 @@ class C extends Pointer {
   test_Struct() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct {
+final class C extends Struct {
   external Pointer notEmpty;
 }
 ''');
@@ -108,6 +134,8 @@ class C extends Struct {
 import 'dart:ffi';
 class C extends Uint16 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
@@ -117,6 +145,8 @@ class C extends Uint16 {}
 import 'dart:ffi';
 class C extends Uint32 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
@@ -126,6 +156,8 @@ class C extends Uint32 {}
 import 'dart:ffi';
 class C extends Uint64 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
@@ -135,6 +167,8 @@ class C extends Uint64 {}
 import 'dart:ffi';
 class C extends Uint8 {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
@@ -142,7 +176,7 @@ class C extends Uint8 {}
   test_Union() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Union {
+final class C extends Union {
   external Pointer notEmpty;
 }
 ''');
@@ -153,6 +187,8 @@ class C extends Union {
 import 'dart:ffi';
 class C extends Void {}
 ''', [
+      error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 35, 4),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 4),
     ]);
   }
@@ -165,7 +201,22 @@ class SubtypeOfFfiClassInImplementsTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 class C implements Double {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6,
+          messageContains: ["class 'C'", "implement 'Double'"]),
+    ]);
+  }
+
+  test_Double_language219() async {
+    await assertErrorsInCode(r'''
+// @dart=2.19
+import 'dart:ffi';
+class C implements Double {}
+''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 52,
+          6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 52, 6,
           messageContains: ["class 'C'", "implement 'Double'"]),
     ]);
   }
@@ -175,6 +226,8 @@ class C implements Double {}
 import 'dart:ffi' as ffi;
 class C implements ffi.Double {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
+          10),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 45, 10,
           messageContains: ["class 'C'", "implement 'ffi.Double'"]),
     ]);
@@ -192,6 +245,8 @@ class C implements Finalizable {}
 import 'dart:ffi';
 class C implements Float {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
@@ -201,6 +256,8 @@ class C implements Float {}
 import 'dart:ffi';
 class C implements Int16 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
@@ -210,6 +267,8 @@ class C implements Int16 {}
 import 'dart:ffi';
 class C implements Int32 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
@@ -219,6 +278,8 @@ class C implements Int32 {}
 import 'dart:ffi';
 class C implements Int64 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
@@ -228,6 +289,8 @@ class C implements Int64 {}
 import 'dart:ffi';
 class C implements Int8 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          4),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 4),
     ]);
   }
@@ -237,6 +300,8 @@ class C implements Int8 {}
 import 'dart:ffi';
 class C implements Pointer {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          7),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 7),
     ]);
   }
@@ -244,9 +309,11 @@ class C implements Pointer {}
   test_Struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C implements Struct {}
+final class C implements Struct {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 44,
+          6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 44, 6),
     ]);
   }
 
@@ -255,6 +322,8 @@ class C implements Struct {}
 import 'dart:ffi';
 class C implements Uint16 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
@@ -264,6 +333,8 @@ class C implements Uint16 {}
 import 'dart:ffi';
 class C implements Uint32 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
@@ -273,6 +344,8 @@ class C implements Uint32 {}
 import 'dart:ffi';
 class C implements Uint64 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
@@ -282,6 +355,8 @@ class C implements Uint64 {}
 import 'dart:ffi';
 class C implements Uint8 {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
@@ -289,9 +364,11 @@ class C implements Uint8 {}
   test_Union() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C implements Union {}
+final class C implements Union {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 44,
+          5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 44, 5),
     ]);
   }
 
@@ -300,6 +377,8 @@ class C implements Union {}
 import 'dart:ffi';
 class C implements Void {}
 ''', [
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
+          4),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 4),
     ]);
   }
@@ -315,6 +394,19 @@ class C with Double {}
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6,
+          messageContains: ["class 'C'", "mix in 'Double'"]),
+    ]);
+  }
+
+  test_Double_language219() async {
+    await assertErrorsInCode(r'''
+// @dart=2.19
+import 'dart:ffi';
+class C with Double {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 46, 6),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 46, 6,
           messageContains: ["class 'C'", "mix in 'Double'"]),
     ]);
   }
@@ -399,10 +491,10 @@ class C with Pointer {}
   test_Struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C with Struct {}
+final class C with Struct {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 38, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 38, 6),
     ]);
   }
 
@@ -453,10 +545,10 @@ class C with Uint8 {}
   test_Union() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C with Union {}
+final class C with Union {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 38, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 38, 5),
     ]);
   }
 

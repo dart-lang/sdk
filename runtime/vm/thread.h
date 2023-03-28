@@ -1135,6 +1135,9 @@ class Thread : public ThreadState {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
+#endif
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler& heap_sampler() { return heap_sampler_; }
 #endif
 
@@ -1339,7 +1342,7 @@ class Thread : public ThreadState {
   bool inside_compiler_ = false;
 #endif
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler heap_sampler_;
 #endif
 

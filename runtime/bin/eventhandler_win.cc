@@ -306,7 +306,7 @@ bool Handle::IssueRead() {
     int result = Thread::Start("dart:io ReadFile", ReadFileThread,
                                reinterpret_cast<uword>(this));
     if (result != 0) {
-      FATAL1("Failed to start read file thread %d", result);
+      FATAL("Failed to start read file thread %d", result);
     }
     return true;
   }
@@ -800,7 +800,7 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
     int result = Thread::Start("dart:io WriteFile", WriteFileThread,
                                reinterpret_cast<uword>(this));
     if (result != 0) {
-      FATAL1("Failed to start write file thread %d", result);
+      FATAL("Failed to start write file thread %d", result);
     }
     while (!write_thread_running_) {
       // Wait until we the thread is running.
@@ -1493,7 +1493,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start("dart:io EventHandler", EventHandlerEntry,
                              reinterpret_cast<uword>(handler));
   if (result != 0) {
-    FATAL1("Failed to start event handler thread %d", result);
+    FATAL("Failed to start event handler thread %d", result);
   }
 
   {

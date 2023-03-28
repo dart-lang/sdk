@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_util';
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:async_helper/async_helper.dart';
@@ -359,6 +360,51 @@ Future<void> promiseToFutureTest() async {
   // }
 }
 
+@JS('Symbol')
+@staticInterop
+class _JSSymbol {
+  @JS('for')
+  external static _JSSymbol _for(JSString s);
+  external static JSString keyFor(_JSSymbol s);
+}
+
+@JS()
+external _JSSymbol get symbol;
+
+@JS()
+external _JSSymbol get symbol2;
+
+@JS()
+external JSString methodWithSymbol(_JSSymbol s);
+
+void symbolTest() {
+  eval(r'''
+      var s1 = Symbol.for('symbol');
+      globalThis.symbol = s1;
+      globalThis[s1] = 'boo';
+      globalThis.methodWithSymbol = function(s) {
+        return Symbol.keyFor(s);
+      }
+      var symbol2 = Symbol.for('symbolMethod');
+      globalThis[symbol2] = function() {
+        return 'hello world';
+      }
+      globalThis.symbol2 = symbol2;
+      ''');
+  Expect.equals(
+      _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart, 'symbol');
+  Expect.equals(
+      getProperty<String>(
+          globalThis, getProperty<_JSSymbol>(globalThis, 'symbol')),
+      'boo');
+  Expect.equals(methodWithSymbol(symbol).toDart, 'symbol');
+  Expect.equals(_JSSymbol.keyFor(symbol).toDart, 'symbol');
+  Expect.equals(
+      _JSSymbol.keyFor(getProperty<_JSSymbol>(globalThis, 'symbol')).toDart,
+      'symbol');
+  Expect.equals(callMethod<String>(globalThis, symbol2, []), 'hello world');
+}
+
 void main() async {
   createObjectTest();
   equalTest();
@@ -367,4 +413,5 @@ void main() async {
   dartObjectRoundTripTest();
   deepConversionsTest();
   await promiseToFutureTest();
+  symbolTest();
 }

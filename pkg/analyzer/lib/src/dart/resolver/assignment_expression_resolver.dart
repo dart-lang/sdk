@@ -119,12 +119,26 @@ class AssignmentExpressionResolver {
     DartType rightType, {
     required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    if (!writeType.isVoid && _checkForUseOfVoidResult(right)) {
+    if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
       return;
     }
 
     if (_typeSystem.isAssignableTo(rightType, writeType)) {
       return;
+    }
+
+    if (writeType is RecordType) {
+      if (rightType is! RecordType && writeType.positionalFields.length == 1) {
+        var field = writeType.positionalFields.first;
+        if (_typeSystem.isAssignableTo(field.type, rightType)) {
+          _errorReporter.reportErrorForNode(
+            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+            right,
+            [],
+          );
+          return;
+        }
+      }
     }
 
     _errorReporter.reportErrorForNode(
@@ -193,7 +207,7 @@ class AssignmentExpressionResolver {
     // Values of the type void cannot be used.
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
-      if (leftType.isVoid) {
+      if (leftType is VoidType) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.USE_OF_VOID_RESULT,
           operator,

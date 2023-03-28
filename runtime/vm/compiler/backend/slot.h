@@ -70,6 +70,8 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
+  V(ReceivePort, UntaggedReceivePort, send_port, SendPort, FINAL)              \
+  V(ReceivePort, UntaggedReceivePort, handler, Closure, VAR)                   \
   V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, index,                    \
     TypedDataUint32Array, VAR)                                                 \
   V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \

@@ -24,7 +24,7 @@ class ErrorConfig {
   /// Create an error config for the given error code map.
   /// For example:
   ///     new ErrorConfig({'missing_return' : 'error'});
-  /// will create a processor config that turns `missing_return` hints into
+  /// will create a processor config that turns `missing_return` warnings into
   /// errors.
   ErrorConfig(YamlNode? codeMap) {
     _processMap(codeMap);

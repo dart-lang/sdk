@@ -2841,11 +2841,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleValuedFormalParameter(Token equals, Token token) {
+  void handleValuedFormalParameter(
+      Token equals, Token token, FormalParameterKind kind) {
     ValuedFormalParameterHandle data = new ValuedFormalParameterHandle(
         ParserAstType.HANDLE,
         equals: equals,
-        token: token);
+        token: token,
+        kind: kind);
     seen(data);
   }
 
@@ -8042,15 +8044,17 @@ class FormalParameterDefaultValueExpressionEnd extends ParserAstNode {
 class ValuedFormalParameterHandle extends ParserAstNode {
   final Token equals;
   final Token token;
+  final FormalParameterKind kind;
 
   ValuedFormalParameterHandle(ParserAstType type,
-      {required this.equals, required this.token})
+      {required this.equals, required this.token, required this.kind})
       : super("ValuedFormalParameter", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "equals": equals,
         "token": token,
+        "kind": kind,
       };
 }
 

@@ -8,7 +8,7 @@ part of dart.developer;
 ///
 /// If the RPC was successful, use [ServiceExtensionResponse.result], otherwise
 /// use [ServiceExtensionResponse.error].
-class ServiceExtensionResponse {
+final class ServiceExtensionResponse {
   /// The result of a successful service protocol extension RPC.
   final String? result;
 

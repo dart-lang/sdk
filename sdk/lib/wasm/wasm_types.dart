@@ -16,11 +16,17 @@ library dart.wasm;
 // TODO(askesc): Give an error message if any of these constraints are violated.
 
 @pragma("wasm:entry-point")
-abstract class _WasmBase {}
+abstract class _WasmBase {
+  const _WasmBase();
+}
 
-abstract class _WasmInt extends _WasmBase {}
+abstract class _WasmInt extends _WasmBase {
+  const _WasmInt();
+}
 
-abstract class _WasmFloat extends _WasmBase {}
+abstract class _WasmFloat extends _WasmBase {
+  const _WasmFloat();
+}
 
 /// The Wasm `anyref` type.
 @pragma("wasm:entry-point")
@@ -106,6 +112,12 @@ class WasmI16 extends _WasmInt {}
 /// The Wasm `i32` type.
 @pragma("wasm:entry-point")
 class WasmI32 extends _WasmInt {
+  /// Dummy value field to contain the value for constant instances.
+  final int _value;
+
+  /// Constructor for constant instances.
+  const WasmI32(this._value);
+
   external factory WasmI32.fromInt(int value);
   external factory WasmI32.int8FromInt(int value);
   external factory WasmI32.uint8FromInt(int value);
@@ -120,6 +132,12 @@ class WasmI32 extends _WasmInt {
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
 class WasmI64 extends _WasmInt {
+  /// Dummy value field to contain the value for constant instances.
+  final int _value;
+
+  /// Constructor for constant instances.
+  const WasmI64(this._value);
+
   external factory WasmI64.fromInt(int value);
   external int toInt();
 }
@@ -127,6 +145,12 @@ class WasmI64 extends _WasmInt {
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
 class WasmF32 extends _WasmFloat {
+  /// Dummy value field to contain the value for constant instances.
+  final double _value;
+
+  /// Constructor for constant instances.
+  const WasmF32(this._value);
+
   external factory WasmF32.fromDouble(double value);
   external double toDouble();
 }
@@ -134,6 +158,12 @@ class WasmF32 extends _WasmFloat {
 /// The Wasm `f64` type.
 @pragma("wasm:entry-point")
 class WasmF64 extends _WasmFloat {
+  /// Dummy value field to contain the value for constant instances.
+  final double _value;
+
+  /// Constructor for constant instances.
+  const WasmF64(this._value);
+
   external factory WasmF64.fromDouble(double value);
   external double toDouble();
 }

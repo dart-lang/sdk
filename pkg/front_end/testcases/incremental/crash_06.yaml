@@ -11,10 +11,10 @@ worlds:
     sources:
       structs.dart: |
         import 'dart:ffi';
-        class A extends Struct {
+        final class A extends Struct {
           external Y yy;
         }
-        class Y extends Struct {
+        final class Y extends Struct {
           external Z zz;
         }
     expectedLibraryCount: 1

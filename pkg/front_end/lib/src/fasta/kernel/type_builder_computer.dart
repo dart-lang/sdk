@@ -20,6 +20,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/null_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
@@ -27,6 +28,7 @@ import '../builder/void_type_declaration_builder.dart';
 import '../kernel/utils.dart';
 
 import '../loader.dart' show Loader;
+import '../uris.dart' show missingUri;
 
 class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Loader loader;
@@ -194,6 +196,31 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   @override
   TypeBuilder visitRecordType(RecordType node) {
-    throw "Not implemented";
+    List<RecordTypeFieldBuilder>? positionalBuilders;
+    List<DartType> positional = node.positional;
+    if (positional.isNotEmpty) {
+      positionalBuilders = new List<RecordTypeFieldBuilder>.generate(
+          positional.length,
+          (int i) => new RecordTypeFieldBuilder(
+              null, positional[i].accept(this), null, TreeNode.noOffset),
+          growable: false);
+    }
+
+    List<RecordTypeFieldBuilder>? namedBuilders;
+    List<NamedType> named = node.named;
+    if (named.isNotEmpty) {
+      namedBuilders = new List<RecordTypeFieldBuilder>.generate(
+          named.length,
+          (int i) => new RecordTypeFieldBuilder(null,
+              named[i].type.accept(this), named[i].name, TreeNode.noOffset),
+          growable: false);
+    }
+
+    return new RecordTypeBuilder(
+        positionalBuilders,
+        namedBuilders,
+        new NullabilityBuilder.fromNullability(node.nullability),
+        missingUri,
+        TreeNode.noOffset);
   }
 }

@@ -25,7 +25,7 @@ class Super {
   int extendedFieldImplementedMethod = 0;
 }
 
-class Mixin {
+mixin Mixin {
   void mixedInMethodDeclaredGetter() {}
   void mixedInMethodDeclaredSetter() {}
   void mixedInMethodDeclaredField() {}

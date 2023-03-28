@@ -24,7 +24,7 @@ import "dart:core" as core;
 static method f() → dynamic {
   late final dynamic i;
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int #t1 = :sync-for-iterator.{core::Iterator::current}{core::int};
       {
@@ -38,7 +38,7 @@ static method f() → dynamic {
   }
   final dynamic j;
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int #t2 = :sync-for-iterator.{core::Iterator::current}{core::int};
       {
@@ -51,7 +51,7 @@ static method f() → dynamic {
     }
   }
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int k = :sync-for-iterator.{core::Iterator::current}{core::int};
       {
@@ -67,7 +67,7 @@ static method g() → dynamic {
   core::List<core::int> l = block {
     final core::List<core::int> #t3 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int #t4 = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
@@ -79,7 +79,7 @@ static method g() → dynamic {
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int #t5 = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
@@ -91,7 +91,7 @@ static method g() → dynamic {
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int k = :sync-for-iterator.{core::Iterator::current}{core::int};
         #t3.{core::List::add}{Invariant}(2){(core::int) → void};

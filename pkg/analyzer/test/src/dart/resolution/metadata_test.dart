@@ -1368,7 +1368,7 @@ class B<T> = A<T> with M;
 class C<T> = D with E;
 
 class D {}
-class E {}
+mixin E {}
 ''');
 
     var annotation = findNode.annotation('@B');

@@ -249,15 +249,9 @@ config("compiler") {
     ]
   }
 
-  # We need -fPIC:
-  # 1. On ARM for tcmalloc.
-  # 2. On Android.
-  # 3. When using the sanitizers.
-  # Otherwise there is a performance hit, in particular on ia32.
-  if (is_android || is_asan || is_lsan || is_msan || is_tsan || is_ubsan ||
-      (is_linux && current_cpu != "x86") || is_fuchsia) {
-    cflags += [ "-fPIC" ]
-    ldflags += [ "-fPIC" ]
+  if (is_android || is_linux || is_mac || is_fuchsia) {
+    cflags += [ "-fPIE" ]
+    ldflags += [ "-fPIE" ]
   }
 
   # Linux-specific compiler flags setup.
@@ -319,7 +313,11 @@ config("compiler") {
   # C++ standard compiler flags setup.
   # ---------------------------
   if (is_win) {
-    cc_std = [ "/std:c++17" ]
+    cc_std = [
+      # This option fixes the value of the __cplusplus macro when using MSVC.
+      "/Zc:__cplusplus",
+      "/std:c++17",
+    ]
   } else {
     cc_std = [ "-std=c++17" ]
   }
@@ -610,12 +608,12 @@ if (is_win) {
     default_warning_flags += [
       "-Wno-tautological-constant-compare",
       "-Wno-unused-but-set-variable",  # icu
-      "-Wno-unused-but-set-parameter",  # binaryen
       "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
-    default_warning_flags +=
-        [ "-Wno-ignored-qualifiers" ]  # Warnings in BoringSSL headers
+    default_warning_flags += [
+      "-Wno-ignored-qualifiers",  # Warnings in BoringSSL headers
+    ]
   }
 
   if (is_mac) {
@@ -726,6 +724,15 @@ config("no_rtti") {
     rtti_flags = [ "-fno-rtti" ]
     cflags_cc = rtti_flags
     cflags_objcc = rtti_flags
+  }
+}
+
+config("enable_exceptions") {
+  if (is_win) {
+    cflags_cc = [ "/EHsc" ]
+    defines = [ "_HAS_EXCEPTIONS=1" ]
+  } else if (is_clang) {
+    cflags_cc = [ "-fexceptions" ]
   }
 }
 

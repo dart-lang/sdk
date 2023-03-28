@@ -9,7 +9,7 @@ class A {
   }
 }
 
-abstract class B<X> {
+mixin B<X> {
   X foo(X x);
 }
 

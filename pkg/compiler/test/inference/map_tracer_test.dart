@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
@@ -102,6 +103,10 @@ var mapStoredInList = $mapAllocation;
 var mapStoredInListButEscapes = $mapAllocation;
 var mapStoredInMap = $mapAllocation;
 var mapStoredInMapButEscapes = $mapAllocation;
+var mapStoredInRecordWithIndexAccess = $mapAllocation;
+var mapStoredInRecordWithNameAccess = $mapAllocation;
+var mapStoredInRecordWithoutAccess = $mapAllocation;
+var mapStoredInRecordWithDynamicAccess = $mapAllocation;
 
 foo(map) {
   map[aKey] = aDouble;
@@ -200,6 +205,19 @@ main() {
   a = {aKey: mapStoredInMapButEscapes};
   a[aKey][aKey] = 42;
   a.forEach((k,v) => print(v));
+
+
+  mapStoredInRecordWithoutAccess[aKey] = anInt;
+  mapStoredInRecordWithIndexAccess[aKey] = anInt;
+  mapStoredInRecordWithNameAccess[aKey] = anInt;
+  final c = (mapStoredInRecordWithoutAccess, mapStoredInRecordWithIndexAccess);
+  (c.\$2)[aKey] = aDouble;
+  final d = (name1: mapStoredInRecordWithoutAccess, name2: mapStoredInRecordWithNameAccess);
+  (d.name2)[aKey] = aDouble;
+
+  mapStoredInRecordWithDynamicAccess[aKey] = anInt;
+  dynamic e = (mapStoredInRecordWithDynamicAccess,);
+  (e.\$1)[aKey] = aDouble;
 }
 """;
 }
@@ -224,7 +242,9 @@ void main() {
 doTest(String allocation,
     {String? keyElementName, String? valueElementName}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
+  var result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+      options: [Flags.soundNullSafety]);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   TypeMask? keyType, valueType;
@@ -292,6 +312,14 @@ doTest(String allocation,
       V(commonMasks.dynamicType));
   checkType('mapStoredInMap', K(aKeyType), V(commonMasks.uint31Type));
   checkType('mapStoredInMapButEscapes', K(commonMasks.dynamicType),
+      V(commonMasks.dynamicType));
+  checkType('mapStoredInRecordWithIndexAccess', K(commonMasks.dynamicType),
+      V(commonMasks.dynamicType));
+  checkType('mapStoredInRecordWithNameAccess', K(commonMasks.dynamicType),
+      V(commonMasks.dynamicType));
+  checkType('mapStoredInRecordWithDynamicAccess', K(commonMasks.dynamicType),
+      V(commonMasks.dynamicType));
+  checkType('mapStoredInRecordWithoutAccess', K(commonMasks.dynamicType),
       V(commonMasks.dynamicType));
 
   checkType('mapUnset', K(emptyType), V(emptyType));

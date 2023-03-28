@@ -4,7 +4,7 @@ class Bar<E> {}
 
 class Baz<E> {}
 
-class Qux1<E> {
+mixin Qux1<E> {
   Qux1AndAHalf? qux1AndAHalf() {
     // nothing...
   }

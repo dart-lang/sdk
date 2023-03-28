@@ -11,20 +11,19 @@ static method f<T extends core::Object? = dynamic>() → self::f::T%
   return throw "";
 static method test(self::C<core::int> x) → void {
   #L1:
-  {
-    final self::C<core::int> #0#0 = x;
-    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  switch(x) {
+    #L2:
+    case #C1:
       {
         core::int y = 0;
         break #L1;
       }
-    }
-    else {
+    #L3:
+    default:
       {
         core::int y = 0;
         break #L1;
       }
-    }
   }
 }
 static method main() → dynamic {}

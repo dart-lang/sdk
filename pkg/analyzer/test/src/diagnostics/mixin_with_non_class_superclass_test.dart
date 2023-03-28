@@ -18,7 +18,7 @@ class MixinWithNonClassSuperclassTest extends PubPackageResolutionTest {
   test_class() async {
     await assertErrorsInCode(r'''
 int A = 0;
-class B {}
+mixin B {}
 class C extends A with B {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS, 38, 1),
@@ -28,7 +28,7 @@ class C extends A with B {}
   test_mixinApplication() async {
     await assertErrorsInCode(r'''
 int A = 0;
-class B {}
+mixin B {}
 class C = A with B;
 ''', [
       error(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS, 32, 1),

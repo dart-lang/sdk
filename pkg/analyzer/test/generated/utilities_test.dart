@@ -35,7 +35,7 @@ class BooleanArrayTest {
 
   void test_get_tooBig() {
     try {
-      BooleanArray.get(0, 31);
+      BooleanArray.get(0, 61);
       fail("Expected ");
     } on RangeError {
       // Expected
@@ -60,7 +60,7 @@ class BooleanArrayTest {
 
   void test_set_tooBig() {
     try {
-      BooleanArray.set(0, 32, true);
+      BooleanArray.set(0, 61, true);
       fail("Expected ");
     } on RangeError {
       // Expected
@@ -1266,7 +1266,7 @@ void f() {
 @myA2
 library foo;
 ''');
-    var node = findNode.libraryDirective;
+    var node = findNode.singleLibraryDirective;
     _assertAnnotatedNode(node);
     _assertReplacementForChildren<LibraryDirective>(
       destination: node,

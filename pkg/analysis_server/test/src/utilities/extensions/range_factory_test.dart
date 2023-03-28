@@ -987,7 +987,7 @@ int bar = 2; // 2
   }
 }
 
-class _NodesCollector extends UnifyingAstVisitor {
+class _NodesCollector extends UnifyingAstVisitor<void> {
   final bool Function(AstNode) filter;
   final List<AstNode> _nodes = [];
 

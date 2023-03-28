@@ -80,11 +80,11 @@ template("aot_snapshot") {
     script = gen_kernel_kernel
 
     args = [
-      "--packages=" + rebase_path(dot_packages),
-      "--platform=" + rebase_path(platform_dill),
+      "--packages=" + rebase_path(dot_packages, root_build_dir),
+      "--platform=" + rebase_path(platform_dill, root_build_dir),
       "--aot",
       "--output=" + rebase_path(output, root_build_dir),
-      "--depfile=" + rebase_path(depfile),
+      "--depfile=" + rebase_path(depfile, root_build_dir),
 
       # Ensure the compiled application (e.g. kernel-service, frontend-server,
       # ...) will use this SDK hash when consuming/producing kernel.
@@ -94,7 +94,7 @@ template("aot_snapshot") {
       "-Dsdk_hash=$sdk_hash",
     ]
     args += gen_kernel_args
-    args += [ rebase_path(main_dart) ]
+    args += [ rebase_path(main_dart, root_build_dir) ]
     if (product_mode) {
       args += [ "-Ddart.vm.product=true" ]
     }

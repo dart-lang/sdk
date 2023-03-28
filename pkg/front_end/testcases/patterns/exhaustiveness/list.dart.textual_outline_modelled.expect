@@ -1,0 +1,110 @@
+exhaustive(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustive1a(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustive1b(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustive2a(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustive2b(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustive2c(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive1aMissing(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive1aRestrictedType(List<num> list) => 
+nonExhaustive1aRestrictedValue(List<num> list) => 
+nonExhaustive1bMissing(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive1bRestrictedValue(List<num> list) => 
+nonExhaustive2aMissing(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2bMissing(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2aRestrictedValue(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2bRestrictedValue(List<num> list) => 
+nonExhaustive2cMissing(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive1bRestrictedType(List<num> list) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2cRestrictedValue(List<num> list) => 
+nonExhaustiveRestrictedType(List<num> list) => 
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+switch (list) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2dRestrictedValue(List<num> list) => 
+switch (list) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2eRestrictedValue(List<num> list) => 
+switch (list) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustive2fRestrictedValue(List<num> list) => 
+switch (list) {}
+switch (list) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

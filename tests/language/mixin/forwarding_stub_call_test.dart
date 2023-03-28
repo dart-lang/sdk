@@ -11,7 +11,7 @@ class Super<T> {
   void method(T t) {}
 }
 
-class Mixin {
+mixin Mixin {
   void method(int t) {}
 }
 

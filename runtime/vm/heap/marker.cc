@@ -600,13 +600,23 @@ void GCMarker::ProcessWeakHandles(Thread* thread) {
 void GCMarker::ProcessWeakTables(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakTables");
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    Dart_HeapSamplingDeleteCallback cleanup = nullptr;
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+    if (sel == Heap::kHeapSamplingData) {
+      cleanup = HeapProfileSampler::delete_callback();
+    }
+#endif
     WeakTable* table =
         heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
+        // The object has been collected.
         ObjectPtr raw_obj = table->ObjectAtExclusive(i);
         if (raw_obj->IsHeapObject() && !raw_obj->untag()->IsMarked()) {
+          if (cleanup != nullptr) {
+            cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+          }
           table->InvalidateAtExclusive(i);
         }
       }

@@ -5,12 +5,49 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 /// For commands where we are able to initialize the [ArgParser], this value
 /// is used as the usageLineLength.
 int? get dartdevUsageLineLength =>
     stdout.hasTerminal ? stdout.terminalColumns : null;
+
+ArgParser globalDartdevOptionsParser({bool verbose = false}) {
+  var argParser = ArgParser(
+    usageLineLength: dartdevUsageLineLength,
+    allowTrailingOptions: false,
+  );
+  argParser.addFlag('verbose',
+      abbr: 'v', negatable: false, help: 'Show additional command output.');
+  argParser.addFlag('version',
+      negatable: false, help: 'Print the Dart SDK version.');
+  argParser.addFlag('enable-analytics',
+      negatable: false, help: 'Enable analytics.');
+  argParser.addFlag('disable-analytics',
+      negatable: false, help: 'Disable analytics.');
+
+  argParser.addFlag('diagnostics',
+      negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
+
+  argParser.addFlag(
+    'analytics',
+    defaultsTo: true,
+    negatable: true,
+    help: 'Allow or disallow analytics for this `dart *` run without '
+        'changing the analytics configuration.  '
+        'Deprecated: use `--suppress-analytics` instead.',
+    hide: true,
+  );
+
+  argParser.addFlag(
+    'suppress-analytics',
+    negatable: false,
+    help: 'Disallow analytics for this `dart *` run without changing the '
+        'analytics configuration.',
+  );
+  return argParser;
+}
 
 /// Try parsing [maybeUri] as a file uri or [maybeUri] itself if that fails.
 String maybeUriToFilename(String maybeUri) {

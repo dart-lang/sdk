@@ -47,7 +47,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   @override
-  Future startServer({
+  Future<void> startServer({
     int? diagnosticPort,
     int? servicePort,
   }) {

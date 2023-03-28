@@ -12,7 +12,7 @@ abstract class A {
   int? foo;
 }
 
-class B implements A {
+mixin class B implements A {
   noSuchMethod(i) {
     ++count;
     return null;

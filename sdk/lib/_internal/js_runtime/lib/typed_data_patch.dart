@@ -194,7 +194,7 @@ class Float64x2 {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteBufferView.
-class _UnmodifiableByteBufferView
+final class _UnmodifiableByteBufferView
     implements ByteBuffer, UnmodifiableByteBufferView {
   final ByteBuffer _data;
 
@@ -258,7 +258,8 @@ class _UnmodifiableByteBufferView
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteDataView.
-class _UnmodifiableByteDataView implements ByteData, UnmodifiableByteDataView {
+final class _UnmodifiableByteDataView
+    implements ByteData, UnmodifiableByteDataView {
   final ByteData _data;
 
   _UnmodifiableByteDataView(ByteData data) : _data = data;
@@ -333,8 +334,7 @@ class _UnmodifiableByteDataView implements ByteData, UnmodifiableByteDataView {
   }
 }
 
-abstract class _UnmodifiableListMixin<N, L extends List<N>,
-    TD extends TypedData> {
+mixin _UnmodifiableListMixin<N, L extends List<N>, TD extends TypedData> {
   L get _list;
   TD get _data => (_list as TD);
 
@@ -366,7 +366,7 @@ abstract class _UnmodifiableListMixin<N, L extends List<N>,
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint8ListView.
-class _UnmodifiableUint8ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableUint8ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint8List, Uint8List>
     implements UnmodifiableUint8ListView {
   final Uint8List _list;
@@ -379,7 +379,7 @@ class _UnmodifiableUint8ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt8ListView.
-class _UnmodifiableInt8ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableInt8ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int8List, Int8List>
     implements UnmodifiableInt8ListView {
   final Int8List _list;
@@ -392,7 +392,7 @@ class _UnmodifiableInt8ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint8ClampedListView.
-class _UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
+final class _UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint8ClampedList, Uint8ClampedList>
     implements UnmodifiableUint8ClampedListView {
   final Uint8ClampedList _list;
@@ -405,7 +405,7 @@ class _UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint16ListView.
-class _UnmodifiableUint16ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableUint16ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint16List, Uint16List>
     implements UnmodifiableUint16ListView {
   final Uint16List _list;
@@ -418,7 +418,7 @@ class _UnmodifiableUint16ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt16ListView.
-class _UnmodifiableInt16ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableInt16ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int16List, Int16List>
     implements UnmodifiableInt16ListView {
   final Int16List _list;
@@ -431,7 +431,7 @@ class _UnmodifiableInt16ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint32ListView.
-class _UnmodifiableUint32ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableUint32ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint32List, Uint32List>
     implements UnmodifiableUint32ListView {
   final Uint32List _list;
@@ -444,7 +444,7 @@ class _UnmodifiableUint32ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt32ListView.
-class _UnmodifiableInt32ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableInt32ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int32List, Int32List>
     implements UnmodifiableInt32ListView {
   final Int32List _list;
@@ -457,7 +457,7 @@ class _UnmodifiableInt32ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint64ListView.
-class _UnmodifiableUint64ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableUint64ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint64List, Uint64List>
     implements UnmodifiableUint64ListView {
   final Uint64List _list;
@@ -470,7 +470,7 @@ class _UnmodifiableUint64ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt64ListView.
-class _UnmodifiableInt64ListView extends UnmodifiableListBase<int>
+final class _UnmodifiableInt64ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int64List, Int64List>
     implements UnmodifiableInt64ListView {
   final Int64List _list;
@@ -483,7 +483,7 @@ class _UnmodifiableInt64ListView extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt32x4ListView.
-class _UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
+final class _UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
     with _UnmodifiableListMixin<Int32x4, Int32x4List, Int32x4List>
     implements UnmodifiableInt32x4ListView {
   final Int32x4List _list;
@@ -496,7 +496,8 @@ class _UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat32x4ListView.
-class _UnmodifiableFloat32x4ListView extends UnmodifiableListBase<Float32x4>
+final class _UnmodifiableFloat32x4ListView
+    extends UnmodifiableListBase<Float32x4>
     with _UnmodifiableListMixin<Float32x4, Float32x4List, Float32x4List>
     implements UnmodifiableFloat32x4ListView {
   final Float32x4List _list;
@@ -509,7 +510,8 @@ class _UnmodifiableFloat32x4ListView extends UnmodifiableListBase<Float32x4>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat64x2ListView.
-class _UnmodifiableFloat64x2ListView extends UnmodifiableListBase<Float64x2>
+final class _UnmodifiableFloat64x2ListView
+    extends UnmodifiableListBase<Float64x2>
     with _UnmodifiableListMixin<Float64x2, Float64x2List, Float64x2List>
     implements UnmodifiableFloat64x2ListView {
   final Float64x2List _list;
@@ -522,7 +524,7 @@ class _UnmodifiableFloat64x2ListView extends UnmodifiableListBase<Float64x2>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat32ListView.
-class _UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
+final class _UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
     with _UnmodifiableListMixin<double, Float32List, Float32List>
     implements UnmodifiableFloat32ListView {
   final Float32List _list;
@@ -535,7 +537,7 @@ class _UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat64ListView.
-class _UnmodifiableFloat64ListView extends UnmodifiableListBase<double>
+final class _UnmodifiableFloat64ListView extends UnmodifiableListBase<double>
     with _UnmodifiableListMixin<double, Float64List, Float64List>
     implements UnmodifiableFloat64ListView {
   final Float64List _list;

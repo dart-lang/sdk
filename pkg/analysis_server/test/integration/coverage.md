@@ -86,6 +86,9 @@ server calls. This file is validated by `coverage_test.dart`.
 - [ ] server.log
 - [x] server.status
 - [ ] server.cancelRequest
+- [ ] server.setClientCapabilities
+- [ ] server.openUrlRequest
+- [ ] server.showMessageRequest
 
 ## analytics domain
 - [x] analytics.isEnabled

@@ -102,12 +102,16 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get declarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.EXTENSION,
       Keyword.FINAL,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -121,6 +125,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get directiveAndDeclarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
@@ -129,7 +134,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
       Keyword.PART,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -151,6 +159,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   List<Keyword> get directiveDeclarationKeywords {
     var keywords = <Keyword>[
       Keyword.ABSTRACT,
+      Keyword.BASE,
       Keyword.CLASS,
       Keyword.CONST,
       Keyword.COVARIANT,
@@ -159,7 +168,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
+      Keyword.MIXIN,
       Keyword.PART,
+      Keyword.SEALED,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -481,30 +493,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   bool isEnabled(Feature feature) =>
       result.libraryElement.featureSet.isEnabled(feature);
 
-  Future<void> test_after_class_noPrefix() async {
-    addTestSource('class A {} ^');
-    await computeSuggestions();
-    assertSuggestKeywords(declarationKeywords);
-  }
-
-  Future<void> test_after_class_prefix() async {
-    addTestSource('class A {} c^');
-    await computeSuggestions();
-    assertSuggestKeywords(declarationKeywords);
-  }
-
-  Future<void> test_after_import_noPrefix() async {
-    addTestSource('import "foo"; ^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
-
-  Future<void> test_after_import_prefix() async {
-    addTestSource('import "foo"; c^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
-
   Future<void> test_anonymous_function_async() async {
     addTestSource('void f() {foo(() ^ {}}}');
     await computeSuggestions();
@@ -638,13 +626,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['await']);
-  }
-
-  Future<void> test_before_import() async {
-    addTestSource('^ import foo;');
-    await computeSuggestions();
-    assertSuggestKeywords(
-        [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART]);
   }
 
   Future<void> test_catch_1a() async {
@@ -1077,12 +1058,6 @@ class A {
     addTestSource('void f() {do {^} while (true);}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInLoopOutsideClass);
-  }
-
-  Future<void> test_empty() async {
-    addTestSource('^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
   }
 
   Future<void> test_extension_body_beginning() async {
@@ -1963,61 +1938,6 @@ f() => <int>{1, ^, 2};
     expect(suggestions, isEmpty);
   }
 
-  Future<void> test_import_partial() async {
-    addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 0);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial2() async {
-    addTestSource('^imp import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 0);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial3() async {
-    addTestSource(' ^imp import "package:foo/foo.dart"; import "bar.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 1);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial4() async {
-    addTestSource('^ imp import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 0);
-    expect(replacementLength, 0);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_import_partial5() async {
-    addTestSource('library libA; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 14);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationKeywords);
-  }
-
-  Future<void> test_import_partial6() async {
-    addTestSource(
-        'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    expect(replacementOffset, 32);
-    expect(replacementLength, 3);
-    // TODO(danrubel) should not suggest declaration keywords
-    assertSuggestKeywords(directiveDeclarationKeywords);
-  }
-
   Future<void> test_integerLiteral_inArgumentList() async {
     addTestSource('void f() { print(42^); }');
     await computeSuggestions();
@@ -2277,24 +2197,6 @@ void m() {
     addTestSource('class A { foo() {new A.^ print("foo");}}');
     await computeSuggestions();
     assertSuggestKeywords([]);
-  }
-
-  Future<void> test_part_of() async {
-    addTestSource('part of foo;^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
-  }
-
-  Future<void> test_partial_class() async {
-    addTestSource('cl^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveDeclarationAndLibraryKeywords);
-  }
-
-  Future<void> test_partial_class2() async {
-    addTestSource('library a; cl^');
-    await computeSuggestions();
-    assertSuggestKeywords(directiveAndDeclarationKeywords);
   }
 
   Future<void> test_prefixed_field() async {

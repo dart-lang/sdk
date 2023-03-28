@@ -79,7 +79,7 @@ class CollectingReporter extends ErrorReporter {
 
   @override
   void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object?>? arguments]) {
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     code = errorCode;
   }
 

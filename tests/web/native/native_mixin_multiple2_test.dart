@@ -14,15 +14,15 @@ class A {
 @Native("B")
 class B extends A with M1, M2, M3 {}
 
-class M1 {}
+mixin M1 {}
 
-class M2 {
+mixin M2 {
   // These methods are only defined in this non-first, non-last mixin.
   plain(x) => 'P $x';
   bar(x, [y]) => '$y,$x';
 }
 
-class M3 {}
+mixin M3 {}
 
 makeB() native;
 

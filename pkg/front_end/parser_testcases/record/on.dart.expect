@@ -8,7 +8,7 @@ parser/record/on:5:9: Expected ')' before this.
   } on ([int? i, String? n]) {
         ^
 
-parser/record/on:5:28: Record type with one entry requires a trailing comma.
+parser/record/on:5:28: A record type with exactly one positional field requires a trailing comma.
   } on ([int? i, String? n]) {
                            ^
 

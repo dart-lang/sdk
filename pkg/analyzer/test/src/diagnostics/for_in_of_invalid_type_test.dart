@@ -26,7 +26,7 @@ f(Never e) async {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 32, 26),
+      error(WarningCode.DEAD_CODE, 32, 26),
     ]);
     // TODO(scheglov) extract for-in resolution and implement
 //    assertType(findNode.simple('id;'), 'Never');
@@ -63,7 +63,7 @@ f(Never e) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 20, 26),
+      error(WarningCode.DEAD_CODE, 20, 26),
     ]);
     // TODO(scheglov) extract for-in resolution and implement
 //    assertType(findNode.simple('id;'), 'Never');

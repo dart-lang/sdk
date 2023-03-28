@@ -5,15 +5,6 @@ abstract class ClassExtendsMixin extends Super with Mixin {}
 
 abstract class ClassExtendsMixinClass extends Super with MixinClass {}
 
-abstract class MixinClass {
-  void abstractExtendsAbstractMixin();
-  void abstractExtendsConcreteMixin() {}
-  void abstractMixin();
-  void concreteExtendsAbstractMixin();
-  void concreteExtendsConcreteMixin() {}
-  void concreteMixin() {}
-}
-
 abstract class SubclassEqMixin extends ClassEqMixin {
   method() {}
 }
@@ -35,6 +26,15 @@ abstract class Super {
   void abstractExtendsConcreteMixin();
   void concreteExtendsAbstractMixin() {}
   void concreteExtendsConcreteMixin() {}
+}
+
+abstract mixin class MixinClass {
+  void abstractExtendsAbstractMixin();
+  void abstractExtendsConcreteMixin() {}
+  void abstractMixin();
+  void concreteExtendsAbstractMixin();
+  void concreteExtendsConcreteMixin() {}
+  void concreteMixin() {}
 }
 
 main() {}

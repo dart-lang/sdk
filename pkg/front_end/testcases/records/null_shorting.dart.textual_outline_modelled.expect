@@ -1,0 +1,18 @@
+class Class {
+  void call() {}
+}
+
+extension on String {
+  void call() {}
+}
+
+extension on double {
+  void call() {}
+}
+
+extension on int {
+  void call() {}
+}
+
+test((int, String, {double d, void Function() f, Class c})? record,
+    List<(int, String, {double d, void Function() f, Class c})>? list) {}

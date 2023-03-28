@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 
-class M<T> {
+mixin M<T> {
   bool field = () {
     try {
       throw 0;

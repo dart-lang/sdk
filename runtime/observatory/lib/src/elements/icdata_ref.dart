@@ -22,8 +22,6 @@ class ICDataRefElement extends CustomElement implements Renderable {
 
   factory ICDataRefElement(M.IsolateRef isolate, M.ICDataRef icdata,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(icdata != null);
     ICDataRefElement e = new ICDataRefElement.created();
     e._r = new RenderingScheduler<ICDataRefElement>(e, queue: queue);
     e._isolate = isolate;

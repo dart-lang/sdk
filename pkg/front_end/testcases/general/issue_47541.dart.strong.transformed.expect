@@ -14,7 +14,7 @@ library /*isNonNullableByDefault*/;
 //   on(42);
 //      ^^
 //
-// pkg/front_end/testcases/general/issue_47541.dart:24:8: Error: Record type with one entry requires a trailing comma.
+// pkg/front_end/testcases/general/issue_47541.dart:24:8: Error: A record type with exactly one positional field requires a trailing comma.
 // Try adding a trailing comma.
 //   on(42);
 //        ^

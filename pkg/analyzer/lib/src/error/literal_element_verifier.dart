@@ -68,7 +68,7 @@ class LiteralElementVerifier {
   void _verifyElement(CollectionElement? element) {
     if (element is Expression) {
       if (forList || forSet) {
-        if (!elementType!.isVoid &&
+        if (elementType is! VoidType &&
             _errorVerifier.checkForUseOfVoidResult(element)) {
           return;
         }
@@ -103,14 +103,14 @@ class LiteralElementVerifier {
   /// Verify that the [entry]'s key and value are assignable to [mapKeyType]
   /// and [mapValueType].
   void _verifyMapLiteralEntry(MapLiteralEntry entry) {
-    var mapKeyType = this.mapKeyType;
-    if (!mapKeyType!.isVoid &&
+    var mapKeyType = this.mapKeyType!;
+    if (mapKeyType is! VoidType &&
         _errorVerifier.checkForUseOfVoidResult(entry.key)) {
       return;
     }
 
-    var mapValueType = this.mapValueType;
-    if (!mapValueType!.isVoid &&
+    var mapValueType = this.mapValueType!;
+    if (mapValueType is! VoidType &&
         _errorVerifier.checkForUseOfVoidResult(entry.value)) {
       return;
     }

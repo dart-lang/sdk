@@ -512,6 +512,9 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
+// R18 is reserved on Mac/iOS, Fuchsia, Windows and sometimes Android. Although
+// it is available on Linux, we mark it as reserved unconditionally to avoid
+// adding another dimenision for OS into the extracted runtime offsets.
 const RegList kReservedCpuRegisters = R(SPREG) |  // Dart SP
                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
                                       R(THR) | R(LR) | R(HEAP_BITS) |
@@ -802,6 +805,13 @@ enum LoadStoreExclusiveOp {
   STLR = LoadStoreExclusiveFixed | B23 | B15,
 };
 
+enum AtomicMemoryOp {
+  AtomicMemoryMask = 0x3f200c00,
+  AtomicMemoryFixed = B29 | B28 | B27 | B21,
+  LDCLR = AtomicMemoryFixed | B12,
+  LDSET = AtomicMemoryFixed | B13 | B12,
+};
+
 // C3.3.7-10
 enum LoadStoreRegOp {
   LoadStoreRegMask = 0x3a000000,
@@ -1077,6 +1087,7 @@ enum FPIntCvtOp {
   _V(LoadStoreRegPair)                                                         \
   _V(LoadRegLiteral)                                                           \
   _V(LoadStoreExclusive)                                                       \
+  _V(AtomicMemory)                                                             \
   _V(AddSubImm)                                                                \
   _V(Bitfield)                                                                 \
   _V(LogicalImm)                                                               \

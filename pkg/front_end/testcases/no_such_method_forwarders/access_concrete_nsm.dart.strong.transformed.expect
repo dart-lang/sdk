@@ -441,14 +441,14 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///access_concrete_nsm.dart";
 
-class SuperClass extends core::Object {
+mixin class SuperClass extends core::Object {
   synthetic constructor •() → acc::SuperClass
     : super core::Object::•()
     ;
   method _inaccessibleMethod1() → void {}
   method accessibleMethod() → void {}
 }
-class NoSuchMethodClass extends core::Object {
+mixin class NoSuchMethodClass extends core::Object {
   synthetic constructor •() → acc::NoSuchMethodClass
     : super core::Object::•()
     ;
@@ -460,6 +460,6 @@ constants  {
   #C1 = #org-dartlang-testcase:///access_concrete_nsm.dart::_inaccessibleMethod1
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{)
+  #C4 = <core::Symbol*, dynamic>{}
   #C5 = #accessibleMethod
 }

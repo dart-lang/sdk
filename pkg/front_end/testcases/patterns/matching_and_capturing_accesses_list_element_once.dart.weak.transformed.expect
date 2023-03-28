@@ -216,7 +216,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListMixi
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<core::int> iterable) → void {
     core::int i = this.{core::List::length}{core::int};
     {
-      core::Iterator<core::int> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
@@ -384,7 +384,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListMixi
       if(end =={core::num::==}{(core::Object) → core::bool} this.{core::List::length}{core::int}) {
         core::int i = start;
         {
-          core::Iterator<core::int> :sync-for-iterator = newContents.{core::Iterable::iterator}{core::Iterator<core::int>};
+          synthesized core::Iterator<core::int> :sync-for-iterator = newContents.{core::Iterable::iterator}{core::Iterator<core::int>};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
             core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
             {
@@ -500,7 +500,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListMixi
     }
     else {
       {
-        core::Iterator<core::int> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
+        synthesized core::Iterator<core::int> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
           {
@@ -537,13 +537,13 @@ static method main() → dynamic {
   {
     core::int x;
     core::int y;
-    final self::A #0#0 = a;
+    final synthesized self::A #0#0 = a;
     function ##0#4#initializer() → core::int
       return #0#0.{self::A::[]}(0){(core::int) → core::int};
-    late final core::int #0#4 = ##0#4#initializer(){() → core::int};
+    late final synthesized core::int #0#4 = ##0#4#initializer(){() → core::int};
     function ##0#5#initializer() → core::int
       return #0#0.{self::A::[]}(1){(core::int) → core::int};
-    late final core::int #0#5 = ##0#5#initializer(){() → core::int};
+    late final synthesized core::int #0#5 = ##0#5#initializer(){() → core::int};
     if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is{ForNonNullableByDefault} core::int && (let final core::int #t9 = x = #0#4 in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final core::int #t10 = y = #0#5 in true))) {
       self::expectEquals(x, 0);
       self::expectEquals(y, 0);

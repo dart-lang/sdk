@@ -8,15 +8,15 @@ import 'package:async_helper/async_helper.dart';
 import "mixin_lib1.dart" deferred as lib1;
 import "mixin_lib2.dart" deferred as lib2;
 
-class NonDeferredMixin {
+mixin class NonDeferredMixin {
   foo() => "NonDeferredMixin";
 }
 
-class NonDeferredMixin1 {
+mixin class NonDeferredMixin1 {
   foo() => "NonDeferredMixin1";
 }
 
-class NonDeferredMixin2 {
+mixin class NonDeferredMixin2 {
   foo() => "NonDeferredMixin2";
 }
 

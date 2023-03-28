@@ -99,6 +99,10 @@ class AnalyzeCommand extends DartdevCommand {
   @override
   Future<int> run() async {
     final args = argResults!;
+    final globalArgs = globalResults!;
+    final suppressAnalytics =
+        !globalArgs['analytics'] || globalArgs['suppress-analytics'];
+
     // Find targets from the 'rest' params.
     final List<io.FileSystemEntity> targets = [];
     if (args.rest.isEmpty) {
@@ -170,6 +174,7 @@ class AnalyzeCommand extends DartdevCommand {
       commandName: 'analyze',
       argResults: args,
       enabledExperiments: args.enabledExperiments,
+      suppressAnalytics: suppressAnalytics,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {

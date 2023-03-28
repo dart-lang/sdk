@@ -14,7 +14,7 @@ namespace dart {
 static void* Allocate(uword size, Zone* zone) {
   ASSERT(zone != NULL);
   if (size > static_cast<uword>(kIntptrMax)) {
-    FATAL1("ZoneAllocated object has unexpectedly large size %" Pu "", size);
+    FATAL("ZoneAllocated object has unexpectedly large size %" Pu "", size);
   }
   return reinterpret_cast<void*>(zone->AllocUnsafe(size));
 }

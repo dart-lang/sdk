@@ -122,7 +122,7 @@ abstract class _TestFileBase {
     }
 
     var result = "$directory";
-    result = concat(result, "$filenameWithoutExt");
+    result = concat(result, filenameWithoutExt);
     result = concat(result, multitestKey);
     return result;
   }
@@ -400,8 +400,10 @@ class TestFile extends _TestFileBase {
     assert(!isMultitest || dartOptions.isEmpty);
   }
 
+  @override
   Path get originPath => path;
 
+  @override
   String get multitestKey => "";
 
   final String? packages;
@@ -453,6 +455,7 @@ class TestFile extends _TestFileBase {
           hasStaticWarning: hasStaticWarning,
           hasSyntaxError: hasSyntaxError);
 
+  @override
   String toString() => """TestFile(
   packages: $packages
   environment: $environment
@@ -483,13 +486,20 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   /// The authored test file that was split to generate this multitest.
   final TestFile _origin;
 
+  @override
   final String multitestKey;
 
+  @override
   final bool hasCompileError;
+  @override
   final bool hasRuntimeError;
+  @override
   final bool hasStaticWarning;
+  @override
   final bool hasSyntaxError;
+  @override
   bool get hasCrash => _origin.hasCrash;
+  @override
   bool get isVmIntermediateLanguageTest => _origin.isVmIntermediateLanguageTest;
 
   _MultitestFile(this._origin, Path path, this.multitestKey,
@@ -500,25 +510,40 @@ class _MultitestFile extends _TestFileBase implements TestFile {
       required this.hasSyntaxError})
       : super(_origin._suiteDirectory, path, expectedErrors);
 
+  @override
   Path get originPath => _origin.path;
 
+  @override
   String? get packages => _origin.packages;
 
+  @override
   List<Feature> get requirements => _origin.requirements;
+  @override
   List<String> get dart2jsOptions => _origin.dart2jsOptions;
+  @override
   List<String> get dart2wasmOptions => _origin.dart2wasmOptions;
+  @override
   List<String> get dartOptions => _origin.dartOptions;
+  @override
   List<String> get ddcOptions => _origin.ddcOptions;
+  @override
   Map<String, String> get environment => _origin.environment;
 
+  @override
   bool get isMultitest => _origin.isMultitest;
 
+  @override
   List<String> get otherResources => _origin.otherResources;
+  @override
   List<String> get sharedObjects => _origin.sharedObjects;
+  @override
   List<String> get experiments => _origin.experiments;
+  @override
   List<String> get sharedOptions => _origin.sharedOptions;
+  @override
   List<List<String>> get vmOptions => _origin.vmOptions;
 
+  @override
   TestFile split(Path path, String multitestKey, String contents,
           {bool hasCompileError = false,
           bool hasRuntimeError = false,

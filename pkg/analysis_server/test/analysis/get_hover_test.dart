@@ -1229,26 +1229,6 @@ base mixin A {}
     expect(hover.propagatedType, isNull);
   }
 
-  Future<void> test_mixin_declaration_final() async {
-    newFile(testFilePath, '''
-final mixin A {}
-''');
-    var hover = await prepareHover('A');
-    expect(hover.elementDescription, 'final mixin A on Object');
-    expect(hover.staticType, isNull);
-    expect(hover.propagatedType, isNull);
-  }
-
-  Future<void> test_mixin_declaration_interface() async {
-    newFile(testFilePath, '''
-interface mixin A {}
-''');
-    var hover = await prepareHover('A');
-    expect(hover.elementDescription, 'interface mixin A on Object');
-    expect(hover.staticType, isNull);
-    expect(hover.propagatedType, isNull);
-  }
-
   @failingTest
   Future<void> test_mixin_reference() async {
     newFile(testFilePath, '''

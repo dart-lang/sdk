@@ -50,12 +50,12 @@ final Dart_PropagateError_DartType propagateError = () {
   throw 'Not found';
 }();
 
-class _DartEntry extends Struct {
+final class _DartEntry extends Struct {
   external Pointer<Int8> name;
   external Pointer<Void> function;
 }
 
-class _DartApi extends Struct {
+final class _DartApi extends Struct {
   @Int32()
   external int major;
   @Int32()

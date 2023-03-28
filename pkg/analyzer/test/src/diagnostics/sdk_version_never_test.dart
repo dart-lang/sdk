@@ -19,14 +19,14 @@ main() {
 @reflectiveTest
 class SdkVersionNeverTest extends SdkConstraintVerifierTest {
   test_experimentEnabled() async {
-    await verifyVersion('2.7.0', r'''
+    await verifyVersion('>=2.7.0', r'''
 Never foo = (throw 42);
 ''');
   }
 
   test_experimentEnabled_libraryOptedOut() async {
     noSoundNullSafety = false;
-    await verifyVersion('2.7.0', r'''
+    await verifyVersion('>=2.7.0', r'''
 // @dart = 2.7
 Never foo = (throw 42);
 ''', expectedErrors: [
@@ -39,7 +39,7 @@ Never foo = (throw 42);
 class SdkVersionNeverWithoutNullSafetyTest extends SdkConstraintVerifierTest
     with WithoutNullSafetyMixin {
   test_languageVersionBeforeNullSafety() async {
-    await verifyVersion('2.7.0', r'''
+    await verifyVersion('>=2.7.0', r'''
 Never foo;
 ''', expectedErrors: [
       error(WarningCode.SDK_VERSION_NEVER, 0, 5),

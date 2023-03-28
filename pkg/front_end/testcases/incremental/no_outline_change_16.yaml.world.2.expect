@@ -52,7 +52,7 @@ constants  {
   #C1 = #method
   #C2 = <dart.core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = <dart.core::Symbol*, dynamic>{)
+  #C4 = <dart.core::Symbol*, dynamic>{}
   #C5 = #getter
   #C6 = #setter=
   #C7 = #field

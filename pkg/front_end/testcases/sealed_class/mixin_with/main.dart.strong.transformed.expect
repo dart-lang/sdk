@@ -12,7 +12,7 @@ import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class _Class1&Object&Sealed extends core::Object implements mai::Sealed /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+abstract sealed class _Class1&Object&Sealed extends core::Object implements mai::Sealed /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class1&Object&Sealed
     : super core::Object::•()
     ;

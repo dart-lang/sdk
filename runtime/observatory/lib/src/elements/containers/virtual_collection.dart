@@ -47,9 +47,6 @@ class VirtualCollectionElement extends CustomElement implements Renderable {
       VirtualCollectionHeaderCallback? createHeader,
       VirtualCollectionSearchCallback? search,
       RenderingQueue? queue}) {
-    assert(create != null);
-    assert(update != null);
-    assert(items != null);
     VirtualCollectionElement e = new VirtualCollectionElement.created();
     e._r = new RenderingScheduler<VirtualCollectionElement>(e, queue: queue);
     e._create = create;

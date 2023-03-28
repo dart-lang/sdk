@@ -7,11 +7,6 @@ bool _hasAnnotationInstance(DeclarationMirror declaration, instance) =>
     });
 bool _hasFailingTestAnnotation(MethodMirror method) {}
 
-class MyTest {
-  @failingTest
-  void foo() {}
-}
-
 class MyTest2 extends Object with MyTest {}
 
 class _FailingTest {
@@ -20,3 +15,7 @@ class _FailingTest {
 
 const _FailingTest failingTest = const _FailingTest();
 main() {}
+mixin MyTest {
+  @failingTest
+  void foo() {}
+}

@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PrefixElementTest);
+    defineReflectiveTests(PrefixElementResolutionTest);
   });
 }
 
 @reflectiveTest
-class PrefixElementTest extends PubPackageResolutionTest {
+class PrefixElementResolutionTest extends PubPackageResolutionTest {
   test_scope_lookup() async {
     newFile('$testPackageLibPath/a.dart', r'''
 var foo = 0;

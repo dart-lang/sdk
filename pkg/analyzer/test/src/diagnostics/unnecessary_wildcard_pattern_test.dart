@@ -93,7 +93,7 @@ void f(Object? x) {
   if (x case _ || 0) {}
 }
 ''', [
-      error(HintCode.DEAD_CODE, 35, 4),
+      error(WarningCode.DEAD_CODE, 35, 4),
     ]);
   }
 
@@ -157,6 +157,7 @@ void f(Object? x) {
 void f(Object? x) {
   (switch (x) {
     0 && _ => 0,
+    _ => 1,
   });
 }
 ''', [

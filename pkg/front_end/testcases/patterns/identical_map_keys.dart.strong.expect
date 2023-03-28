@@ -1,0 +1,387 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:16:26: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     {const C(): 1, const C(): 2} => "",
+//                          ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:16:12: Context: This is the previous use of the same key.
+//     {const C(): 1, const C(): 2} => "",
+//            ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:17:12: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     {1: 1, 1: 2} => "",
+//            ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:17:6: Context: This is the previous use of the same key.
+//     {1: 1, 1: 2} => "",
+//      ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:18:18: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     {c1: var a1, c2: final b1} => "",
+//                  ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:18:6: Context: This is the previous use of the same key.
+//     {c1: var a1, c2: final b1} => "",
+//      ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:19:20: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     {3.14: var a2, 3.14: final b2} => "",
+//                    ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:19:6: Context: This is the previous use of the same key.
+//     {3.14: var a2, 3.14: final b2} => "",
+//      ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:20:19: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     {"x": var a3, "x": final b3} => "",
+//                   ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:20:6: Context: This is the previous use of the same key.
+//     {"x": var a3, "x": final b3} => "",
+//      ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:27:31: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     case {const C(): 1, const C(): 2}:
+//                               ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:27:17: Context: This is the previous use of the same key.
+//     case {const C(): 1, const C(): 2}:
+//                 ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:29:17: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     case {1: 1, 1: 2}:
+//                 ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:29:11: Context: This is the previous use of the same key.
+//     case {1: 1, 1: 2}:
+//           ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:31:23: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     case {c1: var a1, c2: final b1}:
+//                       ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:31:11: Context: This is the previous use of the same key.
+//     case {c1: var a1, c2: final b1}:
+//           ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:32:25: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     case {3.14: var a2, 3.14: final b2}:
+//                         ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:32:11: Context: This is the previous use of the same key.
+//     case {3.14: var a2, 3.14: final b2}:
+//           ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:34:24: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//     case {"x": var a3, "x": final b3}:
+//                        ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:34:11: Context: This is the previous use of the same key.
+//     case {"x": var a3, "x": final b3}:
+//           ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:40:37: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   if (map case {const C(): 1, const C(): 2}) {
+//                                     ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:40:23: Context: This is the previous use of the same key.
+//   if (map case {const C(): 1, const C(): 2}) {
+//                       ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:42:23: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   if (map case {1: 1, 1: 2}) {
+//                       ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:42:17: Context: This is the previous use of the same key.
+//   if (map case {1: 1, 1: 2}) {
+//                 ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:44:29: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   if (map case {c1: var a1, c2: final b1}) {
+//                             ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:44:17: Context: This is the previous use of the same key.
+//   if (map case {c1: var a1, c2: final b1}) {
+//                 ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:46:31: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   if (map case {3.14: var a2, 3.14: final b2}) {
+//                               ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:46:17: Context: This is the previous use of the same key.
+//   if (map case {3.14: var a2, 3.14: final b2}) {
+//                 ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:48:30: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   if (map case {"x": var a3, "x": final b3}) {
+//                              ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:48:17: Context: This is the previous use of the same key.
+//   if (map case {"x": var a3, "x": final b3}) {
+//                 ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:53:28: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   var {const C(): a, const C(): b} = {const C(): 1};
+//                            ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:53:14: Context: This is the previous use of the same key.
+//   var {const C(): a, const C(): b} = {const C(): 1};
+//              ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:54:14: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   var {1: c, 1: d} = {1: 2};
+//              ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:54:8: Context: This is the previous use of the same key.
+//   var {1: c, 1: d} = {1: 2};
+//        ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:55:22: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   final {c1: var a1, c2: final b1} = {c2: 2};
+//                      ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:55:10: Context: This is the previous use of the same key.
+//   final {c1: var a1, c2: final b1} = {c2: 2};
+//          ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:56:24: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   final {3.14: var a2, 3.14: final b2} = {3.14: 1};
+//                        ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:56:10: Context: This is the previous use of the same key.
+//   final {3.14: var a2, 3.14: final b2} = {3.14: 1};
+//          ^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:57:23: Error: Two keys in a map pattern can't be equal.
+// Change or remove the duplicate key.
+//   final {"x": var a3, "x": final b3} = {"x": 1};
+//                       ^
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:57:10: Context: This is the previous use of the same key.
+//   final {"x": var a3, "x": final b3} = {"x": 1};
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static const field self::C c1 = #C1;
+static const field self::C c2 = #C1;
+static method test1(core::Map<dynamic, dynamic> map) → core::String {
+  return block {
+    core::String #t1;
+    final synthesized core::Map<dynamic, dynamic> #0#0 = map;
+    late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
+    late final synthesized core::bool #0#5 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#6 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#10 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#11 = #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#15 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#16 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#18 = #0#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#19 = #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
+    #L1:
+    {
+      {
+        if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        dynamic a1;
+        final dynamic b1;
+        if(#0#3 && #0#5 && (let final dynamic #t2 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t3 = b1 = #0#6 in true)) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        dynamic a2;
+        final dynamic b2;
+        if(#0#3 && #0#15 && (let final dynamic #t4 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t5 = b2 = #0#16 in true)) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        dynamic a3;
+        final dynamic b3;
+        if(#0#3 && #0#18 && (let final dynamic #t6 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t7 = b3 = #0#19 in true)) {
+          #t1 = "";
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = "default";
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+}
+static method test2(core::Map<dynamic, dynamic> map) → void {
+  #L2:
+  {
+    final synthesized core::Map<dynamic, dynamic> #0#0 = map;
+    late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
+    late final synthesized core::bool #0#5 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#6 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#10 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#11 = #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#15 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#16 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#18 = #0#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#19 = #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
+    {
+      if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+        {
+          break #L2;
+        }
+      }
+    }
+    {
+      if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
+        {
+          break #L2;
+        }
+      }
+    }
+    {
+      dynamic a1;
+      final dynamic b1;
+      dynamic a2;
+      final dynamic b2;
+      if(#0#3 && #0#5 && (let final dynamic #t8 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t9 = b1 = #0#6 in true) || #0#3 && #0#15 && (let final dynamic #t10 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t11 = b2 = #0#16 in true)) {
+        {
+          break #L2;
+        }
+      }
+    }
+    {
+      dynamic a3;
+      final dynamic b3;
+      if(#0#3 && #0#18 && (let final dynamic #t12 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t13 = b3 = #0#19 in true)) {
+        {
+          break #L2;
+        }
+      }
+    }
+  }
+}
+static method test3(core::Map<dynamic, dynamic> map) → void {
+  {
+    final synthesized core::Map<dynamic, dynamic> #0#0 = map;
+    late final synthesized core::bool #0#5 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#6 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    if(#0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+    }
+  }
+  {
+    final synthesized core::Map<dynamic, dynamic> #1#0 = map;
+    late final synthesized core::bool #1#5 = #1#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized dynamic #1#6 = #1#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    if(#1#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #1#6 && #1#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #1#6) {
+    }
+  }
+  {
+    dynamic a1;
+    final dynamic b1;
+    final synthesized core::Map<dynamic, dynamic> #2#0 = map;
+    late final synthesized core::bool #2#5 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #2#6 = #2#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    if(#2#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #2#5 && (let final dynamic #t14 = a1 = #2#6 in true) && #2#5 && (let final dynamic #t15 = b1 = #2#6 in true)) {
+    }
+  }
+  {
+    dynamic a2;
+    final dynamic b2;
+    final synthesized core::Map<dynamic, dynamic> #3#0 = map;
+    late final synthesized core::bool #3#5 = #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized dynamic #3#6 = #3#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    if(#3#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #3#5 && (let final dynamic #t16 = a2 = #3#6 in true) && #3#5 && (let final dynamic #t17 = b2 = #3#6 in true)) {
+    }
+  }
+  {
+    dynamic a3;
+    final dynamic b3;
+    final synthesized core::Map<dynamic, dynamic> #4#0 = map;
+    late final synthesized core::bool #4#5 = #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized dynamic #4#6 = #4#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
+    if(#4#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #4#5 && (let final dynamic #t18 = a3 = #4#6 in true) && #4#5 && (let final dynamic #t19 = b3 = #4#6 in true)) {
+    }
+  }
+}
+static method test() → dynamic {
+  core::int a;
+  core::int b;
+  {
+    final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
+    late final synthesized core::bool #0#5 = #0#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::int? #0#6 = #0#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    if(!(#0#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#5 && (let final dynamic #t20 = a = #0#6{core::int} in true) && #0#5 && (let final dynamic #t21 = b = #0#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  core::int c;
+  core::int d;
+  {
+    final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
+    late final synthesized core::bool #1#5 = #1#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::int? #1#6 = #1#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
+    if(!(#1#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#5 && (let final dynamic #t22 = c = #1#6{core::int} in true) && #1#5 && (let final dynamic #t23 = d = #1#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final core::int a1;
+  final core::int b1;
+  {
+    final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
+    late final synthesized core::bool #2#5 = #2#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::int? #2#6 = #2#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    if(!(#2#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #2#5 && (let final dynamic #t24 = a1 = #2#6{core::int} in true) && #2#5 && (let final dynamic #t25 = b1 = #2#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final core::int a2;
+  final core::int b2;
+  {
+    final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
+    late final synthesized core::bool #3#5 = #3#0{core::Map<core::double, core::int>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized core::int? #3#6 = #3#0{core::Map<core::double, core::int>}.{core::Map::[]}(#C4){(core::Object?) → core::int?};
+    if(!(#3#0{core::Map<core::double, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #3#5 && (let final dynamic #t26 = a2 = #3#6{core::int} in true) && #3#5 && (let final dynamic #t27 = b2 = #3#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final core::int a3;
+  final core::int b3;
+  {
+    final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
+    late final synthesized core::bool #4#5 = #4#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized core::int? #4#6 = #4#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
+    if(!(#4#0{core::Map<core::String, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #4#5 && (let final dynamic #t28 = a3 = #4#6{core::int} in true) && #4#5 && (let final dynamic #t29 = b3 = #4#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+}
+
+constants  {
+  #C1 = self::C {}
+  #C2 = 2
+  #C3 = 1
+  #C4 = 3.14
+  #C5 = "x"
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///identical_map_keys.dart:
+- C. (from org-dartlang-testcase:///identical_map_keys.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

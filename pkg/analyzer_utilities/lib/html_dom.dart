@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A lightweight html parser and DOM model.
+/// A lightweight DOM model.
 
 import 'dart:convert';
-
-// ignore: implementation_imports
-import 'package:analyzer/src/manifest/manifest_validator.dart';
 
 const _htmlEscape = HtmlEscape(HtmlEscapeMode.element);
 
@@ -108,72 +105,4 @@ class Document extends Element {
 
     return buf.toString();
   }
-}
-
-/// Given HTML text, return a parsed HTML tree.
-Document parse(String htmlContents, Uri uri) {
-  final RegExp commentRegex = RegExp(r'<!--[^>]+-->');
-
-  Element createElement(XmlElement xmlElement) {
-    // element
-    var element = Element.tag(xmlElement.name);
-
-    // attributes
-    for (var key in xmlElement.attributes.keys) {
-      element.attributes[key] = xmlElement.attributes[key]!.value;
-    }
-
-    // From the immediate children, determine where the text between the tags is
-    // report any such non empty text as Text nodes.
-    var text = xmlElement.sourceSpan?.text ?? '';
-
-    if (!text.endsWith('/>')) {
-      var indices = <int>[];
-      var offset = xmlElement.sourceSpan!.start.offset;
-
-      indices.add(text.indexOf('>') + 1);
-      for (var child in xmlElement.children) {
-        var childSpan = child.sourceSpan!;
-        indices.add(childSpan.start.offset - offset);
-        indices.add(childSpan.end.offset - offset);
-      }
-      indices.add(text.lastIndexOf('<'));
-
-      var textNodes = <Text>[];
-      for (var index = 0; index < indices.length; index += 2) {
-        var start = indices[index];
-        var end = indices[index + 1];
-        // Remove html comments (<!--  -->) from text.
-        textNodes.add(
-          Text(text.substring(start, end).replaceAll(commentRegex, '')),
-        );
-      }
-
-      element.append(textNodes.removeAt(0));
-
-      for (var child in xmlElement.children) {
-        element.append(createElement(child));
-        element.append(textNodes.removeAt(0));
-      }
-
-      element.nodes.removeWhere((node) => node is Text && node.text.isEmpty);
-    }
-
-    return element;
-  }
-
-  var parser = ManifestParser.general(htmlContents, uri: uri);
-  var result = parser.parseXmlTag();
-
-  while (result.parseResult != ParseTagResult.eof.parseResult) {
-    if (result.element != null) {
-      var document = Document();
-      document.append(createElement(result.element!));
-      return document;
-    }
-
-    result = parser.parseXmlTag();
-  }
-
-  throw 'parse error - element not found';
 }

@@ -12,6 +12,7 @@
 #include "vm/regexp_assembler_bytecode.h"
 #include "vm/regexp_parser.h"
 #include "vm/reusable_handles.h"
+#include "vm/symbols.h"
 #include "vm/thread.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -62,11 +63,13 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
   RegExpParser::ParseRegExp(pattern, flags, &compileData);
 
   {
+    RegExpKey lookup_symbol_key(String::Handle(Symbols::New(thread, pattern)),
+                                flags);
     SafepointMutexLocker ml(thread->isolate_group()->symbols_mutex());
     CanonicalRegExpSet table(
         thread->zone(),
         thread->isolate_group()->object_store()->regexp_table());
-    regexp ^= table.InsertNewOrGet(lookup_key);
+    regexp ^= table.InsertNewOrGet(lookup_symbol_key);
     thread->isolate_group()->object_store()->set_regexp_table(table.Release());
   }
 

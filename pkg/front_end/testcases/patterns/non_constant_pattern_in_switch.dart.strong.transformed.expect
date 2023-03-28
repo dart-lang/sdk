@@ -40,58 +40,71 @@ static method test(dynamic value, core::bool expected) → void {
   core::bool matched;
   #L1:
   {
-    final dynamic #0#0 = value;
-    core::bool #0#4;
-    core::bool #0#4#isSet = false;
-    dynamic #0#6;
-    core::bool #0#6#isSet = false;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t1 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t2 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic})) {
-      {
-        matched = true;
-        break #L1;
-      }
-    }
-    else
-      if(#0#0 is{ForNonNullableByDefault} core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t3 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::num} #0#6{core::num} : let final core::bool* #t4 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num})) {
+    final synthesized dynamic #0#0 = value;
+    synthesized core::bool #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::bool #0#8;
+    synthesized core::bool #0#8#isSet = false;
+    synthesized core::bool #0#13;
+    synthesized core::bool #0#13#isSet = false;
+    synthesized core::bool #0#16;
+    synthesized core::bool #0#16#isSet = false;
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t1 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool* #t2 = #0#8#isSet = true in #0#8 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic})) {
         {
           matched = true;
           break #L1;
         }
       }
-      else
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t5 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) {
-          {
-            matched = true;
-            break #L1;
-          }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t3 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool* #t4 = #0#8#isSet = true in #0#8 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num})) {
+        {
+          matched = true;
+          break #L1;
         }
-        else
-          if(#0#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t6 = #0#4#isSet = true in #0#4 = #0#0{core::Map<core::num, core::Object>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #0#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} (let core::Object? #t7 = #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in #t7 == null ?{core::Object} #t7 as{ForNonNullableByDefault} core::Object : #t7{core::Object})) {
-            {
-              matched = true;
-              break #L1;
-            }
-          }
-          else
-            if(#0#0 is{ForNonNullableByDefault} self::Const<dynamic>) {
-              {
-                matched = true;
-                break #L1;
-              }
-            }
-            else
-              if(#0#0 is{ForNonNullableByDefault} self::Const<core::num>) {
-                {
-                  matched = true;
-                  break #L1;
-                }
-              }
-              else {
-                {
-                  matched = false;
-                  break #L1;
-                }
-              }
+      }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t5 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#13#isSet ?{core::bool} #0#13{core::bool} : let final core::bool* #t6 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t7 = #0#16#isSet = true in #0#16 = #C4 =={core::String::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic})) {
+        {
+          matched = true;
+          break #L1;
+        }
+      }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t8 = #0#4#isSet = true in #0#4 = #0#0{core::Map<core::num, core::Object>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#13#isSet ?{core::bool} #0#13{core::bool} : let final core::bool* #t9 = #0#13#isSet = true in #0#13 = #0#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t10 = #0#16#isSet = true in #0#16 = #C4 =={core::String::==}{(core::Object) → core::bool} (let core::Object? #t11 = #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in #t11 == null ?{core::Object} #t11 as{ForNonNullableByDefault} core::Object : #t11{core::Object}))) {
+        {
+          matched = true;
+          break #L1;
+        }
+      }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::Const<dynamic>) {
+        {
+          matched = true;
+          break #L1;
+        }
+      }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::Const<core::num>) {
+        {
+          matched = true;
+          break #L1;
+        }
+      }
+    }
+    {
+      {
+        {
+          matched = false;
+          break #L1;
+        }
+      }
+    }
   }
   if(!(matched =={core::Object::==}{(core::Object) → core::bool} expected)) {
     core::print("FAIL: ${value} ${matched ?{core::String} "matched" : "didn't match"}");
@@ -103,8 +116,8 @@ constants  {
   #C2 = <core::int>[#C1]
   #C3 = <core::num>[#C1]
   #C4 = "foo"
-  #C5 = <core::int, core::String>{#C1:#C4)
-  #C6 = <core::num, core::Object>{#C1:#C4)
+  #C5 = <core::int, core::String>{#C1:#C4}
+  #C6 = <core::num, core::Object>{#C1:#C4}
   #C7 = self::Const<core::int> {value:#C1}
   #C8 = self::Const<core::num> {value:#C1}
   #C9 = 1

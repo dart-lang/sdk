@@ -13,7 +13,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeNameResolutionTest);
-    defineReflectiveTests(TypeNameResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(TypeNameResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -604,6 +604,13 @@ Nothing f() {}
   }
 }
 
+@reflectiveTest
+class TypeNameResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
+    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
+  @override
+  bool get isNullSafetyEnabled => true;
+}
+
 mixin TypeNameResolutionTestCases on PubPackageResolutionTest {
   test_class() async {
     await assertNoErrorsInCode(r'''
@@ -870,11 +877,4 @@ f(Never a) {}
       typeStr('Never', 'Null*'),
     );
   }
-}
-
-@reflectiveTest
-class TypeNameResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
-  @override
-  bool get isNullSafetyEnabled => true;
 }

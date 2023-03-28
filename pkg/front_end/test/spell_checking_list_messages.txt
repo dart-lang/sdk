@@ -34,6 +34,7 @@ dart.dev
 dart2js_server
 dart:_internal
 dart:ffi
+dart:js_interop
 dart_runner
 dartbug.com
 dname
@@ -79,6 +80,7 @@ part(s)
 patch(es)
 patterns
 placing
+pragma
 preexisting
 pubspec.yaml
 r
@@ -90,6 +92,7 @@ solutions
 stacktrace
 stand
 staticinterop
+strict
 stringokempty
 struct<#name
 structs
@@ -98,6 +101,7 @@ superinterface
 supermixin
 t
 team
+tearoff
 this.namedconstructor
 this.x
 trusttypes

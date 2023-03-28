@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -67,8 +69,8 @@ extension ArgResultsExtensions on ArgResults {
       // We allow default true flags, but complain when they are passed in.
       if (feature.isEnabledByDefault &&
           enabledExperiments.contains(feature.enableString)) {
-        print("'${feature.enableString}' is now enabled by default; this "
-            'flag is no longer required.');
+        stderr.writeln("'${feature.enableString}' is now enabled by default; "
+            'this flag is no longer required.');
       }
     }
     return enabledExperiments;

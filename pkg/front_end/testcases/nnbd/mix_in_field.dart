@@ -4,7 +4,7 @@
 
 import "dart:async";
 
-class Mixin {
+mixin Mixin {
   FutureOr<Null> m;
 }
 

@@ -21,7 +21,7 @@ ISOLATE_UNIT_TEST_CASE(Disassembler) {
   assembler.Stop("testing disassembler");
 
   // Only verify that the disassembler does not crash.
-  AssemblerTest test("Disassembler", &assembler);
+  AssemblerTest test("Disassembler", &assembler, Thread::Current()->zone());
   test.Assemble();
   Disassembler::Disassemble(test.entry(), test.entry() + assembler.CodeSize());
 }

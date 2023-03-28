@@ -26,15 +26,15 @@ class DapServer {
   final Logger? logger;
 
   DapServer(
-    Stream<List<int>> _input,
-    StreamSink<List<int>> _output, {
+    Stream<List<int>> input,
+    StreamSink<List<int>> output, {
     this.ipv6 = false,
     this.enableDds = true,
     this.enableAuthCodes = true,
     this.test = false,
     this.logger,
     Function? onError,
-  }) : channel = ByteStreamServerChannel(_input, _output, logger) {
+  }) : channel = ByteStreamServerChannel(input, output, logger) {
     adapter = test
         ? DartTestDebugAdapter(
             channel,

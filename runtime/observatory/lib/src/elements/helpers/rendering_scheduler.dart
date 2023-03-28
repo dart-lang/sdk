@@ -22,7 +22,6 @@ class RenderedEvent<T> {
 
   RenderedEvent(this.element, this.otherRenderScheduled) {
     assert(element != null);
-    assert(otherRenderScheduled != null);
   }
 }
 
@@ -55,7 +54,6 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// Creates a new scheduler for an element.
   /// If no queue is provided it will create a new default configured queue.
   factory RenderingScheduler(T element, {RenderingQueue? queue}) {
-    assert(element != null);
     if (queue == null) {
       queue = new RenderingQueue();
     }
@@ -76,7 +74,6 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// New dirty or schedule request will be discarded.
   /// [optional] notify: send a final RenderEvent.
   void disable({bool notify = false}) {
-    assert(notify != null);
     if (!_enabled) return;
     _enabled = false;
     if (notify) scheduleNotification();

@@ -17,7 +17,7 @@ class A {
   }
 }
 
-class I {}
+mixin I {}
 
 class B extends A with I {
   int y;

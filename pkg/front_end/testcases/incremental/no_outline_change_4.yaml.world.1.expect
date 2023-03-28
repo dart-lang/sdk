@@ -24,10 +24,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///libA.dart";
 
-  class Foo extends dart.core::Object {
-    synthetic constructor •() → main::Foo
-      : super dart.core::Object::•()
-      ;
+  abstract class Foo extends dart.core::Object /*isMixinDeclaration*/  {
     method method() → dynamic {
       dart.core::print("A");
     }

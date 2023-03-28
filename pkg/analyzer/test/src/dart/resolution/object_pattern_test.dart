@@ -15,7 +15,34 @@ main() {
 
 @reflectiveTest
 class ObjectPatternResolutionTest extends PubPackageResolutionTest {
-  test_class_generic_noTypeArguments_infer_interfaceType() async {
+  test_class_generic_noTypeArguments_infer_f_bounded() async {
+    await assertNoErrorsInCode(r'''
+abstract class B<T extends B<T>> {}
+abstract class C extends B<C> {}
+
+void f(Object o) {
+  switch (o) {
+    case B():
+  }
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: B
+      staticElement: self::@class::B
+      staticType: null
+    type: B<B<Object?>>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: Object
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_fromSuperType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
 class B<T> extends A<T> {}
@@ -41,7 +68,60 @@ ObjectPattern
 ''');
   }
 
-  test_class_generic_noTypeArguments_infer_interfaceType_viaTypeAlias() async {
+  test_class_generic_noTypeArguments_infer_partial_inference() async {
+    await assertNoErrorsInCode(r'''
+abstract class B<T> {}
+abstract class C<T, U extends Set<T>> extends B<T> {}
+
+void f(B<int> b) {
+  switch (b) {
+    case C():
+  }
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    type: C<int, Set<int>>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: B<int>
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_useBounds() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {}
+
+void f(Object? x) {
+  switch (x) {
+    case A():
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A<num>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: Object?
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_viaTypeAlias() async {
     await assertNoErrorsInCode(r'''
 class A<T, U> {}
 class B<T, U> extends A<T, U> {}

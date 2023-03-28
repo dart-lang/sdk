@@ -18,8 +18,3 @@ final class FinalClassTypeAlias = Object with M;
 // [error column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] The 'class-modifiers' language feature is disabled for this library.
-
-final mixin FinalMixin {}
-// [error column 1, length 5]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] The 'class-modifiers' language feature is disabled for this library.

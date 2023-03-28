@@ -8,7 +8,7 @@ import 'dart:ffi';
 
 typedef T = Int64;
 
-class A extends Struct {
+final class A extends Struct {
   @Array.multi([16])
   external Array<T> b;
 }

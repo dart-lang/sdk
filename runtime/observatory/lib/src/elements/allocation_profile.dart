@@ -65,11 +65,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.AllocationProfileRepository repository,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(repository != null);
     AllocationProfileElement e = new AllocationProfileElement.created();
     e._r = new RenderingScheduler<AllocationProfileElement>(e, queue: queue);
     e._vm = vm;

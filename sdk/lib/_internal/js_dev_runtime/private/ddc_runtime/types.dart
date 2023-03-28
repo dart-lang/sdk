@@ -78,14 +78,20 @@ void nonNullAsserts(bool enable) {
 }
 
 @notNull
-bool _nativeNonNullAsserts = false;
+bool _nativeNonNullAsserts = compileTimeFlag('soundNullSafety');
 
-/// Enables null assertions on native APIs to make sure value returned from the
-/// browser is sound.
+/// Enables null assertions on native APIs to make sure values returned from the
+/// browser are sound.
 ///
 /// These apply to dart:html and similar web libraries. Note that these only are
 /// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
+  if (enable && !compileTimeFlag('soundNullSafety')) {
+    _warn('Enabling `native-null-assertions` is only supported when sound null '
+        'safety is enabled.');
+  }
+  // This value is only read from `checkNativeNonNull` and calls to that method
+  // are only generated in sound null safe code.
   _nativeNonNullAsserts = enable;
 }
 
@@ -2277,7 +2283,7 @@ class Shape {
 }
 
 /// Internal base class for all concrete records.
-class _RecordImpl implements Record {
+final class _RecordImpl implements Record {
   Shape shape;
   List values;
 
@@ -2467,7 +2473,7 @@ class RecordType extends DartType {
     var count = types.length;
 
     var buffer = StringBuffer();
-    buffer.write('RecordType(');
+    buffer.write('(');
     for (var i = 0; i < count; i++) {
       if (i < posCount) {
         buffer.write('${types[i]}');

@@ -19,7 +19,7 @@ class FinalClassImplementedOutsideOfLibraryTest
   test_class_inside() async {
     await assertNoErrorsInCode(r'''
 final class Foo {}
-class Bar implements Foo {}
+final class Bar implements Foo {}
 ''');
   }
 
@@ -30,9 +30,9 @@ final class Foo {}
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar implements Foo {}
+final class Bar implements Foo {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 46,
           3),
     ]);
   }
@@ -45,9 +45,9 @@ typedef FooTypedef = Foo;
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar implements FooTypedef {}
+final class Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 46,
           10),
     ]);
   }
@@ -60,23 +60,11 @@ final class Foo {}
     await assertErrorsInCode(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
-class Bar implements FooTypedef {}
+final class Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 72,
           10),
     ]);
-  }
-
-  test_class_subtypeOfFinal_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-final class Foo {}
-class Bar implements Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-class Bar2 implements Bar {}
-''');
   }
 
   test_enum_inside() async {
@@ -145,7 +133,7 @@ enum Bar2 implements Bar { bar }
   test_mixin_inside() async {
     await assertNoErrorsInCode(r'''
 final class Foo {}
-mixin Bar implements Foo {}
+final mixin Bar implements Foo {}
 ''');
   }
 
@@ -156,9 +144,9 @@ final class Foo {}
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-mixin Bar implements Foo {}
+final mixin Bar implements Foo {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 46,
           3),
     ]);
   }
@@ -171,9 +159,9 @@ typedef FooTypedef = Foo;
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-mixin Bar implements FooTypedef {}
+final mixin Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 46,
           10),
     ]);
   }
@@ -186,22 +174,10 @@ final class Foo {}
     await assertErrorsInCode(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
-mixin Bar implements FooTypedef {}
+final mixin Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
+      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 72,
           10),
     ]);
-  }
-
-  test_mixin_subtypeOfFinal_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-final class Foo {}
-class Bar implements Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-mixin Bar2 implements Bar {}
-''');
   }
 }

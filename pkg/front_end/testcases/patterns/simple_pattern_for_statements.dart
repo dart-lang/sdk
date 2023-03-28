@@ -8,9 +8,23 @@ test1(dynamic x) {
   }
 }
 
+test2(List<int> x) {
+  List<int> result = [];
+  for (var [c, n] = x; c < n; result.add(c)) {
+    result.add(c);
+    c++;
+  }
+  return result;
+}
+
 main() {
   expectEquals(test1([0]), 0);
   expectThrows(() => test1([]));
+
+  expectEquals(
+    listToString(test2([1, 2])),
+    listToString([1, 2]),
+  );
 }
 
 expectEquals(x, y) {
@@ -29,3 +43,5 @@ expectThrows(void Function() f) {
     throw "Expected function to throw.";
   }
 }
+
+listToString(List list) => "[${list.map((e) => '${e}').join(',')}]";

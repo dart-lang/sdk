@@ -1,13 +1,14 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // Test that instanceof works correctly with type variables.
 
 import "package:expect/expect.dart";
 
 class A {}
 
-class B<T, S> {}
+mixin B<T, S> {}
 
 class C<U, V> extends A with B<V, U> {}
 

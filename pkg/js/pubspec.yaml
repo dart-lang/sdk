@@ -1,10 +1,10 @@
 name: js
-version: 0.6.7
+version: 0.6.9-dev
 description: Annotations to create static Dart interfaces for JavaScript APIs.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/js
 
 environment:
-  sdk: ">=2.19.0 <3.0.0"
+  sdk: ">=3.0.0-217.0.dev <4.0.0"
 
 dependencies:
   meta: ^1.7.0

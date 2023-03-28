@@ -59,6 +59,7 @@ class Instruction;
 class InstructionVisitor;
 class LocalVariable;
 class LoopInfo;
+class MoveSchedule;
 class ParsedFunction;
 class Range;
 class RangeAnalysis;
@@ -419,7 +420,7 @@ struct InstrAttrs {
   M(MemoryCopy, kNoGC)                                                         \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
-  M(PushArgument, kNoGC)                                                       \
+  M(MoveArgument, kNoGC)                                                       \
   M(Return, kNoGC)                                                             \
   M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
@@ -860,7 +861,7 @@ class BinaryFeedback : public ZoneAllocated {
 };
 
 typedef GrowableArray<Value*> InputsArray;
-typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
+typedef ZoneGrowableArray<MoveArgumentInstr*> MoveArgumentsArray;
 
 template <typename Trait>
 class InstructionIndexedPropertyIterable {
@@ -1003,24 +1004,25 @@ class Instruction : public ZoneAllocated {
   inline Value* ArgumentValueAt(intptr_t index) const;
   inline Definition* ArgumentAt(intptr_t index) const;
 
-  // Sets array of PushArgument instructions.
-  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+  // Sets array of MoveArgument instructions.
+  virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
     UNREACHABLE();
   }
-  // Returns array of PushArgument instructions
-  virtual PushArgumentsArray* GetPushArguments() const {
+  // Returns array of MoveArgument instructions
+  virtual MoveArgumentsArray* GetMoveArguments() const {
     UNREACHABLE();
     return nullptr;
   }
-  // Replace inputs with separate PushArgument instructions detached from call.
-  virtual void ReplaceInputsWithPushArguments(
-      PushArgumentsArray* push_arguments) {
+  // Replace inputs with separate MoveArgument instructions detached from call.
+  virtual void ReplaceInputsWithMoveArguments(
+      MoveArgumentsArray* move_arguments) {
     UNREACHABLE();
   }
-  bool HasPushArguments() const { return GetPushArguments() != nullptr; }
+  bool HasMoveArguments() const { return GetMoveArguments() != nullptr; }
 
-  // Repairs trailing PushArgs in environment.
-  void RepairPushArgsInEnvironment() const;
+  // Replaces direct uses of arguments with uses of corresponding MoveArgument
+  // instructions.
+  void RepairArgumentUsesInEnvironment() const;
 
   // Returns true, if this instruction can deoptimize with its current inputs.
   // This property can change if we add or remove redefinitions that constrain
@@ -1478,6 +1480,8 @@ class TemplateInstruction
 class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
+  MoveOperands(const MoveOperands& other)
+      : ZoneAllocated(), dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -1531,6 +1535,9 @@ class MoveOperands : public ZoneAllocated {
     return src_.IsInvalid();
   }
 
+  void Write(FlowGraphSerializer* s) const;
+  explicit MoveOperands(FlowGraphDeserializer* d);
+
  private:
   Location dest_;
   Location src_;
@@ -1567,12 +1574,22 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
     return TokenPosition::kParallelMove;
   }
 
+  const MoveSchedule& move_schedule() const {
+    ASSERT(move_schedule_ != nullptr);
+    return *move_schedule_;
+  }
+
+  void set_move_schedule(const MoveSchedule& schedule) {
+    move_schedule_ = &schedule;
+  }
+
   PRINT_TO_SUPPORT
   DECLARE_EMPTY_SERIALIZATION(ParallelMoveInstr, TemplateInstruction)
   DECLARE_EXTRA_SERIALIZATION
 
  private:
   GrowableArray<MoveOperands*> moves_;  // Elements cannot be null.
+  const MoveSchedule* move_schedule_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
@@ -2802,19 +2819,23 @@ class PhiInstr : public VariadicDefinition {
 
 // This instruction represents an incoming parameter for a function entry,
 // or incoming value for OSR entry or incoming value for a catch entry.
-// Value [index] always denotes the position of the parameter. When [base_reg]
-// is set to FPREG, value [index] corresponds to environment variable index
-// (0 is the very first parameter, 1 is next and so on). When [base_reg] is
-// set to SPREG, value [index] needs to be reversed (0 is the very last
-// parameter, 1 is next and so on) to get the sp relative position.
+// [env_index] is a position of the parameter in the flow graph environment.
+// [param_index] is a position of the function parameter, or -1 if
+// this instruction doesn't correspond to a real function parameter.
 class ParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  ParameterInstr(intptr_t index,
+  // [param_index] when ParameterInstr doesn't correspond to
+  // a function parameter.
+  static constexpr intptr_t kNotFunctionParameter = -1;
+
+  ParameterInstr(intptr_t env_index,
+                 intptr_t param_index,
                  intptr_t param_offset,
                  BlockEntryInstr* block,
                  Representation representation,
                  Register base_reg = FPREG)
-      : index_(index),
+      : env_index_(env_index),
+        param_index_(param_index),
         param_offset_(param_offset),
         base_reg_(base_reg),
         representation_(representation),
@@ -2823,7 +2844,14 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   DECLARE_INSTRUCTION(Parameter)
   DECLARE_ATTRIBUTES(index())
 
-  intptr_t index() const { return index_; }
+  // Index of the parameter in the flow graph environment.
+  intptr_t env_index() const { return env_index_; }
+  intptr_t index() const { return env_index(); }
+
+  // Index of the real function parameter
+  // (between 0 and function.NumParameters()), or -1.
+  intptr_t param_index() const { return param_index_; }
+
   intptr_t param_offset() const { return param_offset_; }
   Register base_reg() const { return base_reg_; }
 
@@ -2852,7 +2880,8 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
-  F(const intptr_t, index_)                                                    \
+  F(const intptr_t, env_index_)                                                \
+  F(const intptr_t, param_index_)                                              \
   /* The offset (in words) of the last slot of the parameter, relative */      \
   /* to the first parameter. */                                                \
   /* It is used in the FlowGraphAllocator when it sets the assigned */         \
@@ -3163,21 +3192,20 @@ class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(TailCallInstr);
 };
 
-class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
+// Move the given argument value into the place where callee expects it.
+// Currently all outgoing arguments are located in [SP+idx]
+class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit PushArgumentInstr(Value* value,
+  explicit MoveArgumentInstr(Value* value,
                              Representation representation,
-                             intptr_t top_of_stack_relative_index)
-      : representation_(representation),
-        top_of_stack_relative_index_(top_of_stack_relative_index) {
+                             intptr_t sp_relative_index)
+      : representation_(representation), sp_relative_index_(sp_relative_index) {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(PushArgument)
+  DECLARE_INSTRUCTION(MoveArgument)
 
-  intptr_t top_of_stack_relative_index() const {
-    return top_of_stack_relative_index_;
-  }
+  intptr_t sp_relative_index() const { return sp_relative_index_; }
 
   virtual CompileType ComputeType() const;
 
@@ -3188,7 +3216,7 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual TokenPosition token_pos() const {
-    return TokenPosition::kPushArgument;
+    return TokenPosition::kMoveArgument;
   }
 
   virtual Representation representation() const { return representation_; }
@@ -3202,20 +3230,20 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
 #define FIELD_LIST(F)                                                          \
   F(const Representation, representation_)                                     \
-  F(const intptr_t, top_of_stack_relative_index_)
+  F(const intptr_t, sp_relative_index_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(PushArgumentInstr,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MoveArgumentInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
+  DISALLOW_COPY_AND_ASSIGN(MoveArgumentInstr);
 };
 
 inline Value* Instruction::ArgumentValueAt(intptr_t index) const {
-  PushArgumentsArray* push_arguments = GetPushArguments();
-  return push_arguments != nullptr ? (*push_arguments)[index]->value()
+  MoveArgumentsArray* move_arguments = GetMoveArguments();
+  return move_arguments != nullptr ? (*move_arguments)[index]->value()
                                    : InputAt(index);
 }
 
@@ -3691,11 +3719,11 @@ class BranchInstr : public Instruction {
   virtual intptr_t ArgumentCount() const {
     return comparison()->ArgumentCount();
   }
-  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
-    comparison()->SetPushArguments(push_arguments);
+  virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
+    comparison()->SetMoveArguments(move_arguments);
   }
-  virtual PushArgumentsArray* GetPushArguments() const {
-    return comparison()->GetPushArguments();
+  virtual MoveArgumentsArray* GetMoveArguments() const {
+    return comparison()->GetMoveArguments();
   }
 
   intptr_t InputCount() const { return comparison()->InputCount(); }
@@ -4331,23 +4359,23 @@ class TemplateDartCall : public VariadicDefinition {
   // ArgumentCount() includes the type argument vector if any.
   // Caution: Must override Instruction::ArgumentCount().
   intptr_t ArgumentCount() const {
-    return push_arguments_ != nullptr ? push_arguments_->length()
+    return move_arguments_ != nullptr ? move_arguments_->length()
                                       : InputCount() - kExtraInputs;
   }
   virtual intptr_t ArgumentsSize() const { return ArgumentCount(); }
 
-  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
-    ASSERT(push_arguments_ == nullptr);
-    push_arguments_ = push_arguments;
+  virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
+    ASSERT(move_arguments_ == nullptr);
+    move_arguments_ = move_arguments;
   }
-  virtual PushArgumentsArray* GetPushArguments() const {
-    return push_arguments_;
+  virtual MoveArgumentsArray* GetMoveArguments() const {
+    return move_arguments_;
   }
-  virtual void ReplaceInputsWithPushArguments(
-      PushArgumentsArray* push_arguments) {
-    ASSERT(push_arguments_ == nullptr);
-    ASSERT(push_arguments->length() == ArgumentCount());
-    SetPushArguments(push_arguments);
+  virtual void ReplaceInputsWithMoveArguments(
+      MoveArgumentsArray* move_arguments) {
+    ASSERT(move_arguments_ == nullptr);
+    ASSERT(move_arguments->length() == ArgumentCount());
+    SetMoveArguments(move_arguments);
     ASSERT(InputCount() == ArgumentCount() + kExtraInputs);
     const intptr_t extra_inputs_base = InputCount() - kExtraInputs;
     for (intptr_t i = 0, n = ArgumentCount(); i < n; ++i) {
@@ -4379,7 +4407,7 @@ class TemplateDartCall : public VariadicDefinition {
   DECLARE_EXTRA_SERIALIZATION
 
  private:
-  PushArgumentsArray* push_arguments_ = nullptr;
+  MoveArgumentsArray* move_arguments_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
 };
@@ -4666,7 +4694,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
                                                 InstanceCallBaseInstr* call,
                                                 const CallTargets& targets,
                                                 bool complete) {
-    ASSERT(!call->HasPushArguments());
+    ASSERT(!call->HasMoveArguments());
     InputsArray args(zone, call->ArgumentCount());
     for (intptr_t i = 0, n = call->ArgumentCount(); i < n; ++i) {
       args.Add(call->ArgumentValueAt(i)->CopyWithType(zone));
@@ -5244,7 +5272,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                                    const C* call,
                                    const Function& target,
                                    intptr_t call_count) {
-    ASSERT(!call->HasPushArguments());
+    ASSERT(!call->HasMoveArguments());
     InputsArray args(zone, call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
       args.Add(call->ArgumentValueAt(i)->CopyWithType());
@@ -10833,7 +10861,7 @@ class Environment : public ZoneAllocated {
   intptr_t CountArgsPushed() {
     intptr_t count = 0;
     for (Environment::DeepIterator it(this); !it.Done(); it.Advance()) {
-      if (it.CurrentValue()->definition()->IsPushArgument()) {
+      if (it.CurrentValue()->definition()->IsMoveArgument()) {
         count++;
       }
     }

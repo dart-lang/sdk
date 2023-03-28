@@ -162,12 +162,14 @@ mixin KernelNodes {
   // dart:core various procedures
   late final Procedure objectNoSuchMethod =
       index.getProcedure("dart:core", "Object", "noSuchMethod");
-  late final Procedure objectRuntimeType =
-      index.getProcedure("dart:core", "Object", "get:_runtimeType");
+  late final Procedure objectGetTypeArguments =
+      index.getProcedure("dart:core", "Object", "_getTypeArguments");
   late final Procedure nullToString =
       index.getProcedure("dart:core", "Object", "_nullToString");
   late final Procedure nullNoSuchMethod =
       index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
+  late final Procedure recordGetRecordRuntimeType =
+      index.getProcedure("dart:core", "Record", "_getRecordRuntimeType");
   late final Procedure stringEquals =
       index.getProcedure("dart:core", "_StringBase", "==");
   late final Procedure stringInterpolate =
@@ -184,6 +186,9 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Invocation", "genericMethod");
   late final Procedure noSuchMethodErrorThrowWithInvocation = index
       .getProcedure("dart:core", "NoSuchMethodError", "_throwWithInvocation");
+  late final Procedure noSuchMethodErrorThrowUnimplementedExternalMemberError =
+      index.getProcedure("dart:core", "NoSuchMethodError",
+          "_throwUnimplementedExternalMemberError");
   late final Procedure stackTraceCurrent =
       index.getProcedure("dart:core", "StackTrace", "get:current");
   late final Procedure throwNullCheckError =
@@ -194,6 +199,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_TypeError", "_throwWasmRefError");
   late final Procedure throwArgumentTypeCheckError = index.getProcedure(
       "dart:core", "_TypeError", "_throwArgumentTypeCheckError");
+  late final Procedure throwTypeArgumentBoundCheckError = index.getProcedure(
+      "dart:core", "_TypeError", "_throwTypeArgumentBoundCheckError");
   late final Procedure throwAssertionError =
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
   late final Procedure javaScriptErrorFactory =
@@ -207,8 +214,14 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Error", "_throw");
 
   // dart:core type procedures
+  late final Procedure getActualRuntimeType =
+      index.getTopLevelProcedure("dart:core", "_getActualRuntimeType");
+  late final Procedure getMasqueradedRuntimeType =
+      index.getTopLevelProcedure("dart:core", "_getMasqueradedRuntimeType");
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
+  late final Procedure isTypeSubtype =
+      index.getTopLevelProcedure("dart:core", "_isTypeSubtype");
   late final Procedure checkClosureShape =
       index.getTopLevelProcedure("dart:core", "_checkClosureShape");
   late final Procedure checkClosureType =

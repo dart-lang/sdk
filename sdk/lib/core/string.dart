@@ -105,7 +105,7 @@ part of dart.core;
 /// * [RegExp] to work with regular expressions.
 /// * [Strings and regular expressions](https://dart.dev/guides/libraries/library-tour#strings-and-regular-expressions)
 @pragma('vm:entry-point')
-abstract class String implements Comparable<String>, Pattern {
+abstract final class String implements Comparable<String>, Pattern {
   /// Allocates a new string containing the specified [charCodes].
   ///
   /// The [charCodes] can be both UTF-16 code units and runes.

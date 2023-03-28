@@ -131,7 +131,7 @@ abstract class TypeSchemaEnvironmentTestBase {
       expect(
           typeSchemaEnvironment.getStandardLowerBound(
               parseType(type1), parseType(type2),
-              isNonNullableByDefault: testLibrary.isNonNullableByDefault),
+              isNonNullableByDefault: isNonNullableByDefault),
           parseType(lowerBound));
     });
   }
@@ -169,14 +169,16 @@ abstract class TypeSchemaEnvironmentTestBase {
               declaredReturnTypeNode,
               typeParameterNodesToInfer,
               returnContextTypeNode,
-              testLibrary);
+              isNonNullableByDefault: isNonNullableByDefault);
       if (formalTypeNodes == null) {
-        inferredTypeNodes = typeSchemaEnvironment.partialInfer(gatherer,
-            typeParameterNodesToInfer, inferredTypeNodes, testLibrary);
+        inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes,
+            isNonNullableByDefault: isNonNullableByDefault);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!);
-        inferredTypeNodes = typeSchemaEnvironment.upwardsInfer(gatherer,
-            typeParameterNodesToInfer, inferredTypeNodes!, testLibrary);
+        inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes!,
+            isNonNullableByDefault: isNonNullableByDefault);
       }
 
       assert(
@@ -208,11 +210,12 @@ abstract class TypeSchemaEnvironmentTestBase {
           ? null
           : <DartType>[parseType(inferredTypeFromDownwardPhase)];
 
-      inferredTypeNodes = typeSchemaEnvironment.inferTypeFromConstraints({
-        typeParameterNode: typeConstraint
-      }, [
-        typeParameterNode
-      ], inferredTypeNodes, testLibrary, partial: downwardsInferPhase);
+      inferredTypeNodes = typeSchemaEnvironment.inferTypeFromConstraints(
+          {typeParameterNode: typeConstraint},
+          [typeParameterNode],
+          inferredTypeNodes,
+          isNonNullableByDefault: isNonNullableByDefault,
+          preliminary: downwardsInferPhase);
 
       expect(inferredTypeNodes.single, expectedTypeNode);
     });
@@ -243,11 +246,11 @@ abstract class TypeSchemaEnvironmentTestBase {
           firstLowerBoundSegment = false;
           if (segment.isNotEmpty) {
             typeSchemaEnvironment.addUpperBound(result, parseType(segment),
-                isNonNullableByDefault: testLibrary.isNonNullableByDefault);
+                isNonNullableByDefault: isNonNullableByDefault);
           }
         } else {
           typeSchemaEnvironment.addLowerBound(result, parseType(segment),
-              isNonNullableByDefault: testLibrary.isNonNullableByDefault);
+              isNonNullableByDefault: isNonNullableByDefault);
         }
       }
     }

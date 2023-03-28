@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
@@ -175,10 +176,18 @@ void f() {
   }
 
   Future<void> test_diagnosticTag_deprecated() async {
-    newFile(mainFilePath, '''
+    var onePackagePath = convertPath('/home/one');
+    writePackageConfig(
+      projectFolderPath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'one', rootPath: onePackagePath),
+    );
+    newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
     int? dep;
-
+    ''');
+    newFile(mainFilePath, r'''
+    import 'package:one/one.dart';
     void f() => print(dep);
     ''');
 
@@ -189,15 +198,23 @@ void f() {
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics!.first;
-    expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
+    expect(diagnostic.code, equals('deprecated_member_use'));
     expect(diagnostic.tags, contains(DiagnosticTag.Deprecated));
   }
 
   Future<void> test_diagnosticTag_notSupported() async {
-    newFile(mainFilePath, '''
+    var onePackagePath = convertPath('/home/one');
+    writePackageConfig(
+      projectFolderPath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'one', rootPath: onePackagePath),
+    );
+    newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
     int? dep;
-
+    ''');
+    newFile(mainFilePath, r'''
+    import 'package:one/one.dart';
     void f() => print(dep);
     ''');
 
@@ -206,7 +223,7 @@ void f() {
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics!.first;
-    expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
+    expect(diagnostic.code, equals('deprecated_member_use'));
     expect(diagnostic.tags, isNull);
   }
 

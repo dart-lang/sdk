@@ -29,7 +29,7 @@ final variadicStructVarArgs = ffiTestFunctions.lookupFunction<
     ffi.Int64 Function(VarArgs, ffi.VarArgs<(VarArgs,)>),
     int Function(VarArgs, VarArgs)>('VariadicStructVarArgs');
 
-class VarArgs extends ffi.Struct {
+final class VarArgs extends ffi.Struct {
   @ffi.Int32()
   external int a;
 }

@@ -337,246 +337,6 @@ class SwitchCaseImpl extends SwitchCase {
   }
 }
 
-final PatternGuard dummyPatternGuard = new PatternGuard(dummyPattern);
-
-/// A [Pattern] with an optional guard [Expression].
-class PatternGuard extends TreeNode with InternalTreeNode {
-  Pattern pattern;
-  Expression? guard;
-
-  PatternGuard(this.pattern, [this.guard]) {
-    pattern.parent = this;
-    guard?.parent = this;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    if (guard != null) {
-      printer.write(' when ');
-      printer.writeExpression(guard!);
-    }
-  }
-
-  @override
-  String toString() => 'PatternGuard(${toStringInternal()})';
-}
-
-class PatternSwitchCase extends TreeNode
-    with InternalTreeNode
-    implements SwitchCase {
-  final List<int> caseOffsets;
-  final List<PatternGuard> patternGuards;
-  final List<Statement> labelUsers = [];
-
-  @override
-  Statement body;
-
-  @override
-  bool isDefault;
-
-  final bool hasLabel;
-
-  final List<VariableDeclaration> jointVariables;
-
-  PatternSwitchCase(
-      int fileOffset, this.caseOffsets, this.patternGuards, this.body,
-      {required this.isDefault,
-      required this.hasLabel,
-      required this.jointVariables}) {
-    setParents(jointVariables, this);
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    for (int index = 0; index < patternGuards.length; index++) {
-      if (index > 0) {
-        printer.newLine();
-      }
-      printer.write('case ');
-      patternGuards[index].toTextInternal(printer);
-      printer.write(':');
-    }
-    if (isDefault) {
-      if (patternGuards.isNotEmpty) {
-        printer.newLine();
-      }
-      printer.write('default:');
-    }
-    printer.incIndentation();
-    Statement? block = body;
-    if (block is Block) {
-      for (Statement statement in block.statements) {
-        printer.newLine();
-        printer.writeStatement(statement);
-      }
-    } else {
-      printer.write(' ');
-      printer.writeStatement(body);
-    }
-    printer.decIndentation();
-  }
-
-  @override
-  String toString() {
-    return "PatternSwitchCase(${toStringInternal()})";
-  }
-
-  @override
-  List<Expression> get expressions =>
-      throw new UnimplementedError('PatternSwitchCase.expressions');
-
-  @override
-  List<int> get expressionOffsets =>
-      throw new UnimplementedError('PatternSwitchCase.expressionOffsets');
-}
-
-class PatternSwitchStatement extends InternalStatement
-    implements SwitchStatement {
-  @override
-  Expression expression;
-
-  @override
-  final List<PatternSwitchCase> cases;
-
-  @override
-  bool isExplicitlyExhaustive = false;
-
-  /// Whether the switch has a `default` case.
-  @override
-  bool get hasDefault {
-    assert(cases.every((c) => c == cases.last || !c.isDefault));
-    return cases.isNotEmpty && cases.last.isDefault;
-  }
-
-  @override
-  bool get isExhaustive => throw new UnimplementedError();
-
-  PatternSwitchStatement(int fileOffset, this.expression, this.cases) {
-    this.fileOffset = fileOffset;
-    expression.parent = this;
-    setParents(cases, this);
-  }
-
-  @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitPatternSwitchStatement(this);
-  }
-
-  @override
-  String toString() {
-    return "PatternSwitchStatement(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('switch (');
-    printer.writeExpression(expression);
-    printer.write(') {');
-    printer.incIndentation();
-    for (SwitchCase switchCase in cases) {
-      printer.newLine();
-      printer.writeSwitchCase(switchCase);
-    }
-    printer.decIndentation();
-    printer.newLine();
-    printer.write('}');
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    throw new UnsupportedError('PatternSwitchStatement.transformChildren');
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    throw new UnsupportedError(
-        'PatternSwitchStatement.transformOrRemoveChildren');
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    throw new UnsupportedError('PatternSwitchStatement.visitChildren');
-  }
-}
-
-final SwitchExpressionCase dummySwitchExpressionCase = new SwitchExpressionCase(
-    TreeNode.noOffset, dummyPatternGuard, dummyExpression);
-
-class SwitchExpressionCase extends TreeNode with InternalTreeNode {
-  PatternGuard patternGuard;
-  Expression expression;
-
-  SwitchExpressionCase(int fileOffset, this.patternGuard, this.expression) {
-    this.fileOffset = fileOffset;
-    patternGuard.parent = this;
-    expression.parent = this;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('case ');
-    patternGuard.toTextInternal(printer);
-    printer.write(' => ');
-    printer.writeExpression(expression);
-  }
-
-  @override
-  String toString() {
-    return 'SwitchExpressionCase(${toStringInternal()})';
-  }
-}
-
-class SwitchExpression extends InternalExpression {
-  Expression expression;
-  final List<SwitchExpressionCase> cases;
-
-  SwitchExpression(int fileOffset, this.expression, this.cases) {
-    this.fileOffset = fileOffset;
-    expression.parent = this;
-    setParents(cases, this);
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitSwitchExpression(this, typeContext);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    throw new UnsupportedError('SwitchExpression.transformChildren');
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    throw new UnsupportedError('SwitchExpression.transformOrRemoveChildren');
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    throw new UnsupportedError('SwitchExpression.visitChildren');
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('switch (');
-    printer.writeExpression(expression);
-    printer.write(') {');
-    String comma = ' ';
-    for (SwitchExpressionCase switchCase in cases) {
-      printer.write(comma);
-      switchCase.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write(' }');
-  }
-
-  @override
-  String toString() => 'SwitchExpression(${toStringInternal()})';
-}
-
 class BreakStatementImpl extends BreakStatement {
   Statement? targetStatement;
   final bool isContinue;
@@ -1499,6 +1259,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
+      bool isSynthesized = false,
       this.isStaticLate = false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
@@ -1512,6 +1273,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isLate: isLate,
             isRequired: isRequired,
             isLowered: isLowered,
+            isSynthesized: isSynthesized,
             hasDeclaredInitializer: hasDeclaredInitializer);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
@@ -3666,1156 +3428,25 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-abstract class Pattern extends TreeNode with InternalTreeNode {
-  Expression? error;
-
-  Pattern(int fileOffset) {
-    this.fileOffset = fileOffset;
-  }
-
-  /// Variable declarations induced by nested variable patterns.
-  ///
-  /// These variables are initialized to the values captured by the variable
-  /// patterns nested in the pattern.
-  List<VariableDeclaration> get declaredVariables;
-
-  // TODO(johnniwinther): Merge this with [accept1] when [Pattern]s are moved
-  // to package:kernel.
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg);
-
-  /// Returns the variable name that this pattern defines, if any.
-  ///
-  /// This is used to derive an implicit variable name from a pattern to use
-  /// on object patterns. For instance
-  ///
-  ///    if (o case Foo(:var bar, :var baz!)) { ... }
-  ///
-  /// the getter names 'bar' and 'baz' are implicitly defined by the patterns.
-  String? get variableName => null;
-}
-
-/// A [Pattern] based on a constant [Expression].
-class ConstantPattern extends Pattern {
-  Expression expression;
-
-  /// Static type of the expression as computed during inference.
-  // TODO(johnniwinther): Use UnknownType instead to flag when this type has
-  // not been computed.
-  DartType expressionType = const DynamicType();
-
-  /// The `operator ==` procedure on [expression].
-  ///
-  /// This is set during inference.
-  late Procedure equalsTarget;
-
-  /// The type of the `operator ==` procedure on [expression].
-  ///
-  /// This is set during inference.
-  late FunctionType equalsType;
-
-  ConstantPattern(this.expression) : super(expression.fileOffset) {
-    expression.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitConstantPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    expression.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "ExpressionPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern && pattern`.
-class AndPattern extends Pattern {
-  Pattern left;
-  Pattern right;
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      [...left.declaredVariables, ...right.declaredVariables];
-
-  AndPattern(this.left, this.right, int fileOffset) : super(fileOffset) {
-    left.parent = this;
-    right.parent = this;
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitAndPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    left.toTextInternal(printer);
-    printer.write(' && ');
-    right.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "BinaryPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern || pattern`.
-class OrPattern extends Pattern {
-  Pattern left;
-  Pattern right;
-  List<VariableDeclaration> orPatternJointVariables;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => orPatternJointVariables;
-
-  OrPattern(this.left, this.right, int fileOffset,
-      {required List<VariableDeclaration> orPatternJointVariables})
-      : orPatternJointVariables = orPatternJointVariables,
-        super(fileOffset) {
-    left.parent = this;
-    right.parent = this;
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitOrPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    left.toTextInternal(printer);
-    printer.write(' || ');
-    right.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "BinaryPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern as type`.
-class CastPattern extends Pattern {
-  Pattern pattern;
-  DartType type;
-
-  CastPattern(this.pattern, this.type, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  String? get variableName => pattern.variableName;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitCastPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write(' as ');
-    printer.writeType(type);
-  }
-
-  @override
-  String toString() {
-    return "CastPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern!`.
-class NullAssertPattern extends Pattern {
-  Pattern pattern;
-
-  NullAssertPattern(this.pattern, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  String? get variableName => pattern.variableName;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitNullAssertPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write('!');
-  }
-
-  @override
-  String toString() {
-    return "NullAssertPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `pattern?`.
-class NullCheckPattern extends Pattern {
-  Pattern pattern;
-
-  NullCheckPattern(this.pattern, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  String? get variableName => pattern.variableName;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitNullCheckPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write('?');
-  }
-
-  @override
-  String toString() {
-    return "NullCheckPattern(${toStringInternal()})";
-  }
-}
-
-/// A [Pattern] for `<typeArgument>[pattern0, ... patternN]`.
-class ListPattern extends Pattern {
-  DartType? typeArgument;
-  List<Pattern> patterns;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  /// If `true`, the matched expression must be checked to be a `List`.
-  ///
-  /// This is set during inference.
-  late bool needsCheck;
-
-  /// The type of the matched expression.
-  ///
-  /// If [needsCheck] is `true`, this is the list type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be a list type.
-  ///
-  /// This is set during inference.
-  late DartType listType;
-
-  /// If `true`, this list pattern contains a rest pattern.
-  ///
-  /// This is set during inference.
-  bool hasRestPattern = false;
-
-  /// The target of the `length` property of the list.
-  ///
-  /// This is set during inference.
-  late Member lengthTarget;
-
-  /// The type of the `length` property of the list.
-  ///
-  /// This is set during inference.
-  late DartType lengthType;
-
-  /// The method used to check the `length` of the list.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  late Procedure lengthCheckTarget;
-
-  /// The type of the method used to check the `length` of the list.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  late FunctionType lengthCheckType;
-
-  /// The target of the `sublist` method of the list.
-  ///
-  /// This is used if this pattern has a rest pattern with a subpattern.
-  ///
-  /// This is set during inference.
-  late Procedure sublistTarget;
-
-  /// The type of the `sublist` method of the list.
-  ///
-  /// This is used if this pattern has a rest pattern with a subpattern.
-  ///
-  /// This is set during inference.
-  late FunctionType sublistType;
-
-  /// The target of the `minus` method of the `length` of this list.
-  ///
-  /// This is used to compute tail indices if this pattern has a rest pattern.
-  ///
-  /// This is set during inference.
-  late Procedure minusTarget;
-
-  /// The type of the `minus` method of the `length` of this list.
-  ///
-  /// This is used to compute tail indices if this pattern has a rest pattern.
-  ///
-  /// This is set during inference.
-  late FunctionType minusType;
-
-  /// The target of the `operator []` method of the list.
-  ///
-  /// This is set during inference.
-  late Procedure indexGetTarget;
-
-  /// The type of the `operator []` method of the list.
-  ///
-  /// This is set during inference.
-  late FunctionType indexGetType;
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
-
-  ListPattern(this.typeArgument, this.patterns, int fileOffset)
-      : super(fileOffset) {
-    setParents(patterns, this);
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitListPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (typeArgument != null) {
-      printer.write('<');
-      printer.writeType(typeArgument!);
-      printer.write('>');
-    }
-    printer.write('[');
-    String comma = '';
-    for (Pattern pattern in patterns) {
-      printer.write(comma);
-      pattern.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write(']');
-  }
-
-  @override
-  String toString() {
-    return "ListPattern(${toStringInternal()})";
-  }
-}
-
-class ObjectPattern extends Pattern {
-  final DartType type;
-  final List<NamedPattern> fields;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  /// If `true`, the matched expression must be checked to be of type [type].
-  ///
-  /// This is set during inference.
-  late bool needsCheck;
-
-  /// The type of the matched expression.
-  ///
-  /// If [needsCheck] is `true`, this is the type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be of the required type.
-  ///
-  /// This is set during inference.
-  late DartType objectType;
-
-  ObjectPattern(this.type, this.fields, int fileOffset) : super(fileOffset) {
-    setParents(fields, this);
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitObjectPattern(this, arg);
-
-  @override
-  List<VariableDeclaration> get declaredVariables {
-    return [for (NamedPattern field in fields) ...field.declaredVariables];
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.writeType(type);
-    printer.write('(');
-    String comma = '';
-    for (Pattern field in fields) {
-      printer.write(comma);
-      field.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write(')');
-  }
-
-  @override
-  String toString() {
-    return "ObjectPattern(${toStringInternal()})";
-  }
-}
-
-enum RelationalPatternKind {
-  equals,
-  notEquals,
-  lessThan,
-  lessThanEqual,
-  greaterThan,
-  greaterThanEqual,
-}
-
-/// A [Pattern] for `operator expression` where `operator  is either ==, !=,
-/// <, <=, >, or >=.
-class RelationalPattern extends Pattern {
-  final RelationalPatternKind kind;
-  Expression expression;
-  DartType expressionType = const UnknownType();
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  /// The access kind for performing the relational operation of this pattern.
-  ///
-  /// This is set during inference.
-  late RelationAccessKind accessKind;
-
-  /// The name of the relational operation called by this pattern.
-  ///
-  /// This is set during inference.
-  late Name name;
-
-  /// The target [Procedure] called by this pattern.
-  ///
-  /// This is used for [RelationAccessKind.Instance] and
-  /// [RelationAccessKind.Static].
-  ///
-  /// This is set during inference.
-  late Procedure? target;
-
-  /// The type arguments passed to [target].
-  ///
-  /// This is used for [RelationAccessKind.Static].
-  ///
-  /// This is set during inference.
-  late List<DartType>? typeArguments;
-
-  /// The type of [target].
-  ///
-  /// This is used for [RelationAccessKind.Instance] and
-  /// [RelationAccessKind.Static].
-  ///
-  /// This is set during inference.
-  late FunctionType? functionType;
-
-  RelationalPattern(this.kind, this.expression, int fileOffset)
-      : super(fileOffset) {
-    expression.parent = this;
-  }
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitRelationalPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    switch (kind) {
-      case RelationalPatternKind.equals:
-        printer.write('== ');
-        break;
-      case RelationalPatternKind.notEquals:
-        printer.write('!= ');
-        break;
-      case RelationalPatternKind.lessThan:
-        printer.write('< ');
-        break;
-      case RelationalPatternKind.lessThanEqual:
-        printer.write('<= ');
-        break;
-      case RelationalPatternKind.greaterThan:
-        printer.write('> ');
-        break;
-      case RelationalPatternKind.greaterThanEqual:
-        printer.write('>= ');
-        break;
-    }
-    printer.writeExpression(expression);
-  }
-
-  @override
-  String toString() {
-    return "RelationalPattern(${toStringInternal()})";
-  }
-}
-
-class WildcardPattern extends Pattern {
-  final DartType? type;
-
-  WildcardPattern(this.type, int fileOffset) : super(fileOffset);
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitWildcardPattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (type != null) {
-      type!.toTextInternal(printer);
-      printer.write(" ");
-    }
-    printer.write("_");
-  }
-
-  @override
-  String toString() {
-    return "WildcardBinder(${toStringInternal()})";
-  }
-}
-
-class PatternVariableDeclaration extends InternalStatement {
-  final Pattern pattern;
-  final Expression initializer;
-  final bool isFinal;
-
-  PatternVariableDeclaration(this.pattern, this.initializer,
-      {required int fileOffset, required this.isFinal}) {
-    super.fileOffset = fileOffset;
-  }
-
-  @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitPatternVariableDeclaration(this);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (isFinal) {
-      printer.write('final ');
-    } else {
-      printer.write('var ');
-    }
-    pattern.toTextInternal(printer);
-    printer.write(" = ");
-    printer.writeExpression(initializer);
-    printer.write(';');
-  }
-
-  @override
-  String toString() {
-    return "PatternVariableDeclaration(${toStringInternal()})";
-  }
-}
-
-class PatternAssignment extends InternalExpression {
-  final Pattern pattern;
-  final Expression expression;
-
-  PatternAssignment(this.pattern, this.expression, {required int fileOffset}) {
-    super.fileOffset = fileOffset;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitPatternAssignment(this, typeContext);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    pattern.toTextInternal(printer);
-    printer.write(' = ');
-    printer.writeExpression(expression);
-  }
-
-  @override
-  String toString() {
-    return "PatternAssignment(${toStringInternal()})";
-  }
-}
-
-class AssignedVariablePattern extends Pattern {
-  final VariableDeclaration variable;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  /// If `true`, the matched expression must be checked to be of the type
-  /// of [variable].
-  ///
-  /// This is set during inference.
-  late bool needsCheck;
-
-  AssignedVariablePattern(this.variable, {required int offset}) : super(offset);
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitAssignedVariablePattern(this, arg);
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  String? get variableName => variable.name!;
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(variable.name!);
-  }
-
-  @override
-  String toString() {
-    return "AssignedVariablePattern(${toStringInternal()})";
-  }
-}
-
-final Pattern dummyPattern = new ConstantPattern(dummyExpression);
-
-/// Internal statement for a if-case statements:
-///
-///     if (expression case pattern) then
-///     if (expression case pattern) then else otherwise
-///     if (expression case pattern when guard) then
-///     if (expression case pattern when guard) then else otherwise
-///
-class IfCaseStatement extends InternalStatement {
-  Expression expression;
-  PatternGuard patternGuard;
-  Statement then;
-  Statement? otherwise;
-
-  IfCaseStatement(this.expression, this.patternGuard, this.then, this.otherwise,
-      int fileOffset) {
-    this.fileOffset = fileOffset;
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
-
-  @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitIfCaseStatement(this);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('if (');
-    printer.writeExpression(expression);
-    printer.write(' case ');
-    patternGuard.toTextInternal(printer);
-    printer.write(') ');
-    printer.writeStatement(then);
-    if (otherwise != null) {
-      printer.write(' else ');
-      printer.writeStatement(otherwise!);
-    }
-  }
-
-  @override
-  String toString() {
-    return "IfCaseStatement(${toStringInternal()})";
-  }
-}
-
-final MapPatternEntry dummyMapPatternEntry =
-    new MapPatternEntry(dummyPattern, dummyPattern, TreeNode.noOffset);
-
-/// This is used as a sentinel value to mark the occurrence of the rest pattern
-final MapPatternEntry restMapPatternEntry = new MapPatternEntry(
-    new ConstantPattern(new NullLiteral()),
-    new ConstantPattern(new NullLiteral()),
-    TreeNode.noOffset);
-
-class MapPatternEntry extends TreeNode with InternalTreeNode {
-  final Pattern key;
-  final Pattern value;
-
-  @override
-  final int fileOffset;
-
-  MapPatternEntry(this.key, this.value, this.fileOffset) {
-    key.parent = this;
-    value.parent = this;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    key.toTextInternal(printer);
-    printer.write(': ');
-    value.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return 'MapMatcherEntry(${toStringInternal()})';
-  }
-}
-
-class MapPattern extends Pattern {
-  DartType? keyType;
-  DartType? valueType;
-  final List<MapPatternEntry> entries;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  /// If `true`, the matched expression must be checked to be a `Map`.
-  ///
-  /// This is set during inference.
-  late bool needsCheck;
-
-  /// The type of the matched expression.
-  ///
-  /// If [needsCheck] is `true`, this is the map type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be a map type.
-  ///
-  /// This is set during inference.
-  late DartType mapType;
-
-  /// If `true`, this map pattern contains a rest pattern.
-  ///
-  /// This is set during inference.
-  bool hasRestPattern = false;
-
-  /// The target of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  late Member lengthTarget;
-
-  /// The type of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  late DartType lengthType;
-
-  /// The method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  late Procedure lengthCheckTarget;
-
-  /// The type of the method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  late FunctionType lengthCheckType;
-
-  /// The target of the `containsKey` method of the map.
-  ///
-  /// This is set during inference.
-  late Procedure containsKeyTarget;
-
-  /// The type of the `containsKey` method of the map.
-  ///
-  /// This is set during inference.
-  late FunctionType containsKeyType;
-
-  /// The target of the `operator []` method of the map.
-  ///
-  /// This is set during inference.
-  late Procedure indexGetTarget;
-
-  /// The type of the `operator []` method of the map.
-  ///
-  /// This is set during inference.
-  late FunctionType indexGetType;
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (MapPatternEntry entry in entries) ...entry.value.declaredVariables];
-
-  MapPattern(this.keyType, this.valueType, this.entries, int fileOffset)
-      : assert((keyType == null) == (valueType == null)),
-        super(fileOffset);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (keyType != null && valueType != null) {
-      printer.writeTypeArguments([keyType!, valueType!]);
-    }
-    printer.write('{');
-    String comma = '';
-    for (MapPatternEntry entry in entries) {
-      printer.write(comma);
-      entry.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write('}');
-  }
-
-  @override
-  String toString() {
-    return 'MapPattern(${toStringInternal()})';
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitMapPattern(this, arg);
-}
-
-class NamedPattern extends Pattern {
-  final String name;
-  Pattern pattern;
-
-  /// When used in an object pattern, this holds the named of the property
-  /// accessed by this pattern.
-  ///
-  /// This is set during inference.
-  late Name fieldName;
-
-  /// When used in an object pattern, this holds the access kind of used for
-  /// reading the property value for this pattern.
-  ///
-  /// This is set during inference.
-  late ObjectAccessKind accessKind;
-
-  /// When used in an object pattern, this holds the target [Member] used to
-  /// read the property for this pattern.
-  ///
-  /// This is used for [ObjectAccessKind.Object], [ObjectAccessKind.Instance],
-  /// and [ObjectAccessKind.Static].
-  ///
-  /// This is set during inference.
-  Member? target;
-
-  /// When used in an object pattern, this holds the static property type for
-  /// this pattern.
-  ///
-  /// This is used for [ObjectAccessKind.Object] and
-  /// [ObjectAccessKind.Instance].
-  ///
-  /// This is set during inference.
-  DartType? resultType;
-
-  /// When used in an object pattern, this holds the record on which the
-  /// property for this pattern is read.
-  ///
-  /// This is used for [ObjectAccessKind.RecordNamed] and
-  /// [ObjectAccessKind.RecordIndexed].
-  ///
-  /// This is set during inference.
-  RecordType? recordType;
-
-  /// When used in an object pattern, this holds the record field index from
-  /// which the property for this pattern is read.
-  ///
-  /// This is used for [ObjectAccessKind.RecordIndexed].
-  ///
-  /// This is set during inference.
-  int? recordFieldIndex;
-
-  /// When used in an object pattern, this holds the function type of [target]
-  /// called to read the property for this pattern.
-  ///
-  /// This is used for [ObjectAccessKind.Static].
-  ///
-  /// This is set during inference.
-  FunctionType? functionType;
-
-  /// When used in an object pattern, this holds the type arguments used when
-  /// called the [target] to read the property for this pattern.
-  ///
-  /// This is used for [ObjectAccessKind.Static].
-  ///
-  /// This is set during inference.
-  List<DartType>? typeArguments;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
-
-  NamedPattern(this.name, this.pattern, int fileOffset) : super(fileOffset) {
-    pattern.parent = this;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(name);
-    printer.write(': ');
-    pattern.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return 'NamedPattern(${toStringInternal()})';
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitNamedPattern(this, arg);
-}
-
-class RecordPattern extends Pattern {
-  final List<Pattern> patterns;
-  late final RecordType type;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  /// If `true`, the matched expression must be checked to be of type [type].
-  ///
-  /// This is set during inference.
-  late bool needsCheck;
-
-  /// The type of the matched expression.
-  ///
-  /// If [needsCheck] is `true`, this is the record type it was checked against.
-  /// Otherwise it is the type of the matched expression itself, which was,
-  /// in this case, already known to be a record type.
-  ///
-  /// This is set during inference.
-  late RecordType recordType;
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      [for (Pattern pattern in patterns) ...pattern.declaredVariables];
-
-  RecordPattern(this.patterns, int fileOffset) : super(fileOffset) {
-    setParents(patterns, this);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('(');
-    String comma = '';
-    for (Pattern pattern in patterns) {
-      printer.write(comma);
-      pattern.toTextInternal(printer);
-      comma = ', ';
-    }
-    printer.write(')');
-  }
-
-  @override
-  String toString() {
-    return 'RecordPattern(${toStringInternal()})';
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitRecordPattern(this, arg);
-}
-
-class VariablePattern extends Pattern {
-  final DartType? type;
-  String name;
-  VariableDeclaration variable;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  late final DartType matchedType;
-
-  @override
-  List<VariableDeclaration> get declaredVariables => [variable];
-
-  VariablePattern(this.type, this.name, this.variable, int fileOffset)
-      : super(fileOffset);
-
-  @override
-  String? get variableName => variable.name;
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitVariablePattern(this, arg);
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    if (type != null) {
-      type!.toTextInternal(printer);
-      printer.write(" ");
-    } else {
-      printer.write("var ");
-    }
-    printer.write(name);
-  }
-
-  @override
-  String toString() {
-    return "VariablePattern(${toStringInternal()})";
-  }
-}
-
-class RestPattern extends Pattern {
-  Pattern? subPattern;
-
-  RestPattern(int fileOffset, this.subPattern) : super(fileOffset);
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitRestPattern(this, arg);
-
-  @override
-  List<VariableDeclaration> get declaredVariables =>
-      subPattern?.declaredVariables ?? const [];
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('...');
-    if (subPattern != null) {
-      subPattern!.toTextInternal(printer);
-    }
-  }
-
-  @override
-  String toString() {
-    return "RestPattern(${toStringInternal()})";
-  }
-}
-
-class InvalidPattern extends Pattern {
-  final Expression invalidExpression;
-
-  InvalidPattern(this.invalidExpression) : super(invalidExpression.fileOffset) {
-    invalidExpression.parent = this;
-  }
-
-  @override
-  R acceptPattern1<R, A>(PatternVisitor1<R, A> visitor, A arg) =>
-      visitor.visitInvalidPattern(this, arg);
-
-  @override
-  List<VariableDeclaration> get declaredVariables => const [];
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(invalidExpression);
-  }
-
-  @override
-  String toString() {
-    return "InvalidPattern(${toStringInternal()})";
-  }
-}
-
-abstract class PatternVisitor1<R, A> {
-  R defaultPattern(Pattern node, A arg);
-  R visitAndPattern(AndPattern node, A arg) => defaultPattern(node, arg);
-  R visitAssignedVariablePattern(AssignedVariablePattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitCastPattern(CastPattern node, A arg) => defaultPattern(node, arg);
-  R visitConstantPattern(ConstantPattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitInvalidPattern(InvalidPattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitListPattern(ListPattern node, A arg) => defaultPattern(node, arg);
-  R visitMapPattern(MapPattern node, A arg) => defaultPattern(node, arg);
-  R visitNamedPattern(NamedPattern node, A arg) => defaultPattern(node, arg);
-  R visitNullAssertPattern(NullAssertPattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitNullCheckPattern(NullCheckPattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitObjectPattern(ObjectPattern node, A arg) => defaultPattern(node, arg);
-  R visitOrPattern(OrPattern node, A arg) => defaultPattern(node, arg);
-  R visitRecordPattern(RecordPattern node, A arg) => defaultPattern(node, arg);
-  R visitRelationalPattern(RelationalPattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitRestPattern(RestPattern node, A arg) => defaultPattern(node, arg);
-  R visitVariablePattern(VariablePattern node, A arg) =>
-      defaultPattern(node, arg);
-  R visitWildcardPattern(WildcardPattern node, A arg) =>
-      defaultPattern(node, arg);
-}
-
-/// Kinds of lowerings of relational pattern operations.
-enum RelationAccessKind {
-  /// Operator defined by an interface member.
-  Instance,
-
-  /// Operator defined by an extension or inline class member.
-  Static,
-
-  /// Operator accessed on a receiver of type `dynamic`.
-  Dynamic,
-
-  /// Operator accessed on a receiver of type `Never`.
-  Never,
-
-  /// Operator accessed on a receiver of an invalid type.
-  Invalid,
-
-  /// Erroneous operator access.
-  Error,
-}
-
-/// Kinds of lowerings of objects pattern property access.
-enum ObjectAccessKind {
-  /// Property defined by an `Object` member.
-  Object,
-
-  /// Property defined by an interface member.
-  Instance,
-
-  /// Property defined by an extension or inline class member.
-  Static,
-
-  /// Named record field property.
-  RecordNamed,
-
-  /// Positional record field property.
-  RecordIndexed,
-
-  /// Property accessed on a receiver of type `dynamic`.
-  Dynamic,
-
-  /// Property accessed on a receiver of type `Never`.
-  Never,
-
-  /// Property accessed on a receiver of an invalid type.
-  Invalid,
-
-  /// Access of `call` on a function.
-  FunctionTearOff,
-
-  /// Erroneous property access.
-  Error,
-}
-
 class IfCaseElement extends InternalExpression with ControlFlowElement {
   Expression expression;
   PatternGuard patternGuard;
   Expression then;
   Expression? otherwise;
-  late List<Statement> replacement;
+  List<Statement> prelude;
 
-  IfCaseElement(this.expression, this.patternGuard, this.then, this.otherwise) {
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType? matchedValueType;
+
+  IfCaseElement(
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
+    setParents(prelude, this);
     expression.parent = this;
     patternGuard.parent = this;
     then.parent = this;
@@ -4845,8 +3476,32 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
   @override
   MapLiteralEntry? toMapLiteralEntry(
       void Function(TreeNode from, TreeNode to) onConvertElement) {
-    // TODO(cstefantsova): implement toMapLiteralEntry
-    throw new UnimplementedError();
+    MapLiteralEntry? thenEntry;
+    Expression then = this.then;
+    if (then is ControlFlowElement) {
+      ControlFlowElement thenElement = then;
+      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
+    }
+    if (thenEntry == null) return null;
+    MapLiteralEntry? otherwiseEntry;
+    Expression? otherwise = this.otherwise;
+    if (otherwise != null) {
+      if (otherwise is ControlFlowElement) {
+        ControlFlowElement otherwiseElement = otherwise;
+        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
+      }
+      if (otherwiseEntry == null) return null;
+    }
+    IfCaseMapEntry result = new IfCaseMapEntry(
+        prelude: prelude,
+        expression: expression,
+        patternGuard: patternGuard,
+        then: thenEntry,
+        otherwise: otherwiseEntry)
+      ..matchedValueType = matchedValueType
+      ..fileOffset = fileOffset;
+    onConvertElement(this, result);
+    return result;
   }
 
   @override
@@ -4861,10 +3516,19 @@ class IfCaseMapEntry extends TreeNode
   PatternGuard patternGuard;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
-  late List<Statement> replacement;
+  List<Statement> prelude;
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType? matchedValueType;
 
   IfCaseMapEntry(
-      this.expression, this.patternGuard, this.then, this.otherwise) {
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
     expression.parent = this;
     patternGuard.parent = this;
     then.parent = this;
@@ -4894,4 +3558,143 @@ class IfCaseMapEntry extends TreeNode
   String toString() {
     return "IfCaseMapEntry(${toStringInternal()})";
   }
+}
+
+class PatternForElement extends InternalExpression
+    with ControlFlowElement
+    implements ForElement {
+  PatternVariableDeclaration patternVariableDeclaration;
+  List<VariableDeclaration> intermediateVariables;
+
+  @override
+  final List<VariableDeclaration> variables; // May be empty, but not null.
+
+  @override
+  Expression? condition; // May be null.
+
+  @override
+  final List<Expression> updates; // May be empty, but not null.
+
+  @override
+  Expression body;
+
+  PatternForElement(
+      {required this.patternVariableDeclaration,
+      required this.intermediateVariables,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("PatternForElement.acceptInference");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    patternVariableDeclaration.toTextInternal(printer);
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    printer.writeExpression(body);
+  }
+
+  @override
+  MapLiteralEntry? toMapLiteralEntry(
+      void Function(TreeNode from, TreeNode to) onConvertElement) {
+    throw new UnimplementedError("toMapLiteralEntry");
+  }
+
+  @override
+  String toString() {
+    return "PatternForElement(${toStringInternal()})";
+  }
+}
+
+class PatternForMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntry
+    implements ForMapEntry {
+  PatternVariableDeclaration patternVariableDeclaration;
+  List<VariableDeclaration> intermediateVariables;
+
+  @override
+  final List<VariableDeclaration> variables;
+
+  @override
+  Expression? condition;
+
+  @override
+  final List<Expression> updates;
+
+  @override
+  MapLiteralEntry body;
+
+  PatternForMapEntry(
+      {required this.patternVariableDeclaration,
+      required this.intermediateVariables,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
+
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    throw new UnsupportedError("PatternForElement.acceptInference");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    patternVariableDeclaration.toTextInternal(printer);
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    body.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "PatternForMapEntry(${toStringInternal()})";
+  }
+}
+
+/// Data structure used by the body builder in place of [ObjectPattern], to
+/// allow additional information to be captured that is needed during type
+/// inference.
+class ObjectPatternInternal extends ObjectPattern {
+  /// If the type name in the object pattern refers to a typedef, the typedef in
+  /// question; otherwise `null`.
+  final Typedef? typedef;
+
+  /// Indicates whether the object pattern included explicit type arguments; if
+  /// `true` this means that no further type inference needs to be performed.
+  final bool hasExplicitTypeArguments;
+
+  ObjectPatternInternal(super.requiredType, super.fields, this.typedef,
+      {required this.hasExplicitTypeArguments});
 }

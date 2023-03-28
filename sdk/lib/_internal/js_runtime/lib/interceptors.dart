@@ -342,7 +342,7 @@ abstract class Interceptor {
 }
 
 /// The interceptor class for [bool].
-class JSBool extends Interceptor implements bool {
+final class JSBool extends Interceptor implements bool {
   const JSBool();
 
   // Note: if you change this, also change the function [S].
@@ -366,7 +366,7 @@ class JSBool extends Interceptor implements bool {
 /// This class defines implementations for *all* methods on [Object] since
 /// the methods on Object assume the receiver is non-null.  This means that
 /// JSNull will always be in the interceptor set for methods defined on Object.
-class JSNull extends Interceptor implements Null {
+final class JSNull extends Interceptor implements Null {
   const JSNull();
 
   external bool operator ==(Object other);
@@ -448,7 +448,8 @@ class UnknownJavaScriptObject extends LegacyJavaScriptObject {
 /// been converted to JavaScript functions.
 /// These interceptor methods are not always used as the JavaScript function
 /// object has also been mangled to support Dart function calling conventions.
-class JavaScriptFunction extends LegacyJavaScriptObject implements Function {
+final class JavaScriptFunction extends LegacyJavaScriptObject
+    implements Function {
   const JavaScriptFunction();
 
   String toString() {

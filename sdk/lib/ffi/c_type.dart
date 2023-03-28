@@ -29,6 +29,7 @@ part of dart.ffi;
   Abi.androidX64: Int8(),
   Abi.fuchsiaArm64: Uint8(),
   Abi.fuchsiaX64: Int8(),
+  Abi.fuchsiaRiscv64: Uint8(),
   Abi.iosArm: Int8(),
   Abi.iosArm64: Int8(),
   Abi.iosX64: Int8(),
@@ -44,7 +45,7 @@ part of dart.ffi;
   Abi.windowsIA32: Int8(),
   Abi.windowsX64: Int8(),
 })
-class Char extends AbiSpecificInteger {
+final class Char extends AbiSpecificInteger {
   const Char();
 }
 
@@ -66,6 +67,7 @@ class Char extends AbiSpecificInteger {
   Abi.androidX64: Int8(),
   Abi.fuchsiaArm64: Int8(),
   Abi.fuchsiaX64: Int8(),
+  Abi.fuchsiaRiscv64: Int8(),
   Abi.iosArm: Int8(),
   Abi.iosArm64: Int8(),
   Abi.iosX64: Int8(),
@@ -81,7 +83,7 @@ class Char extends AbiSpecificInteger {
   Abi.windowsIA32: Int8(),
   Abi.windowsX64: Int8(),
 })
-class SignedChar extends AbiSpecificInteger {
+final class SignedChar extends AbiSpecificInteger {
   const SignedChar();
 }
 
@@ -103,6 +105,7 @@ class SignedChar extends AbiSpecificInteger {
   Abi.androidX64: Uint8(),
   Abi.fuchsiaArm64: Uint8(),
   Abi.fuchsiaX64: Uint8(),
+  Abi.fuchsiaRiscv64: Uint8(),
   Abi.iosArm: Uint8(),
   Abi.iosArm64: Uint8(),
   Abi.iosX64: Uint8(),
@@ -118,7 +121,7 @@ class SignedChar extends AbiSpecificInteger {
   Abi.windowsIA32: Uint8(),
   Abi.windowsX64: Uint8(),
 })
-class UnsignedChar extends AbiSpecificInteger {
+final class UnsignedChar extends AbiSpecificInteger {
   const UnsignedChar();
 }
 
@@ -140,6 +143,7 @@ class UnsignedChar extends AbiSpecificInteger {
   Abi.androidX64: Int16(),
   Abi.fuchsiaArm64: Int16(),
   Abi.fuchsiaX64: Int16(),
+  Abi.fuchsiaRiscv64: Int16(),
   Abi.iosArm: Int16(),
   Abi.iosArm64: Int16(),
   Abi.iosX64: Int16(),
@@ -155,7 +159,7 @@ class UnsignedChar extends AbiSpecificInteger {
   Abi.windowsIA32: Int16(),
   Abi.windowsX64: Int16(),
 })
-class Short extends AbiSpecificInteger {
+final class Short extends AbiSpecificInteger {
   const Short();
 }
 
@@ -177,6 +181,7 @@ class Short extends AbiSpecificInteger {
   Abi.androidX64: Uint16(),
   Abi.fuchsiaArm64: Uint16(),
   Abi.fuchsiaX64: Uint16(),
+  Abi.fuchsiaRiscv64: Uint16(),
   Abi.iosArm: Uint16(),
   Abi.iosArm64: Uint16(),
   Abi.iosX64: Uint16(),
@@ -192,7 +197,7 @@ class Short extends AbiSpecificInteger {
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
 })
-class UnsignedShort extends AbiSpecificInteger {
+final class UnsignedShort extends AbiSpecificInteger {
   const UnsignedShort();
 }
 
@@ -214,6 +219,7 @@ class UnsignedShort extends AbiSpecificInteger {
   Abi.androidX64: Int32(),
   Abi.fuchsiaArm64: Int32(),
   Abi.fuchsiaX64: Int32(),
+  Abi.fuchsiaRiscv64: Int32(),
   Abi.iosArm: Int32(),
   Abi.iosArm64: Int32(),
   Abi.iosX64: Int32(),
@@ -229,7 +235,7 @@ class UnsignedShort extends AbiSpecificInteger {
   Abi.windowsIA32: Int32(),
   Abi.windowsX64: Int32(),
 })
-class Int extends AbiSpecificInteger {
+final class Int extends AbiSpecificInteger {
   const Int();
 }
 
@@ -251,6 +257,7 @@ class Int extends AbiSpecificInteger {
   Abi.androidX64: Uint32(),
   Abi.fuchsiaArm64: Uint32(),
   Abi.fuchsiaX64: Uint32(),
+  Abi.fuchsiaRiscv64: Uint32(),
   Abi.iosArm: Uint32(),
   Abi.iosArm64: Uint32(),
   Abi.iosX64: Uint32(),
@@ -266,7 +273,7 @@ class Int extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint32(),
 })
-class UnsignedInt extends AbiSpecificInteger {
+final class UnsignedInt extends AbiSpecificInteger {
   const UnsignedInt();
 }
 
@@ -289,6 +296,7 @@ class UnsignedInt extends AbiSpecificInteger {
   Abi.androidX64: Int64(),
   Abi.fuchsiaArm64: Int64(),
   Abi.fuchsiaX64: Int64(),
+  Abi.fuchsiaRiscv64: Int64(),
   Abi.iosArm: Int32(),
   Abi.iosArm64: Int64(),
   Abi.iosX64: Int64(),
@@ -304,7 +312,7 @@ class UnsignedInt extends AbiSpecificInteger {
   Abi.windowsIA32: Int32(),
   Abi.windowsX64: Int32(),
 })
-class Long extends AbiSpecificInteger {
+final class Long extends AbiSpecificInteger {
   const Long();
 }
 
@@ -327,6 +335,7 @@ class Long extends AbiSpecificInteger {
   Abi.androidX64: Uint64(),
   Abi.fuchsiaArm64: Uint64(),
   Abi.fuchsiaX64: Uint64(),
+  Abi.fuchsiaRiscv64: Uint64(),
   Abi.iosArm: Uint32(),
   Abi.iosArm64: Uint64(),
   Abi.iosX64: Uint64(),
@@ -342,7 +351,7 @@ class Long extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint32(),
 })
-class UnsignedLong extends AbiSpecificInteger {
+final class UnsignedLong extends AbiSpecificInteger {
   const UnsignedLong();
 }
 
@@ -364,6 +373,7 @@ class UnsignedLong extends AbiSpecificInteger {
   Abi.androidX64: Int64(),
   Abi.fuchsiaArm64: Int64(),
   Abi.fuchsiaX64: Int64(),
+  Abi.fuchsiaRiscv64: Int64(),
   Abi.iosArm: Int64(),
   Abi.iosArm64: Int64(),
   Abi.iosX64: Int64(),
@@ -379,7 +389,7 @@ class UnsignedLong extends AbiSpecificInteger {
   Abi.windowsIA32: Int64(),
   Abi.windowsX64: Int64(),
 })
-class LongLong extends AbiSpecificInteger {
+final class LongLong extends AbiSpecificInteger {
   const LongLong();
 }
 
@@ -401,6 +411,7 @@ class LongLong extends AbiSpecificInteger {
   Abi.androidX64: Uint64(),
   Abi.fuchsiaArm64: Uint64(),
   Abi.fuchsiaX64: Uint64(),
+  Abi.fuchsiaRiscv64: Uint64(),
   Abi.iosArm: Uint64(),
   Abi.iosArm64: Uint64(),
   Abi.iosX64: Uint64(),
@@ -416,7 +427,7 @@ class LongLong extends AbiSpecificInteger {
   Abi.windowsIA32: Uint64(),
   Abi.windowsX64: Uint64(),
 })
-class UnsignedLongLong extends AbiSpecificInteger {
+final class UnsignedLongLong extends AbiSpecificInteger {
   const UnsignedLongLong();
 }
 
@@ -433,6 +444,7 @@ class UnsignedLongLong extends AbiSpecificInteger {
   Abi.androidX64: Int64(),
   Abi.fuchsiaArm64: Int64(),
   Abi.fuchsiaX64: Int64(),
+  Abi.fuchsiaRiscv64: Int64(),
   Abi.iosArm: Int32(),
   Abi.iosArm64: Int64(),
   Abi.iosX64: Int64(),
@@ -448,7 +460,7 @@ class UnsignedLongLong extends AbiSpecificInteger {
   Abi.windowsIA32: Int32(),
   Abi.windowsX64: Int64(),
 })
-class IntPtr extends AbiSpecificInteger {
+final class IntPtr extends AbiSpecificInteger {
   const IntPtr();
 }
 
@@ -466,6 +478,7 @@ class IntPtr extends AbiSpecificInteger {
   Abi.androidX64: Uint64(),
   Abi.fuchsiaArm64: Uint64(),
   Abi.fuchsiaX64: Uint64(),
+  Abi.fuchsiaRiscv64: Uint64(),
   Abi.iosArm: Uint32(),
   Abi.iosArm64: Uint64(),
   Abi.iosX64: Uint64(),
@@ -481,7 +494,7 @@ class IntPtr extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint64(),
 })
-class UintPtr extends AbiSpecificInteger {
+final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 
@@ -499,6 +512,7 @@ class UintPtr extends AbiSpecificInteger {
   Abi.androidX64: Uint64(),
   Abi.fuchsiaArm64: Uint64(),
   Abi.fuchsiaX64: Uint64(),
+  Abi.fuchsiaRiscv64: Uint64(),
   Abi.iosArm: Uint32(),
   Abi.iosArm64: Uint64(),
   Abi.iosX64: Uint64(),
@@ -514,7 +528,7 @@ class UintPtr extends AbiSpecificInteger {
   Abi.windowsIA32: Uint32(),
   Abi.windowsX64: Uint64(),
 })
-class Size extends AbiSpecificInteger {
+final class Size extends AbiSpecificInteger {
   const Size();
 }
 
@@ -535,6 +549,7 @@ class Size extends AbiSpecificInteger {
   Abi.androidX64: Uint32(),
   Abi.fuchsiaArm64: Uint32(),
   Abi.fuchsiaX64: Int32(),
+  Abi.fuchsiaRiscv64: Int32(),
   Abi.iosArm: Int32(),
   Abi.iosArm64: Int32(),
   Abi.iosX64: Int32(),
@@ -550,6 +565,6 @@ class Size extends AbiSpecificInteger {
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
 })
-class WChar extends AbiSpecificInteger {
+final class WChar extends AbiSpecificInteger {
   const WChar();
 }

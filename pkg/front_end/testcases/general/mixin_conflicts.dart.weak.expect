@@ -33,13 +33,10 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    : super core::Object::•()
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   method foo() → dynamic {}
 }
-class N = core::Object with self::M /*hasConstConstructor*/  {
+mixin class N = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::N
     : super core::Object::•()
     ;
@@ -58,10 +55,7 @@ class C extends self::_C&Object&N {
     : super self::_C&Object&N::•()
     ;
 }
-abstract class M2 extends core::Object implements self::M {
-  synthetic constructor •() → self::M2
-    : super core::Object::•()
-    ;
+abstract class M2 extends core::Object implements self::M /*isMixinDeclaration*/  {
   method bar() → dynamic {}
 }
 class N2 = core::Object with self::M2 /*hasConstConstructor*/  {

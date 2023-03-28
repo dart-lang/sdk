@@ -11,7 +11,7 @@ class A<T> {}
 
 class S {}
 
-class M<T> {}
+mixin M<T> {}
 
 class C1 = S with M;
 

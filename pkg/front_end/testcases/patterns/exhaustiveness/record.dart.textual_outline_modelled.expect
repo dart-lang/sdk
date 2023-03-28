@@ -1,0 +1,30 @@
+exhaustiveWildcard((int, String, {bool named}) r) => 
+switch (r) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveTyped((int, String, {bool named}) r) => 
+switch (r) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveValue((int, String, {bool named}) r) => 
+switch (r) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveRestrictedValue1((int, String, {bool named}) r) => 
+switch (r) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveRestrictedValue2((int, String, {bool named}) r) => 
+switch (r) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveRestrictedValue3((int, String, {bool named}) r) => 
+switch (r) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

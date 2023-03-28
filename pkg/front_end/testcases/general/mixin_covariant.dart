@@ -17,11 +17,11 @@ typedef void TakeOptionalObjectsAndInts([Object? a, int? b, Object? c, int? d]);
 typedef void TakeNamedInts({int? a, int? b, int? c, int? d});
 typedef void TakeNamedObjectsAndInts({Object? a, int? b, Object? c, int? d});
 
-class M1 {
+mixin M1 {
   method(covariant int? a, int? b) {}
 }
 
-class M2 {
+mixin M2 {
   method(int? a, covariant int? b) {}
 }
 
@@ -81,11 +81,11 @@ class Interface2 {
   void method(int? a, covariant int? b, int? c, int? d, int? e) {}
 }
 
-class Mixin1 {
+mixin Mixin1 {
   void method(int? a, int? b, covariant int? c, int? d, int? e) {}
 }
 
-class Mixin2 {
+mixin Mixin2 {
   void method(int? a, int? b, int? c, covariant int? d, int? e) {}
 }
 

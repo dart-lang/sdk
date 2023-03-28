@@ -69,7 +69,6 @@ abstract class CustomElementsAnalysisBase {
   }
 
   void registerStaticUse(MemberEntity element) {
-    assert((element as dynamic) != null); // TODO(48820): Remove.
     if (_commonElements.isFindIndexForNativeSubclassType(element)) {
       join.demanded = true;
     }

@@ -25,6 +25,79 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       script_(helper->script()),
       result_(Object::Handle(zone_)) {}
 
+bool ConstantReader::IsPragmaInstanceConstant(
+    intptr_t constant_index,
+    intptr_t* pragma_name_constant_index,
+    intptr_t* pragma_options_constant_index) {
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  NavigateToIndex(&reader, constant_index);
+
+  if (reader.ReadByte() == kInstanceConstant) {
+    NameIndex index = reader.ReadCanonicalNameReference();
+    if (H.IsRoot(index) ||
+        !H.StringEquals(H.CanonicalNameString(index), "pragma")) {
+      return false;
+    }
+    index = H.CanonicalNameParent(index);
+    if (H.IsRoot(index) ||
+        !H.StringEquals(H.CanonicalNameString(index), "dart:core")) {
+      return false;
+    }
+    const intptr_t num_type_args = reader.ReadUInt();
+    if (num_type_args != 0) return false;
+
+    const intptr_t num_fields = reader.ReadUInt();
+    if (num_fields != 2) return false;
+
+    const NameIndex field0_name = reader.ReadCanonicalNameReference();
+    if (H.IsRoot(field0_name) ||
+        !H.StringEquals(H.CanonicalNameString(field0_name), "name")) {
+      return false;
+    }
+    const intptr_t name_index = reader.ReadUInt();
+    if (pragma_name_constant_index != nullptr) {
+      *pragma_name_constant_index = name_index;
+    }
+
+    const NameIndex field1_name = reader.ReadCanonicalNameReference();
+    if (H.IsRoot(field1_name) ||
+        !H.StringEquals(H.CanonicalNameString(field1_name), "options")) {
+      return false;
+    }
+    const intptr_t options_index = reader.ReadUInt();
+    if (pragma_options_constant_index != nullptr) {
+      *pragma_options_constant_index = options_index;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool ConstantReader::IsStringConstant(intptr_t constant_index,
+                                      const char* name) {
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  NavigateToIndex(&reader, constant_index);
+
+  if (reader.ReadByte() == kStringConstant) {
+    const StringIndex index = reader.ReadStringReference();
+    return H.StringEquals(index, name);
+  }
+  return false;
+}
+
+bool ConstantReader::GetStringConstant(intptr_t constant_index,
+                                       String* out_value) {
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  NavigateToIndex(&reader, constant_index);
+
+  if (reader.ReadByte() == kStringConstant) {
+    const StringIndex index = reader.ReadStringReference();
+    *out_value = H.DartSymbolPlain(index).ptr();
+    return true;
+  }
+  return false;
+}
+
 InstancePtr ConstantReader::ReadConstantInitializer() {
   Tag tag = helper_->ReadTag();  // read tag.
   switch (tag) {
@@ -407,7 +480,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       const NameIndex index = reader.ReadCanonicalNameReference();
       const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
       if (!klass.is_declaration_loaded()) {
-        FATAL1(
+        FATAL(
             "Trying to evaluate an instance constant whose references class "
             "%s is not loaded yet.",
             klass.ToCString());

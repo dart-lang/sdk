@@ -10,9 +10,6 @@ class StronglyReachableInstancesRepository
       {int limit = 100}) async {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
-    assert(isolate != null);
-    assert(cls != null);
-    assert(limit != null);
     return (await isolate.getInstances(cls, limit)) as S.InstanceSet;
   }
 
@@ -20,12 +17,10 @@ class StronglyReachableInstancesRepository
       {bool includeSubclasses = false, includeImplementors = false}) async {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
-    assert(isolate != null);
-    assert(cls != null);
-    final response = await isolate.invokeRpc('_getInstancesAsArray', {
+    final response = await isolate.invokeRpc('getInstancesAsList', {
       'objectId': cls.id,
       'includeSubclasses': includeSubclasses,
-      'includeImplementors': includeImplementors
+      'includeImplementers': includeImplementors
     });
     return new S.Guarded<S.Instance>(response);
   }

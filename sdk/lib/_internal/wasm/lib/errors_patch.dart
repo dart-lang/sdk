@@ -7,9 +7,7 @@ part of 'core_patch.dart';
 @patch
 class Error {
   @patch
-  static String _objectToString(Object object) {
-    return "Instance of '${object._runtimeType}'";
-  }
+  static String _objectToString(Object object) => Object._toString(object);
 
   @patch
   static String _stringToSafeString(String string) {
@@ -87,6 +85,15 @@ class _TypeError extends _Error implements TypeError {
         stackTrace);
     return Error._throw(typeError, stackTrace);
   }
+
+  @pragma("wasm:entry-point")
+  static Never _throwTypeArgumentBoundCheckError(
+      _Type param, _Type bound, String paramName, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "type '$param' is not a subtype of type '$bound' of '$paramName'",
+        stackTrace);
+    return Error._throw(typeError, stackTrace);
+  }
 }
 
 @patch
@@ -116,6 +123,12 @@ class NoSuchMethodError {
   @pragma("wasm:entry-point")
   static Never _throwWithInvocation(Object? receiver, Invocation invocation) {
     throw NoSuchMethodError.withInvocation(receiver, invocation);
+  }
+
+  @pragma("wasm:entry-point")
+  static Never _throwUnimplementedExternalMemberError(
+      Object? receiver, Symbol memberName) {
+    throw NoSuchMethodError(receiver, memberName, null, null);
   }
 
   @patch

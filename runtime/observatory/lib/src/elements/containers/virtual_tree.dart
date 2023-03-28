@@ -49,10 +49,6 @@ class VirtualTreeElement extends CustomElement implements Renderable {
       {Iterable items = const [],
       VirtualTreeSearchCallback? search,
       RenderingQueue? queue}) {
-    assert(create != null);
-    assert(update != null);
-    assert(children != null);
-    assert(items != null);
     VirtualTreeElement e = new VirtualTreeElement.created();
     e._r = new RenderingScheduler<VirtualTreeElement>(e, queue: queue);
     e._children = children;

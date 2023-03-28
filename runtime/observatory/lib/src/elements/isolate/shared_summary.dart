@@ -24,8 +24,6 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
   factory IsolateSharedSummaryElement(
       M.Isolate isolate, M.EventRepository events,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(events != null);
     IsolateSharedSummaryElement e = new IsolateSharedSummaryElement.created();
     e._r = new RenderingScheduler<IsolateSharedSummaryElement>(e, queue: queue);
     e._isolate = isolate;

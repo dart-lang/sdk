@@ -1,0 +1,35 @@
+class A {
+  A(this.field1, this.field2);
+  int field1;
+  num field2;
+}
+exhaustiveDirect(A a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveWithWildcards(A a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveWithFields(A a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveWithTypedFields(A a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveFixedField(A a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveTypedField(A a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

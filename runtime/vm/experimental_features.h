@@ -14,6 +14,8 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  sealed_class,
+  class_modifiers,
   nonfunction_type_aliases,
   non_nullable,
   extension_methods,
@@ -29,6 +31,8 @@ enum class ExperimentalFeature {
   super_parameters,
   inference_update_1,
   unnamed_libraries,
+  records,
+  patterns,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

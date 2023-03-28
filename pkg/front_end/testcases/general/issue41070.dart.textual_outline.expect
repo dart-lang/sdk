@@ -1,4 +1,4 @@
-abstract class Mixin {}
+mixin Mixin {}
 
 class Base {
   final int x;

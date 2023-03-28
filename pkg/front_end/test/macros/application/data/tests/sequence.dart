@@ -184,7 +184,7 @@ augment class Class7c {
   method() {}
 }
 */
-class Class7c {}
+mixin Class7c {}
 
 @SequenceMacro(0)
 /*class: Class7b:
@@ -204,4 +204,4 @@ augment class Class7a {
   method() {}
 }
 */
-class Class7a {}
+mixin Class7a {}

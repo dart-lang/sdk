@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.98';
+const String version = '1.99';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -273,7 +273,7 @@ class ExtensionMethod extends Method {
           ? fuzzer.pickScalarVar(type!.toNonNullable())
           : '$className()';
 
-      if (extensionName != null && fuzzer.coinFlip()) {
+      if (fuzzer.coinFlip()) {
         outputName = '$extensionName($invokingObject).$name';
       } else {
         outputName = '$invokingObject.$name';
@@ -875,17 +875,12 @@ class DartFuzz {
       } else {
         final parentClass = choose(i);
         classParents.add(parentClass);
-        if (coinFlip()) {
+        if (classParents[parentClass] >= 0 || coinFlip()) {
           // Inheritance
           emit('class X$i extends X$parentClass ');
         } else {
           // Mixin
-          if (classParents[parentClass] >= 0) {
-            emit(
-                'class X$i extends X${classParents[parentClass]} with X$parentClass ');
-          } else {
-            emit('class X$i with X$parentClass ');
-          }
+          emit('class X$i with X$parentClass ');
         }
       }
       emitBraceWrapped(() {
@@ -1200,9 +1195,6 @@ class DartFuzz {
     final iterType = oneOfSet(dartType.iterableTypes1);
     // Get the element type contained within the iterable type.
     final elementType = dartType.elementType(iterType);
-    if (elementType == null) {
-      throw 'No element type for iteration type ${iterType.name}';
-    }
     emitLn('for ', newline: false);
     emitParenWrapped(() {
       emit('${elementType.dartName} $localName$i in ');
@@ -1799,9 +1791,6 @@ class DartFuzz {
         // Iterate over constructor parameters.
         var constructorParameters =
             dartType.constructorParameters(tp, constructor);
-        if (constructorParameters == null) {
-          throw 'No constructor parameters for ${tp.name}.$constructor';
-        }
         emitCommaSeparated((int i) {
           // If we are emitting a constructor parameter, we want to use small
           // values to avoid programs that run out of memory.

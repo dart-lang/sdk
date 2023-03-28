@@ -173,6 +173,11 @@ class OSThread : public BaseThread {
   static void SetCurrent(OSThread* current) { SetCurrentTLS(current); }
 
   static ThreadState* CurrentVMThread() { return current_vm_thread_; }
+#if defined(DEBUG)
+  static void SetCurrentVMThread(ThreadState* thread) {
+    current_vm_thread_ = thread;
+  }
+#endif
 
   // TODO(5411455): Use flag to override default value and Validate the
   // stack size by querying OS.
@@ -301,7 +306,9 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
-  static thread_local ThreadState* current_vm_thread_;
+  // Inline initialization is important for avoiding unnecessary TLS
+  // initialization checks at each use.
+  static inline thread_local ThreadState* current_vm_thread_ = nullptr;
 
   friend class IsolateGroup;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
@@ -381,6 +388,35 @@ inline bool Mutex::IsOwnedByCurrentThread() const {
   return false;
 #endif
 }
+
+// Mark when we are running in a signal handler (Linux, Android) or with a
+// suspended thread (Windows, Mac, Fuchia). During this time, we cannot take
+// locks, access Thread/Isolate::Current(), or use malloc.
+class ThreadInterruptScope : public ValueObject {
+#if defined(DEBUG)
+ public:
+  ThreadInterruptScope() {
+    ASSERT(!in_thread_interrupt_scope_);  // We don't use nested signals.
+    in_thread_interrupt_scope_ = true;
+
+    // Poison attempts to use Thread::Current. This is much cheaper than adding
+    // an assert in Thread::Current itself.
+    saved_current_vm_thread_ = OSThread::CurrentVMThread();
+    OSThread::SetCurrentVMThread(reinterpret_cast<ThreadState*>(0xabababab));
+  }
+
+  ~ThreadInterruptScope() {
+    OSThread::SetCurrentVMThread(saved_current_vm_thread_);
+    in_thread_interrupt_scope_ = false;
+  }
+
+  static bool in_thread_interrupt_scope() { return in_thread_interrupt_scope_; }
+
+ private:
+  ThreadState* saved_current_vm_thread_;
+  static inline thread_local bool in_thread_interrupt_scope_ = false;
+#endif  // DEBUG
+};
 
 }  // namespace dart
 

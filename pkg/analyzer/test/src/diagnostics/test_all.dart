@@ -131,6 +131,8 @@ import 'const_with_non_type_test.dart' as const_with_non_type;
 import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
+import 'constant_pattern_never_matches_value_type_test.dart'
+    as constant_pattern_never_matches_value_type;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
@@ -489,6 +491,8 @@ import 'mixin_application_no_concrete_super_invoked_member_test.dart'
     as mixin_application_no_concrete_super_invoked_member;
 import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
+import 'mixin_class_declaration_extends_not_object_test.dart'
+    as mixin_class_declaration_extends_not_object;
 import 'mixin_class_declares_constructor_test.dart'
     as mixin_class_declares_constructor;
 import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
@@ -653,6 +657,8 @@ import 'private_collision_in_mixin_application_test.dart'
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
 import 'private_setter_test.dart' as private_setter;
 import 'receiver_of_type_never_test.dart' as receiver_of_type_never;
+import 'record_literal_one_positional_no_trailing_comma_test.dart'
+    as record_literal_one_positional_no_trailing_comma;
 import 'recursive_compile_time_constant_test.dart'
     as recursive_compile_time_constant;
 import 'recursive_constructor_redirect_test.dart'
@@ -687,6 +693,8 @@ import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
 import 'refutable_pattern_in_irrefutable_context_test.dart'
     as refutable_pattern_in_irrefutable_context;
+import 'relational_pattern_operand_type_not_assignable_test.dart'
+    as relational_pattern_operand_type_not_assignable;
 import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart'
     as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
@@ -719,6 +727,7 @@ import 'sdk_version_is_expression_in_const_context_test.dart'
     as sdk_version_is_expression_in_const_context;
 import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
+import 'sdk_version_since_test.dart' as sdk_version_since;
 import 'sdk_version_ui_as_code_in_const_context_test.dart'
     as sdk_version_ui_as_code_in_const_context;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
@@ -737,7 +746,11 @@ import 'spread_expression_from_deferred_library_test.dart'
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
 import 'strict_raw_type_test.dart' as strict_raw_type;
+import 'subtype_of_base_is_not_base_final_or_sealed_test.dart'
+    as subtype_of_base_is_not_base_final_or_sealed;
 import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
+import 'subtype_of_final_is_not_base_final_or_sealed_test.dart'
+    as subtype_of_final_is_not_base_final_or_sealed;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
 import 'super_formal_parameter_type_is_not_subtype_of_associated_test.dart'
@@ -954,6 +967,7 @@ main() {
     const_with_non_type.main();
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
+    constant_pattern_never_matches_value_type.main();
     constant_pattern_with_non_constant_expression.main();
     continue_label_invalid.main();
     could_not_infer.main();
@@ -1184,6 +1198,7 @@ main() {
     mixin_application_concrete_super_invoked_member_type.main();
     mixin_application_no_concrete_super_invoked_member.main();
     mixin_application_not_implemented_interface.main();
+    mixin_class_declaration_extends_not_object.main();
     mixin_class_declares_constructor.main();
     mixin_declares_constructor.main();
     mixin_deferred_class.main();
@@ -1295,6 +1310,7 @@ main() {
     private_optional_parameter.main();
     private_setter.main();
     receiver_of_type_never.main();
+    record_literal_one_positional_no_trailing_comma.main();
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();
@@ -1313,6 +1329,7 @@ main() {
     redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
     refutable_pattern_in_irrefutable_context.main();
+    relational_pattern_operand_type_not_assignable.main();
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
     removed_lint_in_ignore.main();
     replaced_lint_in_ignore.main();
@@ -1335,6 +1352,7 @@ main() {
     sdk_version_is_expression_in_const_context.main();
     sdk_version_never.main();
     sdk_version_set_literal.main();
+    sdk_version_since.main();
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();
@@ -1345,7 +1363,9 @@ main() {
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     strict_raw_type.main();
+    subtype_of_base_is_not_base_final_or_sealed.main();
     subtype_of_ffi_class.main();
+    subtype_of_final_is_not_base_final_or_sealed.main();
     subtype_of_sealed_class.main();
     subtype_of_struct_class.main();
     super_formal_parameter_type_is_not_subtype_of_associated.main();

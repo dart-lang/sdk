@@ -24,8 +24,6 @@ class LibraryRefElement extends CustomElement implements Renderable {
 
   factory LibraryRefElement(M.IsolateRef isolate, M.LibraryRef library,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(library != null);
     LibraryRefElement e = new LibraryRefElement.created();
     e._r = new RenderingScheduler<LibraryRefElement>(e, queue: queue);
     e._isolate = isolate;

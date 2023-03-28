@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
 export DH_VERBOSE = 1
 
-AOT_SUPPORTED_ARCHS := amd64 arm
-
 # Use DEB_BUILD_OPTIONS's parallel=n option (see Policy 4.9.1)
 ifneq (,$(findstring parallel,$(DEB_BUILD_OPTIONS)))
 PARALLEL_JOBS := $(shell echo $(DEB_BUILD_OPTIONS) | \
@@ -13,32 +11,51 @@ endif
 
 ifeq (amd64,$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseX64
-BUILD_TYPE_PRODUCT += ProductX64
-ARCH += x64
+BUILD_FLAGS += --arch=x64
+LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_amd64-sysroot/lib/x86_64-linux-gnu
 else
 ifeq (i386,$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseIA32
-BUILD_TYPE_PRODUCT += ProductIA32
-ARCH += ia32
+BUILD_FLAGS += --arch=ia32
+LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_i386-sysroot/lib/i386-linux-gnu
 else
 ifeq (arm,$(DEB_HOST_ARCH_CPU))
 ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseARM
-BUILD_TYPE_PRODUCT += ProductARM
 else
 BUILD_TYPE += ReleaseXARM
-BUILD_TYPE_PRODUCT += ProductXARM
 endif
-ARCH += arm
+BUILD_FLAGS += --arch=arm
+LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_arm-sysroot/lib/arm-linux-gnueabihf
+else
+ifeq (arm64,$(DEB_HOST_ARCH_CPU))
+ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
+BUILD_TYPE += ReleaseARM64
+else
+BUILD_TYPE += ReleaseXARM64
+endif
+BUILD_FLAGS += --arch=arm64
+LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_arm64-sysroot/lib/aarch64-linux-gnu
+else
+ifeq (riscv64,$(DEB_HOST_ARCH_CPU))
+ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
+BUILD_TYPE += ReleaseRISCV64
+else
+BUILD_TYPE += ReleaseXRISCV64
+endif
+BUILD_FLAGS += --arch=riscv64 --no-clang --use-mallinfo2
+LIBS_DIR := /usr/riscv64-linux-gnu/lib
 else
 $(error unsupported target arch '$(DEB_HOST_ARCH_CPU)')
+endif
+endif
 endif
 endif
 endif
 
 # Verbose?
 ifeq (1,$(DH_VERBOSE))
-BUILD_ARGS += V=1
+BUILD_FLAGS += --verbose
 endif
 
 %:
@@ -58,7 +75,7 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	cd dart; \
 	python3 tools/build.py --no-goma --mode release \
-	  --arch $(ARCH) $(TOOLCHAIN) create_sdk; \
+	  $(BUILD_FLAGS) $(TOOLCHAIN) create_sdk; \
 	cd ..
 
 # Building the Dart SDK will already strip all binaries.
@@ -67,7 +84,7 @@ override_dh_strip:
 # This override allows us to ignore spurious missing library errors when
 # cross-compiling.
 override_dh_shlibdeps:
-	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info -l $(LIBS_DIR)
 
 override_dh_auto_install:
 	mkdir -p debian/tmp/out

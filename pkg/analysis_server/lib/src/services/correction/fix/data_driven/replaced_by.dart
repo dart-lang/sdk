@@ -5,8 +5,9 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' hide ElementKind;
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -26,7 +27,8 @@ class ReplacedBy extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var referenceRange = data.referenceRange;
-    builder.addSimpleReplacement(referenceRange, _referenceTo(newElement));
+    builder.addSimpleReplacement(
+        referenceRange, data.replacement ?? _referenceTo(newElement));
     var libraryUris = newElement.libraryUris;
     if (libraryUris.isEmpty) return;
     if (!libraryUris.any((uri) => builder.importsLibrary(uri))) {
@@ -41,6 +43,11 @@ class ReplacedBy extends Change<_Data> {
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
     if (node is SimpleIdentifier) {
+      var staticElement = node.staticElement;
+      if (staticElement is ExecutableElement && !staticElement.isStatic) {
+        return _instance(node, staticElement);
+      }
+
       var components = fix.element.components;
       if (components.isEmpty) {
         return null;
@@ -143,6 +150,34 @@ class ReplacedBy extends Change<_Data> {
     return null;
   }
 
+  /// Return a replacement of an instance kind, not static.
+  _Data? _instance(AstNode node, ExecutableElement staticElement) {
+    var newComponents = newElement.components;
+    var newKind = newElement.kind;
+    var suffix = '';
+    SourceRange? referenceRange;
+    if (newKind == ElementKind.methodKind &&
+        staticElement is PropertyAccessorElement &&
+        staticElement.isGetter) {
+      suffix = '()';
+      referenceRange = range.node(node);
+    } else if (newKind == ElementKind.getterKind) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        var argumentList = parent.argumentList;
+        if (argumentList.arguments.isNotEmpty) {
+          return null;
+        }
+        referenceRange = range.startEnd(node, argumentList);
+      }
+    }
+    if (referenceRange == null) return null;
+    return _Data(
+      referenceRange,
+      replacement: '${newComponents[0]}$suffix',
+    );
+  }
+
   String _referenceTo(ElementDescriptor element) {
     var components = element.components;
     if (components[0].isEmpty) {
@@ -155,6 +190,7 @@ class ReplacedBy extends Change<_Data> {
 /// The data about a reference to an element that's been replaced.
 class _Data {
   final SourceRange referenceRange;
+  final String? replacement;
 
-  _Data(this.referenceRange);
+  _Data(this.referenceRange, {this.replacement});
 }

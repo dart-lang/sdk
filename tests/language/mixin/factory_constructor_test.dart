@@ -11,7 +11,7 @@ class Base {
   }
 }
 
-abstract class Mixin implements Base {
+abstract mixin class Mixin implements Base {
   final x = "hello";
   factory Mixin() => new _MixinAndBase._();
 }

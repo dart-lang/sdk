@@ -149,7 +149,7 @@ class ExitCodeHandler {
     int result =
         Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
     if (result != 0) {
-      FATAL1("Failed to start exit code handler worker thread %d", result);
+      FATAL("Failed to start exit code handler worker thread %d", result);
     }
 
     running_ = true;
@@ -219,7 +219,7 @@ class ExitCodeHandler {
           if ((result != -1) && (result != sizeof(message))) {
             FATAL("Failed to write entire process exit message");
           } else if ((result == -1) && (errno != EPIPE)) {
-            FATAL1("Failed to write exit code: %d", errno);
+            FATAL("Failed to write exit code: %d", errno);
           }
           ProcessInfoList::RemoveProcess(pid);
           {
@@ -228,7 +228,7 @@ class ExitCodeHandler {
           }
         }
       } else if (pid < 0) {
-        FATAL1("Wait for process exit failed: %d", errno);
+        FATAL("Wait for process exit failed: %d", errno);
       }
     }
   }

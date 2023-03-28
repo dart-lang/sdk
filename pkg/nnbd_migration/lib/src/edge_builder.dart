@@ -567,8 +567,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       if (rightOperand is NullLiteral) {
         buildNullConditionInfo(rightOperand, leftOperand, leftType);
+        _graph.makeNullable(leftType.node, NullAwareAccessOrigin(source, node));
       } else if (leftOperand is NullLiteral) {
         buildNullConditionInfo(leftOperand, rightOperand, rightType);
+        _graph.makeNullable(
+            rightType.node, NullAwareAccessOrigin(source, node));
       }
 
       return _makeNonNullableBoolType(node);
@@ -1035,6 +1038,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 node, null, getter.declaration, declaredElement);
           }
         }
+      } else if (declaredElement != null && declaredElement.isPublic) {
+        _makeArgumentsNullable(declaredElement, node);
       }
     }
     return null;
@@ -2268,7 +2273,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         ? NullabilityNode.forLUB(left.node, right.node)
         : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
-    if (type!.isDynamic || type.isVoid) {
+    if (type!.isDynamic || type is VoidType) {
       return DecoratedType(type, node);
     } else if (leftType!.isBottom) {
       return right.withNode(node);
@@ -2681,6 +2686,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(returnType);
     _createFlowAnalysis(node, parameters);
     _dispatch(parameters);
+
+    // Be over conservative with public methods' arguments:
+    // Unless we have reasons for non-nullability, assume they are nullable.
+    // Soft edge to `always` node does exactly this.
+    bool isOverride = false;
+    final thisClass = declaredElement.enclosingElement;
+    if (thisClass is InterfaceElement) {
+      final name = Name(thisClass.library.source.uri, declaredElement.name);
+      isOverride = _inheritanceManager.getOverridden2(thisClass, name) != null;
+    }
+    if (!isOverride &&
+        declaredElement.isPublic &&
+        declaredElement is! PropertyAccessorElement &&
+        // operator == treats `null` specially.
+        !(declaredElement.isOperator && declaredElement.name == '==')) {
+      _makeArgumentsNullable(declaredElement, node);
+    }
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
     _currentFieldFormals = declaredElement is ConstructorElement
         ? _computeFieldFormalMap(declaredElement)
@@ -3399,6 +3421,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  void _makeArgumentsNullable(
+      ExecutableElement declaredElement, Declaration node) {
+    for (final p in declaredElement.parameters) {
+      if (p is! FieldFormalParameterElement &&
+          p is! SuperFormalParameterElement &&
+          p is! ConstVariableElement) {
+        final decoratedType = _variables.decoratedElementType(p);
+        if (decoratedType.type is TypeParameterType) continue;
+        _graph.makeNullable(
+            decoratedType.node, PublicMethodArgumentOrigin(source, node));
+      }
+    }
+  }
+
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
     if (sourceType.type!.isDynamic) {
@@ -3876,7 +3912,7 @@ mixin _AssignmentChecker {
         return;
       }
     } else if (destinationType.isDynamic ||
-        destinationType.isVoid ||
+        destinationType is VoidType ||
         destinationType.isDartCoreObject) {
       // No further edges need to be created, since all types are trivially
       // subtypes of dynamic, Object, and void, since all are treated as
@@ -3950,7 +3986,7 @@ mixin _AssignmentChecker {
 
     if (sourceType.isDynamic ||
         sourceType.isDartCoreObject ||
-        sourceType.isVoid) {
+        sourceType is VoidType) {
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,

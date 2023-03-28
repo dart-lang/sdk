@@ -114,6 +114,8 @@ class CoreTypes {
       new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _thisInterfaceTypes =
       new Map<Class, InterfaceType>.identity();
+  final Map<InlineClass, InlineType> _thisInlineTypes =
+      new Map<InlineClass, InlineType>.identity();
   final Map<Typedef, TypedefType> _thisTypedefTypes =
       new Map<Typedef, TypedefType>.identity();
   final Map<Class, InterfaceType> _bottomInterfaceTypes =
@@ -285,6 +287,9 @@ class CoreTypes {
 
   late final Constructor reachabilityErrorConstructor =
       index.getConstructor('dart:_internal', 'ReachabilityError', '');
+
+  late final Constructor stateErrorConstructor =
+      index.getConstructor('dart:core', 'StateError', '');
 
   late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
 
@@ -1078,6 +1083,19 @@ class CoreTypes {
     }
     if (result.nullability != nullability) {
       return _thisInterfaceTypes[klass] =
+          result.withDeclaredNullability(nullability);
+    }
+    return result;
+  }
+
+  InlineType thisInlineType(InlineClass klass, Nullability nullability) {
+    InlineType? result = _thisInlineTypes[klass];
+    if (result == null) {
+      return _thisInlineTypes[klass] = new InlineType(klass, nullability,
+          getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
+    }
+    if (result.nullability != nullability) {
+      return _thisInlineTypes[klass] =
           result.withDeclaredNullability(nullability);
     }
     return result;

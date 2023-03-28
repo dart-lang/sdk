@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.1
+# Dart VM Service Protocol 4.4
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.1_ of the Dart VM Service Protocol. This
+This document describes of _version 4.4_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -44,6 +44,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
+  - [getInstancesAsList](#getinstancesaslist)
   - [getInboundReferences](#getinboundreferences)
   - [getIsolate](#getisolate)
   - [getIsolateGroup](#getisolategroup)
@@ -870,6 +871,42 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [InstanceSet](#instanceset).
+
+### getInstancesAsList
+
+```
+@Instance|Sentinel getInstancesAsList(string isolateId,
+                                      string objectId,
+                                      bool includeSubclasses [optional],
+                                      bool includeImplementers [optional])
+```
+
+The _getInstancesAsList_ RPC is used to retrieve a set of instances which are of
+a specific class. This RPC returns an `@Instance` corresponding to a Dart
+`List<dynamic>` that contains the requested instances. This `List` is not
+growable, but it is otherwise mutable. The response type is what distinguishes
+this RPC from `getInstances`, which returns an `InstanceSet`.
+
+The order of the instances is undefined (i.e., not related to allocation order)
+and unstable (i.e., multiple invocations of this method against the same class
+can give different answers even if no Dart code has executed between the
+invocations).
+
+The set of instances may include objects that are unreachable but have not yet
+been garbage collected.
+
+_objectId_ is the ID of the `Class` to retrieve instances for. _objectId_ must
+be the ID of a `Class`, otherwise an [RPC error](#rpc-error) is returned.
+
+If _includeSubclasses_ is true, instances of subclasses of the specified class
+will be included in the set.
+
+If _includeImplementers_ is true, instances of implementers of the specified
+class will be included in the set. Note that subclasses of a class are also
+considered implementers of that class.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 ### getIsolate
 
@@ -1850,6 +1887,21 @@ class Class extends Object {
   // Is this a const class?
   bool const;
 
+  // Is this a sealed class?
+  bool isSealed;
+
+  // Is this a mixin class?
+  bool isMixinClass;
+
+  // Is this a base class?
+  bool isBaseClass;
+
+  // Is this an interface class?
+  bool isInterfaceClass;
+
+  // Is this a final class?
+  bool isFinal;
+
   // Are allocations of this class being traced?
   bool traceAllocations;
 
@@ -2800,6 +2852,12 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   ReceivePort
   string debugName [optional];
+
+  // The label associated with a UserTag.
+  //
+  // Provided for instance kinds:
+  //   UserTag
+  string label [optional];
 }
 ```
 
@@ -3091,6 +3149,12 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   ReceivePort
   string debugName [optional];
+
+  // The label associated with a UserTag.
+  //
+  // Provided for instance kinds:
+  //   UserTag
+  string label [optional];
 }
 ```
 
@@ -3194,6 +3258,9 @@ enum InstanceKind {
 
   // An instance of the Dart class ReceivePort.
   ReceivePort,
+
+  // An instance of the Dart class UserTag.
+  UserTag,
 }
 ```
 
@@ -3688,7 +3755,7 @@ class PortList extends Response {
 
 A _PortList_ contains a list of ports associated with some isolate.
 
-See [getPort](#getPort).
+See [getPorts](#getPorts).
 
 ### ProfileFunction
 
@@ -3756,7 +3823,7 @@ class ProcessMemoryUsage extends Response {
 }
 ```
 
-Set [getProcessMemoryUsage](#getprocessmemoryusage).
+See [getProcessMemoryUsage](#getprocessmemoryusage).
 
 ### ProcessMemoryItem
 
@@ -4453,5 +4520,8 @@ version | comments
 3.62 | Added `Set` to `InstanceKind`.
 4.0 | Added `Record` and `RecordType` `InstanceKind`s, added a deprecation notice to the `decl` property of `BoundField`, added `name` property to `BoundField`, added a deprecation notice to the `parentListIndex` property of `InboundReference`, changed the type of the `parentField` property of `InboundReference` from `@Field` to `@Field\|string\|int`, added a deprecation notice to the `parentListIndex` property of `RetainingObject`, changed the type of the `parentField` property of `RetainingObject` from `string` to `string\|int`, removed the deprecated `timeSpan` property from `CpuSamples`, and removed the deprecated `timeSpan` property from `CpuSamplesEvent`.
 4.1 | Added optional `includeSubclasses` and `includeImplementers` parameters to `getInstances`.
+4.2 | Added `getInstancesAsList` RPC.
+4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
+4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

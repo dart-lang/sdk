@@ -655,8 +655,8 @@ void Precompiler::DoCompileAll() {
     const auto& non_visited =
         Function::Handle(Z, FindUnvisitedRetainedFunction());
     if (!non_visited.IsNull()) {
-      FATAL1("Code visitor would miss the code for function \"%s\"\n",
-             non_visited.ToFullyQualifiedCString());
+      FATAL("Code visitor would miss the code for function \"%s\"\n",
+            non_visited.ToFullyQualifiedCString());
     }
 #endif
     DiscardCodeObjects();
@@ -2028,8 +2028,8 @@ void Precompiler::TraceForRetainedFunctions() {
     // they are referenced only from code (object pool).
     if (!functions_to_retain_.ContainsKey(function) &&
         !function.IsFfiTrampoline()) {
-      FATAL1("Function %s was not traced in TraceForRetainedFunctions\n",
-             function.ToFullyQualifiedCString());
+      FATAL("Function %s was not traced in TraceForRetainedFunctions\n",
+            function.ToFullyQualifiedCString());
     }
   }
 #endif  // DEBUG
@@ -2745,7 +2745,7 @@ void Precompiler::DropLibraryEntries() {
       } else if (entry.IsLibraryPrefix()) {
         // Always drop.
       } else {
-        FATAL1("Unexpected library entry: %s", entry.ToCString());
+        FATAL("Unexpected library entry: %s", entry.ToCString());
       }
       dict.SetAt(j, Object::null_object());
     }

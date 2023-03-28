@@ -201,7 +201,7 @@ extension NotInstantiatedExtensionsExtensions<R>
         rawExtendedType,
         'extendedType',
       );
-      var inferredTypes = inferrer.tryUpwardsInfer();
+      var inferredTypes = inferrer.tryChooseFinalTypes();
       if (inferredTypes == null) {
         continue;
       }

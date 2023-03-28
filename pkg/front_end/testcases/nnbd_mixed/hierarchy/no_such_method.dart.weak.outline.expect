@@ -212,7 +212,7 @@ class FromSuperConcreteAbstract extends self::SuperConcrete implements self::Sup
   no-such-method-forwarder set setter(core::int value) → void
     return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#setter=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
-class MixinAbstract extends core::Object {
+mixin class MixinAbstract extends core::Object {
   synthetic constructor •() → self::MixinAbstract
     ;
   abstract method noSuchMethod(core::Invocation invocation) → dynamic;
@@ -221,7 +221,7 @@ class FromMixinAbstract extends self::MixinAbstract implements self::Interface {
   synthetic constructor •() → self::FromMixinAbstract
     ;
 }
-class MixinConcrete extends core::Object {
+mixin class MixinConcrete extends core::Object {
   synthetic constructor •() → self::MixinConcrete
     ;
   @core::override

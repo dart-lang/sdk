@@ -6,7 +6,7 @@ description: >-
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/dds_service_extensions
 
 environment:
-  sdk: '>=2.13.0 <4.0.0'
+  sdk: '>=2.15.0 <4.0.0'
 
 dependencies:
   async: ^2.4.1

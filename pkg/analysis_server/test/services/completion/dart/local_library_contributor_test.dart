@@ -116,6 +116,22 @@ void f() {^}
     assertSuggest('E');
   }
 
+  Future<void> test_partFile_extension_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part of libA;
+extension on int {}
+''');
+    addTestSource('''
+library libA;
+part "a.dart";
+void f() {^}
+''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('');
+  }
+
   Future<void>
       test_partFile_InstanceCreationExpression_assignment_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList

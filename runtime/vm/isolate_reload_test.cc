@@ -930,7 +930,7 @@ TEST_CASE(IsolateReload_TypeIdentityParameter) {
 
 TEST_CASE(IsolateReload_MixinChanged) {
   const char* kScript =
-      "class Mixin1 {\n"
+      "mixin Mixin1 {\n"
       "  var field = 'mixin1';\n"
       "  func() => 'mixin1';\n"
       "}\n"
@@ -946,7 +946,7 @@ TEST_CASE(IsolateReload_MixinChanged) {
   EXPECT_STREQ("saved:field=mixin1,func=mixin1", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
-      "class Mixin2 {\n"
+      "mixin Mixin2 {\n"
       "  var field = 'mixin2';\n"
       "  func() => 'mixin2';\n"
       "}\n"
@@ -1232,7 +1232,7 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
 // mixins when we reload.
 TEST_CASE(IsolateReload_ImportedMixinFunction) {
   const char* kImportScript =
-      "class ImportedMixin {\n"
+      "mixin ImportedMixin {\n"
       "  mixinFunc() => 'mixin';\n"
       "}\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
@@ -1705,7 +1705,7 @@ TEST_CASE(IsolateReload_TearOff_Remove) {
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
-      "  static foo({String bar: 'bar'}) => 'old';\n"
+      "  static foo({String bar = 'bar'}) => 'old';\n"
       "}\n"
       "main() {\n"
       "  var f1 = C.foo;\n"
@@ -2270,6 +2270,133 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("true true true true true true true true true ",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChange) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Apple;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.initial;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("A", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeAdd) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Apple;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return Fruit.Cherry.initial;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("C", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.Banana;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Banana", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Deleted enum value from Fruit",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumShapeChangeValues) {
+  const char* kScript =
+      "enum Fruit { Apple, Banana }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.values;\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana]", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Fruit {\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final String initial;\n"
+      "}\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana, Fruit.Cherry]",
                SimpleInvokeStr(lib, "main"));
 }
 
@@ -4631,6 +4758,9 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
 }
 
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4650,8 +4780,7 @@ TEST_CASE(IsolateReload_TypedefToNotTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result,
-               "Typedef class cannot be redefined to be a non-typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_NotTypedefToTypedef) {
@@ -4667,6 +4796,9 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 
+  // The CFE lowers typedefs to function types and as such the VM will not see
+  // any name collision between a class and a typedef class (which doesn't exist
+  // anymore).
   const char* kReloadScript =
       "typedef bool Predicate(dynamic x);\n"
       "main() {\n"
@@ -4674,7 +4806,7 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result, "Class cannot be redefined to be a typedef class");
+  EXPECT_VALID(result);
 }
 
 TEST_CASE(IsolateReload_TypedefAddParameter) {
@@ -5062,6 +5194,35 @@ TEST_CASE(IsolateReload_ImplicitGetterWithLoadGuard) {
   EXPECT_VALID(TestCase::SetReloadTestScript(kMainScript));
 
   EXPECT_STREQ("y: 3, z: 8208", SimpleInvokeStr(lib1, "main"));
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/51835
+TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
+  const char* kScript =
+      "enum Bar { bar }\n"
+      "class Foo { int? a; toString() => 'foo'; }"
+      "main() {\n"
+      "  return Foo().toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_FinalizeAllClasses());
+  EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Bar { bar }\n"
+      "class Foo { int? a; String? b; toString() => 'foo'; }"
+      "main() {\n"
+      "  return Foo().toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Modification of an imported library propagates to the importing library.
+  EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

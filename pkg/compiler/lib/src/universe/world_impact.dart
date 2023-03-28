@@ -123,7 +123,6 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
 
   @override
   void registerDynamicUse(DynamicUse dynamicUse) {
-    assert((dynamicUse as dynamic) != null); // TODO(48820): Remove when sound.
     (_dynamicUses ??= Setlet()).add(dynamicUse);
   }
 
@@ -134,7 +133,6 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
 
   @override
   void registerTypeUse(TypeUse typeUse) {
-    assert((typeUse as dynamic) != null); // TODO(48820): Remove when sound.
     (_typeUses ??= Setlet()).add(typeUse);
   }
 
@@ -145,7 +143,6 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
 
   @override
   void registerStaticUse(StaticUse staticUse) {
-    assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
     (_staticUses ??= Setlet()).add(staticUse);
   }
 
@@ -156,7 +153,6 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
 
   @override
   void registerConstantUse(ConstantUse constantUse) {
-    assert((constantUse as dynamic) != null); // TODO(48820): Remove when sound.
     (_constantUses ??= Setlet()).add(constantUse);
   }
 

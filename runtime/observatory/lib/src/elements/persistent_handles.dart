@@ -52,12 +52,6 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
       M.PersistentHandlesRepository repository,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(repository != null);
-    assert(objects != null);
     PersistentHandlesPageElement e = new PersistentHandlesPageElement.created();
     e._r =
         new RenderingScheduler<PersistentHandlesPageElement>(e, queue: queue);

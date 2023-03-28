@@ -9,7 +9,7 @@
 
 import 'package:expect/expect.dart';
 
-class M<T> {
+mixin M<T> {
 
   T field2 = 0 as dynamic;
 }

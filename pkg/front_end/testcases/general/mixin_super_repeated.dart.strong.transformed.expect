@@ -2,11 +2,8 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-abstract class M extends core::Object {
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   field dynamic m = null;
-  synthetic constructor •() → self::M
-    : super core::Object::•()
-    ;
 }
 abstract class N extends self::M /*isMixinDeclaration*/  {
   set superM(dynamic value) → void {

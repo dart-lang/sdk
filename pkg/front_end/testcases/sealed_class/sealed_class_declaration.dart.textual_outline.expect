@@ -1,5 +1,4 @@
-sealed
-class A {}
+sealed class A {}
+
 mixin M {}
-sealed
-class B = Object with M;
+sealed class B = Object with M;

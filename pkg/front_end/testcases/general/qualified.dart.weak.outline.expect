@@ -87,9 +87,7 @@ class Supertype extends core::Object {
   method supertypeMethod() → dynamic
     ;
 }
-abstract class Mixin extends core::Object {
-  synthetic constructor •() → lib::Mixin
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method foo() → dynamic
     ;
 }

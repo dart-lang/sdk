@@ -43,7 +43,7 @@ abstract class I<T> {
   void set y(covariant Object value);
 }
 
-class M {
+mixin M {
   int x = 0;
   int y = 0;
 }

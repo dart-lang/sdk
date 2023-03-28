@@ -1,16 +1,16 @@
 import 'main_lib.dart';
 
-class ImplementsBaseClassTypedef implements ATypeDef {}
+base class ImplementsBaseClassTypedef implements ATypeDef {}
 
-class ImplementsBaseClassTypedef2 implements ATypeDef2 {}
+base class ImplementsBaseClassTypedef2 implements ATypeDef2 {}
 
-class ImplementsBaseClassTypedefOutside implements AOutsideTypedef {}
+base class ImplementsBaseClassTypedefOutside implements AOutsideTypedef {}
 
-class ImplementsBaseMixinTypeDef implements MTypeDef {}
+base class ImplementsBaseMixinTypeDef implements MTypeDef {}
 
-class ImplementsBaseMixinTypeDef2 implements MTypeDef2 {}
+base class ImplementsBaseMixinTypeDef2 implements MTypeDef2 {}
 
-class ImplementsBaseMixinTypeDefOutside implements MOutsideTypedef {}
+base class ImplementsBaseMixinTypeDefOutside implements MOutsideTypedef {}
 
 typedef AOutsideTypedef = A;
 typedef MOutsideTypedef = M;

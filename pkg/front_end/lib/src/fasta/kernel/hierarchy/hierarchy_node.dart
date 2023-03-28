@@ -288,8 +288,10 @@ class ClassHierarchyNodeBuilder {
     new BuilderMixinInferrer(
             classBuilder,
             hierarchy.coreTypes,
-            new TypeBuilderConstraintGatherer(hierarchy,
-                mixedInType.classNode.typeParameters, cls.enclosingLibrary))
+            new TypeBuilderConstraintGatherer(
+                hierarchy, mixedInType.classNode.typeParameters,
+                isNonNullableByDefault:
+                    cls.enclosingLibrary.isNonNullableByDefault))
         .infer(cls);
     List<TypeBuilder> inferredArguments = new List<TypeBuilder>.generate(
         typeArguments.length,

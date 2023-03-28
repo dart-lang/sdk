@@ -10,13 +10,13 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TopLevelVariableTest);
-    defineReflectiveTests(TopLevelVariableWithoutNullSafetyTest);
+    defineReflectiveTests(TopLevelVariableResolutionTest);
+    defineReflectiveTests(TopLevelVariableResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class TopLevelVariableTest extends PubPackageResolutionTest
+class TopLevelVariableResolutionTest extends PubPackageResolutionTest
     with TopLevelVariableTestCases {
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_dontUseInferredType() async {
@@ -55,7 +55,7 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: @99::@parameter::z
-              declaredElementType: Object?
+                type: Object?
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
@@ -72,6 +72,7 @@ VariableDeclaration
               staticElement: <null>
               staticType: dynamic
           declaredElement: @99
+            type: int Function(Object?)
           parameter: ParameterMember
             base: root::@parameter::b
             substitution: {T: String}
@@ -119,7 +120,7 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: @107::@parameter::z
-              declaredElementType: String
+                type: String
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
@@ -136,6 +137,7 @@ VariableDeclaration
               staticElement: dart:core::@class::String::@getter::length
               staticType: int
           declaredElement: @107
+            type: int Function(String)
           parameter: ParameterMember
             base: root::@parameter::b
             substitution: {T: String}
@@ -166,6 +168,11 @@ var v = a;
     assertType(findElement.topVar('v').type, 'int');
   }
 }
+
+@reflectiveTest
+class TopLevelVariableResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with TopLevelVariableTestCases, WithoutNullSafetyMixin {}
 
 mixin TopLevelVariableTestCases on PubPackageResolutionTest {
   test_session_getterSetter() async {
@@ -213,7 +220,3 @@ var v = null;
     assertType(findElement.topVar('v').type, 'dynamic');
   }
 }
-
-@reflectiveTest
-class TopLevelVariableWithoutNullSafetyTest extends PubPackageResolutionTest
-    with TopLevelVariableTestCases, WithoutNullSafetyMixin {}

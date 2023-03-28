@@ -22,13 +22,13 @@ class FromSuperConcrete extends SuperConcrete implements Interface {}
 class FromSuperConcreteAbstract extends SuperConcrete
     implements SuperAbstract, Interface {}
 
-class MixinAbstract {
+mixin class MixinAbstract {
   noSuchMethod(Invocation invocation);
 }
 
 class FromMixinAbstract extends MixinAbstract implements Interface {}
 
-class MixinConcrete {
+mixin class MixinConcrete {
   @override
   noSuchMethod(Invocation invocation) {}
 }

@@ -212,22 +212,15 @@ In this minitutorial we used these `dart:ffi` features:
 * Calling C functions, with `dart:ffi` automatically marshalling arguments and return value.
 * Manipulating C memory through `Pointer`s with `allocate`, `free`, `load`, `store`, and `elementAt`.
 
-Features which we did not use in this tutorial:
+There are many `dart:ffi` features not covered in this tutorial.
+Please refer to the [API documentation](https://api.dart.dev/stable/dart-ffi/dart-ffi-library.html) for more info.
 
-* `@struct` on subtypes of `Pointer` to define a struct with fields. (However, this feature is likely to change in the future.)
+Feature which `dart:ffi` does not support:
 
-Features which `dart:ffi` does not support yet:
+* [C++ Exceptions](https://github.com/dart-lang/sdk/issues/39140) (will not be supported)
 
-* Callbacks from C back into Dart.
-* C++ Exceptions (Not on roadmap yet.)
-
-Platform limitations:
-
-* `dart:ffi` is only enabled on 64 bit Windows, Linux, and MacOS. (Arm64 and 32 bit Intel are under review.)
-* `dart:ffi` only works in JIT mode, not in AOT.
-
-It is possible to work around some of the current limitations by adding a C/C++ layer.
-For example we could catch C++ exceptions in a C++ layer, and rethrow them in Dart.
+It is possible to work around `dart:ffi` limitations by adding a C/C++ layer.
+For example, we could catch C++ exceptions in a C++ layer, and rethrow them in Dart.
 The architecture diagram would change to the following in that case.
 
 ![architecture2](lib/scenario-full.svg)

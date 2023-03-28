@@ -52,16 +52,13 @@ class double {
 }
 
 @pragma("wasm:entry-point")
-class _BoxedDouble extends double {
+final class _BoxedDouble extends double {
   // A boxed double contains an unboxed double.
   @pragma("wasm:entry-point")
   double value = 0.0;
 
   /// Dummy factory to silence error about missing superclass constructor.
   external factory _BoxedDouble();
-
-  @override
-  Type get runtimeType => double;
 
   static const int _mantissaBits = 52;
   static const int _exponentBits = 11;

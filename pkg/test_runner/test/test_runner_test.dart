@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(rnystrom): This test is only run by the analyzer and front end
-// configurations, so nothing is actually *executing* it. It's likely broken.
-// We should either remove it or get it working again.
-
 import "dart:async";
 import "dart:io";
 
@@ -21,8 +17,7 @@ import 'package:test_runner/src/test_file.dart';
 import "package:test_runner/src/test_progress.dart" as progress;
 import "package:test_runner/src/test_suite.dart";
 
-final DEFAULT_TIMEOUT = 20;
-final LONG_TIMEOUT = 30;
+final defaultTimeout = 10;
 
 List<String> packageOptions() {
   if (Platform.packageConfig != null) {
@@ -72,13 +67,14 @@ class CustomTestSuite extends TestSuite {
   CustomTestSuite(TestConfiguration configuration)
       : super(configuration, "CustomTestSuite", []);
 
+  @override
   void findTestCases(TestCaseEvent onTest, Map testCache) {
     void enqueueTestCase(TestCase testCase) {
       TestController.numTests++;
       onTest(testCase);
     }
 
-    var testCaseCrash = _makeCrashTestCase("crash", [Expectation.crash]);
+    var testCaseCrash = _makeNormalTestCase("crash", [Expectation.crash]);
     var testCasePass = _makeNormalTestCase("pass", [Expectation.pass]);
     var testCaseFail = _makeNormalTestCase("fail", [Expectation.fail]);
     var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.timeout]);
@@ -97,18 +93,7 @@ class CustomTestSuite extends TestSuite {
     var args = packageOptions();
     args.addAll([Platform.script.toFilePath(), name]);
     var command = ProcessCommand('custom', Platform.executable, args, {});
-    return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
-  }
-
-  TestCase _makeCrashTestCase(String name, Iterable<Expectation> expectations) {
-    var crashCommand = ProcessCommand(
-        'custom_crash', getProcessTestFileName(), ["0", "0", "1", "1"], {});
-    // The crash test sometimes times out. Run it with a large timeout
-    // to help diagnose the delay.
-    // The test loads a new executable, which may sometimes take a long time.
-    // It involves a wait on the VM event loop, and possible system
-    // delays.
-    return _makeTestCase(name, LONG_TIMEOUT, crashCommand, expectations);
+    return _makeTestCase(name, defaultTimeout, command, expectations);
   }
 
   TestCase _makeTestCase(String name, timeout, Command command,
@@ -132,6 +117,7 @@ void testProcessQueue() {
 }
 
 class EventListener extends progress.EventListener {
+  @override
   void done(TestCase test) {
     TestController.processCompletedTest(test);
   }
@@ -147,11 +133,13 @@ void main(List<String> arguments) {
     testProcessQueue();
   } else {
     switch (arguments[0]) {
-      case 'pass':
-        return;
+      case 'crash':
+        exit(253);
       case 'fail-unexpected':
       case 'fail':
         throw "This test always fails, to test the test scripts.";
+      case 'pass':
+        return;
       case 'timeout':
         // This process should be killed by the test after DEFAULT_TIMEOUT
         Timer(const Duration(hours: 42), () {});
@@ -160,19 +148,4 @@ void main(List<String> arguments) {
         throw "Unknown option ${arguments[0]} passed to test_runner_test";
     }
   }
-}
-
-String getPlatformExecutableExtension() {
-  var os = Platform.operatingSystem;
-  if (os == 'windows') return '.exe';
-  return ''; // Linux and Mac OS.
-}
-
-String getProcessTestFileName() {
-  var extension = getPlatformExecutableExtension();
-  var executable = Platform.executable;
-  var dirIndex = executable.lastIndexOf('dart');
-  var buffer = StringBuffer(executable.substring(0, dirIndex));
-  buffer.write('process_test$extension');
-  return buffer.toString();
 }

@@ -16,7 +16,20 @@
 
 ### Libraries
 
+#### General changes
+
+- **Breaking Change**: Non-`mixin` classes in the platform libraries
+  can no longer be mixed in, unless they are explicitly marked as `mixin class`.
+  The following existing classes have been made mixin classes:
+  * `IterableMixin`
+  * `ListMixin`
+  * `SetMixin`
+  * `MapMixin`
+  * `LinkedListEntry`
+  * `StringConversionSink`
+
 #### `dart:core`
+- Added `bool.parse` and `bool.tryParse` static methods.
 
 - **Breaking change** [#49529][]:
   - Removed the deprecated `List` constructor, as it wasn't null safe.
@@ -47,6 +60,15 @@
   - Removed the deprecated [`BidirectionalIterator`][] class.
     Existing bidirectional iterators can still work, they just don't have
     a shared supertype locking them to a specific name for moving backwards.
+
+- **Breaking change when migrating code to Dart 3.0**:
+  Some changes to platform libraries only affect code when it is migrated
+  to language version 3.0.
+  - The `Function` type can no longer be implemented.
+    Since Dart 2.0 writing `implements Function` has been allowed
+    for backwards compatibility, but it has not had any effect.
+    In Dart 3.0, the `Function` type is `final` and cannot be implemented
+    by class-modifier aware code.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
@@ -117,6 +139,13 @@
   removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
   details.
 
+#### `dart:math`
+
+- **Breaking change when migrating code to Dart 3.0**:
+  Some changes to platform libraries only affect code when it is migrated
+  to language version 3.0.
+  - The `Random` interface can only be implemented, not extended.
+
 #### `dart:io`
 
 - Deprecated `NetworkInterface.listSupported`. Has always returned true since
@@ -131,11 +160,35 @@
 
 - Added several helper functions to access more JavaScript operator, like
   `delete` and the `typeof` functionality.
+- `jsify` is now permissive and has inverse semantics to `dartify`.
+- `jsify` and `dartify` both handle types they understand natively more
+  efficiently.
+- Signature of `callMethod` has been aligned with the other methods and
+  now takes `Object` instead of `String`.
 
 ### Tools
 
+#### Observatory
+- Observatory is no longer served by default and users should instead use Dart
+  DevTools. Users requiring specific functionality in Observatory should set
+  the `--serve-observatory` flag.
+
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
+
+#### Dart2js
+
+- Cleanup related to [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  the internal dart2js snapshot fails unless it is called from a supported
+  interface, such as `dart compile js`, `flutter build`, or
+  `build_web_compilers`. This is not expected to be a visible change.
+
+#### Formatter
+
+* Format `sync*` and `async*` functions with `=>` bodies.
+* Don't split after `<` in collection literals.
+* Better indentation of multiline function types inside type argument lists.
+* Fix bug where parameter metadata wouldn't always split when it should.
 
 #### Linter
 
@@ -149,14 +202,14 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
   - `prefer_equal_for_default_values`
   - `super_goes_last`
 - fix `unnecessary_parenthesis` false-positives with null-aware expressions.
-- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters 
+- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters
   typed `FutureOr<void>?`.
 - fix `use_build_context_synchronously` in if conditions.
 - fix a false positive for `avoid_private_typedef_functions` with generalized
   type aliases.
 - update `unnecessary_parenthesis` to detect some doubled parens.
 - update `void_checks` to allow returning `Never` as void.
-- update `no_adjacent_strings_in_list` to support set literals and for- and 
+- update `no_adjacent_strings_in_list` to support set literals and for- and
   if-elements.
 - update `avoid_types_as_parameter_names` to handle type variables.
 - update `avoid_positional_boolean_parameters` to handle typedefs.
@@ -170,6 +223,8 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - update `unnecessary_parenthesis` to allow parentheses in more null-aware
   cascade contexts.
 - update `unreachable_from_main` to track static elements.
+- update `unnecessary_null_checks` to not report on arguments passed to
+  `Future.value` or `Completer.complete`.
 
 #### Migration tool removal
 
@@ -191,6 +246,27 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
   2.1](https://www.rfc-editor.org/rfc/rfc6750#section-2.1). This means they must
   contain only the characters: `^[a-zA-Z0-9._~+/=-]+$`. Before a failure would
   happen when attempting to send the authorization header.
+
+## 2.19.4 - 2023-03-08
+
+This is a patch release that:
+
+- Fixes mobile devices vm crashes caused by particular use of RegExp. (issue
+  [#121270][]).
+
+[#121270]: https://github.com/flutter/flutter/issues/121270
+
+## 2.19.3 - 2023-03-01
+
+This is a patch release that:
+
+- Updates DDC test and builder configuration. (issue [#51481][]).
+
+- Improves the performance of the Dart Analysis Server by limiting the analysis
+  context to 1. (issue [#50981][]).
+
+[#50981]: https://github.com/dart-lang/sdk/issues/50981
+[#51481]: https://github.com/dart-lang/sdk/issues/51481
 
 ## 2.19.2 - 2023-02-08
 

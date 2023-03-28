@@ -36,7 +36,7 @@ static method main() → asy::Future<void> async /* futureValueType= void */ {
     return true;
   });
   await block {
-    final asy::Future<io::ProcessSignal> :expressionValueWrappedFinalizable = #C3.{io::ProcessSignal::watch}(){() → asy::Stream<io::ProcessSignal>}.{asy::Stream::first}{asy::Future<io::ProcessSignal>};
+    final synthesized asy::Future<io::ProcessSignal> :expressionValueWrappedFinalizable = #C3.{io::ProcessSignal::watch}(){() → asy::Stream<io::ProcessSignal>}.{asy::Stream::first}{asy::Future<io::ProcessSignal>};
     _in::reachabilityFence(b);
   } =>:expressionValueWrappedFinalizable;
   _in::reachabilityFence(b);

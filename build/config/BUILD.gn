@@ -18,3 +18,10 @@ config("product") {
     "PRODUCT",
   ]
 }
+
+config("shared_library_config") {
+  if (current_os == "android" || current_os == "fuchsia" ||
+      current_os == "linux" || current_os == "mac") {
+    cflags = [ "-fPIC" ]
+  }
+}

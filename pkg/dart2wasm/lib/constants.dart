@@ -224,6 +224,33 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
     b.f64_const(constant.value);
     return w.NumType.f64;
   }
+
+  @override
+  w.ValueType visitInstanceConstant(InstanceConstant constant) {
+    if (constant.classNode == translator.wasmI32Class) {
+      int value = (constant.fieldValues.values.single as IntConstant).value;
+      b.i32_const(value);
+      return w.NumType.i32;
+    }
+    if (constant.classNode == translator.wasmI64Class) {
+      int value = (constant.fieldValues.values.single as IntConstant).value;
+      b.i64_const(value);
+      return w.NumType.i64;
+    }
+    if (constant.classNode == translator.wasmF32Class) {
+      double value =
+          (constant.fieldValues.values.single as DoubleConstant).value;
+      b.f32_const(value);
+      return w.NumType.f32;
+    }
+    if (constant.classNode == translator.wasmF64Class) {
+      double value =
+          (constant.fieldValues.values.single as DoubleConstant).value;
+      b.f64_const(value);
+      return w.NumType.f64;
+    }
+    return super.visitInstanceConstant(constant);
+  }
 }
 
 class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
@@ -582,8 +609,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
     ClosureRepresentation representation = translator.closureLayouter
         .getClosureRepresentation(0, positionalCount, names)!;
+    ClosureRepresentation instantiationRepresentation = translator
+        .closureLayouter
+        .getClosureRepresentation(types.length, positionalCount, names)!;
     w.StructType struct = representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
+
+    final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
 
     w.DefinedFunction makeDynamicCallEntry() {
       final w.DefinedFunction function = m.addFunction(
@@ -671,7 +703,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
+
+      // Context is not used by the vtable functions, but it's needed for
+      // closure equality checks to work (`_Closure._equals`).
+      b.global_get(tearOffConstantInfo.global);
+      for (final ty in types) {
+        b.global_get(ty.global);
+      }
+      b.struct_new(instantiationRepresentation.instantiationContextStruct!);
+
       makeVtable();
       constants.instantiateConstant(
           function, b, functionTypeConstant, this.types.nonNullableTypeType);

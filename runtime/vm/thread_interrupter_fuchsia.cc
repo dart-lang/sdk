@@ -67,7 +67,6 @@ class ThreadSuspendScope {
 
 class ThreadInterrupterFuchsia : public AllStatic {
  public:
-#if defined(TARGET_ARCH_X64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
     zx_thread_state_general_regs_t regs;
     zx_status_t status = zx_thread_read_state(
@@ -79,34 +78,29 @@ class ThreadInterrupterFuchsia : public AllStatic {
       }
       return false;
     }
+#if defined(TARGET_ARCH_X64)
     state->pc = static_cast<uintptr_t>(regs.rip);
     state->fp = static_cast<uintptr_t>(regs.rbp);
     state->csp = static_cast<uintptr_t>(regs.rsp);
     state->dsp = static_cast<uintptr_t>(regs.rsp);
-    return true;
-  }
+    state->lr = 0;
 #elif defined(TARGET_ARCH_ARM64)
-  static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_thread_state_general_regs_t regs;
-    zx_status_t status = zx_thread_read_state(
-        thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
-    if (status != ZX_OK) {
-      if (FLAG_trace_thread_interrupter) {
-        OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
-                     zx_status_get_string(status));
-      }
-      return false;
-    }
     state->pc = static_cast<uintptr_t>(regs.pc);
     state->fp = static_cast<uintptr_t>(regs.r[FPREG]);
     state->csp = static_cast<uintptr_t>(regs.sp);
     state->dsp = static_cast<uintptr_t>(regs.r[SPREG]);
     state->lr = static_cast<uintptr_t>(regs.lr);
-    return true;
-  }
+#elif defined(TARGET_ARCH_RISCV64)
+    state->pc = static_cast<uintptr_t>(regs.pc);
+    state->fp = static_cast<uintptr_t>(regs.r[FPREG]);
+    state->csp = static_cast<uintptr_t>(regs.r[SPREG]);
+    state->dsp = static_cast<uintptr_t>(regs.r[SPREG]);
+    state->lr = static_cast<uintptr_t>(regs.r[LINK_REGISTER]);
 #else
 #error "Unsupported architecture"
 #endif
+    return true;
+  }
 
   static void Interrupt(OSThread* os_thread) {
     ASSERT(os_thread->id() != ZX_KOID_INVALID);
@@ -161,6 +155,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     // here as the thread which is being queried is suspended.
     Thread* thread = static_cast<Thread*>(os_thread->thread());
     if (thread != NULL) {
+      ThreadInterruptScope signal_handler_scope;
       Profiler::SampleThread(thread, its);
     }
   }

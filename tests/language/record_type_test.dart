@@ -11,10 +11,16 @@ main() {
   (int x, int y) record1Named = (1, 2);
   print(record1Named);
 
-  (int, int, ) record2 = (1, 2);
+  (
+    int,
+    int,
+  ) record2 = (1, 2);
   print(record2);
 
-  (int x, int y, ) record2Named = (1, 2);
+  (
+    int x,
+    int y,
+  ) record2Named = (1, 2);
   print(record2Named);
 
   (int, int, {int a, int b}) record3 = (1, 2, a: 3, b: 4);
@@ -23,17 +29,29 @@ main() {
   (int x, int y, {int a, int b}) record3Named = (1, 2, a: 3, b: 4);
   print(record3Named);
 
-  (int, int, {int a, int b, }) record4 = (1, 2, a: 3, b: 4);
+  (
+    int,
+    int, {
+    int a,
+    int b,
+  }) record4 = (1, 2, a: 3, b: 4);
   print(record4);
 
-  (int x, int y, {int a, int b, }) record4Named = (1, 2, a: 3, b: 4);
+  (
+    int x,
+    int y, {
+    int a,
+    int b,
+  }) record4Named = (1, 2, a: 3, b: 4);
   print(record4Named);
 
   print(foo((42, b: true), 42));
 
   Bar b = new Bar();
   print(b.foo(42));
-  (int, int) Function ((int, int) a) z1 = ((int, int) a) { return (42, 42); };
+  (int, int) Function((int, int) a) z1 = ((int, int) a) {
+    return (42, 42);
+  };
 
   final (int x, int y) finalRecordType = (42, 42);
 
@@ -41,7 +59,7 @@ main() {
 
   var listOfRecords2 = <(int, int)>[];
 
-  (int, ) oneElementRecord = (1, );
+  (int,) oneElementRecord = (1,);
   print(oneElementRecord);
 
   ({int ok}) oneElementNamedRecord = (ok: 1);
@@ -58,7 +76,10 @@ main() {
 
 (int, int) foo((int, {bool b}) inputRecord, int x) {
   if (inputRecord.b) return (42, 42);
-  return (1, 1, );
+  return (
+    1,
+    1,
+  );
 }
 
 class Bar {
@@ -76,4 +97,3 @@ class Bar {
 
   (int, T) f2<T>(T t) => (42, t);
 }
-

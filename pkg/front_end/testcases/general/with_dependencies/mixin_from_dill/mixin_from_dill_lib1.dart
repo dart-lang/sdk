@@ -3,18 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Foo extends B with D {}
+
 abstract class B implements C {
-  bool operator==(dynamic) {
+  bool operator ==(dynamic) {
     print("B.==");
     return true;
   }
+
   void x() {
     print("B.x");
   }
 }
+
 abstract class C {}
-abstract class D implements C {
-  bool operator==(dynamic) {
+
+mixin D implements C {
+  bool operator ==(dynamic) {
     print("D.==");
     return true;
   }

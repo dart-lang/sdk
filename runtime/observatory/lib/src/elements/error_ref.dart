@@ -20,7 +20,6 @@ class ErrorRefElement extends CustomElement implements Renderable {
   ErrorRef get error => _error;
 
   factory ErrorRefElement(ErrorRef error, {RenderingQueue? queue}) {
-    assert(error != null);
     ErrorRefElement e = new ErrorRefElement.created();
     e._r = new RenderingScheduler<ErrorRefElement>(e, queue: queue);
     e._error = error;

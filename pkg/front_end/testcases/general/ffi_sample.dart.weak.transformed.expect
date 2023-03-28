@@ -8,7 +8,7 @@ import "package:ffi/ffi.dart";
 
 @#C7
 class Coordinate extends ffi::Struct {
-  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::Coordinate
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Coordinate
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
@@ -32,16 +32,16 @@ class Coordinate extends ffi::Struct {
   @#C8
   get x() → core::double*
     return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
-  set x(core::double* #v) → void
+  set x(synthesized core::double* #v) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   @#C8
   get y() → core::double*
     return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
-  set y(core::double* #v) → void
+  set y(synthesized core::double* #v) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   get next() → ffi::Pointer<self::Coordinate*>*
     return ffi::_fromAddress<self::Coordinate*>(ffi::_loadAbiSpecificInt<ffi::IntPtr>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));
-  set next(ffi::Pointer<self::Coordinate*>* #v) → void
+  set next(synthesized ffi::Pointer<self::Coordinate*>* #v) → void
     return ffi::_storeAbiSpecificInt<ffi::IntPtr>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v.{ffi::Pointer::address}{core::int});
   @#C16
   static get /*isNonNullableByDefault*/ #sizeOf() → core::int*
@@ -59,16 +59,16 @@ constants  {
   #C7 = core::pragma {name:#C1, options:#C6}
   #C8 = ffi::Double {}
   #C9 = 0
-  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 8
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = 16
-  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = "vm:prefer-inline"
   #C16 = core::pragma {name:#C15, options:#C5}
   #C17 = 24
   #C18 = 20
-  #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
 }
 
 

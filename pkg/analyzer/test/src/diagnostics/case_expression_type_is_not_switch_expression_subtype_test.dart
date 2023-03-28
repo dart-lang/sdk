@@ -38,7 +38,57 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
     on PubPackageResolutionTest {
   _Variant get _variant;
 
-  test_notSubtype() async {
+  test_notSubtype_hasEqEq() async {
+    final List<ExpectedError> expectedErrors;
+    switch (_variant) {
+      case _Variant.nullSafe:
+        expectedErrors = [
+          error(
+              CompileTimeErrorCode
+                  .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+              180,
+              2),
+          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+              180, 2),
+          error(
+              CompileTimeErrorCode
+                  .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+              206,
+              10),
+          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+              206, 10),
+        ];
+        break;
+      case _Variant.patterns:
+        expectedErrors = [];
+        break;
+    }
+
+    await assertErrorsInCode('''
+class A {
+  const A();
+}
+
+class B {
+  final int value;
+  const B(this.value);
+  bool operator ==(other) => true;
+}
+
+const dynamic B0 = B(0);
+
+void f(A e) {
+  switch (e) {
+    case B0:
+      break;
+    case const B(1):
+      break;
+  }
+}
+''', expectedErrors);
+  }
+
+  test_notSubtype_primitiveEquality() async {
     final List<ExpectedError> expectedErrors;
     switch (_variant) {
       case _Variant.nullSafe:
@@ -56,7 +106,10 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
         ];
         break;
       case _Variant.patterns:
-        expectedErrors = [];
+        expectedErrors = [
+          error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 145, 2),
+          error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 171, 10),
+        ];
         break;
     }
 

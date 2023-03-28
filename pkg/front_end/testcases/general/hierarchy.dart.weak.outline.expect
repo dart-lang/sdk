@@ -103,9 +103,7 @@ abstract class A1 extends core::Object {
     ;
   abstract method extendedInterfaceMember() → void;
 }
-abstract class A2 extends core::Object {
-  synthetic constructor •() → self::A2
-    ;
+abstract class A2 extends core::Object /*isMixinDeclaration*/  {
   method mixedInClassMember() → void
     ;
   abstract method mixedInInterfaceMember() → void;
@@ -173,9 +171,7 @@ class B6 extends self::B3 implements self::B1, self::B2 {
   synthetic constructor •() → self::B6
     ;
 }
-abstract class C1 extends core::Object {
-  synthetic constructor •() → self::C1
-    ;
+abstract class C1 extends core::Object /*isMixinDeclaration*/  {
   method mixedInAndImplementedClassMember() → void
     ;
   abstract method mixedInAndImplementedInterfaceMember() → void;

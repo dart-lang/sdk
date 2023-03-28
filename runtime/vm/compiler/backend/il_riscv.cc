@@ -151,8 +151,8 @@ DEFINE_BACKEND(StoreIndexedUnsafe,
                (NoLocation, Register index, Register value)) {
   ASSERT(instr->RequiredInputRepresentation(
              StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
-  __ slli(TMP, index, compiler::target::kWordSizeLog2 - kSmiTagSize);
-  __ add(TMP, TMP, instr->base_reg());
+  __ AddShifted(TMP, instr->base_reg(), index,
+                compiler::target::kWordSizeLog2 - kSmiTagSize);
   __ sx(value, compiler::Address(TMP, instr->offset()));
 
   ASSERT(kSmiTag == 0);
@@ -365,18 +365,10 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ AddImmediate(array_reg, offset);
   const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
-  if (shift < 0) {
-    __ srai(TMP, start_reg, -shift);
-    __ add(array_reg, array_reg, TMP);
-  } else if (shift == 0) {
-    __ add(array_reg, array_reg, start_reg);
-  } else {
-    __ slli(TMP, start_reg, shift);
-    __ add(array_reg, array_reg, TMP);
-  }
+  __ AddShifted(array_reg, array_reg, start_reg, shift);
 }
 
-LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
+LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -401,12 +393,11 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
 
-  const Location value = locs()->in(0);
-  const intptr_t offset =
-      top_of_stack_relative_index() * compiler::target::kWordSize;
+  const Location value = compiler->RebaseIfImprovesAddressing(locs()->in(0));
+  const intptr_t offset = sp_relative_index() * compiler::target::kWordSize;
   if (value.IsRegister()) {
     __ StoreToOffset(value.reg(), SP, offset);
 #if XLEN == 32
@@ -532,16 +523,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (compiler::target::frame_layout.first_local_from_fp + 1 -
        compiler->StackSize()) *
       kWordSize;
-  ASSERT(fp_sp_dist <= 0);
-#if defined(DEBUG)
-  compiler::Label stack_ok;
-  __ Comment("Stack Check");
-  __ sub(TMP, SP, FP);
-  __ CompareImmediate(TMP, fp_sp_dist);
-  __ BranchIf(EQ, &stack_ok, compiler::Assembler::kNearJump);
-  __ ebreak();
-  __ Bind(&stack_ok);
-#endif
+  __ CheckFpSpDist(fp_sp_dist);
   ASSERT(__ constant_pool_allowed());
   __ LeaveDartFrame(fp_sp_dist);  // Disallows constant pool use.
   __ ret();
@@ -1910,10 +1892,9 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   const Register result = locs()->out(0).reg();
   __ lx(result,
         compiler::Address(THR, Thread::predefined_symbols_address_offset()));
-  __ slli(TMP, char_code, kWordSizeLog2 - kSmiTagSize);
-  __ add(result, result, TMP);
-  __ lx(result, compiler::Address(
-                    result, Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ AddShifted(TMP, result, char_code, kWordSizeLog2 - kSmiTagSize);
+  __ lx(result,
+        compiler::Address(TMP, Symbols::kNullCharCodeSymbolOffset * kWordSize));
 }
 
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,
@@ -3147,7 +3128,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // Restore SP from FP as we are coming from a throw and the code for
@@ -7262,7 +7243,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    InstructionSource());
   }
   if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+    parallel_move()->EmitNativeCode(compiler);
   }
 
   // We can fall through if the successor is the next block in the list.

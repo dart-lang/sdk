@@ -115,7 +115,7 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 
 #if defined(DART_ENABLE_TIMELINE) || !defined(PRODUCT) ||                      \
     defined(DART_HOST_OS_FUCHSIA) || defined(DART_TARGET_OS_FUCHSIA) ||        \
-    defined(DART_TARGET_OS_ANDROID)
+    defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_MACOS)
 #define SUPPORT_TIMELINE 1
 #endif
 
@@ -153,7 +153,7 @@ const intptr_t kOffsetOfPtr = 32;
 #define OPEN_ARRAY_START(type, align)                                          \
   do {                                                                         \
     const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
-    ASSERT(Utils::IsAligned(result, sizeof(align)));                           \
+    ASSERT(Utils::IsAligned(result, alignof(align)));                          \
     return reinterpret_cast<type*>(result);                                    \
   } while (0)
 

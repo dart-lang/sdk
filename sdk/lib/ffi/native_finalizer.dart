@@ -219,7 +219,7 @@ part of dart.ffi;
 // TODO(http://dartbug.com/44395): Add implicit await to Dart implementation.
 // This will fix `useAsync2` above.
 @Since('2.17')
-abstract class Finalizable {
+abstract interface class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
 
@@ -335,10 +335,10 @@ typedef NativeFinalizerFunction
 ///       .asFunction<void Function(Pointer<_NativeDatabase>)>();
 /// }
 ///
-/// class _NativeDatabase extends Opaque {}
+/// final class _NativeDatabase extends Opaque {}
 /// ```
 @Since('2.17')
-abstract class NativeFinalizer {
+abstract final class NativeFinalizer {
   /// Creates a finalizer with the given finalization callback.
   ///
   /// The [callback] must be a native function which can be executed outside of

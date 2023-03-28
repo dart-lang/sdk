@@ -4,7 +4,7 @@
 
 class Base {}
 
-class Mixin {
+mixin Mixin {
   foo() => print('foo');
 }
 

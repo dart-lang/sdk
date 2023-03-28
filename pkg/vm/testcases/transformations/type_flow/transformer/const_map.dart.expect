@@ -27,5 +27,5 @@ constants  {
   #C5 = 0
   #C6 = "name"
   #C7 = self::_AttributeName {index:#C5, _name:#C6}
-  #C8 = <core::int, self::_AttributeName>{#C1:#C3, #C4:#C7)
+  #C8 = <core::int, self::_AttributeName>{#C1:#C3, #C4:#C7}
 }

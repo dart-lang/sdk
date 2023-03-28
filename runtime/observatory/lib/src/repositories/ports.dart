@@ -7,7 +7,6 @@ part of repositories;
 class PortsRepository implements M.PortsRepository {
   Future<M.Ports> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
     final response = await isolate.invokeRpc('_getPorts', {});
     return new S.Ports(response as S.ServiceMap);
   }

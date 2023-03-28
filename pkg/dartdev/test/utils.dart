@@ -81,7 +81,7 @@ class TestProject {
             ? '''
 name: $name
 environment:
-  sdk: '${sdkConstraint ?? '>=2.12.0 <3.0.0'}'
+  sdk: '${sdkConstraint ?? '>=2.19.0 <4.0.0'}'
 
 dev_dependencies:
   test: any
@@ -114,22 +114,25 @@ dev_dependencies:
     await deleteDirectory(dir);
   }
 
+  Future<ProcessResult> runAnalyze(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    return run(['analyze', '--suppress-analytics', ...arguments]);
+  }
+
+  Future<ProcessResult> runFix(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    return run(['fix', '--suppress-analytics', ...arguments]);
+  }
+
   Future<ProcessResult> run(
     List<String> arguments, {
     String? workingDir,
   }) async {
-    final process = await Process.start(
-        Platform.resolvedExecutable,
-        [
-          '--no-analytics',
-          ...arguments,
-        ],
-        workingDirectory: workingDir ?? dir.path,
-        environment: {
-          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
-          'PUB_CACHE': pubCachePath,
-        });
-    _process = process;
+    final process = await start(arguments, workingDir: workingDir);
     final stdoutContents = process.stdout.transform(utf8.decoder).join();
     final stderrContents = process.stderr.transform(utf8.decoder).join();
     final code = await process.exitCode;
@@ -148,7 +151,6 @@ dev_dependencies:
     return Process.start(
         Platform.resolvedExecutable,
         [
-          '--no-analytics',
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,

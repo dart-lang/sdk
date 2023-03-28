@@ -18,6 +18,7 @@ import 'package:vm/testing/il_matchers.dart';
 
 abstract class A {
   (int, {double y}) get record3;
+  Object record4();
 }
 
 class B implements A {
@@ -28,10 +29,15 @@ class B implements A {
   @pragma('vm:never-inline')
   @pragma('vm:testing:print-flow-graph')
   (int, {double y}) get record3 => (x, y: y);
+
+  @pragma('vm:never-inline')
+  @pragma('vm:testing:print-flow-graph')
+  Object record4() => (x, y);
 }
 
 class C extends A {
   (int, {double y}) get record3 => (1, y: 2);
+  Object record4() => (1, 2);
 }
 
 @pragma('vm:never-inline')
@@ -46,7 +52,7 @@ void test(int x, bool z, String foo, int bar, A obj1, A obj2) {
   final r3 = obj1.record3;
   print(r3.$1);
   print(r3.y);
-  final r4 = obj2.record3;
+  final r4 = obj2.record4();
   print(r4);
 }
 
@@ -91,6 +97,21 @@ void matchIL$record3(FlowGraph graph) {
   ]);
 }
 
+void matchIL$record4(FlowGraph graph) {
+  graph.match([
+    match.block('Graph'),
+    match.block('Function', [
+      'this' << match.Parameter(index: 0),
+      'x' << match.LoadField('this', slot: 'x'),
+      'y' << match.LoadField('this', slot: 'y'),
+      'x_boxed' << match.BoxInt64('x'),
+      'y_boxed' << match.Box('y'),
+      'pair' << match.MakePair('x_boxed', 'y_boxed'),
+      match.Return('pair'),
+    ]),
+  ]);
+}
+
 void matchIL$test(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
@@ -102,45 +123,40 @@ void matchIL$test(FlowGraph graph) {
       'obj1' << match.Parameter(index: 4),
       'obj2' << match.Parameter(index: 5),
       match.CheckStackOverflow(),
-
-      match.PushArgument('x'),
-      match.PushArgument('z'),
+      match.MoveArgument('x'),
+      match.MoveArgument('z'),
       'r1' << match.StaticCall(),
       'r1_0' << match.ExtractNthOutput('r1', index: 0),
       'r1_1' << match.ExtractNthOutput('r1', index: 1),
-      match.PushArgument('r1_0'),
+      match.MoveArgument('r1_0'),
       match.StaticCall(),
-      match.PushArgument('r1_1'),
+      match.MoveArgument('r1_1'),
       match.StaticCall(),
-
-      match.PushArgument('foo'),
-      match.PushArgument('bar'),
+      match.MoveArgument('foo'),
+      match.MoveArgument('bar'),
       'r2' << match.StaticCall(),
       'r2_bar' << match.ExtractNthOutput('r2', index: 0),
       'r2_foo' << match.ExtractNthOutput('r2', index: 1),
-      match.PushArgument('r2_foo'),
+      match.MoveArgument('r2_foo'),
       match.StaticCall(),
-      match.PushArgument('r2_bar'),
+      match.MoveArgument('r2_bar'),
       match.StaticCall(),
-
-      match.PushArgument('obj1'),
+      match.MoveArgument('obj1'),
       'r3' << match.StaticCall(),
       'r3_0' << match.ExtractNthOutput('r3', index: 0),
       'r3_y' << match.ExtractNthOutput('r3', index: 1),
-      match.PushArgument('r3_0'),
+      match.MoveArgument('r3_0'),
       match.StaticCall(),
-      match.PushArgument('r3_y'),
+      match.MoveArgument('r3_y'),
       match.StaticCall(),
-
       'obj2_cid' << match.LoadClassId('obj2'),
-      match.PushArgument('obj2'),
+      match.MoveArgument('obj2'),
       'r4' << match.DispatchTableCall('obj2_cid'),
       'r4_0' << match.ExtractNthOutput('r4', index: 0),
       'r4_y' << match.ExtractNthOutput('r4', index: 1),
       'r4_boxed' << match.AllocateSmallRecord('r4_0', 'r4_y'),
-      match.PushArgument('r4_boxed'),
+      match.MoveArgument('r4_boxed'),
       match.StaticCall(),
-
       match.Return(),
     ]),
   ]);
@@ -152,10 +168,6 @@ void main(List<String> args) {
   final intValue = args.length > 50 ? 1 << 53 : 42;
   final doubleValue = args.length > 50 ? 42.5 : 24.5;
 
-  test(intValue,
-    intValue == 4,
-    'foo' + intValue.toString(),
-    intValue,
-    B(intValue, doubleValue),
-    intValue == 42 ? B(1, 2) : C());
+  test(intValue, intValue == 4, 'foo' + intValue.toString(), intValue,
+      B(intValue, doubleValue), intValue == 42 ? B(1, 2) : C());
 }

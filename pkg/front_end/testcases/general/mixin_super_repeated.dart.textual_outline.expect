@@ -1,7 +1,6 @@
-abstract class M {
+mixin M {
   var m;
 }
-
 mixin N on M {
   void set superM(value) {}
   get superM => super.m;

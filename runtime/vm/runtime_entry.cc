@@ -2886,7 +2886,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     const bool success =
         isolate_group->ReloadSources(&js, /*force_reload=*/true, script_uri);
     if (!success) {
-      FATAL1("*** Isolate reload failed:\n%s\n", js.ToCString());
+      FATAL("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
   }
   if (do_stacktrace) {

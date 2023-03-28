@@ -7,7 +7,7 @@ part of dart.collection;
 /// This [Iterable] mixin implements all [Iterable] members except `iterator`.
 ///
 /// All other methods are implemented in terms of `iterator`.
-abstract class IterableMixin<E> implements Iterable<E> {
+abstract mixin class IterableMixin<E> implements Iterable<E> {
   // This class has methods copied verbatim into:
   // - IterableBase
   // - SetMixin

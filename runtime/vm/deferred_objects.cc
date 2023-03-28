@@ -109,8 +109,8 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   uword continue_at_pc =
       code.GetPcForDeoptId(deopt_id_, UntaggedPcDescriptors::kDeopt);
   if (continue_at_pc == 0) {
-    FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
-           deopt_id_, function.ToFullyQualifiedCString());
+    FATAL("Can't locate continuation PC for deoptid %" Pd " within %s\n",
+          deopt_id_, function.ToFullyQualifiedCString());
   }
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   *dest_addr = continue_at_pc;

@@ -8,10 +8,9 @@ import sys
 
 
 def main(args):
-    for dirname in args:
-        for file in os.listdir(dirname):
-            if file.endswith('.cpp') or file.endswith('.h'):
-                print(os.path.join(dirname, file))
+    for file in os.listdir(args[0]):
+        if file.endswith('.cpp') or file.endswith('.h'):
+            print(file)
 
 
 if __name__ == '__main__':

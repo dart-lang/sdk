@@ -16,6 +16,96 @@ main() {
 @reflectiveTest
 class PatternTypeMismatchInIrrefutableContextTest
     extends PubPackageResolutionTest {
+  test_assignedVariablePattern_recordDestruction_hasCall() async {
+    await assertErrorsInCode(r'''
+void f(int Function(int) a, (A,) x) {
+  (a) = x;
+}
+
+class A {
+  int call(int x) => x;
+}
+''', [
+      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          41, 1),
+    ]);
+  }
+
+  test_assignedVariablePattern_valueDynamic() async {
+    await assertNoErrorsInCode(r'''
+void f(int a, dynamic x) {
+  (a) = x;
+}
+''');
+  }
+
+  test_assignedVariablePattern_valueSubtype() async {
+    await assertNoErrorsInCode(r'''
+void f(num a, int x) {
+  (a) = x;
+}
+''');
+  }
+
+  test_assignedVariablePattern_valueSupertype() async {
+    await assertErrorsInCode(r'''
+void f(int a, num x) {
+  (a) = x;
+}
+''', [
+      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          26, 1),
+    ]);
+  }
+
+  test_declaredVariablePattern_recordDestruction_hasCall() async {
+    await assertErrorsInCode(r'''
+void f((A,) x) {
+  var (int Function(int) v,) = x;
+}
+
+class A {
+  int call(int x) => x;
+}
+''', [
+      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          24, 19),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+    ]);
+  }
+
+  test_declaredVariablePattern_valueDynamic() async {
+    await assertErrorsInCode(r'''
+void f(dynamic x) {
+  var (int a) = x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
+  }
+
+  test_declaredVariablePattern_valueSubtype() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  var (num a) = x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+    ]);
+  }
+
+  test_declaredVariablePattern_valueSupertype() async {
+    await assertErrorsInCode(r'''
+void f(num x) {
+  var (int a) = x;
+}
+''', [
+      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          23, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+    ]);
+  }
+
   test_listPattern_differentList() async {
     await assertErrorsInCode(r'''
 void f(List<Object> x) {
@@ -96,38 +186,6 @@ void f(({int foo}) x) {
       error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
           30, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
-    ]);
-  }
-
-  test_variablePattern_assignable_fromDynamic() async {
-    await assertErrorsInCode(r'''
-void f(dynamic x) {
-  var (int a) = x;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
-    ]);
-  }
-
-  test_variablePattern_assignable_fromSubtype() async {
-    await assertErrorsInCode(r'''
-void f(int x) {
-  var (num a) = x;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-    ]);
-  }
-
-  test_variablePattern_notAssignable_fromSupertype() async {
-    await assertErrorsInCode(r'''
-void f(num x) {
-  var (int a) = x;
-}
-''', [
-      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
-          23, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
     ]);
   }
 }

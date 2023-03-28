@@ -129,9 +129,7 @@ class Super extends core::Object {
   method extendedMethod() → core::num
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method mixedInMethod() → core::num
     ;
 }

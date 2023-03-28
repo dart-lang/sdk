@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -19,7 +20,7 @@ class BaseClassImplementedOutsideOfLibraryTest
   test_class_inside() async {
     await assertNoErrorsInCode(r'''
 base class Foo {}
-class Bar implements Foo {}
+base class Bar implements Foo {}
 ''');
   }
 
@@ -30,10 +31,62 @@ base class Foo {}
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar implements Foo {}
+base class Bar implements Foo {}
 ''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
           3),
+    ]);
+  }
+
+  test_class_outside_sealed() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+base class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+sealed class B extends A {}
+base class C implements B {}
+''', [
+      error(
+        CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+        69,
+        1,
+        text:
+            "The class 'A' can't be implemented outside of its library because it's a base class.",
+        contextMessages: [
+          ExpectedContextMessage(a.path, 11, 1,
+              text:
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
+  }
+
+  test_class_outside_sealed_noBase() async {
+    // Instead of emitting [SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED], we
+    // tell the user that they can't implement an indirect base supertype.
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+base class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+sealed class B extends A {}
+class C implements B {}
+''', [
+      error(
+        CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+        64,
+        1,
+        text:
+            "The class 'A' can't be implemented outside of its library because it's a base class.",
+        contextMessages: [
+          ExpectedContextMessage(a.path, 11, 1,
+              text:
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
     ]);
   }
 
@@ -45,9 +98,9 @@ typedef FooTypedef = Foo;
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-class Bar implements FooTypedef {}
+base class Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
           10),
     ]);
   }
@@ -60,23 +113,46 @@ base class Foo {}
     await assertErrorsInCode(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
-class Bar implements FooTypedef {}
+base class Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 71,
           10),
     ]);
   }
 
-  test_class_subtypeOfBase_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-base class Foo {}
-class Bar implements Foo {}
+  test_classTypeAlias_inside() async {
+    await assertNoErrorsInCode(r'''
+base class A {}
+sealed class B extends A {}
+mixin M {}
+base class C = Object with M implements B;
+''');
+  }
+
+  test_classTypeAlias_outside() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+base class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-class Bar2 implements Bar {}
-''');
+    await assertErrorsInCode(r'''
+import 'a.dart';
+sealed class B extends A {}
+mixin M {}
+base class C = Object with M implements B;
+''', [
+      error(
+        CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+        96,
+        1,
+        text:
+            "The class 'A' can't be implemented outside of its library because it's a base class.",
+        contextMessages: [
+          ExpectedContextMessage(a.path, 11, 1,
+              text:
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
+        ],
+      ),
+    ]);
   }
 
   test_enum_inside() async {
@@ -130,22 +206,10 @@ enum Bar implements FooTypedef { bar }
     ]);
   }
 
-  test_enum_subtypeOfBase_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-base class Foo {}
-class Bar implements Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-enum Bar2 implements Bar { bar }
-''');
-  }
-
   test_mixin_inside() async {
     await assertNoErrorsInCode(r'''
 base class Foo {}
-mixin Bar implements Foo {}
+base mixin Bar implements Foo {}
 ''');
   }
 
@@ -156,9 +220,9 @@ base class Foo {}
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-mixin Bar implements Foo {}
+base mixin Bar implements Foo {}
 ''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
           3),
     ]);
   }
@@ -171,9 +235,9 @@ typedef FooTypedef = Foo;
 
     await assertErrorsInCode(r'''
 import 'foo.dart';
-mixin Bar implements FooTypedef {}
+base mixin Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 40,
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
           10),
     ]);
   }
@@ -186,22 +250,10 @@ base class Foo {}
     await assertErrorsInCode(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
-mixin Bar implements FooTypedef {}
+base mixin Bar implements FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 71,
           10),
     ]);
-  }
-
-  test_mixin_subtypeOfBase_outside() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-base class Foo {}
-class Bar implements Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-mixin Bar2 implements Bar {}
-''');
   }
 }

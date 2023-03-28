@@ -29,10 +29,6 @@ class InboundReferencesElement extends CustomElement implements Renderable {
   factory InboundReferencesElement(M.IsolateRef isolate, M.ObjectRef object,
       M.InboundReferencesRepository references, M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(isolate != null);
-    assert(object != null);
-    assert(references != null);
-    assert(objects != null);
     InboundReferencesElement e = new InboundReferencesElement.created();
     e._r = new RenderingScheduler<InboundReferencesElement>(e, queue: queue);
     e._isolate = isolate;

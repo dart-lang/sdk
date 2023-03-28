@@ -39,7 +39,7 @@ DEFINE_FLAG(int,
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL2("pthread error: %d (%s)", result, error_message);                   \
+    FATAL("pthread error: %d (%s)", result, error_message);                    \
   }
 
 #if defined(PRODUCT)
@@ -50,7 +50,7 @@ DEFINE_FLAG(int,
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
     Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL3("[%s] pthread error: %d (%s)", name_, result, error_message);       \
+    FATAL("[%s] pthread error: %d (%s)", name_, result, error_message);        \
   }
 #endif
 
@@ -104,12 +104,12 @@ static void* ThreadStart(void* data_ptr) {
     int policy = SCHED_FIFO;
     struct sched_param schedule;
     if (pthread_getschedparam(thread, &policy, &schedule) != 0) {
-      FATAL1("Obtaining sched param failed: errno = %d\n", errno);
+      FATAL("Obtaining sched param failed: errno = %d\n", errno);
     }
     schedule.sched_priority = FLAG_worker_thread_priority;
     if (pthread_setschedparam(thread, policy, &schedule) != 0) {
-      FATAL2("Setting thread priority to %d failed: errno = %d\n",
-             FLAG_worker_thread_priority, errno);
+      FATAL("Setting thread priority to %d failed: errno = %d\n",
+            FLAG_worker_thread_priority, errno);
     }
   }
 
@@ -226,7 +226,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return reinterpret_cast<intptr_t>(id);
 }
 
@@ -298,6 +298,8 @@ Mutex::~Mutex() {
 }
 
 void Mutex::Lock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_lock(data_.mutex());
   // Specifically check for dead lock to help debugging.
   ASSERT(result != EDEADLK);
@@ -309,6 +311,8 @@ void Mutex::Lock() {
 }
 
 bool Mutex::TryLock() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
   if ((result == EBUSY) || (result == EDEADLK)) {
@@ -373,6 +377,8 @@ Monitor::~Monitor() {
 }
 
 bool Monitor::TryEnter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
   if ((result == EBUSY) || (result == EDEADLK)) {
@@ -388,6 +394,8 @@ bool Monitor::TryEnter() {
 }
 
 void Monitor::Enter() {
+  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
+
   int result = pthread_mutex_lock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
 

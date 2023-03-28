@@ -54,17 +54,6 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
       {RenderingQueue? queue}) {
-    assert(vm != null);
-    assert(isolate != null);
-    assert(events != null);
-    assert(notifications != null);
-    assert(pool != null);
-    assert(pools != null);
-    assert(retainedSizes != null);
-    assert(reachableSizes != null);
-    assert(references != null);
-    assert(retainingPaths != null);
-    assert(objects != null);
     ObjectPoolViewElement e = new ObjectPoolViewElement.created();
     e._r = new RenderingScheduler<ObjectPoolViewElement>(e, queue: queue);
     e._vm = vm;
@@ -157,6 +146,5 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
             ..text = 'NativeEntry 0x${entry.asInteger!.toRadixString(16)}'
         ];
     }
-    throw new Exception('Unknown ObjectPoolEntryKind (${entry.kind})');
   }
 }
