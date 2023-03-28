@@ -6,7 +6,6 @@ library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
-import '../universe/class_set.dart';
 import '../util/util.dart' show Setlet;
 import '../inferrer/abstract_value_domain.dart';
 import 'debug.dart' as debug;
@@ -574,5 +573,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       return;
     }
     addNewEscapeInformation(info);
+  }
+
+  bool dynamicCallTargetsNonFunction(DynamicCallSiteTypeInformation info) {
+    return info.targets.any((target) => inferrer.memberHierarchyBuilder
+        .anyTargetMember(target, (element) => !element.isFunction));
   }
 }

@@ -403,17 +403,19 @@ class InferrerEngine {
         } else if (info is CallSiteTypeInformation) {
           final selector = info.selector;
           List<FunctionEntity> elements;
-          if (info is StaticCallSiteTypeInformation &&
-              selector != null &&
-              selector.isCall) {
-            // This is a constructor call to a class with a call method. So we
-            // need to trace the call method here.
-            final calledElement = info.calledElement;
-            assert(calledElement is ConstructorEntity &&
-                calledElement.isGenerativeConstructor);
-            final cls = calledElement.enclosingClass!;
-            final callMethod = _lookupCallMethod(cls)!;
-            elements = [callMethod];
+          if (info is StaticCallSiteTypeInformation) {
+            if (selector != null && selector.isCall) {
+              // This is a constructor call to a class with a call method. So we
+              // need to trace the call method here.
+              final calledElement = info.calledElement;
+              assert(calledElement is ConstructorEntity &&
+                  calledElement.isGenerativeConstructor);
+              final cls = calledElement.enclosingClass!;
+              final callMethod = _lookupCallMethod(cls)!;
+              elements = [callMethod];
+            } else {
+              elements = [info.calledElement as FunctionEntity];
+            }
           } else if (info is DynamicCallSiteTypeInformation) {
             // We only are interested in functions here, as other targets
             // of this closure call are not a root to trace but an intermediate
@@ -428,8 +430,7 @@ class InferrerEngine {
 
             info.forEachConcreteTarget(memberHierarchyBuilder, processTarget);
           } else {
-            elements = List<FunctionEntity>.from(
-                info.callees.where((e) => e.isFunction));
+            elements = const [];
           }
           trace(elements, ClosureTracerVisitor(elements, info, this));
         } else if (info is MemberTypeInformation) {
@@ -498,15 +499,16 @@ class InferrerEngine {
           if (info.hasClosureCallTargets) {
             print('<Closure.call>');
           }
-          for (MemberEntity target in info.callees) {
-            if (target is FunctionEntity) {
-              print('${types.getInferredSignatureOfMethod(target)} '
-                  'for ${target}');
+          info.forEachConcreteTarget(memberHierarchyBuilder, (member) {
+            if (member is FunctionEntity) {
+              print('${types.getInferredSignatureOfMethod(member)} '
+                  'for ${member}');
             } else {
-              print('${types.getInferredTypeOfMember(target).type} '
-                  'for ${target}');
+              print('${types.getInferredTypeOfMember(member).type} '
+                  'for ${member}');
             }
-          }
+            return true;
+          });
         } else if (info is StaticCallSiteTypeInformation) {
           final cls = info.calledElement.enclosingClass!;
           final callMethod = _lookupCallMethod(cls)!;
@@ -745,8 +747,10 @@ class InferrerEngine {
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.callees.forEach((MemberEntity element) {
+        info.forEachConcreteTarget(memberHierarchyBuilder,
+            (MemberEntity element) {
           inferredDataBuilder.addFunctionCalledInLoop(element);
+          return true;
         });
       }
     });

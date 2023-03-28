@@ -123,6 +123,31 @@ class MemberHierarchyBuilder {
     _forEachOverrideSkipVisited(entity, f, {entity});
   }
 
+  /// Returns `true` if every target member represented by [target] satisfies
+  /// the predicate [f].
+  bool everyTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    bool result = true;
+    forEachTargetMember(target, (member) {
+      // We exit early on a false result here.
+      return result = f(member);
+    });
+    return result;
+  }
+
+  /// Returns `true` if any target member represented by [target] satisfies the
+  /// predicate [f].
+  bool anyTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    bool result = false;
+    forEachTargetMember(target, (member) {
+      result = f(member);
+      // We exit early on a true result here.
+      return !result;
+    });
+    return result;
+  }
+
   /// Applies [f] to each target represented by [target] including overrides
   /// if the call is virtual.
   ///

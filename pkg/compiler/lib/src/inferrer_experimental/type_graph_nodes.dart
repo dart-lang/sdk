@@ -1010,9 +1010,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
   /// Add [this] to the graph being computed by [engine].
   void addToGraph(InferrerEngine engine);
 
-  /// Return an iterable over the targets of this call.
-  Iterable<MemberEntity> get callees;
-
   String get debugName => '$callNode';
 }
 
@@ -1068,9 +1065,6 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       return _getCalledTypeInfoWithSelector(inferrer).type;
     }
   }
-
-  @override
-  Iterable<MemberEntity> get callees => [calledElement];
 
   @override
   accept(TypeInformationVisitor visitor) {
@@ -1178,9 +1172,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     }
   }
 
-  @override
-  Iterable<MemberEntity> get callees => targets.map((e) => e.member);
-
   AbstractValue? computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;
     if (mask != receiverType) {
@@ -1199,12 +1190,13 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
     if (!_hasTargetsIncludeComplexNoSuchMethod) {
       _setFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
-      final value = callees.any((MemberEntity e) {
-        return e.isFunction &&
-            e.isInstanceMember &&
-            e.name == Identifiers.noSuchMethod_ &&
-            inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
-      });
+      final value = targets.any((target) => inferrer.memberHierarchyBuilder
+              .anyTargetMember(target, (MemberEntity e) {
+            return e.isFunction &&
+                e.isInstanceMember &&
+                e.name == Identifiers.noSuchMethod_ &&
+                inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
+          }));
       _setFlagTo(_Flag.targetsIncludeComplexNoSuchMethod, value);
       return value;
     }
@@ -1442,11 +1434,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
   @override
   void removeAndClearReferences(InferrerEngine inferrer) {
-    for (MemberEntity element in callees) {
+    forEachConcreteTarget(inferrer.memberHierarchyBuilder, (element) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.removeUser(this);
-    }
+      return true;
+    });
     if (arguments != null) {
       arguments!.forEach((info) => info.removeUser(this));
     }
@@ -1464,8 +1457,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        callees.every((MemberEntity element) =>
-            inferrer.types.getInferredTypeOfMember(element).isStable) &&
+        targets.every((target) => inferrer.memberHierarchyBuilder
+            .anyTargetMember(
+                target,
+                (MemberEntity element) => inferrer.types
+                    .getInferredTypeOfMember(element)
+                    .isStable)) &&
         (arguments == null || arguments!.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
@@ -1504,11 +1501,6 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
       return abstractValueDomain.emptyType;
     }
     return safeType(inferrer);
-  }
-
-  @override
-  Iterable<MemberEntity> get callees {
-    throw UnsupportedError("Cannot compute callees of a closure call.");
   }
 
   @override
