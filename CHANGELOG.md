@@ -246,6 +246,10 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
   typed targets.
 - add new lint: `deprecated_member_use_from_same_package` which replaces the
   soft-deprecated analyzer hint of the same name.
+- update `public_member_api_docs` to not require docs on enum constructors.
+- add new lint: `implicit_reopen`.
+- add new lint: `type_literal_in_constant_pattern`.
+- update `prefer_void_to_null` to not report on as-expressions.
 
 #### Migration tool removal
 

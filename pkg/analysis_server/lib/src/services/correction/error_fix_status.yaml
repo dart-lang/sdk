@@ -1671,6 +1671,10 @@ LintCode.implementation_imports:
   status: needsEvaluation
 LintCode.implicit_call_tearoffs:
   status: hasFix
+LintCode.implicit_reopen:
+  status: needsFix
+  notes: |-
+    The correction is to add `@reopen`.
 LintCode.invalid_case_patterns:
   status: hasFix
 LintCode.invariant_booleans:
@@ -1862,6 +1866,8 @@ LintCode.type_annotate_public_apis:
   status: hasFix
 LintCode.type_init_formals:
   status: hasFix
+LintCode.type_literal_in_constant_pattern:
+  status: needsEvaluation
 LintCode.unawaited_futures:
   status: hasFix
 LintCode.unnecessary_await_in_return:
