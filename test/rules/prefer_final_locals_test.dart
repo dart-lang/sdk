@@ -18,10 +18,28 @@ class PreferFinalLocalsTestLanguage300 extends LintRuleTest
   @override
   String get lintRule => 'prefer_final_locals';
 
-  test_destructured_listPatternWithRest_mutated() async {
+  test_destructured_listPattern() async {
+    await assertDiagnostics(r'''
+f() {
+  var [a, b] = ['a', 'b'];
+}
+''', [
+      lint(8, 3),
+    ]);
+  }
+
+  test_destructured_listPattern_final() async {
     await assertNoDiagnostics(r'''
 f() {
-  var [a, b, ...rest] = [1, 2, 3, 4, 5, 6, 7];
+  final [a, b] = [1, 2];
+}
+''');
+  }
+
+  test_destructured_listPattern_mutated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var [a, b] = [1, 2];
   ++a;
 }
 ''');
@@ -37,6 +55,15 @@ f() {
     ]);
   }
 
+  test_destructured_listPatternWithRest_mutated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var [a, b, ...rest] = [1, 2, 3, 4, 5, 6, 7];
+  ++a;
+}
+''');
+  }
+
   test_destructured_mapPattern() async {
     await assertDiagnostics(r'''
 f() {
@@ -47,19 +74,19 @@ f() {
     ]);
   }
 
+  test_destructured_mapPattern_final() async {
+    await assertNoDiagnostics(r'''
+f() {
+  final {'first': a, 'second': b} = {'first': 1, 'second': 2};
+}
+''');
+  }
+
   test_destructured_mapPattern_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
   var {'first': a, 'second': b} = {'first': 1, 'second': 2};
   ++a;
-}
-''');
-  }
-
-  test_destructured_mapPattern_final() async {
-    await assertNoDiagnostics(r'''
-f() {
-  final {'first': a, 'second': b} = {'first': 1, 'second': 2};
 }
 ''');
   }
@@ -78,6 +105,18 @@ f() {
     ]);
   }
 
+  test_destructured_objectPattern_final() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  final A(a: b) = A(1);
+}
+''');
+  }
+
   test_destructured_objectPattern_mutated() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -87,18 +126,6 @@ class A {
 f() {
   var A(a: b) = A(1);
   ++b;
-}
-''');
-  }
-
-  test_destructured_objectPattern_final() async {
-    await assertNoDiagnostics(r'''
-class A {
-  int a;
-  A(this.a);
-}
-f() {
-  final A(a: b) = A(1);
 }
 ''');
   }
@@ -113,47 +140,10 @@ f() {
     ]);
   }
 
-  test_nonDeclaration_destructured_recordPattern() async {
-    await assertNoDiagnostics(r'''
-f(String a, String b) {
-  [a, b] = ['a', 'b'];
-}
-''');
-  }
-
-  test_destructured_recordPattern_withParenthesizedPattern() async {
-    await assertDiagnostics(r'''
-f() {
-  var ((a, b)) = ('a', 'b');
-}
-''', [
-      lint(8, 3),
-    ]);
-  }
-
-  test_destructured_listPattern() async {
-    await assertDiagnostics(r'''
-f() {
-  var [a, b] = ['a', 'b'];
-}
-''', [
-      lint(8, 3),
-    ]);
-  }
-
-  test_destructured_listPattern_mutated() async {
+  test_destructured_recordPattern_final() async {
     await assertNoDiagnostics(r'''
 f() {
-  var [a, b] = [1, 2];
-  ++a;
-}
-''');
-  }
-
-  test_destructured_listPattern_final() async {
-    await assertNoDiagnostics(r'''
-f() {
-  final [a, b] = [1, 2];
+  final (a, b) = ('a', 'b');
 }
 ''');
   }
@@ -167,12 +157,14 @@ f() {
 ''');
   }
 
-  test_destructured_recordPattern_final() async {
-    await assertNoDiagnostics(r'''
+  test_destructured_recordPattern_withParenthesizedPattern() async {
+    await assertDiagnostics(r'''
 f() {
-  final (a, b) = ('a', 'b');
+  var ((a, b)) = ('a', 'b');
 }
-''');
+''', [
+      lint(8, 3),
+    ]);
   }
 
   test_ifPatternList() async {
@@ -258,6 +250,14 @@ f(Object o) {
 ''');
   }
 
+  test_nonDeclaration_destructured_recordPattern() async {
+    await assertNoDiagnostics(r'''
+f(String a, String b) {
+  [a, b] = ['a', 'b'];
+}
+''');
+  }
+
   test_switch_objectPattern() async {
     await assertDiagnostics(r'''
 class A {
@@ -275,21 +275,6 @@ f() {
     ]);
   }
 
-  test_switch_objectPattern_mutated() async {
-    await assertNoDiagnostics(r'''
-class A {
-  int a;
-  A(this.a);
-}
-
-f() {
-  switch (A(1)) {
-    case A(a: >0 && var b): ++b;
-  }
-}
-''');
-  }
-
   test_switch_objectPattern_final() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -300,6 +285,21 @@ class A {
 f() {
   switch (A(1)) {
     case A(a: >0 && final b): b;
+  }
+}
+''');
+  }
+
+  test_switch_objectPattern_mutated() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  switch (A(1)) {
+    case A(a: >0 && var b): ++b;
   }
 }
 ''');
@@ -318,21 +318,21 @@ f() {
     ]);
   }
 
-  test_switch_recordPattern_mutated() async {
-    await assertNoDiagnostics(r'''
-f() {
-  switch ((1, 2)) {
-    case (var a, final int b): ++a;
-  }
-}
-''');
-  }
-
   test_switch_recordPattern_final() async {
     await assertNoDiagnostics(r'''
 f() {
   switch ((1, 2)) {
     case (final a, final int b): a;
+  }
+}
+''');
+  }
+
+  test_switch_recordPattern_mutated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  switch ((1, 2)) {
+    case (var a, final int b): ++a;
   }
 }
 ''');
