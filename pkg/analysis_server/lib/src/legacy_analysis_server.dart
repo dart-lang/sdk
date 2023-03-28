@@ -647,16 +647,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotificationNew(analysis.AnalysisStatus status) {
-    if (status.isAnalyzing) {
+    var isAnalyzing = status.isAnalyzing;
+    if (isAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
     var onAnalysisCompleteCompleter = _onAnalysisCompleteCompleter;
-    if (onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
+    if (onAnalysisCompleteCompleter != null && !isAnalyzing) {
       onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
     // Perform on-idle actions.
-    if (!status.isAnalyzing) {
+    if (!isAnalyzing) {
       if (generalAnalysisServices
           .contains(GeneralAnalysisService.ANALYZED_FILES)) {
         sendAnalysisNotificationAnalyzedFiles(this);
@@ -668,11 +669,15 @@ class LegacyAnalysisServer extends AnalysisServer {
       return;
     }
     // Only send status when it changes
-    if (statusAnalyzing == status.isAnalyzing) {
+    if (statusAnalyzing == isAnalyzing) {
       return;
     }
-    statusAnalyzing = status.isAnalyzing;
-    var analysis = AnalysisStatus(status.isAnalyzing);
+    statusAnalyzing = isAnalyzing;
+    if (!isAnalyzing) {
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+    var analysis = AnalysisStatus(isAnalyzing);
     channel.sendNotification(
         ServerStatusParams(analysis: analysis).toNotification());
   }

@@ -143,6 +143,10 @@ class LspAnalysisServer extends AnalysisServer {
   /// "pub get"/"pub upgrades").
   bool _isFirstAnalysisSinceContextsBuilt = true;
 
+  /// A flag indicating whether analysis was being performed the last time
+  /// `sendStatusNotification` was invoked.
+  bool wasAnalyzing = false;
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -772,16 +776,23 @@ class LspAnalysisServer extends AnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
+    var isAnalyzing = status.isAnalyzing;
+    if (wasAnalyzing && !isAnalyzing) {
+      wasAnalyzing = isAnalyzing;
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+
     if (clientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
-        params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
+        params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
         jsonrpc: jsonRpcVersion,
       ));
       return;
     }
 
-    if (status.isAnalyzing) {
+    if (isAnalyzing) {
       analyzingProgressReporter ??=
           ProgressReporter.serverCreated(this, analyzingProgressToken)
             ..begin('Analyzing…');
