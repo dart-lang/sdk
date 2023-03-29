@@ -1226,20 +1226,6 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
   return Flags::IsSet(flag_name);
 }
 
-#if !defined(PRODUCT)
-#define VM_METRIC_API(type, variable, name, unit)                              \
-  DART_EXPORT int64_t Dart_VM##variable##Metric() {                            \
-    return vm_metric_##variable.Value();                                       \
-  }
-VM_METRIC_LIST(VM_METRIC_API);
-#undef VM_METRIC_API
-#else  // !defined(PRODUCT)
-#define VM_METRIC_API(type, variable, name, unit)                              \
-  DART_EXPORT int64_t Dart_VM##variable##Metric() { return -1; }
-VM_METRIC_LIST(VM_METRIC_API)
-#undef VM_METRIC_API
-#endif  // !defined(PRODUCT)
-
 #define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
   DART_EXPORT int64_t Dart_IsolateGroup##variable##Metric(                     \
       Dart_IsolateGroup isolate_group) {                                       \
@@ -1250,7 +1236,7 @@ VM_METRIC_LIST(VM_METRIC_API)
     IsolateGroup* group = reinterpret_cast<IsolateGroup*>(isolate_group);      \
     return group->Get##variable##Metric()->Value();                            \
   }
-ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
+DART_API_ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
 #undef ISOLATE_GROUP_METRIC_API
 
 #if !defined(PRODUCT)
