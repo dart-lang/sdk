@@ -94,7 +94,7 @@ import 'dart:math';
 import 'dart:async';
 void f() {}
 ''');
-    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
+    await assertHasFixAllFix(WarningCode.UNUSED_IMPORT, '''
 void f() {}
 ''');
   }
@@ -109,7 +109,7 @@ var tau = math.pi * 2;
 
 void f() {}
 ''');
-    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
+    await assertHasFixAllFix(WarningCode.UNUSED_IMPORT, '''
 import 'dart:math' as math;
 
 var tau = math.pi * 2;
@@ -126,7 +126,7 @@ void f() {}
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 void f() {}
 ''');
-    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
+    await assertHasFixAllFix(WarningCode.UNUSED_IMPORT, '''
 
 void f() {}
 ''');
@@ -137,7 +137,7 @@ void f() {}
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 void f() {}
 ''');
-    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
+    await assertHasFixAllFix(WarningCode.UNUSED_IMPORT, '''
 import 'dart:math';
 void f() {}
 ''');
@@ -150,7 +150,7 @@ import 'dart:math';
 import 'dart:math';
 void f() {}
 ''');
-    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
+    await assertHasFixAllFix(WarningCode.UNUSED_IMPORT, '''
 void f() {}
 ''');
   }

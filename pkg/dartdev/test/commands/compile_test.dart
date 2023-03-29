@@ -677,10 +677,10 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stdout, contains(unsoundNullSafetyError));
     expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
+    expect(result.exitCode, 1);
+    expect(File(outFile).existsSync(), false,
         reason: 'File not found: $outFile');
   });
 

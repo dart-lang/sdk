@@ -7163,11 +7163,23 @@ class WarningCode extends AnalyzerErrorCode {
   static const HintCode UNUSED_ELEMENT_PARAMETER =
       HintCode.UNUSED_ELEMENT_PARAMETER;
 
-  ///  This is the new replacement for [HintCode.UNUSED_FIELD].
-  static const HintCode UNUSED_FIELD = HintCode.UNUSED_FIELD;
+  ///  Parameters:
+  ///  0: the name of the unused field
+  static const WarningCode UNUSED_FIELD = WarningCode(
+    'UNUSED_FIELD',
+    "The value of the field '{0}' isn't used.",
+    correctionMessage: "Try removing the field, or using it.",
+    hasPublishedDocs: true,
+  );
 
-  ///  This is the new replacement for [HintCode.UNUSED_IMPORT].
-  static const HintCode UNUSED_IMPORT = HintCode.UNUSED_IMPORT;
+  ///  Parameters:
+  ///  0: the content of the unused import's URI
+  static const WarningCode UNUSED_IMPORT = WarningCode(
+    'UNUSED_IMPORT',
+    "Unused import: '{0}'.",
+    correctionMessage: "Try removing the import directive.",
+    hasPublishedDocs: true,
+  );
 
   ///  Parameters:
   ///  0: the label that isn't used
@@ -7180,8 +7192,14 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].
-  static const HintCode UNUSED_LOCAL_VARIABLE = HintCode.UNUSED_LOCAL_VARIABLE;
+  ///  Parameters:
+  ///  0: the name of the unused variable
+  static const WarningCode UNUSED_LOCAL_VARIABLE = WarningCode(
+    'UNUSED_LOCAL_VARIABLE',
+    "The value of the local variable '{0}' isn't used.",
+    correctionMessage: "Try removing the variable or using it.",
+    hasPublishedDocs: true,
+  );
 
   ///  Parameters:
   ///  0: the name of the annotated method, property or function
@@ -7209,6 +7227,15 @@ class WarningCode extends AnalyzerErrorCode {
         "or returning it from this function.",
     hasPublishedDocs: true,
     uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
+  );
+
+  ///  Parameters:
+  ///  0: the name that is shown but not used
+  static const WarningCode UNUSED_SHOWN_NAME = WarningCode(
+    'UNUSED_SHOWN_NAME',
+    "The name {0} is shown, but isn't used.",
+    correctionMessage: "Try removing the name from the list of shown members.",
+    hasPublishedDocs: true,
   );
 
   /// Initialize a newly created error code to have the given [name].

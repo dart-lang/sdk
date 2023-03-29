@@ -26,7 +26,7 @@ f(var message, var dynamic_) {
   int s = message;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 1),
     ]);
   }
 
@@ -43,7 +43,7 @@ f(var message) {
   int s = message;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
     ]);
   }
 
@@ -59,7 +59,7 @@ f(var message) {
   String s = message;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 100, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1),
     ]);
   }
 

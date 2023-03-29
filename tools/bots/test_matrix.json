@@ -14,6 +14,8 @@
     "web_platform": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/dart2js_platform.dill",
+      "out/ReleaseX64/dart2js_platform_unsound.dill",
       "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
@@ -2668,7 +2670,7 @@
             "pkg//compiler/"
           ],
           "shards": 3,
-          "fileset": "web_platform_nnbd"
+          "fileset": "web_platform"
         }
       ]
     },

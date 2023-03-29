@@ -20,12 +20,12 @@ You can find more libraries using the [pub.dev site](https://pub.dev).
 The main site for learning and using Dart is
 [dart.dev](https://dart.dev). Check out these pages:
 
-  * [Platforms](https://dart.dev/platforms)
-  * [Language tour](https://dart.dev/guides/language/language-tour)
+  * [Dart overview](https://dart.dev/overview)
+  * [Dart language documentation](https://dart.dev/language)
   * [Library tour](https://dart.dev/guides/libraries/library-tour)
-  * [Sample code](https://dart.dev/samples)
+  * [Tutorials](https://dart.dev/tutorials)
 
-This API reference is automatically generated from source code in the [Dart
-SDK project](https://github.com/dart-lang/sdk).
+This API reference is automatically generated from source code in the
+[Dart SDK project](https://github.com/dart-lang/sdk).
 If you'd like to give feedback or edit this documentation, see
-[Contributing](https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md).
+[Contributing](https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md).

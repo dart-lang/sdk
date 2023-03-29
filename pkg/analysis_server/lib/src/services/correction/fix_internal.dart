@@ -1386,18 +1386,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_ELEMENT_PARAMETER: [
       RemoveUnusedParameter.new,
     ],
-    HintCode.UNUSED_FIELD: [
-      RemoveUnusedField.new,
-    ],
-    HintCode.UNUSED_IMPORT: [
-      RemoveUnusedImport.new,
-    ],
-    HintCode.UNUSED_LOCAL_VARIABLE: [
-      RemoveUnusedLocalVariable.new,
-    ],
-    HintCode.UNUSED_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
     ],
@@ -1640,8 +1628,20 @@ class FixProcessor extends BaseProcessor {
     WarningCode.UNUSED_CATCH_STACK: [
       RemoveUnusedCatchStack.new,
     ],
+    WarningCode.UNUSED_FIELD: [
+      RemoveUnusedField.new,
+    ],
+    WarningCode.UNUSED_IMPORT: [
+      RemoveUnusedImport.new,
+    ],
     WarningCode.UNUSED_LABEL: [
       RemoveUnusedLabel.new,
+    ],
+    WarningCode.UNUSED_LOCAL_VARIABLE: [
+      RemoveUnusedLocalVariable.new,
+    ],
+    WarningCode.UNUSED_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
     ],
   };
 
