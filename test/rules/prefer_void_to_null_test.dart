@@ -37,4 +37,18 @@ void f(int a) {
 }
 ''');
   }
+
+  test_localVariable() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  Null _;
+}
+''');
+  }
+
+  test_topLevelVariable() async {
+    await assertNoDiagnostics(r'''
+Null a;
+''');
+  }
 }

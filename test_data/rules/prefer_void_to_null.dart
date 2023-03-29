@@ -52,8 +52,6 @@ class F implements E {
 }
 
 void void_; // OK
-Null null_; // LINT
-core.Null core_null; // LINT
 Future<void>? future_void; // OK
 Future<Null>? future_null; // LINT
 Future<core.Null>? future_core_null; // LINT
@@ -72,8 +70,6 @@ void Function(Future<Null>)? voidFunctionFutureNull; // LINT
 
 usage() {
   void void_; // OK
-  Null null_; // LINT
-  core.Null core_null; // LINT
   Future<void>? future_void; // OK
   Future<Null> future_null; // LINT
   Future<core.Null> future_core_null; // LINT
@@ -152,8 +148,6 @@ class AsMembers {
 
   void usage() {
     void void_; // OK
-    Null null_; // LINT
-    core.Null core_null; // LINT
     Future<void>? future_void; // OK
     Future<Null> future_null; // LINT
     Future<core.Null> future_core_null; // LINT
