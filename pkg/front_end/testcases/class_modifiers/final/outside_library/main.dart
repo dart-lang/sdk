@@ -4,12 +4,12 @@
 
 import 'main_lib.dart';
 
-final class ExtendsFinalClass extends A {}
+final class ExtendsFinalClass extends A {} /* Error */
 
-final class ImplementsFinalClass implements A {}
+final class ImplementsFinalClass implements A {} /* Error */
 
-enum EnumImplementsFinalMixin implements A { x }
+enum EnumImplementsFinalMixin implements A { x } /* Error */
 
-base mixin MixinOnA on A {}
+base mixin MixinOnA on A {} /* Error */
 
-base mixin MixinOnAB on A, B {}
+base mixin MixinOnAB on A, B {} /* Error */

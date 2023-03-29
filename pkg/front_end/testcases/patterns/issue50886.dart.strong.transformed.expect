@@ -6,7 +6,10 @@ static method test1() → dynamic {
   core::Map<dynamic, dynamic> x = <dynamic, dynamic>{1: 1};
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t1 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t1 == null ?{core::int} #t1 as{ForNonNullableByDefault} core::int : #t1{core::int})) {
+    function ##0#7#initializer() → core::int?
+      return #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#7 = ##0#7#initializer(){() → core::int?};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (!(#0#7 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#7{core::int}) {
       return 1;
     }
     else {
@@ -18,7 +21,10 @@ static method test2() → dynamic {
   core::Map<dynamic, dynamic> x = <core::int, core::int>{1: 1, 2: 2};
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t2 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t2 == null ?{core::int} #t2 as{ForNonNullableByDefault} core::int : #t2{core::int})) {
+    function ##0#7#initializer() → core::int?
+      return #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#7 = ##0#7#initializer(){() → core::int?};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (!(#0#7 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#7{core::int}) {
       return 1;
     }
     else {
@@ -30,7 +36,10 @@ static method test3() → dynamic {
   core::Map<dynamic, dynamic> x = <core::int, core::int>{1: 1, 2: 2};
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t3 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t3 == null ?{core::int} #t3 as{ForNonNullableByDefault} core::int : #t3{core::int})) {
+    function ##0#7#initializer() → core::int?
+      return #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#7 = ##0#7#initializer(){() → core::int?};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (!(#0#7 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#7{core::int}) {
       return 0;
     }
     else {
@@ -52,3 +61,9 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 constants  {
   #C1 = 1
 }
+
+Extra constant evaluation status:
+Evaluated: LogicalExpression @ org-dartlang-testcase:///issue50886.dart:7:26 -> BoolConstant(false)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///issue50886.dart:16:26 -> BoolConstant(false)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///issue50886.dart:25:26 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 74, effectively constant: 3

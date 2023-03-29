@@ -158,28 +158,30 @@ class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic
   method remove(core::Object? key) → self::MyMap::V?
     return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::MyMap::V?};
 }
-static method method(core::Map<core::int, core::String> m) → core::int {
+static get hasUnsoundNullSafety() → core::bool
+  return #C2 is{ForNonNullableByDefault} core::List<core::Object>;
+static method method(core::Map<core::int, core::String?> m) → core::int {
   #L1:
   {
-    final synthesized core::Map<core::int, core::String> #0#0 = m;
+    final synthesized core::Map<core::int, core::String?> #0#0 = m;
     function ##0#3#initializer() → core::bool
-      return #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
+      return #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
     late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
-    function ##0#4#initializer() → core::bool
-      return #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#5#initializer() → core::String?
-      return #0#0.{core::Map::[]}(#C2){(core::Object?) → core::String?};
+      return #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?};
     late final synthesized core::String? #0#5 = ##0#5#initializer(){() → core::String?};
+    function ##0#4#initializer() → core::bool
+      return #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     {
-      if(#0#3 && #0#4 && #C3 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+      if(#0#3 && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::String? && #0#4) && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
         {
           return 0;
         }
       }
     }
     {
-      if(#0#3 && #0#4 && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+      if(#0#3 && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::String? && #0#4) && #C5 =={core::String::==}{(core::Object) → core::bool} #0#5) {
         {
           return 1;
         }
@@ -195,10 +197,10 @@ static method test(core::Map<core::int, core::String> map, {required core::int e
   self::expect(expectedIndexGetCount, myMap.{self::MyMap::indexGetCount}{core::int}, "Unexpected indexGet count for ${map}.");
 }
 static method main() → dynamic {
-  self::test(<core::int, core::String>{0: "foo"}, expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: 0);
-  self::test(<core::int, core::String>{1: "foo"}, expectedValue: 0, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
-  self::test(<core::int, core::String>{1: "bar"}, expectedValue: 1, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
-  self::test(<core::int, core::String>{1: "baz"}, expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+  self::test(<core::int, core::String>{0: "foo"}, expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: self::hasUnsoundNullSafety ?{core::int} 0 : 1);
+  self::test(<core::int, core::String>{1: "foo"}, expectedValue: 0, expectedContainsKeyCount: self::hasUnsoundNullSafety ?{core::int} 1 : 0, expectedIndexGetCount: 1);
+  self::test(<core::int, core::String>{1: "bar"}, expectedValue: 1, expectedContainsKeyCount: self::hasUnsoundNullSafety ?{core::int} 1 : 0, expectedIndexGetCount: 1);
+  self::test(<core::int, core::String>{1: "baz"}, expectedValue: 2, expectedContainsKeyCount: self::hasUnsoundNullSafety ?{core::int} 1 : 0, expectedIndexGetCount: 1);
 }
 static method expect(dynamic expected, dynamic actual, dynamic message) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
@@ -207,7 +209,14 @@ static method expect(dynamic expected, dynamic actual, dynamic message) → dyna
 
 constants  {
   #C1 = null
-  #C2 = 1
-  #C3 = "foo"
-  #C4 = "bar"
+  #C2 = <Null>[]
+  #C3 = 1
+  #C4 = "foo"
+  #C5 = "bar"
 }
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///caching_constants.dart:7:49 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///caching_constants.dart:38:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///caching_constants.dart:40:12 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 400, effectively constant: 3

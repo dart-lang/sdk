@@ -722,7 +722,7 @@ static method switchMap(core::Map<core::int, core::String> map) → core::int
     #L2:
     {
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C9 && #0#0.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::String? #t27 = #0#0.{core::Map::[]}(#C7){(core::Object?) → core::String?} in true)) {
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C9 && #0#0.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::String #t27 = #0#0.{core::Map::[]}(#C7){(core::Object?) → core::String?} in true)) {
           #t26 = 1;
           break #L2;
         }

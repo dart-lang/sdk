@@ -181,36 +181,33 @@ base mixin BaseMixinImplement implements FinalClass {}
 // FinalClass' library.
 
 mixin SimpleMixinOn on FinalClass {}
-//    ^
-// [cfe] The type 'SimpleMixinOn' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 //                     ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'FinalClass' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 
 mixin SimpleMixinOnFinalSimple on FinalClass, SimpleClass {}
-//    ^
-// [cfe] The type 'SimpleMixinOnFinalSimple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 //                                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'FinalClass' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 
 mixin SimpleMixinOnSimpleFinal on SimpleClass, FinalClass {}
-//    ^
-// [cfe] The type 'SimpleMixinOnSimpleFinal' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 //                                             ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'FinalClass' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 
 base mixin BaseMixinOn on FinalClass {}
 //                        ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 
 base mixin BaseMixinOnFinalSimple on SimpleClass, FinalClass {}
 //                                                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 
 base mixin BaseMixinOnSimpleFinal on FinalClass, SimpleClass {}
 //                                   ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 
 main() {}

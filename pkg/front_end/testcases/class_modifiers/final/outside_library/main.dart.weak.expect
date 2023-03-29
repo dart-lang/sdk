@@ -3,16 +3,28 @@ library /*isNonNullableByDefault*/;
 // Problems in library:
 //
 // pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:7:39: Error: The class 'A' can't be extended outside of its library because it's a final class.
-// final class ExtendsFinalClass extends A {}
+// final class ExtendsFinalClass extends A {} /* Error */
 //                                       ^
 //
 // pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:9:45: Error: The class 'A' can't be implemented outside of its library because it's a final class.
-// final class ImplementsFinalClass implements A {}
+// final class ImplementsFinalClass implements A {} /* Error */
 //                                             ^
 //
 // pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:11:42: Error: The class 'A' can't be implemented outside of its library because it's a final class.
-// enum EnumImplementsFinalMixin implements A { x }
+// enum EnumImplementsFinalMixin implements A { x } /* Error */
 //                                          ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:13:24: Error: The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// base mixin MixinOnA on A {} /* Error */
+//                        ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:15:25: Error: The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// base mixin MixinOnAB on A, B {} /* Error */
+//                         ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:15:28: Error: The class 'B' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// base mixin MixinOnAB on A, B {} /* Error */
+//                            ^
 //
 import self as self;
 import "main_lib.dart" as mai;

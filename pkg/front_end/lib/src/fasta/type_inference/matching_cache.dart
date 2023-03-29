@@ -171,6 +171,16 @@ class MatchingCache {
     return _declarations;
   }
 
+  /// Creates a [VariableDeclaration] for a temporary variable of the given
+  /// [type] and registers it with [registerDeclaration].
+  VariableDeclaration createTemporaryVariable(DartType type,
+      {required int fileOffset}) {
+    VariableDeclaration variable =
+        createUninitializedVariable(type, fileOffset: fileOffset);
+    registerDeclaration(variable);
+    return variable;
+  }
+
   /// Creates the cacheable expression for the scrutinee [expression] of the
   /// [expressionType]. For instance `o` in
   ///
@@ -817,8 +827,9 @@ class PromotedCacheableExpression implements CacheableExpression {
   CacheKey get cacheKey => _expression.cacheKey;
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    Expression result = _expression.createExpression(typeEnvironment);
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    Expression result = _expression.createExpression(typeEnvironment, effects);
     if (!typeEnvironment
             .performNullabilityAwareSubtypeCheck(
                 _expression.getType(typeEnvironment), _promotedType)
@@ -873,7 +884,8 @@ class CacheExpression implements CacheableExpression {
   CacheExpression(this.cacheKey, this.accessKey, this._cache, this.expression);
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return _cache.createExpression(typeEnvironment, accessKey);
   }
 

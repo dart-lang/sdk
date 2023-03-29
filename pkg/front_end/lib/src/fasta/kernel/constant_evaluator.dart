@@ -1224,8 +1224,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
       MatchingCache matchingCache = createMatchingCache();
       MatchingExpressionVisitor matchingExpressionVisitor =
-          new MatchingExpressionVisitor(
-              matchingCache, typeEnvironment.coreTypes);
+          new MatchingExpressionVisitor(matchingCache,
+              typeEnvironment.coreTypes, constantEvaluator.evaluationMode);
       CacheableExpression matchedExpression =
           matchingCache.createRootExpression(node.expression, scrutineeType);
       // This expression is used, even if no case reads it.
@@ -1602,7 +1602,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
+        new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
+            constantEvaluator.evaluationMode);
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
         node.expression, node.matchedValueType!);
     // This expression is used, even if the matching expression doesn't read it.
@@ -1650,7 +1651,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
+        new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
+            constantEvaluator.evaluationMode);
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
@@ -1712,7 +1714,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
-        new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
+        new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
+            constantEvaluator.evaluationMode);
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
@@ -1726,8 +1729,9 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression readMatchedExpression =
         matchedExpression.createExpression(typeEnvironment);
+    List<Expression> effects = [];
     Expression readMatchingExpression =
-        matchingExpression.createExpression(typeEnvironment);
+        matchingExpression.createExpression(typeEnvironment, effects);
 
     List<Statement> replacementStatements = [
       ...node.pattern.declaredVariables,
@@ -1743,6 +1747,7 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: node.fileOffset),
               fileOffset: node.fileOffset))),
           fileOffset: node.fileOffset),
+      ...effects.map((e) => createExpressionStatement(e)),
     ];
 
     Expression result = createBlockExpression(
@@ -1902,8 +1907,8 @@ class ConstantsTransformer extends RemovingTransformer {
     } else {
       MatchingCache matchingCache = createMatchingCache();
       MatchingExpressionVisitor matchingExpressionVisitor =
-          new MatchingExpressionVisitor(
-              matchingCache, typeEnvironment.coreTypes);
+          new MatchingExpressionVisitor(matchingCache,
+              typeEnvironment.coreTypes, constantEvaluator.evaluationMode);
       CacheableExpression matchedExpression =
           matchingCache.createRootExpression(node.expression, scrutineeType);
       // This expression is used, even if no case reads it.
