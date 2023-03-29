@@ -885,7 +885,9 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
-  static const _ubsanFailureExitCode = 1;
+  // Note that in https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/sanitizer_common/sanitizer_flags.inc `exitcode` defaults to 1.
+  // Older versions had various per-sanitizer exit codes.
+  static const _sanitizerFailureExitCode = 1;
   static const _frontEndTestExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
@@ -946,8 +948,8 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
-    if (exitCode == _ubsanFailureExitCode &&
-        testCase.configuration.sanitizer == Sanitizer.ubsan) {
+    if (exitCode == _sanitizerFailureExitCode &&
+        testCase.configuration.sanitizer != Sanitizer.none) {
       return Expectation.fail;
     }
     if (exitCode == _frontEndTestExitCode &&
