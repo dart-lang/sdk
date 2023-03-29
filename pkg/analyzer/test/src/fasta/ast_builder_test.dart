@@ -854,6 +854,50 @@ ConstructorDeclaration
 ''');
   }
 
+  void test_constructor_superParamAndSuperInitializer() {
+    var parseResult = parseStringWithErrors(r'''
+abstract class A {
+  final String f1;
+
+  final int f2;
+
+  const A(this.f1, this.f2);
+}
+
+class B extends A {
+  const B(super.f1): super(2);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('B(');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  returnType: SimpleIdentifier
+    token: B
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SuperFormalParameter
+      superKeyword: super
+      period: .
+      name: f1
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 2
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   void test_constructor_wrongName() {
     var parseResult = parseStringWithErrors(r'''
 class A {
