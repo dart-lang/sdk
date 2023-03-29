@@ -1729,8 +1729,9 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression readMatchedExpression =
         matchedExpression.createExpression(typeEnvironment);
+    List<Expression> effects = [];
     Expression readMatchingExpression =
-        matchingExpression.createExpression(typeEnvironment);
+        matchingExpression.createExpression(typeEnvironment, effects);
 
     List<Statement> replacementStatements = [
       ...node.pattern.declaredVariables,
@@ -1746,6 +1747,7 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: node.fileOffset),
               fileOffset: node.fileOffset))),
           fileOffset: node.fileOffset),
+      ...effects.map((e) => createExpressionStatement(e)),
     ];
 
     Expression result = createBlockExpression(

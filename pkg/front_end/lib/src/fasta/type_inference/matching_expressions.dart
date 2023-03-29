@@ -55,10 +55,19 @@ class MatchingExpressionVisitor
     } else {
       valueExpression = matchedExpression;
     }
+    VariableDeclaration temporaryVariable =
+        matchingCache.createTemporaryVariable(node.variable.type,
+            fileOffset: node.fileOffset);
     return new EffectExpression(
-        new VariableSetExpression(node.variable, valueExpression,
-            allowFinalAssignment: true, fileOffset: node.fileOffset),
-        new BooleanExpression(true, fileOffset: node.fileOffset));
+        new VariableSetExpression(temporaryVariable, valueExpression,
+            fileOffset: node.fileOffset),
+        new BooleanExpression(true, fileOffset: node.fileOffset),
+        new VariableSetExpression(
+            node.variable,
+            new VariableGetExpression(temporaryVariable,
+                fileOffset: node.fileOffset),
+            allowFinalAssignment: true,
+            fileOffset: node.fileOffset));
   }
 
   @override
