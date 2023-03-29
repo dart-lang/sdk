@@ -370,9 +370,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   final Logger? logger;
 
   /// Whether the current debug session is an attach request (as opposed to a
-  /// launch request). Not available until after launchRequest or attachRequest
-  /// have been called.
-  late final bool isAttach;
+  /// launch request). Only set during [attachRequest] so will always be `false`
+  /// prior to that.
+  bool isAttach = false;
 
   /// A list of evaluateNames for InstanceRef IDs.
   ///
@@ -1343,17 +1343,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final name = args.source.name;
     final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
-    final clientBreakpoints = breakpoints.map(ClientBreakpoint.new).toList();
+    // Use a completer to track when the response is sent, so any events related
+    // to these breakpoints are not sent before the client has the IDs.
+    final completer = Completer<void>();
+
+    final clientBreakpoints = breakpoints
+        .map((bp) => ClientBreakpoint(bp, completer.future))
+        .toList();
     await isolateManager.setBreakpoints(uri, clientBreakpoints);
 
     sendResponse(SetBreakpointsResponseBody(
-      // Send breakpoints back as unverified and with our generated IDs so we
-      // can update them with a 'breakpoint' event when we get the
-      // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
       breakpoints: clientBreakpoints
+          // Send breakpoints back as unverified and with our generated IDs so we
+          // can update them with a 'breakpoint' event when we get the
+          // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
           .map((bp) => Breakpoint(id: bp.id, verified: false))
           .toList(),
     ));
+    completer.complete();
   }
 
   /// Handles a request from the client to set exception pause modes.

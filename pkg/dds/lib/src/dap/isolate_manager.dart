@@ -586,8 +586,12 @@ class IsolateManager {
       column: resolvedLocation?.column ?? unresolvedLocation?.column,
       verified: breakpoint.resolved ?? false,
     );
-    _adapter.sendEvent(
-      BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+    // Ensure we don't send the breakpoint event until the client has been
+    // given the breakpoint ID.
+    existingBreakpoint.queueAction(
+      () => _adapter.sendEvent(
+        BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+      ),
     );
   }
 
@@ -1156,7 +1160,22 @@ class ClientBreakpoint {
   final SourceBreakpoint breakpoint;
   final int id;
 
-  ClientBreakpoint(this.breakpoint) : id = _nextId++;
+  /// A [Future] that completes with the last action that sends breakpoint
+  /// information to the client, to ensure breakpoint events are always sent
+  /// in-order and after the initial response sending the IDs to the client.
+  Future<void> _lastActionFuture;
+
+  ClientBreakpoint(this.breakpoint, Future<void> setBreakpointResponse)
+      : id = _nextId++,
+        _lastActionFuture = setBreakpointResponse;
+
+  /// Queues an action to run after all previous actions that sent breakpoint
+  /// information to the client.
+  FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
+    final actionFuture = _lastActionFuture.then((_) => action());
+    _lastActionFuture = actionFuture;
+    return actionFuture;
+  }
 }
 
 class StoredData {

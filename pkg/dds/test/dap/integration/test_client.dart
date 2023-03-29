@@ -489,14 +489,11 @@ class DapTestClient {
   ///
   /// Returns [future].
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
-    var didComplete = false;
-    Future.delayed(_requestWarningDuration).then((_) {
-      if (!didComplete) {
-        print(
-            '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
-      }
+    final timer = Timer(_requestWarningDuration, () {
+      print(
+          '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
     });
-    return future.whenComplete(() => didComplete = true);
+    return future.whenComplete(timer.cancel);
   }
 
   /// Creates a [DapTestClient] that connects the server listening on
