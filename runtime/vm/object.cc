@@ -13996,6 +13996,10 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
   result.set_is_nnbd(false);
+  // This logic is also in the DAP debug adapter in DDS to avoid needing
+  // to call setLibraryDebuggable for every library for every isolate.
+  // If these defaults change, the same should be done there in
+  // dap/IsolateManager._getIsLibraryDebuggableByDefault.
   if (dart_scheme) {
     // Only debug dart: libraries if we have been requested to show invisible
     // frames.
