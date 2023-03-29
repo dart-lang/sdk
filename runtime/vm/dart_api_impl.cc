@@ -6360,10 +6360,6 @@ DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
   return nullptr;
 }
 
-DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback) {
-  Dart::set_gc_event_callback(callback);
-}
-
 DART_EXPORT void Dart_SetDwarfStackTraceFootnoteCallback(
     Dart_DwarfStackTraceFootnoteCallback callback) {
   Dart::set_dwarf_stacktrace_footnote_callback(callback);
