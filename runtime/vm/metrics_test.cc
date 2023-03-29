@@ -116,48 +116,4 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
   }
 }
 
-static uintptr_t event_counter;
-static const char* last_gcevent_type;
-static const char* last_gcevent_reason;
-
-void MyGCEventCallback(Dart_GCEvent* e) {
-  event_counter++;
-  last_gcevent_type = e->type;
-  last_gcevent_reason = e->reason;
-}
-
-ISOLATE_UNIT_TEST_CASE(Metric_SetGCEventCallback) {
-  event_counter = 0;
-  last_gcevent_type = nullptr;
-  last_gcevent_reason = nullptr;
-
-  {
-    TransitionVMToNative transition(Thread::Current());
-
-    const char* kScript = "void main() {}";
-    Dart_Handle api_lib = TestCase::LoadTestScript(
-        kScript, /*resolver=*/nullptr, RESOLVED_USER_TEST_URI);
-    EXPECT_VALID(api_lib);
-  }
-
-  EXPECT_EQ(0UL, event_counter);
-  EXPECT_NULLPTR(last_gcevent_type);
-  EXPECT_NULLPTR(last_gcevent_reason);
-
-  Dart_SetGCEventCallback(&MyGCEventCallback);
-
-  GCTestHelper::CollectNewSpace();
-
-  EXPECT_EQ(1UL, event_counter);
-  EXPECT_STREQ("Scavenge", last_gcevent_type);
-  EXPECT_STREQ("debugging", last_gcevent_reason);
-
-  // This call emits 2 or 3 events.
-  GCTestHelper::CollectAllGarbage(/*compact=*/ true);
-
-  EXPECT_GE(event_counter, 3UL);
-  EXPECT_STREQ("MarkCompact", last_gcevent_type);
-  EXPECT_STREQ("debugging", last_gcevent_reason);
-}
-
 }  // namespace dart

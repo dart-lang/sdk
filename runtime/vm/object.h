@@ -4021,6 +4021,11 @@ class Function : public Object {
 #undef DEFINE_BIT
 
  private:
+  enum NativeFunctionData {
+    kNativeName,
+    kTearOff,
+    kLength,
+  };
   // Given the provided defaults type arguments, determines which
   // DefaultTypeArgumentsKind applies.
   DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(

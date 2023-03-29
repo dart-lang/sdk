@@ -136,11 +136,6 @@ class Dart : public AllStatic {
     return entropy_source_callback_;
   }
 
-  static void set_gc_event_callback(Dart_GCEventCallback gc_event) {
-    gc_event_callback_ = gc_event;
-  }
-  static Dart_GCEventCallback gc_event_callback() { return gc_event_callback_; }
-
   static void set_dwarf_stacktrace_footnote_callback(
       Dart_DwarfStackTraceFootnoteCallback cb) {
     dwarf_stacktrace_footnote_callback_ = cb;
@@ -172,7 +167,6 @@ class Dart : public AllStatic {
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
-  static Dart_GCEventCallback gc_event_callback_;
   static Dart_DwarfStackTraceFootnoteCallback
       dwarf_stacktrace_footnote_callback_;
 };

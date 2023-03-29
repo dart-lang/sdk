@@ -8022,19 +8022,13 @@ void Function::set_implicit_closure_function(const Function& value) const {
   const Object& old_data = Object::Handle(data());
   if (is_native()) {
     ASSERT(old_data.IsArray());
-    ASSERT((Array::Cast(old_data).AtAcquire(1) == Object::null()) ||
+    const auto& pair = Array::Cast(old_data);
+    ASSERT(pair.AtAcquire(NativeFunctionData::kTearOff) == Object::null() ||
            value.IsNull());
-    Array::Cast(old_data).SetAtRelease(1, value);
+    pair.SetAtRelease(NativeFunctionData::kTearOff, value);
   } else {
-    // Maybe this function will turn into a native later on :-/
-    if (old_data.IsArray()) {
-      ASSERT((Array::Cast(old_data).AtAcquire(1) == Object::null()) ||
-             value.IsNull());
-      Array::Cast(old_data).SetAtRelease(1, value);
-    } else {
-      ASSERT(old_data.IsNull() || value.IsNull());
-      set_data(value);
-    }
+    ASSERT(old_data.IsNull() || value.IsNull());
+    set_data(value);
   }
 }
 
@@ -8257,27 +8251,10 @@ StringPtr Function::native_name() const {
 }
 
 void Function::set_native_name(const String& value) const {
-  Zone* zone = Thread::Current()->zone();
   ASSERT(is_native());
-
-  // Due to the fact that kernel needs to read in the constant table before the
-  // annotation data is available, we don't know at function creation time
-  // whether the function is a native or not.
-  //
-  // Reading the constant table can cause a static function to get an implicit
-  // closure function.
-  //
-  // We therefore handle both cases.
-  const Object& old_data = Object::Handle(zone, data());
-  ASSERT(old_data.IsNull() ||
-         (old_data.IsFunction() &&
-          Function::Handle(zone, Function::RawCast(old_data.ptr()))
-              .IsImplicitClosureFunction()));
-
-  const Array& pair = Array::Handle(zone, Array::New(2, Heap::kOld));
-  pair.SetAt(0, value);
-  pair.SetAt(1, old_data);  // will be the implicit closure function if needed.
-  set_data(pair);
+  const auto& pair = Array::Cast(Object::Handle(data()));
+  ASSERT(pair.At(0) == Object::null());
+  pair.SetAt(NativeFunctionData::kNativeName, value);
 }
 
 void Function::SetSignature(const FunctionType& value) const {
@@ -9795,6 +9772,8 @@ FunctionPtr Function::New(const FunctionType& signature,
   result.set_is_inlinable(true);
   result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());
+
+  // See Function::set_data() for more information.
   if (kind == UntaggedFunction::kClosureFunction ||
       kind == UntaggedFunction::kImplicitClosureFunction) {
     ASSERT(space == Heap::kOld);
@@ -9803,6 +9782,10 @@ FunctionPtr Function::New(const FunctionType& signature,
   } else if (kind == UntaggedFunction::kFfiTrampoline) {
     const FfiTrampolineData& data =
         FfiTrampolineData::Handle(FfiTrampolineData::New());
+    result.set_data(data);
+  } else if (is_native) {
+    const auto& data =
+        Array::Handle(Array::New(NativeFunctionData::kLength, Heap::kOld));
     result.set_data(data);
   } else {
     // Functions other than signature functions have no reason to be allocated
