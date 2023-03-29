@@ -353,6 +353,33 @@ void main() {
           );
           expectSerializationEquality(typeAlias, mode);
         });
+
+        /// Transitively tests [RecordField]
+        test('RecordTypeAnnotation', () {
+          var recordType = RecordTypeAnnotationImpl(
+            id: RemoteInstance.uniqueId,
+            isNullable: true,
+            namedFields: [
+              RecordFieldDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'hello'),
+                name: 'hello',
+                type: barType,
+              ),
+            ],
+            positionalFields: [
+              RecordFieldDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+                name: null,
+                type: fooType,
+              ),
+            ],
+          );
+          expectSerializationEquality(recordType, mode);
+        });
       });
     }
   });

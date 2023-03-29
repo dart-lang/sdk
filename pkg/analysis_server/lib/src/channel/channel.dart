@@ -8,7 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 
 /// Instances of the class [ChannelChunkSink] uses a [Converter] to translate
 /// chunks.
-class ChannelChunkSink<S, T> extends ChunkedConversionSink<S> {
+class ChannelChunkSink<S, T> implements ChunkedConversionSink<S> {
   /// The converter used to translate chunks.
   final Converter<S, T> converter;
 

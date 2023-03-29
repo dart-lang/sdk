@@ -3847,11 +3847,11 @@
     }
   ],
   "sanitizer_options": {
-    "ASAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:check_initialization_order=true:detect_leaks=1:detect_stack_use_after_return=0",
-    "LSAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:check_initialization_order=true:detect_leaks=1:detect_stack_use_after_return=0",
-    "MSAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:check_initialization_order=true:detect_leaks=1:detect_stack_use_after_return=0",
-    "TSAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:report_thread_leaks=0",
-    "UBSAN_OPTIONS": "halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:print_stacktrace=1"
+    "ASAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
+    "LSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
+    "MSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
+    "TSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:report_thread_leaks=0",
+    "UBSAN_OPTIONS":"abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:print_stacktrace=1"
   },
   "sanitizer_symbolizer": {
     "linux": "buildtools/linux-x64/clang/bin/llvm-symbolizer",

@@ -551,21 +551,13 @@ analyzer:
     // Capture any diagnostic updates. We might get multiple, because during
     // a reanalyze, all diagnostics are flushed (to empty) and then analysis
     // occurs.
-    List<Diagnostic>? latestDiagnostics;
-    notificationsFromServer
-        .where((notification) =>
-            notification.method == Method.textDocument_publishDiagnostics)
-        .map((notification) => PublishDiagnosticsParams.fromJson(
-            notification.params as Map<String, Object?>))
-        .where((diagnostics) => diagnostics.uri == mainFileUri)
-        .listen((diagnostics) {
-      latestDiagnostics = diagnostics.diagnostics;
-    });
+    Map<String, List<Diagnostic>> latestDiagnostics = {};
+    trackDiagnostics(latestDiagnostics);
 
     final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
     await nextAnalysis;
-    expect(latestDiagnostics, hasLength(1));
+    expect(latestDiagnostics[mainFilePath], hasLength(1));
   }
 
   Future<void> test_todos_specific() async {

@@ -1992,6 +1992,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  /// Records the latest diagnostics for each file in [latestDiagnostics].
+  ///
+  /// [latestDiagnostics] maps from a file path to the set of current
+  /// diagnostics.
+  StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
+      Map<String, List<Diagnostic>> latestDiagnostics) {
+    return notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>))
+        .listen((diagnostics) {
+      latestDiagnostics[diagnostics.uri.toFilePath()] = diagnostics.diagnostics;
+    });
+  }
+
   Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
       TypeHierarchyItem item) {
     final request = makeRequest(

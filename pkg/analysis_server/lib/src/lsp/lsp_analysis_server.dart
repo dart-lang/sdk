@@ -583,28 +583,21 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    final currentFile = resourceProvider.getFile(path);
-    String? currentContent;
-
-    try {
-      currentContent = currentFile.readAsStringSync();
-    } on FileSystemException {
-      // It's possible we're creating an overlay for a file that doesn't yet
-      // exist on disk so must handle missing file exceptions. Checking for
-      // exists first would introduce a race.
-    }
-
     resourceProvider.setOverlay(path,
         content: content, modificationStamp: overlayModificationStamp++);
 
     // If the overlay is exactly the same as the previous content we can skip
     // notifying drivers which avoids re-analyzing the same content.
-    if (content != currentContent) {
+    final driver = contextManager.getDriverFor(path);
+    final contentIsUpdated =
+        driver?.fsState.getExistingFromPath(path)?.content != content;
+
+    if (contentIsUpdated) {
       _afterOverlayChanged(path, plugin.AddContentOverlay(content));
 
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-      contextManager.getDriverFor(path)?.addFile(path);
+      driver?.addFile(path);
     } else {
       // If we skip the work above, we still need to ensure plugins are notified
       // of the new overlay (which usually happens in `_afterOverlayChanged`).

@@ -5438,7 +5438,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   return cls.ptr();
 }
 
-TEST_CASE(ImplementsFinalizable) {
+TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
   const char* kScript = R"(
@@ -5463,15 +5463,15 @@ class X extends E {}
 
   const auto& class_x = Class::Handle(zone, GetClass(lib, "X"));
   ClassFinalizer::FinalizeTypesInClass(class_x);
-  EXPECT(class_x.implements_finalizable());
+  EXPECT(class_x.is_isolate_unsendable());
 
   const auto& class_a_impl = Class::Handle(zone, GetClass(lib, "AImpl"));
   ClassFinalizer::FinalizeTypesInClass(class_a_impl);
-  EXPECT(class_a_impl.implements_finalizable());
+  EXPECT(class_a_impl.is_isolate_unsendable());
 
   const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
   ClassFinalizer::FinalizeTypesInClass(class_a_sub);
-  EXPECT(class_a_sub.implements_finalizable());
+  EXPECT(class_a_sub.is_isolate_unsendable());
 }
 
 TEST_CASE(ImplementorCid) {

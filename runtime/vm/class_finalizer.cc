@@ -1085,9 +1085,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
   }
-  bool implements_finalizable =
-      cls.Name() == Symbols::Finalizable().ptr() &&
-      Library::UrlOf(cls.library()) == Symbols::DartFfi().ptr();
   bool is_isolate_unsendable = cls.is_isolate_unsendable();
 
   // Finalize super class.
@@ -1105,8 +1102,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (!super_type.IsNull()) {
     super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
-    implements_finalizable |=
-        Class::ImplementsFinalizable(super_type.type_class());
     is_isolate_unsendable |=
         Class::IsIsolateUnsendable(super_type.type_class());
   }
@@ -1121,12 +1116,9 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     ASSERT(!interface_class.IsNull());
     FinalizeTypesInClass(interface_class);
     interface_types.SetAt(i, interface_type);
-    implements_finalizable |=
-        Class::ImplementsFinalizable(interface_type.type_class());
     is_isolate_unsendable |=
         Class::IsIsolateUnsendable(interface_type.type_class());
   }
-  cls.set_implements_finalizable(implements_finalizable);
   cls.set_is_type_finalized();
   cls.set_is_isolate_unsendable(is_isolate_unsendable);
 

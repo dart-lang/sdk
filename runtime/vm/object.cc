@@ -3154,11 +3154,6 @@ void Class::set_is_isolate_unsendable(bool value) const {
   set_state_bits(IsIsolateUnsendableBit::update(value, state_bits()));
 }
 
-void Class::set_implements_finalizable(bool value) const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_state_bits(ImplementsFinalizableBit::update(value, state_bits()));
-}
-
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
   if (Object::empty_array().ptr() == Array::null()) {
@@ -14001,6 +13996,10 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
   result.set_is_nnbd(false);
+  // This logic is also in the DAP debug adapter in DDS to avoid needing
+  // to call setLibraryDebuggable for every library for every isolate.
+  // If these defaults change, the same should be done there in
+  // dap/IsolateManager._getIsLibraryDebuggableByDefault.
   if (dart_scheme) {
     // Only debug dart: libraries if we have been requested to show invisible
     // frames.
