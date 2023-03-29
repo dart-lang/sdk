@@ -8,6 +8,9 @@ class ExtendsFinalClass extends A {} /* Error */
 
 class ImplementsFinalClass implements A {} /* Error */
 
+// Produces only a superclass constraint out of library error, and not a
+// final or base subtyping error.
+
 mixin MixinOnA on A {} /* Error */
 
 mixin MixinOnAB on A, B {} /* Error */

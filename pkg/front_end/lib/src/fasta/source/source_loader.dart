@@ -2327,12 +2327,9 @@ severity: $severity
         if (isClassModifiersEnabled(supertypeDeclaration)) {
           if (cls.libraryBuilder.origin ==
                   supertypeDeclaration.libraryBuilder.origin ||
-              !supertypeDeclaration.isFinal ||
-              cls.isMixinDeclaration) {
+              !supertypeDeclaration.isFinal) {
             // Don't check base and final subtyping restriction if the supertype
             // is a final type used outside of its library.
-            // However, we still check the base and final subtyping restriction
-            // if we are evaluating an 'on' clause.
             checkForBaseFinalRestriction(supertypeDeclaration);
           }
 
@@ -2345,14 +2342,20 @@ severity: $severity
                       .withArguments(supertypeDeclaration.fullNameForErrors),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength);
-            } else if (supertypeDeclaration.isFinal &&
-                !cls.isMixinDeclaration) {
-              // Error case where the class has a singular on-clause.
-              cls.addProblem(
-                  templateFinalClassExtendedOutsideOfLibrary
-                      .withArguments(supertypeDeclaration.fullNameForErrors),
-                  supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength);
+            } else if (supertypeDeclaration.isFinal) {
+              if (cls.isMixinDeclaration) {
+                cls.addProblem(
+                    templateFinalClassUsedAsMixinConstraintOutsideOfLibrary
+                        .withArguments(supertypeDeclaration.fullNameForErrors),
+                    supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                    noLength);
+              } else {
+                cls.addProblem(
+                    templateFinalClassExtendedOutsideOfLibrary
+                        .withArguments(supertypeDeclaration.fullNameForErrors),
+                    supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                    noLength);
+              }
             }
           }
         }
@@ -2361,9 +2364,7 @@ severity: $severity
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder.origin !=
-                supertypeDeclaration.libraryBuilder.origin &&
-            // Error case where the class has a singular on-clause.
-            !cls.isMixinDeclaration) {
+                supertypeDeclaration.libraryBuilder.origin) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(supertypeDeclaration.fullNameForErrors),
@@ -2449,12 +2450,9 @@ severity: $severity
           if (isClassModifiersEnabled(interfaceDeclaration)) {
             if (cls.libraryBuilder.origin ==
                     interfaceDeclaration.libraryBuilder.origin ||
-                !interfaceDeclaration.isFinal ||
-                cls.cls.isAnonymousMixin) {
+                !interfaceDeclaration.isFinal) {
               // Don't check base and final subtyping restriction if the
               // supertype is a final type used outside of its library.
-              // However, we still check the base and final subtyping
-              // restriction if we are evaluating a multiple type 'on' clause.
               checkForBaseFinalRestriction(interfaceDeclaration,
                   implementsBuilder: interfaceBuilder);
             }
@@ -2480,22 +2478,30 @@ severity: $severity
                       interfaceBuilder.charOffset ?? TreeNode.noOffset,
                       noLength);
                 }
-              } else if (interfaceDeclaration.isFinal &&
-                  !cls.cls.isAnonymousMixin) {
-                if (interfaceDeclaration.isMixinDeclaration) {
+              } else if (interfaceDeclaration.isFinal) {
+                if (cls.cls.isAnonymousMixin) {
                   cls.addProblem(
-                      templateFinalMixinImplementedOutsideOfLibrary
+                      templateFinalClassUsedAsMixinConstraintOutsideOfLibrary
                           .withArguments(
                               interfaceDeclaration.fullNameForErrors),
                       interfaceBuilder.charOffset ?? TreeNode.noOffset,
                       noLength);
                 } else {
-                  cls.addProblem(
-                      templateFinalClassImplementedOutsideOfLibrary
-                          .withArguments(
-                              interfaceDeclaration.fullNameForErrors),
-                      interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                      noLength);
+                  if (interfaceDeclaration.isMixinDeclaration) {
+                    cls.addProblem(
+                        templateFinalMixinImplementedOutsideOfLibrary
+                            .withArguments(
+                                interfaceDeclaration.fullNameForErrors),
+                        interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                        noLength);
+                  } else {
+                    cls.addProblem(
+                        templateFinalClassImplementedOutsideOfLibrary
+                            .withArguments(
+                                interfaceDeclaration.fullNameForErrors),
+                        interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                        noLength);
+                  }
                 }
               }
             }
@@ -2506,8 +2512,7 @@ severity: $severity
           if (isSealedClassEnabled(interfaceDeclaration) &&
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder.origin !=
-                  interfaceDeclaration.libraryBuilder.origin &&
-              !cls.cls.isAnonymousMixin) {
+                  interfaceDeclaration.libraryBuilder.origin) {
             if (interfaceDeclaration.isMixinDeclaration) {
               cls.addProblem(
                   templateSealedMixinSubtypeOutsideOfLibrary

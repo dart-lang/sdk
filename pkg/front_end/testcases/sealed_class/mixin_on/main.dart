@@ -4,6 +4,6 @@
 
 import 'main_lib.dart';
 
-mixin MClass on SealedClass {}
+mixin MClass on SealedClass {} /* Error */
 
-mixin MClassMultiple on SealedClass, SealedClass2 {}
+mixin MClassMultiple on SealedClass, SealedClass2 {} /* Error */

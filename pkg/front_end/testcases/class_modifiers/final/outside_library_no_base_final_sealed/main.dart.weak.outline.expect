@@ -10,15 +10,17 @@ library /*isNonNullableByDefault*/;
 // class ImplementsFinalClass implements A {} /* Error */
 //                                       ^
 //
-// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:11:7: Error: The type 'MixinOnA' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:14:19: Error: The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 // mixin MixinOnA on A {} /* Error */
-//       ^
+//                   ^
 //
-// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:13:7: Error: The type 'MixinOnAB' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:16:20: Error: The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
 // mixin MixinOnAB on A, B {} /* Error */
-//       ^
+//                    ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library_no_base_final_sealed/main.dart:16:23: Error: The class 'B' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// mixin MixinOnAB on A, B {} /* Error */
+//                       ^
 //
 import self as self;
 import "main_lib.dart" as mai;

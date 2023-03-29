@@ -6342,6 +6342,17 @@ FinalClassImplementedOutsideOfLibrary:
     lib.dart:
       final class A {}
 
+FinalClassUsedAsMixinConstraintOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
+  analyzerCode: FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      base mixin B on A {}
+    lib.dart:
+      final class A {}
+
 FinalMixinImplementedOutsideOfLibrary:
   problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a final mixin."
   analyzerCode: FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY

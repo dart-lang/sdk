@@ -5249,6 +5249,35 @@ Message _withArgumentsFinalClassImplementedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFinalClassUsedAsMixinConstraintOutsideOfLibrary =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
+        withArguments:
+            _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalClassUsedAsMixinConstraintOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
+        analyzerCodes: <String>[
+      "FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalClassUsedAsMixinConstraintOutsideOfLibrary,
+      problemMessage:
+          """The class '${name}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

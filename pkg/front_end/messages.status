@@ -424,6 +424,7 @@ FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalClassExtendedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 FinalClassImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+FinalClassUsedAsMixinConstraintOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 FinalFieldWithoutInitializer/example: Fail
 FinalMixinImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 FinalMixinMixedInOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
