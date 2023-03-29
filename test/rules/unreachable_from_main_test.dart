@@ -9,7 +9,6 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add tests for unreachable public constructors.
-    // TODO(srawlins): Add tests for errors that should be reported in parts.
     defineReflectiveTests(UnreachableFromMainTest);
   });
 }
@@ -117,6 +116,10 @@ class C {
 }
 ''', [
       lint(22, 1),
+      // TODO(srawlins): See if we can skip reporting a declaration if it's
+      //enclosing declaration is being reported.
+      lint(28, 1),
+      lint(37, 5),
     ]);
   }
 
@@ -188,6 +191,287 @@ void main() {}
 part 'part.dart';
 ''', [
       lint(28, 1),
+    ]);
+  }
+
+  test_constructor_named_onEnum() async {
+    await assertDiagnostics(r'''
+void main() {
+  E.one;
+  E.two;
+}
+
+enum E {
+  one(), two();
+
+  const E();
+  const E.named();
+}
+''', [
+      // No lint.
+      error(HintCode.UNUSED_ELEMENT, 84, 5),
+    ]);
+  }
+
+  test_constructor_named_reachableViaDirectCall() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.named();
+}
+
+class C {
+  C.named();
+}
+''');
+  }
+
+  test_constructor_named_reachableViaExplicitSuperCall() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D();
+}
+
+class C {
+  C.named();
+}
+
+class D extends C {
+  D() : super.named();
+}
+''');
+  }
+
+  test_constructor_named_reachableViaRedirectedConstructor() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.two();
+}
+
+class C {
+  C.named();
+  factory C.two() = C.named;
+}
+''');
+  }
+
+  test_constructor_named_reachableViaRedirection() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.two();
+}
+
+class C {
+  C.named();
+
+  C.two() : this.named();
+}
+''');
+  }
+
+  test_constructor_named_reachableViaTearoff() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.named;
+}
+
+class C {
+  C.named();
+}
+''');
+  }
+
+  test_constructor_named_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  C;
+}
+
+class C {
+  C.named();
+}
+''', [
+      lint(36, 5),
+    ]);
+  }
+
+  test_constructor_named_unreachable_otherHasRedirectedConstructor() async {
+    await assertDiagnostics(r'''
+void main() {
+  C.two();
+}
+
+class C {
+  C.named();
+  C.one();
+  factory C.two() = C.one;
+}
+''', [
+      lint(42, 5),
+    ]);
+  }
+
+  test_constructor_unnamed_reachableViaDefaultImplicitSuperCall() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D();
+}
+
+class C {
+  C();
+}
+
+class D extends C {
+  // Just a default constructor.
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaDirectCall() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C();
+}
+
+class C {
+  C();
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaExplicitSuperCall() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D();
+}
+
+class C {
+  C();
+}
+
+class D extends C {
+  D() : super();
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaImplicitSuperCall() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D();
+}
+
+class C {
+  C();
+}
+
+class D extends C {
+  D();
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaImplicitSuperCall_indirectly() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  E();
+}
+
+class C {
+  C();
+}
+
+class D extends C {
+  // Just a default constructor.
+}
+
+class E extends D {
+  E();
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaImplicitSuperCall_superParameters() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D(1);
+}
+
+class C {
+  C(int p);
+}
+
+class D extends C {
+  D(super.p);
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaRedirectedConstructor() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.two();
+}
+
+class C {
+  C();
+  factory C.two() = C;
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaRedirection() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.two();
+}
+
+class C {
+  C();
+
+  C.two() : this();
+}
+''');
+  }
+
+  test_constructor_unnamed_reachableViaTearoff() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C.new;
+}
+
+class C {
+  C();
+}
+''');
+  }
+
+  test_constructor_unnamed_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  C;
+}
+
+class C {
+  C();
+}
+''', [
+      lint(34, 1),
+    ]);
+  }
+
+  test_constructor_unnamed_unreachable_otherHasRedirection() async {
+    await assertDiagnostics(r'''
+void main() {
+  C.two();
+}
+
+class C {
+  C();
+  C.one();
+  C.two() : this.one();
+}
+''', [
+      lint(40, 1),
     ]);
   }
 
