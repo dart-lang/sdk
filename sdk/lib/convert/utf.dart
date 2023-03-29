@@ -25,7 +25,7 @@ const Utf8Codec utf8 = Utf8Codec();
 
 /// A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
 /// UTF-8 code units to strings.
-class Utf8Codec extends Encoding {
+final class Utf8Codec extends Encoding {
   final bool _allowMalformed;
 
   /// Instantiates a new [Utf8Codec].
@@ -82,7 +82,7 @@ class Utf8Codec extends Encoding {
 /// final encodedSample = utf8Encoder.convert(sample);
 /// print(encodedSample);
 /// ```
-class Utf8Encoder extends Converter<String, List<int>> {
+final class Utf8Encoder extends Converter<String, List<int>> {
   const Utf8Encoder();
 
   /// Converts [string] to its UTF-8 code units (a list of
@@ -232,7 +232,7 @@ class _Utf8Encoder {
 
 /// This class encodes chunked strings to UTF-8 code units (unsigned 8-bit
 /// integers).
-class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
+class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSink {
   final ByteConversionSink _sink;
 
   _Utf8EncoderSink(this._sink);
@@ -318,7 +318,7 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 /// final decodedBytes = utf8Decoder.convert(encodedBytes);
 /// print(decodedBytes); // �
 /// ```
-class Utf8Decoder extends Converter<List<int>, String> {
+final class Utf8Decoder extends Converter<List<int>, String> {
   final bool _allowMalformed;
 
   /// Instantiates a new [Utf8Decoder].
