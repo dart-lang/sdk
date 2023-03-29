@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/dart/analysis/features.dart';
@@ -99,6 +100,8 @@ class ContextResolutionTest with ResourceProviderMixin {
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
 
+  DartFixPromptManager? dartFixPromptManager;
+
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
 
@@ -188,6 +191,7 @@ class ContextResolutionTest with ResourceProviderMixin {
       AnalyticsManager(NoopAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
+      dartFixPromptManager: dartFixPromptManager,
     );
 
     server.pluginManager = pluginManager;

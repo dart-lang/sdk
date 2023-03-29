@@ -9,7 +9,7 @@ import 'dart:math' show max;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisOptions;
+    hide AnalysisOptions, MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -92,6 +92,7 @@ import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -366,6 +367,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
+    DartFixPromptManager? dartFixPromptManager,
   }) : super(
           options,
           sdkManager,
@@ -379,12 +381,13 @@ class LegacyAnalysisServer extends AnalysisServer {
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
           enableBlazeWatcher: enableBlazeWatcher,
+          dartFixPromptManager: dartFixPromptManager,
         ) {
     var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(sendStatusNotificationNew);
+    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {
@@ -442,9 +445,11 @@ class LegacyAnalysisServer extends AnalysisServer {
     return sdkManager.defaultSdkDirectory;
   }
 
+  @override
   bool get supportsOpenUriNotification =>
       clientCapabilities.requests.contains('openUrlRequest');
 
+  @override
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
 
@@ -470,6 +475,12 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     var driver = getAnalysisDriver(path);
     return driver?.getCachedResult(path);
+  }
+
+  @override
+  FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
+    super.handleAnalysisStatusChange(status);
+    sendStatusNotificationNew(status);
   }
 
   /// Handle a [request] that was read from the communication channel.
@@ -581,6 +592,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     channel.sendNotification(notification);
   }
 
+  @override
   Future<void> sendOpenUriNotification(Uri uri) {
     assert(supportsOpenUriNotification);
     var requestId = (nextServerRequestId++).toString();
@@ -755,6 +767,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
   }
 
+  @override
   Future<String?> showUserPrompt(
     MessageType type,
     String message,
@@ -763,8 +776,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     assert(supportsShowMessageRequest);
     var requestId = (nextServerRequestId++).toString();
     var actions = actionLabels.map((label) => MessageAction(label)).toList();
-    var request = ServerShowMessageRequestParams(type, message, actions)
-        .toRequest(requestId);
+    var request =
+        ServerShowMessageRequestParams(type.forLegacy, message, actions)
+            .toRequest(requestId);
     final response = await sendRequest(request);
     return response.result?['action'] as String?;
   }
@@ -948,7 +962,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void afterContextsCreated() {
-    analysisServer.addContextsToDeclarationsTracker();
+    analysisServer.afterContextsCreated();
     analysisServer._sendSubscriptions(analysis: true, flutter: true);
   }
 
