@@ -241,6 +241,40 @@ mixin class M extends I {}
     ]);
   }
 
+  test_classTypeAlias_class_classInterface() async {
+    await assertDiagnostics(r'''
+interface class I {}
+mixin M {}
+class C = I with M;
+''', [
+      lint(38, 1),
+    ]);
+  }
+
+  test_classTypeAlias_classBase_classFinal() async {
+    await assertDiagnostics(r'''
+final class C {}
+mixin M {}
+base class D = C with M;
+''', [
+      lint(39, 1),
+    ]);
+  }
+
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/sdk/issues/51891',
+      reason: 'class type aliases cannot be annotated')
+  test_classTypeAlias_classBase_classFinal_reopened() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+final class C {}
+mixin M {}
+@reopen
+base class D = C with M;
+''');
+  }
+
   test_mixin_classInterface_ok() async {
     await assertDiagnostics(r'''
 interface class I {}
