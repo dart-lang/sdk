@@ -214,7 +214,9 @@ class SimpleMacro
     var constructors = (await builder.constructorsOf(parentClass));
 
     // Test the type resolver and static type interfaces
-    var staticReturnType = await builder.resolve(method.returnType.code);
+    var methodReturnType = method.returnType as RecordTypeAnnotation;
+    var staticReturnType = await builder
+        .resolve(methodReturnType.positionalFields.first.type.code);
     if (!(await staticReturnType.isExactly(staticReturnType))) {
       throw StateError('The return type should be exactly equal to itself!');
     }

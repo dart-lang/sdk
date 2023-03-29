@@ -16,7 +16,7 @@ abstract class Identifier {
   String get name;
 }
 
-/// The base class for an unresolved reference to a type.
+/// The interface for an unresolved reference to a type.
 ///
 /// See the subtypes [FunctionTypeAnnotation] and [NamedTypeAnnotation].
 abstract class TypeAnnotation {
@@ -29,7 +29,7 @@ abstract class TypeAnnotation {
   TypeAnnotationCode get code;
 }
 
-/// The base class for function type declarations.
+/// The interface for function type declarations.
 abstract class FunctionTypeAnnotation implements TypeAnnotation {
   /// The return type of this function.
   TypeAnnotation get returnType;
@@ -54,6 +54,15 @@ abstract class NamedTypeAnnotation implements TypeAnnotation {
 
   /// The type arguments, if applicable.
   Iterable<TypeAnnotation> get typeArguments;
+}
+
+/// The interface for record type declarations.
+abstract class RecordTypeAnnotation implements TypeAnnotation {
+  /// The positional fields for this record.
+  Iterable<RecordFieldDeclaration> get positionalFields;
+
+  /// The named fields for this record.
+  Iterable<RecordFieldDeclaration> get namedFields;
 }
 
 /// An omitted type annotation.
@@ -85,13 +94,13 @@ abstract class StaticType {
 /// to a concrete declaration.
 abstract class NamedStaticType implements StaticType {}
 
-/// The base class for all declarations.
+/// The interface for all declarations.
 abstract class Declaration {
   ///  An identifier pointing to this named declaration.
   Identifier get identifier;
 }
 
-/// Base class for all Declarations which have a surrounding class.
+/// Interface for all Declarations which have a surrounding class.
 abstract class ClassMemberDeclaration implements Declaration {
   /// The class that defines this method.
   Identifier get definingClass;
@@ -262,4 +271,23 @@ abstract class TypeParameterDeclaration implements TypeDeclaration {
   /// A convenience method to get a `code` object equivalent to this type
   /// parameter.
   TypeParameterCode get code;
+}
+
+/// Introspection information for a field declaration on a Record type.
+///
+/// Note that for positional fields the [identifier] will be the synthesized
+/// one (`$1` etc), while for named fields it will be the declared name.
+abstract class RecordFieldDeclaration implements Declaration {
+  /// A convenience method to get a `code` object equivalent to this field
+  /// declaration.
+  RecordFieldCode get code;
+
+  /// Record fields don't always have names (if they are positional).
+  ///
+  /// If you want to reference the getter for a field, you should use
+  /// [identifier] instead.
+  String? get name;
+
+  /// The type of this field.
+  TypeAnnotation get type;
 }
