@@ -247,7 +247,7 @@ static method switchMap(core::Map<core::int, core::String> map) → core::int
     #L2:
     {
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C6 && #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?} in true)) {
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C6 && #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?} as{ForNonNullableByDefault} core::String in true)) {
           #t2 = 1;
           break #L2;
         }

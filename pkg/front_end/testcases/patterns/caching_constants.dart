@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
+
 class MyMap<K, V> with MapMixin<K, V> {
   int containsKeyCount = 0;
   int indexGetCount = 0;
@@ -31,7 +33,7 @@ class MyMap<K, V> with MapMixin<K, V> {
   V? remove(Object? key) => _map.remove(key);
 }
 
-int method(Map<int, String> m) {
+int method(Map<int, String?> m) {
   switch (m) {
     case {1: 'foo'}:
       return 0;
@@ -55,13 +57,21 @@ test(Map<int, String> map,
 
 main() {
   test({0: 'foo'},
-      expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: 0);
+      expectedValue: 2,
+      expectedContainsKeyCount: 1,
+      expectedIndexGetCount: hasUnsoundNullSafety ? 0 : 1);
   test({1: 'foo'},
-      expectedValue: 0, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+      expectedValue: 0,
+      expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
+      expectedIndexGetCount: 1);
   test({1: 'bar'},
-      expectedValue: 1, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+      expectedValue: 1,
+      expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
+      expectedIndexGetCount: 1);
   test({1: 'baz'},
-      expectedValue: 2, expectedContainsKeyCount: 1, expectedIndexGetCount: 1);
+      expectedValue: 2,
+      expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
+      expectedIndexGetCount: 1);
 }
 
 expect(expected, actual, message) {

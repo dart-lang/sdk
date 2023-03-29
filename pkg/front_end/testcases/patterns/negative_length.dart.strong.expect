@@ -242,10 +242,11 @@ static method switchMap(core::Map<core::int, core::String> map) → core::int
     core::int #t2;
     final synthesized core::Map<core::int, core::String> #0#0 = map;
     late final synthesized core::int #0#1 = #0#0.{core::Map::length}{core::int};
+    late final synthesized core::String? #0#6 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?};
     #L2:
     {
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C6 && #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?} in true)) {
+        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C6 && (!(#0#6 == null) || null is{ForNonNullableByDefault} core::String && #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t3 = #0#6{core::String} in true)) {
           #t2 = 1;
           break #L2;
         }

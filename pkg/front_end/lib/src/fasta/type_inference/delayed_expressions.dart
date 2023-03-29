@@ -202,13 +202,13 @@ class DelayedOrExpression implements DelayedExpression {
 
 /// A conditional expression of the [_condition], [_then] and [_otherwise]
 /// expressions.
-class DelayedConditionExpression implements DelayedExpression {
+class DelayedConditionalExpression implements DelayedExpression {
   final DelayedExpression _condition;
   final DelayedExpression _then;
   final DelayedExpression _otherwise;
   final int fileOffset;
 
-  DelayedConditionExpression(this._condition, this._then, this._otherwise,
+  DelayedConditionalExpression(this._condition, this._then, this._otherwise,
       {required this.fileOffset});
 
   @override

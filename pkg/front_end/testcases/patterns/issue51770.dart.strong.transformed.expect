@@ -165,8 +165,11 @@ static method method3(core::Map<dynamic, dynamic> o) → dynamic {
   #L14:
   {
     final synthesized core::Map<dynamic, dynamic> #1#0 = o;
+    function ##1#6#initializer() → dynamic
+      return #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized dynamic #1#6 = ##1#6#initializer(){() → dynamic};
     {
-      if(#1#0.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final dynamic #t7 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic} in true)) {
+      if(#1#0.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (!(#1#6 == null) || null is{ForNonNullableByDefault} dynamic && #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t7 = #1#6 in true)) {
         {
           core::print(o);
         }
@@ -189,8 +192,11 @@ static method method4(dynamic o) → dynamic {
   #L16:
   {
     final synthesized dynamic #1#0 = o;
+    function ##1#8#initializer() → dynamic
+      return #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized dynamic #1#8 = ##1#8#initializer(){() → dynamic};
     {
-      if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #1#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final dynamic #t8 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic} in true)) {
+      if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #1#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (!(#1#8 == null) || null is{ForNonNullableByDefault} dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t8 = #1#8 in true)) {
         {
           core::print(o{core::Map<dynamic, dynamic>});
         }
@@ -203,3 +209,8 @@ constants  {
   #C1 = 1
   #C2 = 0
 }
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///issue51770.dart:65:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///issue51770.dart:76:12 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 166, effectively constant: 2

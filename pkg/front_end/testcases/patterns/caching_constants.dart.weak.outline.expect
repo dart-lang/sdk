@@ -68,7 +68,9 @@ class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic
   method remove(core::Object? key) → self::MyMap::V?
     ;
 }
-static method method(core::Map<core::int, core::String> m) → core::int
+static get hasUnsoundNullSafety() → core::bool
+  ;
+static method method(core::Map<core::int, core::String?> m) → core::int
   ;
 static method test(core::Map<core::int, core::String> map, {required core::int expectedValue, required core::int expectedContainsKeyCount, required core::int expectedIndexGetCount}) → dynamic
   ;

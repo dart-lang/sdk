@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
+
 class MyMap<K, V> with MapMixin<K, V> {
   int containsKeyCount = 0;
   int indexGetCount = 0;
@@ -13,7 +15,7 @@ class MyMap<K, V> with MapMixin<K, V> {
   V? remove(Object? key) => _map.remove(key);
 }
 
-int method(Map<int, String> m) {}
+int method(Map<int, String?> m) {}
 test(Map<int, String> map,
     {required int expectedValue,
     required int expectedContainsKeyCount,

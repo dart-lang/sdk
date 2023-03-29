@@ -123,6 +123,11 @@ StringLiteral createStringLiteral(String value, {required int fileOffset}) {
   return new StringLiteral(value)..fileOffset = fileOffset;
 }
 
+/// Creates a null literal.
+NullLiteral createNullLiteral({required int fileOffset}) {
+  return new NullLiteral()..fileOffset = fileOffset;
+}
+
 /// Creates a conditional expression of the [condition] and the [then] and
 /// [otherwise] branches with the given [staticType] of the resulting
 /// expression.
