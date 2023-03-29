@@ -3154,11 +3154,6 @@ void Class::set_is_isolate_unsendable(bool value) const {
   set_state_bits(IsIsolateUnsendableBit::update(value, state_bits()));
 }
 
-void Class::set_implements_finalizable(bool value) const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_state_bits(ImplementsFinalizableBit::update(value, state_bits()));
-}
-
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
   if (Object::empty_array().ptr() == Array::null()) {

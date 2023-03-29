@@ -1679,10 +1679,6 @@ class Class : public Object {
   static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
     return clazz->untag()->num_native_fields_;
   }
-  static bool ImplementsFinalizable(ClassPtr clazz) {
-    ASSERT(Class::Handle(clazz).is_type_finalized());
-    return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
-  }
   static bool IsIsolateUnsendable(ClassPtr clazz) {
     return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
   }
@@ -1921,7 +1917,6 @@ class Class : public Object {
     kIsAllocatedBit,
     kIsLoadedBit,
     kHasPragmaBit,
-    kImplementsFinalizableBit,
     kSealedBit,
     kMixinClassBit,
     kBaseClassBit,
@@ -1955,8 +1950,6 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
   class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
-  class ImplementsFinalizableBit
-      : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
   class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
   class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
   class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
@@ -2011,11 +2004,6 @@ class Class : public Object {
     return IsIsolateUnsendableBit::decode(state_bits());
   }
 
-  bool implements_finalizable() const {
-    ASSERT(is_type_finalized());
-    return ImplementsFinalizable(ptr());
-  }
-  void set_implements_finalizable(bool value) const;
 
  private:
   void set_functions(const Array& value) const;
