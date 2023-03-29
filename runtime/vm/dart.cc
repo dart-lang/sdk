@@ -292,7 +292,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     }
   }
 
-  UntaggedFrame::Init();
+  FrameLayout::Init();
 
   set_thread_start_callback(params->thread_start);
   set_thread_exit_callback(params->thread_exit);
