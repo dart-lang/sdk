@@ -299,7 +299,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, separator);
       }
     }
-    super.visitDefaultFormalParameter(node);
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement!.hasDeprecated);
+
+    try {
+      super.visitDefaultFormalParameter(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override

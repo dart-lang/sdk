@@ -64,6 +64,20 @@ int g(Object s) =>
     ]);
   }
 
+  test_inDeprecatedDefaultFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {
+  const C();
+}
+''',
+      code: r'''
+f({@deprecated C? c = const C()}) {}
+''',
+    );
+  }
+
   test_inDeprecatedEnum() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -78,6 +92,62 @@ enum E {
   void m() {
     f();
   }
+}
+''',
+    );
+  }
+
+  test_inDeprecatedFieldFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+class A {
+  Object? o;
+  A({@deprecated C? this.o});
+}
+''',
+    );
+  }
+
+  test_inDeprecatedFunctionTypedFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+f({@deprecated C? callback()?}) {}
+''',
+    );
+  }
+
+  test_inDeprecatedSimpleFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+f({@deprecated C? c}) {}
+''',
+    );
+  }
+
+  test_inDeprecatedSuperFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+class A {
+  A({Object? o});
+}
+class B extends A {
+  B({@deprecated C? super.o});
 }
 ''',
     );
