@@ -8,14 +8,12 @@ import "dart:collection";
 
 bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 
-String unsoundResult = "length;"
-    "containsKey(key1);"
+String unsoundResult = "containsKey(key1);"
     "[key1];"
     "containsKey(key2);"
     "[key2];";
 
-String soundResult = "length;"
-    "[key1];"
+String soundResult = "[key1];"
     "[key2];";
 
 class MyMap<K, V> extends MapBase<K, V> {
@@ -73,8 +71,6 @@ class MyMap<K, V> extends MapBase<K, V> {
 
 String test1(Object o) {
   switch (o) {
-    case <String, int>{"key1": 1}: // Expect call length
-      return "match-1";
     case <String, int>{"key1": 1, "key2": 3}: // Expect call [key1], [key2]
       return "match-2";
     case <String, int>{"key1": 1, "key2": 2}: // Expect no additional calls
@@ -85,7 +81,6 @@ String test1(Object o) {
 }
 
 String test2(Object o) => switch (o) {
-      <String, int>{"key1": 1} => "match-1",
       <String, int>{"key1": 1, "key2": 3} => "match-2",
       <String, int>{"key1": 1, "key2": 2} => "match-3",
       _ => "no match"

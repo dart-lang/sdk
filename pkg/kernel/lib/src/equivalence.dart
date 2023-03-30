@@ -4869,21 +4869,6 @@ class EquivalenceStrategy {
     if (!checkMapPattern_lookupType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkMapPattern_hasRestPattern(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkMapPattern_lengthTargetReference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkMapPattern_lengthType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkMapPattern_lengthCheckTargetReference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkMapPattern_lengthCheckType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkMapPattern_containsKeyTargetReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -9086,35 +9071,6 @@ class EquivalenceStrategy {
   bool checkMapPattern_lookupType(
       EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
     return visitor.checkNodes(node.lookupType, other.lookupType, 'lookupType');
-  }
-
-  bool checkMapPattern_hasRestPattern(
-      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkValues(
-        node.hasRestPattern, other.hasRestPattern, 'hasRestPattern');
-  }
-
-  bool checkMapPattern_lengthTargetReference(
-      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkReferences(node.lengthTargetReference,
-        other.lengthTargetReference, 'lengthTargetReference');
-  }
-
-  bool checkMapPattern_lengthType(
-      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkNodes(node.lengthType, other.lengthType, 'lengthType');
-  }
-
-  bool checkMapPattern_lengthCheckTargetReference(
-      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkReferences(node.lengthCheckTargetReference,
-        other.lengthCheckTargetReference, 'lengthCheckTargetReference');
-  }
-
-  bool checkMapPattern_lengthCheckType(
-      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkNodes(
-        node.lengthCheckType, other.lengthCheckType, 'lengthCheckType');
   }
 
   bool checkMapPattern_containsKeyTargetReference(

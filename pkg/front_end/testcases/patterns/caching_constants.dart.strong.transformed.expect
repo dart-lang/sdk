@@ -164,24 +164,21 @@ static method method(core::Map<core::int, core::String?> m) → core::int {
   #L1:
   {
     final synthesized core::Map<core::int, core::String?> #0#0 = m;
-    function ##0#3#initializer() → core::bool
-      return #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
-    late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
-    function ##0#5#initializer() → core::String?
+    function ##0#3#initializer() → core::String?
       return #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?};
-    late final synthesized core::String? #0#5 = ##0#5#initializer(){() → core::String?};
-    function ##0#4#initializer() → core::bool
+    late final synthesized core::String? #0#3 = ##0#3#initializer(){() → core::String?};
+    function ##0#2#initializer() → core::bool
       return #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
+    late final synthesized core::bool #0#2 = ##0#2#initializer(){() → core::bool};
     {
-      if(#0#3 && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::String? && #0#4) && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+      if((!(#0#3 == null) || null is{ForNonNullableByDefault} core::String? && #0#2) && #C4 =={core::String::==}{(core::Object) → core::bool} #0#3) {
         {
           return 0;
         }
       }
     }
     {
-      if(#0#3 && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::String? && #0#4) && #C5 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+      if((!(#0#3 == null) || null is{ForNonNullableByDefault} core::String? && #0#2) && #C5 =={core::String::==}{(core::Object) → core::bool} #0#3) {
         {
           return 1;
         }
@@ -219,4 +216,4 @@ Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///caching_constants.dart:7:49 -> BoolConstant(false)
 Evaluated: IsExpression @ org-dartlang-testcase:///caching_constants.dart:38:12 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///caching_constants.dart:40:12 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 400, effectively constant: 3
+Extra constant evaluation: evaluated: 392, effectively constant: 3

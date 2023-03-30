@@ -10622,51 +10622,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       lookupType = node.lookupType = matchedValueType;
     }
 
-    ObjectAccessTarget lengthTarget = findInterfaceMember(
-        lookupType, lengthName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-    assert(lengthTarget.isInstanceMember,
-        "Unexpected Map.length target ${lengthTarget}.");
-
-    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
-    node.lengthTarget = lengthTarget.member!;
-
-    // In map patterns the rest pattern can appear only in the end.
-    node.hasRestPattern =
-        node.entries.isNotEmpty && node.entries.last is MapPatternRestEntry;
-
-    if (node.hasRestPattern) {
-      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
-          lengthType, greaterThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(greaterThanOrEqualTarget.isInstanceMember);
-
-      node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
-    } else if (node.entries.isEmpty) {
-      ObjectAccessTarget lessThanOrEqualInvokeTarget = findInterfaceMember(
-          lengthType, lessThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(lessThanOrEqualInvokeTarget.isInstanceMember ||
-          lessThanOrEqualInvokeTarget.isObjectMember);
-
-      node.lengthCheckTarget = lessThanOrEqualInvokeTarget.member as Procedure;
-      node.lengthCheckType = lessThanOrEqualInvokeTarget.getFunctionType(this);
-    } else {
-      ObjectAccessTarget equalInvokeTarget = findInterfaceMember(
-          lengthType, equalsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(equalInvokeTarget.isInstanceMember ||
-          equalInvokeTarget.isObjectMember);
-
-      node.lengthCheckTarget = equalInvokeTarget.member as Procedure;
-      node.lengthCheckType = equalInvokeTarget.getFunctionType(this);
-    }
-
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
         lookupType, containsKeyName, node.fileOffset,
         includeExtensionMethods: true,

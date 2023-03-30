@@ -79,18 +79,17 @@ static method method(core::Map<core::int, core::String?> m) → core::int {
   #L1:
   {
     final synthesized core::Map<core::int, core::String?> #0#0 = m;
-    late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
-    late final synthesized core::String? #0#5 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?};
-    late final synthesized core::bool #0#4 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::String? #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?};
+    late final synthesized core::bool #0#2 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
     {
-      if(#0#3 && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::String? && #0#4) && #C4 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+      if((!(#0#3 == null) || null is{ForNonNullableByDefault} core::String? && #0#2) && #C4 =={core::String::==}{(core::Object) → core::bool} #0#3) {
         {
           return 0;
         }
       }
     }
     {
-      if(#0#3 && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::String? && #0#4) && #C5 =={core::String::==}{(core::Object) → core::bool} #0#5) {
+      if((!(#0#3 == null) || null is{ForNonNullableByDefault} core::String? && #0#2) && #C5 =={core::String::==}{(core::Object) → core::bool} #0#3) {
         {
           return 1;
         }

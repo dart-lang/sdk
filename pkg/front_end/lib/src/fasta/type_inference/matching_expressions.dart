@@ -289,64 +289,9 @@ class MatchingExpressionVisitor
       typedMatchedExpression = matchedExpression;
     }
 
-    CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
-        typedMatchedExpression,
-        lengthName.text,
-        new DelayedInstanceGet(
-            typedMatchedExpression, node.lengthTarget, node.lengthType!,
-            fileOffset: node.fileOffset),
-        fileOffset: node.fileOffset);
-
-    CacheableExpression? lengthCheck;
-    if (node.hasRestPattern) {
-      int minLength = node.entries.length - 1;
-      if (minLength > 0) {
-        CacheableExpression constExpression = matchingCache.createIntConstant(
-            node.entries.length - 1,
-            fileOffset: node.fileOffset);
-
-        lengthCheck = matchingCache.createComparisonExpression(
-            lengthGet,
-            greaterThanOrEqualsName.text,
-            constExpression,
-            new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
-                node.lengthCheckType!, [constExpression],
-                fileOffset: node.fileOffset),
-            fileOffset: node.fileOffset);
-      }
-    } else {
-      int length = node.entries.length;
-      CacheableExpression constExpression =
-          matchingCache.createIntConstant(length, fileOffset: node.fileOffset);
-      if (length == 0) {
-        lengthCheck = matchingCache.createComparisonExpression(
-            lengthGet,
-            lessThanOrEqualsName.text,
-            constExpression,
-            new DelayedInstanceInvocation(lengthGet, node.lengthCheckTarget,
-                node.lengthCheckType!, [constExpression],
-                fileOffset: node.fileOffset),
-            fileOffset: node.fileOffset);
-      } else {
-        lengthCheck = matchingCache.createEqualsExpression(
-            lengthGet,
-            constExpression,
-            new DelayedEqualsExpression(lengthGet, constExpression,
-                node.lengthCheckTarget, node.lengthCheckType!,
-                fileOffset: node.fileOffset),
-            fileOffset: node.fileOffset);
-      }
-    }
-
     DelayedExpression? matchingExpression;
-    if (isExpression != null && lengthCheck != null) {
-      matchingExpression = matchingCache.createAndExpression(
-          isExpression, lengthCheck,
-          fileOffset: node.fileOffset);
-    } else if (isExpression != null) {
+    if (isExpression != null) {
       matchingExpression = isExpression;
-    } else if (lengthCheck != null) {
-      matchingExpression = lengthCheck;
     }
 
     InterfaceType requiredType = node.requiredType as InterfaceType;

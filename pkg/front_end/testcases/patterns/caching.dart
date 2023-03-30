@@ -72,7 +72,7 @@ int ifCase(o) {
   if (o case bool _) {
     return 20;
   }
-  if (o case {}) {
+  if (o case Map() when o.isEmpty) {
     return 21;
   }
   if (o case {0: int _}) {
@@ -141,7 +141,7 @@ int ifCaseElse(o) {
     return 19;
   } else if (o case bool _) {
     return 20;
-  } else if (o case {}) {
+  } else if (o case Map() when o.isEmpty) {
     return 21;
   } else if (o case {0: int _}) {
     return 22;
@@ -205,7 +205,7 @@ int switchStatement(o) {
       return 19;
     case bool _:
       return 20;
-    case {}:
+    case Map() when o.isEmpty:
       return 21;
     case {0: int _}:
       return 22;
@@ -249,7 +249,7 @@ int switchExpression(o) {
     <int, int>{5: >= 16} => 18,
     [_] => 19,
     bool _ => 20,
-    {} => 21,
+    Map() when o.isEmpty => 21,
     {0: int _} => 22,
     {1: String _, ...} => 23,
     {2: var a} => 24,

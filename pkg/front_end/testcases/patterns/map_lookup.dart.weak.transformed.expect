@@ -51,48 +51,35 @@ class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic
     this.{self::MyMap::log} = "";
   }
 }
-static field core::String unsoundResult = "length;containsKey(key1);[key1];containsKey(key2);[key2];";
-static field core::String soundResult = "length;[key1];[key2];";
+static field core::String unsoundResult = "containsKey(key1);[key1];containsKey(key2);[key2];";
+static field core::String soundResult = "[key1];[key2];";
 static get hasUnsoundNullSafety() → core::bool
   return #C2 is{ForNonNullableByDefault} core::List<core::Object>;
 static method test1(core::Object o) → core::String {
   #L1:
   {
     final synthesized core::Object #0#0 = o;
-    function ##0#2#initializer() → core::int
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::length}{core::int};
-    late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
-    function ##0#7#initializer() → core::bool
+    function ##0#3#initializer() → core::bool
       return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#7 = ##0#7#initializer(){() → core::bool};
-    function ##0#9#initializer() → core::bool
+    late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    function ##0#6#initializer() → core::bool
       return #C4 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
-    late final synthesized core::bool #0#9 = ##0#9#initializer(){() → core::bool};
-    function ##0#11#initializer() → core::bool
-      return #0#2 =={core::num::==}{(core::Object) → core::bool} #C5;
-    late final synthesized core::bool #0#11 = ##0#11#initializer(){() → core::bool};
-    function ##0#14#initializer() → core::bool
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C6){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#14 = ##0#14#initializer(){() → core::bool};
-    function ##0#15#initializer() → core::int?
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C6){(core::Object?) → core::int?};
-    late final synthesized core::int? #0#15 = ##0#15#initializer(){() → core::int?};
+    late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
+    function ##0#8#initializer() → core::bool
+      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
+    function ##0#9#initializer() → core::int?
+      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#9 = ##0#9#initializer(){() → core::int?};
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && #0#7 && #0#9) {
-        {
-          return "match-1";
-        }
-      }
-    }
-    {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#11 && #0#7 && #0#9 && #0#14 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#15{core::int}) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#3 && #0#6 && #0#8 && #C6 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
         {
           return "match-2";
         }
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#11 && #0#7 && #0#9 && #0#14 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#15{core::int}) {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#3 && #0#6 && #0#8 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
         {
           return "match-3";
         }
@@ -111,40 +98,28 @@ static method test2(core::Object o) → core::String
   return block {
     core::String #t1;
     final synthesized core::Object #0#0 = o;
-    function ##0#2#initializer() → core::int
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::length}{core::int};
-    late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
-    function ##0#7#initializer() → core::bool
+    function ##0#3#initializer() → core::bool
       return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#7 = ##0#7#initializer(){() → core::bool};
-    function ##0#9#initializer() → core::bool
+    late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    function ##0#6#initializer() → core::bool
       return #C4 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
-    late final synthesized core::bool #0#9 = ##0#9#initializer(){() → core::bool};
-    function ##0#11#initializer() → core::bool
-      return #0#2 =={core::num::==}{(core::Object) → core::bool} #C5;
-    late final synthesized core::bool #0#11 = ##0#11#initializer(){() → core::bool};
-    function ##0#14#initializer() → core::bool
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C6){(core::Object?) → core::bool};
-    late final synthesized core::bool #0#14 = ##0#14#initializer(){() → core::bool};
-    function ##0#15#initializer() → core::int?
-      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C6){(core::Object?) → core::int?};
-    late final synthesized core::int? #0#15 = ##0#15#initializer(){() → core::int?};
+    late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
+    function ##0#8#initializer() → core::bool
+      return #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
+    function ##0#9#initializer() → core::int?
+      return #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#9 = ##0#9#initializer(){() → core::int?};
     #L2:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && #0#7 && #0#9) {
-          #t1 = "match-1";
-          break #L2;
-        }
-      }
-      {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#11 && #0#7 && #0#9 && #0#14 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#15{core::int}) {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#3 && #0#6 && #0#8 && #C6 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
           #t1 = "match-2";
           break #L2;
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#11 && #0#7 && #0#9 && #0#14 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#15{core::int}) {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && #0#3 && #0#6 && #0#8 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
           #t1 = "match-3";
           break #L2;
         }
@@ -170,7 +145,7 @@ static method main() → dynamic {
   hoisted core::int x2;
   {
     final synthesized dynamic #0#0 = map;
-    if(!(#0#0{self::MyMap<core::String, core::int>}.{self::MyMap::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5 && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool} && (let final core::int #t2 = x1 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?} in true) && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C6){(core::Object?) → core::bool} && (let final core::int #t3 = x2 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C6){(core::Object?) → core::int?} in true)))
+    if(!(#0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool} && (let final core::int #t2 = x1 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?} in true) && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t3 = x2 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
@@ -179,7 +154,7 @@ static method main() → dynamic {
   final hoisted core::int y2;
   {
     final synthesized dynamic #1#0 = map;
-    if(!(#1#0{self::MyMap<core::String, core::int>}.{self::MyMap::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5 && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool} && (let final core::int #t4 = y1 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?} in true) && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C6){(core::Object?) → core::bool} && (let final core::int #t5 = y2 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C6){(core::Object?) → core::int?} in true)))
+    if(!(#1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool} && (let final core::int #t4 = y1 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?} in true) && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t5 = y2 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
@@ -194,13 +169,13 @@ constants  {
   #C2 = <Null>[]
   #C3 = "key1"
   #C4 = 1
-  #C5 = 2
-  #C6 = "key2"
-  #C7 = 3
+  #C5 = "key2"
+  #C6 = 3
+  #C7 = 2
 }
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///map_lookup.dart:9:49 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///map_lookup.dart:11:22 -> StringConstant("length;containsKey(key1);[key1];containsKey(key2);[key2];")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///map_lookup.dart:17:20 -> StringConstant("length;[key1];[key2];")
-Extra constant evaluation: evaluated: 290, effectively constant: 3
+Evaluated: StringConcatenation @ org-dartlang-testcase:///map_lookup.dart:11:22 -> StringConstant("containsKey(key1);[key1];containsKey(key2);[key2];")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///map_lookup.dart:16:20 -> StringConstant("[key1];[key2];")
+Extra constant evaluation: evaluated: 243, effectively constant: 3

@@ -231,10 +231,10 @@ static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
 static method restPatternNotLastInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    function ##0#8#initializer() → dynamic
+    function ##0#4#initializer() → dynamic
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#8 = ##0#8#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && (!(#0#8 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#8) {
+    late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       core::print(0);
     }
   }
@@ -242,10 +242,10 @@ static method restPatternNotLastInMap(dynamic o) → dynamic {
 static method restPatternWithSubPatternInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    function ##0#8#initializer() → dynamic
+    function ##0#4#initializer() → dynamic
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#8 = ##0#8#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && (!(#0#8 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#8) {
+    late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
       core::print(0);
     }
   }
@@ -262,4 +262,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///shared_errors.dart:66:21 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///shared_errors.dart:72:16 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 140, effectively constant: 2
+Extra constant evaluation: evaluated: 132, effectively constant: 2
