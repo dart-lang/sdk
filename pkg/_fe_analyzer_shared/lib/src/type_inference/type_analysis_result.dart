@@ -4,6 +4,55 @@
 
 import 'type_analyzer.dart';
 
+/// Result for analyzing an assigned variable pattern in
+/// [TypeAnalyzer.analyzeAssignedVariablePattern].
+class AssignedVariablePatternResult<Error> {
+  /// Error for when a variable was assigned multiple times within a pattern.
+  final Error? duplicateAssignmentPatternVariableError;
+
+  /// Error for when the matched value type is not assignable to the variable
+  /// type in an irrefutable context.
+  final Error? patternTypeMismatchInIrrefutableContextError;
+
+  AssignedVariablePatternResult(
+      {required this.duplicateAssignmentPatternVariableError,
+      required this.patternTypeMismatchInIrrefutableContextError});
+}
+
+/// Result for analyzing a constant pattern in
+/// [TypeAnalyzer.analyzeConstantPattern].
+class ConstantPatternResult<Type extends Object, Error> {
+  /// The static type of the constant expression.
+  final Type expressionType;
+
+  /// Error for when the pattern occurred in an irrefutable context.
+  final Error? refutablePatternInIrrefutableContextError;
+
+  /// Error for when the pattern, used as a case constant expression, does not
+  /// have a valid type wrt. the switch expression type.
+  final Error? caseExpressionTypeMismatchError;
+
+  ConstantPatternResult(
+      {required this.expressionType,
+      required this.refutablePatternInIrrefutableContextError,
+      required this.caseExpressionTypeMismatchError});
+}
+
+/// Result for analyzing a declared variable pattern in
+/// [TypeAnalyzer.analyzeDeclaredVariablePattern].
+class DeclaredVariablePatternResult<Type extends Object, Error> {
+  /// The static type of the variable.
+  final Type staticType;
+
+  /// Error for when the matched value type is not assignable to the static
+  /// type in an irrefutable context.
+  final Error? patternTypeMismatchInIrrefutableContextError;
+
+  DeclaredVariablePatternResult(
+      {required this.staticType,
+      required this.patternTypeMismatchInIrrefutableContextError});
+}
+
 /// Container for the result of running type analysis on an expression.
 ///
 /// This class keeps track of a provisional type of the expression (prior to
@@ -29,6 +78,25 @@ abstract class ExpressionTypeAnalysisResult<Type extends Object> {
   Type resolveShorting();
 }
 
+/// Result for analyzing an if-case statement or element in
+/// [TypeAnalyzer.analyzeIfCaseStatement] and
+/// [TypeAnalyzer.analyzeIfCaseElement].
+class IfCaseStatementResult<Type extends Object, Error> {
+  /// The static type of the matched expression.
+  final Type matchedExpressionType;
+
+  /// Error for when the guard has a non-bool type.
+  final Error? nonBooleanGuardError;
+
+  /// The type of the guard expression, if present.
+  final Type? guardType;
+
+  IfCaseStatementResult(
+      {required this.matchedExpressionType,
+      required this.nonBooleanGuardError,
+      required this.guardType});
+}
+
 /// Container for the result of running type analysis on an integer literal.
 class IntTypeAnalysisResult<Type extends Object>
     extends SimpleTypeAnalysisResult<Type> {
@@ -36,6 +104,60 @@ class IntTypeAnalysisResult<Type extends Object>
   final bool convertedToDouble;
 
   IntTypeAnalysisResult({required super.type, required this.convertedToDouble});
+}
+
+/// Result for analyzing a list pattern in [TypeAnalyzer.analyzeListPattern].
+class ListPatternResult<Type extends Object, Error> {
+  /// The required type of the list pattern.
+  final Type requiredType;
+
+  /// Errors for when multiple rest patterns occurred within the list pattern.
+  ///
+  /// The key is the index of the pattern within the list pattern.
+  ///
+  /// This is `null` if no such errors where found.
+  final Map<int, Error>? duplicateRestPatternErrors;
+
+  /// Error for when the matched value type is not assignable to the required
+  /// type in an irrefutable context.
+  final Error? patternTypeMismatchInIrrefutableContextError;
+
+  ListPatternResult(
+      {required this.requiredType,
+      required this.duplicateRestPatternErrors,
+      required this.patternTypeMismatchInIrrefutableContextError});
+}
+
+/// Result for analyzing a logical or pattern in
+/// [TypeAnalyzer.analyzeLogicalOrPattern].
+class LogicalOrPatternResult<Error> {
+  /// Error for when the pattern occurred in an irrefutable context.
+  final Error? refutablePatternInIrrefutableContextError;
+
+  LogicalOrPatternResult(
+      {required this.refutablePatternInIrrefutableContextError});
+}
+
+/// Result for analyzing a map pattern in [TypeAnalyzer.analyzeMapPattern].
+class MapPatternResult<Type extends Object, Error> {
+  /// The required type of the map pattern.
+  final Type requiredType;
+
+  /// Errors for when multiple rest patterns occurred within the map pattern.
+  ///
+  /// The key is the index of the pattern within the map pattern.
+  ///
+  /// This is `null` if no such errors where found.
+  final Map<int, Error>? duplicateRestPatternErrors;
+
+  /// Error for when the matched value type is not assignable to the required
+  /// type in an irrefutable context.
+  final Error? patternTypeMismatchInIrrefutableContextError;
+
+  MapPatternResult(
+      {required this.requiredType,
+      required this.duplicateRestPatternErrors,
+      required this.patternTypeMismatchInIrrefutableContextError});
 }
 
 /// Information about the code context surrounding a pattern match.
@@ -132,6 +254,44 @@ class MatchContext<Node extends Object, Expression extends Node,
   }
 }
 
+/// Result for analyzing a null check or null assert pattern in
+/// [TypeAnalyzer.analyzeNullCheckOrAssertPattern].
+class NullCheckOrAssertPatternResult<Error> {
+  /// Error for when the pattern occurred in an irrefutable context.
+  final Error? refutablePatternInIrrefutableContextError;
+
+  /// Error for when the matched type is known to be non-null.
+  final Error? matchedTypeIsStrictlyNonNullableError;
+
+  NullCheckOrAssertPatternResult(
+      {required this.refutablePatternInIrrefutableContextError,
+      required this.matchedTypeIsStrictlyNonNullableError});
+}
+
+/// Result for analyzing an object pattern in
+/// [TypeAnalyzer.analyzeObjectPattern].
+class ObjectPatternResult<Type extends Object, Error> {
+  /// The required type of the object pattern.
+  final Type requiredType;
+
+  /// Errors for when the same property name was used multiple times in the
+  /// object pattern.
+  ///
+  /// The key is the index of the duplicate field within the object pattern.
+  ///
+  /// This is `null` if no such properties were found.
+  final Map<int, Error>? duplicateRecordPatternFieldErrors;
+
+  /// Error for when the matched value type is not assignable to the required
+  /// type in an irrefutable context.
+  final Error? patternTypeMismatchInIrrefutableContextError;
+
+  ObjectPatternResult(
+      {required this.requiredType,
+      required this.duplicateRecordPatternFieldErrors,
+      required this.patternTypeMismatchInIrrefutableContextError});
+}
+
 /// Container for the result of running type analysis on a pattern assignment.
 class PatternAssignmentAnalysisResult<Type extends Object>
     extends SimpleTypeAnalysisResult<Type> {
@@ -142,6 +302,62 @@ class PatternAssignmentAnalysisResult<Type extends Object>
     required this.patternSchema,
     required super.type,
   });
+}
+
+/// Result for analyzing a pattern-for-in statement or element in
+/// [TypeAnalyzer.analyzePatternForIn].
+class PatternForInResult<Error> {
+  /// Error for when the expression is not an iterable.
+  final Error? patternForInExpressionIsNotIterableError;
+
+  PatternForInResult({required this.patternForInExpressionIsNotIterableError});
+}
+
+/// Result for analyzing a record pattern in
+/// [TypeAnalyzer.analyzeRecordPattern].
+class RecordPatternResult<Type extends Object, Error> {
+  /// The required type of the record pattern.
+  final Type requiredType;
+
+  /// Errors for when the same property name was used multiple times in the
+  /// record pattern.
+  ///
+  /// The key is the index of the duplicate field within the record pattern.
+  ///
+  /// This is `null` if no such errors where found.
+  final Map<int, Error>? duplicateRecordPatternFieldErrors;
+
+  /// Error for when the matched value type is not assignable to the required
+  /// type in an irrefutable context.
+  final Error? patternTypeMismatchInIrrefutableContextError;
+
+  RecordPatternResult(
+      {required this.requiredType,
+      required this.duplicateRecordPatternFieldErrors,
+      required this.patternTypeMismatchInIrrefutableContextError});
+}
+
+/// Result for analyzing a relational pattern in
+/// [TypeAnalyzer.analyzeRelationalPattern].
+class RelationalPatternResult<Type extends Object, Error> {
+  /// The static type of the operand.
+  final Type operandType;
+
+  /// Error for when the pattern occurred in an irrefutable context.
+  final Error? refutablePatternInIrrefutableContextError;
+
+  /// Error for when the operand type is not assignable to the parameter type
+  /// of the relational operator.
+  final Error? argumentTypeNotAssignableError;
+
+  /// Error for when the relational operator does not return a bool.
+  final Error? operatorReturnTypeNotAssignableToBoolError;
+
+  RelationalPatternResult(
+      {required this.operandType,
+      required this.refutablePatternInIrrefutableContextError,
+      required this.argumentTypeNotAssignableError,
+      required this.operatorReturnTypeNotAssignableToBoolError});
 }
 
 /// Container for the result of running type analysis on an expression that does
@@ -249,194 +465,6 @@ enum UnnecessaryWildcardKind {
   logicalAndPatternOperand,
 }
 
-/// Result for analyzing an assigned variable pattern in
-/// [TypeAnalyzer.analyzeAssignedVariablePattern].
-class AssignedVariablePatternResult<Error> {
-  /// Error for when a variable was assigned multiple times within a pattern.
-  final Error? duplicateAssignmentPatternVariableError;
-
-  /// Error for when the matched value type is not assignable to the variable
-  /// type in an irrefutable context.
-  final Error? patternTypeMismatchInIrrefutableContextError;
-
-  AssignedVariablePatternResult(
-      {required this.duplicateAssignmentPatternVariableError,
-      required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing an object pattern in
-/// [TypeAnalyzer.analyzeObjectPattern].
-class ObjectPatternResult<Type extends Object, Error> {
-  /// The required type of the object pattern.
-  final Type requiredType;
-
-  /// Errors for when the same property name was used multiple times in the
-  /// object pattern.
-  ///
-  /// The key is the index of the duplicate field within the object pattern.
-  ///
-  /// This is `null` if no such properties were found.
-  final Map<int, Error>? duplicateRecordPatternFieldErrors;
-
-  /// Error for when the matched value type is not assignable to the required
-  /// type in an irrefutable context.
-  final Error? patternTypeMismatchInIrrefutableContextError;
-
-  ObjectPatternResult(
-      {required this.requiredType,
-      required this.duplicateRecordPatternFieldErrors,
-      required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing a record pattern in
-/// [TypeAnalyzer.analyzeRecordPattern].
-class RecordPatternResult<Type extends Object, Error> {
-  /// The required type of the record pattern.
-  final Type requiredType;
-
-  /// Errors for when the same property name was used multiple times in the
-  /// record pattern.
-  ///
-  /// The key is the index of the duplicate field within the record pattern.
-  ///
-  /// This is `null` if no such errors where found.
-  final Map<int, Error>? duplicateRecordPatternFieldErrors;
-
-  /// Error for when the matched value type is not assignable to the required
-  /// type in an irrefutable context.
-  final Error? patternTypeMismatchInIrrefutableContextError;
-
-  RecordPatternResult(
-      {required this.requiredType,
-      required this.duplicateRecordPatternFieldErrors,
-      required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing a list pattern in [TypeAnalyzer.analyzeListPattern].
-class ListPatternResult<Type extends Object, Error> {
-  /// The required type of the list pattern.
-  final Type requiredType;
-
-  /// Errors for when multiple rest patterns occurred within the list pattern.
-  ///
-  /// The key is the index of the pattern within the list pattern.
-  ///
-  /// This is `null` if no such errors where found.
-  final Map<int, Error>? duplicateRestPatternErrors;
-
-  /// Error for when the matched value type is not assignable to the required
-  /// type in an irrefutable context.
-  final Error? patternTypeMismatchInIrrefutableContextError;
-
-  ListPatternResult(
-      {required this.requiredType,
-      required this.duplicateRestPatternErrors,
-      required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing a map pattern in [TypeAnalyzer.analyzeMapPattern].
-class MapPatternResult<Type extends Object, Error> {
-  /// The required type of the map pattern.
-  final Type requiredType;
-
-  /// Errors for when multiple rest patterns occurred within the map pattern.
-  ///
-  /// The key is the index of the pattern within the map pattern.
-  ///
-  /// This is `null` if no such errors where found.
-  final Map<int, Error>? duplicateRestPatternErrors;
-
-  /// Error for when the matched value type is not assignable to the required
-  /// type in an irrefutable context.
-  final Error? patternTypeMismatchInIrrefutableContextError;
-
-  MapPatternResult(
-      {required this.requiredType,
-      required this.duplicateRestPatternErrors,
-      required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing a constant pattern in
-/// [TypeAnalyzer.analyzeConstantPattern].
-class ConstantPatternResult<Type extends Object, Error> {
-  /// The static type of the constant expression.
-  final Type expressionType;
-
-  /// Error for when the pattern occurred in an irrefutable context.
-  final Error? refutablePatternInIrrefutableContextError;
-
-  /// Error for when the pattern, used as a case constant expression, does not
-  /// have a valid type wrt. the switch expression type.
-  final Error? caseExpressionTypeMismatchError;
-
-  ConstantPatternResult(
-      {required this.expressionType,
-      required this.refutablePatternInIrrefutableContextError,
-      required this.caseExpressionTypeMismatchError});
-}
-
-/// Result for analyzing a declared variable pattern in
-/// [TypeAnalyzer.analyzeDeclaredVariablePattern].
-class DeclaredVariablePatternResult<Type extends Object, Error> {
-  /// The static type of the variable.
-  final Type staticType;
-
-  /// Error for when the matched value type is not assignable to the static
-  /// type in an irrefutable context.
-  final Error? patternTypeMismatchInIrrefutableContextError;
-
-  DeclaredVariablePatternResult(
-      {required this.staticType,
-      required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing a logical or pattern in
-/// [TypeAnalyzer.analyzeLogicalOrPattern].
-class LogicalOrPatternResult<Error> {
-  /// Error for when the pattern occurred in an irrefutable context.
-  final Error? refutablePatternInIrrefutableContextError;
-
-  LogicalOrPatternResult(
-      {required this.refutablePatternInIrrefutableContextError});
-}
-
-/// Result for analyzing a relational pattern in
-/// [TypeAnalyzer.analyzeRelationalPattern].
-class RelationalPatternResult<Type extends Object, Error> {
-  /// The static type of the operand.
-  final Type operandType;
-
-  /// Error for when the pattern occurred in an irrefutable context.
-  final Error? refutablePatternInIrrefutableContextError;
-
-  /// Error for when the operand type is not assignable to the parameter type
-  /// of the relational operator.
-  final Error? argumentTypeNotAssignableError;
-
-  /// Error for when the relational operator does not return a bool.
-  final Error? operatorReturnTypeNotAssignableToBoolError;
-
-  RelationalPatternResult(
-      {required this.operandType,
-      required this.refutablePatternInIrrefutableContextError,
-      required this.argumentTypeNotAssignableError,
-      required this.operatorReturnTypeNotAssignableToBoolError});
-}
-
-/// Result for analyzing a null check or null assert pattern in
-/// [TypeAnalyzer.analyzeNullCheckOrAssertPattern].
-class NullCheckOrAssertPatternResult<Error> {
-  /// Error for when the pattern occurred in an irrefutable context.
-  final Error? refutablePatternInIrrefutableContextError;
-
-  /// Error for when the matched type is known to be non-null.
-  final Error? matchedTypeIsStrictlyNonNullableError;
-
-  NullCheckOrAssertPatternResult(
-      {required this.refutablePatternInIrrefutableContextError,
-      required this.matchedTypeIsStrictlyNonNullableError});
-}
-
 /// Result for analyzing a wildcard pattern
 /// [TypeAnalyzer.analyzeWildcardPattern].
 class WildcardPatternResult<Error> {
@@ -446,32 +474,4 @@ class WildcardPatternResult<Error> {
 
   WildcardPatternResult(
       {required this.patternTypeMismatchInIrrefutableContextError});
-}
-
-/// Result for analyzing an if-case statement or element in
-/// [TypeAnalyzer.analyzeIfCaseStatement] and
-/// [TypeAnalyzer.analyzeIfCaseElement].
-class IfCaseStatementResult<Type extends Object, Error> {
-  /// The static type of the matched expression.
-  final Type matchedExpressionType;
-
-  /// Error for when the guard has a non-bool type.
-  final Error? nonBooleanGuardError;
-
-  /// The type of the guard expression, if present.
-  final Type? guardType;
-
-  IfCaseStatementResult(
-      {required this.matchedExpressionType,
-      required this.nonBooleanGuardError,
-      required this.guardType});
-}
-
-/// Result for analyzing a pattern-for-in statement or element in
-/// [TypeAnalyzer.analyzePatternForIn].
-class PatternForInResult<Error> {
-  /// Error for when the expression is not an iterable.
-  final Error? patternForInExpressionIsNotIterableError;
-
-  PatternForInResult({required this.patternForInExpressionIsNotIterableError});
 }
