@@ -610,7 +610,7 @@ class InstanceMemberInferrer {
   /// 'sealed'.
   void _setInducedModifier(InterfaceElement classElement) {
     // Only sealed elements propagate induced modifiers.
-    if (classElement is! ClassOrMixinElementImpl || !classElement.isSealed) {
+    if (classElement is! ClassElementImpl || !classElement.isSealed) {
       return;
     }
 
@@ -739,13 +739,13 @@ extension on InterfaceElement {
 
   bool get isFinal {
     var self = this;
-    if (self is ClassOrMixinElementImpl) return self.isFinal;
+    if (self is ClassElement) return self.isFinal;
     return false;
   }
 
   bool get isInterface {
     var self = this;
-    if (self is ClassOrMixinElementImpl) return self.isInterface;
+    if (self is ClassElement) return self.isInterface;
     return false;
   }
 }

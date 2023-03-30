@@ -173,6 +173,8 @@ class ProcessedOptions {
 
   bool get debugDump => _raw.debugDump;
 
+  bool get debugDumpShowOffsets => _raw.debugDumpShowOffsets;
+
   bool get omitPlatform => _raw.omitPlatform;
 
   bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
@@ -787,6 +789,7 @@ class ProcessedOptions {
     sb.writeln('exit on problem: ${setExitCodeOnProblem}');
     sb.writeln('Embed sources: ${embedSourceText}');
     sb.writeln('debugDump: ${debugDump}');
+    sb.writeln('debugDumpShowOffsets: ${debugDumpShowOffsets}');
     sb.writeln('verbose: ${verbose}');
     sb.writeln('verify: ${verify}');
     return '$sb';

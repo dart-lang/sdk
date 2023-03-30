@@ -3544,7 +3544,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_reg != kNoRegister);
   ASSERT(instance_reg != temp_reg);
   ASSERT(instance_reg != IP);

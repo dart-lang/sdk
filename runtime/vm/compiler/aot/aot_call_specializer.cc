@@ -105,7 +105,7 @@ bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
       !target_function.AreValidArgumentCounts(
           call->type_args_len(), call->ArgumentCountWithoutTypeArgs(),
           call->argument_names().IsNull() ? 0 : call->argument_names().Length(),
-          /* error_message = */ NULL)) {
+          /* error_message = */ nullptr)) {
     return false;
   }
 
@@ -151,7 +151,8 @@ bool AotCallSpecializer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
-  if ((precompiler_ == NULL) || !precompiler_->get_runtime_type_is_unique()) {
+  if ((precompiler_ == nullptr) ||
+      !precompiler_->get_runtime_type_is_unique()) {
     return false;
   }
 
@@ -175,8 +176,8 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
 
 static bool IsGetRuntimeType(Definition* defn) {
   StaticCallInstr* call = defn->AsStaticCall();
-  return (call != NULL) && (call->function().recognized_kind() ==
-                            MethodRecognizer::kObjectRuntimeType);
+  return (call != nullptr) && (call->function().recognized_kind() ==
+                               MethodRecognizer::kObjectRuntimeType);
 }
 
 // Recognize a.runtimeType == b.runtimeType and fold it into
@@ -284,7 +285,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
   input = input->CopyWithType(Z);
 
   if (cid == kDoubleCid && input->Type()->IsNullableInt()) {
-    Definition* conversion = NULL;
+    Definition* conversion = nullptr;
 
     if (input->Type()->ToNullableCid() == kSmiCid) {
       conversion = new (Z) SmiToDoubleInstr(input, call->source());
@@ -298,7 +299,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", conversion->ToCString());
     }
-    InsertBefore(call, conversion, /* env = */ NULL, FlowGraph::kValue);
+    InsertBefore(call, conversion, /* env = */ nullptr, FlowGraph::kValue);
     return new (Z) Value(conversion);
   }
 
@@ -419,7 +420,7 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
 #if defined(TARGET_ARCH_ARM)
   Definition* right_definition = new (Z) UnboxedConstantInstr(
       Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt32);
-  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
+  InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
   right_definition = new (Z)
       IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
                         new (Z) Value(right_definition), DeoptId::kNone);
@@ -428,7 +429,7 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
       Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt64);
 #endif
   if (modulus == 1) return right_definition;
-  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
+  InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
   right_value = new (Z) Value(right_definition);
   return new (Z)
       BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
@@ -442,7 +443,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     return false;
   }
 
-  Definition* replacement = NULL;
+  Definition* replacement = nullptr;
   if (instr->ArgumentCount() == 2) {
     Value* left_value = instr->ArgumentValueAt(0);
     Value* right_value = instr->ArgumentValueAt(1);
@@ -592,7 +593,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
     return false;
   }
 
-  Definition* replacement = NULL;
+  Definition* replacement = nullptr;
 
   if (instr->ArgumentCount() == 2) {
     Value* left_value = instr->ArgumentValueAt(0);
@@ -685,7 +686,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
     }
   }
 
-  if (replacement != NULL && !replacement->ComputeCanDeoptimize()) {
+  if (replacement != nullptr && !replacement->ComputeCanDeoptimize()) {
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 instr->ToCString(), replacement->ToCString());
@@ -1060,13 +1061,13 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
 bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
     InstanceCallInstr* call,
     const AbstractType& type) {
-  if (precompiler_ == NULL) {
+  if (precompiler_ == nullptr) {
     // Loading not complete, can't do CHA yet.
     return false;
   }
 
   HierarchyInfo* hi = thread()->hierarchy_info();
-  if (hi == NULL) {
+  if (hi == nullptr) {
     return false;
   }
 
@@ -1080,7 +1081,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   // left.instanceof(type) =>
   //     _classRangeCheck(left.cid, lower_limit, upper_limit)
   LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-  InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+  InsertBefore(call, left_cid, nullptr, FlowGraph::kValue);
   ConstantInstr* lower_cid =
       flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(lower_limit)));
 

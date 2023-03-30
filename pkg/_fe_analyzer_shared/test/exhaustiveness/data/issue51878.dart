@@ -4,6 +4,7 @@
 
 String test1(Object? o) {
   /*
+   checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
   */
@@ -14,7 +15,10 @@ String test1(Object? o) {
   }
 }
 
-String test2(Object? o) => /*
+String test2(
+        Object?
+            o) => /*
+ checkingOrder={Object?,Object,Null},
  subtypes={Object,Null},
  type=Object?
 */

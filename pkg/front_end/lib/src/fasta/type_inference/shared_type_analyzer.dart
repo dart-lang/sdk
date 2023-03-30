@@ -108,6 +108,13 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void emptyMapPattern({
+    required Pattern pattern,
+  }) {
+    // TODO(scheglov): implement emptyMapPattern
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required VariableDeclaration variable,
     required VariableDeclaration component,
@@ -213,14 +220,10 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(
-      {required Pattern node, required TreeNode element}) {
-    // This is reported in the body builder.
-  }
-
-  @override
-  void restPatternWithSubPatternInMap(
-      {required Pattern node, required TreeNode element}) {
+  void restPatternInMap({
+    required Pattern node,
+    required TreeNode element,
+  }) {
     // This is reported in the body builder.
   }
 

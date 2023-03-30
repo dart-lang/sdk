@@ -2952,6 +2952,35 @@ PatternAssignment
 ''');
   }
 
+  test_declaredVariable_inPatternAssignment_usingFinalAndType() {
+    _parse('''
+void f() {
+  [a, final int d] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 27, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      DeclaredVariablePattern
+        keyword: final
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: d
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
   test_declaredVariable_inPatternAssignment_usingType() {
     _parse('''
 void f() {
@@ -2998,6 +3027,35 @@ PatternAssignment
         name: a
       DeclaredVariablePattern
         keyword: var
+        name: d
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_declaredVariable_inPatternAssignment_usingVarAndType() {
+    _parse('''
+void f() {
+  [a, var int d] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      DeclaredVariablePattern
+        keyword: var
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
         name: d
     rightBracket: ]
   equals: =
@@ -8259,6 +8317,26 @@ ParenthesizedPattern
 ''');
   }
 
+  test_variable_final_inDeclarationContext() {
+    _parse('''
+void f(x) {
+  var (final y) = x;
+}
+''', errors: [
+      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 19,
+          5),
+    ]);
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    keyword: final
+    name: y
+  rightParenthesis: )
+''');
+  }
+
   test_variable_final_untyped_insideIfCase() {
     _parse('''
 void f(x) {
@@ -9026,6 +9104,26 @@ CastPattern
 ''');
   }
 
+  test_variable_var_inDeclarationContext() {
+    _parse('''
+void f(x) {
+  var (var y) = x;
+}
+''', errors: [
+      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 19,
+          3),
+    ]);
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    keyword: var
+    name: y
+  rightParenthesis: )
+''');
+  }
+
   test_variable_var_insideCase() {
     _parse('''
 void f(x) {
@@ -9117,6 +9215,98 @@ NullCheckPattern
     keyword: var
     name: y
   operator: ?
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_declarationContext() {
+    _parse('''
+void f(int x) {
+  var (var int y) = x;
+}
+''', errors: [
+      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 23,
+          3),
+    ]);
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  rightParenthesis: )
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_declarationContext_wildcard() {
+    _parse('''
+void f(x) {
+  var (var int _) = x;
+}
+''', errors: [
+      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 19,
+          3),
+    ]);
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: WildcardPattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  rightParenthesis: )
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_matchingContext() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var int y:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.VAR_AND_TYPE, 36, 3),
+    ]);
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_matchingContext_wildcard() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var int _:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.VAR_AND_TYPE, 36, 3),
+    ]);
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
 ''');
   }
 
@@ -9430,6 +9620,167 @@ NullCheckPattern
     keyword: final
     name: _
   operator: ?
+''');
+  }
+
+  test_wildcard_inPatternAssignment_bareIdentifier() {
+    _parse('''
+void f() {
+  [a, _] = y;
+}
+''');
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_wildcard_inPatternAssignment_usingFinal() {
+    _parse('''
+void f() {
+  [a, final _] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 23, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        keyword: final
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_wildcard_inPatternAssignment_usingFinalAndType() {
+    _parse('''
+void f() {
+  [a, final int _] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 27, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        keyword: final
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_wildcard_inPatternAssignment_usingType() {
+    _parse('''
+void f() {
+  [a, int _] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_wildcard_inPatternAssignment_usingVar() {
+    _parse('''
+void f() {
+  [a, var _] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        keyword: var
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_wildcard_inPatternAssignment_usingVarAndType() {
+    _parse('''
+void f() {
+  [a, var int _] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        keyword: var
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
 ''');
   }
 

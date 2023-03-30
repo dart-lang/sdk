@@ -612,7 +612,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     case 'v': {
       if (format[1] == 's') {
         ASSERT(STRING_STARTS_WITH(format, "vsz"));
-        char const* sz_str = NULL;
+        char const* sz_str = nullptr;
         if (instr->Bits(14, 2) == 3) {
           switch (instr->Bit(22)) {
             case 0:
@@ -1667,11 +1667,11 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     *out_instr_size = Instr::kInstrSize;
   }
 
-  *object = NULL;
+  *object = nullptr;
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
-      *object = NULL;
+      *object = nullptr;
     }
   }
 }

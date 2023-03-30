@@ -324,23 +324,6 @@ void f(A x) {
 ''');
   }
 
-  test_alwaysExhaustive_sealedMixin_2at1() async {
-    await assertErrorsInCode(r'''
-sealed mixin M {}
-class A with M {}
-class B with M {}
-
-void f(M x) {
-  switch (x) {
-    case A():
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 71, 6),
-    ]);
-  }
-
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
     await assertErrorsInCode(r'''
 void f<T extends bool>(T x) {

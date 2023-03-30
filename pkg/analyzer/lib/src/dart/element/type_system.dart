@@ -716,9 +716,6 @@ class TypeSystemImpl implements TypeSystem {
       if (element is ClassElement && element.isSealed) {
         return true;
       }
-      if (element is MixinElement && element.isSealed) {
-        return true;
-      }
       if (type.isDartAsyncFutureOr) {
         return isAlwaysExhaustive(type.typeArguments[0]);
       }

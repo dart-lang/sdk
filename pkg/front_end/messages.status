@@ -869,7 +869,7 @@ RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
-RestPatternNotLastInMapPattern/analyzerCode: Fail
+RestPatternInMapPattern/analyzerCode: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail

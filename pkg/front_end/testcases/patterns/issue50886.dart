@@ -14,9 +14,9 @@ test1() {
 test2() {
   Map<dynamic, dynamic> x = <int, int>{1: 1, 2: 2};
   if (x case <int, int>{1: 1}) {
-    return 1;
-  } else {
     return 0;
+  } else {
+    return 1;
   }
 }
 

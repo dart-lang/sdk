@@ -655,15 +655,6 @@ suggestions
 ''');
   }
 
-  Future<void> test_afterFinal_beforeMixin() async {
-    await computeSuggestions('''
-final ^ mixin M {}
-''');
-    assertResponse('''
-suggestions
-''');
-  }
-
   Future<void> test_afterLibraryDirective_prefix() async {
     await computeSuggestions('''
 library a;

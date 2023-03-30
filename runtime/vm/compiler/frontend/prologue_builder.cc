@@ -177,7 +177,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
 
   // Copy optional parameters down.
   if (num_opt_pos_params > 0) {
-    JoinEntryInstr* next_missing = NULL;
+    JoinEntryInstr* next_missing = nullptr;
     for (intptr_t opt_param = 1; param < num_params; ++param, ++opt_param) {
       const intptr_t param_index = param - (function_.IsFactory() ? 1 : 0);
       update_param_offset(function_, param_index);
@@ -199,7 +199,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
       good += Drop();
 
       Fragment not_good(missing);
-      if (next_missing != NULL) {
+      if (next_missing != nullptr) {
         not_good += Goto(next_missing);
         not_good.current = next_missing;
       }

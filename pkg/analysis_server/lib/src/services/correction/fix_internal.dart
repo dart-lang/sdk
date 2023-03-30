@@ -1340,7 +1340,7 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
       CreateFile.new,
     ],
-    CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
+    ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
       RemoveVar.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [

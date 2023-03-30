@@ -2773,12 +2773,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.entries);
     writeOptionalNode(node.requiredType);
     writeOptionalNode(node.matchedValueType);
-    writeByte((node.needsCheck ? 0x1 : 0) | (node.hasRestPattern ? 0x2 : 0));
+    writeByte(node.needsCheck ? 0x1 : 0);
     writeOptionalNode(node.lookupType);
-    writeNullAllowedReference(node.lengthTargetReference);
-    writeOptionalNode(node.lengthType);
-    writeNullAllowedReference(node.lengthCheckTargetReference);
-    writeOptionalNode(node.lengthCheckType);
     writeNullAllowedReference(node.containsKeyTargetReference);
     writeOptionalNode(node.containsKeyType);
     writeNullAllowedReference(node.indexGetTargetReference);

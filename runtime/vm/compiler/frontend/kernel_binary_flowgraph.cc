@@ -5802,7 +5802,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
                                            ? helper.equals_position_
                                            : helper.position_;
   if (position != nullptr) *position = helper.position_;
-  if (NeedsDebugStepCheck(stack(), debug_position)) {
+  if (NeedsDebugStepCheck(stack(), debug_position) && !helper.IsHoisted()) {
     instructions = DebugStepCheck(debug_position) + instructions;
   }
   instructions += StoreLocal(helper.position_, variable);

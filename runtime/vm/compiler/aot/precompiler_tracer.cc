@@ -29,7 +29,7 @@ PrecompilerTracer* PrecompilerTracer::StartTracingIfRequested(
     return nullptr;
   }
   void* file = Dart::file_open_callback()(filename, /*write=*/true);
-  if (file == NULL) {
+  if (file == nullptr) {
     OS::PrintErr("warning: Failed to write precompiler trace: %s\n", filename);
     return nullptr;
   }

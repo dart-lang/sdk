@@ -936,38 +936,6 @@ class MapPattern extends Pattern {
   /// This is set during inference.
   DartType? lookupType;
 
-  /// If `true`, this map pattern contains a rest pattern.
-  ///
-  /// This is set during inference.
-  bool hasRestPattern = false;
-
-  /// Reference to the target of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  Reference? lengthTargetReference;
-
-  /// The type of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  DartType? lengthType;
-
-  /// Reference to the method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method. If
-  /// this is the empty map pattern, this an `operator <=` method. Otherwise
-  /// this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  Reference? lengthCheckTargetReference;
-
-  /// The type of the method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  FunctionType? lengthCheckType;
-
   /// Reference to the target of the `containsKey` method of the map.
   ///
   /// This is set during inference.
@@ -997,27 +965,6 @@ class MapPattern extends Pattern {
   MapPattern(this.keyType, this.valueType, this.entries)
       : assert((keyType == null) == (valueType == null)) {
     setParents(entries, this);
-  }
-
-  /// The target of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  Member get lengthTarget => lengthTargetReference!.asMember;
-
-  void set lengthTarget(Member value) {
-    lengthTargetReference = value.reference;
-  }
-
-  /// The method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator <=` method.
-  ///
-  /// This is set during inference.
-  Procedure get lengthCheckTarget => lengthCheckTargetReference!.asProcedure;
-
-  void set lengthCheckTarget(Procedure value) {
-    lengthCheckTargetReference = value.reference;
   }
 
   /// The target of the `containsKey` method of the map.

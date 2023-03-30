@@ -6223,17 +6223,6 @@ SealedClassSubtypeOutsideOfLibrary:
     lib.dart:
       sealed class A {}
 
-SealedMixinSubtypeOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be mixed in outside of its library because it's a sealed mixin."
-  analyzerCode: SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
-  experiments: sealed-class
-  script:
-    main.dart:
-      import 'lib.dart';
-      class B with M {}
-    lib.dart:
-      sealed mixin M {}
-
 CantUseClassAsMixin:
   problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
   analyzerCode: CLASS_USED_AS_MIXIN
@@ -6244,6 +6233,33 @@ CantUseClassAsMixin:
       class B with A {}
     lib.dart:
       class A {}
+
+FinalMixin:
+  index: 146
+  problemMessage: "A mixin can't be declared 'final'."
+  correctionMessage: "Try removing the 'final' keyword."
+  analyzerCode: ParserErrorCode.FINAL_MIXIN
+  experiments: class-modifiers
+  script:
+    - "final mixin M {}"
+
+InterfaceMixin:
+  index: 147
+  problemMessage: "A mixin can't be declared 'interface'."
+  correctionMessage: "Try removing the 'interface' keyword."
+  analyzerCode: ParserErrorCode.INTERFACE_MIXIN
+  experiments: class-modifiers
+  script:
+    - "interface mixin M {}"
+
+SealedMixin:
+  index: 148
+  problemMessage: "A mixin can't be declared 'sealed'."
+  correctionMessage: "Try removing the 'sealed' keyword."
+  analyzerCode: ParserErrorCode.SEALED_MIXIN
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed mixin M {}"
 
 FinalMixinClass:
   index: 142
@@ -6309,17 +6325,6 @@ InterfaceClassExtendedOutsideOfLibrary:
     lib.dart:
       interface class A {}
 
-InterfaceMixinMixedInOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin."
-  analyzerCode: INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
-  script:
-    main.dart:
-      import 'lib.dart';
-      class B with A {}
-    lib.dart:
-      interface mixin A {}
-
 FinalClassExtendedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
@@ -6352,28 +6357,6 @@ FinalClassUsedAsMixinConstraintOutsideOfLibrary:
       base mixin B on A {}
     lib.dart:
       final class A {}
-
-FinalMixinImplementedOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a final mixin."
-  analyzerCode: FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
-  script:
-    main.dart:
-      import 'lib.dart';
-      final class B implements A {}
-    lib.dart:
-      final mixin A {}
-
-FinalMixinMixedInOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's a final mixin."
-  analyzerCode: FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
-  script:
-    main.dart:
-      import 'lib.dart';
-      final class B with A {}
-    lib.dart:
-      final mixin A {}
 
 SubtypeOfBaseIsNotBaseFinalOrSealed:
   problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
@@ -6496,11 +6479,11 @@ DuplicateRestElementInPatternContext:
   problemMessage: The first rest element.
   severity: CONTEXT
 
-RestPatternNotLastInMapPattern:
-  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+RestPatternInMapPattern:
+  problemMessage: "The '...' pattern can't appear in map patterns."
   experiments: patterns
   script: |
-    test(dynamic x) { if (x case {..., 1: 1}) {} }
+    test(dynamic x) { if (x case {1: 1, ...}) {} }
 
 UnnecessaryNullAssertPattern:
   problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
@@ -6543,16 +6526,6 @@ RefutablePatternInIrrefutableContext:
   script: |
     method(int? x) {
       var (a?) = x;
-    }
-
-RestElementWithSubpatternInMapPattern:
-  problemMessage: A rest element in a map pattern can't have a subpattern.
-  correctionMessage: Try removing the subpattern.
-  analyzerCode: REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN
-  experiments: patterns
-  script: |
-    method(x) {
-      if (x case {...var a}) {}
     }
 
 MissingVariablePattern:
@@ -6692,6 +6665,48 @@ PatternAssignmentNotLocalVariable:
     method(x) {
       [global] = x;
     }
+
+VariablePatternKeywordInDeclarationContext:
+  problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+  correctionMessage: Try removing the keyword.
+  analyzerCode: ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT
+  index: 149
+  experiments: patterns
+  comment: No parameters.
+  hasPublishedDocs: true
+  script: |
+    void f((int, int) r) {
+      var (var x, y) = r;
+      print(x + y);
+    }
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a variable pattern is used
+    within a declaration context.
+
+    #### Example
+
+    The following code produces this diagnostic because the variable patterns
+    in the record pattern are in a declaration context:
+
+    ```dart
+    void f((int, int) r) {
+      var ([!var!] x, y) = r;
+      print(x + y);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `var` or `final` keyword(s) within the variable pattern:
+
+    ```dart
+    void f((int, int) r) {
+      var (x, y) = r;
+      print(x + y);
+    }
+    ```
 
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."

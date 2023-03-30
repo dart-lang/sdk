@@ -1,4 +1,17 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/pattern_schema_affects_inferred_expression_type.dart:12:11: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   var <A>[var x] = foo((a) => a.foo);
+//           ^^^
+//
+// pkg/front_end/testcases/patterns/pattern_schema_affects_inferred_expression_type.dart:16:8: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   var [var x, ...y] = foo((e) => e);
+//        ^^^
+//
 import self as self;
 import "dart:core" as core;
 

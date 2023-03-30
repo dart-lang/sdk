@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 100;
+  UInt32 formatVersion = 101;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1709,12 +1709,8 @@ type MapPattern extends Pattern {
   List<MapPatternEntry> entries;
   Option<DartType> requiredType;
   Option<DartType> matchedValueType;
-  Byte flags { needsCheck, hasRestPattern };
+  Byte flags { needsCheck };
   Option<DartType> lookupType;
-  Option<MemberReference> lengthTargetReference;
-  Option<DartType> lengthType;
-  Option<MemberReference> lengthCheckTargetReference;
-  Option<DartType> lengthCheckType;
   Option<MemberReference> containsKeyTargetReference;
   Option<DartType> containsKeyType;
   Option<MemberReference> indexGetTargetReference;

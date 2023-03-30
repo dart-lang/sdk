@@ -104,7 +104,7 @@ class ScopeBuilder {
       const String& name,
       const AbstractType& type,
       intptr_t kernel_offset = LocalVariable::kNoKernelOffset,
-      const InferredTypeMetadata* param_type_md = NULL);
+      const InferredTypeMetadata* param_type_md = nullptr);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
                             const char* prefix,
@@ -187,12 +187,12 @@ struct FunctionScope {
 class ScopeBuildingResult : public ZoneAllocated {
  public:
   ScopeBuildingResult()
-      : type_arguments_variable(NULL),
-        switch_variable(NULL),
-        finally_return_variable(NULL),
-        setter_value(NULL),
-        yield_jump_variable(NULL),
-        yield_context_variable(NULL),
+      : type_arguments_variable(nullptr),
+        switch_variable(nullptr),
+        finally_return_variable(nullptr),
+        setter_value(nullptr),
+        yield_jump_variable(nullptr),
+        yield_context_variable(nullptr),
         raw_variable_counter_(0) {}
 
   bool IsClosureWithEmptyContext(intptr_t function_node_offset) {
@@ -208,24 +208,24 @@ class ScopeBuildingResult : public ZoneAllocated {
   IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
 
-  // Only non-NULL for factory constructor functions.
+  // Only non-nullptr for factory constructor functions.
   LocalVariable* type_arguments_variable;
 
-  // Non-NULL when the function contains a switch statement.
+  // Non-nullptr when the function contains a switch statement.
   LocalVariable* switch_variable;
 
-  // Non-NULL when the function contains a return inside a finally block.
+  // Non-nullptr when the function contains a return inside a finally block.
   LocalVariable* finally_return_variable;
 
-  // Non-NULL when the function is a setter.
+  // Non-nullptr when the function is a setter.
   LocalVariable* setter_value;
 
-  // Non-NULL if the function contains yield statement.
+  // Non-nullptr if the function contains yield statement.
   // TODO(27590) actual variable is called :await_jump_var, we should rename
   // it to reflect the fact that it is used for both await and yield.
   LocalVariable* yield_jump_variable;
 
-  // Non-NULL if the function contains yield statement.
+  // Non-nullptr if the function contains yield statement.
   // TODO(27590) actual variable is called :await_ctx_var, we should rename
   // it to reflect the fact that it is used for both await and yield.
   LocalVariable* yield_context_variable;

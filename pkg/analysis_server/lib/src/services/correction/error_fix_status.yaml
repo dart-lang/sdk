@@ -404,6 +404,9 @@ CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
   status: noFix
   notes: |-
     We cannot figure out the intent of the user to suggest the right fix.
+CompileTimeErrorCode.EMPTY_MAP_PATTERN:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/51892
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
@@ -516,10 +519,6 @@ CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
 CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
-  status: needsEvaluation
-CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
-CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED:
   status: hasFix
@@ -644,8 +643,6 @@ CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
 CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE:
   status: needsEvaluation
 CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
-CompileTimeErrorCode.INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_ANNOTATION:
   status: hasFix
@@ -1025,16 +1022,9 @@ CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
   status: noFix
-CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
-  status: noFix
-  notes: |-
-    We do not have enough information to figure out the users intention here is
-    with the use of the rest element.
-CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
-  status: noFix
-  notes: |-
-    We do not have enough information to figure out the users intention here is
-    with the use of the rest element.
+CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/51892
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
   status: needsEvaluation
 CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:
@@ -1052,8 +1042,6 @@ CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD:
 CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
-CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
@@ -1237,8 +1225,6 @@ CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM:
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
-  status: hasFix
 CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
   status: needsEvaluation
 CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
@@ -2186,6 +2172,8 @@ ParserErrorCode.FINAL_ENUM:
   status: needsEvaluation
 ParserErrorCode.FINAL_METHOD:
   status: needsEvaluation
+ParserErrorCode.FINAL_MIXIN:
+  status: needsEvaluation
 ParserErrorCode.FINAL_MIXIN_CLASS:
   status: needsEvaluation
 ParserErrorCode.FINAL_TYPEDEF:
@@ -2209,6 +2197,8 @@ ParserErrorCode.IMPLEMENTS_BEFORE_WITH:
 ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation
 ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
+  status: needsEvaluation
+ParserErrorCode.INTERFACE_MIXIN:
   status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
   status: needsEvaluation
@@ -2400,6 +2390,8 @@ ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation
 ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
   status: needsEvaluation
+ParserErrorCode.SEALED_MIXIN:
+  status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN_CLASS:
   status: needsEvaluation
 ParserErrorCode.SETTER_CONSTRUCTOR:
@@ -2452,6 +2444,8 @@ ParserErrorCode.VAR_RETURN_TYPE:
   status: hasFix
 ParserErrorCode.VAR_TYPEDEF:
   status: needsEvaluation
+ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
+  status: hasFix
 ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS:
   status: needsEvaluation
 ParserErrorCode.WITH_BEFORE_EXTENDS:

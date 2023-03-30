@@ -45,6 +45,7 @@ class Flags {
   static const String sdk = "--sdk";
   static const String singleRootBase = "--single-root-base";
   static const String singleRootScheme = "--single-root-scheme";
+  static const String showOffsets = "--show-offsets";
   static const String verbose = "--verbose";
   static const String verbosity = "--verbosity";
   static const String verify = "--verify";
@@ -59,6 +60,8 @@ class Options {
       const Option(Flags.compileSdk, const UriValue());
   static const Option<bool> dumpIr =
       const Option(Flags.dumpIr, const BoolValue(false));
+  static const Option<bool> showOffsets =
+      const Option(Flags.showOffsets, const BoolValue(false));
   static const Option<List<String>?> enableExperiment =
       const Option(Flags.enableExperiment, const StringListValue());
   static const Option<bool> enableUnscheduledExperiments =

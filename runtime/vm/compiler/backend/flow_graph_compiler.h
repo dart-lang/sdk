@@ -76,7 +76,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
         reason_(reason),
         flags_(flags),
         deopt_env_(deopt_env) {
-    ASSERT(deopt_env != NULL);
+    ASSERT(deopt_env != nullptr);
   }
   virtual ~CompilerDeoptInfo() {}
 
@@ -126,7 +126,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 
   const char* Name() const {
     const char* kFormat = "Deopt stub for id %d, reason: %s";
-    const intptr_t len = Utils::SNPrint(NULL, 0, kFormat, deopt_id(),
+    const intptr_t len = Utils::SNPrint(nullptr, 0, kFormat, deopt_id(),
                                         DeoptReasonToCString(reason())) +
                          1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
@@ -327,7 +327,7 @@ class FlowGraphCompiler : public ValueObject {
     BlockInfo()
         : block_label_(),
           jump_label_(&block_label_),
-          next_nonempty_label_(NULL),
+          next_nonempty_label_(nullptr),
           is_marked_(false) {}
 
     // The label to jump to when control is transferred to this block.  For
@@ -337,7 +337,7 @@ class FlowGraphCompiler : public ValueObject {
     void set_jump_label(compiler::Label* label) { jump_label_ = label; }
 
     // The label of the first nonempty block after this one in the block
-    // order, or NULL if there is no nonempty block following this one.
+    // order, or nullptr if there is no nonempty block following this one.
     compiler::Label* next_nonempty_label() const {
       return next_nonempty_label_;
     }
@@ -371,7 +371,7 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id,
                     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-                    CodeStatistics* stats = NULL);
+                    CodeStatistics* stats = nullptr);
 
   void ArchSpecificInitialization();
 
@@ -446,19 +446,19 @@ class FlowGraphCompiler : public ValueObject {
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
 
   void StatsBegin(Instruction* instr) {
-    if (stats_ != NULL) stats_->Begin(instr);
+    if (stats_ != nullptr) stats_->Begin(instr);
   }
 
   void StatsEnd(Instruction* instr) {
-    if (stats_ != NULL) stats_->End(instr);
+    if (stats_ != nullptr) stats_->End(instr);
   }
 
   void SpecialStatsBegin(intptr_t tag) {
-    if (stats_ != NULL) stats_->SpecialBegin(tag);
+    if (stats_ != nullptr) stats_->SpecialBegin(tag);
   }
 
   void SpecialStatsEnd(intptr_t tag) {
-    if (stats_ != NULL) stats_->SpecialEnd(tag);
+    if (stats_ != nullptr) stats_->SpecialEnd(tag);
   }
 
   GrowableArray<const Field*>& used_static_fields() {
@@ -628,12 +628,13 @@ class FlowGraphCompiler : public ValueObject {
   // the range.
   //
   // Returns whether [class_id_reg] is clobbered by the check.
-  static bool GenerateCidRangesCheck(compiler::Assembler* assembler,
-                                     Register class_id_reg,
-                                     const CidRangeVector& cid_ranges,
-                                     compiler::Label* inside_range_lbl,
-                                     compiler::Label* outside_range_lbl = NULL,
-                                     bool fall_through_if_inside = false);
+  static bool GenerateCidRangesCheck(
+      compiler::Assembler* assembler,
+      Register class_id_reg,
+      const CidRangeVector& cid_ranges,
+      compiler::Label* inside_range_lbl,
+      compiler::Label* outside_range_lbl = nullptr,
+      bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(
       const Code& stub,
@@ -846,7 +847,7 @@ class FlowGraphCompiler : public ValueObject {
                                       intptr_t num_slow_path_args);
 
   intptr_t CurrentTryIndex() const {
-    if (current_block_ == NULL) {
+    if (current_block_ == nullptr) {
       return kInvalidTryIndex;
     }
     return current_block_->try_index();
@@ -898,7 +899,7 @@ class FlowGraphCompiler : public ValueObject {
                               const String& name,
                               const ArgumentsDescriptor& args_desc,
                               Function* fn_return,
-                              bool* class_is_abstract_return = NULL);
+                              bool* class_is_abstract_return = nullptr);
 
   // Returns new class-id bias.
   //
@@ -1097,7 +1098,7 @@ class FlowGraphCompiler : public ValueObject {
   bool CanPcRelativeCall(const Code& target) const;
   bool CanPcRelativeCall(const AbstractType& target) const;
 
-  // This struct contains either function or code, the other one being NULL.
+  // This struct contains either function or code, the other one being nullptr.
   class StaticCallsStruct : public ZoneAllocated {
    public:
     Code::CallKind call_kind;

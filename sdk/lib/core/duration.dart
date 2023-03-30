@@ -161,8 +161,9 @@ class Duration implements Comparable<Duration> {
   /// underflow and subtract from the next larger unit.
   ///
   /// If the total number of microseconds cannot be represented
-  /// as an integer value, the number of microseconds might be truncated
-  /// and it might lose precision.
+  /// as an integer value, the number of microseconds might overflow
+  /// and be truncated to a smaller number of bits,
+  /// or it might lose precision.
   ///
   /// All arguments are 0 by default.
   /// ```dart
@@ -184,9 +185,10 @@ class Duration implements Comparable<Duration> {
             microsecondsPerHour * hours +
             microsecondsPerDay * days);
 
-  // Fast path internal direct constructor to avoids the optional arguments and
-  // [_microseconds] recomputation.
-  const Duration._microseconds(this._duration);
+  // Fast path internal direct constructor to avoids the optional arguments
+  // and [_microseconds] recomputation.
+  // The `+ 0` prevents -0.0 on the web, if the incoming duration happens to be -0.0.
+  const Duration._microseconds(int duration) : _duration = duration + 0;
 
   /// Adds this Duration and [other] and
   /// returns the sum as a new Duration object.
@@ -212,7 +214,7 @@ class Duration implements Comparable<Duration> {
   /// Divides this Duration by the given [quotient] and returns the truncated
   /// result as a new Duration object.
   ///
-  /// Throws an [IntegerDivisionByZeroException] if [quotient] is `0`.
+  /// The [quotient] must not be `0`.
   Duration operator ~/(int quotient) {
     // By doing the check here instead of relying on "~/" below we get the
     // exception even with dart2js.
@@ -331,12 +333,19 @@ class Duration implements Comparable<Duration> {
   /// ```
   String toString() {
     var microseconds = inMicroseconds;
-    var sign = (microseconds < 0) ? "-" : "";
+    var sign = "";
+    var negative = microseconds < 0;
 
     var hours = microseconds ~/ microsecondsPerHour;
     microseconds = microseconds.remainder(microsecondsPerHour);
 
-    if (microseconds < 0) microseconds = -microseconds;
+    // Correcting for being negative after first division, instead of before,
+    // to avoid negating min-int, -(2^31-1), of a native int64.
+    if (negative) {
+      hours = 0 - hours; // Not using `-hours` to avoid creating -0.0 on web.
+      microseconds = 0 - microseconds;
+      sign = "-";
+    }
 
     var minutes = microseconds ~/ microsecondsPerMinute;
     microseconds = microseconds.remainder(microsecondsPerMinute);
@@ -348,10 +357,17 @@ class Duration implements Comparable<Duration> {
 
     var secondsPadding = seconds < 10 ? "0" : "";
 
-    var paddedMicroseconds = microseconds.toString().padLeft(6, "0");
-    return "$sign${hours.abs()}:"
+    var microsecondsText = microseconds.toString();
+
+    // Padding up to six digits for microseconds.
+    const zeroPadding = ["00000", "0000", "000", "00", "0", ""];
+    assert(microsecondsText.length >= 1 && microsecondsText.length <= 6);
+    var microsecondsPadding = zeroPadding[microsecondsText.length - 1];
+
+    return "$sign$hours:"
         "$minutesPadding$minutes:"
-        "$secondsPadding$seconds.$paddedMicroseconds";
+        "$secondsPadding$seconds."
+        "$microsecondsPadding$microsecondsText";
   }
 
   /// Whether this [Duration] is negative.

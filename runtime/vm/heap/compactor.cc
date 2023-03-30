@@ -110,7 +110,7 @@ class ForwardingPage {
 };
 
 void Page::AllocateForwardingPage() {
-  ASSERT(forwarding_page_ == NULL);
+  ASSERT(forwarding_page_ == nullptr);
   ASSERT((object_start() + sizeof(ForwardingPage)) < object_end());
   ASSERT(Utils::IsAligned(sizeof(ForwardingPage), kObjectAlignment));
   top_ -= sizeof(ForwardingPage);
@@ -142,7 +142,7 @@ class CompactorTask : public ThreadPool::Task {
         num_tasks_(num_tasks),
         partitions_(partitions),
         freelist_(freelist),
-        free_page_(NULL),
+        free_page_(nullptr),
         free_current_(0),
         free_end_(0) {}
 
@@ -184,7 +184,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   // Divide the heap.
   // TODO(30978): Try to divide based on live bytes or with work stealing.
   intptr_t num_pages = 0;
-  for (Page* page = pages; page != NULL; page = page->next()) {
+  for (Page* page = pages; page != nullptr; page = page->next()) {
     num_pages++;
   }
 
@@ -201,13 +201,13 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     intptr_t task_index = 0;
     intptr_t page_index = 0;
     Page* page = pages;
-    Page* prev = NULL;
+    Page* prev = nullptr;
     while (task_index < num_tasks) {
       if (page_index % pages_per_task == 0) {
         partitions[task_index].head = page;
-        partitions[task_index].tail = NULL;
-        if (prev != NULL) {
-          prev->set_next(NULL);
+        partitions[task_index].tail = nullptr;
+        if (prev != nullptr) {
+          prev->set_next(nullptr);
         }
         task_index++;
       }
@@ -303,7 +303,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   }
 
   for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-    ASSERT(partitions[task_index].tail != NULL);
+    ASSERT(partitions[task_index].tail != nullptr);
   }
 
   {
@@ -332,7 +332,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     // Free empty pages.
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
       Page* page = partitions[task_index].tail->next();
-      while (page != NULL) {
+      while (page != nullptr) {
         Page* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
@@ -345,7 +345,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     for (intptr_t task_index = 0; task_index < num_tasks - 1; task_index++) {
       partitions[task_index].tail->set_next(partitions[task_index + 1].head);
     }
-    partitions[num_tasks - 1].tail->set_next(NULL);
+    partitions[num_tasks - 1].tail->set_next(nullptr);
     heap_->old_space()->pages_ = pages = partitions[0].head;
     heap_->old_space()->pages_tail_ = partitions[num_tasks - 1].tail;
 
@@ -388,7 +388,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
       free_current_ = head->object_start();
       free_end_ = head->object_end();
 
-      for (Page* page = head; page != NULL; page = page->next()) {
+      for (Page* page = head; page != nullptr; page = page->next()) {
         PlanPage(page);
       }
     }
@@ -405,7 +405,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
       free_current_ = head->object_start();
       free_end_ = head->object_end();
 
-      for (Page* page = head; page != NULL; page = page->next()) {
+      for (Page* page = head; page != nullptr; page = page->next()) {
         SlidePage(page);
       }
 
@@ -416,7 +416,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
         freelist_->Free(free_current_, free_remaining);
       }
 
-      ASSERT(free_page_ != NULL);
+      ASSERT(free_page_ != nullptr);
       partitions_[sliding_task].tail = free_page_;  // Last live page.
     }
 
@@ -431,7 +431,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
           for (Page* large_page =
                    isolate_group_->heap()->old_space()->large_pages_;
-               large_page != NULL; large_page = large_page->next()) {
+               large_page != nullptr; large_page = large_page->next()) {
             large_page->VisitObjectPointers(compactor_);
           }
           break;
@@ -557,7 +557,7 @@ uword CompactorTask::SlideBlock(uword first_object,
           freelist_->Free(free_current_, free_remaining);
         }
         free_page_ = free_page_->next();
-        ASSERT(free_page_ != NULL);
+        ASSERT(free_page_ != nullptr);
         free_current_ = free_page_->object_start();
         free_end_ = free_page_->object_end();
         ASSERT(free_current_ == new_addr);
@@ -598,7 +598,7 @@ void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
   if (free_remaining < size) {
     // Not enough; advance to the next free page.
     free_page_ = free_page_->next();
-    ASSERT(free_page_ != NULL);
+    ASSERT(free_page_ != nullptr);
     free_current_ = free_page_->object_start();
     free_end_ = free_page_->object_end();
     free_remaining = free_end_ - free_current_;
@@ -611,14 +611,14 @@ void GCCompactor::SetupImagePageBoundaries() {
 
   Page* image_page =
       Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
-  while (image_page != NULL) {
+  while (image_page != nullptr) {
     ImagePageRange range = {image_page->object_start(),
                             image_page->object_end()};
     ranges.Add(range);
     image_page = image_page->next();
   }
   image_page = heap_->old_space()->image_pages_;
-  while (image_page != NULL) {
+  while (image_page != nullptr) {
     ImagePageRange range = {image_page->object_start(),
                             image_page->object_end()};
     ranges.Add(range);
@@ -656,7 +656,7 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
 
   Page* page = Page::Of(old_target);
   ForwardingPage* forwarding_page = page->forwarding_page();
-  if (forwarding_page == NULL) {
+  if (forwarding_page == nullptr) {
     return;  // Not moved (VM isolate, large page, code page).
   }
 
@@ -692,7 +692,7 @@ void GCCompactor::ForwardCompressedPointer(uword heap_base,
 
   Page* page = Page::Of(old_target);
   ForwardingPage* forwarding_page = page->forwarding_page();
-  if (forwarding_page == NULL) {
+  if (forwarding_page == nullptr) {
     return;  // Not moved (VM isolate, large page, code page).
   }
 

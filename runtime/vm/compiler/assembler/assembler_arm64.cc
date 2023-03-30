@@ -297,7 +297,7 @@ static int CountOneBits(uint64_t value, int width) {
 // If it can't be encoded, the function returns false, and the operand is
 // undefined.
 bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
-  ASSERT(imm_op != NULL);
+  ASSERT(imm_op != nullptr);
   ASSERT((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
   if (width == kWRegSizeInBits) {
     value &= 0xffffffffUL;
@@ -2008,7 +2008,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_size != 0);
   ASSERT(instance_reg != temp_reg);
   ASSERT(temp_reg != kNoRegister);

@@ -10,6 +10,16 @@ library /*isNonNullableByDefault*/;
 //   for (final (int i) = 0; i < 3; i = i + 1) {
 //                                  ^
 //
+// pkg/front_end/testcases/patterns/for_final_variable.dart:12:13: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (final int i, String s) = (0, ''); i < 3; i = i + 1) {
+//             ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:15:20: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (int i, final String s) = (0, ''); i < 3; i = i + 1) {
+//                    ^^^^^
+//
 // pkg/front_end/testcases/patterns/for_final_variable.dart:19:34: Error: Can't assign to the final variable 'i'.
 //     for (final int i = 0; i < 3; i = i + 1) i, // Error
 //                                  ^
@@ -17,6 +27,16 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/patterns/for_final_variable.dart:22:36: Error: Can't assign to the final variable 'i'.
 //     for (final (int i) = 0; i < 3; i = i + 1) i, // Error
 //                                    ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:25:15: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (final int i, String s) = (0, ''); i < 3; i = i + 1) i, // Error
+//               ^^^^^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:28:22: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (int i, final String s) = (0, ''); i < 3; i = i + 1) i, // Ok
+//                      ^^^^^
 //
 // pkg/front_end/testcases/patterns/for_final_variable.dart:34:5: Error: Can't assign to the final variable 'i'.
 //     i = i + 1; // Error
@@ -26,9 +46,19 @@ library /*isNonNullableByDefault*/;
 //     i = i + 1; // Error
 //     ^
 //
+// pkg/front_end/testcases/patterns/for_final_variable.dart:39:13: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (final int i, String s) in [(1, 'a'), (2, 'b'), (3, 'c')]) {
+//             ^^^^^
+//
 // pkg/front_end/testcases/patterns/for_final_variable.dart:40:5: Error: Can't assign to the final variable 'i'.
 //     i = i + 1; // Error
 //     ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:42:20: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   for (var (int i, final String s) in [(1, 'a'), (2, 'b'), (3, 'c')]) {
+//                    ^^^^^
 //
 // pkg/front_end/testcases/patterns/for_final_variable.dart:46:36: Error: Can't assign to the final variable 'i'.
 //     for (final int i in [1, 2, 3]) i = i + 1 // Error
@@ -38,9 +68,19 @@ library /*isNonNullableByDefault*/;
 //     for (final (int i) in [1, 2, 3]) i = i + 1 // Error
 //                                      ^
 //
+// pkg/front_end/testcases/patterns/for_final_variable.dart:52:15: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (final int i, String s) in [(1, 'a'), (2, 'b'), (3, 'c')])
+//               ^^^^^
+//
 // pkg/front_end/testcases/patterns/for_final_variable.dart:53:7: Error: Can't assign to the final variable 'i'.
 //       i = i + 1 // Error
 //       ^
+//
+// pkg/front_end/testcases/patterns/for_final_variable.dart:56:22: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//     for (var (int i, final String s) in [(1, 'a'), (2, 'b'), (3, 'c')])
+//                      ^^^^^
 //
 import self as self;
 import "dart:core" as core;

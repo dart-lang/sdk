@@ -50,7 +50,7 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       callee_graph->current_ssa_temp_index());
 
   // Attach the outer environment on each instruction in the callee graph.
-  ASSERT(call_->env() != NULL);
+  ASSERT(call_->env() != nullptr);
   ASSERT(call_->deopt_id() != DeoptId::kNone);
 
   auto zone = callee_graph->zone();
@@ -92,7 +92,7 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
 }
 
 void InlineExitCollector::AddExit(ReturnInstr* exit) {
-  Data data = {NULL, exit};
+  Data data = {nullptr, exit};
   exits_.Add(data);
 }
 
@@ -113,7 +113,7 @@ void InlineExitCollector::RemoveUnreachableExits(FlowGraph* callee_graph) {
   int j = 0;
   for (int i = 0; i < exits_.length(); ++i) {
     BlockEntryInstr* block = exits_[i].exit_return->GetBlock();
-    if ((block != NULL) && (0 <= block->postorder_number()) &&
+    if ((block != nullptr) && (0 <= block->postorder_number()) &&
         (block->postorder_number() < postorder.length()) &&
         (postorder[block->postorder_number()] == block)) {
       if (i != j) {
@@ -145,7 +145,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     ReturnAt(0)->UnuseAllInputs();
     *exit_block = ExitBlockAt(0);
     *last_instruction = LastInstructionAt(0);
-    return call_->HasUses() ? ValueAt(0)->definition() : NULL;
+    return call_->HasUses() ? ValueAt(0)->definition() : nullptr;
   } else {
     ASSERT(num_exits > 1);
     // Create a join of the returns.
@@ -180,7 +180,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
       // Collect the block's dominators.
       block_dominators.Clear();
       BlockEntryInstr* dominator = ExitBlockAt(i)->dominator();
-      while (dominator != NULL) {
+      while (dominator != nullptr) {
         block_dominators.Add(dominator);
         dominator = dominator->dominator();
       }
@@ -233,20 +233,20 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->UnuseAllInputs();
       }
-      join->InheritDeoptTargetAfter(caller_graph_, call_, NULL);
-      return NULL;
+      join->InheritDeoptTargetAfter(caller_graph_, call_, nullptr);
+      return nullptr;
     }
   }
 }
 
 void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
-  ASSERT(call_->previous() != NULL);
-  ASSERT(call_->next() != NULL);
+  ASSERT(call_->previous() != nullptr);
+  ASSERT(call_->next() != nullptr);
   BlockEntryInstr* call_block = call_->GetBlock();
 
   // Insert the callee graph into the caller graph.
-  BlockEntryInstr* callee_exit = NULL;
-  Instruction* callee_last_instruction = NULL;
+  BlockEntryInstr* callee_exit = nullptr;
+  Instruction* callee_last_instruction = nullptr;
 
   if (exits_.length() == 0) {
     // Handle the case when there are no normal return exits from the callee
@@ -258,7 +258,7 @@ void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
     TargetEntryInstr* false_block = new (Z) TargetEntryInstr(
         caller_graph_->allocate_block_id(), call_block->try_index(),
         CompilerState::Current().GetNextDeoptId());
-    false_block->InheritDeoptTargetAfter(caller_graph_, call_, NULL);
+    false_block->InheritDeoptTargetAfter(caller_graph_, call_, nullptr);
     false_block->LinkTo(call_->next());
     call_block->ReplaceAsPredecessorWith(false_block);
 
@@ -302,7 +302,7 @@ void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
   } else {
     Definition* callee_result = JoinReturns(
         &callee_exit, &callee_last_instruction, call_block->try_index());
-    if (callee_result != NULL) {
+    if (callee_result != nullptr) {
       call_->ReplaceUsesWith(callee_result);
     }
     if (callee_last_instruction == callee_entry) {

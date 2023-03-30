@@ -724,9 +724,19 @@ class Parser {
                 directiveState);
           }
           context.parseMixinModifiers(start, keyword);
+          // Mixins can't have any modifier other than a base modifier.
+          if (context.finalToken != null) {
+            reportRecoverableError(
+                context.finalToken!, codes.messageFinalMixin);
+          }
+          if (interfaceToken != null) {
+            reportRecoverableError(interfaceToken, codes.messageInterfaceMixin);
+          }
+          if (sealedToken != null) {
+            reportRecoverableError(sealedToken, codes.messageSealedMixin);
+          }
           directiveState?.checkDeclaration();
-          return parseMixin(context.augmentToken, sealedToken, baseToken,
-              interfaceToken, context.finalToken, keyword);
+          return parseMixin(context.augmentToken, baseToken, keyword);
         } else if (identical(value, 'extension')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
@@ -2814,15 +2824,12 @@ class Parser {
   ///
   /// ```
   /// mixinDeclaration:
-  ///   metadata? 'augment'? mixinModifiers? 'mixin' [SimpleIdentifier]
+  ///   metadata? 'augment'? 'base'? 'mixin' [SimpleIdentifier]
   ///        [TypeParameterList]? [OnClause]? [ImplementsClause]?
   ///        '{' [ClassMember]* '}'
   /// ;
-  ///
-  /// mixinModifiers: 'sealed' | 'base' | 'interface' | 'final'
   /// ```
-  Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
-      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
+  Token parseMixin(Token? augmentToken, Token? baseToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2830,8 +2837,7 @@ class Parser {
     Token headerStart = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    listener.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
-        interfaceToken, finalToken, mixinKeyword, name);
+    listener.beginMixinDeclaration(augmentToken, baseToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery
@@ -3678,25 +3684,10 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, codes.messageSetterNotSync);
     }
-    // TODO(paulberry): code below is slightly hacky to allow for implementing
-    // the feature "Infer non-nullability from local boolean variables"
-    // (https://github.com/dart-lang/language/issues/1274).  Since the version
-    // of Dart that is used for presubmit checks lags slightly behind master,
-    // we need the code to analyze correctly regardless of whether local boolean
-    // variables cause promotion or not.  Once the version of dart used for
-    // presubmit checks has been updated, this can be cleaned up to:
-    //   bool isExternal = externalToken != null;
-    //   if (externalToken != null && !optional(';', token.next!)) {
-    //     reportRecoverableError(
-    //         externalToken, codes.messageExternalMethodWithBody);
-    //   }
-    bool isExternal = false;
-    if (externalToken != null) {
-      isExternal = true;
-      if (!optional(';', token.next!)) {
-        reportRecoverableError(
-            externalToken, codes.messageExternalMethodWithBody);
-      }
+    bool isExternal = externalToken != null;
+    if (isExternal && !optional(';', token.next!)) {
+      reportRecoverableError(
+          externalToken, codes.messageExternalMethodWithBody);
     }
     token = parseFunctionBody(
         token, /* ofFunctionExpression = */ false, isExternal);
@@ -9824,12 +9815,15 @@ class Parser {
     return token;
   }
 
-  /// Parses variable pattern starting after [token].  [typeInfo] is information
-  /// about the type appearing after [token], if any.
+  /// Parses variable pattern, or an identifier pattern that represents a
+  /// variable, starting after [token].  [typeInfo] is information about the
+  /// type appearing after [token], if any.
   ///
-  /// variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
+  /// variablePattern   ::= ( 'var' | 'final' | 'final'? type ) identifier
+  /// identifierPattern ::= identifier
   Token parseVariablePattern(Token token, PatternContext patternContext,
       {TypeInfo typeInfo = noType}) {
+    bool isBareIdentifier = false;
     Token? keyword;
     if (typeInfo != noType) {
       token = typeInfo.parseType(token, this);
@@ -9838,14 +9832,10 @@ class Parser {
       if (optional('var', next) || optional('final', next)) {
         token = keyword = next;
         bool nextIsParen = optional("(", token.next!);
-        // TODO(paulberry): this accepts `var <type> name` as a variable
-        // pattern.  We want to accept that for error recovery, but don't forget
-        // to report the appropriate error.
         typeInfo = computeVariablePatternType(token, nextIsParen);
         token = typeInfo.parseType(token, this);
       } else {
-        // Bare identifier pattern
-        listener.handleNoType(token);
+        isBareIdentifier = true;
       }
     }
     Token next = token.next!;
@@ -9856,8 +9846,50 @@ class Parser {
       token = insertSyntheticIdentifier(
           token, IdentifierContext.localVariableDeclaration);
     }
-    listener.handleVariablePattern(keyword, token,
-        inAssignmentPattern: patternContext == PatternContext.assignment);
+    String variableName = token.lexeme;
+    switch (patternContext) {
+      case PatternContext.declaration:
+        // It is a compile-time error if a variable pattern in a declaration
+        // context is marked with var or final.
+        if (keyword != null) {
+          reportRecoverableError(
+              keyword, codes.messageVariablePatternKeywordInDeclarationContext);
+        }
+        break;
+      case PatternContext.matching:
+        // All forms of variable patterns are valid in a matching context.  But
+        // we do need to check for redundant `var`.
+        if (typeInfo != noType && keyword != null && optional('var', keyword)) {
+          reportRecoverableError(keyword, codes.messageTypeAfterVar);
+        }
+        break;
+      case PatternContext.assignment:
+        // It is a compile-time error if a variable pattern appears in an
+        // assignment context.  However the spec doesn't consider a bare
+        // identifier to be a variable pattern (it's an "identifier pattern").
+        if (!isBareIdentifier) {
+          reportRecoverableError(
+              token,
+              codes.templatePatternAssignmentDeclaresVariable
+                  .withArguments(variableName));
+        }
+        break;
+    }
+    bool inAssignmentPattern = patternContext == PatternContext.assignment;
+    if (variableName == '_') {
+      if (isBareIdentifier) {
+        listener.handleNoType(token);
+      }
+      listener.handleWildcardPattern(keyword, token);
+    } else if (inAssignmentPattern && isBareIdentifier) {
+      listener.handleAssignedVariablePattern(token);
+    } else {
+      if (isBareIdentifier) {
+        listener.handleNoType(token);
+      }
+      listener.handleDeclaredVariablePattern(keyword, token,
+          inAssignmentPattern: inAssignmentPattern);
+    }
     return token;
   }
 

@@ -18,7 +18,7 @@ class ExpectedTwoMapPatternTypeArgumentsTest extends PubPackageResolutionTest {
   test_0() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  if (x case {}) {}
+  if (x case {0: _}) {}
 }
 ''');
   }
@@ -26,7 +26,7 @@ void f(x) {
   test_1() async {
     await assertErrorsInCode(r'''
 void f(x) {
-  if (x case <int>{}) {}
+  if (x case <int>{0: _}) {}
 }
 ''', [
       error(
@@ -37,7 +37,7 @@ void f(x) {
   test_2() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
-  if (x case <bool, int>{}) {}
+  if (x case <bool, int>{0: _}) {}
 }
 ''');
   }
@@ -45,7 +45,7 @@ void f(x) {
   test_3() async {
     await assertErrorsInCode(r'''
 void f(x) {
-  if (x case <bool, int, String>{}) {}
+  if (x case <bool, int, String>{0: _}) {}
 }
 ''', [
       error(

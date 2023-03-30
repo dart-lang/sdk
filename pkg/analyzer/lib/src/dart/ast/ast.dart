@@ -9083,31 +9083,17 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        metadata? mixinModifiers? 'mixin' [SimpleIdentifier]
+///        metadata? 'base'? 'mixin' [SimpleIdentifier]
 ///        [TypeParameterList]? [RequiresClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
-///
-///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
 
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? sealedKeyword;
-
   /// Return the 'base' keyword, or `null` if the keyword was absent.
   @override
   final Token? baseKeyword;
-
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? interfaceKeyword;
-
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? finalKeyword;
 
   @override
   final Token mixinKeyword;
@@ -9149,10 +9135,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
-    required this.sealedKeyword,
     required this.baseKeyword,
-    required this.interfaceKeyword,
-    required this.finalKeyword,
     required this.mixinKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -9179,11 +9162,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return sealedKeyword ??
-        baseKeyword ??
-        interfaceKeyword ??
-        finalKeyword ??
-        mixinKeyword;
+    return baseKeyword ?? mixinKeyword;
   }
 
   @override
@@ -9212,10 +9191,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)

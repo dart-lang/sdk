@@ -149,7 +149,7 @@ LocationSummary::LocationSummary(Zone* zone,
     : num_inputs_(input_count),
       num_temps_(temp_count),
       output_location_(),  // out(0)->IsInvalid() unless later set.
-      stack_bitmap_(NULL),
+      stack_bitmap_(nullptr),
       contains_call_(contains_call),
       live_registers_() {
 #if defined(DEBUG)
@@ -229,7 +229,8 @@ Location Location::Component(intptr_t i) const {
 
 Location LocationRegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
+  return ((constant != nullptr) &&
+          compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RequiresRegister();
 }
@@ -271,7 +272,8 @@ Location LocationWritableRegisterOrSmiConstant(Value* value,
 Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
   ASSERT(((1 << reg) & kDartAvailableCpuRegs) != 0);
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
+  return ((constant != nullptr) &&
+          compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
 }
@@ -279,7 +281,7 @@ Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
 Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg) {
   ASSERT(((1 << reg) & kDartAvailableCpuRegs) != 0);
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) &&
+  return ((constant != nullptr) &&
           compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
@@ -287,7 +289,8 @@ Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg) {
 
 Location LocationAnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
+  return ((constant != nullptr) &&
+          compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::Any();
 }

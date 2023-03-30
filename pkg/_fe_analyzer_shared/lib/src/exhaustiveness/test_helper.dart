@@ -15,6 +15,7 @@ class Tags {
   static const String space = 'space';
   static const String subtypes = 'subtypes';
   static const String expandedSubtypes = 'expandedSubtypes';
+  static const String checkingOrder = 'checkingOrder';
 }
 
 /// Returns a textual representation for [space] used for testing.

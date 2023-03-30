@@ -534,157 +534,9 @@ class NegativeLengthList<E extends core::Object? = dynamic> extends self::_Negat
     this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]=}(index, value){(core::int, self::NegativeLengthList::E%) → void};
   }
 }
-abstract class _NegativeLengthMap&Object&MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object implements col::MapMixin<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_NegativeLengthMap&Object&MapMixin<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>
-    : super core::Object::•()
-    ;
-  abstract operator /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ [](core::Object? key) → self::_NegativeLengthMap&Object&MapMixin::V?;
-  abstract operator /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ []=(covariant-by-class self::_NegativeLengthMap&Object&MapMixin::K% key, covariant-by-class self::_NegativeLengthMap&Object&MapMixin::V% value) → void;
-  abstract method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ remove(core::Object? key) → self::_NegativeLengthMap&Object&MapMixin::V?;
-  abstract method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ clear() → void;
-  get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ length() → core::int
-    return this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::length}{core::int};
-  abstract get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ keys() → core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>;
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::_NegativeLengthMap&Object&MapMixin::cast::RK%, self::_NegativeLengthMap&Object&MapMixin::cast::RV%>
-    return core::Map::castFrom<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%, self::_NegativeLengthMap&Object&MapMixin::cast::RK%, self::_NegativeLengthMap&Object&MapMixin::cast::RV%>(this);
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ forEach((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void action) → void {
-    {
-      synthesized core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%> :sync-for-iterator = this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_NegativeLengthMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthMap&Object&MapMixin::K%};
-        {
-          action(key, let self::_NegativeLengthMap&Object&MapMixin::V? #t10 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t10 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t11 = #t10 in #t11 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t11 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t11{self::_NegativeLengthMap&Object&MapMixin::V%} : #t10{self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void};
-        }
-      }
-    }
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ addAll(covariant-by-class core::Map<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%> other) → void {
-    other.{core::Map::forEach}((self::_NegativeLengthMap&Object&MapMixin::K% key, self::_NegativeLengthMap&Object&MapMixin::V% value) → void {
-      this.{col::MapMixin::[]=}(key, value){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void};
-    }){((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void) → void};
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ containsValue(core::Object? value) → core::bool {
-    {
-      synthesized core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%> :sync-for-iterator = this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_NegativeLengthMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthMap&Object&MapMixin::K%};
-        {
-          if(this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} =={core::Object::==}{(core::Object) → core::bool} value)
-            return true;
-        }
-      }
-    }
-    return false;
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ putIfAbsent(covariant-by-class self::_NegativeLengthMap&Object&MapMixin::K% key, covariant-by-class () → self::_NegativeLengthMap&Object&MapMixin::V% ifAbsent) → self::_NegativeLengthMap&Object&MapMixin::V% {
-    if(this.{col::MapMixin::containsKey}(key){(core::Object?) → core::bool}) {
-      return let self::_NegativeLengthMap&Object&MapMixin::V? #t12 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t12 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t13 = #t12 in #t13 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t13 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t13{self::_NegativeLengthMap&Object&MapMixin::V%} : #t12{self::_NegativeLengthMap&Object&MapMixin::V%};
-    }
-    return let final self::_NegativeLengthMap&Object&MapMixin::K% #t14 = key in let final self::_NegativeLengthMap&Object&MapMixin::V% #t15 = ifAbsent(){() → self::_NegativeLengthMap&Object&MapMixin::V%} in let final void #t16 = this.{col::MapMixin::[]=}(#t14, #t15){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void} in #t15;
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ update(covariant-by-class self::_NegativeLengthMap&Object&MapMixin::K% key, covariant-by-class (self::_NegativeLengthMap&Object&MapMixin::V%) → self::_NegativeLengthMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_NegativeLengthMap&Object&MapMixin::V% ifAbsent = #C2}) → self::_NegativeLengthMap&Object&MapMixin::V% {
-    if(this.{col::MapMixin::containsKey}(key){(core::Object?) → core::bool}) {
-      return let final self::_NegativeLengthMap&Object&MapMixin::K% #t17 = key in let final self::_NegativeLengthMap&Object&MapMixin::V% #t18 = update(let self::_NegativeLengthMap&Object&MapMixin::V? #t19 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t19 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t20 = #t19 in #t20 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t20 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t20{self::_NegativeLengthMap&Object&MapMixin::V%} : #t19{self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::V%) → self::_NegativeLengthMap&Object&MapMixin::V%} in let final void #t21 = this.{col::MapMixin::[]=}(#t17, #t18){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void} in #t18;
-    }
-    if(!(ifAbsent == null)) {
-      return let final self::_NegativeLengthMap&Object&MapMixin::K% #t22 = key in let final self::_NegativeLengthMap&Object&MapMixin::V% #t23 = ifAbsent{() → self::_NegativeLengthMap&Object&MapMixin::V%}(){() → self::_NegativeLengthMap&Object&MapMixin::V%} in let final void #t24 = this.{col::MapMixin::[]=}(#t22, #t23){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void} in #t23;
-    }
-    throw new core::ArgumentError::value(key, "key", "Key not in map.");
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ updateAll(covariant-by-class (self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → self::_NegativeLengthMap&Object&MapMixin::V% update) → void {
-    {
-      synthesized core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%> :sync-for-iterator = this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_NegativeLengthMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthMap&Object&MapMixin::K%};
-        {
-          this.{col::MapMixin::[]=}(key, update(key, let self::_NegativeLengthMap&Object&MapMixin::V? #t25 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t25 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t26 = #t25 in #t26 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t26 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t26{self::_NegativeLengthMap&Object&MapMixin::V%} : #t25{self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void};
-        }
-      }
-    }
-  }
-  get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ entries() → core::Iterable<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>> {
-    return this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::map}<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>>((self::_NegativeLengthMap&Object&MapMixin::K% key) → core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%> => new core::MapEntry::_<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>(key, let self::_NegativeLengthMap&Object&MapMixin::V? #t27 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t27 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t28 = #t27 in #t28 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t28 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t28{self::_NegativeLengthMap&Object&MapMixin::V%} : #t27{self::_NegativeLengthMap&Object&MapMixin::V%})){((self::_NegativeLengthMap&Object&MapMixin::K%) → core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>) → core::Iterable<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>>};
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%> transform) → core::Map<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%> {
-    core::Map<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%> result = <self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%>{};
-    {
-      synthesized core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%> :sync-for-iterator = this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_NegativeLengthMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthMap&Object&MapMixin::K%};
-        {
-          core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%> entry = transform(key, let self::_NegativeLengthMap&Object&MapMixin::V? #t29 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t29 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t30 = #t29 in #t30 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t30 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t30{self::_NegativeLengthMap&Object&MapMixin::V%} : #t29{self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%>};
-          result.{core::Map::[]=}(entry.{core::MapEntry::key}{self::_NegativeLengthMap&Object&MapMixin::map::K2%}, entry.{core::MapEntry::value}{self::_NegativeLengthMap&Object&MapMixin::map::V2%}){(self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%) → void};
-        }
-      }
-    }
-    return result;
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ addEntries(covariant-by-class core::Iterable<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>> newEntries) → void {
-    {
-      synthesized core::Iterator<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>> :sync-for-iterator = newEntries.{core::Iterable::iterator}{core::Iterator<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%> entry = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>};
-        {
-          this.{col::MapMixin::[]=}(entry.{core::MapEntry::key}{self::_NegativeLengthMap&Object&MapMixin::K%}, entry.{core::MapEntry::value}{self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void};
-        }
-      }
-    }
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ removeWhere((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → core::bool test) → void {
-    core::List<self::_NegativeLengthMap&Object&MapMixin::K%> keysToRemove = core::_GrowableList::•<self::_NegativeLengthMap&Object&MapMixin::K%>(0);
-    {
-      synthesized core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%> :sync-for-iterator = this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_NegativeLengthMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthMap&Object&MapMixin::K%};
-        {
-          if(test(key, let self::_NegativeLengthMap&Object&MapMixin::V? #t31 = this.{col::MapMixin::[]}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?} in #t31 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} let self::_NegativeLengthMap&Object&MapMixin::V? #t32 = #t31 in #t32 == null ?{self::_NegativeLengthMap&Object&MapMixin::V%} #t32 as{ForNonNullableByDefault} self::_NegativeLengthMap&Object&MapMixin::V% : #t32{self::_NegativeLengthMap&Object&MapMixin::V%} : #t31{self::_NegativeLengthMap&Object&MapMixin::V%}){(self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → core::bool})
-            keysToRemove.{core::List::add}(key){(self::_NegativeLengthMap&Object&MapMixin::K%) → void};
-        }
-      }
-    }
-    {
-      synthesized core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%> :sync-for-iterator = keysToRemove.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_NegativeLengthMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthMap&Object&MapMixin::K%};
-        {
-          this.{col::MapMixin::remove}(key){(core::Object?) → self::_NegativeLengthMap&Object&MapMixin::V?};
-        }
-      }
-    }
-  }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ containsKey(core::Object? key) → core::bool
-    return this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::contains}(key){(core::Object?) → core::bool};
-  get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ isEmpty() → core::bool
-    return this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::isEmpty}{core::bool};
-  get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ isNotEmpty() → core::bool
-    return this.{col::MapMixin::keys}{core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>}.{core::Iterable::isNotEmpty}{core::bool};
-  get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ values() → core::Iterable<self::_NegativeLengthMap&Object&MapMixin::V%>
-    return new col::_MapBaseValueIterable::•<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>(this);
-  method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ toString() → core::String
-    return col::MapBase::mapToString(this);
-}
-class NegativeLengthMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_NegativeLengthMap&Object&MapMixin<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%> {
-  final field core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%> _map;
-  constructor •(core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%> _map) → self::NegativeLengthMap<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>
-    : self::NegativeLengthMap::_map = _map, super self::_NegativeLengthMap&Object&MapMixin::•()
-    ;
-  get length() → core::int
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::length}{core::int}.{core::num::<=}(0){(core::num) → core::bool} ?{core::int} 1.{core::int::unary-}(){() → core::int} : this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::length}{core::int};
-  operator [](core::Object? key) → self::NegativeLengthMap::V?
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::[]}(key){(core::Object?) → self::NegativeLengthMap::V?};
-  operator []=(covariant-by-class self::NegativeLengthMap::K% key, covariant-by-class self::NegativeLengthMap::V% value) → void {
-    this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::[]=}(key, value){(self::NegativeLengthMap::K%, self::NegativeLengthMap::V%) → void};
-  }
-  get keys() → core::Iterable<self::NegativeLengthMap::K%>
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::keys}{core::Iterable<self::NegativeLengthMap::K%>};
-  method remove(core::Object? key) → self::NegativeLengthMap::V?
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::NegativeLengthMap::V?};
-  method clear() → void
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::clear}(){() → void};
-}
 static method switchList(core::List<core::int> list) → core::int
   return block {
-    core::int #t33;
+    core::int #t10;
     final synthesized core::List<core::int> #0#0 = list;
     function ##0#1#initializer() → core::int
       return #0#0.{core::List::length}{core::int};
@@ -693,56 +545,24 @@ static method switchList(core::List<core::int> list) → core::int
     {
       {
         if(#0#1.{core::num::>=}(#C8){(core::num) → core::bool}) {
-          #t33 = 2;
+          #t10 = 2;
           break #L1;
         }
       }
       {
         if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C9) {
-          #t33 = 1;
+          #t10 = 1;
           break #L1;
         }
       }
       {
         if(#0#1.{core::num::<=}(#C7){(core::num) → core::bool}) {
-          #t33 = 0;
+          #t10 = 0;
           break #L1;
         }
       }
     }
-  } =>#t33;
-static method switchMap(core::Map<core::int, core::String> map) → core::int
-  return block {
-    core::int #t34;
-    final synthesized core::Map<core::int, core::String> #0#0 = map;
-    function ##0#1#initializer() → core::int
-      return #0#0.{core::Map::length}{core::int};
-    late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
-    function ##0#6#initializer() → core::String?
-      return #0#0.{core::Map::[]}(#C7){(core::Object?) → core::String?};
-    late final synthesized core::String? #0#6 = ##0#6#initializer(){() → core::String?};
-    #L2:
-    {
-      {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C9 && (!(#0#6 == null) || null is{ForNonNullableByDefault} core::String && #0#0.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && (let final core::String #t35 = #0#6{core::String} in true)) {
-          #t34 = 1;
-          break #L2;
-        }
-      }
-      {
-        if(#0#1.{core::num::<=}(#C7){(core::num) → core::bool}) {
-          #t34 = 0;
-          break #L2;
-        }
-      }
-      {
-        if(true) {
-          #t34 = 2;
-          break #L2;
-        }
-      }
-    }
-  } =>#t34;
+  } =>#t10;
 static method main() → dynamic {
   self::expect(0, self::switchList(core::_GrowableList::•<core::int>(0)));
   self::expect(1, self::switchList(core::_GrowableList::_literal1<core::int>(0)));
@@ -750,12 +570,6 @@ static method main() → dynamic {
   self::expect(0, self::switchList(new self::NegativeLengthList::•<core::int>(core::_GrowableList::•<core::int>(0))));
   self::expect(1, self::switchList(new self::NegativeLengthList::•<core::int>(core::_GrowableList::_literal1<core::int>(0))));
   self::expect(2, self::switchList(new self::NegativeLengthList::•<core::int>(core::_GrowableList::_literal2<core::int>(0, 1))));
-  self::expect(0, self::switchMap(<core::int, core::String>{}));
-  self::expect(1, self::switchMap(<core::int, core::String>{0: ""}));
-  self::expect(2, self::switchMap(<core::int, core::String>{1: ""}));
-  self::expect(0, self::switchMap(new self::NegativeLengthMap::•<core::int, core::String>(<core::int, core::String>{})));
-  self::expect(1, self::switchMap(new self::NegativeLengthMap::•<core::int, core::String>(<core::int, core::String>{0: ""})));
-  self::expect(2, self::switchMap(new self::NegativeLengthMap::•<core::int, core::String>(<core::int, core::String>{1: ""})));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
@@ -780,6 +594,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:512:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:524:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:30:40 -> IntConstant(-1)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///negative_length.dart:52:9 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 1472, effectively constant: 7
+Extra constant evaluation: evaluated: 1120, effectively constant: 5

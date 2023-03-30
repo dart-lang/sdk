@@ -80,11 +80,11 @@ class Value : public ZoneAllocated {
    public:
     explicit Iterator(Value* head) : next_(head) { Advance(); }
     Value* Current() const { return current_; }
-    bool Done() const { return current_ == NULL; }
+    bool Done() const { return current_ == nullptr; }
     void Advance() {
       // Pre-fetch next on advance and cache it.
       current_ = next_;
-      if (next_ != NULL) next_ = next_->next_use();
+      if (next_ != nullptr) next_ = next_->next_use();
     }
 
    private:
@@ -94,11 +94,11 @@ class Value : public ZoneAllocated {
 
   explicit Value(Definition* definition)
       : definition_(definition),
-        previous_use_(NULL),
-        next_use_(NULL),
-        instruction_(NULL),
+        previous_use_(nullptr),
+        next_use_(nullptr),
+        instruction_(nullptr),
         use_index_(-1),
-        reaching_type_(NULL) {}
+        reaching_type_(nullptr) {}
 
   Definition* definition() const { return definition_; }
   void set_definition(Definition* definition) {
@@ -115,7 +115,7 @@ class Value : public ZoneAllocated {
   void set_next_use(Value* next) { next_use_ = next; }
 
   bool IsSingleUse() const {
-    return (next_use_ == NULL) && (previous_use_ == NULL);
+    return (next_use_ == nullptr) && (previous_use_ == nullptr);
   }
 
   Instruction* instruction() const { return instruction_; }
@@ -274,7 +274,7 @@ class HierarchyInfo : public ThreadStackResource {
     thread->set_hierarchy_info(this);
   }
 
-  ~HierarchyInfo() { thread()->set_hierarchy_info(NULL); }
+  ~HierarchyInfo() { thread()->set_hierarchy_info(nullptr); }
 
   // Returned from FindBestTAVOffset and SplitOnConsistentTypeArguments
   // to denote a failure to find a compatible concrete, finalized class.
@@ -974,7 +974,7 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
   void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
+    ASSERT(value != nullptr);
     value->set_instruction(this);
     value->set_use_index(i);
     RawSetInputAt(i, value);
@@ -1056,9 +1056,9 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsBranch() || (instr == NULL));
+    ASSERT(!IsBranch() || (instr == nullptr));
     ASSERT(!IsPhi());
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
+    ASSERT(instr == nullptr || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
     // that do not have a successor. Currently, the graph builder will continue
     // to append instruction in case of a Throw inside an expression. This
@@ -1153,17 +1153,17 @@ class Instruction : public ZoneAllocated {
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
   LocationSummary* locs() {
-    ASSERT(locs_ != NULL);
+    ASSERT(locs_ != nullptr);
     return locs_;
   }
 
-  bool HasLocs() const { return locs_ != NULL; }
+  bool HasLocs() const { return locs_ != nullptr; }
 
   virtual LocationSummary* MakeLocationSummary(Zone* zone,
                                                bool is_optimizing) const = 0;
 
   void InitializeLocationSummary(Zone* zone, bool optimizing) {
-    ASSERT(locs_ == NULL);
+    ASSERT(locs_ == nullptr);
     locs_ = MakeLocationSummary(zone, optimizing);
   }
 
@@ -1222,7 +1222,7 @@ class Instruction : public ZoneAllocated {
   // Representation of the value produced by this computation.
   virtual Representation representation() const { return kTagged; }
 
-  bool WasEliminated() const { return next() == NULL; }
+  bool WasEliminated() const { return next() == nullptr; }
 
   // Returns deoptimization id that corresponds to the deoptimization target
   // that input operands conversions inserted for this instruction can jump
@@ -1232,7 +1232,7 @@ class Instruction : public ZoneAllocated {
     return DeoptId::kNone;
   }
 
-  // Returns a replacement for the instruction or NULL if the instruction can
+  // Returns a replacement for the instruction or nullptr if the instruction can
   // be eliminated.  By default returns the this instruction which means no
   // change.
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
@@ -1313,7 +1313,7 @@ class Instruction : public ZoneAllocated {
 
   bool IsDominatedBy(Instruction* dom);
 
-  void ClearEnv() { env_ = NULL; }
+  void ClearEnv() { env_ = nullptr; }
 
   void Unsupported(FlowGraphCompiler* compiler);
 
@@ -1640,14 +1640,14 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
 
   ParallelMoveInstr* parallel_move() const { return parallel_move_; }
 
-  bool HasParallelMove() const { return parallel_move_ != NULL; }
+  bool HasParallelMove() const { return parallel_move_ != nullptr; }
 
   bool HasNonRedundantParallelMove() const {
     return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
-    if (parallel_move_ == NULL) {
+    if (parallel_move_ == nullptr) {
       parallel_move_ = new ParallelMoveInstr();
     }
     return parallel_move_;
@@ -1797,7 +1797,7 @@ class ForwardInstructionIterator {
     current_ = current_->next();
   }
 
-  bool Done() const { return current_ == NULL; }
+  bool Done() const { return current_ == nullptr; }
 
   // Removes 'current_' from graph and sets 'current_' to previous instruction.
   void RemoveCurrentFromGraph();
@@ -1836,7 +1836,7 @@ class BackwardInstructionIterator : public ValueObject {
  public:
   explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
       : block_entry_(block_entry), current_(block_entry->last_instruction()) {
-    ASSERT(block_entry_->previous() == NULL);
+    ASSERT(block_entry_->previous() == nullptr);
   }
 
   void Advance() {
@@ -1901,7 +1901,7 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   virtual intptr_t PredecessorCount() const { return 0; }
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
@@ -2061,7 +2061,9 @@ class PhiIterator : public ValueObject {
     index_++;
   }
 
-  bool Done() const { return (phis_ == NULL) || (index_ >= phis_->length()); }
+  bool Done() const {
+    return (phis_ == nullptr) || (index_ >= phis_->length());
+  }
 
   PhiInstr* Current() const { return (*phis_)[index_]; }
 
@@ -2089,10 +2091,10 @@ class TargetEntryInstr : public BlockEntryInstr {
   void adjust_edge_weight(double scale_factor) { edge_weight_ *= scale_factor; }
 
   virtual intptr_t PredecessorCount() const {
-    return (predecessor_ == NULL) ? 0 : 1;
+    return (predecessor_ == nullptr) ? 0 : 1;
   }
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    ASSERT((index == 0) && (predecessor_ != NULL));
+    ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
 
@@ -2107,9 +2109,9 @@ class TargetEntryInstr : public BlockEntryInstr {
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
 
-  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void ClearPredecessors() { predecessor_ = nullptr; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
+    ASSERT(predecessor_ == nullptr);
     predecessor_ = predecessor;
   }
 
@@ -2281,7 +2283,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
                                   deopt_id,
                                   /*stack_depth=*/0),
         graph_entry_(graph_entry),
-        predecessor_(NULL),
+        predecessor_(nullptr),
         catch_handler_types_(Array::ZoneHandle(handler_types.ptr())),
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
@@ -2294,10 +2296,10 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
   virtual intptr_t PredecessorCount() const {
-    return (predecessor_ == NULL) ? 0 : 1;
+    return (predecessor_ == nullptr) ? 0 : 1;
   }
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    ASSERT((index == 0) && (predecessor_ != NULL));
+    ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
 
@@ -2327,9 +2329,9 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
 
-  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void ClearPredecessors() { predecessor_ = nullptr; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
+    ASSERT(predecessor_ == nullptr);
     predecessor_ = predecessor;
   }
 
@@ -2458,7 +2460,7 @@ class Definition : public Instruction {
   // Compile time type of the definition, which may be requested before type
   // propagation during graph building.
   CompileType* Type() {
-    if (type_ == NULL) {
+    if (type_ == nullptr) {
       auto type = new CompileType(ComputeType());
       type->set_owner(this);
       set_type(type);
@@ -2466,7 +2468,7 @@ class Definition : public Instruction {
     return type_;
   }
 
-  bool HasType() const { return (type_ != NULL); }
+  bool HasType() const { return (type_ != nullptr); }
 
   inline bool IsInt64Definition();
 
@@ -2503,7 +2505,7 @@ class Definition : public Instruction {
   }
 
   bool HasUses() const {
-    return (input_use_list_ != NULL) || (env_use_list_ != NULL);
+    return (input_use_list_ != nullptr) || (env_use_list_ != nullptr);
   }
   bool HasOnlyUse(Value* use) const;
   bool HasOnlyInputUse(Value* use) const;
@@ -2529,7 +2531,7 @@ class Definition : public Instruction {
   // Replace this definition with another instruction. Use the provided result
   // definition to replace uses of the original definition. If replacing during
   // iteration, pass the iterator so that the instruction can be replaced
-  // without affecting iteration order, otherwise pass a NULL iterator.
+  // without affecting iteration order, otherwise pass a nullptr iterator.
   void ReplaceWithResult(Instruction* replacement,
                          Definition* replacement_for_uses,
                          ForwardInstructionIterator* iterator);
@@ -2537,7 +2539,7 @@ class Definition : public Instruction {
   // Replace this definition and all uses with another definition.  If
   // replacing during iteration, pass the iterator so that the instruction
   // can be replaced without affecting iteration order, otherwise pass a
-  // NULL iterator.
+  // nullptr iterator.
   void ReplaceWith(Definition* other, ForwardInstructionIterator* iterator);
 
   // A value in the constant propagation lattice.
@@ -3425,7 +3427,7 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
 class StopInstr : public TemplateInstruction<0, NoThrow> {
  public:
   explicit StopInstr(const char* message) : message_(message) {
-    ASSERT(message != NULL);
+    ASSERT(message != nullptr);
   }
 
   const char* message() const { return message_; }
@@ -3484,14 +3486,14 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
   ParallelMoveInstr* parallel_move() const { return parallel_move_; }
 
-  bool HasParallelMove() const { return parallel_move_ != NULL; }
+  bool HasParallelMove() const { return parallel_move_ != nullptr; }
 
   bool HasNonRedundantParallelMove() const {
     return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
-    if (parallel_move_ == NULL) {
+    if (parallel_move_ == nullptr) {
       parallel_move_ = new ParallelMoveInstr();
     }
     return parallel_move_;
@@ -3708,7 +3710,7 @@ class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison, intptr_t deopt_id)
       : Instruction(deopt_id), comparison_(comparison) {
-    ASSERT(comparison->env() == NULL);
+    ASSERT(comparison->env() == nullptr);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
     }
@@ -3829,7 +3831,7 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) : constrained_type_(NULL) {
+  explicit RedefinitionInstr(Value* value) : constrained_type_(nullptr) {
     SetInputAt(0, value);
   }
 
@@ -4005,7 +4007,7 @@ class UnboxedConstantInstr : public ConstantInstr {
 
   virtual Representation representation() const { return representation_; }
 
-  // Either NULL or the address of the unboxed constant.
+  // Either nullptr or the address of the unboxed constant.
   uword constant_address() const { return constant_address_; }
 
   DECLARE_INSTRUCTION(UnboxedConstant)
@@ -4013,7 +4015,8 @@ class UnboxedConstantInstr : public ConstantInstr {
 
  private:
   const Representation representation_;
-  uword constant_address_;  // Either NULL or points to the untagged constant.
+  uword
+      constant_address_;  // Either nullptr or points to the untagged constant.
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
@@ -5136,7 +5139,7 @@ class IfThenElseInstr : public Definition {
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
     // Adjust uses at the comparison.
-    ASSERT(comparison->env() == NULL);
+    ASSERT(comparison->env() == nullptr);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
     }
@@ -5232,7 +5235,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         call_count_(0),
         function_(function),
         rebind_rule_(rebind_rule),
-        result_type_(NULL),
+        result_type_(nullptr),
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
@@ -5253,11 +5256,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
                          argument_names,
                          std::move(arguments),
                          source),
-        ic_data_(NULL),
+        ic_data_(nullptr),
         call_count_(call_count),
         function_(function),
         rebind_rule_(rebind_rule),
-        result_type_(NULL),
+        result_type_(nullptr),
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
@@ -5280,7 +5283,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     StaticCallInstr* new_call = new (zone) StaticCallInstr(
         call->source(), target, call->type_args_len(), call->argument_names(),
         std::move(args), call->deopt_id(), call_count, ICData::kNoRebind);
-    if (call->result_type() != NULL) {
+    if (call->result_type() != nullptr) {
       new_call->result_type_ = call->result_type();
     }
     new_call->set_entry_kind(call->entry_kind());
@@ -5289,7 +5292,9 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   // ICData for static calls carries call count.
   const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const { return (ic_data() != NULL) && !ic_data()->IsNull(); }
+  bool HasICData() const {
+    return (ic_data() != nullptr) && !ic_data()->IsNull();
+  }
 
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
@@ -5306,7 +5311,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const Function& function() const { return function_; }
 
   virtual intptr_t CallCount() const {
-    return ic_data() == NULL ? call_count_ : ic_data()->AggregateCount();
+    return ic_data() == nullptr ? call_count_ : ic_data()->AggregateCount();
   }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -5334,7 +5339,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    if (result_type_ == NULL) {
+    if (result_type_ == nullptr) {
       return kDynamicCid;
     }
     return result_type_->ToCid();
@@ -6479,7 +6484,7 @@ class OneByteStringFromCharCodeInstr
 class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   StringToCharCodeInstr(Value* str, intptr_t cid) : cid_(cid) {
-    ASSERT(str != NULL);
+    ASSERT(str != nullptr);
     SetInputAt(0, str);
   }
 
@@ -10681,7 +10686,7 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
 
 class Environment : public ZoneAllocated {
  public:
-  // Iterate the non-NULL values in the innermost level of an environment.
+  // Iterate the non-nullptr values in the innermost level of an environment.
   class ShallowIterator : public ValueObject {
    public:
     explicit ShallowIterator(Environment* environment)
@@ -10706,18 +10711,18 @@ class Environment : public ZoneAllocated {
     }
 
     bool Done() const {
-      return (environment_ == NULL) || (index_ >= environment_->Length());
+      return (environment_ == nullptr) || (index_ >= environment_->Length());
     }
 
     Value* CurrentValue() const {
       ASSERT(!Done());
-      ASSERT(environment_->values_[index_] != NULL);
+      ASSERT(environment_->values_[index_] != nullptr);
       return environment_->values_[index_];
     }
 
     void SetCurrentValue(Value* value) {
       ASSERT(!Done());
-      ASSERT(value != NULL);
+      ASSERT(value != nullptr);
       environment_->values_[index_] = value;
     }
 
@@ -10736,7 +10741,7 @@ class Environment : public ZoneAllocated {
     intptr_t index_;
   };
 
-  // Iterate all non-NULL values in an environment, including outer
+  // Iterate all non-nullptr values in an environment, including outer
   // environments.  Note that the iterator skips empty environments.
   class DeepIterator : public ValueObject {
    public:
@@ -10750,7 +10755,7 @@ class Environment : public ZoneAllocated {
       SkipDone();
     }
 
-    bool Done() const { return iterator_.environment() == NULL; }
+    bool Done() const { return iterator_.environment() == nullptr; }
 
     Value* CurrentValue() const {
       ASSERT(!Done());
@@ -10790,7 +10795,7 @@ class Environment : public ZoneAllocated {
                            const ParsedFunction& parsed_function);
 
   void set_locations(Location* locations) {
-    ASSERT(locations_ == NULL);
+    ASSERT(locations_ == nullptr);
     locations_ = locations;
   }
 
@@ -10829,7 +10834,7 @@ class Environment : public ZoneAllocated {
 
   Environment* Outermost() {
     Environment* result = this;
-    while (result->outer() != NULL)
+    while (result->outer() != nullptr)
       result = result->outer();
     return result;
   }
@@ -10849,7 +10854,7 @@ class Environment : public ZoneAllocated {
   Value* ValueAtUseIndex(intptr_t index) const {
     const Environment* env = this;
     while (index >= env->Length()) {
-      ASSERT(env->outer_ != NULL);
+      ASSERT(env->outer_ != nullptr);
       index -= env->Length();
       env = env->outer_;
     }
@@ -10969,7 +10974,7 @@ class InstructionVisitor : public ValueObject {
 class FlowGraphVisitor : public InstructionVisitor {
  public:
   explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
-      : current_iterator_(NULL), block_order_(&block_order) {}
+      : current_iterator_(nullptr), block_order_(&block_order) {}
   virtual ~FlowGraphVisitor() {}
 
   ForwardInstructionIterator* current_iterator() const {
@@ -10996,9 +11001,11 @@ class FlowGraphVisitor : public InstructionVisitor {
 #define DEFINE_UNIMPLEMENTED_INSTRUCTION(Name)                                 \
   LocationSummary* Name::MakeLocationSummary(Zone* zone, bool opt) const {     \
     UNIMPLEMENTED();                                                           \
-    return NULL;                                                               \
+    return nullptr;                                                            \
   }                                                                            \
-  void Name::EmitNativeCode(FlowGraphCompiler* compiler) { UNIMPLEMENTED(); }
+  void Name::EmitNativeCode(FlowGraphCompiler* compiler) {                     \
+    UNIMPLEMENTED();                                                           \
+  }
 
 template <intptr_t kExtraInputs>
 StringPtr TemplateDartCall<kExtraInputs>::Selector() {

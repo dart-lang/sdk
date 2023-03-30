@@ -10,6 +10,7 @@ enum GenericEnum<X> {
 
 void exhaustiveGenericSwitch(GenericEnum<dynamic> e) {
   /*
+   checkingOrder={GenericEnum<dynamic>,GenericEnum.a,GenericEnum.b,GenericEnum.c},
    subtypes={GenericEnum.a,GenericEnum.b,GenericEnum.c},
    type=GenericEnum<dynamic>
   */
@@ -31,6 +32,7 @@ void exhaustiveGenericSwitch(GenericEnum<dynamic> e) {
 
 void exhaustiveGenericSwitchTyped(GenericEnum<int> e) {
   /*
+   checkingOrder={GenericEnum<int>,GenericEnum.a},
    subtypes={GenericEnum.a},
    type=GenericEnum<int>
   */
@@ -44,6 +46,7 @@ void exhaustiveGenericSwitchTyped(GenericEnum<int> e) {
 
 void exhaustiveGenericSwitchTypeVariable<T1>(GenericEnum<T1> e) {
   /*
+   checkingOrder={GenericEnum<T1>,GenericEnum.a,GenericEnum.b,GenericEnum.c},
    subtypes={GenericEnum.a,GenericEnum.b,GenericEnum.c},
    type=GenericEnum<T1>
   */
@@ -65,6 +68,7 @@ void exhaustiveGenericSwitchTypeVariable<T1>(GenericEnum<T1> e) {
 
 void exhaustiveGenericSwitchBounded<T2 extends num>(GenericEnum<T2> e) {
   /*
+   checkingOrder={GenericEnum<T2>,GenericEnum.a},
    subtypes={GenericEnum.a},
    type=GenericEnum<T2>
   */
@@ -78,6 +82,7 @@ void exhaustiveGenericSwitchBounded<T2 extends num>(GenericEnum<T2> e) {
 
 void nonExhaustiveGenericSwitchTypeVariable<T3>(GenericEnum<T3> e) {
   /*
+   checkingOrder={GenericEnum<T3>,GenericEnum.a,GenericEnum.b,GenericEnum.c},
    error=non-exhaustive:GenericEnum.c,
    subtypes={GenericEnum.a,GenericEnum.b,GenericEnum.c},
    type=GenericEnum<T3>
@@ -96,6 +101,7 @@ void nonExhaustiveGenericSwitchTypeVariable<T3>(GenericEnum<T3> e) {
 
 void exhaustiveGenericSwitchTypeVariableByType<T4>(GenericEnum<T4> e) {
   /*
+   checkingOrder={GenericEnum<T4>,GenericEnum.a,GenericEnum.b,GenericEnum.c},
    subtypes={GenericEnum.a,GenericEnum.b,GenericEnum.c},
    type=GenericEnum<T4>
   */
@@ -116,6 +122,7 @@ void exhaustiveGenericSwitchTypeVariableByType<T4>(GenericEnum<T4> e) {
 
 void nonExhaustiveGenericSwitchTypeVariableByType<T5, S5>(GenericEnum<T5> e) {
   /*
+   checkingOrder={GenericEnum<T5>,GenericEnum.a,GenericEnum.b,GenericEnum.c},
    error=non-exhaustive:GenericEnum.c,
    subtypes={GenericEnum.a,GenericEnum.b,GenericEnum.c},
    type=GenericEnum<T5>

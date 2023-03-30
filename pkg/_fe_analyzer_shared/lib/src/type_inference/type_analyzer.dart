@@ -1068,21 +1068,10 @@ mixin TypeAnalyzer<
         matchMayFailEvenIfCorrectType: true);
     // Stack: ()
 
-    bool hasDuplicateRestPatternReported = false;
-    Node? previousRestPattern;
-    Map<int, Error>? duplicateRestPatternErrors;
     for (int i = 0; i < elements.length; i++) {
       Node element = elements[i];
       if (isRestPatternElement(element)) {
-        if (previousRestPattern != null) {
-          (duplicateRestPatternErrors ??= {})[i] = errors.duplicateRestPattern(
-            mapOrListPattern: node,
-            original: previousRestPattern,
-            duplicate: element,
-          );
-          hasDuplicateRestPatternReported = true;
-        }
-        previousRestPattern = element;
+        errors.restPatternInMap(node: node, element: element);
       }
     }
 
@@ -1100,14 +1089,8 @@ mixin TypeAnalyzer<
         flow.popSubpattern();
       } else {
         assert(isRestPatternElement(element));
-        if (!hasDuplicateRestPatternReported) {
-          if (i != elements.length - 1) {
-            errors.restPatternNotLastInMap(node: node, element: element);
-          }
-        }
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          errors.restPatternWithSubPatternInMap(node: node, element: element);
           flow.pushSubpattern(dynamicType);
           dispatchPattern(
             context.withUnnecessaryWildcardKind(null),
@@ -1131,9 +1114,11 @@ mixin TypeAnalyzer<
         requiredType: requiredType,
       );
     }
+    if (elements.isEmpty) {
+      errors.emptyMapPattern(pattern: node);
+    }
     return new MapPatternResult(
         requiredType: requiredType,
-        duplicateRestPatternErrors: duplicateRestPatternErrors,
         patternTypeMismatchInIrrefutableContextError:
             patternTypeMismatchInIrrefutableContextError);
   }
@@ -2543,6 +2528,13 @@ abstract class TypeAnalyzerErrors<
     required Node duplicate,
   });
 
+  /// Called if a map pattern does not have elements.
+  ///
+  /// [pattern] is the map pattern.
+  void emptyMapPattern({
+    required Pattern pattern,
+  });
+
   /// Called when both branches have variables with the same name, but these
   /// variables either don't have the same finality, or their `NORM` types
   /// are not structurally equal.
@@ -2624,16 +2616,10 @@ abstract class TypeAnalyzerErrors<
     required Type returnType,
   });
 
-  /// Called if a rest pattern inside a map pattern is not the last element.
+  /// Called if a rest pattern found inside a map pattern.
   ///
   /// [node] is the map pattern.  [element] is the rest pattern.
-  void restPatternNotLastInMap({required Pattern node, required Node element});
-
-  /// Called if a rest pattern inside a map pattern has a subpattern.
-  ///
-  /// [node] is the map pattern.  [element] is the rest pattern.
-  void restPatternWithSubPatternInMap(
-      {required Pattern node, required Node element});
+  void restPatternInMap({required Pattern node, required Node element});
 
   /// Called if one of the case bodies of a switch statement completes normally
   /// (other than the last case body), and the "patterns" feature is not

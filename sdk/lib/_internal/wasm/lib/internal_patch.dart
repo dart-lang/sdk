@@ -157,12 +157,12 @@ void _invokeCallback1(void Function(dynamic) callback, dynamic arg) {
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
-void _invokeMain(Function main) {
+void _invokeMain(Function main, List<String> args) {
   try {
     if (main is void Function(List<String>, Null)) {
-      main(const <String>[], null);
+      main(List.unmodifiable(args), null);
     } else if (main is void Function(List<String>)) {
-      main(const <String>[]);
+      main(List.unmodifiable(args));
     } else if (main is void Function()) {
       main();
     } else {
@@ -174,6 +174,12 @@ void _invokeMain(Function main) {
     rethrow;
   }
 }
+
+@pragma("wasm:export", "\$makeStringList")
+List<String> _makeStringList() => <String>[];
+
+@pragma("wasm:export", "\$listAdd")
+void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
 
 // Schedule a callback from JS via setTimeout.
 void scheduleCallback(double millis, dynamic Function() callback) {

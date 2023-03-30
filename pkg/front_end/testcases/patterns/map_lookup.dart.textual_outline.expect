@@ -2,8 +2,8 @@ import "dart:collection";
 
 bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 String unsoundResult =
-    "length;" "containsKey(key1);" "[key1];" "containsKey(key2);" "[key2];";
-String soundResult = "length;" "[key1];" "[key2];";
+    "containsKey(key1);" "[key1];" "containsKey(key2);" "[key2];";
+String soundResult = "[key1];" "[key2];";
 
 class MyMap<K, V> extends MapBase<K, V> {
   Map<K, V> _inner;

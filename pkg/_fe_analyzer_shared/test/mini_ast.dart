@@ -3184,15 +3184,8 @@ class _MiniAstErrors
   }
 
   @override
-  void restPatternNotLastInMap({required Pattern node, required Node element}) {
-    _recordError('restPatternNotLastInMap', {'node': node, 'element': element});
-  }
-
-  @override
-  void restPatternWithSubPatternInMap(
-      {required Pattern node, required Node element}) {
-    _recordError(
-        'restPatternWithSubPatternInMap', {'node': node, 'element': element});
+  void restPatternInMap({required Pattern node, required Node element}) {
+    _recordError('restPatternInMap', {'node': node, 'element': element});
   }
 
   @override
@@ -3240,6 +3233,15 @@ class _MiniAstErrors
     if (!_accumulatedErrors.add(errorText)) {
       fail('Same error reported twice: $errorText');
     }
+  }
+
+  @override
+  void emptyMapPattern({
+    required Pattern pattern,
+  }) {
+    _recordError('emptyMapPattern', {
+      'pattern': pattern,
+    });
   }
 }
 

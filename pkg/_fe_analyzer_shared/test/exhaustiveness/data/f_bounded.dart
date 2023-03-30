@@ -3,10 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 sealed class A<X extends A<X>> {}
+
 class B extends A<B> {} // E{T=B, B <: A<T>}
+
 class C extends A<C> {} // E{T=C, C <: A<T>}
+
 sealed class D<Y extends D<Y>> extends A<Y> {} // E{T<:D<T>, D<T> <: A<T>}
+
 class D1 extends D<D1> {} // E{T=D1, D1 <: D<T>}
+
 class D2 extends D<D2> {} // E{T=D2, D2 <: D<T>}
 
 enum Enum<Z extends A<Z>> {
@@ -18,6 +23,7 @@ enum Enum<Z extends A<Z>> {
 
 exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   /*
+   checkingOrder={A<dynamic>,B,C,D<D<dynamic>>,D1,D2},
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<dynamic>
@@ -41,6 +47,7 @@ exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
       break;
   }
   /*
+   checkingOrder={Enum<dynamic>,Enum.b,Enum.c,Enum.d1,Enum.d2},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<dynamic>
   */
@@ -66,28 +73,31 @@ exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
 
 exhaustiveSwitchGeneric<T extends A<T>>(A<T> a, Enum<T> e) {
   /*
+   checkingOrder={A<T>,B,C,D<D<dynamic>>,D1,D2},
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T>
   */
   switch (a) {
-    /*space=B*/case B b:
+    /*space=B*/ case B b:
       print('b');
       break;
-    /*space=C*/case C c:
+    /*space=C*/ case C c:
       print('c');
       break;
-    /*space=D1*/case D1 d1:
+    /*space=D1*/ case D1 d1:
       print('d1');
       break;
-    /*space=D2*/case D2 d2:
+    /*space=D2*/ case D2 d2:
       print('d2');
       break;
   }
   /*
+   checkingOrder={Enum<T>,Enum.b,Enum.c,Enum.d1,Enum.d2},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T>
-  */switch (e) {
+  */
+  switch (e) {
     /*space=Enum.b*/
     case Enum.b:
       print('b');
@@ -109,6 +119,7 @@ exhaustiveSwitchGeneric<T extends A<T>>(A<T> a, Enum<T> e) {
 
 exhaustiveSwitchBounded<T extends D<T>>(A<T> a, Enum<T> e) {
   /*
+   checkingOrder={A<T>,D<T>,D1,D2},
    expandedSubtypes={D1,D2},
    subtypes={D<T>},
    type=A<T>
@@ -124,6 +135,7 @@ exhaustiveSwitchBounded<T extends D<T>>(A<T> a, Enum<T> e) {
       break;
   }
   /*
+   checkingOrder={Enum<T>,Enum.d1,Enum.d2},
    subtypes={Enum.d1,Enum.d2},
    type=Enum<T>
   */
@@ -141,6 +153,7 @@ exhaustiveSwitchBounded<T extends D<T>>(A<T> a, Enum<T> e) {
 
 exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
   /*
+   checkingOrder={A<T>,B,C,D<D<dynamic>>,D1,D2},
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T>
@@ -160,6 +173,7 @@ exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
       break;
   }
   /*
+   checkingOrder={Enum<T>,Enum.b,Enum.c,Enum.d1,Enum.d2},
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T>
   */
@@ -181,6 +195,7 @@ exhaustiveSwitchCatchAll<T extends A<T>>(A<T> a, Enum<T> e) {
 
 nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   /*
+   checkingOrder={A<dynamic>,B,C,D<D<dynamic>>,D1,D2},
    error=non-exhaustive:D1(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
@@ -201,6 +216,7 @@ nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
       break;
   }
   /*
+   checkingOrder={Enum<dynamic>,Enum.b,Enum.c,Enum.d1,Enum.d2},
    error=non-exhaustive:Enum.c,
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<dynamic>
@@ -223,6 +239,7 @@ nonExhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
 
 nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
   /*
+   checkingOrder={A<T1>,B,C,D<D<dynamic>>,D1,D2},
    error=non-exhaustive:D1(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
@@ -243,6 +260,7 @@ nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
       break;
   }
   /*
+   checkingOrder={Enum<T1>,Enum.b,Enum.c,Enum.d1,Enum.d2},
    error=non-exhaustive:Enum.d1,
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T1>
@@ -265,6 +283,7 @@ nonExhaustiveSwitchGeneric<T1 extends A<T1>>(A<T1> a, Enum<T1> e) {
 
 nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
   /*
+   checkingOrder={A<T2>,D<T2>,D1,D2},
    error=non-exhaustive:D1(),
    expandedSubtypes={D1,D2},
    subtypes={D<T2>},
@@ -277,6 +296,7 @@ nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
       break;
   }
   /*
+   checkingOrder={Enum<T2>,Enum.d1,Enum.d2},
    error=non-exhaustive:Enum.d2,
    subtypes={Enum.d1,Enum.d2},
    type=Enum<T2>
@@ -291,6 +311,7 @@ nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
 
 nonExhaustiveSwitchCatchAll<T3 extends A<T3>>(A<T3> a, Enum<T3> e) {
   /*
+   checkingOrder={A<T3>,B,C,D<D<dynamic>>,D1,D2},
    error=non-exhaustive:D1(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
@@ -307,6 +328,7 @@ nonExhaustiveSwitchCatchAll<T3 extends A<T3>>(A<T3> a, Enum<T3> e) {
       break;
   }
   /*
+   checkingOrder={Enum<T3>,Enum.b,Enum.c,Enum.d1,Enum.d2},
    error=non-exhaustive:Enum.b,
    subtypes={Enum.b,Enum.c,Enum.d1,Enum.d2},
    type=Enum<T3>

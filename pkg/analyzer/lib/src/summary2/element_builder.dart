@@ -865,10 +865,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
 
     var element = MixinElementImpl(name, nameToken.offset);
-    element.isSealed = node.sealedKeyword != null;
     element.isBase = node.baseKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
-    element.isFinal = node.finalKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);

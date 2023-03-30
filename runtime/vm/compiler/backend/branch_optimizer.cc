@@ -13,12 +13,12 @@ namespace dart {
 // is used in the environments either at the corresponding block entry or
 // at the same instruction where input use is.
 static bool PhiHasSingleUse(PhiInstr* phi, Value* use) {
-  if ((use->next_use() != NULL) || (phi->input_use_list() != use)) {
+  if ((use->next_use() != nullptr) || (phi->input_use_list() != use)) {
     return false;
   }
 
   BlockEntryInstr* block = phi->block();
-  for (Value* env_use = phi->env_use_list(); env_use != NULL;
+  for (Value* env_use = phi->env_use_list(); env_use != nullptr;
        env_use = env_use->next_use()) {
     if ((env_use->instruction() != block) &&
         (env_use->instruction() != use->instruction())) {
@@ -40,7 +40,7 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   // has no other phis and no instructions intervening between the phi and
   // branch so the block can simply be eliminated.
   BranchInstr* branch = block->last_instruction()->AsBranch();
-  ASSERT(branch != NULL);
+  ASSERT(branch != nullptr);
   ComparisonInstr* comparison = branch->comparison();
   if (comparison->InputCount() != 2) {
     return false;
@@ -52,10 +52,10 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   PhiInstr* phi = left->definition()->AsPhi();
   Value* right = comparison->right();
   ConstantInstr* constant =
-      (right == NULL) ? NULL : right->definition()->AsConstant();
-  return (phi != NULL) && (constant != NULL) && (phi->GetBlock() == block) &&
-         PhiHasSingleUse(phi, left) && (block->next() == branch) &&
-         (block->phis()->length() == 1);
+      (right == nullptr) ? nullptr : right->definition()->AsConstant();
+  return (phi != nullptr) && (constant != nullptr) &&
+         (phi->GetBlock() == block) && PhiHasSingleUse(phi, left) &&
+         (block->next() == branch) && (block->phis()->length() == 1);
 }
 
 JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
@@ -122,7 +122,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
   while (!worklist.is_empty()) {
     // All blocks in the worklist are join blocks (ending with a branch).
     JoinEntryInstr* block = worklist.RemoveLast()->AsJoinEntry();
-    ASSERT(block != NULL);
+    ASSERT(block != nullptr);
 
     if (Match(block)) {
       changed = true;
@@ -136,19 +136,19 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       // instance of the pattern.  There is thus no need to add it to the
       // worklist.
       BranchInstr* branch = block->last_instruction()->AsBranch();
-      ASSERT(branch != NULL);
+      ASSERT(branch != nullptr);
       JoinEntryInstr* join_true = ToJoinEntry(zone, branch->true_successor());
       JoinEntryInstr* join_false = ToJoinEntry(zone, branch->false_successor());
 
       ComparisonInstr* comparison = branch->comparison();
       PhiInstr* phi = comparison->left()->definition()->AsPhi();
       ConstantInstr* constant = comparison->right()->definition()->AsConstant();
-      ASSERT(constant != NULL);
+      ASSERT(constant != nullptr);
       // Copy the constant and branch and push it to all the predecessors.
       for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
         GotoInstr* old_goto =
             block->PredecessorAt(i)->last_instruction()->AsGoto();
-        ASSERT(old_goto != NULL);
+        ASSERT(old_goto != nullptr);
 
         // Replace the goto in each predecessor with a rewritten branch,
         // rewritten to use the corresponding phi input instead of the phi.
@@ -156,7 +156,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         Value* new_right = new (zone) Value(constant);
         BranchInstr* new_branch =
             CloneBranch(zone, branch, new_left, new_right);
-        if (branch->env() == NULL) {
+        if (branch->env() == nullptr) {
           new_branch->InheritDeoptTarget(zone, old_goto);
         } else {
           // Take the environment from the branch if it has one.
@@ -172,7 +172,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         }
 
         new_branch->InsertBefore(old_goto);
-        new_branch->set_next(NULL);  // Detaching the goto from the graph.
+        new_branch->set_next(nullptr);  // Detaching the goto from the graph.
         old_goto->UnuseAllInputs();
 
         // Update the predecessor block.  We may have created another
@@ -268,7 +268,7 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
     // Ba:
     //   v3 = IfThenElse(COMP ? v1 : v2)
     //
-    if ((join != NULL) && (join->phis() != NULL) &&
+    if ((join != nullptr) && (join->phis() != nullptr) &&
         (join->phis()->length() == 1) && (block->PredecessorCount() == 2)) {
       BlockEntryInstr* pred1 = block->PredecessorAt(0);
       BlockEntryInstr* pred2 = block->PredecessorAt(1);
@@ -305,7 +305,7 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           IfThenElseInstr* if_then_else =
               new (zone) IfThenElseInstr(new_comparison, if_true->Copy(zone),
                                          if_false->Copy(zone), DeoptId::kNone);
-          flow_graph->InsertBefore(branch, if_then_else, NULL,
+          flow_graph->InsertBefore(branch, if_then_else, nullptr,
                                    FlowGraph::kValue);
 
           phi->ReplaceUsesWith(if_then_else);

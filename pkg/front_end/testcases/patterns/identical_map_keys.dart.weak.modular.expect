@@ -2,6 +2,36 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:55:14: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {c1: var a1, c2: final b1} = {c2: 2};
+//              ^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:55:26: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {c1: var a1, c2: final b1} = {c2: 2};
+//                          ^^^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:56:16: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {3.14: var a2, 3.14: final b2} = {3.14: 1};
+//                ^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:56:30: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {3.14: var a2, 3.14: final b2} = {3.14: 1};
+//                              ^^^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:57:15: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {"x": var a3, "x": final b3} = {"x": 1};
+//               ^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:57:28: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {"x": var a3, "x": final b3} = {"x": 1};
+//                            ^^^^^
+//
 // pkg/front_end/testcases/patterns/identical_map_keys.dart:16:26: Error: Two keys in a map pattern can't be equal.
 // Change or remove the duplicate key.
 //     {const C(): 1, const C(): 2} => "",
@@ -177,25 +207,24 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
   return block {
     core::String #t1;
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
-    late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized core::bool #0#5 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#6 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    late final synthesized core::bool #0#10 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#11 = #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
-    late final synthesized core::bool #0#15 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#16 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    late final synthesized core::bool #0#18 = #0#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#19 = #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#8 = #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#9 = #0#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#13 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#14 = #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#16 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#17 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
     #L1:
     {
       {
-        if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+        if(#0#2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && #0#2 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
           #t1 = "";
           break #L1;
         }
       }
       {
-        if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
+        if(#0#8 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#9 && #0#8 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#9) {
           #t1 = "";
           break #L1;
         }
@@ -203,7 +232,7 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
       {
         hoisted dynamic a1;
         final hoisted dynamic b1;
-        if(#0#3 && #0#5 && (let final dynamic #t2 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t3 = b1 = #0#6 in true)) {
+        if(#0#2 && (let final dynamic #t2 = a1 = #0#3 in true) && #0#2 && (let final dynamic #t3 = b1 = #0#3 in true)) {
           #t1 = "";
           break #L1;
         }
@@ -211,7 +240,7 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
       {
         hoisted dynamic a2;
         final hoisted dynamic b2;
-        if(#0#3 && #0#15 && (let final dynamic #t4 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t5 = b2 = #0#16 in true)) {
+        if(#0#13 && (let final dynamic #t4 = a2 = #0#14 in true) && #0#13 && (let final dynamic #t5 = b2 = #0#14 in true)) {
           #t1 = "";
           break #L1;
         }
@@ -219,7 +248,7 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
       {
         hoisted dynamic a3;
         final hoisted dynamic b3;
-        if(#0#3 && #0#18 && (let final dynamic #t6 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t7 = b3 = #0#19 in true)) {
+        if(#0#16 && (let final dynamic #t6 = a3 = #0#17 in true) && #0#16 && (let final dynamic #t7 = b3 = #0#17 in true)) {
           #t1 = "";
           break #L1;
         }
@@ -238,24 +267,23 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
   #L2:
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
-    late final synthesized core::bool #0#3 = #0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized core::bool #0#5 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#6 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    late final synthesized core::bool #0#10 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#11 = #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
-    late final synthesized core::bool #0#15 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#16 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    late final synthesized core::bool #0#18 = #0#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#19 = #0#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#8 = #0#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#9 = #0#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#13 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#14 = #0#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    late final synthesized core::bool #0#16 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#17 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
     {
-      if(#0#3 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+      if(#0#2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && #0#2 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
         {
           break #L2;
         }
       }
     }
     {
-      if(#0#3 && #0#10 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#11 && #0#10 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#11) {
+      if(#0#8 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#9 && #0#8 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#9) {
         {
           break #L2;
         }
@@ -266,7 +294,7 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
       final hoisted dynamic b1;
       hoisted dynamic a2;
       final hoisted dynamic b2;
-      if(#0#3 && #0#5 && (let final dynamic #t8 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t9 = b1 = #0#6 in true) || #0#3 && #0#15 && (let final dynamic #t10 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t11 = b2 = #0#16 in true)) {
+      if(#0#2 && (let final dynamic #t8 = a1 = #0#3 in true) && #0#2 && (let final dynamic #t9 = b1 = #0#3 in true) || #0#13 && (let final dynamic #t10 = a2 = #0#14 in true) && #0#13 && (let final dynamic #t11 = b2 = #0#14 in true)) {
         {
           break #L2;
         }
@@ -275,7 +303,7 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
     {
       hoisted dynamic a3;
       final hoisted dynamic b3;
-      if(#0#3 && #0#18 && (let final dynamic #t12 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t13 = b3 = #0#19 in true)) {
+      if(#0#16 && (let final dynamic #t12 = a3 = #0#17 in true) && #0#16 && (let final dynamic #t13 = b3 = #0#17 in true)) {
         {
           break #L2;
         }
@@ -286,43 +314,43 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
 static method test3(core::Map<dynamic, dynamic> map) → void {
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
-    late final synthesized core::bool #0#5 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized dynamic #0#6 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    if(#0#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#6 && #0#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+    late final synthesized core::bool #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    if(#0#2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && #0#2 && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
     }
   }
   {
     final synthesized core::Map<dynamic, dynamic> #1#0 = map;
-    late final synthesized core::bool #1#5 = #1#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized dynamic #1#6 = #1#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
-    if(#1#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#5 && #C3 =={core::num::==}{(core::Object) → core::bool} #1#6 && #1#5 && #C2 =={core::num::==}{(core::Object) → core::bool} #1#6) {
+    late final synthesized core::bool #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    late final synthesized dynamic #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
+    if(#1#2 && #C2 =={core::num::==}{(core::Object) → core::bool} #1#3 && #1#2 && #C5 =={core::num::==}{(core::Object) → core::bool} #1#3) {
     }
   }
   {
     hoisted dynamic a1;
     final hoisted dynamic b1;
     final synthesized core::Map<dynamic, dynamic> #2#0 = map;
-    late final synthesized core::bool #2#5 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized dynamic #2#6 = #2#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    if(#2#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #2#5 && (let final dynamic #t14 = a1 = #2#6 in true) && #2#5 && (let final dynamic #t15 = b1 = #2#6 in true)) {
+    late final synthesized core::bool #2#2 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized dynamic #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    if(#2#2 && (let final dynamic #t14 = a1 = #2#3 in true) && #2#2 && (let final dynamic #t15 = b1 = #2#3 in true)) {
     }
   }
   {
     hoisted dynamic a2;
     final hoisted dynamic b2;
     final synthesized core::Map<dynamic, dynamic> #3#0 = map;
-    late final synthesized core::bool #3#5 = #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    late final synthesized dynamic #3#6 = #3#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    if(#3#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #3#5 && (let final dynamic #t16 = a2 = #3#6 in true) && #3#5 && (let final dynamic #t17 = b2 = #3#6 in true)) {
+    late final synthesized core::bool #3#2 = #3#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized dynamic #3#3 = #3#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
+    if(#3#2 && (let final dynamic #t16 = a2 = #3#3 in true) && #3#2 && (let final dynamic #t17 = b2 = #3#3 in true)) {
     }
   }
   {
     hoisted dynamic a3;
     final hoisted dynamic b3;
     final synthesized core::Map<dynamic, dynamic> #4#0 = map;
-    late final synthesized core::bool #4#5 = #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
-    late final synthesized dynamic #4#6 = #4#0.{core::Map::[]}(#C5){(core::Object?) → dynamic};
-    if(#4#0.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #4#5 && (let final dynamic #t18 = a3 = #4#6 in true) && #4#5 && (let final dynamic #t19 = b3 = #4#6 in true)) {
+    late final synthesized core::bool #4#2 = #4#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized dynamic #4#3 = #4#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+    if(#4#2 && (let final dynamic #t18 = a3 = #4#3 in true) && #4#2 && (let final dynamic #t19 = b3 = #4#3 in true)) {
     }
   }
 }
@@ -331,55 +359,55 @@ static method test() → dynamic {
   hoisted core::int b;
   {
     final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
-    late final synthesized core::bool #0#5 = #0#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized core::int? #0#6 = #0#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
-    if(!(#0#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#5 && (let final dynamic #t20 = a = #0#6{core::int} in true) && #0#5 && (let final dynamic #t21 = b = #0#6{core::int} in true)))
+    late final synthesized core::bool #0#2 = #0#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::int? #0#3 = #0#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    if(!(#0#2 && (let final dynamic #t20 = a = #0#3{core::int} in true) && #0#2 && (let final dynamic #t21 = b = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   hoisted core::int c;
   hoisted core::int d;
   {
     final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
-    late final synthesized core::bool #1#5 = #1#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    late final synthesized core::int? #1#6 = #1#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
-    if(!(#1#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#5 && (let final dynamic #t22 = c = #1#6{core::int} in true) && #1#5 && (let final dynamic #t23 = d = #1#6{core::int} in true)))
+    late final synthesized core::bool #1#2 = #1#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    late final synthesized core::int? #1#3 = #1#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C2){(core::Object?) → core::int?};
+    if(!(#1#2 && (let final dynamic #t22 = c = #1#3{core::int} in true) && #1#2 && (let final dynamic #t23 = d = #1#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted core::int a1;
   final hoisted core::int b1;
   {
     final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
-    late final synthesized core::bool #2#5 = #2#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    late final synthesized core::int? #2#6 = #2#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
-    if(!(#2#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #2#5 && (let final dynamic #t24 = a1 = #2#6{core::int} in true) && #2#5 && (let final dynamic #t25 = b1 = #2#6{core::int} in true)))
+    late final synthesized core::bool #2#2 = #2#0{core::Map<self::C, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    late final synthesized core::int? #2#3 = #2#0{core::Map<self::C, core::int>}.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    if(!(#2#2 && (let final dynamic #t24 = a1 = #2#3{core::int} in true) && #2#2 && (let final dynamic #t25 = b1 = #2#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted core::int a2;
   final hoisted core::int b2;
   {
     final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
-    late final synthesized core::bool #3#5 = #3#0{core::Map<core::double, core::int>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    late final synthesized core::int? #3#6 = #3#0{core::Map<core::double, core::int>}.{core::Map::[]}(#C4){(core::Object?) → core::int?};
-    if(!(#3#0{core::Map<core::double, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #3#5 && (let final dynamic #t26 = a2 = #3#6{core::int} in true) && #3#5 && (let final dynamic #t27 = b2 = #3#6{core::int} in true)))
+    late final synthesized core::bool #3#2 = #3#0{core::Map<core::double, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::int? #3#3 = #3#0{core::Map<core::double, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
+    if(!(#3#2 && (let final dynamic #t26 = a2 = #3#3{core::int} in true) && #3#2 && (let final dynamic #t27 = b2 = #3#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted core::int a3;
   final hoisted core::int b3;
   {
     final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
-    late final synthesized core::bool #4#5 = #4#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
-    late final synthesized core::int? #4#6 = #4#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
-    if(!(#4#0{core::Map<core::String, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #4#5 && (let final dynamic #t28 = a3 = #4#6{core::int} in true) && #4#5 && (let final dynamic #t29 = b3 = #4#6{core::int} in true)))
+    late final synthesized core::bool #4#2 = #4#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    late final synthesized core::int? #4#3 = #4#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C4){(core::Object?) → core::int?};
+    if(!(#4#2 && (let final dynamic #t28 = a3 = #4#3{core::int} in true) && #4#2 && (let final dynamic #t29 = b3 = #4#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }
 
 constants  {
   #C1 = self::C {}
-  #C2 = 2
-  #C3 = 1
-  #C4 = 3.14
-  #C5 = "x"
+  #C2 = 1
+  #C3 = 3.14
+  #C4 = "x"
+  #C5 = 2
 }
 
 

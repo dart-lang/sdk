@@ -274,10 +274,6 @@ import 'final_class_used_as_mixin_constraint_outside_of_library_test.dart'
     as final_class_used_as_mixin_constraint_outside_of_library;
 import 'final_initialized_in_declaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
-import 'final_mixin_implemented_outside_of_library_test.dart'
-    as final_mixin_implemented_outside_of_library;
-import 'final_mixin_mixed_in_outside_of_library_test.dart'
-    as final_mixin_mixed_in_outside_of_library;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -372,8 +368,6 @@ import 'integer_literal_imprecise_as_double_test.dart'
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'interface_class_extended_outside_of_library_test.dart'
     as interface_class_extended_outside_of_library;
-import 'interface_mixin_mixed_in_outside_of_library_test.dart'
-    as interface_mixin_mixed_in_outside_of_library;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
@@ -701,8 +695,6 @@ import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart
     as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
 import 'replaced_lint_use_test.dart' as replaced_lint_in_ignore;
-import 'rest_element_not_last_in_map_pattern_test.dart'
-    as rest_element_not_last_in_map_pattern;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
@@ -735,8 +727,6 @@ import 'sdk_version_ui_as_code_in_const_context_test.dart'
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'sealed_class_subtype_outside_of_library_test.dart'
     as sealed_class_subtype_outside_of_library;
-import 'sealed_mixin_subtype_outside_of_library_test.dart'
-    as sealed_mixin_subtype_outside_of_library;
 import 'set_element_from_deferred_library_test.dart'
     as set_element_from_deferred_library;
 import 'set_element_type_not_assignable_test.dart'
@@ -1063,8 +1053,6 @@ main() {
     final_class_extended_outside_of_library.main();
     final_class_implemented_outside_of_library.main();
     final_class_used_as_mixin_constraint_outside_of_library.main();
-    final_mixin_implemented_outside_of_library.main();
-    final_mixin_mixed_in_outside_of_library.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -1123,7 +1111,6 @@ main() {
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     interface_class_extended_outside_of_library.main();
-    interface_mixin_mixed_in_outside_of_library.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
@@ -1336,7 +1323,6 @@ main() {
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
     removed_lint_in_ignore.main();
     replaced_lint_in_ignore.main();
-    rest_element_not_last_in_map_pattern.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();
@@ -1359,7 +1345,6 @@ main() {
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();
-    sealed_mixin_subtype_outside_of_library.main();
     set_element_type_not_assignable.main();
     shared_deferred_prefix.main();
     size_annotation_dimensions.main();

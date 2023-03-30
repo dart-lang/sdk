@@ -415,13 +415,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.isFinal = patternContext.finalKeyword != null;
     } else if (patternContext is PatternVariableDeclarationImpl) {
       element.isFinal = patternContext.finalKeyword != null;
-      var keyword = node.keyword;
-      if (keyword != null) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
-          keyword,
-        );
-      }
     } else {
       element.isFinal = node.finalKeyword != null;
     }

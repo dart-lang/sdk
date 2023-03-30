@@ -295,26 +295,14 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     seen(augmentToken);
-    seen(sealedToken);
     seen(baseToken);
-    seen(interfaceToken);
-    seen(finalToken);
     seen(mixinKeyword);
     seen(name);
     doPrint('beginMixinDeclaration('
         '$augmentToken, '
-        '$sealedToken, '
         '$baseToken, '
-        '$interfaceToken, '
-        '$finalToken, '
         '$mixinKeyword, '
         '$name)');
     indent++;
@@ -2110,14 +2098,27 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    seen(variable);
+    doPrint('handleAssignedVariablePattern(' '$variable)');
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
     seen(keyword);
     seen(variable);
-    doPrint('handleVariablePattern('
+    doPrint('handleDeclaredVariablePattern('
         '$keyword, '
         '$variable, '
         '$inAssignmentPattern)');
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    seen(keyword);
+    seen(wildcard);
+    doPrint('handleWildcardPattern(' '$keyword, ' '$wildcard)');
   }
 
   @override

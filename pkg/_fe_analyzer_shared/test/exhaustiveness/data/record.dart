@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum Enum {a, b}
+enum Enum { a, b }
+
 const r0 = (Enum.a, false);
 const r1 = (Enum.b, false);
 const r2 = (Enum.a, true);
@@ -95,6 +96,7 @@ void nonExhaustiveSwitchWithDefault((Enum, bool) r) {
 
 void exhaustiveNullableSwitch((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
@@ -125,11 +127,13 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
 
 void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    error=non-exhaustive:null,
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
-  */switch (r) {
+  */
+  switch (r) {
     /*space=(Enum.a, false)*/
     case r0:
       print('(a, false)');
@@ -151,6 +155,7 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
 
 void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    error=non-exhaustive:(Enum.b, false),
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
@@ -240,6 +245,7 @@ void unreachableCase2((Enum, bool) r) {
 
 void unreachableCase3((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?

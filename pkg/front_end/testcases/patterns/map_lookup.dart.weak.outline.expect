@@ -49,11 +49,11 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:27:4 -> InstanceConstant(const _Override{})
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:33:4 -> InstanceConstant(const _Override{})
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:39:4 -> InstanceConstant(const _Override{})
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:45:4 -> InstanceConstant(const _Override{})
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:51:4 -> InstanceConstant(const _Override{})
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:57:4 -> InstanceConstant(const _Override{})
-Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:63:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:25:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:31:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:37:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:43:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:49:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:55:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:61:4 -> InstanceConstant(const _Override{})
 Extra constant evaluation: evaluated: 7, effectively constant: 7

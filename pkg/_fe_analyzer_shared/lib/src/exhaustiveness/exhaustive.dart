@@ -105,21 +105,28 @@ class _Checker {
       }
     }
     for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
-      // TODO(johnniwinther): Right now, this brute force expands all subtypes
-      // of sealed types and considers them individually. It would be faster to
-      // look at the types of the patterns in the first column of each row and
-      // only expand subtypes that are actually tested.
-      // Split the type into its sealed subtypes and consider each one
-      // separately. This enables it to filter rows more effectively.
-      List<StaticType> subtypes =
-          expandSealedSubtypes(firstValuePattern.type, keysOfInterest);
-      for (StaticType subtype in subtypes) {
-        Witness? result = _filterByType(subtype, caseRows, firstValuePattern,
-            valuePatterns, witnessPredicates, firstValuePatterns.path);
+      List<StaticType> stack = [firstValuePattern.type];
+      while (stack.isNotEmpty) {
+        StaticType type = stack.removeAt(0);
+        if (type.isSealed) {
+          Witness? result = _filterByType(type, caseRows, firstValuePattern,
+              valuePatterns, witnessPredicates, firstValuePatterns.path);
+          if (result == null) {
+            // This type was fully handled so no need to test its
+            // subtypes.
+          } else {
+            // The type was not fully handled so we must allow for
+            // handling of individual subtypes.
+            stack.addAll(type.getSubtypes(keysOfInterest));
+          }
+        } else {
+          Witness? result = _filterByType(type, caseRows, firstValuePattern,
+              valuePatterns, witnessPredicates, firstValuePatterns.path);
 
-        // If we found a witness for a subtype that no rows match, then we can
-        // stop. There may be others but we don't need to find more.
-        if (result != null) return result;
+          // If we found a witness for a subtype that no rows match, then we
+          // can stop. There may be others but we don't need to find more.
+          if (result != null) return result;
+        }
       }
     }
 
@@ -264,6 +271,19 @@ List<StaticType> expandSealedSubtypes(
         ...expandSealedSubtypes(subtype, keysOfInterest)
     }.toList();
   }
+}
+
+List<StaticType> checkingOrder(StaticType type, Set<Key> keysOfInterest) {
+  List<StaticType> result = [];
+  List<StaticType> pending = [type];
+  while (pending.isNotEmpty) {
+    StaticType type = pending.removeAt(0);
+    result.add(type);
+    if (type.isSealed) {
+      pending.addAll(type.getSubtypes(keysOfInterest));
+    }
+  }
+  return result;
 }
 
 class ExhaustivenessError {}

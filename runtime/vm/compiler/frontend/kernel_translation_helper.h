@@ -1262,7 +1262,7 @@ class KernelReaderHelper {
 
   void ReadUntilFunctionNode();
 
-  Tag PeekTag(uint8_t* payload = NULL);
+  Tag PeekTag(uint8_t* payload = nullptr);
 
  protected:
   const Script& script() const { return script_; }
@@ -1324,7 +1324,7 @@ class KernelReaderHelper {
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
   TokenPosition ReadPosition();
-  Tag ReadTag(uint8_t* payload = NULL);
+  Tag ReadTag(uint8_t* payload = nullptr);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
   Nullability ReadNullability();
   Variance ReadVariance();
@@ -1384,15 +1384,15 @@ class KernelReaderHelper {
 class ActiveClass {
  public:
   ActiveClass()
-      : klass(NULL),
-        member(NULL),
-        enclosing(NULL),
-        local_type_parameters(NULL) {}
+      : klass(nullptr),
+        member(nullptr),
+        enclosing(nullptr),
+        local_type_parameters(nullptr) {}
 
-  bool HasMember() { return member != NULL; }
+  bool HasMember() { return member != nullptr; }
 
   bool MemberIsProcedure() {
-    ASSERT(member != NULL);
+    ASSERT(member != nullptr);
     UntaggedFunction::Kind function_kind = member->kind();
     return function_kind == UntaggedFunction::kRegularFunction ||
            function_kind == UntaggedFunction::kGetterFunction ||
@@ -1403,7 +1403,7 @@ class ActiveClass {
   }
 
   bool MemberIsFactoryProcedure() {
-    ASSERT(member != NULL);
+    ASSERT(member != nullptr);
     return member->IsFactory();
   }
 
@@ -1416,7 +1416,7 @@ class ActiveClass {
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {
-    ASSERT(klass != NULL);
+    ASSERT(klass != nullptr);
     return klass->NumTypeArguments();
   }
 
@@ -1431,7 +1431,7 @@ class ActiveClass {
   }
 
   const char* ToCString() {
-    return member != NULL ? member->ToCString() : klass->ToCString();
+    return member != nullptr ? member->ToCString() : klass->ToCString();
   }
 
   // The current enclosing class (or the library top-level class).
@@ -1587,7 +1587,7 @@ class TypeTranslator {
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
       outer_parameter_count_ = 0;
-      if (outer_ != NULL) {
+      if (outer_ != nullptr) {
         outer_parameter_count_ =
             outer_->outer_parameter_count_ + outer_->parameter_count_;
       }

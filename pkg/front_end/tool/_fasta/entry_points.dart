@@ -415,7 +415,8 @@ class CompileTask {
     if (c.options.debugDump && output != null) {
       benchmarker?.enterPhase(BenchmarkPhases.printComponentText);
       printComponentText(outline,
-          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging,
+          showOffsets: c.options.debugDumpShowOffsets);
     }
     if (output != null) {
       if (omitPlatform) {
@@ -460,7 +461,8 @@ class CompileTask {
     if (c.options.debugDump) {
       benchmarker?.enterPhase(BenchmarkPhases.printComponentText);
       printComponentText(component,
-          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging,
+          showOffsets: c.options.debugDumpShowOffsets);
     }
     if (omitPlatform) {
       benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);

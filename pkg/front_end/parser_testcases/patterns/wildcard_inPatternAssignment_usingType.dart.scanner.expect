@@ -1,0 +1,9 @@
+void f() {
+[a, int _] = y;
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+[[BeginToken]a[StringToken],[SimpleToken] int[StringToken] _[StringToken]][SimpleToken] =[SimpleToken] y[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

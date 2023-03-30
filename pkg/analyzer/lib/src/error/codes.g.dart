@@ -1252,6 +1252,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode EMPTY_MAP_PATTERN = CompileTimeErrorCode(
+    'EMPTY_MAP_PATTERN',
+    "A map pattern must have at least one entry.",
+    correctionMessage: "Try replacing it with an object pattern 'Map'.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
@@ -1718,28 +1725,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "set to a new value.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the final mixin being implemented.
-  static const CompileTimeErrorCode FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
-      CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be implemented outside of its library because it's "
-        "a final mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the final mixin being mixed in.
-  static const CompileTimeErrorCode FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY =
-      CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be mixed-in outside of its library because it's a "
-        "final mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
   );
 
   ///  Parameters:
@@ -2313,17 +2298,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "interface class.",
     hasPublishedDocs: true,
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the interface mixin being mixed in.
-  static const CompileTimeErrorCode
-      INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be mixed-in outside of its library because it's an "
-        "interface mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
   );
 
   ///  No parameters.
@@ -4357,21 +4331,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const CompileTimeErrorCode REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN =
+  static const CompileTimeErrorCode REST_ELEMENT_IN_MAP_PATTERN =
       CompileTimeErrorCode(
-    'REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN',
-    "A rest element in a map pattern must be the last element.",
-    correctionMessage: "Try moving the rest element to be the last element.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode
-      REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN = CompileTimeErrorCode(
-    'REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN',
-    "A rest element in a map pattern can't have a subpattern.",
-    correctionMessage: "Try removing the subpattern.",
-    hasPublishedDocs: true,
+    'REST_ELEMENT_IN_MAP_PATTERN',
+    "A map pattern can't contain a rest pattern.",
+    correctionMessage: "Try removing the rest element.",
   );
 
   ///  No parameters.
@@ -4472,17 +4436,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "its library because it's a sealed class.",
     hasPublishedDocs: true,
     uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the sealed mixin being mixed in
-  static const CompileTimeErrorCode SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY =
-      CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be mixed in outside of its library because it's a "
-        "sealed mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY',
   );
 
   ///  No parameters.
@@ -5314,16 +5267,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'VALUES_DECLARATION_IN_ENUM',
     "A member named 'values' can't be declared in an enum.",
     correctionMessage: "Try using a different name.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode
-      VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT = CompileTimeErrorCode(
-    'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
-    "Variable patterns in declaration context can't specify 'var' or 'final' "
-        "keyword.",
-    correctionMessage: "Try removing the keyword.",
     hasPublishedDocs: true,
   );
 

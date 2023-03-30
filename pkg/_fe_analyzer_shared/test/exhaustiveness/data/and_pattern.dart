@@ -83,6 +83,7 @@ intersectUnion(A o1, A o2, B o3, B o4) {
   A(field1: C() || E()) && A(field1: C() || E()) /*space=A(field1: C|E|?)*/=> 1,
   };
   var c = /*
+   checkingOrder={B,C,D,E},
    subtypes={C,D,E},
    type=B
   */switch (o3) {
@@ -90,6 +91,7 @@ intersectUnion(A o1, A o2, B o3, B o4) {
     B() && (D() || E()) /*space=D|E*/= 1,
   };
   var d = /*
+   checkingOrder={B,C,D,E},
    subtypes={C,D,E},
    type=B
   */switch (o3) {

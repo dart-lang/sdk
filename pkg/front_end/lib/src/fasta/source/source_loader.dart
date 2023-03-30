@@ -2399,23 +2399,6 @@ severity: $severity
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
-          } else if (cls.libraryBuilder.origin !=
-              mixedInTypeDeclaration.libraryBuilder.origin) {
-            if (mixedInTypeDeclaration.isInterface &&
-                !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
-              cls.addProblem(
-                  templateInterfaceMixinMixedInOutsideOfLibrary
-                      .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                  mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength);
-            } else if (mixedInTypeDeclaration.isFinal &&
-                !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
-              cls.addProblem(
-                  templateFinalMixinMixedInOutsideOfLibrary
-                      .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                  mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength);
-            }
           }
         }
 
@@ -2424,19 +2407,11 @@ severity: $severity
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder.origin !=
                 mixedInTypeDeclaration.libraryBuilder.origin) {
-          if (mixedInTypeDeclaration.isMixinDeclaration) {
-            cls.addProblem(
-                templateSealedMixinSubtypeOutsideOfLibrary
-                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
-          } else {
-            cls.addProblem(
-                templateSealedClassSubtypeOutsideOfLibrary
-                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
-                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength);
-          }
+          cls.addProblem(
+              templateSealedClassSubtypeOutsideOfLibrary
+                  .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+              mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+              noLength);
         }
       }
     }
@@ -2487,21 +2462,12 @@ severity: $severity
                       interfaceBuilder.charOffset ?? TreeNode.noOffset,
                       noLength);
                 } else {
-                  if (interfaceDeclaration.isMixinDeclaration) {
-                    cls.addProblem(
-                        templateFinalMixinImplementedOutsideOfLibrary
-                            .withArguments(
-                                interfaceDeclaration.fullNameForErrors),
-                        interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                        noLength);
-                  } else {
-                    cls.addProblem(
-                        templateFinalClassImplementedOutsideOfLibrary
-                            .withArguments(
-                                interfaceDeclaration.fullNameForErrors),
-                        interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                        noLength);
-                  }
+                  cls.addProblem(
+                      templateFinalClassImplementedOutsideOfLibrary
+                          .withArguments(
+                              interfaceDeclaration.fullNameForErrors),
+                      interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                      noLength);
                 }
               }
             }
@@ -2513,19 +2479,11 @@ severity: $severity
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder.origin !=
                   interfaceDeclaration.libraryBuilder.origin) {
-            if (interfaceDeclaration.isMixinDeclaration) {
-              cls.addProblem(
-                  templateSealedMixinSubtypeOutsideOfLibrary
-                      .withArguments(interfaceDeclaration.fullNameForErrors),
-                  interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength);
-            } else {
-              cls.addProblem(
-                  templateSealedClassSubtypeOutsideOfLibrary
-                      .withArguments(interfaceDeclaration.fullNameForErrors),
-                  interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength);
-            }
+            cls.addProblem(
+                templateSealedClassSubtypeOutsideOfLibrary
+                    .withArguments(interfaceDeclaration.fullNameForErrors),
+                interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
           }
         }
       }

@@ -148,69 +148,6 @@ class NegativeLengthList<E extends core::Object? = dynamic> extends self::_Negat
     this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]=}(index, value){(core::int, self::NegativeLengthList::E%) → void};
   }
 }
-abstract class _NegativeLengthMap&Object&MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> = core::Object with col::MapMixin<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_NegativeLengthMap&Object&MapMixin<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>
-    : super core::Object::•()
-    ;
-  abstract mixin-stub operator [](core::Object? key) → self::_NegativeLengthMap&Object&MapMixin::V?; -> col::MapMixin::[]
-  abstract mixin-stub operator []=(covariant-by-class self::_NegativeLengthMap&Object&MapMixin::K% key, covariant-by-class self::_NegativeLengthMap&Object&MapMixin::V% value) → void; -> col::MapMixin::[]=
-  abstract mixin-stub method remove(core::Object? key) → self::_NegativeLengthMap&Object&MapMixin::V?; -> col::MapMixin::remove
-  abstract mixin-stub method clear() → void; -> col::MapMixin::clear
-  mixin-super-stub get length() → core::int
-    return super.{col::MapMixin::length};
-  abstract mixin-stub get keys() → core::Iterable<self::_NegativeLengthMap&Object&MapMixin::K%>; -> col::MapMixin::keys
-  mixin-super-stub method cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::_NegativeLengthMap&Object&MapMixin::cast::RK%, self::_NegativeLengthMap&Object&MapMixin::cast::RV%>
-    return super.{col::MapMixin::cast}<self::_NegativeLengthMap&Object&MapMixin::cast::RK%, self::_NegativeLengthMap&Object&MapMixin::cast::RV%>();
-  mixin-super-stub method forEach((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → void action) → void
-    return super.{col::MapMixin::forEach}(action);
-  mixin-super-stub method addAll(covariant-by-class core::Map<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%> other) → void
-    return super.{col::MapMixin::addAll}(other);
-  mixin-super-stub method containsValue(core::Object? value) → core::bool
-    return super.{col::MapMixin::containsValue}(value);
-  mixin-super-stub method putIfAbsent(covariant-by-class self::_NegativeLengthMap&Object&MapMixin::K% key, covariant-by-class () → self::_NegativeLengthMap&Object&MapMixin::V% ifAbsent) → self::_NegativeLengthMap&Object&MapMixin::V%
-    return super.{col::MapMixin::putIfAbsent}(key, ifAbsent);
-  mixin-super-stub method update(covariant-by-class self::_NegativeLengthMap&Object&MapMixin::K% key, covariant-by-class (self::_NegativeLengthMap&Object&MapMixin::V%) → self::_NegativeLengthMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_NegativeLengthMap&Object&MapMixin::V% ifAbsent = #C1}) → self::_NegativeLengthMap&Object&MapMixin::V%
-    return super.{col::MapMixin::update}(key, update, ifAbsent: ifAbsent);
-  mixin-super-stub method updateAll(covariant-by-class (self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → self::_NegativeLengthMap&Object&MapMixin::V% update) → void
-    return super.{col::MapMixin::updateAll}(update);
-  mixin-super-stub get entries() → core::Iterable<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>>
-    return super.{col::MapMixin::entries};
-  mixin-super-stub method map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%> transform) → core::Map<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%>
-    return super.{col::MapMixin::map}<self::_NegativeLengthMap&Object&MapMixin::map::K2%, self::_NegativeLengthMap&Object&MapMixin::map::V2%>(transform);
-  mixin-super-stub method addEntries(covariant-by-class core::Iterable<core::MapEntry<self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%>> newEntries) → void
-    return super.{col::MapMixin::addEntries}(newEntries);
-  mixin-super-stub method removeWhere((self::_NegativeLengthMap&Object&MapMixin::K%, self::_NegativeLengthMap&Object&MapMixin::V%) → core::bool test) → void
-    return super.{col::MapMixin::removeWhere}(test);
-  mixin-super-stub method containsKey(core::Object? key) → core::bool
-    return super.{col::MapMixin::containsKey}(key);
-  mixin-super-stub get isEmpty() → core::bool
-    return super.{col::MapMixin::isEmpty};
-  mixin-super-stub get isNotEmpty() → core::bool
-    return super.{col::MapMixin::isNotEmpty};
-  mixin-super-stub get values() → core::Iterable<self::_NegativeLengthMap&Object&MapMixin::V%>
-    return super.{col::MapMixin::values};
-  mixin-super-stub method toString() → core::String
-    return super.{col::MapMixin::toString}();
-}
-class NegativeLengthMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_NegativeLengthMap&Object&MapMixin<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%> {
-  final field core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%> _map;
-  constructor •(core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%> _map) → self::NegativeLengthMap<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>
-    : self::NegativeLengthMap::_map = _map, super self::_NegativeLengthMap&Object&MapMixin::•()
-    ;
-  get length() → core::int
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::length}{core::int}.{core::num::<=}(0){(core::num) → core::bool} ?{core::int} 1.{core::int::unary-}(){() → core::int} : this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::length}{core::int};
-  operator [](core::Object? key) → self::NegativeLengthMap::V?
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::[]}(key){(core::Object?) → self::NegativeLengthMap::V?};
-  operator []=(covariant-by-class self::NegativeLengthMap::K% key, covariant-by-class self::NegativeLengthMap::V% value) → void {
-    this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::[]=}(key, value){(self::NegativeLengthMap::K%, self::NegativeLengthMap::V%) → void};
-  }
-  get keys() → core::Iterable<self::NegativeLengthMap::K%>
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::keys}{core::Iterable<self::NegativeLengthMap::K%>};
-  method remove(core::Object? key) → self::NegativeLengthMap::V?
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::NegativeLengthMap::V?};
-  method clear() → void
-    return this.{self::NegativeLengthMap::_map}{core::Map<self::NegativeLengthMap::K%, self::NegativeLengthMap::V%>}.{core::Map::clear}(){() → void};
-}
 static method switchList(core::List<core::int> list) → core::int
   return block {
     core::int #t1;
@@ -239,34 +176,6 @@ static method switchList(core::List<core::int> list) → core::int
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
-static method switchMap(core::Map<core::int, core::String> map) → core::int
-  return block {
-    core::int #t2;
-    final synthesized core::Map<core::int, core::String> #0#0 = map;
-    late final synthesized core::int #0#1 = #0#0.{core::Map::length}{core::int};
-    #L2:
-    {
-      {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C6 && #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?} as{ForNonNullableByDefault} core::String in true)) {
-          #t2 = 1;
-          break #L2;
-        }
-      }
-      {
-        if(#0#1.{core::num::<=}(#C4){(core::num) → core::bool}) {
-          #t2 = 0;
-          break #L2;
-        }
-      }
-      {
-        if(true) {
-          #t2 = 2;
-          break #L2;
-        }
-      }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
-    }
-  } =>#t2;
 static method main() → dynamic {
   self::expect(0, self::switchList(<core::int>[]));
   self::expect(1, self::switchList(<core::int>[0]));
@@ -274,12 +183,6 @@ static method main() → dynamic {
   self::expect(0, self::switchList(new self::NegativeLengthList::•<core::int>(<core::int>[])));
   self::expect(1, self::switchList(new self::NegativeLengthList::•<core::int>(<core::int>[0])));
   self::expect(2, self::switchList(new self::NegativeLengthList::•<core::int>(<core::int>[0, 1])));
-  self::expect(0, self::switchMap(<core::int, core::String>{}));
-  self::expect(1, self::switchMap(<core::int, core::String>{0: ""}));
-  self::expect(2, self::switchMap(<core::int, core::String>{1: ""}));
-  self::expect(0, self::switchMap(new self::NegativeLengthMap::•<core::int, core::String>(<core::int, core::String>{})));
-  self::expect(1, self::switchMap(new self::NegativeLengthMap::•<core::int, core::String>(<core::int, core::String>{0: ""})));
-  self::expect(2, self::switchMap(new self::NegativeLengthMap::•<core::int, core::String>(<core::int, core::String>{1: ""})));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

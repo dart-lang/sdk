@@ -336,7 +336,7 @@ class Range : public ZoneAllocated {
   }
 
   static bool IsUnknown(const Range* other) {
-    if (other == NULL) {
+    if (other == nullptr) {
       return true;
     }
     return other->min().IsUnknown();
@@ -352,7 +352,7 @@ class Range : public ZoneAllocated {
 
   bool Equals(const Range* other) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
-    if (other == NULL) {
+    if (other == nullptr) {
       return min_.IsUnknown();
     }
     return min_.Equals(other->min_) && max_.Equals(other->max_);
@@ -397,7 +397,7 @@ class Range : public ZoneAllocated {
 
   static RangeBoundary ConstantMin(const Range* range,
                                    RangeBoundary::RangeSize size) {
-    if (range == NULL) {
+    if (range == nullptr) {
       return RangeBoundary::MinConstant(size);
     }
     return range->min().LowerBound().Clamp(size);
@@ -405,7 +405,7 @@ class Range : public ZoneAllocated {
 
   static RangeBoundary ConstantMax(const Range* range,
                                    RangeBoundary::RangeSize size) {
-    if (range == NULL) {
+    if (range == nullptr) {
       return RangeBoundary::MaxConstant(size);
     }
     return range->max().UpperBound().Clamp(size);

@@ -1016,34 +1016,64 @@ void residentRun() {
   });
 
   test('custom package_config path', () async {
-    p = project(name: 'foo');
-    final bar = project(name: 'bar');
-    final baz = project(name: 'baz', mainSrc: '''
-  import 'package:bar/bar.dart'
-  void main() {}
+    p = project(name: 'foo', mainSrc: '''
+import 'package:bar/main.dart';
+void main() {
+  cmd();
+}
+''');
+    final bar1 = project(name: 'bar1', mainSrc: '''
+cmd() {
+  print('hi');
+}
+''');
+    final bar2 = project(name: 'bar2', mainSrc: '''
+cmd() {
+  print('bye');
+}
 ''');
 
-    p.file('custom_packages.json', '''
+    p.file('custom_packages1.json', '''
 {
   "configVersion": 2,
   "packages": [
     {
       "name": "bar",
-      "rootUri": "${bar.dirPath}",
-      "packageUri": "${path.join(bar.dirPath, 'lib')}"
+      "rootUri": "${bar1.dirPath}",
+      "packageUri": "${path.join(bar1.dirPath, 'lib')}"
     }
   ]
 }
 ''');
-    final runResult = await baz.run([
+    p.file('custom_packages2.json', '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "bar",
+      "rootUri": "${bar2.dirPath}",
+      "packageUri": "${path.join(bar2.dirPath, 'lib')}"
+    }
+  ]
+}
+''');
+    final runResult1 = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
-      '--packages=${path.join(p.dirPath, 'custom_packages.json')}',
-      baz.relativeFilePath,
+      '--packages=${path.join(p.dirPath, 'custom_packages1.json')}',
+      p.relativeFilePath,
+    ]);
+    expect(runResult1.stderr, isEmpty);
+    expect(runResult1.stdout, contains('hi'));
+    expect(runResult1.exitCode, 0);
+    // Test that --packages can precede the command name
+    final runResult2 = await p.run([
+      '--packages=${path.join(p.dirPath, 'custom_packages2.json')}',
+      'run',
+      p.relativeFilePath,
     ]);
 
-    expect(runResult.exitCode, 0);
-    expect(runResult.stderr, isEmpty);
-    expect(runResult.stdout, isEmpty);
-  }, skip: 'until a --packages flag is added to the run command');
+    expect(runResult2.stderr, isEmpty);
+    expect(runResult2.stdout, contains('bye'));
+    expect(runResult2.exitCode, 0);
+  });
 }

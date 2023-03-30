@@ -3818,10 +3818,8 @@ abstract class MixinAugmentationDeclaration
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        mixinModifiers? 'mixin' name [TypeParameterList]?
+///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-///
-///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
@@ -3872,15 +3870,9 @@ abstract class MixinOrAugmentationDeclaration
   @override
   MixinOrAugmentationElement? get declaredElement2;
 
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
-  Token? get finalKeyword;
-
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
-
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
-  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
@@ -3897,9 +3889,6 @@ abstract class MixinOrAugmentationDeclaration
 
   /// Returns the right curly bracket.
   Token get rightBracket;
-
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
-  Token? get sealedKeyword;
 
   /// Returns the type parameters for the mixin, or `null` if the mixin does
   /// not have any type parameters.

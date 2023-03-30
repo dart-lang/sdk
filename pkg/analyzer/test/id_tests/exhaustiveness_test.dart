@@ -95,6 +95,11 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
           if (subtypes != expandedSubtypes && expandedSubtypes != null) {
             features[Tags.expandedSubtypes] = expandedSubtypes;
           }
+          String? order =
+              typesToText(checkingOrder(scrutineeType, keysOfInterest));
+          if (order != null) {
+            features[Tags.checkingOrder] = order;
+          }
         }
       }
       ExhaustivenessError? error = _exhaustivenessData.errors[node];
