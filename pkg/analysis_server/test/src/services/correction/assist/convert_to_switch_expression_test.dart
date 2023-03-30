@@ -53,10 +53,34 @@ void f(Color color) {
     Color.red => 'red', // Red.
     Color.blue => 'blue',
     // Not green.
-    Color.green => throw 'Green is bad',
+    Color.green =>  throw 'Green is bad',
     Color.yellow => 
       // Yellow is OK.
       'yellow'
+  });
+}
+''');
+  }
+
+  Future<void> test_argument_switchExpression_defaultCase() async {
+    await resolveTestCode('''
+void f(String s) {
+  switch (s) {
+    case 'foo':
+      print('foo');
+    case 'bar':
+      print('bar');
+    default:
+      throw 'unrecognized';
+  }
+}
+''');
+    await assertHasAssistAt('(s)', '''
+void f(String s) {
+  print(switch (s) {
+    'foo' => 'foo',
+    'bar' => 'bar',
+    _ => throw 'unrecognized'
   });
 }
 ''');
@@ -93,10 +117,34 @@ void f(Color color) {
     Color.red => 'red', // Red.
     Color.blue => 'blue',
     // Not green.
-    Color.green => throw 'Green is bad',
+    Color.green =>  throw 'Green is bad',
     Color.yellow => 
       // Yellow is OK.
       'yellow'
+  });
+}
+''');
+  }
+
+  Future<void> test_argument_switchExpression_wildcard() async {
+    await resolveTestCode('''
+void f(String s) {
+  switch (s) {
+    case 'foo':
+      print('foo');
+    case 'bar':
+      print('bar');
+    case _:
+      throw 'unrecognized';
+  }
+}
+''');
+    await assertHasAssistAt('(s)', '''
+void f(String s) {
+  print(switch (s) {
+    'foo' => 'foo',
+    'bar' => 'bar',
+    _ =>  throw 'unrecognized'
   });
 }
 ''');
@@ -149,6 +197,34 @@ String f(Color color) {
 ''');
   }
 
+  Future<void> test_assignment_switchExpression_defaultCase() async {
+    await resolveTestCode('''
+String f(String s) {
+  var name = '';
+  switch (s) {
+    case 'foo':
+      name = 'foo';
+    case 'bar':
+      name = 'bar';
+    default:
+      throw 'unrecognized';
+  }
+  return name;
+}
+''');
+    await assertHasAssistAt('(s)', '''
+String f(String s) {
+  var name = '';
+  name = switch (s) {
+    'foo' => 'foo',
+    'bar' => 'bar',
+    _ => throw 'unrecognized'
+  };
+  return name;
+}
+''');
+  }
+
   Future<void> test_assignment_switchExpression_noBreaks() async {
     await resolveTestCode('''
 enum Color {
@@ -187,6 +263,34 @@ String f(Color color) {
     Color.yellow =>
       // Yellow is OK.
       'yellow'
+  };
+  return name;
+}
+''');
+  }
+
+  Future<void> test_assignment_switchExpression_wildCardCase() async {
+    await resolveTestCode('''
+String f(String s) {
+  var name = '';
+  switch (s) {
+    case 'foo':
+      name = 'foo';
+    case 'bar':
+      name = 'bar';
+    case _:
+      throw 'unrecognized';
+  }
+  return name;
+}
+''');
+    await assertHasAssistAt('(s)', '''
+String f(String s) {
+  var name = '';
+  name = switch (s) {
+    'foo' => 'foo',
+    'bar' => 'bar',
+    _ => throw 'unrecognized'
   };
   return name;
 }
@@ -239,6 +343,76 @@ String name(Color color) {
     Color.orange => 'orange',
     Color.green => throw 'green',
     Color.yellow => 'yellow'
+  };
+}
+''');
+  }
+
+  Future<void> test_return_switchExpression_defaultCase() async {
+    await resolveTestCode('''
+enum Color {
+  red, orange, yellow, green
+}
+    
+String name(Color color) {
+  switch (color) {
+    case Color.red:
+      throw 'red!';
+    case Color.orange:
+      return 'orange';
+    case Color.green:
+      throw 'green';
+    default:
+      return 'yellow';
+  }
+}
+''');
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, orange, yellow, green
+}
+    
+String name(Color color) {
+  return switch (color) {
+    Color.red => throw 'red!',
+    Color.orange => 'orange',
+    Color.green => throw 'green',
+    _ => 'yellow'
+  };
+}
+''');
+  }
+
+  Future<void> test_return_switchExpression_wildcard() async {
+    await resolveTestCode('''
+enum Color {
+  red, orange, yellow, green
+}
+    
+String name(Color color) {
+  switch (color) {
+    case Color.red:
+      throw 'red!';
+    case Color.orange:
+      return 'orange';
+    case Color.green:
+      throw 'green';
+    case _:
+      return 'yellow';
+  }
+}
+''');
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, orange, yellow, green
+}
+    
+String name(Color color) {
+  return switch (color) {
+    Color.red => throw 'red!',
+    Color.orange => 'orange',
+    Color.green => throw 'green',
+    _ => 'yellow'
   };
 }
 ''');

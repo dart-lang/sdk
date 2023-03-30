@@ -11,6 +11,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSwitchExpression extends CorrectionProducer {
@@ -29,7 +30,7 @@ class ConvertToSwitchExpression extends CorrectionProducer {
     if (node is! SwitchStatement) return;
 
     var expression = node.expression;
-    if (!isAlwaysExhaustive(expression.staticType)) return;
+    if (!isEffectivelyExhaustive(expression.staticType, node)) return;
 
     if (isReturnSwitch(node)) {
       await convertReturnSwitchExpression(builder, node);
@@ -42,133 +43,25 @@ class ConvertToSwitchExpression extends CorrectionProducer {
 
   Future<void> convertArgumentSwitchExpression(
       ChangeBuilder builder, SwitchStatement node) async {
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${functionElement!.name}(');
-
-      var memberCount = node.members.length;
-      for (var i = 0; i < memberCount; ++i) {
-        // Sure to be a SwitchPatternCase
-        var patternCase = node.members[i] as SwitchPatternCase;
-        builder.addDeletion(
-            range.startStart(patternCase.keyword, patternCase.guardedPattern));
-        var colonRange = range.entity(patternCase.colon);
-        builder.addSimpleReplacement(colonRange, ' => ');
-
-        for (var statement in patternCase.statements) {
-          var hasComment = statement.beginToken.precedingComments != null;
-
-          if (statement is ExpressionStatement) {
-            var invocation = statement.expression;
-            if (invocation is MethodInvocation) {
-              var deletion = !hasComment
-                  ? range.startOffsetEndOffset(
-                      range.offsetBy(colonRange, 1).offset,
-                      invocation.argumentList.leftParenthesis.end)
-                  : range.startOffsetEndOffset(invocation.offset,
-                      invocation.argumentList.leftParenthesis.end);
-              builder.addDeletion(deletion);
-              builder.addDeletion(
-                  range.entity(invocation.argumentList.rightParenthesis));
-            }
-          }
-
-          if (!hasComment && statement.isThrowExpressionStatement) {
-            var deletionRange = range.startOffsetEndOffset(
-                range.offsetBy(colonRange, 1).offset, statement.offset);
-            builder.addDeletion(deletionRange);
-          }
-
-          if (statement is BreakStatement) {
-            var deletion = getBreakRange(statement);
-            builder.addDeletion(deletion);
-          } else {
-            var endToken = i < memberCount - 1 ? ',' : '';
-            builder.addSimpleReplacement(
-                range.entity(statement.endToken), endToken);
-          }
-        }
-      }
-
-      builder.addSimpleInsertion(node.end, ');');
-    });
-  }
-
-  Future<void> convertAssignmentSwitchExpression(
-      ChangeBuilder builder, SwitchStatement node) async {
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${writeElement!.name} = ');
-
-      var memberCount = node.members.length;
-      for (var i = 0; i < memberCount; ++i) {
-        // todo(pq): extract shared replacement logic
-
-        // Sure to be a SwitchPatternCase
-        var patternCase = node.members[i] as SwitchPatternCase;
-        builder.addDeletion(
-            range.startStart(patternCase.keyword, patternCase.guardedPattern));
-        var colonRange = range.entity(patternCase.colon);
-        builder.addSimpleReplacement(colonRange, ' =>');
-
-        for (var statement in patternCase.statements) {
-          if (statement is ExpressionStatement) {
-            var expression = statement.expression;
-            if (expression is AssignmentExpression) {
-              var hasComment = statement.beginToken.precedingComments != null;
-              var deletion = !hasComment
-                  ? range.startOffsetEndOffset(
-                      range.offsetBy(colonRange, 1).offset,
-                      expression.operator.end)
-                  : range.startOffsetEndOffset(expression.beginToken.offset,
-                      expression.rightHandSide.offset);
-              builder.addDeletion(deletion);
-            } else if (expression is ThrowExpression) {
-              var deletionRange = range.startOffsetEndOffset(
-                  range.offsetBy(colonRange, 1).offset, statement.offset - 1);
-              builder.addDeletion(deletionRange);
-            }
-          }
-
-          if (statement is BreakStatement) {
-            var deletion = getBreakRange(statement);
-            builder.addDeletion(deletion);
-          } else {
-            var endToken = i < memberCount - 1 ? ',' : '';
-            builder.addSimpleReplacement(
-                range.entity(statement.endToken), endToken);
-          }
-        }
-      }
-
-      builder.addSimpleInsertion(node.end, ';');
-    });
-  }
-
-  Future<void> convertReturnSwitchExpression(
-      ChangeBuilder builder, SwitchStatement node) async {
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, 'return ');
-      builder.addSimpleInsertion(node.end, ';');
-
-      var memberCount = node.members.length;
-      for (var i = 0; i < memberCount; ++i) {
-        // Sure to be a SwitchPatternCase
-        var patternCase = node.members[i] as SwitchPatternCase;
-        builder.addDeletion(
-            range.startStart(patternCase.keyword, patternCase.guardedPattern));
-        var colonRange = range.entity(patternCase.colon);
-        builder.addSimpleReplacement(colonRange, ' =>');
-
-        var statement = patternCase.statements.first;
+    void convertArgumentStatements(DartFileEditBuilder builder,
+        NodeList<Statement> statements, SourceRange colonRange,
+        {String endToken = ''}) {
+      for (var statement in statements) {
         var hasComment = statement.beginToken.precedingComments != null;
 
-        if (statement is ReturnStatement) {
-          // Return expression is sure to be non-null
-          var deletion = !hasComment
-              ? range.startOffsetEndOffset(range.offsetBy(colonRange, 1).offset,
-                  statement.expression!.offset - 1)
-              : range.startStart(
-                  statement.returnKeyword, statement.expression!);
-          builder.addDeletion(deletion);
+        if (statement is ExpressionStatement) {
+          var invocation = statement.expression;
+          if (invocation is MethodInvocation) {
+            var deletion = !hasComment
+                ? range.startOffsetEndOffset(
+                    range.offsetBy(colonRange, 1).offset,
+                    invocation.argumentList.leftParenthesis.end)
+                : range.startOffsetEndOffset(invocation.offset,
+                    invocation.argumentList.leftParenthesis.end);
+            builder.addDeletion(deletion);
+            builder.addDeletion(
+                range.entity(invocation.argumentList.rightParenthesis));
+          }
         }
 
         if (!hasComment && statement.isThrowExpressionStatement) {
@@ -177,11 +70,165 @@ class ConvertToSwitchExpression extends CorrectionProducer {
           builder.addDeletion(deletionRange);
         }
 
+        if (statement is BreakStatement) {
+          var deletion = getBreakRange(statement);
+          builder.addDeletion(deletion);
+        } else {
+          builder.addSimpleReplacement(
+              range.entity(statement.endToken), endToken);
+        }
+      }
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(node.offset, '${functionElement!.name}(');
+
+      var memberCount = node.members.length;
+      for (var i = 0; i < memberCount; ++i) {
+        var member = node.members[i];
+        if (member is SwitchDefault) {
+          convertSwitchDefault(builder, member);
+          convertArgumentStatements(
+              builder, member.statements, range.entity(member.colon));
+          continue;
+        }
+        // Sure to be a SwitchPatternCase
+        var patternCase = member as SwitchPatternCase;
+        builder.addDeletion(
+            range.startStart(patternCase.keyword, patternCase.guardedPattern));
+        var colonRange = range.entity(patternCase.colon);
+        builder.addSimpleReplacement(colonRange, ' => ');
+
         var endToken = i < memberCount - 1 ? ',' : '';
-        builder.addSimpleReplacement(
-            range.entity(statement.endToken), endToken);
+        convertArgumentStatements(builder, patternCase.statements, colonRange,
+            endToken: endToken);
+      }
+
+      builder.addSimpleInsertion(node.end, ');');
+    });
+  }
+
+  Future<void> convertAssignmentSwitchExpression(
+      ChangeBuilder builder, SwitchStatement node) async {
+    void convertAssignmentStatements(DartFileEditBuilder builder,
+        NodeList<Statement> statements, SourceRange colonRange,
+        {String endToken = ''}) {
+      for (var statement in statements) {
+        if (statement is ExpressionStatement) {
+          var expression = statement.expression;
+          if (expression is AssignmentExpression) {
+            var hasComment = statement.beginToken.precedingComments != null;
+            var deletion = !hasComment
+                ? range.startOffsetEndOffset(
+                    range.offsetBy(colonRange, 1).offset,
+                    expression.operator.end)
+                : range.startOffsetEndOffset(expression.beginToken.offset,
+                    expression.rightHandSide.offset);
+            builder.addDeletion(deletion);
+          } else if (expression is ThrowExpression) {
+            var deletionRange = range.startOffsetEndOffset(
+                range.offsetBy(colonRange, 1).offset, statement.offset - 1);
+            builder.addDeletion(deletionRange);
+          }
+        }
+
+        if (statement is BreakStatement) {
+          var deletion = getBreakRange(statement);
+          builder.addDeletion(deletion);
+        } else {
+          builder.addSimpleReplacement(
+              range.entity(statement.endToken), endToken);
+        }
+      }
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(node.offset, '${writeElement!.name} = ');
+
+      var memberCount = node.members.length;
+      for (var i = 0; i < memberCount; ++i) {
+        // todo(pq): extract shared replacement logic
+        var member = node.members[i];
+        if (member is SwitchDefault) {
+          convertSwitchDefault(builder, member);
+          convertAssignmentStatements(
+              builder, member.statements, range.entity(member.colon));
+          continue;
+        }
+
+        // Sure to be a SwitchPatternCase
+        var patternCase = member as SwitchPatternCase;
+        builder.addDeletion(
+            range.startStart(patternCase.keyword, patternCase.guardedPattern));
+        var colonRange = range.entity(patternCase.colon);
+        builder.addSimpleReplacement(colonRange, ' =>');
+
+        var endToken = i < memberCount - 1 ? ',' : '';
+        convertAssignmentStatements(builder, patternCase.statements, colonRange,
+            endToken: endToken);
+      }
+
+      builder.addSimpleInsertion(node.end, ';');
+    });
+  }
+
+  Future<void> convertReturnSwitchExpression(
+      ChangeBuilder builder, SwitchStatement node) async {
+    void convertReturnStatement(DartFileEditBuilder builder,
+        Statement statement, SourceRange colonRange,
+        {String endToken = ''}) {
+      var hasComment = statement.beginToken.precedingComments != null;
+
+      if (statement is ReturnStatement) {
+        // Return expression is sure to be non-null
+        var deletion = !hasComment
+            ? range.startOffsetEndOffset(range.offsetBy(colonRange, 1).offset,
+                statement.expression!.offset - 1)
+            : range.startStart(statement.returnKeyword, statement.expression!);
+        builder.addDeletion(deletion);
+      }
+
+      if (!hasComment && statement.isThrowExpressionStatement) {
+        var deletionRange = range.startOffsetEndOffset(
+            range.offsetBy(colonRange, 1).offset, statement.offset - 1);
+        builder.addDeletion(deletionRange);
+      }
+
+      builder.addSimpleReplacement(range.entity(statement.endToken), endToken);
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(node.offset, 'return ');
+      builder.addSimpleInsertion(node.end, ';');
+
+      var memberCount = node.members.length;
+      for (var i = 0; i < memberCount; ++i) {
+        // todo(pq): extract shared replacement logic
+        var member = node.members[i];
+        if (member is SwitchDefault) {
+          convertSwitchDefault(builder, member);
+          convertReturnStatement(
+              builder, member.statements.first, range.entity(member.colon));
+          continue;
+        }
+        // Sure to be a SwitchPatternCase
+        var patternCase = member as SwitchPatternCase;
+        builder.addDeletion(
+            range.startStart(patternCase.keyword, patternCase.guardedPattern));
+        var colonRange = range.entity(patternCase.colon);
+        builder.addSimpleReplacement(colonRange, ' =>');
+
+        var statement = patternCase.statements.first;
+        var endToken = i < memberCount - 1 ? ',' : '';
+        convertReturnStatement(builder, statement, colonRange,
+            endToken: endToken);
       }
     });
+  }
+
+  void convertSwitchDefault(DartFileEditBuilder builder, SwitchDefault member) {
+    var defaultClauseRange = range.startEnd(member.keyword, member.colon);
+    builder.addSimpleReplacement(defaultClauseRange, '_ =>');
   }
 
   SourceRange getBreakRange(BreakStatement statement) {
@@ -192,17 +239,14 @@ class ConvertToSwitchExpression extends CorrectionProducer {
     return deletion;
   }
 
-  bool isAlwaysExhaustive(DartType? type) {
-    if (type == null) return false;
-    return (typeSystem as TypeSystemImpl).isAlwaysExhaustive(type);
-  }
-
   // todo(pq): refactor the `is` checks to a single `getSwitchKind`
   // that only looks at members once
   // see: https://dart-review.googlesource.com/c/sdk/+/287904
   bool isArgumentSwitch(SwitchStatement node) {
     for (var member in node.members) {
-      if (member is! SwitchPatternCase) return false;
+      if (member is! SwitchPatternCase && member is! SwitchDefault) {
+        return false;
+      }
       if (member.labels.isNotEmpty) return false;
       var statements = member.statements;
       if (statements.length == 1) {
@@ -231,7 +275,9 @@ class ConvertToSwitchExpression extends CorrectionProducer {
 
   bool isAssignmentSwitch(SwitchStatement node) {
     for (var member in node.members) {
-      if (member is! SwitchPatternCase) return false;
+      if (member is! SwitchPatternCase && member is! SwitchDefault) {
+        return false;
+      }
       if (member.labels.isNotEmpty) return false;
       var statements = member.statements;
       if (statements.length == 1) {
@@ -260,9 +306,22 @@ class ConvertToSwitchExpression extends CorrectionProducer {
     return writeElement != null;
   }
 
+  bool isEffectivelyExhaustive(DartType? type, SwitchStatement node) {
+    if (type == null) return false;
+    if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(type)) return true;
+    var last = node.members.last;
+    if (last is SwitchPatternCase) {
+      var pattern = last.guardedPattern.pattern;
+      return pattern is WildcardPattern;
+    }
+    return last is SwitchDefault;
+  }
+
   bool isReturnSwitch(SwitchStatement node) {
     for (var member in node.members) {
-      if (member is! SwitchPatternCase) return false;
+      if (member is! SwitchPatternCase && member is! SwitchDefault) {
+        return false;
+      }
       if (member.labels.isNotEmpty) return false;
       var statements = member.statements;
       if (statements.length != 1) return false;

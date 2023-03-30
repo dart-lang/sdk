@@ -406,6 +406,9 @@ class AnnotationVerifier {
     if (target is ClassDeclaration) {
       return kinds.contains(TargetKind.classType) ||
           kinds.contains(TargetKind.type);
+    } else if (target is ClassTypeAlias) {
+      return kinds.contains(TargetKind.classType) ||
+          kinds.contains(TargetKind.type);
     } else if (target is Directive) {
       return (target.parent as CompilationUnit).directives.first == target &&
           kinds.contains(TargetKind.library);
