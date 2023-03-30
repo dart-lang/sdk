@@ -530,6 +530,12 @@ static InstancePtr CreateTypeMirror(const AbstractType& type) {
   if (type.IsFunctionType()) {
     return CreateFunctionTypeMirror(type);
   }
+  if (type.IsRecordType()) {
+    const Class& cls =
+        Class::Handle(IsolateGroup::Current()->object_store()->record_class());
+    return CreateClassMirror(cls, AbstractType::Handle(cls.DeclarationType()),
+                             Bool::False(), Object::null_instance());
+  }
   if (type.HasTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
