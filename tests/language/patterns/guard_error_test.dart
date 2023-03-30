@@ -8,63 +8,86 @@ main() {
   // Error to assign to pattern variables in guard.
   switch (false) {
     case bool x when x = true:
+      //             ^
+      // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
       //               ^
-      // [analyzer] unspecified
       // [cfe] unspecified
       print(x);
     default:
   }
 
   print(switch (false) {
-    case bool x when x = true => x;
-      //               ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    bool x when x = true => x,
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+    //               ^
+    // [cfe] unspecified
+    _ => false
   });
 
   if (false case bool x when x = true) {
+    //                       ^
+    // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
     //                         ^
-    // [analyzer] unspecified
     // [cfe] unspecified
     print(x);
   }
 
   print([
     if (false case bool x when x = true)
+      //                       ^
+      // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
       //                         ^
-      // [analyzer] unspecified
       // [cfe] unspecified
       x
   ]);
 
   // Error even if assignment is nested inside closure.
   switch (false) {
-    case var x when () { x = true; }():
+    case var x
+        when () {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+        }():
       //                  ^
-      // [analyzer] unspecified
       // [cfe] unspecified
       print(x);
     default:
   }
 
   print(switch (false) {
-    case var x when () { x = true; }() => x;
-      //                  ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    var x
+        when (() {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+        })() =>
+      x,
+    //                  ^
+    // [cfe] unspecified
+    _ => false
   });
 
-  if (false case var x when () { x = true; }()) {
+  if (false case var x
+      when (() {
+        return x = true;
+        //     ^
+        // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+      })()) {
     //                            ^
-    // [analyzer] unspecified
     // [cfe] unspecified
     print(x);
   }
 
   print([
-    if (false case var x when () { x = true; }())
+    if (false case var x
+        when (() {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+        })())
       //                          ^
-      // [analyzer] unspecified
       // [cfe] unspecified
       x
   ]);
