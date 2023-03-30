@@ -21,8 +21,8 @@ static method test(dynamic x) → dynamic {
     late final synthesized dynamic #0#7 = ##0#7#initializer(){() → dynamic};
     dynamic #t1;
     {
-      lowered core::int y#case#0;
-      lowered core::int y#case#1;
+      lowered hoisted core::int y#case#0;
+      lowered hoisted core::int y#case#1;
       if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y#case#0 = #0#6{core::int} in true)) && (() → core::bool {
         setToOne = () → void {
           y#case#0 = 1;
@@ -42,7 +42,7 @@ static method test(dynamic x) → dynamic {
       }
     }
     {
-      core::double y;
+      hoisted core::double y;
       if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t6 = y = #0#6{core::double} in true)) && (() → core::bool {
         setToOne = () → void {
           y = 1.0;

@@ -734,6 +734,7 @@ class MatchingExpressionVisitor
     }
     VariableDeclaration target =
         matchingCache.getUnaliasedVariable(node.variable);
+    target.isHoisted = true;
     CacheableExpression valueExpression =
         new PromotedCacheableExpression(matchedExpression, target.type);
     return DelayedAndExpression.merge(

@@ -7,7 +7,7 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     {
-      final core::int y;
+      final hoisted core::int y;
       if(!(#0#0 == null) ?{core::bool} #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#0{core::int} in true) : false) {
         {
           break #L1;

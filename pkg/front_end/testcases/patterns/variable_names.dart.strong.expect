@@ -29,11 +29,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   dynamic qux;
   dynamic quux;
   {
-    core::int foo;
-    core::int bar;
-    core::int baz;
-    core::double boz;
-    core::int foobar;
+    hoisted core::int foo;
+    hoisted core::int bar;
+    hoisted core::int baz;
+    hoisted core::double boz;
+    hoisted core::int foobar;
     final synthesized dynamic #0#0 = x;
     late final synthesized core::int? #0#2 = #0#0{self::A}.{self::A::foo}{core::int?};
     late final synthesized core::int? #0#5 = #0#0{self::A}.{self::A::baz}{core::int?};
@@ -42,11 +42,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
       return 0;
     }
     else {
-      dynamic foo;
-      dynamic bar;
-      dynamic baz;
-      core::double boz;
-      dynamic foobar;
+      hoisted dynamic foo;
+      hoisted dynamic bar;
+      hoisted dynamic baz;
+      hoisted core::double boz;
+      hoisted dynamic foobar;
       final synthesized dynamic #1#0 = x;
       late final synthesized core::Object? #1#2 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?};
       late final synthesized core::Object? #1#5 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.baz{core::Object?};

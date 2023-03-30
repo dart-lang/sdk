@@ -52,7 +52,7 @@ static method testFor() → dynamic {
     core::print(i);
   }
   {
-    final core::int i;
+    final hoisted core::int i;
     {
       final synthesized dynamic #0#0 = 0;
       if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t1 = i = #0#0{core::int} in true)))
@@ -66,8 +66,8 @@ static method testFor() → dynamic {
     }
   }
   {
-    final core::int i;
-    core::String s;
+    final hoisted core::int i;
+    hoisted core::String s;
     {
       final synthesized dynamic #1#0 = (0, "");
       function ##1#1#initializer() → core::int
@@ -86,8 +86,8 @@ static method testFor() → dynamic {
     }
   }
   {
-    core::int i;
-    final core::String s;
+    hoisted core::int i;
+    final hoisted core::String s;
     {
       final synthesized dynamic #2#0 = (0, "");
       function ##2#1#initializer() → core::int
@@ -114,7 +114,7 @@ static method testFor() → dynamic {
   } =>#t11;
   core::List<core::int> l2 = block {
     final core::List<core::int> #t12 = core::_GrowableList::•<core::int>(0);
-    final core::int i;
+    final hoisted core::int i;
     {
       final synthesized dynamic #3#0 = 0;
       if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t13 = i = #3#0{core::int} in true)))
@@ -128,8 +128,8 @@ static method testFor() → dynamic {
   } =>#t12;
   core::List<core::int> l3 = block {
     final core::List<core::int> #t15 = core::_GrowableList::•<core::int>(0);
-    final core::int i;
-    core::String s;
+    final hoisted core::int i;
+    hoisted core::String s;
     {
       final synthesized dynamic #4#0 = (0, "");
       function ##4#1#initializer() → core::int
@@ -148,8 +148,8 @@ static method testFor() → dynamic {
   } =>#t15;
   core::List<core::int> l4 = block {
     final core::List<core::int> #t20 = core::_GrowableList::•<core::int>(0);
-    core::int i;
-    final core::String s;
+    hoisted core::int i;
+    final hoisted core::String s;
     {
       final synthesized dynamic #5#0 = (0, "");
       function ##5#1#initializer() → core::int
@@ -184,7 +184,7 @@ static method testForIn() → dynamic {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int #t25 = :sync-for-iterator.{core::Iterator::current}{core::int};
       {
-        final core::int i;
+        final hoisted core::int i;
         {
           final synthesized dynamic #0#0 = #t25;
           if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t26 = i = #0#0{core::int} in true)))
@@ -201,8 +201,8 @@ static method testForIn() → dynamic {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final(core::int, core::String) #t27 = :sync-for-iterator.{core::Iterator::current}{(core::int, core::String)};
       {
-        final core::int i;
-        core::String s;
+        final hoisted core::int i;
+        hoisted core::String s;
         {
           final synthesized dynamic #1#0 = #t27;
           function ##1#1#initializer() → core::int
@@ -225,8 +225,8 @@ static method testForIn() → dynamic {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final(core::int, core::String) #t30 = :sync-for-iterator.{core::Iterator::current}{(core::int, core::String)};
       {
-        core::int i;
-        final core::String s;
+        hoisted core::int i;
+        final hoisted core::String s;
         {
           final synthesized dynamic #2#0 = #t30;
           function ##2#1#initializer() → core::int
@@ -261,7 +261,7 @@ static method testForIn() → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int #t35 = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
-          final core::int i;
+          final hoisted core::int i;
           {
             final synthesized dynamic #3#0 = #t35;
             if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t36 = i = #3#0{core::int} in true)))
@@ -281,8 +281,8 @@ static method testForIn() → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final(core::int, core::String) #t38 = :sync-for-iterator.{core::Iterator::current}{(core::int, core::String)};
         {
-          final core::int i;
-          core::String s;
+          final hoisted core::int i;
+          hoisted core::String s;
           {
             final synthesized dynamic #4#0 = #t38;
             function ##4#1#initializer() → core::int
@@ -308,8 +308,8 @@ static method testForIn() → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final(core::int, core::String) #t42 = :sync-for-iterator.{core::Iterator::current}{(core::int, core::String)};
         {
-          core::int i;
-          final core::String s;
+          hoisted core::int i;
+          final hoisted core::String s;
           {
             final synthesized dynamic #5#0 = #t42;
             function ##5#1#initializer() → core::int

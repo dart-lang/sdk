@@ -9,7 +9,7 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
   return block {
     final core::List<self::left::A%> #t1 = <self::left::A%>[];
     for (final(self::left::A%, self::left::B%) #t2 in pairs) {
-      self::left::A% a;
+      hoisted self::left::A% a;
       {
         final synthesized dynamic #0#0 = #t2;
         if(!(let final dynamic #t3 = a = #0#0{(self::left::A%, self::left::B%)}.$1{self::left::A%} in true))

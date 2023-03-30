@@ -219,24 +219,24 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
         }
       }
       {
-        dynamic a1;
-        final dynamic b1;
+        hoisted dynamic a1;
+        final hoisted dynamic b1;
         if(#0#3 && #0#5 && (let final dynamic #t2 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t3 = b1 = #0#6 in true)) {
           #t1 = "";
           break #L1;
         }
       }
       {
-        dynamic a2;
-        final dynamic b2;
+        hoisted dynamic a2;
+        final hoisted dynamic b2;
         if(#0#3 && #0#15 && (let final dynamic #t4 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t5 = b2 = #0#16 in true)) {
           #t1 = "";
           break #L1;
         }
       }
       {
-        dynamic a3;
-        final dynamic b3;
+        hoisted dynamic a3;
+        final hoisted dynamic b3;
         if(#0#3 && #0#18 && (let final dynamic #t6 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t7 = b3 = #0#19 in true)) {
           #t1 = "";
           break #L1;
@@ -298,10 +298,10 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
       }
     }
     {
-      dynamic a1;
-      final dynamic b1;
-      dynamic a2;
-      final dynamic b2;
+      hoisted dynamic a1;
+      final hoisted dynamic b1;
+      hoisted dynamic a2;
+      final hoisted dynamic b2;
       if(#0#3 && #0#5 && (let final dynamic #t8 = a1 = #0#6 in true) && #0#5 && (let final dynamic #t9 = b1 = #0#6 in true) || #0#3 && #0#15 && (let final dynamic #t10 = a2 = #0#16 in true) && #0#15 && (let final dynamic #t11 = b2 = #0#16 in true)) {
         {
           break #L2;
@@ -309,8 +309,8 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
       }
     }
     {
-      dynamic a3;
-      final dynamic b3;
+      hoisted dynamic a3;
+      final hoisted dynamic b3;
       if(#0#3 && #0#18 && (let final dynamic #t12 = a3 = #0#19 in true) && #0#18 && (let final dynamic #t13 = b3 = #0#19 in true)) {
         {
           break #L2;
@@ -343,8 +343,8 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     }
   }
   {
-    dynamic a1;
-    final dynamic b1;
+    hoisted dynamic a1;
+    final hoisted dynamic b1;
     final synthesized core::Map<dynamic, dynamic> #2#0 = map;
     function ##2#5#initializer() → core::bool
       return #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
@@ -356,8 +356,8 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     }
   }
   {
-    dynamic a2;
-    final dynamic b2;
+    hoisted dynamic a2;
+    final hoisted dynamic b2;
     final synthesized core::Map<dynamic, dynamic> #3#0 = map;
     function ##3#5#initializer() → core::bool
       return #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
@@ -369,8 +369,8 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     }
   }
   {
-    dynamic a3;
-    final dynamic b3;
+    hoisted dynamic a3;
+    final hoisted dynamic b3;
     final synthesized core::Map<dynamic, dynamic> #4#0 = map;
     function ##4#5#initializer() → core::bool
       return #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
@@ -383,8 +383,8 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
   }
 }
 static method test() → dynamic {
-  core::int a;
-  core::int b;
+  hoisted core::int a;
+  hoisted core::int b;
   {
     final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
     function ##0#5#initializer() → core::bool
@@ -396,8 +396,8 @@ static method test() → dynamic {
     if(!(#0#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#5 && (let final core::int #t20 = a = #0#6{core::int} in true) && #0#5 && (let final core::int #t21 = b = #0#6{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  core::int c;
-  core::int d;
+  hoisted core::int c;
+  hoisted core::int d;
   {
     final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
     function ##1#5#initializer() → core::bool
@@ -409,8 +409,8 @@ static method test() → dynamic {
     if(!(#1#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#5 && (let final core::int #t22 = c = #1#6{core::int} in true) && #1#5 && (let final core::int #t23 = d = #1#6{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  final core::int a1;
-  final core::int b1;
+  final hoisted core::int a1;
+  final hoisted core::int b1;
   {
     final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
     function ##2#5#initializer() → core::bool
@@ -422,8 +422,8 @@ static method test() → dynamic {
     if(!(#2#0{core::Map<self::C, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #2#5 && (let final core::int #t24 = a1 = #2#6{core::int} in true) && #2#5 && (let final core::int #t25 = b1 = #2#6{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  final core::int a2;
-  final core::int b2;
+  final hoisted core::int a2;
+  final hoisted core::int b2;
   {
     final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
     function ##3#5#initializer() → core::bool
@@ -435,8 +435,8 @@ static method test() → dynamic {
     if(!(#3#0{core::Map<core::double, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #3#5 && (let final core::int #t26 = a2 = #3#6{core::int} in true) && #3#5 && (let final core::int #t27 = b2 = #3#6{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  final core::int a3;
-  final core::int b3;
+  final hoisted core::int a3;
+  final hoisted core::int b3;
   {
     final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
     function ##4#5#initializer() → core::bool

@@ -6,8 +6,8 @@ import "dart:collection" as col;
 static method test1(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
     final core::Set<dynamic> #t1 = col::LinkedHashSet::•<dynamic>();
-    core::int i;
-    core::int n;
+    hoisted core::int i;
+    hoisted core::int n;
     {
       final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};

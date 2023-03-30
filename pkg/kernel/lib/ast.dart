@@ -11187,6 +11187,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isRequired = false,
       bool isLowered = false,
       bool isSynthesized = false,
+      bool isHoisted = false,
       bool hasDeclaredInitializer = false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
@@ -11203,6 +11204,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isLowered = isLowered;
       this.hasDeclaredInitializer = hasDeclaredInitializer;
       this.isSynthesized = isSynthesized;
+      this.isHoisted = isHoisted;
     }
     assert(_name != null || this.isSynthesized,
         "Only synthesized variables can have no name.");
@@ -11252,6 +11254,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagCovariantByDeclaration = 1 << 7;
   static const int FlagLowered = 1 << 8;
   static const int FlagSynthesized = 1 << 9;
+  static const int FlagHoisted = 1 << 10;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -11299,6 +11302,14 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// The name of a variable can only be omitted if the variable is synthesized.
   /// Otherwise, its name is as provided in the source code.
   bool get isSynthesized => flags & FlagSynthesized != 0;
+
+  /// Whether the declaration of this variable is has been moved to an earlier
+  /// source location.
+  ///
+  /// This is for instance the case for variables declared in a pattern, where
+  /// the lowering requires the variable to be declared before the expression
+  /// that performs that matching in which its initialization occurs.
+  bool get isHoisted => flags & FlagHoisted != 0;
 
   /// Whether the variable has an initializer, either by declaration or copied
   /// from an original declaration.
@@ -11365,6 +11376,10 @@ class VariableDeclaration extends Statement implements Annotatable {
     assert(
         value || _name != null, "Only synthesized variables can have no name.");
     flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
+  }
+
+  void set isHoisted(bool value) {
+    flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
   }
 
   void set hasDeclaredInitializer(bool value) {
