@@ -9288,43 +9288,46 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    debugEvent('AssignedVariablePattern');
+
+    reportIfNotEnabled(
+        libraryFeatures.patterns, variable.charOffset, variable.charCount);
+    assert(variable.lexeme != '_');
+    Pattern pattern;
+    String name = variable.lexeme;
+    Expression variableUse = toValue(scopeLookup(scope, name, variable));
+    if (variableUse is VariableGet) {
+      pattern = forest.createAssignedVariablePattern(
+          variable.charOffset, variableUse.variable);
+    } else {
+      addProblem(fasta.messagePatternAssignmentNotLocalVariable,
+          variable.charOffset, variable.charCount);
+      // Recover by using [WildcardPattern] instead.
+      pattern = forest.createWildcardPattern(variable.charOffset, null);
+    }
+    push(pattern);
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
-    debugEvent('VariablePattern');
+    debugEvent('DeclaredVariablePattern');
     assert(checkState(keyword ?? variable, [
       ValueKinds.TypeBuilderOrNull,
     ]));
 
     reportIfNotEnabled(
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
+    assert(variable.lexeme != '_');
     TypeBuilder? type = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
     Pattern pattern;
-    if (variable.lexeme == "_") {
-      pattern = forest.createWildcardPattern(variable.charOffset, patternType);
-    } else if (inAssignmentPattern) {
-      String name = variable.lexeme;
-      if (keyword != null || type != null) {
-        pattern = forest.createInvalidPattern(
-            buildProblem(
-                fasta.templatePatternAssignmentDeclaresVariable
-                    .withArguments(name),
-                variable.charOffset,
-                variable.charCount),
-            declaredVariables: const []);
-      } else {
-        Expression variableUse = toValue(scopeLookup(scope, name, variable));
-        if (variableUse is VariableGet) {
-          pattern = forest.createAssignedVariablePattern(
-              variable.charOffset, variableUse.variable);
-        } else {
-          addProblem(fasta.messagePatternAssignmentNotLocalVariable,
-              variable.charOffset, variable.charCount);
-          // Recover by using [WildcardPattern] instead.
-          pattern =
-              forest.createWildcardPattern(variable.charOffset, patternType);
-        }
-      }
+    if (inAssignmentPattern) {
+      // Error has already been reported.
+      pattern = forest.createInvalidPattern(
+          new InvalidExpression('declared variable pattern in assignment'),
+          declaredVariables: const []);
     } else {
       VariableDeclaration declaredVariable = forest.createVariableDeclaration(
           variable.charOffset, variable.lexeme,
@@ -9335,6 +9338,21 @@ class BodyBuilder extends StackListenerImpl
           variable.charOffset, patternType, declaredVariable);
     }
     push(pattern);
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    debugEvent('WildcardPattern');
+    assert(checkState(keyword ?? wildcard, [
+      ValueKinds.TypeBuilderOrNull,
+    ]));
+
+    reportIfNotEnabled(
+        libraryFeatures.patterns, wildcard.charOffset, wildcard.charCount);
+    TypeBuilder? type = pop(NullValues.TypeBuilder) as TypeBuilder?;
+    DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
+    assert(wildcard.lexeme == '_');
+    push(forest.createWildcardPattern(wildcard.charOffset, patternType));
   }
 
   @override

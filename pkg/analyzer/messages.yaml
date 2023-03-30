@@ -17067,39 +17067,6 @@ CompileTimeErrorCode:
         void getValues() {}
       }
       ```
-  VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
-    problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
-    correctionMessage: Try removing the keyword.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a variable pattern is used
-      within a declaration context.
-
-      #### Example
-
-      The following code produces this diagnostic because the variable patterns
-      in the record pattern are in a declaration context:
-
-      ```dart
-      void f((int, int) r) {
-        var ([!var!] x, y) = r;
-        print(x + y);
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the `var` or `final` keyword(s) within the variable pattern:
-
-      ```dart
-      void f((int, int) r) {
-        var (x, y) = r;
-        print(x + y);
-      }
-      ```
   VARIABLE_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a const variable of type '{1}'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"

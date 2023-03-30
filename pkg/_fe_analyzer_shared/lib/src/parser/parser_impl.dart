@@ -9815,12 +9815,15 @@ class Parser {
     return token;
   }
 
-  /// Parses variable pattern starting after [token].  [typeInfo] is information
-  /// about the type appearing after [token], if any.
+  /// Parses variable pattern, or an identifier pattern that represents a
+  /// variable, starting after [token].  [typeInfo] is information about the
+  /// type appearing after [token], if any.
   ///
-  /// variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
+  /// variablePattern   ::= ( 'var' | 'final' | 'final'? type ) identifier
+  /// identifierPattern ::= identifier
   Token parseVariablePattern(Token token, PatternContext patternContext,
       {TypeInfo typeInfo = noType}) {
+    bool isBareIdentifier = false;
     Token? keyword;
     if (typeInfo != noType) {
       token = typeInfo.parseType(token, this);
@@ -9835,8 +9838,7 @@ class Parser {
         typeInfo = computeVariablePatternType(token, nextIsParen);
         token = typeInfo.parseType(token, this);
       } else {
-        // Bare identifier pattern
-        listener.handleNoType(token);
+        isBareIdentifier = true;
       }
     }
     Token next = token.next!;
@@ -9847,8 +9849,46 @@ class Parser {
       token = insertSyntheticIdentifier(
           token, IdentifierContext.localVariableDeclaration);
     }
-    listener.handleVariablePattern(keyword, token,
-        inAssignmentPattern: patternContext == PatternContext.assignment);
+    String variableName = token.lexeme;
+    switch (patternContext) {
+      case PatternContext.declaration:
+        // It is a compile-time error if a variable pattern in a declaration
+        // context is marked with var or final.
+        if (keyword != null) {
+          reportRecoverableError(
+              keyword, codes.messageVariablePatternKeywordInDeclarationContext);
+        }
+        break;
+      case PatternContext.matching:
+        // All forms of variable patterns are valid in a matching context.
+        break;
+      case PatternContext.assignment:
+        // It is a compile-time error if a variable pattern appears in an
+        // assignment context.  However the spec doesn't consider a bare
+        // identifier to be a variable pattern (it's an "identifier pattern").
+        if (!isBareIdentifier) {
+          reportRecoverableError(
+              token,
+              codes.templatePatternAssignmentDeclaresVariable
+                  .withArguments(variableName));
+        }
+        break;
+    }
+    bool inAssignmentPattern = patternContext == PatternContext.assignment;
+    if (variableName == '_') {
+      if (isBareIdentifier) {
+        listener.handleNoType(token);
+      }
+      listener.handleWildcardPattern(keyword, token);
+    } else if (inAssignmentPattern && isBareIdentifier) {
+      listener.handleAssignedVariablePattern(token);
+    } else {
+      if (isBareIdentifier) {
+        listener.handleNoType(token);
+      }
+      listener.handleDeclaredVariablePattern(keyword, token,
+          inAssignmentPattern: inAssignmentPattern);
+    }
     return token;
   }
 

@@ -2,6 +2,36 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:55:14: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {c1: var a1, c2: final b1} = {c2: 2};
+//              ^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:55:26: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {c1: var a1, c2: final b1} = {c2: 2};
+//                          ^^^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:56:16: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {3.14: var a2, 3.14: final b2} = {3.14: 1};
+//                ^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:56:30: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {3.14: var a2, 3.14: final b2} = {3.14: 1};
+//                              ^^^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:57:15: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {"x": var a3, "x": final b3} = {"x": 1};
+//               ^^^
+//
+// pkg/front_end/testcases/patterns/identical_map_keys.dart:57:28: Error: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+// Try removing the keyword.
+//   final {"x": var a3, "x": final b3} = {"x": 1};
+//                            ^^^^^
+//
 // pkg/front_end/testcases/patterns/identical_map_keys.dart:16:26: Error: Two keys in a map pattern can't be equal.
 // Change or remove the duplicate key.
 //     {const C(): 1, const C(): 2} => "",

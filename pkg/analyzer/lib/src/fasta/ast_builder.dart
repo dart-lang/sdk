@@ -32,8 +32,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateExtraneousModifier,
-        templateInternalProblemUnhandled,
-        templatePatternAssignmentDeclaresVariable;
+        templateInternalProblemUnhandled;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -3612,6 +3611,18 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleAssignedVariablePattern(Token variable) {
+    debugEvent('AssignedVariablePattern');
+    assert(_featureSet.isEnabled(Feature.patterns));
+    assert(variable.lexeme != '_');
+    push(
+      AssignedVariablePatternImpl(
+        name: variable,
+      ),
+    );
+  }
+
+  @override
   void handleAssignmentExpression(Token token) {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
@@ -3916,6 +3927,22 @@ class AstBuilder extends StackListener {
         continueKeyword: continueKeyword,
         label: label,
         semicolon: semicolon,
+      ),
+    );
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
+    debugEvent('DeclaredVariablePattern');
+    assert(_featureSet.isEnabled(Feature.patterns));
+    assert(variable.lexeme != '_');
+    var type = pop() as TypeAnnotationImpl?;
+    push(
+      DeclaredVariablePatternImpl(
+        keyword: keyword,
+        type: type,
+        name: variable,
       ),
     );
   }
@@ -5450,52 +5477,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
-      {required bool inAssignmentPattern}) {
-    debugEvent('VariablePattern');
-    if (!_featureSet.isEnabled(Feature.patterns)) {
-      // TODO(paulberry): report the appropriate error
-      throw UnimplementedError('Patterns not enabled');
-    }
-    var type = pop() as TypeAnnotationImpl?;
-    if (inAssignmentPattern && (type != null || keyword != null)) {
-      // TODO(paulberry): Consider generating this error in the parser
-      // This error is also reported in the body builder
-      handleRecoverableError(
-          templatePatternAssignmentDeclaresVariable
-              .withArguments(variable.lexeme),
-          variable,
-          variable);
-      // To ensure that none of the tokens are dropped from the AST, don't build
-      // an `AssignedVariablePatternImpl`.
-      inAssignmentPattern = false;
-    }
-    if (variable.lexeme == '_') {
-      push(
-        WildcardPatternImpl(
-          keyword: keyword,
-          type: type,
-          name: variable,
-        ),
-      );
-    } else if (inAssignmentPattern) {
-      push(
-        AssignedVariablePatternImpl(
-          name: variable,
-        ),
-      );
-    } else {
-      push(
-        DeclaredVariablePatternImpl(
-          keyword: keyword,
-          type: type,
-          name: variable,
-        ),
-      );
-    }
-  }
-
-  @override
   void handleVoidKeyword(Token voidKeyword) {
     assert(optional('void', voidKeyword));
     debugEvent("VoidKeyword");
@@ -5518,6 +5499,21 @@ class AstBuilder extends StackListener {
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     push(arguments);
     handleType(voidKeyword, null);
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    debugEvent('WildcardPattern');
+    assert(_featureSet.isEnabled(Feature.patterns));
+    assert(wildcard.lexeme == '_');
+    var type = pop() as TypeAnnotationImpl?;
+    push(
+      WildcardPatternImpl(
+        keyword: keyword,
+        type: type,
+        name: wildcard,
+      ),
+    );
   }
 
   @override

@@ -163,6 +163,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.FINAL_MIXIN,
   ParserErrorCode.INTERFACE_MIXIN,
   ParserErrorCode.SEALED_MIXIN,
+  ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1730,6 +1731,16 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode UNEXPECTED_TOKENS = ParserErrorCode(
     'UNEXPECTED_TOKENS',
     "Unexpected tokens.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT =
+      ParserErrorCode(
+    'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+    "Variable patterns in declaration context can't specify 'var' or 'final' "
+        "keyword.",
+    correctionMessage: "Try removing the keyword.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode VAR_AND_TYPE = ParserErrorCode(

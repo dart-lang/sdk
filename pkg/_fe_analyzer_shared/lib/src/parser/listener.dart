@@ -1438,16 +1438,35 @@ class Listener implements UnescapeErrorListener {
     logEvent('NullCheckPattern');
   }
 
-  /// Called after the parser has consumed a variable pattern, consisting of an
-  /// optional `var` or `final` keyword, an optional type annotation, and a
-  /// variable name identifier.
+  /// Called after the parser has consumed an assigned variable pattern,
+  /// consisting of a variable name identifier (other than `_`).
+  ///
+  /// This method will only be called for a variable pattern that is part of a
+  /// `patternAssignment` (and hence should refer to a previously declared
+  /// variable rather than declaring a fresh one).
+  void handleAssignedVariablePattern(Token variable) {
+    logEvent('AssignedVariablePattern');
+  }
+
+  /// Called after the parser has consumed a declared variable pattern,
+  /// consisting of an optional `var` or `final` keyword, an optional type
+  /// annotation, and a variable name identifier (other than `_`).
   ///
   /// The flag [inAssignmentPattern] indicates whether this variable pattern is
-  /// part of a `patternAssignment` (and hence should refer to a previously
-  /// declared variable rather than declaring a fresh one).
-  void handleVariablePattern(Token? keyword, Token variable,
+  /// part of a `patternAssignment`.  If this is `true`, it indicates that the
+  /// parser has recovered from an error (since declared variable patterns are
+  /// not allowed inside a `patternAssignment`).  The error has already been
+  /// reported.
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
-    logEvent('VariablePattern');
+    logEvent('DeclaredVariablePattern');
+  }
+
+  /// Called after the parser has consumed a wildcard pattern, consisting of an
+  /// optional `var` or `final` keyword, an optional type annotation, and the
+  /// identifier `_`.
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    logEvent('WildcardPattern');
   }
 
   void handleNoName(Token token) {

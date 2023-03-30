@@ -2098,14 +2098,27 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    seen(variable);
+    doPrint('handleAssignedVariablePattern(' '$variable)');
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
     seen(keyword);
     seen(variable);
-    doPrint('handleVariablePattern('
+    doPrint('handleDeclaredVariablePattern('
         '$keyword, '
         '$variable, '
         '$inAssignmentPattern)');
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    seen(keyword);
+    seen(wildcard);
+    doPrint('handleWildcardPattern(' '$keyword, ' '$wildcard)');
   }
 
   @override

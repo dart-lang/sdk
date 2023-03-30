@@ -13025,6 +13025,18 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeVariablePatternKeywordInDeclarationContext =
+    messageVariablePatternKeywordInDeclarationContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageVariablePatternKeywordInDeclarationContext =
+    const MessageCode("VariablePatternKeywordInDeclarationContext",
+        index: 149,
+        problemMessage:
+            r"""Variable patterns in declaration context can't specify 'var' or 'final' keyword.""",
+        correctionMessage: r"""Try removing the keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateVariablePatternTypeMismatchInSwitchHeads =
     const Template<Message Function(String name)>(

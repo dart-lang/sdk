@@ -2040,8 +2040,18 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    _unsupported();
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
+    _unsupported();
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
     _unsupported();
   }
 

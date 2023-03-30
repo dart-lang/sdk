@@ -6676,6 +6676,48 @@ PatternAssignmentNotLocalVariable:
       [global] = x;
     }
 
+VariablePatternKeywordInDeclarationContext:
+  problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+  correctionMessage: Try removing the keyword.
+  analyzerCode: ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT
+  index: 149
+  experiments: patterns
+  comment: No parameters.
+  hasPublishedDocs: true
+  script: |
+    void f((int, int) r) {
+      var (var x, y) = r;
+      print(x + y);
+    }
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a variable pattern is used
+    within a declaration context.
+
+    #### Example
+
+    The following code produces this diagnostic because the variable patterns
+    in the record pattern are in a declaration context:
+
+    ```dart
+    void f((int, int) r) {
+      var ([!var!] x, y) = r;
+      print(x + y);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `var` or `final` keyword(s) within the variable pattern:
+
+    ```dart
+    void f((int, int) r) {
+      var (x, y) = r;
+      print(x + y);
+    }
+    ```
+
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 

@@ -1922,12 +1922,28 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    AssignedVariablePatternHandle data = new AssignedVariablePatternHandle(
+        ParserAstType.HANDLE,
+        variable: variable);
+    seen(data);
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
-    VariablePatternHandle data = new VariablePatternHandle(ParserAstType.HANDLE,
+    DeclaredVariablePatternHandle data = new DeclaredVariablePatternHandle(
+        ParserAstType.HANDLE,
         keyword: keyword,
         variable: variable,
         inAssignmentPattern: inAssignmentPattern);
+    seen(data);
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    WildcardPatternHandle data = new WildcardPatternHandle(ParserAstType.HANDLE,
+        keyword: keyword, wildcard: wildcard);
     seen(data);
   }
 
@@ -6420,20 +6436,47 @@ class NullCheckPatternHandle extends ParserAstNode {
       };
 }
 
-class VariablePatternHandle extends ParserAstNode {
+class AssignedVariablePatternHandle extends ParserAstNode {
+  final Token variable;
+
+  AssignedVariablePatternHandle(ParserAstType type, {required this.variable})
+      : super("AssignedVariablePattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "variable": variable,
+      };
+}
+
+class DeclaredVariablePatternHandle extends ParserAstNode {
   final Token? keyword;
   final Token variable;
   final bool inAssignmentPattern;
 
-  VariablePatternHandle(ParserAstType type,
+  DeclaredVariablePatternHandle(ParserAstType type,
       {this.keyword, required this.variable, required this.inAssignmentPattern})
-      : super("VariablePattern", type);
+      : super("DeclaredVariablePattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "keyword": keyword,
         "variable": variable,
         "inAssignmentPattern": inAssignmentPattern,
+      };
+}
+
+class WildcardPatternHandle extends ParserAstNode {
+  final Token? keyword;
+  final Token wildcard;
+
+  WildcardPatternHandle(ParserAstType type,
+      {this.keyword, required this.wildcard})
+      : super("WildcardPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "keyword": keyword,
+        "wildcard": wildcard,
       };
 }
 
