@@ -590,6 +590,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact? artifact) {
     final filename = artifact!.filename;
+    final args = testFile.dartOptions;
     return [
       '--experimental-wasm-gc',
       '--experimental-wasm-stack-switching',
@@ -600,6 +601,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       filename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
+      if (args.isNotEmpty) '--',
+      ...args,
     ];
   }
 }
