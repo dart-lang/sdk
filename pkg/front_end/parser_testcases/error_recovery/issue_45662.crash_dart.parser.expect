@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+class A {
+List<List<List<int.*synthetic*>>> p;
+}
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken].[SimpleToken][SyntheticStringToken]>[SimpleToken]>[SimpleToken]>[SimpleToken] p[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

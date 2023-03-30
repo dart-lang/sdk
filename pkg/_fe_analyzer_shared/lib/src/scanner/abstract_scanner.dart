@@ -390,8 +390,9 @@ abstract class AbstractScanner implements Scanner {
 
   /**
    * Appends a token that begins an end group, represented by [type].
-   * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
-   * '>>' are handled separately by [appendGt] and [appendGtGt].
+   * It handles the group end tokens '}', ')' and ']'. The tokens '>',
+   * '>>' and '>>>' are handled separately by [appendGt], [appendGtGt]
+   * and [appendGtGtGt].
    */
   int appendEndGroup(TokenType type, int openKind) {
     assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
@@ -454,6 +455,30 @@ abstract class AbstractScanner implements Scanner {
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
       // '<', the inner '<' is left without endGroup.
+      groupingStack = groupingStack.tail!;
+    }
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack.head.endGroup = tail;
+      groupingStack = groupingStack.tail!;
+    }
+  }
+
+  /// Appends a token for '>>>'.
+  ///
+  /// This method does not issue unmatched errors, because >>> is also the
+  /// triple shift operator. It does not necessarily have to close a group.
+  void appendGtGtGt(TokenType type) {
+    appendPrecedenceToken(type);
+    if (groupingStack.isEmpty) return;
+
+    // Don't assign endGroup: in "T<U<V<X>>>", the '>>>' token closes the
+    // outer '<', all the inner '<' are left without endGroups.
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack = groupingStack.tail!;
+    }
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail!;
     }
     if (groupingStack.isEmpty) return;
@@ -1174,26 +1199,35 @@ abstract class AbstractScanner implements Scanner {
     // > >= >> >>= >>> >>>=
     next = advance();
     if (identical($EQ, next)) {
+      // Saw `>=` only.
       appendPrecedenceToken(TokenType.GT_EQ);
       return advance();
     } else if (identical($GT, next)) {
+      // Saw `>>` so far.
       next = advance();
       if (identical($EQ, next)) {
+        // Saw `>>=` only.
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
       } else if (_enableTripleShift && identical($GT, next)) {
+        // Saw `>>>` so far.
         next = advance();
-        if (_enableTripleShift && identical($EQ, next)) {
+        if (identical($EQ, next)) {
+          // Saw `>>>=` only.
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
+        } else {
+          // Saw `>>>` only.
+          appendGtGtGt(TokenType.GT_GT_GT);
+          return next;
         }
-        appendPrecedenceToken(TokenType.GT_GT_GT);
-        return next;
       } else {
+        // Saw `>>` only.
         appendGtGt(TokenType.GT_GT);
         return next;
       }
     } else {
+      // Saw `>` only.
       appendGt(TokenType.GT);
       return next;
     }
