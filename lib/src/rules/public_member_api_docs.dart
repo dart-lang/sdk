@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 const _desc = r'Document all public members.';
 
@@ -160,29 +160,9 @@ class _Visitor extends SimpleAstVisitor {
     methods.forEach(check);
   }
 
-  Element? getOverriddenMember(Element? member) {
-    if (member == null) {
-      return null;
-    }
-
-    var interfaceElement = member.thisOrAncestorOfType<InterfaceElement>();
-    if (interfaceElement == null) {
-      return null;
-    }
-    var name = member.name;
-    if (name == null) {
-      return null;
-    }
-
-    var libraryUri = interfaceElement.library.source.uri;
-    return context.inheritanceManager.getInherited(
-      interfaceElement.thisType,
-      Name(libraryUri, name),
-    );
-  }
-
+  /// Whether [node] overrides some other member.
   bool isOverridingMember(Declaration node) =>
-      getOverriddenMember(node.declaredElement) != null;
+      context.inheritanceManager.overriddenMember(node.declaredElement) != null;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

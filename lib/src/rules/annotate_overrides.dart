@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Annotate overridden members.';
 
@@ -80,27 +81,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   void check(Element? element, Token target) {
     if (element == null || element.hasOverride) return;
 
-    var member = getOverriddenMember(element);
+    var member = context.inheritanceManager.overriddenMember(element);
     if (member != null) {
-      rule.reportLintForToken(target, arguments: [member.name!]);
+      rule.reportLintForToken(target, arguments: [member.name]);
     }
-  }
-
-  Element? getOverriddenMember(Element member) {
-    var classElement = member.thisOrAncestorOfType<InterfaceElement>();
-    if (classElement == null) {
-      return null;
-    }
-    var name = member.name;
-    if (name == null) {
-      return null;
-    }
-
-    var libraryUri = classElement.library.source.uri;
-    return context.inheritanceManager.getInherited(
-      classElement.thisType,
-      Name(libraryUri, name),
-    );
   }
 
   @override

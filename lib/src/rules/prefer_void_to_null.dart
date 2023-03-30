@@ -4,10 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
@@ -74,27 +74,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
   _Visitor(this.rule, this.context);
 
-  /// todo(pq): pull up to a utility.
-  ExecutableElement? getOverriddenMember(Element? member) {
-    if (member == null) {
-      return null;
-    }
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
-    if (classElement == null) {
-      return null;
-    }
-    var name = member.name;
-    if (name == null) {
-      return null;
-    }
-
-    var libraryUri = classElement.library.source.uri;
-    return context.inheritanceManager.getInherited(
-      classElement.thisType,
-      Name(libraryUri, name),
-    );
-  }
-
   bool isFutureOrVoid(DartType type) {
     if (!type.isDartAsyncFutureOr) return false;
     if (type is! InterfaceType) return false;
@@ -105,7 +84,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Make sure we're checking a return type.
     if (parent.returnType?.offset != node.offset) return false;
 
-    var member = getOverriddenMember(parent.declaredElement);
+    var member =
+        context.inheritanceManager.overriddenMember(parent.declaredElement);
     if (member == null) return false;
 
     var returnType = member.returnType;
