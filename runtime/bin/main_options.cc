@@ -446,13 +446,12 @@ bool Options::ParseArguments(int argc,
   bool enable_dartdev_analytics = false;
   bool disable_dartdev_analytics = false;
   bool serve_devtools = true;
+  char* packages_argument = nullptr;
 
   // Parse out the vm options.
   while (i < argc) {
     bool skipVmOption = false;
-    if (OptionProcessor::TryProcess(argv[i], &temp_vm_options)) {
-      i++;
-    } else {
+    if (!OptionProcessor::TryProcess(argv[i], &temp_vm_options)) {
       // Check if this flag is a potentially valid VM flag.
       if (!OptionProcessor::IsValidFlag(argv[i])) {
         break;
@@ -494,8 +493,11 @@ bool Options::ParseArguments(int argc,
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);
       }
-      i++;
     }
+    if (IsOption(argv[i], "packages")) {
+      packages_argument = argv[i];
+    }
+    i++;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -682,6 +684,13 @@ bool Options::ParseArguments(int argc,
           dart_options->AddArgument("--enable-service-port-fallback");
         }
       }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      // Bring any --packages option into the dartdev command
+      if (DartDevIsolate::should_run_dart_dev() &&
+          packages_argument != nullptr) {
+        dart_options->AddArgument(packages_argument);
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       first_option = false;
     }
   }
