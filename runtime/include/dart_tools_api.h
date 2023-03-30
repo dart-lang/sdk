@@ -468,41 +468,19 @@ DART_EXPORT void Dart_SetTimelineRecorderCallback(
 
 /**
  * Return metrics gathered for the VM and individual isolates.
- *
- * NOTE: Non-heap metrics are not available in PRODUCT builds of Dart.
- * Calling the non-heap metric functions on a PRODUCT build might return invalid metrics.
  */
-DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
-DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
-DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
 DART_EXPORT int64_t
 Dart_IsolateGroupHeapOldUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateGroupHeapOldUsedMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
 Dart_IsolateGroupHeapOldCapacityMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateGroupHeapOldCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
 Dart_IsolateGroupHeapOldExternalMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
 Dart_IsolateGroupHeapNewUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateGroupHeapNewUsedMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
 Dart_IsolateGroupHeapNewCapacityMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateGroupHeapNewCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
 Dart_IsolateGroupHeapNewExternalMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateGroupHeapGlobalUsedMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateGroupHeapGlobalUsedMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
-DART_EXPORT int64_t
-Dart_IsolateRunnableHeapSizeMetric(Dart_Isolate isolate);  // Byte
 
 /*
  * ========

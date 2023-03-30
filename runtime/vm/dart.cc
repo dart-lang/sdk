@@ -334,7 +334,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
   Page::Init();
-  NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
   TargetCPUFeatures::Init();
@@ -700,7 +699,6 @@ char* Dart::Cleanup() {
     }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
-    Metric::Cleanup();
     Thread::ExitIsolate();
   }
 #endif

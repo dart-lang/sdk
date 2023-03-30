@@ -96,23 +96,21 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
   // Ensure we've something live in new space.
   String::New("<land-in-new-space2>", Heap::kNew);
 
+  EXPECT(thread->isolate_group()->GetHeapOldUsedMaxMetric()->Value() > 0);
+  EXPECT(thread->isolate_group()->GetHeapOldCapacityMaxMetric()->Value() > 0);
+  EXPECT(thread->isolate_group()->GetHeapNewUsedMaxMetric()->Value() > 0);
+  EXPECT(thread->isolate_group()->GetHeapNewCapacityMaxMetric()->Value() > 0);
+  EXPECT(thread->isolate_group()->GetHeapGlobalUsedMetric()->Value() > 0);
+  EXPECT(thread->isolate_group()->GetHeapGlobalUsedMaxMetric()->Value() > 0);
+
   {
     TransitionVMToNative transition(thread);
 
     Dart_IsolateGroup isolate_group = Dart_CurrentIsolateGroup();
-#if !defined(PRODUCT)
-    EXPECT(Dart_VMIsolateCountMetric() > 0);
-#endif
     EXPECT(Dart_IsolateGroupHeapOldUsedMetric(isolate_group) > 0);
-    EXPECT(Dart_IsolateGroupHeapOldUsedMaxMetric(isolate_group) > 0);
     EXPECT(Dart_IsolateGroupHeapOldCapacityMetric(isolate_group) > 0);
-    EXPECT(Dart_IsolateGroupHeapOldCapacityMaxMetric(isolate_group) > 0);
     EXPECT(Dart_IsolateGroupHeapNewUsedMetric(isolate_group) > 0);
-    EXPECT(Dart_IsolateGroupHeapNewUsedMaxMetric(isolate_group) > 0);
     EXPECT(Dart_IsolateGroupHeapNewCapacityMetric(isolate_group) > 0);
-    EXPECT(Dart_IsolateGroupHeapNewCapacityMaxMetric(isolate_group) > 0);
-    EXPECT(Dart_IsolateGroupHeapGlobalUsedMetric(isolate_group) > 0);
-    EXPECT(Dart_IsolateGroupHeapGlobalUsedMaxMetric(isolate_group) > 0);
   }
 }
 

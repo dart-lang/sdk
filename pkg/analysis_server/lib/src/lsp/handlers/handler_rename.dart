@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -177,7 +178,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
         // Otherwise, ask the user whether to proceed with the rename.
         final userChoice = await server.showUserPrompt(
-          MessageType.Warning,
+          MessageType.warning,
           finalStatus.message!,
           [
             UserPromptActions.renameAnyway,
@@ -268,7 +269,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     }
 
     final userChoice = await server.showUserPrompt(
-      MessageType.Info,
+      MessageType.info,
       "Rename '$oldFilename' to '$newFilename'?",
       [
         UserPromptActions.yes,
