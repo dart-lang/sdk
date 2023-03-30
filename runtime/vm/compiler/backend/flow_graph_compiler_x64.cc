@@ -89,7 +89,7 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                 DeoptInfoBuilder* builder,
                                                 const Array& deopt_table) {
-  if (deopt_env_ == NULL) {
+  if (deopt_env_ == nullptr) {
     ++builder->current_info_number_;
     return TypedData::null();
   }
@@ -126,7 +126,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Environment* previous = current;
   current = current->outer();
-  while (current != NULL) {
+  while (current != nullptr) {
     builder->AddPp(current->function(), slot_ix++);
     builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
@@ -155,7 +155,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     current = current->outer();
   }
   // The previous pointer is now the outermost environment.
-  ASSERT(previous != NULL);
+  ASSERT(previous != nullptr);
 
   // Set slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
@@ -183,7 +183,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
     __ int3();
   }
 
-  ASSERT(deopt_env() != NULL);
+  ASSERT(deopt_env() != nullptr);
   __ call(compiler::Address(THR, Thread::deoptimize_entry_offset()));
   set_pc_offset(assembler->CodeSize());
   __ int3();

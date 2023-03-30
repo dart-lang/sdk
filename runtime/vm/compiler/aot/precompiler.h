@@ -483,7 +483,7 @@ class Obfuscator : public ValueObject {
   // This method is guaranteed to return the same value for the same
   // input and it always preserves leading '_' even for atomic renames.
   StringPtr Rename(const String& name, bool atomic = false) {
-    if (state_ == NULL) {
+    if (state_ == nullptr) {
       return name.ptr();
     }
 
@@ -610,7 +610,7 @@ class Obfuscator : public ValueObject {
     String& renamed_;
   };
 
-  // Current obfuscation state or NULL if obfuscation is not enabled.
+  // Current obfuscation state or nullptr if obfuscation is not enabled.
   ObfuscationState* state_;
 };
 #else

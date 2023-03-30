@@ -863,7 +863,7 @@ class LocationSummary : public ZoneAllocated {
 
  private:
   BitmapBuilder& EnsureStackBitmap() {
-    if (stack_bitmap_ == NULL) {
+    if (stack_bitmap_ == nullptr) {
       stack_bitmap_ = new BitmapBuilder();
     }
     return *stack_bitmap_;

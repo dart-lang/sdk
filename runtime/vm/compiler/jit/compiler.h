@@ -54,7 +54,7 @@ class DartCompilationPipeline : public CompilationPipeline {
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
  public:
-  IrregexpCompilationPipeline() : backtrack_goto_(NULL) {}
+  IrregexpCompilationPipeline() : backtrack_goto_(nullptr) {}
 
   void ParseFunction(ParsedFunction* parsed_function) override;
 

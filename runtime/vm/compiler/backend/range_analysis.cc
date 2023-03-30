@@ -76,7 +76,7 @@ void RangeAnalysis::CollectValues() {
        !block_it.Done(); block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
     JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL) {
+    if (join != nullptr) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
         if (current->Type()->IsInt()) {
@@ -89,7 +89,7 @@ void RangeAnalysis::CollectValues() {
          instr_it.Advance()) {
       Instruction* current = instr_it.Current();
       Definition* defn = current->AsDefinition();
-      if (defn != NULL) {
+      if (defn != nullptr) {
         if (defn->HasSSATemp() && IsIntegerDefinition(defn)) {
           values_.Add(defn);
           if (defn->IsBinaryInt64Op()) {
@@ -133,7 +133,7 @@ Range* RangeAnalysis::ConstraintSmiRange(Token::Kind op, Definition* boundary) {
                            RangeBoundary::MaxSmi());
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -142,22 +142,22 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
                                                     Range* constraint_range,
                                                     Instruction* after) {
   // No need to constrain constants.
-  if (defn->IsConstant()) return NULL;
+  if (defn->IsConstant()) return nullptr;
 
   // Check if the value is already constrained to avoid inserting duplicated
   // constraints.
   ConstraintInstr* constraint = after->next()->AsConstraint();
-  while (constraint != NULL) {
+  while (constraint != nullptr) {
     if ((constraint->value()->definition() == defn) &&
         constraint->constraint()->Equals(constraint_range)) {
-      return NULL;
+      return nullptr;
     }
     constraint = constraint->next()->AsConstraint();
   }
 
   constraint = new (Z) ConstraintInstr(use->CopyWithType(), constraint_range);
 
-  flow_graph_->InsertAfter(after, constraint, NULL, FlowGraph::kValue);
+  flow_graph_->InsertAfter(after, constraint, nullptr, FlowGraph::kValue);
   FlowGraph::RenameDominatedUses(defn, constraint, constraint);
   constraints_.Add(constraint);
   return constraint;
@@ -166,7 +166,7 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
 bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   BranchInstr* branch = use->instruction()->AsBranch();
   RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
-  if ((rel_op != NULL) && (rel_op->operation_cid() == kSmiCid)) {
+  if ((rel_op != nullptr) && (rel_op->operation_cid() == kSmiCid)) {
     // Found comparison of two smis. Constrain defn at true and false
     // successors using the other operand as a boundary.
     Definition* boundary;
@@ -186,7 +186,7 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
     ConstraintInstr* true_constraint =
         InsertConstraintFor(use, defn, ConstraintSmiRange(op_kind, boundary),
                             branch->true_successor());
-    if (true_constraint != NULL) {
+    if (true_constraint != nullptr) {
       true_constraint->set_target(branch->true_successor());
     }
 
@@ -195,7 +195,7 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
         use, defn,
         ConstraintSmiRange(Token::NegateComparison(op_kind), boundary),
         branch->false_successor());
-    if (false_constraint != NULL) {
+    if (false_constraint != nullptr) {
       false_constraint->set_target(branch->false_successor());
     }
 
@@ -206,7 +206,7 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
 }
 
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
-  for (Value* use = defn->input_use_list(); use != NULL;
+  for (Value* use = defn->input_use_list(); use != nullptr;
        use = use->next_use()) {
     if (auto branch = use->instruction()->AsBranch()) {
       if (ConstrainValueAfterBranch(use, defn)) {
@@ -226,7 +226,7 @@ void RangeAnalysis::ConstrainValueAfterCheckBound(Value* use,
                                                   Definition* defn) {
   const intptr_t use_index = use->use_index();
 
-  Range* constraint_range = NULL;
+  Range* constraint_range = nullptr;
   if (use_index == CheckBoundBase::kIndexPos) {
     Definition* length = check->length()->definition();
     constraint_range = new (Z) Range(RangeBoundary::FromConstant(0),
@@ -254,7 +254,7 @@ const Range* RangeAnalysis::GetSmiRange(Value* value) const {
   Definition* defn = value->definition();
   const Range* range = defn->range();
 
-  if ((range == NULL) && (defn->Type()->ToCid() != kSmiCid)) {
+  if ((range == nullptr) && (defn->Type()->ToCid() != kSmiCid)) {
     // Type propagator determined that reaching type for this use is Smi.
     // However the definition itself is not a smi-definition and
     // thus it will never have range assigned to it. Just return the widest
@@ -263,7 +263,7 @@ const Range* RangeAnalysis::GetSmiRange(Value* value) const {
     // (e.g. results of loads or function call) can be used only after they
     // pass through UnboxInt64Instr which is considered as mint-definition
     // and will have a range assigned to it.
-    // Note: that we can't return NULL here because it is used as lattice's
+    // Note: that we can't return nullptr here because it is used as lattice's
     // bottom element to indicate that the range was not computed *yet*.
     return &smi_range_;
   }
@@ -275,12 +275,12 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
   Definition* defn = value->definition();
   const Range* range = defn->range();
 
-  if ((range == NULL) && !defn->Type()->IsInt()) {
+  if ((range == nullptr) && !defn->Type()->IsInt()) {
     // Type propagator determined that reaching type for this use is int.
     // However the definition itself is not a int-definition and
     // thus it will never have range assigned to it. Just return the widest
     // range possible for this value.
-    // Note: that we can't return NULL here because it is used as lattice's
+    // Note: that we can't return nullptr here because it is used as lattice's
     // bottom element to indicate that the range was not computed *yet*.
     return &int64_range_;
   }
@@ -482,7 +482,7 @@ void RangeAnalysis::CollectDefinitions(BitVector* set) {
     BlockEntryInstr* block = block_it.Current();
 
     JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL) {
+    if (join != nullptr) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* phi = it.Current();
         if (set->Contains(phi->ssa_temp_index())) {
@@ -493,7 +493,7 @@ void RangeAnalysis::CollectDefinitions(BitVector* set) {
 
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Definition* defn = it.Current()->AsDefinition();
-      if ((defn != NULL) && defn->HasSSATemp() &&
+      if ((defn != nullptr) && defn->HasSSATemp() &&
           set->Contains(defn->ssa_temp_index())) {
         definitions_.Add(defn);
       }
@@ -623,7 +623,7 @@ class Scheduler {
   // Given the floating instruction attempt to schedule it into one of the
   // loop preheaders that dominates given post_dominator instruction.
   // Some of the instruction inputs can potentially be unscheduled as well.
-  // Returns NULL is the scheduling fails (e.g. inputs are not invariant for
+  // Returns nullptr is the scheduling fails (e.g. inputs are not invariant for
   // any loop containing post_dominator).
   // Resulting schedule should be equivalent to one obtained by inserting
   // instructions right before post_dominator and running CSE and LICM passes.
@@ -656,8 +656,8 @@ class Scheduler {
 
       if (!defn->HasSSATemp()) {
         Definition* scheduled = Emit(defn, sink);
-        if (scheduled == NULL) {
-          return NULL;
+        if (scheduled == nullptr) {
+          return nullptr;
         }
         instruction->InputAt(i)->set_definition(scheduled);
       } else if (defn->IsConstraint()) {
@@ -669,7 +669,7 @@ class Scheduler {
     // If the instruction is still in the graph (it could have been
     // un-scheduled by a rollback action) and it dominates the sink - use it.
     Instruction* emitted = map_.LookupValue(instruction);
-    if (emitted != NULL && !emitted->WasEliminated() &&
+    if (emitted != nullptr && !emitted->WasEliminated() &&
         sink->IsDominatedBy(emitted)) {
       return emitted;
     }
@@ -680,7 +680,7 @@ class Scheduler {
       BlockEntryInstr* header = loop_headers_[i];
       BlockEntryInstr* pre_header = pre_headers_[i];
 
-      if (pre_header == NULL) {
+      if (pre_header == nullptr) {
         continue;
       }
 
@@ -705,7 +705,7 @@ class Scheduler {
       }
     }
 
-    return NULL;
+    return nullptr;
   }
 
   void EmitTo(BlockEntryInstr* block, Instruction* instr) {
@@ -757,7 +757,7 @@ class BoundsCheckGeneralizer {
     // Re-associate subexpressions inside upper_bound to collect all constants
     // together. This will expose more redundancies when we are going to emit
     // upper bound through scheduler.
-    if (!Simplify(&upper_bound, NULL)) {
+    if (!Simplify(&upper_bound, nullptr)) {
       if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
         THR_Print("Failed to simplify upper bound for %s index\n",
                   check->ToCString());
@@ -842,7 +842,7 @@ class BoundsCheckGeneralizer {
           DeoptId::kNone);
       precondition->mark_generalized();
       precondition = scheduler_.Emit(precondition, check);
-      if (precondition == NULL) {
+      if (precondition == nullptr) {
         if (FLAG_trace_range_analysis) {
           THR_Print("  => failed to insert positivity constraint\n");
         }
@@ -864,7 +864,7 @@ class BoundsCheckGeneralizer {
     }
 
     new_check = scheduler_.Emit(new_check, check);
-    if (new_check != NULL) {
+    if (new_check != nullptr) {
       if (FLAG_trace_range_analysis) {
         THR_Print("  => generalized check was hoisted into B%" Pd "\n",
                   new_check->GetBlock()->block_id());
@@ -880,7 +880,7 @@ class BoundsCheckGeneralizer {
 
   static void RemoveGeneralizedCheck(CheckArrayBoundInstr* check) {
     BinarySmiOpInstr* binary_op = check->index()->definition()->AsBinarySmiOp();
-    if (binary_op != NULL) {
+    if (binary_op != nullptr) {
       binary_op->set_can_overflow(false);
     }
     check->ReplaceUsesWith(check->index()->definition());
@@ -1114,31 +1114,31 @@ class BoundsCheckGeneralizer {
           return false;  // Abort.
         }
 
-        if (constant != NULL) {
+        if (constant != nullptr) {
           *constant = c;
         }
 
-        if ((left == NULL) && (right == NULL)) {
-          if (constant != NULL) {
-            *defn = NULL;
+        if ((left == nullptr) && (right == nullptr)) {
+          if (constant != nullptr) {
+            *defn = nullptr;
           } else {
             *defn = flow_graph_->GetConstant(Smi::Handle(Smi::New(c)));
           }
           return true;
         }
 
-        if (left == NULL) {
-          if ((constant != NULL) || (c == 0)) {
+        if (left == nullptr) {
+          if ((constant != nullptr) || (c == 0)) {
             *defn = right;
             return true;
           } else {
             left = right;
-            right = NULL;
+            right = nullptr;
           }
         }
 
-        if (right == NULL) {
-          if ((constant != NULL) || (c == 0)) {
+        if (right == nullptr) {
+          if ((constant != nullptr) || (c == 0)) {
             *defn = left;
             return true;
           } else {
@@ -1159,25 +1159,25 @@ class BoundsCheckGeneralizer {
           return false;  // Abort.
         }
 
-        if (constant != NULL) {
+        if (constant != nullptr) {
           *constant = c;
         }
 
-        if ((left == NULL) && (right == NULL)) {
-          if (constant != NULL) {
-            *defn = NULL;
+        if ((left == nullptr) && (right == nullptr)) {
+          if (constant != nullptr) {
+            *defn = nullptr;
           } else {
             *defn = flow_graph_->GetConstant(Smi::Handle(Smi::New(c)));
           }
           return true;
         }
 
-        if (left == NULL) {
+        if (left == nullptr) {
           left = flow_graph_->GetConstant(Object::smi_zero());
         }
 
-        if (right == NULL) {
-          if ((constant != NULL) || (c == 0)) {
+        if (right == nullptr) {
+          if ((constant != nullptr) || (c == 0)) {
             *defn = left;
             return true;
           } else {
@@ -1186,7 +1186,7 @@ class BoundsCheckGeneralizer {
           }
         }
       } else if (binary_op->op_kind() == Token::kMUL) {
-        if (!Simplify(&left, NULL) || !Simplify(&right, NULL)) {
+        if (!Simplify(&left, nullptr) || !Simplify(&right, nullptr)) {
           return false;
         }
       } else {
@@ -1194,8 +1194,8 @@ class BoundsCheckGeneralizer {
         return true;
       }
 
-      ASSERT(left != NULL);
-      ASSERT(right != NULL);
+      ASSERT(left != nullptr);
+      ASSERT(right != nullptr);
 
       const bool left_changed = (left != binary_op->left()->definition());
       const bool right_changed = (right != binary_op->right()->definition());
@@ -1210,13 +1210,13 @@ class BoundsCheckGeneralizer {
         }
       }
 
-      if ((c != 0) && (constant == NULL)) {
+      if ((c != 0) && (constant == nullptr)) {
         *defn = MakeBinaryOp(Token::kADD, *defn, c);
       }
     } else if ((*defn)->IsConstant()) {
       ConstantInstr* constant_defn = (*defn)->AsConstant();
-      if ((constant != NULL) && constant_defn->IsSmi()) {
-        *defn = NULL;
+      if ((constant != nullptr) && constant_defn->IsSmi()) {
+        *defn = nullptr;
         *constant = Smi::Cast(constant_defn->value()).Value();
       }
     }
@@ -1266,10 +1266,11 @@ class BoundsCheckGeneralizer {
   // instruction.
   static Definition* FindInnermostConstraint(Definition* defn,
                                              Instruction* post_dominator) {
-    for (Value* use = defn->input_use_list(); use != NULL;
+    for (Value* use = defn->input_use_list(); use != nullptr;
          use = use->next_use()) {
       ConstraintInstr* constraint = use->instruction()->AsConstraint();
-      if ((constraint != NULL) && post_dominator->IsDominatedBy(constraint)) {
+      if ((constraint != nullptr) &&
+          post_dominator->IsDominatedBy(constraint)) {
         return FindInnermostConstraint(constraint, post_dominator);
       }
     }
@@ -1284,10 +1285,10 @@ class BoundsCheckGeneralizer {
   static Definition* ApplyConstraints(
       Definition* defn,
       Instruction* post_dominator,
-      GrowableArray<ConstraintInstr*>* constraints = NULL) {
+      GrowableArray<ConstraintInstr*>* constraints = nullptr) {
     if (defn->HasSSATemp()) {
       defn = FindInnermostConstraint(defn, post_dominator);
-      if (constraints != NULL) {
+      if (constraints != nullptr) {
         for (intptr_t i = 0; i < constraints->length(); i++) {
           ConstraintInstr* constraint = (*constraints)[i];
           if (constraint->value()->definition() == defn) {
@@ -1310,7 +1311,7 @@ class BoundsCheckGeneralizer {
   static void PrettyPrintIndexBoundRecursively(BaseTextBuffer* f,
                                                Definition* index_bound) {
     BinarySmiOpInstr* binary_op = index_bound->AsBinarySmiOp();
-    if (binary_op != NULL) {
+    if (binary_op != nullptr) {
       f->AddString("(");
       PrettyPrintIndexBoundRecursively(f, binary_op->left()->definition());
       f->Printf(" %s ", Token::Str(binary_op->op_kind()));
@@ -1365,7 +1366,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
   for (intptr_t i = 0; i < constraints_.length(); i++) {
     if (Range::IsUnknown(constraints_[i]->range())) {
       TargetEntryInstr* target = constraints_[i]->target();
-      if (target == NULL) {
+      if (target == nullptr) {
         // TODO(vegorov): replace Constraint with an unconditional
         // deoptimization and kill all dominated dead code.
         continue;
@@ -1419,7 +1420,7 @@ static void NarrowBinaryInt64Op(BinaryInt64OpInstr* int64_op) {
         int64_op->right()->CopyWithType(), int64_op->DeoptimizationTarget());
     int32_op->set_range(*int64_op->range());
     int32_op->set_can_overflow(false);
-    int64_op->ReplaceWith(int32_op, NULL);
+    int64_op->ReplaceWith(int32_op, nullptr);
   }
 }
 
@@ -1436,7 +1437,7 @@ static void NarrowShiftInt64Op(ShiftIntegerOpInstr* int64_op) {
         int64_op->right()->CopyWithType(), int64_op->DeoptimizationTarget());
     int32_op->set_range(*int64_op->range());
     int32_op->set_can_overflow(false);
-    int64_op->ReplaceWith(int32_op, NULL);
+    int64_op->ReplaceWith(int32_op, nullptr);
   }
 }
 
@@ -1452,7 +1453,7 @@ void RangeAnalysis::NarrowMintToInt32() {
 
 IntegerInstructionSelector::IntegerInstructionSelector(FlowGraph* flow_graph)
     : flow_graph_(flow_graph) {
-  ASSERT(flow_graph_ != NULL);
+  ASSERT(flow_graph_ != nullptr);
   zone_ = flow_graph_->zone();
   selected_uint32_defs_ =
       new (zone_) BitVector(zone_, flow_graph_->current_ssa_temp_index());
@@ -1498,7 +1499,7 @@ void IntegerInstructionSelector::FindPotentialUint32Definitions() {
          instr_it.Advance()) {
       Instruction* current = instr_it.Current();
       Definition* defn = current->AsDefinition();
-      if ((defn != NULL) && defn->HasSSATemp()) {
+      if ((defn != nullptr) && defn->HasSSATemp()) {
         if (IsPotentialUint32Definition(defn)) {
           if (FLAG_support_il_printer && FLAG_trace_integer_ir_selection) {
             THR_Print("Adding %s\n", current->ToCString());
@@ -1520,7 +1521,7 @@ bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
       return false;
     }
     Range* range = op->range();
-    if ((range == NULL) ||
+    if ((range == nullptr) ||
         !range->IsWithin(0, static_cast<int64_t>(kMaxUint32))) {
       return false;
     }
@@ -1531,7 +1532,7 @@ bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
 }
 
 void IntegerInstructionSelector::FindUint32NarrowingDefinitions() {
-  ASSERT(selected_uint32_defs_ != NULL);
+  ASSERT(selected_uint32_defs_ != nullptr);
   if (FLAG_trace_integer_ir_selection) {
     THR_Print("++++ Selecting Uint32 definitions:\n");
     THR_Print("++++ Initial set:\n");
@@ -1551,7 +1552,7 @@ bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
   for (Value::Iterator it(list_head); !it.Done(); it.Advance()) {
     Value* use = it.Current();
     Definition* defn = use->instruction()->AsDefinition();
-    if ((defn == NULL) || !defn->HasSSATemp() ||
+    if ((defn == nullptr) || !defn->HasSSATemp() ||
         !selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
       return false;
     }
@@ -1579,9 +1580,9 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
     ShiftIntegerOpInstr* op = def->AsShiftIntegerOp();
     if ((op->op_kind() == Token::kSHR) || (op->op_kind() == Token::kUSHR)) {
       Definition* shift_input = op->left()->definition();
-      ASSERT(shift_input != NULL);
+      ASSERT(shift_input != nullptr);
       Range* range = shift_input->range();
-      if ((range == NULL) ||
+      if ((range == nullptr) ||
           !range->IsWithin(0, static_cast<int64_t>(kMaxUint32))) {
         return false;
       }
@@ -1596,7 +1597,7 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
 }
 
 void IntegerInstructionSelector::Propagate() {
-  ASSERT(selected_uint32_defs_ != NULL);
+  ASSERT(selected_uint32_defs_ != nullptr);
   bool changed = true;
   intptr_t iteration = 0;
   while (changed) {
@@ -1663,7 +1664,7 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     return new (Z) UnaryUint32OpInstr(op_kind, value, deopt_id);
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void IntegerInstructionSelector::ReplaceInstructions() {
@@ -1677,7 +1678,7 @@ void IntegerInstructionSelector::ReplaceInstructions() {
       continue;
     }
     Definition* replacement = ConstructReplacementFor(defn);
-    ASSERT(replacement != NULL);
+    ASSERT(replacement != nullptr);
     if (!Range::IsUnknown(defn->range())) {
       if (defn->range()->IsPositive()) {
         replacement->set_range(*defn->range());
@@ -1690,7 +1691,7 @@ void IntegerInstructionSelector::ReplaceInstructions() {
       THR_Print("Replacing %s with %s\n", defn->ToCString(),
                 replacement->ToCString());
     }
-    defn->ReplaceWith(replacement, NULL);
+    defn->ReplaceWith(replacement, nullptr);
   }
 }
 
@@ -1894,7 +1895,7 @@ static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
   if (!a->IsSymbol()) return false;
 
   Range* range = a->symbol()->range();
-  if ((range == NULL) || !range->max().IsSymbol()) return false;
+  if ((range == nullptr) || !range->max().IsSymbol()) return false;
 
   if (Utils::WillAddOverflow(range->max().offset(), a->offset())) {
     *a = RangeBoundary::PositiveInfinity();
@@ -1919,7 +1920,7 @@ static bool CanonicalizeMinBoundary(RangeBoundary* a) {
   if (!a->IsSymbol()) return false;
 
   Range* range = a->symbol()->range();
-  if ((range == NULL) || !range->min().IsSymbol()) return false;
+  if ((range == nullptr) || !range->min().IsSymbol()) return false;
 
   if (Utils::WillAddOverflow(range->min().offset(), a->offset())) {
     *a = RangeBoundary::NegativeInfinity();
@@ -2137,10 +2138,10 @@ void Range::Shl(const Range* left,
                 const Range* right,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max) {
-  ASSERT(left != NULL);
-  ASSERT(right != NULL);
-  ASSERT(result_min != NULL);
-  ASSERT(result_max != NULL);
+  ASSERT(left != nullptr);
+  ASSERT(right != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
   RangeBoundary left_max = Range::ConstantMax(left);
   RangeBoundary left_min = Range::ConstantMin(left);
   // A negative shift count always deoptimizes (and throws), so the minimum
@@ -2254,10 +2255,10 @@ void Range::And(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max) {
-  ASSERT(left_range != NULL);
-  ASSERT(right_range != NULL);
-  ASSERT(result_min != NULL);
-  ASSERT(result_max != NULL);
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
 
   if (Range::ConstantMin(right_range).ConstantValue() >= 0) {
     *result_min = RangeBoundary::FromConstant(0);
@@ -2302,10 +2303,10 @@ void Range::Add(const Range* left_range,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max,
                 Definition* left_defn) {
-  ASSERT(left_range != NULL);
-  ASSERT(right_range != NULL);
-  ASSERT(result_min != NULL);
-  ASSERT(result_max != NULL);
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
 
   RangeBoundary left_min = Definition::IsArrayLength(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
@@ -2332,10 +2333,10 @@ void Range::Sub(const Range* left_range,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max,
                 Definition* left_defn) {
-  ASSERT(left_range != NULL);
-  ASSERT(right_range != NULL);
-  ASSERT(result_min != NULL);
-  ASSERT(result_max != NULL);
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
 
   RangeBoundary left_min = Definition::IsArrayLength(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
@@ -2361,10 +2362,10 @@ void Range::Mul(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max) {
-  ASSERT(left_range != NULL);
-  ASSERT(right_range != NULL);
-  ASSERT(result_min != NULL);
-  ASSERT(result_max != NULL);
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
 
   const int64_t left_max = ConstantAbsMax(left_range);
   const int64_t right_max = ConstantAbsMax(right_range);
@@ -2461,7 +2462,7 @@ bool Range::OnlyNegativeOrZero(const Range& a, const Range& b) {
 
 // Return the maximum absolute value included in range.
 int64_t Range::ConstantAbsMax(const Range* range) {
-  if (range == NULL) {
+  if (range == nullptr) {
     return RangeBoundary::kMax;
   }
   const int64_t abs_min =
@@ -2473,7 +2474,7 @@ int64_t Range::ConstantAbsMax(const Range* range) {
 
 // Return the minimum absolute value included in range.
 int64_t Range::ConstantAbsMin(const Range* range) {
-  if (range == NULL) {
+  if (range == nullptr) {
     return 0;
   }
   const int64_t abs_min =
@@ -2488,8 +2489,8 @@ void Range::BinaryOp(const Token::Kind op,
                      const Range* right_range,
                      Definition* left_defn,
                      Range* result) {
-  ASSERT(left_range != NULL);
-  ASSERT(right_range != NULL);
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
 
   // Both left and right ranges are finite.
   ASSERT(left_range->IsFinite());
@@ -2557,7 +2558,7 @@ void Range::BinaryOp(const Token::Kind op,
 }
 
 void Definition::set_range(const Range& range) {
-  if (range_ == NULL) {
+  if (range_ == nullptr) {
     range_ = new Range();
   }
   *range_ = range;
@@ -2679,7 +2680,7 @@ static const Range* GetInputRange(RangeAnalysis* analysis,
       return analysis->GetIntRange(input);
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2982,15 +2983,15 @@ void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,
 static void CacheRange(Range** slot,
                        const Range* range,
                        RangeBoundary::RangeSize size) {
-  if (range != NULL) {
-    if (*slot == NULL) {
+  if (range != nullptr) {
+    if (*slot == nullptr) {
       *slot = new Range();
     }
     **slot = *range;
 
     // Eliminate any symbolic dependencies from the range information.
     (*slot)->ClampToConstant(size);
-  } else if (*slot != NULL) {
+  } else if (*slot != nullptr) {
     **slot = Range();  // Clear cached range information.
   }
 }
@@ -3051,7 +3052,7 @@ void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void UnboxUint32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = NULL;
+  const Range* value_range = nullptr;
 
   if (value()->Type()->ToCid() == kSmiCid) {
     value_range = analysis->GetSmiRange(value());
@@ -3075,7 +3076,7 @@ void UnboxUint32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = value()->definition()->range();
-  if (value_range != NULL) {
+  if (value_range != nullptr) {
     *range = *value_range;
   } else if (!value()->definition()->IsInt64Definition() &&
              (value()->definition()->Type()->ToCid() != kSmiCid)) {

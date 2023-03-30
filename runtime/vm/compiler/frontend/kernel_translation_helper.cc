@@ -3008,7 +3008,7 @@ ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
 }
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
-  ASSERT(member != NULL);
+  ASSERT(member != nullptr);
   if (member->IsFactory()) {
     return klass->NumTypeParameters();
   } else if (member->IsMethodExtractor()) {
@@ -3067,7 +3067,7 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 
   const TypeArguments* old_params = active_class->local_type_parameters;
   const intptr_t old_param_count =
-      old_params == NULL ? 0 : old_params->Length();
+      old_params == nullptr ? 0 : old_params->Length();
   const TypeArguments& extended_params = TypeArguments::Handle(
       Z, TypeArguments::New(old_param_count + num_new_params));
 
@@ -3115,7 +3115,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
-      type_parameter_scope_(NULL),
+      type_parameter_scope_(nullptr),
       inferred_type_metadata_helper_(helper_, constant_reader_),
       unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
@@ -3240,7 +3240,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
 void TypeTranslator::BuildFunctionType(bool simple) {
   const intptr_t num_enclosing_type_arguments =
-      active_class_->enclosing != NULL
+      active_class_->enclosing != nullptr
           ? active_class_->enclosing->NumTypeArguments()
           : 0;
   Nullability nullability = helper_->ReadNullability();
@@ -3468,7 +3468,7 @@ void TypeTranslator::BuildTypeParameterType() {
       }
     }
   }
-  if (active_class_->local_type_parameters != NULL) {
+  if (active_class_->local_type_parameters != nullptr) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       const auto& type_param = TypeParameter::CheckedHandle(
           Z, active_class_->local_type_parameters->TypeAt(parameter_index));
@@ -3485,7 +3485,7 @@ void TypeTranslator::BuildTypeParameterType() {
     parameter_index -= active_class_->local_type_parameters->Length();
   }
 
-  if (type_parameter_scope_ != NULL &&
+  if (type_parameter_scope_ != nullptr &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
     result_ = Type::DynamicType();

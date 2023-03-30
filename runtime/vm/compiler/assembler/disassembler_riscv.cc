@@ -1792,11 +1792,11 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     *out_instr_size = instr_size;
   }
 
-  *object = NULL;
+  *object = nullptr;
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
-      *object = NULL;
+      *object = nullptr;
     }
   }
 }

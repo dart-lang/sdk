@@ -80,7 +80,7 @@ ASSEMBLER_TEST_GENERATE(MoveNegated, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(MoveNegated, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*MoveNegated)() DART_UNUSED;
   EXPECT_EQ(~42, EXECUTE_TEST_CODE_INT32(MoveNegated, test->entry()));
 }
@@ -95,7 +95,7 @@ ASSEMBLER_TEST_GENERATE(MoveRotImm, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(MoveRotImm, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*MoveRotImm)() DART_UNUSED;
   EXPECT_EQ(0x30550003, EXECUTE_TEST_CODE_INT32(MoveRotImm, test->entry()));
 }
@@ -106,7 +106,7 @@ ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(MovImm16, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*MovImm16)() DART_UNUSED;
   EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INT32(MovImm16, test->entry()));
 }
@@ -120,7 +120,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadImmediate, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*LoadImmediate)() DART_UNUSED;
   EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INT32(LoadImmediate, test->entry()));
 }
@@ -132,7 +132,7 @@ ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
       0x89, 0xAB, 0xCD, 0xEF,
@@ -155,7 +155,7 @@ ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
       0x89, 0xAB, 0xCD, 0xEF,
@@ -177,7 +177,7 @@ ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
       0, 0, 0, 0,
@@ -205,7 +205,7 @@ ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*LoadWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[8] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
 
@@ -235,7 +235,7 @@ ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef intptr_t (*StoreWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -288,7 +288,7 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmov, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Vmov)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(Vmov, test->entry()));
 }
@@ -305,7 +305,7 @@ ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef float (*SingleVLoadStore)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
   EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
@@ -328,7 +328,7 @@ ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef float (*SingleVLoadStore)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
   EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
@@ -350,10 +350,10 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
-  EXPECT(test != NULL);
-  typedef double (*DoubleVLoadStore)() DART_UNUSED;
-  float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
-  EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
+    EXPECT(test != nullptr);
+    typedef double (*DoubleVLoadStore)() DART_UNUSED;
+    float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
+    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
@@ -370,7 +370,7 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef float (*SingleFPOperations)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_FLOAT(SingleFPOperations, test->entry());
   EXPECT_FLOAT_EQ(3.8340579f, res, 0.001f);
@@ -390,7 +390,7 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*DoubleFPOperations)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleFPOperations, test->entry());
   EXPECT_FLOAT_EQ(3.8340579, res, 0.001);
@@ -408,9 +408,9 @@ ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
-  EXPECT(test != NULL);
-  typedef int (*DoubleSqrtNeg)() DART_UNUSED;
-  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
+    EXPECT(test != nullptr);
+    typedef int (*DoubleSqrtNeg)() DART_UNUSED;
+    EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
@@ -421,7 +421,7 @@ ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*IntToDoubleConversionCode)() DART_UNUSED;
   double res =
       EXECUTE_TEST_CODE_DOUBLE(IntToDoubleConversionCode, test->entry());
@@ -442,7 +442,7 @@ ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef double (*LongToDoubleConversionCode)() DART_UNUSED;
   double res =
       EXECUTE_TEST_CODE_DOUBLE(LongToDoubleConversionCode, test->entry());
@@ -457,7 +457,7 @@ ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef float (*IntToFloatConversionCode)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_FLOAT(IntToFloatConversionCode, test->entry());
   EXPECT_FLOAT_EQ(6.0, res, 0.001);
@@ -470,7 +470,7 @@ ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*FloatToIntConversion)(float arg) DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
                                           12.8f));
@@ -488,7 +488,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
 
 ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
   typedef int (*DoubleToIntConversion)(double arg) DART_UNUSED;
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion, test->entry(),
                                           12.8));
   EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
@@ -505,7 +505,7 @@ ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
 
 ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
   typedef double (*FloatToDoubleConversionCode)() DART_UNUSED;
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   double res =
       EXECUTE_TEST_CODE_DOUBLE(FloatToDoubleConversionCode, test->entry());
   EXPECT_FLOAT_EQ(12.8, res, 0.001);
@@ -518,7 +518,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef float (*DoubleToFloatConversionCode)() DART_UNUSED;
   float res =
       EXECUTE_TEST_CODE_FLOAT(DoubleToFloatConversionCode, test->entry());
@@ -552,9 +552,9 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(FloatCompare, test) {
-  EXPECT(test != NULL);
-  typedef int (*FloatCompare)() DART_UNUSED;
-  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
+    EXPECT(test != nullptr);
+    typedef int (*FloatCompare)() DART_UNUSED;
+    EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
@@ -584,9 +584,9 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(DoubleCompare, test) {
-  EXPECT(test != NULL);
-  typedef int (*DoubleCompare)() DART_UNUSED;
-  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
+    EXPECT(test != nullptr);
+    typedef int (*DoubleCompare)() DART_UNUSED;
+    EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(Loop, assembler) {
@@ -601,7 +601,7 @@ ASSEMBLER_TEST_GENERATE(Loop, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Loop, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Loop)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
 }
@@ -616,7 +616,7 @@ ASSEMBLER_TEST_GENERATE(ForwardBranch, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(ForwardBranch, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*ForwardBranch)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(ForwardBranch, test->entry()));
 }
@@ -634,7 +634,7 @@ ASSEMBLER_TEST_GENERATE(Loop2, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Loop2, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Loop)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
 }
@@ -655,7 +655,7 @@ ASSEMBLER_TEST_GENERATE(Loop3, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Loop3, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Loop)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
 }
@@ -668,7 +668,7 @@ ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadStore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*LoadStore)() DART_UNUSED;
   EXPECT_EQ(123, EXECUTE_TEST_CODE_INT32(LoadStore, test->entry()));
 }
@@ -683,7 +683,7 @@ ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PushRegisterPair, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PushRegisterPair)() DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32(PushRegisterPair, test->entry()));
 }
@@ -698,7 +698,7 @@ ASSEMBLER_TEST_GENERATE(PushRegisterPairReversed, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PushRegisterPairReversed, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PushRegisterPairReversed)() DART_UNUSED;
   EXPECT_EQ(12,
             EXECUTE_TEST_CODE_INT32(PushRegisterPairReversed, test->entry()));
@@ -714,7 +714,7 @@ ASSEMBLER_TEST_GENERATE(PopRegisterPair, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PopRegisterPair, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PopRegisterPair)() DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32(PopRegisterPair, test->entry()));
 }
@@ -729,7 +729,7 @@ ASSEMBLER_TEST_GENERATE(PopRegisterPairReversed, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*PopRegisterPairReversed)() DART_UNUSED;
   EXPECT_EQ(12,
             EXECUTE_TEST_CODE_INT32(PopRegisterPairReversed, test->entry()));
@@ -750,7 +750,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Semaphore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Semaphore)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
 }
@@ -768,7 +768,7 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*FailedSemaphore)() DART_UNUSED;
   EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
 }
@@ -783,7 +783,7 @@ ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddSub, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*AddSub)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(AddSub, test->entry()));
 }
@@ -798,7 +798,7 @@ ASSEMBLER_TEST_GENERATE(AddCarry, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddCarry, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*AddCarry)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarry, test->entry()));
 }
@@ -814,7 +814,7 @@ ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*AddCarryInOut)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarryInOut, test->entry()));
 }
@@ -829,7 +829,7 @@ ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SubCarry, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*SubCarry)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarry, test->entry()));
 }
@@ -844,7 +844,7 @@ ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*SubCarryInOut)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarryInOut, test->entry()));
 }
@@ -859,7 +859,7 @@ ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Overflow, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Overflow)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Overflow, test->entry()));
 }
@@ -874,7 +874,7 @@ ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AndOrr, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*AndOrr)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(AndOrr, test->entry()));
 }
@@ -891,7 +891,7 @@ ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Orrs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Orrs)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Orrs, test->entry()));
 }
@@ -905,7 +905,7 @@ ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Multiply, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Multiply)() DART_UNUSED;
   EXPECT_EQ(800, EXECUTE_TEST_CODE_INT32(Multiply, test->entry()));
 }
@@ -923,7 +923,7 @@ ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*QuotientRemainder)(int64_t dividend, int64_t divisor)
       DART_UNUSED;
   EXPECT_EQ(0x1000400000da8LL,
@@ -943,7 +943,7 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Multiply64To64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Multiply64To64)(int64_t operand0, int64_t operand1)
       DART_UNUSED;
   EXPECT_EQ(6,
@@ -956,7 +956,7 @@ ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Multiply32To64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Multiply32To64)(int64_t operand0, int64_t operand1)
       DART_UNUSED;
   EXPECT_EQ(6,
@@ -969,7 +969,7 @@ ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*MultiplyAccumAccum32To64)(int64_t operand0,
                                               int64_t operand1) DART_UNUSED;
   EXPECT_EQ(3 + 7 + 5 * 11,
@@ -1004,7 +1004,7 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Clz, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Clz)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Clz, test->entry()));
 }
@@ -1016,7 +1016,7 @@ ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Rbit, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Rbit)() DART_UNUSED;
   const int32_t expected = 0xa8000000;
   EXPECT_EQ(expected, EXECUTE_TEST_CODE_INT32(Rbit, test->entry()));
@@ -1035,7 +1035,7 @@ ASSEMBLER_TEST_GENERATE(Tst, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Tst, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1051,7 +1051,7 @@ ASSEMBLER_TEST_GENERATE(Lsl, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Lsl, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1067,7 +1067,7 @@ ASSEMBLER_TEST_GENERATE(Lsr, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Lsr, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1082,7 +1082,7 @@ ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Lsr1, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1097,7 +1097,7 @@ ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Asr1, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1109,7 +1109,7 @@ ASSEMBLER_TEST_GENERATE(Rsb, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Rsb, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Rsb)() DART_UNUSED;
   EXPECT_EQ(32, EXECUTE_TEST_CODE_INT32(Rsb, test->entry()));
 }
@@ -1153,7 +1153,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldrh, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1168,7 +1168,7 @@ ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldrsb, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1183,7 +1183,7 @@ ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldrb, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0xff, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1198,7 +1198,7 @@ ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldrsh, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0xff, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1213,7 +1213,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldrh1, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0xff, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1232,7 +1232,7 @@ ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldrd, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int64_t (*Tst)(int64_t r0r1, int64_t r2r3) DART_UNUSED;
   EXPECT_EQ(0x0000444400002222LL,
             EXECUTE_TEST_CODE_INT64_LL(Tst, test->entry(), 0x0000111100000000LL,
@@ -1275,7 +1275,7 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(-52, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1289,7 +1289,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1303,7 +1303,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1317,7 +1317,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1331,7 +1331,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1347,7 +1347,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1361,7 +1361,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftLdrLSLNegPreIndex, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1411,7 +1411,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1461,7 +1461,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1509,7 +1509,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd1, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1557,7 +1557,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1615,7 +1615,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd_off, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1667,7 +1667,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1741,7 +1741,7 @@ ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Udiv, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -1759,7 +1759,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Sdiv, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -1777,7 +1777,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Udiv_zero, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -1795,7 +1795,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -1813,7 +1813,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Udiv_corner, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -1831,7 +1831,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(static_cast<int32_t>(0x80000000),
@@ -1857,7 +1857,7 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
 #if defined(USING_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(true);
@@ -1888,7 +1888,7 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
 #if defined(USING_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(false);
@@ -1910,7 +1910,7 @@ ASSEMBLER_TEST_GENERATE(Muls, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Muls, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
@@ -1949,7 +1949,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi8, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -1990,7 +1990,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi16, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2031,7 +2031,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2060,7 +2060,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2095,7 +2095,7 @@ ASSEMBLER_TEST_GENERATE(Vshlqu64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vshlqu64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2130,7 +2130,7 @@ ASSEMBLER_TEST_GENERATE(Vshlqi64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vshlqi64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2185,7 +2185,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Mint_shl_ok, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2240,7 +2240,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2281,7 +2281,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi8, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2322,7 +2322,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi16, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2363,7 +2363,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2392,7 +2392,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi64, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2433,7 +2433,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmulqi8, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2474,7 +2474,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmulqi16, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2515,7 +2515,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmulqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2546,7 +2546,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vaddqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2577,7 +2577,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vsubqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2608,7 +2608,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmulqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2648,7 +2648,7 @@ ASSEMBLER_TEST_GENERATE(VtblX, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VtblX, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2688,7 +2688,7 @@ ASSEMBLER_TEST_GENERATE(VtblY, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VtblY, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2728,7 +2728,7 @@ ASSEMBLER_TEST_GENERATE(VtblZ, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VtblZ, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2768,7 +2768,7 @@ ASSEMBLER_TEST_GENERATE(VtblW, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(VtblW, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2807,7 +2807,7 @@ ASSEMBLER_TEST_GENERATE(Veorq, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Veorq, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2846,7 +2846,7 @@ ASSEMBLER_TEST_GENERATE(Vornq, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vornq, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(60, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2885,7 +2885,7 @@ ASSEMBLER_TEST_GENERATE(Vorrq, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vorrq, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2924,7 +2924,7 @@ ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vandq, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2958,7 +2958,7 @@ ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmovq, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -2977,7 +2977,7 @@ ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmvnq, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3007,7 +3007,7 @@ ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vdupb, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3037,7 +3037,7 @@ ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vduph, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3067,7 +3067,7 @@ ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vdupw, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3097,7 +3097,7 @@ ASSEMBLER_TEST_GENERATE(Vzipqw, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vzipqw, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vzipqw)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vzipqw, test->entry());
@@ -3139,7 +3139,7 @@ ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vceqqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3172,7 +3172,7 @@ ASSEMBLER_TEST_GENERATE(Vceqqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vceqqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3213,7 +3213,7 @@ ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vcgeqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3254,7 +3254,7 @@ ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vcugeqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3287,7 +3287,7 @@ ASSEMBLER_TEST_GENERATE(Vcgeqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vcgeqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3328,7 +3328,7 @@ ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vcgtqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3369,7 +3369,7 @@ ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vcugtqi32, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3402,7 +3402,7 @@ ASSEMBLER_TEST_GENERATE(Vcgtqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vcgtqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3420,7 +3420,7 @@ ASSEMBLER_TEST_GENERATE(Vminqs_zero, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vminqs_zero, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Tst, test->entry());
@@ -3453,7 +3453,7 @@ ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vminqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3471,7 +3471,7 @@ ASSEMBLER_TEST_GENERATE(Vmaxqs_zero, assembler) {
 
 // Verify that vmaxqs(-0.0, 0.0) = 0.0
 ASSEMBLER_TEST_RUN(Vmaxqs_zero, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Tst, test->entry());
@@ -3504,7 +3504,7 @@ ASSEMBLER_TEST_GENERATE(Vmaxqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vmaxqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(14, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
@@ -3523,7 +3523,7 @@ ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrecpeqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrecpeqs, test->entry());
@@ -3549,7 +3549,7 @@ ASSEMBLER_TEST_GENERATE(Vrecpsqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrecpsqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrecpsqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrecpsqs, test->entry());
@@ -3576,7 +3576,7 @@ ASSEMBLER_TEST_GENERATE(Reciprocal, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Reciprocal, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Reciprocal)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Reciprocal, test->entry());
@@ -3597,7 +3597,7 @@ ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrsqrteqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrsqrteqs, test->entry());
@@ -3623,7 +3623,7 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtsqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrsqrtsqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrsqrtsqs, test->entry());
@@ -3654,7 +3654,7 @@ ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*ReciprocalSqrt)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(ReciprocalSqrt, test->entry());
@@ -3695,7 +3695,7 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SIMDSqrt, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*SIMDSqrt)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(SIMDSqrt, test->entry());
@@ -3740,7 +3740,7 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SIMDSqrt2, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*SIMDSqrt2)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(SIMDSqrt2, test->entry());
@@ -3777,7 +3777,7 @@ ASSEMBLER_TEST_GENERATE(SIMDDiv, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(SIMDDiv, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*SIMDDiv)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(SIMDDiv, test->entry());
@@ -3802,7 +3802,7 @@ ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vabsqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vabsqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vabsqs, test->entry());
@@ -3827,7 +3827,7 @@ ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Vnegqs, test) {
-  EXPECT(test != NULL);
+  EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vnegqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vnegqs, test->entry());
