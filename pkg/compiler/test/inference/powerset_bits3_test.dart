@@ -13,19 +13,19 @@ import '../helpers/element_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String CODE = """
-class A extends Comparable {
+class A implements Comparable {
   int compareTo(x) { return 0; }
 }
-class B extends Comparable {
+class B implements Comparable {
   int compareTo(x) { return 0; }
 }
-class C extends Comparable {
+class C implements Comparable {
   int compareTo(x) { return 0; }
 }
-class D extends Comparable {
+class D implements Comparable {
   int compareTo(x) { return 0; }
 }
-class E extends Comparable {
+class E implements Comparable {
   int compareTo(x) { return 0; }
 }
 

@@ -30,7 +30,7 @@ part of dart.core;
 /// There is no restriction on other classes, even for compile time constant
 /// objects. Be careful if adding expando properties to compile time constants,
 /// since they will stay alive forever.
-class Expando<T extends Object> {
+final class Expando<T extends Object> {
   /// The name of the this [Expando] as passed to the constructor.
   ///
   /// If no name was passed to the constructor, the value is the `null` value.
@@ -123,7 +123,7 @@ class Expando<T extends Object> {
 /// }
 /// ```
 @Since("2.17")
-abstract class WeakReference<T extends Object> {
+abstract final class WeakReference<T extends Object> {
   /// Creates a [WeakReference] pointing to the given [target].
   ///
   /// The [target] must be an object supported as an [Expando] key,
@@ -220,7 +220,7 @@ abstract class WeakReference<T extends Object> {
 /// function rather than a Dart function, use `dart:ffi`'s [NativeFinalizer]
 /// instead.
 @Since("2.17")
-abstract class Finalizer<T> {
+abstract final class Finalizer<T> {
   /// Creates a finalizer with the given finalization callback.
   ///
   /// The [callback] is bound to the current zone
