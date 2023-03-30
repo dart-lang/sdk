@@ -9354,13 +9354,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression node, DartType context) {
     // Normally the CFE performs expression coercion in the process of type
     // inference of the nodes where an assignment is executed. The inference on
-    // the pattern-related nodes is driven by the shared analysis, and two of
+    // the pattern-related nodes is driven by the shared analysis, and some of
     // such nodes perform assignments. Here we determine if we're inferring the
     // expressions of one of such nodes, and perform the coercion if needed.
     TreeNode? parent = node.parent;
+
+    // The case of pattern variable declaration. The initializer expression is
+    // assigned to the pattern, and so the coercion needs to be performed.
     bool needsCoercion =
-        parent is PatternVariableDeclaration && parent.initializer == node ||
-            parent is PatternAssignment && parent.expression == node;
+        parent is PatternVariableDeclaration && parent.initializer == node;
+
+    // The case of pattern assignment. The expression is assigned to the
+    // pattern, and so the coercion needs to be performed.
+    needsCoercion = needsCoercion ||
+        parent is PatternAssignment && parent.expression == node;
+
+    // The constant expressions in relational patterns are considered to be
+    // passed into the corresponding operator, and so the coercion needs to be
+    // performed.
+    needsCoercion = needsCoercion ||
+        parent is RelationalPattern && parent.expression == node;
 
     ExpressionInferenceResult expressionResult =
         inferExpression(node, context).stopShorting();
