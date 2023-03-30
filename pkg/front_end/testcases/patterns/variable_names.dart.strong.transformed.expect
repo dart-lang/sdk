@@ -29,11 +29,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   dynamic qux;
   dynamic quux;
   {
-    core::int foo;
-    core::int bar;
-    core::int baz;
-    core::double boz;
-    core::int foobar;
+    hoisted core::int foo;
+    hoisted core::int bar;
+    hoisted core::int baz;
+    hoisted core::double boz;
+    hoisted core::int foobar;
     final synthesized dynamic #0#0 = x;
     function ##0#2#initializer() → core::int?
       return #0#0{self::A}.{self::A::foo}{core::int?};
@@ -48,11 +48,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
       return 0;
     }
     else {
-      dynamic foo;
-      dynamic bar;
-      dynamic baz;
-      core::double boz;
-      dynamic foobar;
+      hoisted dynamic foo;
+      hoisted dynamic bar;
+      hoisted dynamic baz;
+      hoisted core::double boz;
+      hoisted dynamic foobar;
       final synthesized dynamic #1#0 = x;
       function ##1#2#initializer() → core::Object?
         return #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?};

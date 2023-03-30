@@ -148,8 +148,8 @@ class A extends self::_A&Object&ListMixin {
 static method main() → dynamic {
   self::A a = new self::A::•();
   {
-    core::int x;
-    core::int y;
+    hoisted core::int x;
+    hoisted core::int y;
     final synthesized self::A #0#0 = a;
     late final synthesized core::int #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int};
     late final synthesized core::int #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};

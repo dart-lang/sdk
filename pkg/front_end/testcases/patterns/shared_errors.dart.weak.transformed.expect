@@ -195,8 +195,8 @@ Try removing the duplicate rest element.
 }
 static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → dynamic {
   {
-    core::int a;
-    core::int b;
+    hoisted core::int a;
+    hoisted core::int b;
     final synthesized core::List<core::int> #0#0 = list;
     function ##0#4#initializer() → core::int
       return #0#0.{core::List::[]}(0){(core::int) → core::int};
@@ -221,7 +221,7 @@ Try changing the condition.
   }
 }
 static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
-  core::int a;
+  hoisted core::int a;
   {
     final synthesized dynamic #0#0 = x;
     if(!(!(#0#0 == null) ?{core::bool} let final core::int #t7 = a = #0#0{core::int} in true : false))

@@ -209,16 +209,16 @@ static method objectPattern(dynamic o) → dynamic {
     synthesized dynamic #0#15;
     synthesized core::bool #0#15#isSet = false;
     {
-      core::int hashCode;
-      () → core::String toString;
-      lowered dynamic field#case#0;
-      lowered () → void method#case#0;
-      lowered dynamic extensionGetter#case#0;
-      lowered dynamic extensionMethod#case#0;
-      dynamic dynamicAccess;
-      lowered () → void call#case#0;
-      lowered core::int $1#case#0;
-      lowered core::String named#case#0;
+      hoisted core::int hashCode;
+      hoisted () → core::String toString;
+      lowered hoisted dynamic field#case#0;
+      lowered hoisted () → void method#case#0;
+      lowered hoisted dynamic extensionGetter#case#0;
+      lowered hoisted dynamic extensionMethod#case#0;
+      hoisted dynamic dynamicAccess;
+      lowered hoisted () → void call#case#0;
+      lowered hoisted core::int $1#case#0;
+      lowered hoisted core::String named#case#0;
       dynamic missing;
       lowered dynamic field#case#1;
       lowered () → void method#case#1;

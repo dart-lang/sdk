@@ -412,6 +412,7 @@ class VariableDeclarationHelper {
     kCovariant = 1 << 7,
     kLowered = 1 << 8,
     kSynthesized = 1 << 9,
+    kHoisted = 1 << 10,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -432,6 +433,7 @@ class VariableDeclarationHelper {
   bool IsLate() const { return (flags_ & kLate) != 0; }
   bool IsRequired() const { return (flags_ & kRequired) != 0; }
   bool IsSynthesized() const { return (flags_ & kSynthesized) != 0; }
+  bool IsHoisted() const { return (flags_ & kHoisted) != 0; }
   bool HasDeclaredInitializer() const {
     return (flags_ & kHasDeclaredInitializer) != 0;
   }

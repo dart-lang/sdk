@@ -52,7 +52,7 @@ static method testFor() → dynamic {
     core::print(i);
   }
   {
-    final core::int i;
+    final hoisted core::int i;
     {
       final synthesized dynamic #0#0 = 0;
       if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = i = #0#0{core::int} in true)))
@@ -66,8 +66,8 @@ static method testFor() → dynamic {
     }
   }
   {
-    final core::int i;
-    core::String s;
+    final hoisted core::int i;
+    hoisted core::String s;
     {
       final synthesized dynamic #1#0 = (0, "");
       late final synthesized core::int #1#1 = #1#0{(core::int, core::String)}.$1{core::int};
@@ -82,8 +82,8 @@ static method testFor() → dynamic {
     }
   }
   {
-    core::int i;
-    final core::String s;
+    hoisted core::int i;
+    final hoisted core::String s;
     {
       final synthesized dynamic #2#0 = (0, "");
       late final synthesized core::int #2#1 = #2#0{(core::int, core::String)}.$1{core::int};
@@ -106,7 +106,7 @@ static method testFor() → dynamic {
   } =>#t11;
   core::List<core::int> l2 = block {
     final core::List<core::int> #t12 = <core::int>[];
-    final core::int i;
+    final hoisted core::int i;
     {
       final synthesized dynamic #3#0 = 0;
       if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t13 = i = #3#0{core::int} in true)))
@@ -120,8 +120,8 @@ static method testFor() → dynamic {
   } =>#t12;
   core::List<core::int> l3 = block {
     final core::List<core::int> #t15 = <core::int>[];
-    final core::int i;
-    core::String s;
+    final hoisted core::int i;
+    hoisted core::String s;
     {
       final synthesized dynamic #4#0 = (0, "");
       late final synthesized core::int #4#1 = #4#0{(core::int, core::String)}.$1{core::int};
@@ -136,8 +136,8 @@ static method testFor() → dynamic {
   } =>#t15;
   core::List<core::int> l4 = block {
     final core::List<core::int> #t20 = <core::int>[];
-    core::int i;
-    final core::String s;
+    hoisted core::int i;
+    final hoisted core::String s;
     {
       final synthesized dynamic #5#0 = (0, "");
       late final synthesized core::int #5#1 = #5#0{(core::int, core::String)}.$1{core::int};
@@ -158,7 +158,7 @@ static method testForIn() → dynamic {
     ^";
   }
   for (final core::int #t25 in <core::int>[1, 2, 3]) {
-    final core::int i;
+    final hoisted core::int i;
     {
       final synthesized dynamic #0#0 = #t25;
       if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t26 = i = #0#0{core::int} in true)))
@@ -169,8 +169,8 @@ static method testForIn() → dynamic {
     ^";
   }
   for (final(core::int, core::String) #t27 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
-    final core::int i;
-    core::String s;
+    final hoisted core::int i;
+    hoisted core::String s;
     {
       final synthesized dynamic #1#0 = #t27;
       late final synthesized core::int #1#1 = #1#0{(core::int, core::String)}.$1{core::int};
@@ -183,8 +183,8 @@ static method testForIn() → dynamic {
     ^";
   }
   for (final(core::int, core::String) #t30 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
-    core::int i;
-    final core::String s;
+    hoisted core::int i;
+    final hoisted core::String s;
     {
       final synthesized dynamic #2#0 = #t30;
       late final synthesized core::int #2#1 = #2#0{(core::int, core::String)}.$1{core::int};
@@ -204,7 +204,7 @@ static method testForIn() → dynamic {
   core::List<dynamic> l2 = block {
     final core::List<dynamic> #t34 = <dynamic>[];
     for (final core::int #t35 in <core::int>[1, 2, 3]) {
-      final core::int i;
+      final hoisted core::int i;
       {
         final synthesized dynamic #3#0 = #t35;
         if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final dynamic #t36 = i = #3#0{core::int} in true)))
@@ -218,8 +218,8 @@ static method testForIn() → dynamic {
   core::List<dynamic> l3 = block {
     final core::List<dynamic> #t37 = <dynamic>[];
     for (final(core::int, core::String) #t38 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
-      final core::int i;
-      core::String s;
+      final hoisted core::int i;
+      hoisted core::String s;
       {
         final synthesized dynamic #4#0 = #t38;
         late final synthesized core::int #4#1 = #4#0{(core::int, core::String)}.$1{core::int};
@@ -235,8 +235,8 @@ static method testForIn() → dynamic {
   core::List<core::int> l4 = block {
     final core::List<core::int> #t41 = <core::int>[];
     for (final(core::int, core::String) #t42 in <(core::int, core::String)>[(1, "a"), (2, "b"), (3, "c")]) {
-      core::int i;
-      final core::String s;
+      hoisted core::int i;
+      final hoisted core::String s;
       {
         final synthesized dynamic #5#0 = #t42;
         late final synthesized core::int #5#1 = #5#0{(core::int, core::String)}.$1{core::int};

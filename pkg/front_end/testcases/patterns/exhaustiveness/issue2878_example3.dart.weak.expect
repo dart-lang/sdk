@@ -21,8 +21,8 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
         }
       }
       {
-        self::subs::A% x;
-        core::List<self::subs::A%> xs;
+        hoisted self::subs::A% x;
+        hoisted core::List<self::subs::A%> xs;
         if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t2 = x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%} in true) && (let final dynamic #t3 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>} in true)) {
           #t1 = block {
             final core::List<core::List<self::subs::A%>> #t4 = <core::List<self::subs::A%>>[];

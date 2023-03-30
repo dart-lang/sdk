@@ -170,8 +170,8 @@ static method main() → dynamic {
   self::expect("match-3", self::test2(map));
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
   map.{self::MyMap::clearLog}(){() → void};
-  core::int x1;
-  core::int x2;
+  hoisted core::int x1;
+  hoisted core::int x2;
   {
     final synthesized dynamic #0#0 = map;
     function ##0#6#initializer() → core::int?
@@ -185,8 +185,8 @@ static method main() → dynamic {
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
   map.{self::MyMap::clearLog}(){() → void};
-  final core::int y1;
-  final core::int y2;
+  final hoisted core::int y1;
+  final hoisted core::int y2;
   {
     final synthesized dynamic #1#0 = map;
     function ##1#6#initializer() → core::int?

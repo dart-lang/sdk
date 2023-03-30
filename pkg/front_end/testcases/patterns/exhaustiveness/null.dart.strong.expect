@@ -57,7 +57,7 @@ static method exhaustiveWithField(Null n) → dynamic
     #L4:
     {
       {
-        core::int hashCode;
+        hoisted core::int hashCode;
         if(let final dynamic #t4 = hashCode = #0#0.{core::Object::hashCode}{core::int} in true) {
           #t3 = hashCode;
           break #L4;

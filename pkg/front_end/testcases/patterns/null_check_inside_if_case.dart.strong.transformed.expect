@@ -22,13 +22,13 @@ import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
   {
-    dynamic y;
+    hoisted dynamic y;
     final synthesized dynamic #0#0 = x;
     if(!(#0#0 == null) ?{core::bool} let final dynamic #t1 = y = #0#0 in true : false) {
     }
   }
   {
-    core::int y;
+    hoisted core::int y;
     final synthesized dynamic #1#0 = x;
     if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #1#0{core::int} in true) : false) {
     }
@@ -36,19 +36,19 @@ static method test1(dynamic x) → dynamic {
 }
 static method test2(core::num x) → dynamic {
   {
-    core::num y;
+    hoisted core::num y;
     final synthesized core::num #0#0 = x;
     if(!(#0#0 == null) ?{core::bool} let final core::num #t3 = y = #0#0 in true : false) {
     }
   }
   {
-    core::int y;
+    hoisted core::int y;
     final synthesized core::num #1#0 = x;
     if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = y = #1#0{core::int} in true) : false) {
     }
   }
   {
-    core::String y;
+    hoisted core::String y;
     final synthesized core::num #2#0 = x;
     if(!(#2#0 == null) ?{core::bool} #2#0 is{ForNonNullableByDefault} core::String && (let final core::String #t5 = y = #2#0{core::String} in true) : false) {
     }
