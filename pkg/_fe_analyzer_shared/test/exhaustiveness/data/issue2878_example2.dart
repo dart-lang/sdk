@@ -6,7 +6,10 @@ void main() {
   print(equals(list, list));
 }
 
-List<X> f<X>(List<X> list) => /*
+List<X> f<X>(
+        List<X>
+            list) => /*
+ checkingOrder={List<X>,<X>[...]},
  subtypes={<X>[...]},
  type=List<X>
 */
@@ -16,10 +19,12 @@ List<X> f<X>(List<X> list) => /*
     };
 
 List<List<A>> subs<A>(
-        List<A> list) => /*
- subtypes={<A>[],<A>[(), ...]},
- type=List<A>
-*/
+        List<A>
+            list) => /*
+         checkingOrder={List<A>,<A>[],<A>[(), ...]},
+         subtypes={<A>[],<A>[(), ...]},
+         type=List<A>
+        */
     switch (list) {
       [] /*space=<[]>*/ => [],
       [var x, ...var xs] /*space=<[Object?, ...List<A>]>*/ => [
@@ -32,10 +37,12 @@ List<List<A>> subs<A>(
     };
 
 List<List<A>> perms<A>(
-        List<A> list) => /*
- subtypes={<A>[],<A>[(), ...]},
- type=List<A>
-*/
+        List<A>
+            list) => /*
+         checkingOrder={List<A>,<A>[],<A>[(), ...]},
+         subtypes={<A>[],<A>[(), ...]},
+         type=List<A>
+        */
     switch (list) {
       [] || [_] /*space=<[]|[Object?]>*/ => [list],
       [var x, ...var xs] /*space=<[Object?, ...List<A>]>*/ => [

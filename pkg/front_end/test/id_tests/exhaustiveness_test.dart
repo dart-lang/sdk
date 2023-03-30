@@ -90,6 +90,11 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
         if (subtypes != expandedSubtypes && expandedSubtypes != null) {
           features[Tags.expandedSubtypes] = expandedSubtypes;
         }
+        String? order =
+            typesToText(checkingOrder(result.scrutineeType, keysOfInterest));
+        if (order != null) {
+          features[Tags.checkingOrder] = order;
+        }
       }
       if (fieldsOfInterest.isNotEmpty) {
         features[Tags.scrutineeFields] = fieldsToText(result.scrutineeType,

@@ -4,6 +4,7 @@
 
 exhaustiveBoundedTypeVariableByValue<T extends bool>(T x1, T x2) {
   /*
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -15,6 +16,7 @@ exhaustiveBoundedTypeVariableByValue<T extends bool>(T x1, T x2) {
       break;
   }
   return /*
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -26,6 +28,7 @@ exhaustiveBoundedTypeVariableByValue<T extends bool>(T x1, T x2) {
 
 exhaustiveBoundedTypeVariableByType<T extends bool>(T x1, T x2) {
   /*
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -35,6 +38,7 @@ exhaustiveBoundedTypeVariableByType<T extends bool>(T x1, T x2) {
       break;
   }
   return /*
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -45,6 +49,7 @@ exhaustiveBoundedTypeVariableByType<T extends bool>(T x1, T x2) {
 
 nonExhaustiveBoundedTypeVariable<T extends bool>(T x1, T x2) {
   /*
+   checkingOrder={bool,true,false},
    error=non-exhaustive:false,
    subtypes={true,false},
    type=bool
@@ -55,6 +60,7 @@ nonExhaustiveBoundedTypeVariable<T extends bool>(T x1, T x2) {
       break;
   }
   return /*
+   checkingOrder={bool,true,false},
    error=non-exhaustive:false,
    subtypes={true,false},
    type=bool
@@ -66,6 +72,7 @@ nonExhaustiveBoundedTypeVariable<T extends bool>(T x1, T x2) {
 
 exhaustiveBoundedTypeVariableByBound<T extends bool>(T x1, T x2) {
   /*
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -75,6 +82,7 @@ exhaustiveBoundedTypeVariableByBound<T extends bool>(T x1, T x2) {
       break;
   }
   return /*
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -86,6 +94,7 @@ exhaustiveBoundedTypeVariableByBound<T extends bool>(T x1, T x2) {
 nonExhaustiveBoundedTypeVariableByOtherType<T extends bool, S extends bool>(
     T x1, T x2) {
   /*
+   checkingOrder={bool,true,false},
    error=non-exhaustive:true,
    subtypes={true,false},
    type=bool
@@ -96,6 +105,7 @@ nonExhaustiveBoundedTypeVariableByOtherType<T extends bool, S extends bool>(
       break;
   }
   return /*
+   checkingOrder={bool,true,false},
    error=non-exhaustive:true,
    subtypes={true,false},
    type=bool
@@ -108,6 +118,7 @@ nonExhaustiveBoundedTypeVariableByOtherType<T extends bool, S extends bool>(
 exhaustivePromotedTypeVariableByValue<T>(T x1, T x2) {
   if (x1 is bool) {
     /*
+     checkingOrder={bool,true,false},
      subtypes={true,false},
      type=bool
     */
@@ -121,6 +132,7 @@ exhaustivePromotedTypeVariableByValue<T>(T x1, T x2) {
   }
   if (x2 is bool) {
     var a = /*
+     checkingOrder={bool,true,false},
      subtypes={true,false},
      type=bool
     */
@@ -134,6 +146,7 @@ exhaustivePromotedTypeVariableByValue<T>(T x1, T x2) {
 exhaustivePromotedTypeVariableByType<T>(T x1, T x2) {
   if (x1 is bool) {
     /*
+     checkingOrder={bool,true,false},
      subtypes={true,false},
      type=bool
     */
@@ -145,6 +158,7 @@ exhaustivePromotedTypeVariableByType<T>(T x1, T x2) {
   }
   if (x2 is bool) {
     var a = /*
+     checkingOrder={bool,true,false},
      subtypes={true,false},
      type=bool
     */
@@ -157,6 +171,7 @@ exhaustivePromotedTypeVariableByType<T>(T x1, T x2) {
 nonExhaustivePromotedTypeVariable<T>(T x1, T x2) {
   if (x1 is bool) {
     /*
+     checkingOrder={bool,true,false},
      error=non-exhaustive:false,
      subtypes={true,false},
      type=bool
@@ -169,6 +184,7 @@ nonExhaustivePromotedTypeVariable<T>(T x1, T x2) {
   }
   if (x2 is bool) {
     var a = /*
+     checkingOrder={bool,true,false},
      error=non-exhaustive:false,
      subtypes={true,false},
      type=bool
@@ -182,6 +198,7 @@ nonExhaustivePromotedTypeVariable<T>(T x1, T x2) {
 exhaustivePromotedTypeVariableByBound<T>(T x1, T x2) {
   if (x1 is bool) {
     /*
+     checkingOrder={bool,true,false},
      subtypes={true,false},
      type=bool
     */
@@ -193,6 +210,7 @@ exhaustivePromotedTypeVariableByBound<T>(T x1, T x2) {
   }
   if (x2 is bool) {
     var a = /*
+     checkingOrder={bool,true,false},
      subtypes={true,false},
      type=bool
     */
@@ -205,6 +223,7 @@ exhaustivePromotedTypeVariableByBound<T>(T x1, T x2) {
 nonExhaustivePromotedTypeVariableByOtherType<T, S extends bool>(T x1, T x2) {
   if (x1 is bool) {
     /*
+     checkingOrder={bool,true,false},
      error=non-exhaustive:true,
      subtypes={true,false},
      type=bool
@@ -217,6 +236,7 @@ nonExhaustivePromotedTypeVariableByOtherType<T, S extends bool>(T x1, T x2) {
   }
   if (x2 is bool) {
     var a = /*
+     checkingOrder={bool,true,false},
      error=non-exhaustive:true,
      subtypes={true,false},
      type=bool

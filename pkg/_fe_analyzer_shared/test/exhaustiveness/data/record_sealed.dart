@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 sealed class A {}
+
 class B extends A {}
+
 class C extends A {}
 
 class Class {
@@ -15,10 +17,11 @@ method(Class c) {
   /*
    fields={field:(A, A)},
    type=Class
-  */switch (c) {
-    /*space=Class(field: (A, B))*/case Class(field: (A a, B b)):
+  */
+  switch (c) {
+    /*space=Class(field: (A, B))*/ case Class(field: (A a, B b)):
       print('1');
-    /*space=Class(field: (B, A))*/case Class(field: (B b, A a)):
+    /*space=Class(field: (B, A))*/ case Class(field: (B b, A a)):
       print('2');
     default:
   }

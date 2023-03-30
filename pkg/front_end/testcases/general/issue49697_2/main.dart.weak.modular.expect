@@ -4,7 +4,7 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/general/issue49697_2/main.dart:17:11: Error: The type 'A?' is not exhaustively matched by the switch cases.
 //  - 'A' is from 'pkg/front_end/testcases/general/issue49697_2/main.dart'.
-// Try adding a default case or cases that match 'A.b'.
+// Try adding a default case or cases that match 'null'.
 //   switch (a) {
 //           ^
 //
@@ -22,7 +22,7 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/general/issue49697_2/main.dart:51:11: Error: The type 'C?' is not exhaustively matched by the switch cases.
 //  - 'C' is from 'pkg/front_end/testcases/general/issue49697_2/main_lib.dart'.
-// Try adding a default case or cases that match 'C.b'.
+// Try adding a default case or cases that match 'null'.
 //   switch (c) {
 //           ^
 //

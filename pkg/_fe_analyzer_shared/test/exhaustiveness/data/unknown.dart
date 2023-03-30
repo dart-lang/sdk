@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final unknownShouldNotIncludeNull = /*type=Null*/switch (null) {
-  int(:var isEven) when isEven /*space=?*/=> 1,
-  _ /*space=Null*/=> 0,
+final unknownShouldNotIncludeNull = /*type=Null*/ switch (null) {
+  int(:var isEven) when isEven /*space=?*/ => 1,
+  _ /*space=Null*/ => 0,
 };

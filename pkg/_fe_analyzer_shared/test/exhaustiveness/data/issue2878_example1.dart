@@ -6,10 +6,12 @@ void main() {
 }
 
 List<List<A>> subs<A>(
-        List<A> list) => /*
- subtypes={<A>[],<A>[(), ...]},
- type=List<A>
-*/
+        List<A>
+            list) => /*
+         checkingOrder={List<A>,<A>[],<A>[(), ...]},
+         subtypes={<A>[],<A>[(), ...]},
+         type=List<A>
+        */
     switch (list) {
       [] /*space=<[]>*/ => [],
       [var x, ...var xs] /*space=<[Object?, ...List<A>]>*/ => [
@@ -22,10 +24,12 @@ List<List<A>> subs<A>(
     };
 
 List<List<A>> perms<A>(
-        List<A> list) => /*
- subtypes={<A>[],<A>[(), ...]},
- type=List<A>
-*/
+        List<A>
+            list) => /*
+         checkingOrder={List<A>,<A>[],<A>[(), ...]},
+         subtypes={<A>[],<A>[(), ...]},
+         type=List<A>
+        */
     switch (list) {
       [] || [_] /*space=<[]|[Object?]>*/ => [list],
       [var x, ...var xs] /*space=<[Object?, ...List<A>]>*/ => [

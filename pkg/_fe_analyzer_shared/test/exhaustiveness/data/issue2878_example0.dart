@@ -6,6 +6,7 @@ void main() {
   List<int> list = [1, 2, 3];
 
   (/*
+   checkingOrder={List<int>,<int>[...]},
    subtypes={<int>[...]},
    type=List<int>
   */
@@ -14,6 +15,7 @@ void main() {
   });
 
   (/*
+   checkingOrder={List<int>,<int>[],<int>[(), ...]},
    subtypes={<int>[],<int>[(), ...]},
    type=List<int>
   */
@@ -23,6 +25,7 @@ void main() {
   });
 
   (/*
+   checkingOrder={List<int>,<int>[],<int>[()],<int>[(), (), ...]},
    subtypes={<int>[],<int>[()],<int>[(), (), ...]},
    type=List<int>
   */
