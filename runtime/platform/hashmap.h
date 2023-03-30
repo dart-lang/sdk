@@ -25,7 +25,7 @@ class SimpleHashMap {
 
   static uint32_t StringHash(const char* key) {
     uint32_t hash_ = 0;
-    if (key == NULL) return hash_;
+    if (key == nullptr) return hash_;
     int len = strlen(key);
     for (int i = 0; i < len; i++) {
       hash_ += key[i];
@@ -47,7 +47,7 @@ class SimpleHashMap {
   // Some clients may not need to use the value slot
   // (e.g. implementers of sets, where the key is the value).
   struct Entry {
-    Entry() : key(NULL), value(NULL), hash(0) {}
+    Entry() : key(nullptr), value(nullptr), hash(0) {}
     void* key;
     void* value;
     uint32_t hash;  // The full hash value for key.
@@ -56,8 +56,8 @@ class SimpleHashMap {
   // If an entry with matching key is found, Lookup()
   // returns that entry. If no matching entry is found,
   // but insert is set, a new entry is inserted with
-  // corresponding key, key hash, and NULL value.
-  // Otherwise, NULL is returned.
+  // corresponding key, key hash, and nullptr value.
+  // Otherwise, nullptr is returned.
   Entry* Lookup(void* key, uint32_t hash, bool insert);
 
   // Removes the entry with matching key.
@@ -68,7 +68,7 @@ class SimpleHashMap {
 
   // Empties the hash map (occupancy() == 0), and calls the function 'clear' on
   // each of the values if given.
-  void Clear(ClearFun clear = NULL);
+  void Clear(ClearFun clear = nullptr);
 
   // The number of entries stored in the table.
   intptr_t size() const { return occupancy_; }
@@ -80,7 +80,7 @@ class SimpleHashMap {
 
   // Iteration
   //
-  // for (Entry* p = map.Start(); p != NULL; p = map.Next(p)) {
+  // for (Entry* p = map.Start(); p != nullptr; p = map.Next(p)) {
   //   ...
   // }
   //

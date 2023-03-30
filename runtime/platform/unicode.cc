@@ -264,7 +264,7 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
 }
 
 bool Utf8::DecodeCStringToUTF32(const char* str, int32_t* dst, intptr_t len) {
-  ASSERT(str != NULL);
+  ASSERT(str != nullptr);
   intptr_t array_len = strlen(str);
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
   return Utf8::DecodeToUTF32(utf8_array, array_len, dst, len);
@@ -272,7 +272,7 @@ bool Utf8::DecodeCStringToUTF32(const char* str, int32_t* dst, intptr_t len) {
 
 void Utf16::Encode(int32_t codepoint, uint16_t* dst) {
   ASSERT(codepoint > Utf16::kMaxCodeUnit);
-  ASSERT(dst != NULL);
+  ASSERT(dst != nullptr);
   dst[0] = (Utf16::kLeadSurrogateOffset + (codepoint >> 10));
   dst[1] = (0xDC00 + (codepoint & 0x3FF));
 }

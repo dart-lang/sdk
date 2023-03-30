@@ -99,9 +99,9 @@ class Expect : public DynamicAssertionHelper {
 
 template <typename T>
 T Assert::NotNull(const T p) {
-  if (p != NULL) return p;
-  Fail("expected: not NULL, found NULL");
-  return NULL;
+  if (p != nullptr) return p;
+  Fail("expected: not nullptr, found nullptr");
+  return nullptr;
 }
 
 #if defined(TESTING)
@@ -222,8 +222,8 @@ void Expect::GreaterEqual(const E& left, const A& right) {
 
 template <typename T>
 void Expect::NotNull(const T p) {
-  if (p != NULL) return;
-  Fail("expected: not NULL, found NULL");
+  if (p != nullptr) return;
+  Fail("expected: not nullptr, found nullptr");
 }
 
 template <typename T>
