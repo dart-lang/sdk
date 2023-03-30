@@ -603,6 +603,7 @@ bool Options::ParseArguments(int argc,
   }
   USE(enable_dartdev_analytics);
   USE(disable_dartdev_analytics);
+  USE(packages_argument);
 
   const char** vm_argv = temp_vm_options.arguments();
   int vm_argc = temp_vm_options.count();
