@@ -1543,35 +1543,10 @@ class MethodElementImplTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class MixinElementImplTest extends AbstractTypeSystemTest {
-  void test_isExhaustive() {
-    var element = ElementFactory.mixinElement2("C");
-    expect(element.isExhaustive, isFalse);
-  }
-
-  void test_isExhaustive_base() {
-    var element = ElementFactory.mixinElement2("C", isBase: true);
-    expect(element.isExhaustive, isFalse);
-  }
-
-  void test_isExhaustive_final() {
-    var element = ElementFactory.mixinElement2("C", isFinal: true);
-    expect(element.isExhaustive, isFalse);
-  }
-
-  void test_isExhaustive_interface() {
-    var element = ElementFactory.mixinElement2("C", isInterface: true);
-    expect(element.isExhaustive, isFalse);
-  }
-
-  void test_isExhaustive_sealed() {
-    var element = ElementFactory.mixinElement2("C", isSealed: true);
-    expect(element.isExhaustive, isTrue);
-  }
-
   void test_isImplementableIn_base_differentLibrary() {
     LibraryElementImpl library1 =
         ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isBase: true);
+    var mixinElement = ElementFactory.mixinElement(name: "C", isBase: true);
     library1.definingCompilationUnit.mixins = [mixinElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
@@ -1580,7 +1555,7 @@ class MixinElementImplTest extends AbstractTypeSystemTest {
 
   void test_isImplementableIn_base_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isBase: true);
+    var mixinElement = ElementFactory.mixinElement(name: "C", isBase: true);
     library.definingCompilationUnit.mixins = [mixinElement];
     expect(mixinElement.isImplementableIn(library), isTrue);
   }
@@ -1588,154 +1563,18 @@ class MixinElementImplTest extends AbstractTypeSystemTest {
   void test_isImplementableIn_differentLibrary() {
     LibraryElementImpl library1 =
         ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C");
+    var mixinElement = ElementFactory.mixinElement(name: "C");
     library1.definingCompilationUnit.mixins = [mixinElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
     expect(mixinElement.isImplementableIn(library2), isTrue);
-  }
-
-  void test_isImplementableIn_final_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isFinal: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isImplementableIn(library2), isFalse);
-  }
-
-  void test_isImplementableIn_final_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isFinal: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isImplementableIn(library), isTrue);
-  }
-
-  void test_isImplementableIn_interface_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isInterface: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isImplementableIn(library2), isTrue);
-  }
-
-  void test_isImplementableIn_interface_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isInterface: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isImplementableIn(library), isTrue);
   }
 
   void test_isImplementableIn_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C");
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isImplementableIn(library), isTrue);
-  }
-
-  void test_isImplementableIn_sealed_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isSealed: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isImplementableIn(library2), isFalse);
-  }
-
-  void test_isImplementableIn_sealed_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isSealed: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isImplementableIn(library), isTrue);
-  }
-
-  void test_isMixableIn_base_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isBase: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isMixableIn(library2), isTrue);
-  }
-
-  void test_isMixableIn_base_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isBase: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isMixableIn(library), isTrue);
-  }
-
-  void test_isMixableIn_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement(name: "C");
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isMixableIn(library2), isTrue);
-  }
-
-  void test_isMixableIn_final_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isFinal: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isMixableIn(library2), isFalse);
-  }
-
-  void test_isMixableIn_final_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isFinal: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isMixableIn(library), isTrue);
-  }
-
-  void test_isMixableIn_interface_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isInterface: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isMixableIn(library2), isFalse);
-  }
-
-  void test_isMixableIn_interface_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isInterface: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isMixableIn(library), isTrue);
-  }
-
-  void test_isMixableIn_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     var mixinElement = ElementFactory.mixinElement(name: "C");
     library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isMixableIn(library), isTrue);
-  }
-
-  void test_isMixableIn_sealed_differentLibrary() {
-    LibraryElementImpl library1 =
-        ElementFactory.library(analysisContext, "lib1");
-    var mixinElement = ElementFactory.mixinElement2("C", isSealed: true);
-    library1.definingCompilationUnit.mixins = [mixinElement];
-    LibraryElementImpl library2 =
-        ElementFactory.library(analysisContext, "lib2");
-    expect(mixinElement.isMixableIn(library2), isFalse);
-  }
-
-  void test_isMixableIn_sealed_sameLibrary() {
-    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    var mixinElement = ElementFactory.mixinElement2("C", isSealed: true);
-    library.definingCompilationUnit.mixins = [mixinElement];
-    expect(mixinElement.isMixableIn(library), isTrue);
+    expect(mixinElement.isImplementableIn(library), isTrue);
   }
 }
 

@@ -2026,27 +2026,6 @@ abstract class MixinElement
   @experimental
   bool get isBase;
 
-  /// Return `true` if this element has the property where, in a switch, if you
-  /// cover all of the subtypes of this element, then the compiler knows that
-  /// you have covered all possible instances of the type.
-  @experimental
-  bool get isExhaustive;
-
-  /// Return `true` if this mixin is a final mixin. A mixin is a final mixin if
-  /// it has an explicit `final` modifier.
-  @experimental
-  bool get isFinal;
-
-  /// Return `true` if this mixin is an interface mixin. A mixin is an interface
-  /// mixin if it has an explicit `interface` modifier.
-  @experimental
-  bool get isInterface;
-
-  /// Return `true` if this mixin is a sealed mixin. A mixin is a sealed mixin
-  /// if it has an explicit `sealed` modifier.
-  @experimental
-  bool get isSealed;
-
   /// Returns the superclass constraints defined for this mixin. If the
   /// declaration does not have an `on` clause, then the list will contain
   /// the type for the class `Object`.
@@ -2062,11 +2041,6 @@ abstract class MixinElement
   /// implementable to classes, mixins, and enums in the given [library].
   @experimental
   bool isImplementableIn(LibraryElement library);
-
-  /// Return `true` if this element, assuming that it is within scope, is
-  /// able to be mixed-in by classes and enums in the given [library].
-  @experimental
-  bool isMixableIn(LibraryElement library);
 }
 
 /// Shared interface between [MixinElement] and [MixinAugmentationElement].

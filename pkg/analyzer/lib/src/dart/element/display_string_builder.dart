@@ -164,10 +164,6 @@ class ElementDisplayStringBuilder {
   void writeMixinElement(MixinElementImpl element) {
     if (element.isBase) {
       _write('base ');
-    } else if (element.isInterface) {
-      _write('interface ');
-    } else if (element.isFinal) {
-      _write('final ');
     }
     _write('mixin ');
     _write(element.displayName);

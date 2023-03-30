@@ -753,6 +753,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   @override
   bool get isExhaustive => isSealed;
 
+  @override
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  @override
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
   bool get isMacro {
     return hasModifier(Modifier.MACRO);
   }
@@ -778,6 +796,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
 
   set isMixinClass(bool isMixinClass) {
     setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
+
+  @override
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -1063,30 +1090,6 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
 
   set isBase(bool isBase) {
     setModifier(Modifier.BASE, isBase);
-  }
-
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  bool get isInterface {
-    return hasModifier(Modifier.INTERFACE);
-  }
-
-  set isInterface(bool isInterface) {
-    setModifier(Modifier.INTERFACE, isInterface);
-  }
-
-  bool get isSealed {
-    return hasModifier(Modifier.SEALED);
-  }
-
-  set isSealed(bool isSealed) {
-    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -4917,9 +4920,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   }
 
   @override
-  bool get isExhaustive => isSealed;
-
-  @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
 
   @override
@@ -4955,15 +4955,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
     if (library == this.library) {
       return true;
     }
-    return !isBase && !isFinal && !isSealed;
-  }
-
-  @override
-  bool isMixableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isInterface && !isFinal && !isSealed;
+    return !isBase;
   }
 }
 

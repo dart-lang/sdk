@@ -295,26 +295,14 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     seen(augmentToken);
-    seen(sealedToken);
     seen(baseToken);
-    seen(interfaceToken);
-    seen(finalToken);
     seen(mixinKeyword);
     seen(name);
     doPrint('beginMixinDeclaration('
         '$augmentToken, '
-        '$sealedToken, '
         '$baseToken, '
-        '$interfaceToken, '
-        '$finalToken, '
         '$mixinKeyword, '
         '$name)');
     indent++;

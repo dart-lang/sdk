@@ -10833,18 +10833,6 @@ library because it's a final class._
 _The mixin '{0}' can't be implemented outside of its library because it's a base
 mixin._
 
-_The mixin '{0}' can't be implemented outside of its library because it's a
-final mixin._
-
-_The mixin '{0}' can't be mixed in outside of its library because it's a sealed
-mixin._
-
-_The mixin '{0}' can't be mixed-in outside of its library because it's a final
-mixin._
-
-_The mixin '{0}' can't be mixed-in outside of its library because it's an
-interface mixin._
-
 #### Description
 
 The analyzer produces this diagnostic when an `extends`, `implements`,

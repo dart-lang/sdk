@@ -1721,28 +1721,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the final mixin being implemented.
-  static const CompileTimeErrorCode FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
-      CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be implemented outside of its library because it's "
-        "a final mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the final mixin being mixed in.
-  static const CompileTimeErrorCode FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY =
-      CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be mixed-in outside of its library because it's a "
-        "final mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
   ///  0: the name of the uninitialized final variable
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED =
       CompileTimeErrorCode(
@@ -2313,17 +2291,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "interface class.",
     hasPublishedDocs: true,
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the interface mixin being mixed in.
-  static const CompileTimeErrorCode
-      INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be mixed-in outside of its library because it's an "
-        "interface mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
   );
 
   ///  No parameters.
@@ -4472,17 +4439,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "its library because it's a sealed class.",
     hasPublishedDocs: true,
     uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the sealed mixin being mixed in
-  static const CompileTimeErrorCode SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY =
-      CompileTimeErrorCode(
-    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    "The mixin '{0}' can't be mixed in outside of its library because it's a "
-        "sealed mixin.",
-    hasPublishedDocs: true,
-    uniqueName: 'SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY',
   );
 
   ///  No parameters.

@@ -21,6 +21,8 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+class_modifiers/final/final_mixin_declaration: FormatterCrash
+class_modifiers/interface/interface_mixin_declaration: FormatterCrash
 class_modifiers/mixin/mixin_class_invalid_modifiers: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash
@@ -183,6 +185,7 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 sealed_class/sealed_abstract_class_declaration: FormatterCrash
 sealed_class/sealed_class_as_mixin: FormatterCrash
+sealed_class/sealed_mixin_declaration: FormatterCrash
 super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
 super_parameters/issue48714: FormatterCrash

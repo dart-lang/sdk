@@ -5628,20 +5628,6 @@ CompileTimeErrorCode:
         C(this.f);
       }
       ```
-  FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
-    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-    problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a final mixin."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the final mixin being implemented.
-  FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
-    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-    problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's a final mixin."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the final mixin being mixed in.
   FINAL_NOT_INITIALIZED:
     problemMessage: "The final variable '{0}' must be initialized."
     correctionMessage: Try initializing the variable.
@@ -7362,13 +7348,6 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the interface class being extended.
-  INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
-    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-    problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's an interface mixin."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the interface mixin being mixed in.
   INVALID_ANNOTATION:
     problemMessage: Annotation must be either a const variable reference or const constructor invocation.
     hasPublishedDocs: true
@@ -14289,13 +14268,6 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the sealed class being extended, implemented, or mixed in
-  SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
-    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-    problemMessage: "The mixin '{0}' can't be mixed in outside of its library because it's a sealed mixin."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the sealed mixin being mixed in
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true

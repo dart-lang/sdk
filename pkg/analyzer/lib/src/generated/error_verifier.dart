@@ -1751,12 +1751,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final interfaceElement = interfaceType.element;
         if (interfaceElement is ClassOrMixinElementImpl &&
             interfaceElement.isBase &&
-            !interfaceElement.isSealed &&
             interfaceElement.library != _currentLibrary &&
             !_mayIgnoreClassModifiers(interfaceElement.library)) {
           // Should this be combined with _checkForImplementsClauseErrorCodes
           // to avoid double errors if implementing `int`.
-          if (interfaceElement is ClassElement) {
+          if (interfaceElement is ClassElementImpl &&
+              !interfaceElement.isSealed) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
                 interface,
@@ -2858,8 +2858,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.
   /// FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY].
   void _checkForFinalSupertypeOutsideOfLibrary(
@@ -2883,44 +2881,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
     }
-    if (withClause != null) {
-      for (NamedType namedType in withClause.mixinTypes) {
-        final type = namedType.type;
-        if (type is InterfaceType) {
-          final element = type.element;
-          if (element is MixinElementImpl &&
-              element.isFinal &&
-              !element.isSealed &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
-                namedType,
-                [element.name]);
-          }
-        }
-      }
-    }
     if (implementsClause != null) {
       for (NamedType namedType in implementsClause.interfaces) {
         final type = namedType.type;
         if (type is InterfaceType) {
           final element = type.element;
-          if (element is ClassOrMixinElementImpl &&
+          if (element is ClassElement &&
               element.isFinal &&
               !element.isSealed &&
               element.library != _currentLibrary &&
               !_mayIgnoreClassModifiers(element.library)) {
-            final ErrorCode errorCode;
-            if (element is ClassElement) {
-              errorCode = CompileTimeErrorCode
-                  .FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
-            } else {
-              errorCode = CompileTimeErrorCode
-                  .FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
-            }
-            errorReporter
-                .reportErrorForNode(errorCode, namedType, [element.name]);
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                namedType,
+                [element.name]);
           }
         }
       }
@@ -3139,8 +3113,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// mixin.
   ///
   /// See
-  /// [CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY].
+  /// [CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY].
   void _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
       NamedType? superclass, WithClause? withClause) {
     if (superclass != null) {
@@ -3156,25 +3129,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
               superclass,
               [superclassElement.name]);
-        }
-      }
-    }
-    if (withClause != null) {
-      for (NamedType withMixin in withClause.mixinTypes) {
-        final withType = withMixin.type;
-        if (withType is InterfaceType) {
-          final withElement = withType.element;
-          if (withElement is MixinElementImpl &&
-              withElement.isInterface &&
-              !withElement.isSealed &&
-              withElement.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(withElement.library)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
-                withMixin,
-                [withElement.name]);
-          }
         }
       }
     }
@@ -4452,8 +4406,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that if a direct supertype of a node is sealed, then it must be in
   /// the same library.
   ///
-  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY].
+  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY].
   void _checkForSealedSupertypeOutsideOfLibrary(
       NamedType? superclass,
       WithClause? withClause,
@@ -4464,19 +4417,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         final type = namedType.type;
         if (type is InterfaceType) {
           final element = type.element;
-          if (element is ClassOrMixinElementImpl &&
+          if (element is ClassElement &&
               element.isSealed &&
               element.library != _currentLibrary) {
-            final ErrorCode errorCode;
-            if (element is MixinElementImpl) {
-              errorCode =
-                  CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY;
-            } else {
-              errorCode =
-                  CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY;
-            }
-            errorReporter
-                .reportErrorForNode(errorCode, namedType, [element.name]);
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
+                namedType,
+                [element.name]);
           }
         }
       }

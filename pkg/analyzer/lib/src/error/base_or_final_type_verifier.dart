@@ -235,3 +235,17 @@ class BaseOrFinalTypeVerifier {
     return false;
   }
 }
+
+extension on ClassOrMixinElementImpl {
+  bool get isFinal {
+    var self = this;
+    if (self is ClassElementImpl) return self.isFinal;
+    return false;
+  }
+
+  bool get isSealed {
+    var self = this;
+    if (self is ClassElementImpl) return self.isSealed;
+    return false;
+  }
+}

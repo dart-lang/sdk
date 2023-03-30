@@ -160,6 +160,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INTERFACE_MIXIN_CLASS,
   ParserErrorCode.SEALED_MIXIN_CLASS,
   ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE,
+  ParserErrorCode.FINAL_MIXIN,
+  ParserErrorCode.INTERFACE_MIXIN,
+  ParserErrorCode.SEALED_MIXIN,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -828,6 +831,12 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the keyword 'final'.",
   );
 
+  static const ParserErrorCode FINAL_MIXIN = ParserErrorCode(
+    'FINAL_MIXIN',
+    "A mixin can't be declared 'final'.",
+    correctionMessage: "Try removing the 'final' keyword.",
+  );
+
   static const ParserErrorCode FINAL_MIXIN_CLASS = ParserErrorCode(
     'FINAL_MIXIN_CLASS',
     "A mixin class can't be declared 'final'.",
@@ -909,6 +918,12 @@ class ParserErrorCode extends ErrorCode {
     "The loop variable in a for-each loop can't be initialized.",
     correctionMessage:
         "Try removing the initializer, or using a different kind of loop.",
+  );
+
+  static const ParserErrorCode INTERFACE_MIXIN = ParserErrorCode(
+    'INTERFACE_MIXIN',
+    "A mixin can't be declared 'interface'.",
+    correctionMessage: "Try removing the 'interface' keyword.",
   );
 
   static const ParserErrorCode INTERFACE_MIXIN_CLASS = ParserErrorCode(
@@ -1575,6 +1590,12 @@ class ParserErrorCode extends ErrorCode {
     "Only factory constructor can specify '=' redirection.",
     correctionMessage:
         "Try making this a factory constructor, or remove the redirection.",
+  );
+
+  static const ParserErrorCode SEALED_MIXIN = ParserErrorCode(
+    'SEALED_MIXIN',
+    "A mixin can't be declared 'sealed'.",
+    correctionMessage: "Try removing the 'sealed' keyword.",
   );
 
   static const ParserErrorCode SEALED_MIXIN_CLASS = ParserErrorCode(

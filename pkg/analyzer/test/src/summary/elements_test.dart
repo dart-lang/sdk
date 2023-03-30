@@ -34851,20 +34851,6 @@ library
 ''');
   }
 
-  test_mixin_final() async {
-    var library = await buildLibrary(r'''
-final mixin M on A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    mixins
-      final mixin M @12
-        superclassConstraints
-          Object
-''');
-  }
-
   test_mixin_first() async {
     var library = await buildLibrary(r'''
 mixin M {}
@@ -35470,20 +35456,6 @@ library
 ''');
   }
 
-  test_mixin_interface() async {
-    var library = await buildLibrary(r'''
-interface mixin M on A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    mixins
-      interface mixin M @16
-        superclassConstraints
-          Object
-''');
-  }
-
   test_mixin_method_invokesSuperSelf() async {
     var library = await buildLibrary(r'''
 mixin M on A {
@@ -35526,20 +35498,6 @@ library
         methods
           A @33
             returnType: void
-''');
-  }
-
-  test_mixin_sealed() async {
-    var library = await buildLibrary(r'''
-sealed mixin M on A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    mixins
-      sealed mixin M @13
-        superclassConstraints
-          Object
 ''');
   }
 

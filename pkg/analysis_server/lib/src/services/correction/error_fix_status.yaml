@@ -517,10 +517,6 @@ CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
   status: needsEvaluation
-CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
-CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED:
   status: hasFix
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1:
@@ -644,8 +640,6 @@ CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
 CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE:
   status: needsEvaluation
 CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
-CompileTimeErrorCode.INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_ANNOTATION:
   status: hasFix
@@ -1052,8 +1046,6 @@ CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD:
 CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
-CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
@@ -2186,6 +2178,8 @@ ParserErrorCode.FINAL_ENUM:
   status: needsEvaluation
 ParserErrorCode.FINAL_METHOD:
   status: needsEvaluation
+ParserErrorCode.FINAL_MIXIN:
+  status: needsEvaluation
 ParserErrorCode.FINAL_MIXIN_CLASS:
   status: needsEvaluation
 ParserErrorCode.FINAL_TYPEDEF:
@@ -2209,6 +2203,8 @@ ParserErrorCode.IMPLEMENTS_BEFORE_WITH:
 ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation
 ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
+  status: needsEvaluation
+ParserErrorCode.INTERFACE_MIXIN:
   status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
   status: needsEvaluation
@@ -2399,6 +2395,8 @@ ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation
 ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.SEALED_MIXIN:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN_CLASS:
   status: needsEvaluation

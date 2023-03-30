@@ -243,13 +243,13 @@ class ElementFactory {
     return method;
   }
 
-  static MixinElementImpl mixinElement({
-    required String name,
-    List<TypeParameterElement>? typeParameters,
-    List<String> typeParameterNames = const [],
-    List<InterfaceType> constraints = const [],
-    List<InterfaceType> interfaces = const [],
-  }) {
+  static MixinElementImpl mixinElement(
+      {required String name,
+      List<TypeParameterElement>? typeParameters,
+      List<String> typeParameterNames = const [],
+      List<InterfaceType> constraints = const [],
+      List<InterfaceType> interfaces = const [],
+      bool isBase = false}) {
     typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
 
     if (constraints.isEmpty) {
@@ -261,19 +261,9 @@ class ElementFactory {
     element.superclassConstraints = constraints;
     element.interfaces = interfaces;
     element.constructors = const <ConstructorElementImpl>[];
+    element.isBase = isBase;
     return element;
   }
-
-  static MixinElementImpl mixinElement2(String name,
-          {bool isBase = false,
-          bool isInterface = false,
-          bool isFinal = false,
-          bool isSealed = false}) =>
-      mixinElement(name: name)
-        ..isBase = isBase
-        ..isInterface = isInterface
-        ..isFinal = isFinal
-        ..isSealed = isSealed;
 
   static ParameterElementImpl namedParameter(String name) {
     return ParameterElementImpl(

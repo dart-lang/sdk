@@ -806,13 +806,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 

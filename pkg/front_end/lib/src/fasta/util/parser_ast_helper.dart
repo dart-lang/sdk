@@ -252,19 +252,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
         augmentToken: augmentToken,
-        sealedToken: sealedToken,
         baseToken: baseToken,
-        interfaceToken: interfaceToken,
-        finalToken: finalToken,
         mixinKeyword: mixinKeyword,
         name: name);
     seen(data);
@@ -3411,19 +3402,13 @@ class ClassDeclarationEnd extends ParserAstNode {
 
 class MixinDeclarationBegin extends ParserAstNode {
   final Token? augmentToken;
-  final Token? sealedToken;
   final Token? baseToken;
-  final Token? interfaceToken;
-  final Token? finalToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
       {this.augmentToken,
-      this.sealedToken,
       this.baseToken,
-      this.interfaceToken,
-      this.finalToken,
       required this.mixinKeyword,
       required this.name})
       : super("MixinDeclaration", type);
@@ -3431,10 +3416,7 @@ class MixinDeclarationBegin extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "augmentToken": augmentToken,
-        "sealedToken": sealedToken,
         "baseToken": baseToken,
-        "interfaceToken": interfaceToken,
-        "finalToken": finalToken,
         "mixinKeyword": mixinKeyword,
         "name": name,
       };

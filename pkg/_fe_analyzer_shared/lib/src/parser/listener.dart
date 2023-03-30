@@ -204,13 +204,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of a mixin declaration.
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {}
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types

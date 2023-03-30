@@ -274,10 +274,6 @@ import 'final_class_used_as_mixin_constraint_outside_of_library_test.dart'
     as final_class_used_as_mixin_constraint_outside_of_library;
 import 'final_initialized_in_declaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
-import 'final_mixin_implemented_outside_of_library_test.dart'
-    as final_mixin_implemented_outside_of_library;
-import 'final_mixin_mixed_in_outside_of_library_test.dart'
-    as final_mixin_mixed_in_outside_of_library;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -372,8 +368,6 @@ import 'integer_literal_imprecise_as_double_test.dart'
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'interface_class_extended_outside_of_library_test.dart'
     as interface_class_extended_outside_of_library;
-import 'interface_mixin_mixed_in_outside_of_library_test.dart'
-    as interface_mixin_mixed_in_outside_of_library;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
@@ -735,8 +729,6 @@ import 'sdk_version_ui_as_code_in_const_context_test.dart'
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'sealed_class_subtype_outside_of_library_test.dart'
     as sealed_class_subtype_outside_of_library;
-import 'sealed_mixin_subtype_outside_of_library_test.dart'
-    as sealed_mixin_subtype_outside_of_library;
 import 'set_element_from_deferred_library_test.dart'
     as set_element_from_deferred_library;
 import 'set_element_type_not_assignable_test.dart'
@@ -1063,8 +1055,6 @@ main() {
     final_class_extended_outside_of_library.main();
     final_class_implemented_outside_of_library.main();
     final_class_used_as_mixin_constraint_outside_of_library.main();
-    final_mixin_implemented_outside_of_library.main();
-    final_mixin_mixed_in_outside_of_library.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -1123,7 +1113,6 @@ main() {
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     interface_class_extended_outside_of_library.main();
-    interface_mixin_mixed_in_outside_of_library.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
@@ -1359,7 +1348,6 @@ main() {
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();
-    sealed_mixin_subtype_outside_of_library.main();
     set_element_type_not_assignable.main();
     shared_deferred_prefix.main();
     size_annotation_dimensions.main();

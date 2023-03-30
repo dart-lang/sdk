@@ -433,24 +433,8 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     assert(_classLikeBuilder == null);
-    if (!enableSealedClass) {
-      if (sealedToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.sealed_class,
-          startToken: sealedToken,
-        );
-        // Pretend that 'sealed' didn't occur while this feature is incomplete.
-        sealedToken = null;
-      }
-    }
     if (!enableClassModifiers) {
       if (baseToken != null) {
         _reportFeatureNotEnabled(
@@ -460,28 +444,9 @@ class AstBuilder extends StackListener {
         // Pretend that 'base' didn't occur while this feature is incomplete.
         baseToken = null;
       }
-      if (interfaceToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.class_modifiers,
-          startToken: interfaceToken,
-        );
-        // Pretend that 'interface' didn't occur while this feature is incomplete.
-        interfaceToken = null;
-      }
-      if (finalToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.class_modifiers,
-          startToken: finalToken,
-        );
-        // Pretend that 'final' didn't occur while this feature is incomplete.
-        finalToken = null;
-      }
     }
     push(augmentToken ?? NullValues.Token);
-    push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
-    push(interfaceToken ?? NullValues.Token);
-    push(finalToken ?? NullValues.Token);
   }
 
   @override
@@ -4748,30 +4713,20 @@ class AstBuilder extends StackListener {
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
-    var finalKeyword = pop(NullValues.Token) as Token?;
-    var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
-    var sealedKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
 
-    final begin = sealedKeyword ??
-        baseKeyword ??
-        interfaceKeyword ??
-        finalKeyword ??
-        mixinKeyword;
+    final begin = baseKeyword ?? mixinKeyword;
     var comment = _findComment(metadata, begin);
 
     _classLikeBuilder = _MixinDeclarationBuilder(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
-      sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
-      interfaceKeyword: interfaceKeyword,
-      finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       name: name.token,
       typeParameters: typeParameters,
@@ -5950,10 +5905,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
-  final Token? sealedKeyword;
   final Token? baseKeyword;
-  final Token? interfaceKeyword;
-  final Token? finalKeyword;
   final Token mixinKeyword;
   final Token name;
   OnClauseImpl? onClause;
@@ -5966,10 +5918,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.leftBracket,
     required super.rightBracket,
     required this.augmentKeyword,
-    required this.sealedKeyword,
     required this.baseKeyword,
-    required this.interfaceKeyword,
-    required this.finalKeyword,
     required this.mixinKeyword,
     required this.name,
     required this.onClause,
@@ -5981,10 +5930,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
-      sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
-      interfaceKeyword: interfaceKeyword,
-      finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       name: name,
       typeParameters: typeParameters,

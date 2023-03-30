@@ -400,15 +400,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
-    listener?.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
-        interfaceToken, finalToken, mixinKeyword, name);
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(
+        augmentToken, baseToken, mixinKeyword, name);
   }
 
   @override

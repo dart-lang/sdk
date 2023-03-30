@@ -305,10 +305,7 @@ class _ElementWriter {
       if (e is EnumElement) {
         buffer.write('enum ');
       } else if (e is MixinElement) {
-        _writeIf(e.isSealed, 'sealed ');
         _writeIf(e.isBase, 'base ');
-        _writeIf(e.isInterface, 'interface ');
-        _writeIf(e.isFinal, 'final ');
         buffer.write('mixin ');
       } else {
         buffer.write('class ');
