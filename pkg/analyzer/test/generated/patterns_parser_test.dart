@@ -3035,6 +3035,35 @@ PatternAssignment
 ''');
   }
 
+  test_declaredVariable_inPatternAssignment_usingVarAndType() {
+    _parse('''
+void f() {
+  [a, var int d] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      DeclaredVariablePattern
+        keyword: var
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: d
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
   test_errorRecovery_afterQuestionSuffixInExpression() {
     // Based on co19 test `Language/Expressions/Conditional/syntax_t06.dart`.
     // Even though we now support suffix `?` in patterns, we need to make sure
@@ -9189,6 +9218,98 @@ NullCheckPattern
 ''');
   }
 
+  test_varKeywordInTypedVariablePattern_declarationContext() {
+    _parse('''
+void f(int x) {
+  var (var int y) = x;
+}
+''', errors: [
+      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 23,
+          3),
+    ]);
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+  rightParenthesis: )
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_declarationContext_wildcard() {
+    _parse('''
+void f(x) {
+  var (var int _) = x;
+}
+''', errors: [
+      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 19,
+          3),
+    ]);
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: WildcardPattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+  rightParenthesis: )
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_matchingContext() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var int y:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.VAR_AND_TYPE, 36, 3),
+    ]);
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: DeclaredVariablePattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: y
+''');
+  }
+
+  test_varKeywordInTypedVariablePattern_matchingContext_wildcard() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case var int _:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.VAR_AND_TYPE, 36, 3),
+    ]);
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: WildcardPattern
+    keyword: var
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+    name: _
+''');
+  }
+
   test_wildcard_bare_beforeWhen() {
     _parse('''
 void f(x) {
@@ -9626,6 +9747,35 @@ PatternAssignment
         name: a
       WildcardPattern
         keyword: var
+        name: _
+    rightBracket: ]
+  equals: =
+  expression: SimpleIdentifier
+    token: y
+''');
+  }
+
+  test_wildcard_inPatternAssignment_usingVarAndType() {
+    _parse('''
+void f() {
+  [a, var int _] = y;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+    ]);
+    var node = findNode.patternAssignment('=');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      AssignedVariablePattern
+        name: a
+      WildcardPattern
+        keyword: var
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
         name: _
     rightBracket: ]
   equals: =

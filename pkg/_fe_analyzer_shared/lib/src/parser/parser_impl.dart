@@ -9832,9 +9832,6 @@ class Parser {
       if (optional('var', next) || optional('final', next)) {
         token = keyword = next;
         bool nextIsParen = optional("(", token.next!);
-        // TODO(paulberry): this accepts `var <type> name` as a variable
-        // pattern.  We want to accept that for error recovery, but don't forget
-        // to report the appropriate error.
         typeInfo = computeVariablePatternType(token, nextIsParen);
         token = typeInfo.parseType(token, this);
       } else {
@@ -9860,7 +9857,11 @@ class Parser {
         }
         break;
       case PatternContext.matching:
-        // All forms of variable patterns are valid in a matching context.
+        // All forms of variable patterns are valid in a matching context.  But
+        // we do need to check for redundant `var`.
+        if (typeInfo != noType && keyword != null && optional('var', keyword)) {
+          reportRecoverableError(keyword, codes.messageTypeAfterVar);
+        }
         break;
       case PatternContext.assignment:
         // It is a compile-time error if a variable pattern appears in an
