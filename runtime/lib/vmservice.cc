@@ -120,7 +120,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 0, 1) {
 #ifndef PRODUCT
   GET_NATIVE_ARGUMENT(String, address, arguments->NativeArgAt(0));
   if (address.IsNull()) {
-    ServiceIsolate::SetServerAddress(NULL);
+    ServiceIsolate::SetServerAddress(nullptr);
   } else {
     ServiceIsolate::SetServerAddress(address.ToCString());
   }

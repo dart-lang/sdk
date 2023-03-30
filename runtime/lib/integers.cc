@@ -166,8 +166,8 @@ static IntegerPtr ParseInteger(const String& value) {
     const intptr_t len = value.Length();
     if (len > 0) {
       const char* cstr = value.ToCString();
-      ASSERT(cstr != NULL);
-      char* p_end = NULL;
+      ASSERT(cstr != nullptr);
+      char* p_end = nullptr;
       const int64_t int_value = strtoll(cstr, &p_end, 10);
       if (p_end == (cstr + len)) {
         if ((int_value != LLONG_MIN) && (int_value != LLONG_MAX)) {

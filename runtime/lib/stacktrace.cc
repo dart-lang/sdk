@@ -67,9 +67,9 @@ static void AppendFrames(const GrowableObjectArray& code_list,
   StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
+  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle(zone);
-  for (; frame != NULL; frame = frames.NextFrame()) {
+  for (; frame != nullptr; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
