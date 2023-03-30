@@ -370,13 +370,6 @@ void Expect::Null(const T p) {
   dart::Expect(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
 #endif
 
-// Leaving old non-varargs versions to avoid having to rewrite all uses.
-
-#define FAIL1(format, p1) dart::Expect(__FILE__, __LINE__).Fail(format, (p1))
-
-#define FAIL2(format, p1, p2)                                                  \
-  dart::Expect(__FILE__, __LINE__).Fail(format, (p1), (p2))
-
 #endif  // defined(TESTING)
 
 #endif  // RUNTIME_PLATFORM_ASSERT_H_

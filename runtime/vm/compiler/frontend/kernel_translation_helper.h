@@ -153,24 +153,33 @@ class TranslationHelper {
 
   const String& DartFactoryName(NameIndex factory);
 
+  DART_NORETURN void LookupFailed(NameIndex name);
+  DART_NORETURN void LookupFailed(StringIndex name);
+
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
-  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library,
+                                                  bool required = true);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass,
+                                            bool required = true);
 
-  FieldPtr LookupFieldByKernelField(NameIndex field);
+  FieldPtr LookupFieldByKernelField(NameIndex field, bool required = true);
   FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
                                              bool required = true);
   FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure,
                                                   bool required = true);
-  FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
+  FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor,
+                                                   bool required = true);
   FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
-                                                   NameIndex constructor);
-  FunctionPtr LookupConstructorByKernelConstructor(
-      const Class& owner,
-      StringIndex constructor_name);
-  FunctionPtr LookupMethodByMember(NameIndex target, const String& method_name);
+                                                   NameIndex constructor,
+                                                   bool required = true);
+  FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
+                                                   StringIndex constructor_name,
+                                                   bool required = true);
+  FunctionPtr LookupMethodByMember(NameIndex target,
+                                   const String& method_name,
+                                   bool required = true);
   FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);

@@ -714,19 +714,10 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
-                                                  bool incompatible_arguments) {
-  const Class& klass = Class::ZoneHandle(
-      Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
-  ASSERT(!klass.IsNull());
-  const auto& error = klass.EnsureIsFinalized(H.thread());
-  ASSERT(error == Error::null());
-  const Function& throw_function = Function::ZoneHandle(
-      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
-  ASSERT(!throw_function.IsNull());
-
-  Fragment instructions;
-
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(TokenPosition position,
+                                                  const Function& target,
+                                                  bool incompatible_arguments,
+                                                  bool receiver_pushed) {
   const Class& owner = Class::Handle(Z, target.Owner());
   auto& receiver = Instance::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
@@ -753,24 +744,42 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
     }
   }
 
-  // Call NoSuchMethodError._throwNew static function.
-  if (!target.IsRecordFieldGetter()) {
+  Fragment instructions;
+  if (!receiver_pushed) {
     instructions += Constant(receiver);  // receiver
   }
-  instructions += Constant(String::ZoneHandle(Z, target.name()));  // memberName
+  instructions +=
+      ThrowNoSuchMethodError(position, String::ZoneHandle(Z, target.name()),
+                             level, kind, /*receiver_pushed*/ true);
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(TokenPosition position,
+                                                  const String& selector,
+                                                  InvocationMirror::Level level,
+                                                  InvocationMirror::Kind kind,
+                                                  bool receiver_pushed) {
+  const Class& klass = Class::ZoneHandle(
+      Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
+  const Function& throw_function = Function::ZoneHandle(
+      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(!throw_function.IsNull());
+
+  Fragment instructions;
+  if (!receiver_pushed) {
+    instructions += NullConstant();  // receiver
+  }
+  instructions += Constant(selector);
   instructions += IntConstant(InvocationMirror::EncodeType(level, kind));
   instructions += IntConstant(0);  // type arguments length
   instructions += NullConstant();  // type arguments
   instructions += NullConstant();  // arguments
   instructions += NullConstant();  // argumentNames
-
-  instructions += StaticCall(TokenPosition::kNoSource, throw_function,
-                             /* argument_count = */ 7, ICData::kStatic);
-
-  // Properly close graph with a ThrowInstr, although it is not executed.
-  instructions += ThrowException(TokenPosition::kNoSource);
-  instructions += Drop();
-
+  instructions += StaticCall(position, throw_function, /* argument_count = */ 7,
+                             ICData::kNoRebind);
   return instructions;
 }
 
@@ -2373,8 +2382,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
 
   Fragment throw_nsm(nsm);
   throw_nsm += LoadLocal(parsed_function_->receiver_var());
-  throw_nsm +=
-      ThrowNoSuchMethodError(function, /*incompatible_arguments=*/false);
+  throw_nsm += ThrowNoSuchMethodError(TokenPosition::kNoSource, function,
+                                      /*incompatible_arguments=*/false,
+                                      /*receiver_pushed=*/true);
+  throw_nsm += ThrowException(TokenPosition::kNoSource);  // Close graph.
 
   // There is no prologue code for a record field getter.
   PrologueInfo prologue_info(-1, -1);
