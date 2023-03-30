@@ -6479,11 +6479,11 @@ DuplicateRestElementInPatternContext:
   problemMessage: The first rest element.
   severity: CONTEXT
 
-RestPatternNotLastInMapPattern:
-  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+RestPatternInMapPattern:
+  problemMessage: "The '...' pattern can't appear in map patterns."
   experiments: patterns
   script: |
-    test(dynamic x) { if (x case {..., 1: 1}) {} }
+    test(dynamic x) { if (x case {1: 1, ...}) {} }
 
 UnnecessaryNullAssertPattern:
   problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
@@ -6526,16 +6526,6 @@ RefutablePatternInIrrefutableContext:
   script: |
     method(int? x) {
       var (a?) = x;
-    }
-
-RestElementWithSubpatternInMapPattern:
-  problemMessage: A rest element in a map pattern can't have a subpattern.
-  correctionMessage: Try removing the subpattern.
-  analyzerCode: REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN
-  experiments: patterns
-  script: |
-    method(x) {
-      if (x case {...var a}) {}
     }
 
 MissingVariablePattern:

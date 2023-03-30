@@ -1252,6 +1252,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode EMPTY_MAP_PATTERN = CompileTimeErrorCode(
+    'EMPTY_MAP_PATTERN',
+    "A map pattern must have at least one entry.",
+    correctionMessage: "Try replacing it with an object pattern 'Map'.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
@@ -4324,21 +4331,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const CompileTimeErrorCode REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN =
+  static const CompileTimeErrorCode REST_ELEMENT_IN_MAP_PATTERN =
       CompileTimeErrorCode(
-    'REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN',
-    "A rest element in a map pattern must be the last element.",
-    correctionMessage: "Try moving the rest element to be the last element.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode
-      REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN = CompileTimeErrorCode(
-    'REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN',
-    "A rest element in a map pattern can't have a subpattern.",
-    correctionMessage: "Try removing the subpattern.",
-    hasPublishedDocs: true,
+    'REST_ELEMENT_IN_MAP_PATTERN',
+    "A map pattern can't contain a rest pattern.",
+    correctionMessage: "Try removing the rest element.",
   );
 
   ///  No parameters.

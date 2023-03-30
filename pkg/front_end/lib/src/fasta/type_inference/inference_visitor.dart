@@ -10660,17 +10660,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (int i = node.entries.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
-      InvalidExpression? error = analysisResult.duplicateRestPatternErrors?[i];
-      if (error != null) {
-        node.entries[i] = new MapPatternEntry(
-          new NullLiteral(),
-          new InvalidPattern(error,
-              declaredVariables: node.entries[i].value.declaredVariables)
-            ..fileOffset = error.fileOffset,
-        )
-          ..fileOffset = node.entries[i].fileOffset
-          ..parent = node;
-      }
       if (!identical(node.entries[i], rewrite)) {
         node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
       }

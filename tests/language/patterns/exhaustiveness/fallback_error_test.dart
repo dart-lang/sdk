@@ -225,7 +225,7 @@ void mapPattern(Map<String, int> m) {
   //
   // The real exhaustiveness handles this.
   ignore(switch (m) {
-      {...} => 0
+      Map() => 0
   });
 }
 

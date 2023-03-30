@@ -11176,26 +11176,12 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRestElementWithSubpatternInMapPattern =
-    messageRestElementWithSubpatternInMapPattern;
+const Code<Null> codeRestPatternInMapPattern = messageRestPatternInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRestElementWithSubpatternInMapPattern =
-    const MessageCode("RestElementWithSubpatternInMapPattern",
-        analyzerCodes: <String>["REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN"],
-        problemMessage:
-            r"""A rest element in a map pattern can't have a subpattern.""",
-        correctionMessage: r"""Try removing the subpattern.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRestPatternNotLastInMapPattern =
-    messageRestPatternNotLastInMapPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRestPatternNotLastInMapPattern = const MessageCode(
-    "RestPatternNotLastInMapPattern",
-    problemMessage:
-        r"""The '...' pattern can appear only at the end in map patterns.""");
+const MessageCode messageRestPatternInMapPattern = const MessageCode(
+    "RestPatternInMapPattern",
+    problemMessage: r"""The '...' pattern can't appear in map patterns.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRethrowNotCatch = messageRethrowNotCatch;

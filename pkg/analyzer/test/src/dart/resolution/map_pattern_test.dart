@@ -135,17 +135,100 @@ MapPattern
 ''');
   }
 
-  test_matchMap_noTypeArguments_restElement_noPattern() async {
-    await assertNoErrorsInCode(r'''
+  test_matchMap_noTypeArguments_empty() async {
+    await assertErrorsInCode(r'''
 void f(Map<int, String> x) {
-  if (x case {0: '', ...}) {}
+  if (x case {}) {}
 }
+''', [
+      error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 42, 2),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  rightBracket: }
+  matchedValueType: Map<int, String>
+  requiredType: Map<int, String>
 ''');
+  }
+
+  test_matchMap_noTypeArguments_restElement_first() async {
+    await assertErrorsInCode(r'''
+void f(Map<int, String> x) {
+  if (x case {..., 0: ''}) {}
+}
+''', [
+      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
   elements
+    RestPatternElement
+      operator: ...
+    MapPatternEntry
+      key: IntegerLiteral
+        literal: 0
+        staticType: int
+      separator: :
+      value: ConstantPattern
+        expression: SimpleStringLiteral
+          literal: ''
+        matchedValueType: String
+  rightBracket: }
+  matchedValueType: Map<int, String>
+  requiredType: Map<int, String>
+''');
+  }
+
+  test_matchMap_noTypeArguments_restElement_last() async {
+    await assertErrorsInCode(r'''
+void f(Map<int, String> x) {
+  if (x case {0: '', ...}) {}
+}
+''', [
+      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 3),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: IntegerLiteral
+        literal: 0
+        staticType: int
+      separator: :
+      value: ConstantPattern
+        expression: SimpleStringLiteral
+          literal: ''
+        matchedValueType: String
+    RestPatternElement
+      operator: ...
+  rightBracket: }
+  matchedValueType: Map<int, String>
+  requiredType: Map<int, String>
+''');
+  }
+
+  test_matchMap_noTypeArguments_restElement_multiple() async {
+    await assertErrorsInCode(r'''
+void f(Map<int, String> x) {
+  if (x case {..., 0: '', ...}) {}
+}
+''', [
+      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
+      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 55, 3),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    RestPatternElement
+      operator: ...
     MapPatternEntry
       key: IntegerLiteral
         literal: 0
@@ -169,9 +252,8 @@ void f(Map<int, String> x) {
   if (x case {0: '', ...var rest}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
-          57, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 4),
+      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 11),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 4),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -305,11 +387,13 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_empty() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object x) {
   if (x case {}) {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 32, 2),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern

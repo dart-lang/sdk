@@ -143,20 +143,12 @@ class MapPatternResult<Type extends Object, Error> {
   /// The required type of the map pattern.
   final Type requiredType;
 
-  /// Errors for when multiple rest patterns occurred within the map pattern.
-  ///
-  /// The key is the index of the pattern within the map pattern.
-  ///
-  /// This is `null` if no such errors where found.
-  final Map<int, Error>? duplicateRestPatternErrors;
-
   /// Error for when the matched value type is not assignable to the required
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
   MapPatternResult(
       {required this.requiredType,
-      required this.duplicateRestPatternErrors,
       required this.patternTypeMismatchInIrrefutableContextError});
 }
 

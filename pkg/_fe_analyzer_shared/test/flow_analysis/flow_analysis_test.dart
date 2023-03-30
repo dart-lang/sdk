@@ -7599,11 +7599,17 @@ main() {
 
       test('Match failure reachable', () {
         h.run([
-          ifCase(expr('Object?'), mapPattern([]), [
-            checkReachable(true),
-          ], [
-            checkReachable(true),
-          ]),
+          ifCase(
+              expr('Object?'),
+              mapPattern([
+                mapPatternEntry(expr('Object'), wildcard()),
+              ]),
+              [
+                checkReachable(true),
+              ],
+              [
+                checkReachable(true),
+              ]),
         ]);
       });
 
@@ -7616,7 +7622,9 @@ main() {
               x.expr,
               wildcard()
                   .as_('Map<int, int>')
-                  .and(mapPattern([], keyType: 'num', valueType: 'num'))
+                  .and(mapPattern([
+                    mapPatternEntry(expr('Object'), wildcard()),
+                  ], keyType: 'num', valueType: 'num'))
                   .and(y.pattern(expectInferredType: 'Map<int, int>')),
               [
                 checkPromoted(x, 'Map<int, int>'),
@@ -7628,11 +7636,17 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('Map<int, int>')),
-          ifCase(x.expr, mapPattern([], keyType: 'int', valueType: 'int'), [
-            checkReachable(true),
-          ], [
-            checkReachable(true),
-          ]),
+          ifCase(
+              x.expr,
+              mapPattern([
+                mapPatternEntry(expr('Object'), wildcard()),
+              ], keyType: 'int', valueType: 'int'),
+              [
+                checkReachable(true),
+              ],
+              [
+                checkReachable(true),
+              ]),
         ]);
       });
 

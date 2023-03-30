@@ -4058,6 +4058,46 @@ CompileTimeErrorCode:
         }
       }
       ```
+  EMPTY_MAP_PATTERN:
+    problemMessage: A map pattern must have at least one entry.
+    correctionMessage: Try replacing it with an object pattern 'Map()'.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a map pattern is empty.
+
+      #### Example
+
+      The following code produces this diagnostic because the map pattern
+      is empty:
+
+      ```dart
+      void f(Map<int, String> x) {
+        if (x case [!{}!]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the pattern should match any map, then replace it with an object
+      pattern:
+
+      ```dart
+      void f(Map<int, String> x) {
+        if (x case Map()) {}
+      }
+      ```
+
+      If the pattern should only match an empty map, then check the length
+      in the pattern:
+
+      ```dart
+      void f(Map<int, String> x) {
+        if (x case Map(isEmpty: true)) {}
+      }
+      ```
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
@@ -4506,7 +4546,7 @@ CompileTimeErrorCode:
 
       ```dart
       void f(Object x) {
-        if (x case [!<int>!]{}) {}
+        if (x case [!<int>!]{0: _}) {}
       }
       ```
 
@@ -4516,7 +4556,7 @@ CompileTimeErrorCode:
 
       ```dart
       void f(Object x) {
-        if (x case <int, int>{}) {}
+        if (x case <int, int>{0: _}) {}
       }
       ```
   EXPORT_INTERNAL_LIBRARY:
@@ -13914,76 +13954,37 @@ CompileTimeErrorCode:
         if (c1 case > c2) {}
       }
       ```
-  REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
-    problemMessage: A rest element in a map pattern can't have a subpattern.
-    correctionMessage: Try removing the subpattern.
-    hasPublishedDocs: true
+  REST_ELEMENT_IN_MAP_PATTERN:
+    problemMessage: A map pattern can't contain a rest pattern.
+    correctionMessage: Try removing the rest pattern.
+    hasPublishedDocs: false
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a rest pattern in a map pattern
-      has a subpattern. In Dart, there is no notion of a subset of a map, so
-      there isn't anything to match against the subpattern.
+      The analyzer produces this diagnostic when a map pattern contains a rest
+      pattern. The matching for map patterns already allows the map to have
+      more keys than those explicitly given in the pattern, so a rest pattern
+      wouldn't add anything.
 
       #### Example
 
-      The following code produces this diagnostic because the rest pattern has a
-      subpattern:
+      The following code produces this diagnostic because there's a rest
+      pattern in a map pattern:
 
       ```dart
-      void f(Map<String, int> m) {
-        switch (m) {
-          case {'a': var a, ... [!> 0!]}:
-            print(a);
-        }
+      void f(Map<int, String> x) {
+        if (x case {0: _, [!...!]}) {}
       }
       ```
 
       #### Common fixes
 
-      Remove the subpattern:
-
-      ```dart
-      void f(Map<String, int> m) {
-        switch (m) {
-          case {'a': var a, ...}:
-            print(a);
-        }
-      }
-      ```
-  REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
-    problemMessage: A rest element in a map pattern must be the last element.
-    correctionMessage: Try moving the rest element to be the last element.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a map pattern contains entries
-      after a rest pattern. The rest pattern will match map entries whose keys
-      aren't matched by any of the entries in the pattern. To make those
-      semantics clear, the language requires that the rest pattern be the last
-      entry in the list.
-
-      #### Example
-
-      The following code produces this diagnostic because the rest pattern is
-      followed by another map pattern entry (`0: _`):
+      Remove the rest pattern:
 
       ```dart
       void f(Map<int, String> x) {
-        if (x case {[!...!], 0: _}) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Move the rest pattern to the end of the map pattern:
-
-      ```dart
-      void f(Map<int, String> x) {
-        if (x case {0: _, ...}) {}
+        if (x case {0: _}) {}
       }
       ```
   RETHROW_OUTSIDE_CATCH:

@@ -404,6 +404,9 @@ CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
   status: noFix
   notes: |-
     We cannot figure out the intent of the user to suggest the right fix.
+CompileTimeErrorCode.EMPTY_MAP_PATTERN:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/51892
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
@@ -1019,16 +1022,9 @@ CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
   status: noFix
-CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
-  status: noFix
-  notes: |-
-    We do not have enough information to figure out the users intention here is
-    with the use of the rest element.
-CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
-  status: noFix
-  notes: |-
-    We do not have enough information to figure out the users intention here is
-    with the use of the rest element.
+CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/51892
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
   status: needsEvaluation
 CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:

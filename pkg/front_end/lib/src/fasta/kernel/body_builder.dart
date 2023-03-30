@@ -4736,38 +4736,20 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(
         libraryFeatures.patterns, leftBrace.charOffset, leftBrace.charCount);
     List<MapPatternEntry> entries = <MapPatternEntry>[];
-    int restPatternPreviousOffset = TreeNode.noOffset;
     for (int i = 0; i < count; i++) {
       Object? entry = pop();
       if (entry is MapPatternEntry) {
         entries.add(entry);
       } else {
         entry as RestPattern;
-        if (restPatternPreviousOffset != TreeNode.noOffset) {
-          addProblem(fasta.messageDuplicateRestElementInPattern,
-              entry.fileOffset, noLength,
-              context: [
-                fasta.messageDuplicateRestElementInPatternContext
-                    .withLocation(uri, restPatternPreviousOffset, noLength)
-              ]);
-        } else if (i != 0) {
-          addProblem(fasta.messageRestPatternNotLastInMapPattern,
-              entry.fileOffset, noLength);
-        }
-        if (entry.subPattern != null) {
-          addProblem(fasta.messageRestElementWithSubpatternInMapPattern,
-              entry.fileOffset, noLength);
-        }
-        restPatternPreviousOffset = entry.fileOffset;
+        addProblem(
+            fasta.messageRestPatternInMapPattern, entry.fileOffset, noLength);
       }
     }
     for (int i = 0, j = entries.length - 1; i < j; i++, j--) {
       MapPatternEntry entry = entries[i];
       entries[i] = entries[j];
       entries[j] = entry;
-    }
-    if (restPatternPreviousOffset != TreeNode.noOffset) {
-      entries.add(forest.createMapPatternRestEntry(restPatternPreviousOffset));
     }
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;

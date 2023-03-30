@@ -5135,6 +5135,45 @@ void f((int, int) r) {
 }
 {% endprettify %}
 
+### empty_map_pattern
+
+_A map pattern must have at least one entry._
+
+#### Description
+
+The analyzer produces this diagnostic when a map pattern is empty.
+
+#### Example
+
+The following code produces this diagnostic because the map pattern
+is empty:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case [!{}!]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the pattern should match any map, then replace it with an object
+pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case Map()) {}
+}
+{% endprettify %}
+
+If the pattern should only match an empty map, then check the length
+in the pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case Map(isEmpty: true)) {}
+}
+{% endprettify %}
+
 ### empty_record_literal_with_comma
 
 _A record literal without fields can't have a trailing comma._
@@ -5772,7 +5811,7 @@ The following code produces this diagnostic because the map pattern
 
 {% prettify dart tag=pre+code %}
 void f(Object x) {
-  if (x case [!<int>!]{}) {}
+  if (x case [!<int>!]{0: _}) {}
 }
 {% endprettify %}
 
@@ -5782,7 +5821,7 @@ Add or remove type arguments until there are two, or none:
 
 {% prettify dart tag=pre+code %}
 void f(Object x) {
-  if (x case <int, int>{}) {}
+  if (x case <int, int>{0: _}) {}
 }
 {% endprettify %}
 
@@ -17441,73 +17480,35 @@ void f(C c1) {
 }
 {% endprettify %}
 
-### rest_element_not_last_in_map_pattern
+### rest_element_in_map_pattern
 
-_A rest element in a map pattern must be the last element._
+_A map pattern can't contain a rest pattern._
 
 #### Description
 
-The analyzer produces this diagnostic when a map pattern contains entries
-after a rest pattern. The rest pattern will match map entries whose keys
-aren't matched by any of the entries in the pattern. To make those
-semantics clear, the language requires that the rest pattern be the last
-entry in the list.
+The analyzer produces this diagnostic when a map pattern contains a rest
+pattern. The matching for map patterns already allows the map to have
+more keys than those explicitly given in the pattern, so a rest pattern
+wouldn't add anything.
 
 #### Example
 
-The following code produces this diagnostic because the rest pattern is
-followed by another map pattern entry (`0: _`):
+The following code produces this diagnostic because there's a rest
+pattern in a map pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
-  if (x case {[!...!], 0: _}) {}
+  if (x case {0: _, [!...!]}) {}
 }
 {% endprettify %}
 
 #### Common fixes
 
-Move the rest pattern to the end of the map pattern:
+Remove the rest pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
-  if (x case {0: _, ...}) {}
-}
-{% endprettify %}
-
-### rest_element_with_subpattern_in_map_pattern
-
-_A rest element in a map pattern can't have a subpattern._
-
-#### Description
-
-The analyzer produces this diagnostic when a rest pattern in a map pattern
-has a subpattern. In Dart, there is no notion of a subset of a map, so
-there isn't anything to match against the subpattern.
-
-#### Example
-
-The following code produces this diagnostic because the rest pattern has a
-subpattern:
-
-{% prettify dart tag=pre+code %}
-void f(Map<String, int> m) {
-  switch (m) {
-    case {'a': var a, ... [!> 0!]}:
-      print(a);
-  }
-}
-{% endprettify %}
-
-#### Common fixes
-
-Remove the subpattern:
-
-{% prettify dart tag=pre+code %}
-void f(Map<String, int> m) {
-  switch (m) {
-    case {'a': var a, ...}:
-      print(a);
-  }
+  if (x case {0: _}) {}
 }
 {% endprettify %}
 
