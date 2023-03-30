@@ -209,7 +209,7 @@ class BlockWorkList : public ValueObject {
   bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
     ASSERT(local_input_->IsEmpty());
     Block* new_work = stack_->WaitForWork(num_busy);
-    if (new_work == NULL) {
+    if (new_work == nullptr) {
       return false;
     }
     stack_->PushBlock(local_input_);

@@ -193,7 +193,7 @@ class Heap {
   static const char* GCTypeToString(GCType type);
   static const char* GCReasonToString(GCReason reason);
 
-  // Associate a peer with an object.  A nonexistent peer is equal to NULL.
+  // Associate a peer with an object.  A nonexistent peer is equal to nullptr.
   void SetPeer(ObjectPtr raw_obj, void* peer) {
     SetWeakEntry(raw_obj, kPeers, reinterpret_cast<intptr_t>(peer));
   }

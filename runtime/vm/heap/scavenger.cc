@@ -1069,7 +1069,7 @@ void Scavenger::Epilogue(SemiSpace* from) {
 
   delete from;
   UpdateMaxHeapUsage();
-  if (heap_ != NULL) {
+  if (heap_ != nullptr) {
     heap_->UpdateGlobalMaxUsed();
   }
 }
@@ -1160,7 +1160,7 @@ void Scavenger::IterateRememberedCards(
     ScavengerVisitorBase<parallel>* visitor) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateRememberedCards");
   heap_->old_space()->VisitRememberedCards(visitor);
-  visitor->VisitingOldObject(NULL);
+  visitor->VisitingOldObject(nullptr);
 }
 
 void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
@@ -1252,7 +1252,7 @@ void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
       thread_->MarkingStackAddObject(raw_object);
     }
   }
-  VisitingOldObject(NULL);
+  VisitingOldObject(nullptr);
 }
 
 template <bool parallel>
@@ -1292,27 +1292,27 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
-  if (heap_ == NULL) {
+  if (heap_ == nullptr) {
     // Some unit tests.
     return;
   }
-  ASSERT(to_ != NULL);
-  ASSERT(heap_ != NULL);
+  ASSERT(to_ != nullptr);
+  ASSERT(heap_ != nullptr);
   auto isolate_group = heap_->isolate_group();
-  ASSERT(isolate_group != NULL);
+  ASSERT(isolate_group != nullptr);
   isolate_group->GetHeapNewCapacityMaxMetric()->SetValue(
       to_->max_capacity_in_words() * kWordSize);
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
-  if (heap_ == NULL) {
+  if (heap_ == nullptr) {
     // Some unit tests.
     return;
   }
-  ASSERT(to_ != NULL);
-  ASSERT(heap_ != NULL);
+  ASSERT(to_ != nullptr);
+  ASSERT(heap_ != nullptr);
   auto isolate_group = heap_->isolate_group();
-  ASSERT(isolate_group != NULL);
+  ASSERT(isolate_group != nullptr);
   isolate_group->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 }
 

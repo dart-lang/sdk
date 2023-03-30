@@ -291,7 +291,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       }
     }
 #if defined(DEBUG)
-    ASSERT(old_space_->iterating_thread_ == NULL);
+    ASSERT(old_space_->iterating_thread_ == nullptr);
     old_space_->iterating_thread_ = thread;
 #endif
     old_space_->set_tasks(1);
@@ -311,7 +311,7 @@ HeapIterationScope::~HeapIterationScope() {
     MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == thread());
-    old_space_->iterating_thread_ = NULL;
+    old_space_->iterating_thread_ = nullptr;
 #endif
     ASSERT(old_space_->tasks() == 1);
     old_space_->set_tasks(0);
@@ -709,7 +709,7 @@ void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
 }
 
 void Heap::UpdateGlobalMaxUsed() {
-  ASSERT(isolate_group_ != NULL);
+  ASSERT(isolate_group_ != nullptr);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
@@ -1126,7 +1126,7 @@ void Heap::PrintStats() {
 
 void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 #if defined(SUPPORT_TIMELINE)
-  if ((event == NULL) || !event->enabled()) {
+  if ((event == nullptr) || !event->enabled()) {
     return;
   }
   intptr_t arguments = event->GetNumArguments();

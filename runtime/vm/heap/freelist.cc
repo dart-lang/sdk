@@ -34,7 +34,7 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   if (size > UntaggedObject::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }
-  result->set_next(NULL);
+  result->set_next(nullptr);
   return result;
   // Postcondition: the (page containing the) header of the element is
   // writable.
@@ -101,7 +101,7 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
     }
   }
 
-  FreeListElement* previous = NULL;
+  FreeListElement* previous = nullptr;
   FreeListElement* current = free_lists_[kNumLists];
   // We are willing to search the freelist further for a big block.
   // For each successful free-list search we:
@@ -113,7 +113,7 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
   // If we run out of search budget we fall back to allocating a new page and
   // reset the search budget.
   intptr_t tries_left = freelist_search_budget_ + (size >> kWordSizeLog2);
-  while (current != NULL) {
+  while (current != nullptr) {
     if (current->HeapSize() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
       // split and enqueue the remainder.
@@ -128,7 +128,7 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
                                VirtualMemory::kReadWrite);
       }
 
-      if (previous == NULL) {
+      if (previous == nullptr) {
         free_lists_[kNumLists] = current->next();
       } else {
         // If the previous free list element's next field is protected, it
@@ -191,13 +191,13 @@ void FreeList::Reset() {
   free_map_.Reset();
   last_free_small_size_ = -1;
   for (int i = 0; i < (kNumLists + 1); i++) {
-    free_lists_[i] = NULL;
+    free_lists_[i] = nullptr;
   }
 }
 
 void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   FreeListElement* next = free_lists_[index];
-  if (next == NULL && index != kNumLists) {
+  if (next == nullptr && index != kNumLists) {
     free_map_.Set(index, true);
     last_free_small_size_ =
         Utils::Maximum(last_free_small_size_, index << kObjectAlignmentLog2);
@@ -212,7 +212,7 @@ intptr_t FreeList::LengthLocked(int index) const {
   ASSERT(index < kNumLists);
   intptr_t result = 0;
   FreeListElement* element = free_lists_[index];
-  while (element != NULL) {
+  while (element != nullptr) {
     ++result;
     element = element->next();
   }
@@ -222,7 +222,7 @@ intptr_t FreeList::LengthLocked(int index) const {
 void FreeList::PrintSmall() const {
   intptr_t small_bytes = 0;
   for (int i = 0; i < kNumLists; ++i) {
-    if (free_lists_[i] == NULL) {
+    if (free_lists_[i] == nullptr) {
       continue;
     }
     intptr_t list_length = LengthLocked(i);
@@ -264,9 +264,9 @@ void FreeList::PrintLarge() const {
   intptr_t large_bytes = 0;
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
   FreeListElement* node;
-  for (node = free_lists_[kNumLists]; node != NULL; node = node->next()) {
+  for (node = free_lists_[kNumLists]; node != nullptr; node = node->next()) {
     IntptrPair* pair = map.Lookup(node->HeapSize());
-    if (pair == NULL) {
+    if (pair == nullptr) {
       map.Insert(IntptrPair(node->HeapSize(), 1));
     } else {
       pair->set_second(pair->second() + 1);
@@ -276,7 +276,7 @@ void FreeList::PrintLarge() const {
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =
       map.GetIterator();
   IntptrPair* pair;
-  while ((pair = it.Next()) != NULL) {
+  while ((pair = it.Next()) != nullptr) {
     intptr_t size = pair->first();
     intptr_t list_length = pair->second();
     intptr_t list_bytes = list_length * size;
@@ -338,16 +338,16 @@ FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
 
 FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
   DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
-  FreeListElement* previous = NULL;
+  FreeListElement* previous = nullptr;
   FreeListElement* current = free_lists_[kNumLists];
   // TODO(koda): Find largest.
   // We are willing to search the freelist further for a big block.
   intptr_t tries_left =
       freelist_search_budget_ + (minimum_size >> kWordSizeLog2);
-  while (current != NULL) {
+  while (current != nullptr) {
     FreeListElement* next = current->next();
     if (current->HeapSize() >= minimum_size) {
-      if (previous == NULL) {
+      if (previous == nullptr) {
         free_lists_[kNumLists] = next;
       } else {
         previous->set_next(next);
@@ -362,7 +362,7 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
     previous = current;
     current = next;
   }
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace dart

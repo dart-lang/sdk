@@ -19,7 +19,7 @@ class FailingObjectVisitor : public ObjectVisitor {
 // Expects to visit no objects (since the space should be empty).
 class FailingObjectPointerVisitor : public ObjectPointerVisitor {
  public:
-  FailingObjectPointerVisitor() : ObjectPointerVisitor(NULL) {}
+  FailingObjectPointerVisitor() : ObjectPointerVisitor(nullptr) {}
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) { EXPECT(false); }
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
