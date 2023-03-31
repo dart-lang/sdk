@@ -370,14 +370,15 @@ class _NetworkInterface implements NetworkInterface {
 
 // The NativeFieldWrapperClass1 cannot be used with a mixin, due to missing
 // implicit constructor.
-class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
+base class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
 /// Returns error code that corresponds to EINPROGRESS OS error.
 @pragma("vm:external-name", "OSError_inProgressErrorCode")
 external int get _inProgressErrorCode;
 
 // The _NativeSocket class encapsulates an OS socket.
-class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
+base class _NativeSocket extends _NativeSocketNativeWrapper
+    with _ServiceObject {
   // Bit flags used when communicating between the eventhandler and
   // dart code. The EVENT flags are used to indicate events of
   // interest when sending a message from dart code to the

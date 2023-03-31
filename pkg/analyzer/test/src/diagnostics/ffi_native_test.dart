@@ -21,9 +21,9 @@ class FfiNativeTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass1 {}
 
-class Paragraph extends NativeFieldWrapperClass1 {
+base class Paragraph extends NativeFieldWrapperClass1 {
   @FfiNative<Double Function(Pointer<Void>)>('Paragraph::ideographicBaseline', isLeaf: true)
   external double get ideographicBaseline;
 
@@ -190,9 +190,9 @@ class NativeTest extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
-class NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass1 {}
 
-class Paragraph extends NativeFieldWrapperClass1 {
+base class Paragraph extends NativeFieldWrapperClass1 {
   @Native<Double Function(Pointer<Void>)>(isLeaf: true)
   external double get ideographicBaseline;
 

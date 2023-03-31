@@ -13,7 +13,7 @@ echo(msg) {
   reply.send('echoing ${data(1)}}');
 }
 
-class Test extends NativeFieldWrapperClass2 {
+base class Test extends NativeFieldWrapperClass2 {
   Test(this.i, this.j);
   int i, j;
 }
