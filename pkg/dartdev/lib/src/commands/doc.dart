@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:dartdev/src/utils.dart';
 import 'package:dartdoc/dartdoc.dart';
 import 'package:dartdoc/options.dart';
 import 'package:path/path.dart' as path;
@@ -49,6 +50,12 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       negatable: false,
       help: 'Try to generate the docs without saving them.',
     );
+    argParser.addFlag(
+      'pub',
+      defaultsTo: true,
+      hide: !verbose,
+      help: 'Run an implicit `pub get` to resolve `pubspec.yaml` first.',
+    );
   }
 
   @override
@@ -58,7 +65,8 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
   FutureOr<int> run() async {
     final options = <String>[];
     final args = argResults!;
-
+    // The directory to create docs for.
+    String? directory;
     if (args['sdk-docs']) {
       options.add('--sdk-docs');
     } else {
@@ -68,13 +76,12 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
 
       // Determine input directory; default to the cwd if no explicit input dir
       // is passed in.
-      final directory = args.rest.isEmpty
-          ? io.Directory.current
-          : io.Directory(args.rest.first);
-      if (!directory.existsSync()) {
-        usageException('Input directory doesn\'t exist: ${directory.path}');
+      directory =
+          args.rest.isEmpty ? io.Directory.current.path : args.rest.first;
+      if (!io.Directory(directory).existsSync()) {
+        usageException('Input directory doesn\'t exist: $directory');
       }
-      options.add('--input=${directory.path}');
+      options.add('--input=$directory');
     }
 
     if (args['dry-run'] && args['validate-links']) {
@@ -103,6 +110,9 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     // Call into package:dartdoc.
     if (verbose) {
       log.stdout('Using the following options: $options');
+    }
+    if (args['pub'] && directory != null) {
+      await findEnclosingProjectAndResolveIfNeeded(directory);
     }
     final packageConfigProvider = PhysicalPackageConfigProvider();
     final packageBuilder = PubPackageBuilder(

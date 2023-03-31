@@ -128,7 +128,10 @@ class TestProject {
     List<String> arguments, {
     String? workingDir,
   }) async {
-    return run(['fix', '--suppress-analytics', ...arguments]);
+    return run(
+      ['fix', '--suppress-analytics', ...arguments],
+      workingDir: workingDir,
+    );
   }
 
   Future<ProcessResult> run(

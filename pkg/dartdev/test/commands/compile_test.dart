@@ -1258,6 +1258,81 @@ void main() {
     expect(result.exitCode, 0);
   });
 
+  // One test per sub-command, as they do not share the target resolution code.
+  for (final command in [
+    'exe',
+    'js',
+    'jit-snapshot',
+    'aot-snapshot',
+    'kernel',
+  ]) {
+    test('`compile $command` resolves pubspec for target project', () async {
+      final bar = project(name: 'bar', mainSrc: 'final x = 42;');
+
+      final p = project(mainSrc: '''
+import 'package:bar/main.dart';
+void main(args) {
+  print(x);
+}
+''', pubspecExtras: {
+        'dependencies': {
+          'bar': {'path': bar.dirPath}
+        }
+      });
+      // Run in a sibling-dir to the project with a relative path to the main.
+      // The pubspec should be resolved.
+      final siblingDir = path.join(p.root.path, 'sibling');
+      Directory(siblingDir).createSync();
+      final target = path.relative(
+        path.join(p.dirPath, 'lib', 'main.dart'),
+        from: siblingDir,
+      );
+
+      final result = await p
+          .run(['compile', command, target, '-o', 'a'], workingDir: siblingDir);
+      // TODO(sigurdm): expect something from stdout and stderr, however they
+      // are highly irregular between commands.
+      expect(result.exitCode, 0);
+    });
+
+    test(
+        '`compile $command --no-pub` doesn\'t resolve pubspec for target project',
+        () async {
+      final bar = project(name: 'bar', mainSrc: 'final x = does not compile;');
+      final bar2 = project(name: 'bar', mainSrc: 'final x = 42;');
+
+      final p = project(mainSrc: '''
+import 'package:bar/main.dart';
+void main(args) {
+  print(x);
+}
+''', pubspecExtras: {
+        'dependencies': {
+          'bar': {'path': bar.dirPath}
+        }
+      });
+      p.file('.dart_tool/package_config.json', '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "bar",
+      "rootUri": "${bar2.dirPath}",
+      "packageUri": "${path.join(bar2.dirPath, 'lib')}"
+    }
+  ]
+}
+''');
+      // Run in a sibling-dir to the project with a relative path to the main.
+      // The pubspec should not be resolved due to '--no-pub'.
+      final result = await p
+          .run(['compile', command, '--no-pub', p.relativeFilePath, '-o', 'a']);
+      // TODO(sigurdm): expect something from stdout and stderr, however they
+      // are highly irregular between commands.
+      expect(result.exitCode, 0);
+    });
+  }
+
   if (Platform.isMacOS) {
     test('Compile and run executable from signed dartaotruntime', () async {
       // Either the locally built dartaotruntime is already linker signed
