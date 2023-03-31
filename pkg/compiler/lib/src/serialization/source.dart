@@ -67,6 +67,7 @@ class DataSourceReader {
   EntityLookup? _entityLookup;
   LocalLookup? _localLookup;
   CodegenReader? _codegenReader;
+  SourceLookup? _sourceLookup;
 
   late final IndexedSource<String> _stringIndex;
   late final IndexedSource<Uri> _uriIndex;
@@ -207,6 +208,13 @@ class DataSourceReader {
   ComponentLookup get componentLookup {
     return _componentLookup!;
   }
+
+  void registerSourceLookup(SourceLookup sourceLookup) {
+    assert(_sourceLookup == null);
+    _sourceLookup = sourceLookup;
+  }
+
+  SourceLookup get sourceLookup => _sourceLookup!;
 
   /// Registers an [EntityLookup] object with this data source to support
   /// deserialization of references to entities.

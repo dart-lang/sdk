@@ -11,7 +11,6 @@ import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../js_model/element_map.dart';
-import 'source_file.dart';
 import 'position_information.dart';
 
 /// Interface for passing source information, for instance for use in source
@@ -285,35 +284,54 @@ abstract class SourceLocation {
   String? get sourceName;
 
   static SourceLocation readFromDataSource(DataSourceReader source) {
-    int hasSourceLocation = source.readInt();
-    if (hasSourceLocation == 1) {
+    int format = source.readInt();
+    if (format == 0) {
       return const NoSourceLocationMarker();
-    } else if (hasSourceLocation == 2) {
+    } else {
       source.begin(tag);
       Uri sourceUri = source.readUri();
-      int offset = source.readInt();
-      int line = source.readInt();
-      int column = source.readInt();
-      String? sourceName = source.readStringOrNull();
+      String sourceName = source.readStringOrNull()!;
+      final locationSource = source.sourceLookup.lookupSource(sourceUri);
+      final hasLocation = format > 1;
+      int line = ir.TreeNode.noOffset;
+      int column = ir.TreeNode.noOffset;
+      if (hasLocation) {
+        final lineLower = format - 2;
+        final lineUpper = source.readInt();
+        line = (lineUpper << 6) | lineLower;
+        column = source.readInt();
+      }
       source.end(tag);
-      return DirectSourceLocation(sourceUri, offset, line, column, sourceName);
-    } else {
-      throw StateError('Unknown hasSourceLocation value: $hasSourceLocation');
+      return _ConcreteSourceLocation(locationSource, sourceName, line, column);
     }
   }
 
   static void writeToDataSink(
       DataSinkWriter sink, SourceLocation sourceLocation) {
     if (sourceLocation is NoSourceLocationMarker) {
-      sink.writeInt(1);
+      sink.writeInt(0);
     } else {
-      sink.writeInt(2);
+      final column = sourceLocation.column;
+      final line = sourceLocation.line;
+      final hasLocation = line != ir.TreeNode.noOffset;
+      // There are 2 formats in this case:
+      // 1) The location has no offset so we only need a URI and name. Don't
+      //    write any line/column info.
+      // 2) The location has an offset so we use the 'format' to encode the
+      //    bottom bits of the line and write the rest of the line and column
+      //    separately as compact uint30 numbers.
+      if (!hasLocation) {
+        sink.writeInt(1);
+      } else {
+        sink.writeInt((line & 0x3f) + 2);
+      }
       sink.begin(tag);
       sink.writeUri(sourceLocation.sourceUri!);
-      sink.writeInt(sourceLocation.offset);
-      sink.writeInt(sourceLocation.line);
-      sink.writeInt(sourceLocation.column);
       sink.writeStringOrNull(sourceLocation.sourceName);
+      if (hasLocation) {
+        sink.writeInt(line >> 6);
+        sink.writeInt(column);
+      }
       sink.end(tag);
     }
   }
@@ -340,79 +358,35 @@ abstract class SourceLocation {
   String toString() => '${sourceUri}:[${line},${column}]';
 }
 
-class DirectSourceLocation extends SourceLocation {
-  @override
-  final Uri sourceUri;
+/// A location in a source file encoded as a kernel [ir.Source] object and a
+/// line/column encoded into a single 64 bit int.
+class _ConcreteSourceLocation extends SourceLocation {
+  final ir.Source _source;
+  final int _lineColumn;
+
+  _ConcreteSourceLocation(this._source, this.sourceName, int line, int column)
+      : _lineColumn = (line << 32) | column;
 
   @override
-  final int offset;
+  Uri get sourceUri => _source.fileUri!;
 
   @override
-  final int line;
+  int get offset => _source.getOffset(line, column);
 
   @override
-  final int column;
+  int get line => _lineColumn >>> 32;
 
   @override
-  final String? sourceName;
-
-  DirectSourceLocation(
-      this.sourceUri, this.offset, this.line, this.column, this.sourceName);
-}
-
-/// A location in a source file.
-abstract class AbstractSourceLocation extends SourceLocation {
-  final SourceFile? _sourceFile;
-  ir.Location? _location;
-
-  AbstractSourceLocation(SourceFile this._sourceFile) {
-    assert(
-        offset < _sourceFile!.length,
-        failedAt(
-            SourceSpan(sourceUri, 0, 0),
-            "Invalid source location in ${sourceUri}: "
-            "offset=$offset, length=${_sourceFile!.length}."));
-  }
-
-  AbstractSourceLocation.fromLocation(ir.Location location)
-      : _location = location,
-        _sourceFile = null;
+  int get column => _lineColumn & 0xFFFFFFFF;
 
   @override
-  Uri get sourceUri => _sourceFile!.uri;
-
-  @override
-  int get offset;
-
-  @override
-  int get line => (_location ??= _sourceFile!.getLocation(offset)).line;
-
-  @override
-  int get column => (_location ??= _sourceFile!.getLocation(offset)).column;
-
-  @override
-  String? get sourceName;
+  final String sourceName;
 
   @override
   String get shortText => '${sourceUri.pathSegments.last}:[$line,$column]';
 
   @override
   String toString() => '${sourceUri}:[$line,$column]';
-}
-
-class OffsetSourceLocation extends AbstractSourceLocation {
-  @override
-  final int offset;
-  @override
-  final String sourceName;
-
-  OffsetSourceLocation(super.sourceFile, this.offset, this.sourceName);
-
-  @override
-  String get shortText => '${super.shortText}:$sourceName';
-
-  @override
-  String toString() => '${super.toString()}:$sourceName';
 }
 
 /// Compute the source map name for [element]. If [callStructure] is non-null
@@ -508,4 +482,14 @@ class FrameEntry {
 
   bool get isPush => pushLocation != null;
   bool get isPop => pushLocation == null;
+}
+
+class SourceLookup {
+  final Map<Uri, ir.Source> _map;
+
+  SourceLookup(ir.Component component) : _map = component.uriToSource;
+
+  ir.Source lookupSource(Uri uri) {
+    return _map[uri]!;
+  }
 }
