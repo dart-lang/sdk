@@ -23039,6 +23039,14 @@ WarningCode:
         future.catchError(callback);
       }
       ```
+  INVALID_REOPEN_ANNOTATION:
+    problemMessage: "The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows."
+    correctionMessage: Try removing the '@reopen' annotation.
+    comment: |-
+      This warning is generated anywhere where `@reopen` annotates a class which
+      did not reopen any type.
+
+      No parameters.
   INVALID_SEALED_ANNOTATION:
     problemMessage: "The annotation '@sealed' can only be applied to classes."
     correctionMessage: Try removing the '@sealed' annotation.

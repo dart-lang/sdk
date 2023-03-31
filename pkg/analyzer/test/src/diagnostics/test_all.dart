@@ -407,6 +407,7 @@ import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_generative_enum_constructor_test.dart'
     as invalid_reference_to_generative_enum_constructor;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
+import 'invalid_reopen_annotation_test.dart' as invalid_reopen_annotation;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
 import 'invalid_required_optional_positional_param_test.dart'
     as invalid_required_optional_positional_param;
@@ -1140,6 +1141,7 @@ main() {
     invalid_override.main();
     invalid_reference_to_generative_enum_constructor.main();
     invalid_reference_to_this.main();
+    invalid_reopen_annotation.main();
     invalid_required_named_param.main();
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();

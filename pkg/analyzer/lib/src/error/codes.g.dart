@@ -6288,6 +6288,17 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  This warning is generated anywhere where `@reopen` annotates a class which
+  ///  did not reopen any type.
+  ///
+  ///  No parameters.
+  static const WarningCode INVALID_REOPEN_ANNOTATION = WarningCode(
+    'INVALID_REOPEN_ANNOTATION',
+    "The annotation '@reopen' can only be applied to a class that opens "
+        "capabilities that the supertype intentionally disallows.",
+    correctionMessage: "Try removing the '@reopen' annotation.",
+  );
+
   ///  This warning is generated anywhere where `@required` annotates a named
   ///  parameter with a default value.
   ///
