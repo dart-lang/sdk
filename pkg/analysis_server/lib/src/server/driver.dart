@@ -264,12 +264,11 @@ class Driver implements ServerStarter {
     } else {
       // TODO(brianwilkerson) Create the real Analytics instance when we have
       // implemented a way for users to disable analytics.
-      // TODO(jcollins) Create the real Analytics instance only once
-      // `flutter analyze --suppress-analytics` suppresses analysis server
-      // analytics.
-      if (2 < 1) {
-        analyticsManager =
-            AnalyticsManager(_createAnalytics(defaultSdk, defaultSdkPath));
+      // TODO(jcollins): implement a full map of `clientId`s to tools to cover
+      // more analyzer entry points than vscode.
+      if (2 < 1 && clientId == 'VS-Code') {
+        analyticsManager = AnalyticsManager(_createAnalytics(
+            defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
       } else {
         analyticsManager = AnalyticsManager(NoopAnalytics());
       }
@@ -553,7 +552,8 @@ class Driver implements ServerStarter {
   }
 
   /// Create the `Analytics` instance to be used to report analytics.
-  Analytics _createAnalytics(DartSdk dartSdk, String dartSdkPath) {
+  Analytics _createAnalytics(
+      DartSdk dartSdk, String dartSdkPath, DashTool tool) {
     // TODO(brianwilkerson) Find out whether there's a way to get the channel
     //  without running `flutter channel`.
     var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
@@ -568,7 +568,7 @@ class Driver implements ServerStarter {
       // If we can't read the file, ignore it.
     }
     return Analytics(
-        tool: DashTool.languageServer,
+        tool: tool,
         dartVersion: dartSdk.sdkVersion,
         // flutterChannel: '',
         flutterVersion: flutterVersion);

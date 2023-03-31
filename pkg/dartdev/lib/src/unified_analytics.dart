@@ -9,5 +9,5 @@ import 'sdk.dart';
 /// Create the `Analytics` instance to be used to report analytics.
 Analytics createUnifiedAnalytics() {
   return Analytics(
-      tool: DashTool.dartTools, dartVersion: Runtime.runtime.version);
+      tool: DashTool.dartTool, dartVersion: Runtime.runtime.version);
 }
