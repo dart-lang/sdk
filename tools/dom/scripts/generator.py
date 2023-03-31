@@ -342,6 +342,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'RTCDataChannel,DataChannel',
         'ScriptProcessorNode':
         'ScriptProcessorNode,JavaScriptAudioNode',
+        'SpeechRecognition':
+        'SpeechRecognition,webkitSpeechRecognition',
         'TransitionEvent':
         'TransitionEvent,WebKitTransitionEvent',
         'CSSKeyframeRule':

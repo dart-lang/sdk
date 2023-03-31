@@ -40,35 +40,38 @@ class AnnotationVerifier {
     }
     var parent = node.parent;
     if (element.isFactory) {
-      _checkFactory(node, parent);
+      _checkFactory(node);
     } else if (element.isImmutable) {
-      _checkImmutable(node, parent);
+      _checkImmutable(node);
     } else if (element.isInternal) {
-      _checkInternal(node, parent);
+      _checkInternal(node);
     } else if (element.isLiteral) {
-      _checkLiteral(node, parent);
+      _checkLiteral(node);
     } else if (element.isMustBeOverridden) {
-      _checkMustBeOverridden(node, parent);
+      _checkMustBeOverridden(node);
     } else if (element.isMustCallSuper) {
-      _checkMustCallSuper(node, parent);
+      _checkMustCallSuper(node);
     } else if (element.isNonVirtual) {
-      _checkNonVirtual(node, parent);
+      _checkNonVirtual(node);
+    } else if (element.isReopen) {
+      _checkReopen(node);
     } else if (element.isSealed) {
-      _checkSealed(node, parent);
+      _checkSealed(node);
     } else if (element.isUseResult) {
-      _checkUseResult(node, parent, element);
+      _checkUseResult(node, element);
     } else if (element.isVisibleForTemplate ||
         element.isVisibleForTesting ||
         element.isVisibleForOverriding) {
-      _checkVisibility(node, parent, element);
+      _checkVisibility(node, element);
     }
 
     _checkKinds(node, parent, element);
   }
 
-  /// Reports a warning if [parent] is not a valid target for a `@factory`
-  /// annotation.
-  void _checkFactory(AstNode node, AstNode parent) {
+  /// Reports a warning if the annotation's parent is not a valid target for a
+  /// `@factory` annotation.
+  void _checkFactory(AstNode node) {
+    var parent = node.parent;
     if (parent is! MethodDeclaration) {
       _errorReporter
           .reportErrorForNode(WarningCode.INVALID_FACTORY_ANNOTATION, node, []);
@@ -109,10 +112,11 @@ class AnnotationVerifier {
         parent.name, [parent.name.lexeme]);
   }
 
-  /// Reports a warning if [parent] is not a valid target for an `@immutable`
-  /// annotation.
-  void _checkImmutable(AstNode node, AstNode parent) {
+  /// Reports a warning at [node] if it's parent is not a valid target for an
+  /// `@immutable` annotation.
+  void _checkImmutable(AstNode node) {
     // TODO(srawlins): Switch this annotation to use `TargetKinds`.
+    var parent = node.parent;
     if (parent is! ClassDeclaration &&
         parent is! ClassTypeAlias &&
         parent is! MixinDeclaration) {
@@ -121,9 +125,10 @@ class AnnotationVerifier {
     }
   }
 
-  /// Reports a warning at [node] if [parent] is not a valid target for an
+  /// Reports a warning at [node] if it's parent is not a valid target for an
   /// `@internal` annotation.
-  void _checkInternal(AstNode node, AstNode parent) {
+  void _checkInternal(AstNode node) {
+    var parent = node.parent;
     var parentElement = parent is Declaration ? parent.declaredElement : null;
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
     if (parent is TopLevelVariableDeclaration) {
@@ -183,9 +188,10 @@ class AnnotationVerifier {
     }
   }
 
-  /// Reports a warning if [parent] is not a valid target for a `@literal`
-  /// annotation.
-  void _checkLiteral(AstNode node, AstNode parent) {
+  /// Reports a warning if at [node] if it's parent is not a valid target for a
+  /// `@literal` annotation.
+  void _checkLiteral(AstNode node) {
+    var parent = node.parent;
     if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
       _errorReporter
           .reportErrorForNode(WarningCode.INVALID_LITERAL_ANNOTATION, node, []);
@@ -194,7 +200,8 @@ class AnnotationVerifier {
 
   /// Reports a warning if [parent] is not a valid target for a
   /// `@mustBeOverridden` annotation.
-  void _checkMustBeOverridden(Annotation node, AstNode parent) {
+  void _checkMustBeOverridden(Annotation node) {
+    var parent = node.parent;
     if ((parent is MethodDeclaration && parent.isStatic) ||
         (parent is FieldDeclaration && parent.isStatic) ||
         parent.parent is ExtensionDeclaration ||
@@ -207,9 +214,10 @@ class AnnotationVerifier {
     }
   }
 
-  /// Reports a warning if [parent] is not a valid target for a `@mustCallSuper`
-  /// annotation.
-  void _checkMustCallSuper(Annotation node, AstNode parent) {
+  /// Reports a warning at [node] if it's parent is not a valid target for a
+  /// `@mustCallSuper` annotation.
+  void _checkMustCallSuper(Annotation node) {
+    var parent = node.parent;
     if ((parent is MethodDeclaration && parent.isStatic) ||
         (parent is FieldDeclaration && parent.isStatic) ||
         parent.parent is ExtensionDeclaration ||
@@ -222,9 +230,10 @@ class AnnotationVerifier {
     }
   }
 
-  /// Reports a warning if [parent] is not a valid target for a `@nonVirtual`
-  /// annotation.
-  void _checkNonVirtual(AstNode node, AstNode parent) {
+  /// Reports a warning at [node if it's parent is not a valid target for a
+  /// `@nonVirtual` annotation.
+  void _checkNonVirtual(AstNode node) {
+    var parent = node.parent;
     if (parent is FieldDeclaration) {
       if (parent.isStatic) {
         _errorReporter.reportErrorForNode(
@@ -243,21 +252,75 @@ class AnnotationVerifier {
     }
   }
 
+  /// Reports a warning if [parent] is not a valid target for a `@reopen`
+  /// annotation.
+  void _checkReopen(AstNode node) {
+    ClassElement? classElement;
+    InterfaceElement? superElement;
+
+    var parent = node.parent;
+    if (parent is ClassDeclaration) {
+      classElement = parent.declaredElement;
+      superElement = classElement?.supertype?.element;
+    } else if (parent is ClassTypeAlias) {
+      classElement = parent.declaredElement;
+      superElement = classElement?.supertype?.element;
+    } else {
+      // If [parent] is neither of the above types, then [_checkKinds] will report
+      // a warning.
+      return;
+    }
+
+    if (classElement == null) {
+      return;
+    }
+    if (superElement is! ClassElement) {
+      return;
+    }
+    if (classElement.isFinal ||
+        classElement.isMixinClass ||
+        classElement.isSealed) {
+      _errorReporter.reportErrorForNode(
+          WarningCode.INVALID_REOPEN_ANNOTATION, node);
+      return;
+    }
+    if (classElement.library != superElement.library) {
+      _errorReporter.reportErrorForNode(
+          WarningCode.INVALID_REOPEN_ANNOTATION, node);
+      return;
+    }
+    if (classElement.isBase) {
+      if (!superElement.isFinal && !superElement.isInterface) {
+        _errorReporter.reportErrorForNode(
+            WarningCode.INVALID_REOPEN_ANNOTATION, node);
+        return;
+      }
+    } else if (!classElement.isBase &&
+        !classElement.isFinal &&
+        !classElement.isInterface &&
+        !classElement.isSealed) {
+      if (!superElement.isInterface) {
+        _errorReporter.reportErrorForNode(
+            WarningCode.INVALID_REOPEN_ANNOTATION, node);
+        return;
+      }
+    }
+  }
+
   /// Reports a warning if [parent] is not a valid target for a `@sealed`
   /// annotation.
-  void _checkSealed(AstNode node, AstNode parent) {
+  void _checkSealed(AstNode node) {
+    var parent = node.parent;
     if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
       _errorReporter.reportErrorForNode(
           WarningCode.INVALID_SEALED_ANNOTATION, node);
     }
   }
 
-  /// Reports a warning if [parent] is not a valid target for a `@useResult`
-  /// annotation.
-  void _checkUseResult(
-      Annotation node, AstNode parent, ElementAnnotation element) {
-    // Check for a reference to an undefined parameter in a `@UseResult.unless`
-    // annotation.
+  /// Reports a warning if [node], a `@UseResult` annotation, references an
+  /// unknown parameter as an argument to 'unless'.
+  void _checkUseResult(Annotation node, ElementAnnotation element) {
+    var parent = node.parent;
     var undefinedParameter =
         _findUndefinedUseResultParameter(element, node, parent);
     if (undefinedParameter != null) {
@@ -282,19 +345,19 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if it is not a valid target for a
   /// visibility (`visibleForTemplate`, `visibileForTesting`,
   /// `visibleForOverride`) annotation.
-  void _checkVisibility(
-      Annotation node, AstNode parent, ElementAnnotation element) {
+  void _checkVisibility(Annotation node, ElementAnnotation element) {
+    var parent = node.parent;
     if (parent is Declaration) {
-      void reportInvalidAnnotation(Element declaredElement) {
+      void reportInvalidAnnotation(String name) {
         // This method is only called on named elements, so it is safe to
         // assume that `declaredElement.name` is non-`null`.
         _errorReporter.reportErrorForNode(
             WarningCode.INVALID_VISIBILITY_ANNOTATION,
             node,
-            [declaredElement.name!, node.name.name]);
+            [name, node.name.name]);
       }
 
-      void reportInvalidVisibleForOverriding(Element declaredElement) {
+      void reportInvalidVisibleForOverriding() {
         _errorReporter.reportErrorForNode(
             WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, node);
       }
@@ -304,36 +367,38 @@ class AnnotationVerifier {
           var variableElement =
               variable.declaredElement as TopLevelVariableElement;
 
-          if (Identifier.isPrivateName(variableElement.name)) {
-            reportInvalidAnnotation(variableElement);
+          var variableName = variableElement.name;
+          if (Identifier.isPrivateName(variableName)) {
+            reportInvalidAnnotation(variableName);
           }
 
-          if (element.isVisibleForOverriding == true) {
+          if (element.isVisibleForOverriding) {
             // Top-level variables can't be overridden.
-            reportInvalidVisibleForOverriding(variableElement);
+            reportInvalidVisibleForOverriding();
           }
         }
       } else if (parent is FieldDeclaration) {
         for (VariableDeclaration variable in parent.fields.variables) {
           var fieldElement = variable.declaredElement as FieldElement;
-          if (parent.isStatic && element.isVisibleForOverriding == true) {
-            reportInvalidVisibleForOverriding(fieldElement);
+          if (parent.isStatic && element.isVisibleForOverriding) {
+            reportInvalidVisibleForOverriding();
           }
 
-          if (Identifier.isPrivateName(fieldElement.name)) {
-            reportInvalidAnnotation(fieldElement);
+          var fieldName = fieldElement.name;
+          if (Identifier.isPrivateName(fieldName)) {
+            reportInvalidAnnotation(fieldName);
           }
         }
       } else if (parent.declaredElement != null) {
         final declaredElement = parent.declaredElement!;
         if (element.isVisibleForOverriding &&
             !declaredElement.isInstanceMember) {
-          reportInvalidVisibleForOverriding(declaredElement);
+          reportInvalidVisibleForOverriding();
         }
 
         var name = declaredElement.name;
         if (name != null && Identifier.isPrivateName(name)) {
-          reportInvalidAnnotation(declaredElement);
+          reportInvalidAnnotation(name);
         }
       }
     } else {

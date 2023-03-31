@@ -33,12 +33,12 @@ class Class {
       case value: // Ok
       case value!: // Ok
       case value?: // Ok
-      case value?!: // Ok
-      case value!?: // Ok
+      case (value?)!: // Ok
+      case (value!)?: // Ok
       case -42!: // Ok
       case -42?: // Ok
-      case -42!?: // Ok
-      case -42?!: // Ok
+      case (-42!)?: // Ok
+      case (-42?)!: // Ok
       case value as int: // Ok
       case -value: // Error
       case local: // Ok

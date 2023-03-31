@@ -5062,6 +5062,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'removeStream': {'removeStream'},
     'removeTrack': {'removeTrack'},
     'signalingState': {'signalingState'}
+  },
+  'webkitSpeechRecognition': {
+    'abort': {'abort'},
+    'audioTrack': {'audioTrack'},
+    'continuous': {'continuous'},
+    'grammars': {'grammars'},
+    'interimResults': {'interimResults'},
+    'lang': {'lang'},
+    'maxAlternatives': {'maxAlternatives'},
+    'start': {'start'},
+    'stop': {'stop'}
   }
 };
 
@@ -9755,7 +9766,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'SpanElement': {'HTMLSpanElement'},
   'SpeechGrammar': {'SpeechGrammar'},
   'SpeechGrammarList': {'SpeechGrammarList'},
-  'SpeechRecognition': {'SpeechRecognition'},
+  'SpeechRecognition': {'SpeechRecognition', 'webkitSpeechRecognition'},
   'SpeechRecognitionAlternative': {'SpeechRecognitionAlternative'},
   'SpeechRecognitionError': {'SpeechRecognitionError'},
   'SpeechRecognitionEvent': {'SpeechRecognitionEvent'},

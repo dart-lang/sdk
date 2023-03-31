@@ -61,13 +61,16 @@ _Rule CHAR([characters]) {
   // Find the range of character codes and construct an array of flags for codes
   // within the range.
   List<int> codes = characters.codeUnits.toList();
-  codes.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+  codes.sort((a, b) => a < b
+      ? -1
+      : a > b
+          ? 1
+          : 0);
   int lo = codes[0];
   int hi = codes[codes.length - 1];
   if (lo == hi) return CHARCODE(lo);
   int len = hi - lo + 1;
-  var flags = new List<bool>(len);
-  for (int i = 0; i < len; ++i) flags[i] = false;
+  var flags = List<bool>.filled(len, false);
   for (int code in codes) flags[code - lo] = true;
 
   return CHARCODE((code) => code >= lo && code <= hi && flags[code - lo]);
@@ -160,7 +163,7 @@ _Rule MAYBE(rule) => new _OptionalRule(_compile(rule));
  * MANY is a value generating matcher.  The value is a list of the matches of
  * [rule].  The list may be empty if [:min == 0:].
  */
-_Rule MANY(rule, {separator: null, int min: 1}) {
+_Rule MANY(rule, {separator = null, int min = 1}) {
   assert(0 <= min && min <= 1);
   return new _RepeatRule(_compile(rule), _compileOptional(separator), min);
 }
@@ -269,15 +272,14 @@ class Grammar {
   Map<String, Symbol> _symbols;
 
   /** This rule may be set by the user to define whitespace. */
-  _Rule _whitespace;
+  late _Rule _whitespace;
 
   _Rule get whitespace => _whitespace;
   void set whitespace(rule) {
     _whitespace = _compile(rule);
   }
 
-  Grammar() {
-    _symbols = new Map<String, Symbol>();
+  Grammar() : _symbols = new Map<String, Symbol>() {
     whitespace = CHAR(' \t\r\n');
   }
 
@@ -286,7 +288,7 @@ class Grammar {
    * to define recursive rules.
    */
   Symbol operator [](String name) {
-    if (_symbols.containsKey(name)) return _symbols[name];
+    if (_symbols.containsKey(name)) return _symbols[name]!;
     Symbol s = new Symbol(name, this);
     _symbols[name] = s;
     return s;
@@ -318,7 +320,9 @@ class Grammar {
       var tokens = new List<String>.from(s);
       tokens.sort((a, b) => a.startsWith("'") == b.startsWith("'")
           ? a.compareTo(b)
-          : a.startsWith("'") ? 1 : -1);
+          : a.startsWith("'")
+              ? 1
+              : -1);
       var expected = tokens.join(' or ');
       var found = state.max_pos == state._end
           ? 'end of file'
@@ -345,7 +349,7 @@ class Grammar {
 class Symbol {
   final String name;
   final Grammar grammar;
-  _Rule _rule;
+  _Rule? _rule;
 
   Symbol(this.name, this.grammar);
 
@@ -358,9 +362,9 @@ class Symbol {
 }
 
 class _ParserState {
-  _ParserState(this._text, {_Rule whitespace}) {
-    _end = this._text.length;
-    whitespaceRule = whitespace;
+  _ParserState(this._text, {required _Rule whitespace})
+      : _end = _text.length,
+        whitespaceRule = whitespace {
     max_rule = [];
   }
 
@@ -369,7 +373,7 @@ class _ParserState {
 
   //
   bool inWhitespaceMode = false;
-  _Rule whitespaceRule = null;
+  _Rule whitespaceRule;
 
   // Used for constructing an error message.
   int inhibitExpectedTrackingDepth = 0;
@@ -444,7 +448,7 @@ int _skip_whitespace(state, pos) {
   return pos;
 }
 
-_Rule _compileOptional(rule) {
+_Rule? _compileOptional(rule) {
   return rule == null ? null : _compile(rule);
 }
 
@@ -512,7 +516,7 @@ class _SymbolRule extends _Rule {
   _match(_ParserState state, int pos) {
     if (_symbol._rule == null)
       throw new Exception("Symbol '${_symbol.name}' is undefined");
-    return _symbol._rule.match(state, pos);
+    return _symbol._rule!.match(state, pos);
   }
 
   bool get generatesValue => true;
@@ -536,9 +540,7 @@ class _SkipRule extends _Rule {
 class _StringRule extends _Rule implements _Expectable {
   final String _string;
   int _len;
-  _StringRule(this._string) {
-    _len = _string.length;
-  }
+  _StringRule(this._string) : _len = _string.length;
 
   _match(_ParserState state, int pos) {
     if (pos + _len > state._end) return null;
@@ -566,10 +568,10 @@ class _RegExpRule extends _Rule {
 }
 
 class _LexicalRule extends _Rule implements _Expectable {
-  final String _name;
+  final String? _name;
   final _Rule _rule;
 
-  _LexicalRule(String this._name, _Rule this._rule);
+  _LexicalRule(this._name, this._rule);
 
   _match(_ParserState state, int pos) {
     state.inWhitespaceMode = true;
@@ -580,9 +582,9 @@ class _LexicalRule extends _Rule implements _Expectable {
     return match;
   }
 
-  toString() => _name;
+  toString() => _name.toString();
 
-  description() => _name == null ? '?' : _name;
+  description() => _name == null ? '?' : _name!;
 }
 
 class _TextValueRule extends _Rule {
@@ -608,8 +610,8 @@ class _TextValueRule extends _Rule {
 _Rule _compileMultiRule(
     List rules, bool allowReducer, finish(compiledRules, valueCount, reducer)) {
   int valueCount = 0;
-  List compiledRules = new List<_Rule>();
-  Function reducer;
+  List compiledRules = <_Rule>[];
+  Function? reducer;
   for (var rule in rules) {
     if (reducer != null)
       throw new Exception('Reducer must be last in sequence: $rule');
@@ -644,12 +646,11 @@ class _SequenceRule extends _Rule {
   // This rule matches the component rules in order.
   final List<_Rule> _rules;
   final int _generatingSubRules;
-  final Function _reducer;
+  final Function? _reducer;
   bool _generatesValue;
   _SequenceRule(List<_Rule> this._rules, int this._generatingSubRules,
-      Function this._reducer) {
-    _generatesValue = _generatingSubRules > 0 || _reducer != null;
-  }
+      Function? this._reducer)
+      : _generatesValue = _generatingSubRules > 0 || _reducer != null;
 
   _match(state, pos) {
     var sequence = [];
@@ -746,7 +747,7 @@ class _NegativeContextRule extends _Rule {
 class _RepeatRule extends _Rule {
   // Matches zero, one or more items.
   _Rule _rule;
-  _Rule _separator;
+  _Rule? _separator;
   int _min;
 
   _RepeatRule(this._rule, this._separator, this._min);
@@ -765,7 +766,7 @@ class _RepeatRule extends _Rule {
     while (true) {
       var newPos = pos;
       if (_separator != null) {
-        match = _separator.match(state, pos);
+        match = _separator!.match(state, pos);
         if (match == null) return [pos, result];
         newPos = match[0];
       }
@@ -779,7 +780,7 @@ class _RepeatRule extends _Rule {
   bool get generatesValue => true;
 
   toString() =>
-      'MANY(min:$_min, $_rule${_separator==null?'':", sep: $_separator"})';
+      'MANY(min:$_min, $_rule${_separator == null ? '' : ", sep: $_separator"})';
 }
 
 class _MemoRule extends _Rule {
@@ -790,7 +791,7 @@ class _MemoRule extends _Rule {
   // A map from position to result.  Can this be replaced with something
   // smaller?
   // TODO: figure out how to discard the map and parseInstance after parsing.
-  Map<int, Object> map;
+  Map<int, Object> map = {};
 
   _MemoRule(this._rule);
 
@@ -852,7 +853,7 @@ _apply(fn, List args) {
 
 List _unspread(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v,
     w, x, y, z) {
-  List list = new List();
+  List list = [];
   add(element) {
     if (element != null) list.add(element);
   }

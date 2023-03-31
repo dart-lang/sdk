@@ -867,6 +867,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Make '{0}' nullable",
   );
+  static const MATCH_ANY_MAP = FixKind(
+    'dart.fix.matchAnyMap',
+    DartFixKindPriority.DEFAULT,
+    "Match any map",
+  );
+  static const MATCH_EMPTY_MAP = FixKind(
+    'dart.fix.matchEmptyMap',
+    DartFixKindPriority.DEFAULT,
+    "Match an empty map",
+  );
   static const MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.moveAnnotationToLibraryDirective',
     DartFixKindPriority.DEFAULT,

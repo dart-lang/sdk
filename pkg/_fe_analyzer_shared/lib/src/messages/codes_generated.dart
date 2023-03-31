@@ -7192,6 +7192,19 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidInsideUnaryPattern =
+    messageInvalidInsideUnaryPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidInsideUnaryPattern = const MessageCode(
+    "InvalidInsideUnaryPattern",
+    index: 150,
+    problemMessage:
+        r"""This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.""",
+    correctionMessage:
+        r"""Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

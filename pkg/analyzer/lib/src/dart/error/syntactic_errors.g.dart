@@ -164,6 +164,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INTERFACE_MIXIN,
   ParserErrorCode.SEALED_MIXIN,
   ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+  ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1022,6 +1023,16 @@ class ParserErrorCode extends ErrorCode {
     'INVALID_INITIALIZER',
     "Not a valid initializer.",
     correctionMessage: "To initialize a field, use the syntax 'name = value'.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode INVALID_INSIDE_UNARY_PATTERN = ParserErrorCode(
+    'INVALID_INSIDE_UNARY_PATTERN',
+    "This pattern cannot appear inside a unary pattern (cast pattern, null "
+        "check pattern, or null assert pattern) without parentheses.",
+    correctionMessage:
+        "Try combining into a single pattern if possible, or enclose the inner "
+        "pattern in parentheses.",
   );
 
   static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
