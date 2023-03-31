@@ -42,6 +42,38 @@ void f(dynamic x) {
 ''');
   }
 
+  test_castPattern() async {
+    await assertNoErrorsInCode(r'''
+void f([(Object, )? l]) {
+  var (_ as List, ) = l!;
+}
+''');
+  }
+
+  test_castPattern_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+void f([(Object, )? l]) {
+  var (_ as List<List>, ) = l!;
+}
+''');
+  }
+
+  test_constantPattern() async {
+    // This is not considered a "strict raw type" here, but a "strict inference"
+    // issue.
+    await assertNoErrorsInCode(r'''
+void f(C<int> c) {
+  switch (c) {
+    case const C():
+  }
+}
+
+class C<T> {
+  const C();
+}
+''');
+  }
+
   test_functionParts_optionalTypeArg() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
@@ -72,6 +104,14 @@ void f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
+  }
+
+  test_instanceCreation() async {
+    // This is not considered a "strict raw type" here, but a "strict inference"
+    // issue.
+    await assertNoErrorsInCode(r'''
+var c = List.empty();
+''');
   }
 
   test_isExpression() async {
@@ -145,6 +185,18 @@ import 'package:meta/meta.dart';
 @optionalTypeArgs
 typedef List2<T> = List<T>;
 void f(List2 a) {}
+''');
+  }
+
+  test_objectPattern() async {
+    // This is not considered a "strict raw type" here, but a "strict inference"
+    // issue.
+    await assertNoErrorsInCode(r'''
+void f(Object o) {
+  switch (o) {
+    case List():
+  }
+}
 ''');
   }
 
@@ -252,7 +304,7 @@ F3 f3 = <T>(T a) => a;
 ''');
   }
 
-  test_TypeOnClassDeclaration_optionalTypeArgs() async {
+  test_typeInClassDeclaration_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -265,7 +317,7 @@ class G implements C {}
 ''');
   }
 
-  test_TypeOnConstructor() async {
+  test_typeInConstructorName() async {
     await assertNoErrorsInCode(r'''
 class C {
   C();
@@ -277,19 +329,19 @@ var d = C.named();
 ''');
   }
 
-  test_typeOnExtendedType_anonymous_missing() async {
+  test_typeInExtendedType_anonymous_missing() async {
     await assertErrorsInCode(r'''
 extension on List {}
 ''', [error(WarningCode.STRICT_RAW_TYPE, 13, 4)]);
   }
 
-  test_typeOnExtendedType_missing() async {
+  test_typeInExtendedType_missing() async {
     await assertErrorsInCode(r'''
 extension E on List {}
 ''', [error(WarningCode.STRICT_RAW_TYPE, 15, 4)]);
   }
 
-  test_typeOnExtendedType_optionalTypeArgs() async {
+  test_typeInExtendedType_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -300,35 +352,35 @@ extension on C {}
 ''');
   }
 
-  test_typeOnExtendedType_present() async {
+  test_typeInExtendedType_present() async {
     await assertNoErrorsInCode(r'''
 extension E<T> on List<T> {}
 extension F on List<int> {}
 ''');
   }
 
-  test_TypeOnInterface_missing() async {
+  test_typeInInterface_missing() async {
     await assertErrorsInCode(r'''
 class C<T> {}
 class D implements C {}
 ''', [error(WarningCode.STRICT_RAW_TYPE, 33, 1)]);
   }
 
-  test_TypeOnInterface_withTypeArg() async {
+  test_typeInInterface_withTypeArg() async {
     await assertNoErrorsInCode(r'''
 class C<T> {}
 class D implements C<int> {}
 ''');
   }
 
-  test_TypeOnSuperclass_missing() async {
+  test_typeInSuperclass_missing() async {
     await assertErrorsInCode(r'''
 class C<T> {}
 class D extends C {}
 ''', [error(WarningCode.STRICT_RAW_TYPE, 30, 1)]);
   }
 
-  test_TypeOnSuperclass_withTypeArg() async {
+  test_typeInSuperclass_withTypeArg() async {
     await assertNoErrorsInCode(r'''
 class C<T> {}
 class D extends C<int> {}
