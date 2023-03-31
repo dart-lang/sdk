@@ -24,10 +24,6 @@ class MapPatternStaticType<Type extends Object>
       buffer.write('$key: $space');
       first = false;
     });
-    if (restriction.hasRest) {
-      if (!first) buffer.write(', ');
-      buffer.write('...');
-    }
 
     buffer.write('}');
     return buffer.toString();
@@ -49,10 +45,6 @@ class MapPatternStaticType<Type extends Object>
         buffer.write('_');
       }
       comma = ', ';
-    }
-    if (restriction.hasRest) {
-      buffer.write(comma);
-      buffer.write('...');
     }
     buffer.write('}');
 
@@ -91,30 +83,26 @@ class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
   final Type keyType;
   final Type valueType;
   final Set<MapKey> keys;
-  final bool hasRest;
   final String typeArgumentsText;
 
   MapTypeRestriction(
-      this.keyType, this.valueType, this.keys, this.typeArgumentsText,
-      {required this.hasRest});
+      this.keyType, this.valueType, this.keys, this.typeArgumentsText);
 
   @override
   late final int hashCode =
-      Object.hash(keyType, valueType, Object.hashAllUnordered(keys), hasRest);
+      Object.hash(keyType, valueType, Object.hashAllUnordered(keys));
 
   @override
   bool get isUnrestricted {
     // The map pattern containing only a rest pattern covers the whole type.
-    return hasRest && keys.isEmpty;
+    return keys.isEmpty;
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! MapTypeRestriction<Type>) return false;
-    if (keyType != other.keyType ||
-        valueType != other.valueType ||
-        hasRest != other.hasRest) {
+    if (keyType != other.keyType || valueType != other.valueType) {
       return false;
     }
     if (keys.length != other.keys.length) return false;
@@ -127,13 +115,7 @@ class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
     if (other is! MapTypeRestriction<Type>) return false;
     if (!typeOperations.isSubtypeOf(keyType, other.keyType)) return false;
     if (!typeOperations.isSubtypeOf(valueType, other.valueType)) return false;
-    if (other.hasRest) {
-      return keys.containsAll(other.keys);
-    } else if (hasRest) {
-      return false;
-    } else {
-      return keys.length == other.keys.length && keys.containsAll(other.keys);
-    }
+    return keys.containsAll(other.keys);
   }
 
   @override
@@ -146,11 +128,6 @@ class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
       sb.write(comma);
       sb.write(key);
       sb.write(': ()');
-      comma = ', ';
-    }
-    if (hasRest) {
-      sb.write(comma);
-      sb.write('...');
       comma = ', ';
     }
     sb.write('}');

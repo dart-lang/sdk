@@ -495,11 +495,10 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           type.typeArguments.length == 2);
       DartType keyType = type.typeArguments[0];
       DartType valueType = type.typeArguments[1];
-      bool hasRest = false;
       Map<MapKey, Pattern> entries = {};
       for (MapPatternEntry entry in pattern.entries) {
         if (entry is MapPatternRestEntry) {
-          hasRest = true;
+          // Rest patterns are illegal in map patterns, so just skip over it.
         } else {
           Constant constant = entry.keyValue!;
           MapKey key = new MapKey(constant, constant.toText(textStrategy));
@@ -511,7 +510,6 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           keyType: keyType,
           valueType: valueType,
           entries: entries,
-          hasRest: hasRest,
           hasExplicitTypeArguments:
               pattern.keyType != null && pattern.valueType != null);
     }
