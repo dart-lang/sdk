@@ -155,7 +155,8 @@ class DartdevRunner extends CommandRunner<int> {
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
     // the respective intention and print any notices to standard out and exit.
-    if (topLevelResults['disable-analytics']) {
+    if (topLevelResults['disable-analytics'] ||
+        topLevelResults['disable-telemetry']) {
       // This block also potentially catches the case of (disableAnalytics &&
       // enableAnalytics), in which we favor the disabling of analytics.
       analytics.enabled = false;

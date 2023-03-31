@@ -29,6 +29,8 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
       negatable: false, help: 'Enable analytics.');
   argParser.addFlag('disable-analytics',
       negatable: false, help: 'Disable analytics.');
+  argParser.addFlag('disable-telemetry',
+      negatable: false, help: 'Disable telemetry.', hide: true);
 
   argParser.addFlag('diagnostics',
       negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
