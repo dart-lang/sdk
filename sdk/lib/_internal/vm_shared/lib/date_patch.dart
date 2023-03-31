@@ -67,6 +67,11 @@ class DateTime {
         _value = _getCurrentMicros();
 
   @patch
+  DateTime._nowUtc()
+      : isUtc = true,
+        _value = _getCurrentMicros();
+
+  @patch
   String get timeZoneName {
     if (isUtc) return "UTC";
     return _timeZoneName(microsecondsSinceEpoch);
