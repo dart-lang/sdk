@@ -158,7 +158,8 @@ void unreachableCase1(A r) {
       print('A(b, true)');
       break;
     case A(a: Enum.a, b: false): // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('(a, false) #2');
       break;
@@ -204,7 +205,8 @@ void unreachableCase3(A? r) {
       print('null #1');
       break;
     case null: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('null #2');
       break;

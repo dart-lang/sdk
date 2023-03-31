@@ -186,7 +186,8 @@ void unreachableCase1(Enum e) {
       print('b');
       break;
     case Enum.a: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('a2');
       break;
@@ -209,7 +210,8 @@ void unreachableCase2(Enum e) {
       print('b');
       break;
     case Enum.a: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('a2');
       break;
@@ -249,7 +251,8 @@ void unreachableCase4(Enum? e) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('null2');
       break;
@@ -263,7 +266,8 @@ void unreachableCase5(Enum e) {
       break;
     case Enum.b:
     case Enum.a: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
     case Enum.c:
       print('c');

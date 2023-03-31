@@ -66,6 +66,7 @@ class StaticError implements Comparable<StaticError> {
   // of error codes in sdk/pkg/analyzer/lib/error/error.dart. Is there a more
   // systematic way to handle this?
   static const _analyzerWarningCodes = {
+    "HINT.UNREACHABLE_SWITCH_CASE",
     "STATIC_WARNING.ANALYSIS_OPTION_DEPRECATED",
     "STATIC_WARNING.INCLUDE_FILE_NOT_FOUND",
     "STATIC_WARNING.INCLUDED_FILE_WARNING",
