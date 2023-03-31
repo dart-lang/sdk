@@ -595,6 +595,67 @@ CastPattern
 ''');
   }
 
+  test_cast_insideCast() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y as int as num:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 8),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: num
+''');
+  }
+
+  test_cast_insideCast_parenthesized() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case (y as int) as num:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: CastPattern
+      pattern: ConstantPattern
+        expression: SimpleIdentifier
+          token: y
+      asToken: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    rightParenthesis: )
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: num
+''');
+  }
+
   test_cast_insideIfCase() {
     _parse('''
 void f(x) {
@@ -806,6 +867,61 @@ MapPattern
           name: SimpleIdentifier
             token: int
   rightBracket: }
+''');
+  }
+
+  test_cast_insideNullAssert() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y as int!:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 8),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullAssertPattern
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+  operator: !
+''');
+  }
+
+  test_cast_insideNullCheck() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y as int? ?:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 9),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullCheckPattern
+  pattern: CastPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+      question: ?
+  operator: ?
 ''');
   }
 
@@ -5082,6 +5198,33 @@ NullAssertPattern
 ''');
   }
 
+  test_nullAssert_insideCast() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y! as num:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: NullAssertPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    operator: !
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: num
+''');
+  }
+
   test_nullAssert_insideIfCase() {
     _parse('''
 void f(x) {
@@ -5244,6 +5387,54 @@ MapPattern
             literal: 1
         operator: !
   rightBracket: }
+''');
+  }
+
+  test_nullAssert_insideNullAssert() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y!!:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullAssertPattern
+  pattern: NullAssertPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    operator: !
+  operator: !
+''');
+  }
+
+  test_nullAssert_insideNullCheck() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y!?:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullCheckPattern
+  pattern: NullAssertPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    operator: !
+  operator: ?
 ''');
   }
 
@@ -5443,6 +5634,33 @@ NullCheckPattern
 ''');
   }
 
+  test_nullCheck_insideCast() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y? as num:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+CastPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    operator: ?
+  asToken: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: num
+''');
+  }
+
   test_nullCheck_insideIfCase() {
     _parse('''
 void f(x) {
@@ -5605,6 +5823,54 @@ MapPattern
             literal: 1
         operator: ?
   rightBracket: }
+''');
+  }
+
+  test_nullCheck_insideNullAssert() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y?!:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullAssertPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    operator: ?
+  operator: !
+''');
+  }
+
+  test_nullCheck_insideNullCheck() {
+    _parse('''
+void f(x) {
+  const y = 1;
+  switch (x) {
+    case y? ?:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullCheckPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
+      expression: SimpleIdentifier
+        token: y
+    operator: ?
+  operator: ?
 ''');
   }
 
@@ -7893,6 +8159,50 @@ MapPattern
         operand: IntegerLiteral
           literal: 1
   rightBracket: }
+''');
+  }
+
+  test_relational_insideNullCheck_equal() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case == 1?:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 4),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullCheckPattern
+  pattern: RelationalPattern
+    operator: ==
+    operand: IntegerLiteral
+      literal: 1
+  operator: ?
+''');
+  }
+
+  test_relational_insideNullCheck_greaterThan() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case > 1?:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 3),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+NullCheckPattern
+  pattern: RelationalPattern
+    operator: >
+    operand: IntegerLiteral
+      literal: 1
+  operator: ?
 ''');
   }
 

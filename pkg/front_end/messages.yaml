@@ -6708,6 +6708,18 @@ VariablePatternKeywordInDeclarationContext:
     }
     ```
 
+InvalidInsideUnaryPattern:
+  problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.
+  correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
+  analyzerCode: ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN
+  index: 150
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    void f(x) {
+      if (x case _ as int as num) {}
+    }
+
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 

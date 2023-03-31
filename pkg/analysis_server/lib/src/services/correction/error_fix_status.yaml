@@ -2229,6 +2229,8 @@ ParserErrorCode.INVALID_HEX_ESCAPE:
   status: needsEvaluation
 ParserErrorCode.INVALID_INITIALIZER:
   status: needsEvaluation
+ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN:
+  status: needsEvaluation
 ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION:
   status: needsEvaluation
 ParserErrorCode.INVALID_OPERATOR:

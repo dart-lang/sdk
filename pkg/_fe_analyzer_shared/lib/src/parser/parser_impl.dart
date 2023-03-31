@@ -333,6 +333,14 @@ class Parser {
   /// TODO(paulberry): remove this flag when appropriate.
   final bool allowPatterns;
 
+  /// Indicates whether the last pattern parsed is allowed inside unary
+  /// patterns.  This is set by [parsePrimaryPattern] and [parsePattern].
+  ///
+  /// TODO(paulberry): once this package can safely use Dart 3.0 features,
+  /// remove this boolean and instead return a record (Token, bool) from the
+  /// [parsePrimaryPattern] and [parsePattern].
+  bool isLastPatternAllowedInsideUnaryPattern = false;
+
   Parser(this.listener,
       {this.useImplicitCreationExpression = true, this.allowPatterns = false})
       : assert(listener != null); // ignore:unnecessary_null_comparison
@@ -9586,6 +9594,7 @@ class Parser {
       {int precedence = 1}) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
+    Token start = token.next!;
     token = parsePrimaryPattern(token, patternContext);
     while (true) {
       Token next = token.next!;
@@ -9594,21 +9603,31 @@ class Parser {
       switch (next.lexeme) {
         // castPattern ::= primaryPattern 'as' type
         case 'as':
+          if (!isLastPatternAllowedInsideUnaryPattern) {
+            reportRecoverableErrorWithEnd(
+                start, token, codes.messageInvalidInsideUnaryPattern);
+          }
           Token operator = token = next;
           listener.beginAsOperatorType(token);
           TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
           token = typeInfo.ensureTypeNotVoid(token, this);
           listener.endAsOperatorType(operator);
           listener.handleCastPattern(operator);
-          // TODO(paulberry): report error if cast is followed by something the
-          // grammar doesn't permit
           break;
         case '!':
+          if (!isLastPatternAllowedInsideUnaryPattern) {
+            reportRecoverableErrorWithEnd(
+                start, token, codes.messageInvalidInsideUnaryPattern);
+          }
           // nullAssertPattern ::= primaryPattern '!'
           listener.handleNullAssertPattern(next);
           token = next;
           break;
         case '?':
+          if (!isLastPatternAllowedInsideUnaryPattern) {
+            reportRecoverableErrorWithEnd(
+                start, token, codes.messageInvalidInsideUnaryPattern);
+          }
           // nullCheckPattern ::= primaryPattern '?'
           listener.handleNullCheckPattern(next);
           token = next;
@@ -9625,6 +9644,9 @@ class Parser {
           // Some other operator that doesn't belong in a pattern
           return token;
       }
+      // None of the pattern types handled by the switch above are valid inside
+      // a unary pattern.
+      isLastPatternAllowedInsideUnaryPattern = false;
     }
   }
 
@@ -9670,6 +9692,7 @@ class Parser {
         // skipOuterPattern would have skipped this pattern properly.
         assert(
             identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        isLastPatternAllowedInsideUnaryPattern = true;
         return token;
       case '{':
         // mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
@@ -9681,6 +9704,7 @@ class Parser {
         // skipOuterPattern would have skipped this pattern properly.
         assert(
             identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        isLastPatternAllowedInsideUnaryPattern = true;
         return token;
     }
     // Whatever was after the optional type arguments didn't parse as a pattern
@@ -9691,6 +9715,7 @@ class Parser {
       case 'var':
       case 'final':
         // variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
+        isLastPatternAllowedInsideUnaryPattern = true;
         return parseVariablePattern(token, patternContext);
       case '(':
         // "(" could start a record type (which has to be followed by an
@@ -9700,6 +9725,7 @@ class Parser {
           if (typeInfo is ComplexTypeInfo &&
               typeInfo.isRecordType &&
               !typeInfo.recovered) {
+            isLastPatternAllowedInsideUnaryPattern = true;
             return parseVariablePattern(token, patternContext,
                 typeInfo: typeInfo);
           }
@@ -9721,6 +9747,7 @@ class Parser {
         // properly.
         assert(
             identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        isLastPatternAllowedInsideUnaryPattern = true;
         return token;
       case 'const':
         // constantPattern ::= booleanLiteral
@@ -9741,6 +9768,7 @@ class Parser {
         token = parsePrecedenceExpression(const_, EQUALITY_PRECEDENCE,
             /* allowCascades = */ false, ConstantPatternContext.explicit);
         listener.endConstantPattern(const_);
+        isLastPatternAllowedInsideUnaryPattern = true;
         return token;
     }
     TokenType type = next.type;
@@ -9755,10 +9783,12 @@ class Parser {
       token = parsePrecedenceExpression(next, SHIFT_PRECEDENCE,
           /* allowCascades = */ false, ConstantPatternContext.none);
       listener.handleRelationalPattern(operator);
+      isLastPatternAllowedInsideUnaryPattern = false;
       return token;
     }
     TypeInfo typeInfo = computeVariablePatternType(token);
     if (typeInfo != noType) {
+      isLastPatternAllowedInsideUnaryPattern = true;
       return parseVariablePattern(token, patternContext, typeInfo: typeInfo);
     }
     // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
@@ -9795,6 +9825,7 @@ class Parser {
         // skipOuterPattern would have skipped this pattern properly.
         assert(
             identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        isLastPatternAllowedInsideUnaryPattern = true;
         return token;
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
@@ -9802,6 +9833,7 @@ class Parser {
         if (!patternContext.isRefutable || firstIdentifier.lexeme == '_') {
           // It's a wildcard pattern with no preceding type, so parse it as a
           // variable pattern.
+          isLastPatternAllowedInsideUnaryPattern = true;
           return parseVariablePattern(beforeFirstIdentifier, patternContext,
               typeInfo: typeInfo);
         }
@@ -9816,6 +9848,7 @@ class Parser {
     token = parsePrecedenceExpression(token, EQUALITY_PRECEDENCE,
         /* allowCascades = */ false, ConstantPatternContext.implicit);
     listener.endConstantPattern(/* constKeyword = */ null);
+    isLastPatternAllowedInsideUnaryPattern = true;
     return token;
   }
 
