@@ -13,8 +13,7 @@ main() {
   var map = {'a': 1, 'b': 2};
 
   // Map patterns don't access length.
-  Expect.isTrue(
-      switch (NoLengthMap(map)) { {'a': _, 'a': _} => true, _ => false });
+  Expect.isTrue(switch (NoLengthMap(map)) { {'a': _} => true, _ => false });
 
   // Map patterns match even if there are extra keys.
   Expect.equals(
