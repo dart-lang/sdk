@@ -51,6 +51,23 @@ class ReplaceNullCheckWithCastTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.null_check_on_nullable_type_parameter;
 
+  Future<void> test_pattern() async {
+    await resolveTestCode('''
+void f<T>((T?, T?) p){
+  var (x!, y) = p;
+  print(x);
+  print(y);
+}
+''');
+    await assertHasFix('''
+void f<T>((T?, T?) p){
+  var (x as T, y) = p;
+  print(x);
+  print(y);
+}
+''');
+  }
+
   Future<void> test_simpleIdentifier() async {
     await resolveTestCode('''
 T run<T>(T? result) {
