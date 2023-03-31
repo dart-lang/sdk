@@ -55,25 +55,3 @@ method2(o) {
       print(a);
   }
 }
-
-method3(Map<dynamic, dynamic> o) {
-  switch (o) {
-    case {...}:
-      print(o);
-  }
-  switch (o) {
-    case {0: _, ...}:
-      print(o);
-  }
-}
-
-method4(o) {
-  switch (o) {
-    case {...}:
-      print(o);
-  }
-  switch (o) {
-    case {0: _, ...}:
-      print(o);
-  }
-}

@@ -20,19 +20,9 @@ test2() {
   }
 }
 
-test3() {
-  Map<dynamic, dynamic> x = <int, int>{1: 1, 2:2};
-  if (x case <int, int>{1: 1, ...}) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
 main() {
   expectEquals(0, test1());
   expectEquals(0, test2());
-  expectEquals(0, test3());
 }
 
 expectEquals(x, y) {

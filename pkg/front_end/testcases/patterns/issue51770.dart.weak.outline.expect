@@ -6,7 +6,3 @@ static method method1(core::List<dynamic> o) → dynamic
   ;
 static method method2(dynamic o) → dynamic
   ;
-static method method3(core::Map<dynamic, dynamic> o) → dynamic
-  ;
-static method method4(dynamic o) → dynamic
-  ;

@@ -42,13 +42,13 @@ library /*isNonNullableByDefault*/;
 //     case Class(field: 1, field: 2): // Error
 //                       ^
 //
-// pkg/front_end/testcases/patterns/shared_errors.dart:45:11: Error: At most one rest element is allowed in a list or map pattern.
-// Try removing the duplicate rest element.
-//     case {..., ...}: // Error
-//           ^
-// pkg/front_end/testcases/patterns/shared_errors.dart:45:16: Context: The first rest element.
+// pkg/front_end/testcases/patterns/shared_errors.dart:45:16: Error: The '...' pattern can't appear in map patterns.
 //     case {..., ...}: // Error
 //                ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:45:11: Error: The '...' pattern can't appear in map patterns.
+//     case {..., ...}: // Error
+//           ^
 //
 // pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
 // Try removing the duplicate rest element.
@@ -78,12 +78,11 @@ library /*isNonNullableByDefault*/;
 //   var (a?) = x; // Error
 //         ^
 //
-// pkg/front_end/testcases/patterns/shared_errors.dart:66:15: Error: The '...' pattern can appear only at the end in map patterns.
+// pkg/front_end/testcases/patterns/shared_errors.dart:66:15: Error: The '...' pattern can't appear in map patterns.
 //   if (o case {..., 5: 3}) { // Error
 //               ^
 //
-// pkg/front_end/testcases/patterns/shared_errors.dart:72:21: Error: A rest element in a map pattern can't have a subpattern.
-// Try removing the subpattern.
+// pkg/front_end/testcases/patterns/shared_errors.dart:72:21: Error: The '...' pattern can't appear in map patterns.
 //   if (o case {5: 3, ...var a}) { // Error
 //                     ^
 //
