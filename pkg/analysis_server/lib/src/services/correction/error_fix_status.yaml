@@ -24,12 +24,12 @@
 #   issue created for it.
 #
 # Stats:
-# - 655 "needsEvaluation"
+# - 678 "needsEvaluation"
 #   - 282 for CompileTimeErrorCodes
 #   - 220 for ParserErrorCodes
-# -  92 "needsFix"
-# - 310 "hasFix"
-# -  94 "noFix"
+# -  79 "needsFix"
+# - 348 "hasFix"
+# - 110 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -405,8 +405,7 @@ CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
   notes: |-
     We cannot figure out the intent of the user to suggest the right fix.
 CompileTimeErrorCode.EMPTY_MAP_PATTERN:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/51892
+  status: hasFix
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
@@ -454,7 +453,7 @@ CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
 CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
   status: noFix
   notes: |-
-    We do not know the user's intent here and so cannot figure out what to 
+    We do not know the user's intent here and so cannot figure out what to
     add or delete.
 CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
   status: needsEvaluation
