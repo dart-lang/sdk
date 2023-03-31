@@ -11,7 +11,7 @@
       "out/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/"
     ],
-    "web_platform": [
+    "js_platform_2": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -21,75 +21,52 @@
       "pkg/",
       "runtime/tests/",
       "sdk/",
-      "tests/.dart_tool/package_config.json",
-      "tests/angular/",
-      "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
-      "tests/co19/co19-analyzer.status",
-      "tests/co19/co19-co19.status",
-      "tests/co19/co19-dart2js.status",
-      "tests/co19/co19-dartdevc.status",
-      "tests/co19/co19-kernel.status",
-      "tests/co19/co19-runtime.status",
       "tests/corelib_2/",
-      "tests/web_2/",
       "tests/dartdevc_2/",
-      "tests/language/",
+      "tests/ffi_2/",
       "tests/language_2/",
       "tests/lib_2/",
-      "tests/light_unittest.dart",
-      "tests/search/",
       "tests/standalone_2/",
-      "tests/ffi/",
-      "tests/ffi_2/",
+      "tests/web_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
       "tools/"
     ],
-    "web_platform_nnbd": [
+    "js_platform": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart-sdk/",
-      "out/ReleaseX64/ddc_outline.dill",
       "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
-      "samples/",
       "sdk/",
-      "tests/.dart_tool/package_config.json",
-      "tests/angular/",
-      "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
       "tests/corelib/",
-      "tests/web/",
       "tests/dartdevc/",
-      "tests/language/",
-      "tests/language_2/",
-      "tests/lib/",
-      "tests/light_unittest.dart",
-      "tests/search/",
       "tests/ffi/",
+      "tests/language/",
+      "tests/lib/",
+      "tests/web/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseARM64/dart-sdk/",
-      "xcodebuild/ReleaseARM64/ddc_outline.dill",
-      "xcodebuild/ReleaseARM64/ddc_outline_unsound.dill",
       "xcodebuild/ReleaseARM64/gen/utils/dartdevc/"
     ],
-    "web_platform_hostasserts": [
+    "js_platform_hostasserts_2": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -97,62 +74,42 @@
       "pkg/",
       "runtime/tests/",
       "sdk/",
-      "tests/.dart_tool/package_config.json",
-      "tests/angular/",
-      "tests/co19/co19-analyzer.status",
-      "tests/co19/co19-co19.status",
-      "tests/co19/co19-dart2js.status",
-      "tests/co19/co19-dartdevc.status",
-      "tests/co19/co19-kernel.status",
-      "tests/co19/co19-runtime.status",
-      "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
       "tests/corelib_2/",
-      "tests/web_2/",
       "tests/dartdevc_2/",
-      "tests/language/",
+      "tests/ffi_2/",
       "tests/language_2/",
       "tests/lib_2/",
-      "tests/light_unittest.dart",
-      "tests/search/",
       "tests/standalone_2/",
-      "tests/ffi/",
-      "tests/ffi_2/",
+      "tests/web_2/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
       "tools/"
     ],
-    "web_platform_hostasserts_nnbd": [
+    "js_platform_hostasserts": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2js_platform_unsound.dill",
       "pkg/",
       "runtime/tests/",
-      "samples/",
       "sdk/",
-      "tests/.dart_tool/package_config.json",
-      "tests/angular/",
-      "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
       "tests/corelib/",
-      "tests/web/",
       "tests/dartdevc/",
-      "tests/language/",
-      "tests/language_2/",
-      "tests/lib/",
-      "tests/light_unittest.dart",
-      "tests/search/",
       "tests/ffi/",
+      "tests/language/",
+      "tests/lib/",
+      "tests/web/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
@@ -2144,7 +2101,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc co19 tests",
@@ -2153,7 +2110,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc modular tests",
@@ -2233,7 +2190,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc modular tests",
@@ -2311,7 +2268,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc co19 tests",
@@ -2320,7 +2277,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         }
       ]
     },
@@ -2350,7 +2307,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc sdk _2 tests",
@@ -2363,7 +2320,7 @@
             "web_2"
           ],
           "shards": 6,
-          "fileset": "web_platform"
+          "fileset": "js_platform_2"
         },
         {
           "name": "ddc co19 tests unsound",
@@ -2372,7 +2329,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc co19_2 tests",
@@ -2381,7 +2338,7 @@
             "co19_2"
           ],
           "shards": 6,
-          "fileset": "web_platform"
+          "fileset": "js_platform_2"
         },
         {
           "name": "ddc modular tests unsound",
@@ -2423,7 +2380,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc sdk tests unsound",
@@ -2436,7 +2393,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc co19 tests",
@@ -2445,7 +2402,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc co19 tests unsound",
@@ -2454,7 +2411,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "ddc modular tests unsound",
@@ -2596,7 +2553,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome tests",
@@ -2606,7 +2563,7 @@
             "web"
           ],
           "shards": 3,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome co19 tests",
@@ -2615,7 +2572,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         }
       ]
     },
@@ -2670,7 +2627,7 @@
             "pkg//compiler/"
           ],
           "shards": 3,
-          "fileset": "web_platform"
+          "fileset": "js_platform_2"
         }
       ]
     },
@@ -2700,7 +2657,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js co19 tests",
@@ -2709,7 +2666,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         }
       ]
     },
@@ -2742,7 +2699,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "dart2js co19 tests",
@@ -2751,7 +2708,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         }
       ]
     },
@@ -2784,7 +2741,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "dart2js co19 tests",
@@ -2794,7 +2751,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         }
       ]
     },
@@ -2824,7 +2781,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "dart2js production tests",
@@ -2837,7 +2794,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         },
         {
           "name": "dart2js -O0 smoke tests",
@@ -2882,7 +2839,7 @@
             "web"
           ],
           "shards": 6,
-          "fileset": "web_platform_nnbd"
+          "fileset": "js_platform"
         }
       ]
     },
@@ -2910,7 +2867,7 @@
             "language"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome tests",
@@ -2921,7 +2878,7 @@
             "web"
           ],
           "shards": 3,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome co19 tests",
@@ -2930,7 +2887,7 @@
             "co19"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts_nnbd"
+          "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome _2 tests",
@@ -2942,7 +2899,7 @@
             "web_2"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts"
+          "fileset": "js_platform_hostasserts_2"
         },
         {
           "name": "dart2js chrome co19_2 tests",
@@ -2951,7 +2908,7 @@
             "co19_2"
           ],
           "shards": 6,
-          "fileset": "web_platform_hostasserts"
+          "fileset": "js_platform_hostasserts_2"
         }
       ]
     },
@@ -3851,7 +3808,7 @@
     "LSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
     "MSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
     "TSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:report_thread_leaks=0",
-    "UBSAN_OPTIONS":"abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:print_stacktrace=1"
+    "UBSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:print_stacktrace=1"
   },
   "sanitizer_symbolizer": {
     "linux": "buildtools/linux-x64/clang/bin/llvm-symbolizer",
