@@ -48,10 +48,6 @@ library /*isNonNullableByDefault*/;
 //   if (o case NonType(:var field)) {}
 //              ^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:34:10: Error: Not a constant expression.
-//     case NonType(:var field):
-//          ^^^^^^^
-//
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:34:10: Error: 'NonType' isn't a type.
 //     case NonType(:var field):
 //          ^^^^^^^
@@ -138,10 +134,6 @@ library /*isNonNullableByDefault*/;
 //   if (o case prefix.NonType(:var field)) {}
 //                     ^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:82:17: Error: Not a constant expression.
-//     case prefix.NonType(:var field):
-//                 ^^^^^^^
-//
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:82:17: Error: 'NonType' isn't a type.
 //     case prefix.NonType(:var field):
 //                 ^^^^^^^
@@ -227,10 +219,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:127:14: Error: 'NonType.hashCode' can't be used as a type because 'NonType' doesn't refer to an import prefix.
 //   if (o case NonType.hashCode(:var field)) {}
 //              ^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:130:10: Error: Not a constant expression.
-//     case NonType.hashCode(:var field):
-//          ^^^^^^^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:130:10: Error: 'NonType.hashCode' can't be used as a type because 'NonType' doesn't refer to an import prefix.
 //     case NonType.hashCode(:var field):
