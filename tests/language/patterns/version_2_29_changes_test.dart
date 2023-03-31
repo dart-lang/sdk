@@ -12,15 +12,6 @@ import "package:expect/expect.dart";
 main() {
   var map = {'a': 1, 'b': 2};
 
-  // Map patterns are allowed to have identical keys.
-  Expect.isTrue(switch (map) { {'a': _, 'a': _} => true, _ => false });
-
-  // Map patterns are allowed to have primitive equal record keys.
-  Expect.isTrue(switch ({('c', 'd'): 3}) {
-    {('c', 'd'): _, ('c', 'd'): _} => true,
-    _ => false
-  });
-
   // Map patterns don't access length.
   Expect.isTrue(
       switch (NoLengthMap(map)) { {'a': _, 'a': _} => true, _ => false });
