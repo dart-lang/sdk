@@ -762,6 +762,10 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     if (this.isEmpty) throw IterableElementError.noElement();
     this[this.length - 1] = element;
   }
+
+  // Specialized version of `get runtimeType` is needed here so that
+  // `Interceptor.runtimeType` can avoid testing for `JSArray`.
+  Type get runtimeType => getRuntimeTypeOfArray(this);
 }
 
 /// Dummy subclasses that allow the backend to track more precise

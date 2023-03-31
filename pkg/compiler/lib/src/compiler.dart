@@ -42,6 +42,7 @@ import 'inferrer_experimental/types.dart' as experimentalInferrer
 import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
     show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
+import 'io/source_information.dart';
 import 'ir/annotations.dart';
 import 'ir/modular.dart' hide reportLocatedMessage;
 import 'js_backend/codegen_inputs.dart' show CodegenInputs;
@@ -438,6 +439,9 @@ class Compiler {
     } else {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
+      if (retainDataForTesting) {
+        componentForTesting = component;
+      }
       return load_kernel.Output(component, null, null, null, null);
     }
   }
@@ -529,7 +533,8 @@ class Compiler {
         mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
-  int runCodegenEnqueuer(CodegenResults codegenResults) {
+  int runCodegenEnqueuer(
+      CodegenResults codegenResults, SourceLookup sourceLookup) {
     GlobalTypeInferenceResults globalInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
@@ -539,7 +544,8 @@ class Compiler {
         closedWorld,
         globalInferenceResults,
         codegenInputs,
-        codegenResults)
+        codegenResults,
+        sourceLookup)
       ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;
@@ -696,8 +702,8 @@ class Compiler {
   }
 
   Future<CodegenResults> produceCodegenResults(
-      DataAndIndices<GlobalTypeInferenceResults>
-          globalTypeInferenceResults) async {
+      DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults,
+      SourceLookup sourceLookup) async {
     final globalTypeInferenceData = globalTypeInferenceResults.data!;
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceData);
     CodegenResults codegenResults;
@@ -714,7 +720,8 @@ class Compiler {
           globalTypeInferenceData,
           codegenInputs,
           globalTypeInferenceResults.indices!,
-          useDeferredSourceReads);
+          useDeferredSourceReads,
+          sourceLookup);
     }
     return codegenResults;
   }
@@ -755,12 +762,13 @@ class Compiler {
     if (shouldStopAfterGlobalTypeInference) return;
 
     // Run codegen.
+    final sourceLookup = SourceLookup(output.component);
     CodegenResults codegenResults =
-        await produceCodegenResults(globalTypeInferenceResults);
+        await produceCodegenResults(globalTypeInferenceResults, sourceLookup);
     if (shouldStopAfterCodegen) return;
 
     // Link.
-    int programSize = runCodegenEnqueuer(codegenResults);
+    int programSize = runCodegenEnqueuer(codegenResults, sourceLookup);
 
     // Dump Info.
     if (options.dumpInfo) {

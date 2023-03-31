@@ -130,7 +130,7 @@ class ClassInfo {
   /// The class whose struct is used as the type for variables of this type.
   /// This is a type which is a superclass of all subtypes of this type.
   late final ClassInfo repr = upperBound(
-      implementedBy.map((c) => identical(c, this) ? this : c.repr).toList());
+      implementedBy.map((c) => identical(c, this) ? this : c.repr).toSet());
 
   /// All classes which implement this class. This is used to compute `repr`.
   final List<ClassInfo> implementedBy = [];
@@ -158,7 +158,7 @@ class ClassInfo {
   }
 }
 
-ClassInfo upperBound(Iterable<ClassInfo> classes) {
+ClassInfo upperBound(Set<ClassInfo> classes) {
   while (classes.length > 1) {
     Set<ClassInfo> newClasses = {};
     int minDepth = 999999999;
