@@ -71,7 +71,7 @@ testTEXT() {
   check(g, TEXT(MANY(OR(['1', 'a']))), '  1  a 1  ', '1  a 1');
 
   // Custom processing of the TEXT substring.
-  var binaryNumber = TEXT(LEX(MANY(OR(['0', '1']))), (str, start, end) {
+  var binaryNumber = TEXT(LEX(MANY(OR(['0', '1']))), (String str, start, end) {
     var r = 0;
     var zero = '0'.codeUnitAt(0);
     for (int i = start; i < end; i++) r = r * 2 + (str.codeUnitAt(i) - zero);
