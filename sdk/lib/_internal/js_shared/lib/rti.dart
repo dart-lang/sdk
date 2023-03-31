@@ -946,6 +946,10 @@ bool _installSpecializedIsTest(Object? object) {
   if (isTopType(testRti)) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
   }
+  if (Rti._getKind(testRti) == Rti.kindQuestion) {
+    return _finishIsFn(testRti, object,
+        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
+  }
 
   // `o is T*` generally behaves like `o is T`.
   // The exceptions are `Object*` (handled above) and `Never*`
@@ -959,6 +963,10 @@ bool _installSpecializedIsTest(Object? object) {
   Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
       ? Rti._getStarArgument(testRti)
       : testRti;
+
+  if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
+  }
 
   var isFn = _simpleSpecializedIsTest(unstarred);
   if (isFn != null) {
@@ -987,9 +995,6 @@ bool _installSpecializedIsTest(Object? object) {
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
     // fall through to general implementation.
-  } else if (Rti._getKind(testRti) == Rti.kindQuestion) {
-    return _finishIsFn(testRti, object,
-        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
   } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
     isFn = _recordSpecializedIsTest(unstarred);
     return _finishIsFn(testRti, object, isFn);
@@ -1211,6 +1216,14 @@ class _TypeError extends _Error implements TypeError {
 //
 // Specializations can be placed on Rti objects as the _as and _is
 // 'methods'. They can also be called directly called from generated code.
+
+/// Specialization for `is FutureOr<T>`.
+/// Called from generated code via Rti `_is` method.
+bool _isFutureOr(Object? object) {
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
+      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
+}
 
 /// Specialization for 'is Object'.
 /// Called from generated code via Rti `_is` method.
@@ -3080,6 +3093,9 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return true;
   }
 
+  // Record Type/Record:
+  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
+
   // Positional Function Types + Named Function Types:
   // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of function
   // types using features inaccessible from JavaScript.
@@ -3120,15 +3136,7 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  // Records
-  //
-  // TODO(50081): Reference rules to updated specification
-  // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-
-  // Record Type/Record:
-  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
-
-  // Record Type/Record Type:
+  // Record Types:
   if (sKind == Rti.kindRecord && tKind == Rti.kindRecord) {
     return _isRecordSubtype(universe, s, sEnv, t, tEnv);
   }
