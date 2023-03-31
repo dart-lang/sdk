@@ -146,58 +146,7 @@ static method method2(dynamic o) → dynamic {
     }
   }
 }
-static method method3(core::Map<dynamic, dynamic> o) → dynamic {
-  #L13:
-  {
-    final synthesized core::Map<dynamic, dynamic> #0#0 = o;
-    {
-      if(true) {
-        {
-          core::print(o);
-        }
-      }
-    }
-  }
-  #L14:
-  {
-    final synthesized core::Map<dynamic, dynamic> #1#0 = o;
-    late final synthesized dynamic #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
-    {
-      if((!(#1#3 == null) || null is{ForNonNullableByDefault} dynamic && #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t7 = #1#3 in true)) {
-        {
-          core::print(o);
-        }
-      }
-    }
-  }
-}
-static method method4(dynamic o) → dynamic {
-  #L15:
-  {
-    final synthesized dynamic #0#0 = o;
-    {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic>) {
-        {
-          core::print(o{core::Map<dynamic, dynamic>});
-        }
-      }
-    }
-  }
-  #L16:
-  {
-    final synthesized dynamic #1#0 = o;
-    late final synthesized dynamic #1#4 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
-    {
-      if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#1#4 == null) || null is{ForNonNullableByDefault} dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t8 = #1#4 in true)) {
-        {
-          core::print(o{core::Map<dynamic, dynamic>});
-        }
-      }
-    }
-  }
-}
 
 constants  {
   #C1 = 1
-  #C2 = 0
 }

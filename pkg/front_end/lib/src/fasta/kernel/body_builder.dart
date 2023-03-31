@@ -2581,7 +2581,9 @@ class BodyBuilder extends StackListenerImpl
 
     createAndEnterLocalScope(debugName: "case-head", kind: ScopeKind.caseHead);
     super.push(constantContext);
-    constantContext = ConstantContext.inferred;
+    if (!libraryFeatures.patterns.isEnabled) {
+      constantContext = ConstantContext.inferred;
+    }
     assert(checkState(
         caseKeyword, [ValueKinds.ConstantContext, ValueKinds.Scope]));
   }

@@ -307,6 +307,8 @@ class JsInteropChecks extends RecursiveVisitor {
         node.importUri.isScheme('dart') ||
         importUriString.startsWith('package:ui') ||
         importUriString.startsWith('package:flutter') ||
+        importUriString.startsWith('package:flute') ||
+        importUriString.startsWith('package:engine') ||
         importUriString.startsWith('package:test') ||
         importUriString.contains('/test/') ||
         (node.fileUri.toString().contains(RegExp(r'(?<!generated_)tests/')) &&

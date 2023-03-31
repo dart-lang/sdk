@@ -7,7 +7,7 @@ method(Unresolved o) {
     case [_]:
     case [_, ...var a, _]:
     case [...]:
-    case {0: 1, ...}:
+    case {0: 1}:
     case String(length: 5):
     case == 5:
     case < 5: // TODO(johnniwinther): Why do we get an error here?
