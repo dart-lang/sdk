@@ -12,7 +12,7 @@
 
 /*spec.class: global#double:checkedInstance,instance,typeArgument*/
 
-/*class: global#JSNumNotInt:checks=[],instance*/
+/*class: global#JSNumNotInt:checks=[$isTrustedGetRuntimeType],instance*/
 
 main() {
   <int, double>{}[0] = 0.5;

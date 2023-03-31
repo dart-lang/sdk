@@ -24,11 +24,12 @@ import 'dart:_js_helper'
         getTraceFromException,
         RuntimeError,
         wrapException,
-        wrapZoneUnaryCallback;
+        wrapZoneUnaryCallback,
+        TrustedGetRuntimeType;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
-import 'dart:_rti' show getRuntimeType;
+import 'dart:_rti' show getRuntimeTypeOfDartObject;
 
 import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
@@ -69,7 +70,7 @@ class Object {
   }
 
   @patch
-  Type get runtimeType => getRuntimeType(this);
+  Type get runtimeType => getRuntimeTypeOfDartObject(this);
 }
 
 @patch

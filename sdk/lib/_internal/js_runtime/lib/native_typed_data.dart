@@ -21,12 +21,15 @@ import 'dart:_js_helper'
         diagnoseIndexError,
         diagnoseRangeError;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_rti' show TrustedGetRuntimeType;
+
 import 'dart:math' as Math;
 
 import 'dart:typed_data';
 
 @Native('ArrayBuffer')
-final class NativeByteBuffer extends JavaScriptObject implements ByteBuffer {
+final class NativeByteBuffer extends JavaScriptObject
+    implements ByteBuffer, TrustedGetRuntimeType {
   @JSName('byteLength')
   int get lengthInBytes native;
 
@@ -104,7 +107,7 @@ final class NativeByteBuffer extends JavaScriptObject implements ByteBuffer {
 /// space- and time-efficient than the default [List] implementation.
 final class NativeFloat32x4List extends Object
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
-    implements Float32x4List {
+    implements Float32x4List, TrustedGetRuntimeType {
   final Float32List _storage;
 
   /// Creates a [Float32x4List] of the specified length (in elements),
@@ -176,7 +179,7 @@ final class NativeFloat32x4List extends Object
 /// space- and time-efficient than the default [List] implementation.
 final class NativeInt32x4List extends Object
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
-    implements Int32x4List {
+    implements Int32x4List, TrustedGetRuntimeType {
   final Int32List _storage;
 
   /// Creates a [Int32x4List] of the specified length (in elements),
@@ -248,7 +251,7 @@ final class NativeInt32x4List extends Object
 /// space- and time-efficient than the default [List] implementation.
 final class NativeFloat64x2List extends Object
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
-    implements Float64x2List {
+    implements Float64x2List, TrustedGetRuntimeType {
   final Float64List _storage;
 
   /// Creates a [Float64x2List] of the specified length (in elements),
@@ -382,7 +385,8 @@ List _ensureNativeList(List list) {
 }
 
 @Native('DataView')
-final class NativeByteData extends NativeTypedData implements ByteData {
+final class NativeByteData extends NativeTypedData
+    implements ByteData, TrustedGetRuntimeType {
   /// Creates a [ByteData] of the specified length (in elements), all of
   /// whose elements are initially zero.
   factory NativeByteData(int length) => _create1(_checkLength(length));
@@ -739,7 +743,7 @@ abstract final class NativeTypedArrayOfInt extends NativeTypedArray<int>
 
 @Native('Float32Array')
 final class NativeFloat32List extends NativeTypedArrayOfDouble
-    implements Float32List {
+    implements Float32List, TrustedGetRuntimeType {
   factory NativeFloat32List(int length) => _createLength(_checkLength(length));
 
   factory NativeFloat32List.fromList(List<double> elements) =>
@@ -775,7 +779,7 @@ final class NativeFloat32List extends NativeTypedArrayOfDouble
 
 @Native('Float64Array')
 final class NativeFloat64List extends NativeTypedArrayOfDouble
-    implements Float64List {
+    implements Float64List, TrustedGetRuntimeType {
   factory NativeFloat64List(int length) => _createLength(_checkLength(length));
 
   factory NativeFloat64List.fromList(List<double> elements) =>
@@ -810,7 +814,8 @@ final class NativeFloat64List extends NativeTypedArrayOfDouble
 }
 
 @Native('Int16Array')
-final class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
+final class NativeInt16List extends NativeTypedArrayOfInt
+    implements Int16List, TrustedGetRuntimeType {
   factory NativeInt16List(int length) => _createLength(_checkLength(length));
 
   factory NativeInt16List.fromList(List<int> elements) =>
@@ -850,7 +855,8 @@ final class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
 }
 
 @Native('Int32Array')
-final class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
+final class NativeInt32List extends NativeTypedArrayOfInt
+    implements Int32List, TrustedGetRuntimeType {
   factory NativeInt32List(int length) => _createLength(_checkLength(length));
 
   factory NativeInt32List.fromList(List<int> elements) =>
@@ -890,7 +896,8 @@ final class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
 }
 
 @Native('Int8Array')
-final class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
+final class NativeInt8List extends NativeTypedArrayOfInt
+    implements Int8List, TrustedGetRuntimeType {
   factory NativeInt8List(int length) => _createLength(_checkLength(length));
 
   factory NativeInt8List.fromList(List<int> elements) =>
@@ -934,7 +941,7 @@ final class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
 
 @Native('Uint16Array')
 final class NativeUint16List extends NativeTypedArrayOfInt
-    implements Uint16List {
+    implements Uint16List, TrustedGetRuntimeType {
   factory NativeUint16List(int length) => _createLength(_checkLength(length));
 
   factory NativeUint16List.fromList(List<int> list) =>
@@ -975,7 +982,7 @@ final class NativeUint16List extends NativeTypedArrayOfInt
 
 @Native('Uint32Array')
 final class NativeUint32List extends NativeTypedArrayOfInt
-    implements Uint32List {
+    implements Uint32List, TrustedGetRuntimeType {
   factory NativeUint32List(int length) => _createLength(_checkLength(length));
 
   factory NativeUint32List.fromList(List<int> elements) =>
@@ -1016,7 +1023,7 @@ final class NativeUint32List extends NativeTypedArrayOfInt
 
 @Native('Uint8ClampedArray,CanvasPixelArray')
 final class NativeUint8ClampedList extends NativeTypedArrayOfInt
-    implements Uint8ClampedList {
+    implements Uint8ClampedList, TrustedGetRuntimeType {
   factory NativeUint8ClampedList(int length) =>
       _createLength(_checkLength(length));
 
@@ -1071,7 +1078,8 @@ final class NativeUint8ClampedList extends NativeTypedArrayOfInt
 // the potential for Uint8ClampedArray to 'accidentally' pick up the
 // dispatch record for Uint8List.
 @Native('Uint8Array,!nonleaf')
-final class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
+final class NativeUint8List extends NativeTypedArrayOfInt
+    implements Uint8List, TrustedGetRuntimeType {
   factory NativeUint8List(int length) => _createLength(_checkLength(length));
 
   factory NativeUint8List.fromList(List<int> elements) =>

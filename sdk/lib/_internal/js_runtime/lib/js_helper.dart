@@ -66,6 +66,7 @@ import 'dart:_rti' as newRti
         evalInInstance,
         evaluateRtiForRecord,
         getRuntimeType,
+        getRuntimeTypeOfClosure,
         getRuntimeTypeOfRecord,
         getTypeFromTypesTable,
         instanceTypeName,
@@ -2419,6 +2420,8 @@ abstract final class Closure implements Function {
     if (name == null) name = 'unknown';
     return "Closure '${unminifyOrTag(name)}'";
   }
+
+  Type get runtimeType => newRti.getRuntimeTypeOfClosure(this);
 }
 
 /// This is called by the fragment emitter.
