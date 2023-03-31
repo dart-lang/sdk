@@ -44,7 +44,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 0, 3) {
     length = a.Length();
   } else {
     Exceptions::ThrowArgumentError(list);
-    return NULL;  // Unreachable.
+    return nullptr;  // Unreachable.
   }
 
   intptr_t start = start_obj.Value();

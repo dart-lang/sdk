@@ -11,7 +11,7 @@ class C {}
 
 class D extends C {}
 
-class E extends StackTrace {}
+class E implements StackTrace {}
 
 void test(void f()) {
   try {

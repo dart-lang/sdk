@@ -967,7 +967,7 @@ class SubtypesIterable extends IterableBase<ClassEntity> {
 }
 
 /// Iterator for the subtypes in a [ClassSet].
-class SubtypesIterator extends Iterator<ClassEntity> {
+class SubtypesIterator implements Iterator<ClassEntity> {
   final SubtypesIterable iterable;
   Iterator<ClassEntity>? elements;
   Iterator<ClassHierarchyNode>? hierarchyNodes;

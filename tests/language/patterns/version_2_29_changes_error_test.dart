@@ -38,9 +38,8 @@ main() {
     case {'b': _}:
       print('b');
     case {'a': _, 'b': _}:
-      // ^
-      // [analyzer] unspecified
-      // [cfe] This case is covered by the previous cases.
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
       print('a b');
   }
 }

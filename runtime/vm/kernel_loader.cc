@@ -135,11 +135,13 @@ ArrayPtr KernelLoader::MakeFunctionsArray() {
 }
 
 LibraryPtr BuildingTranslationHelper::LookupLibraryByKernelLibrary(
-    NameIndex library) {
+    NameIndex library,
+    bool required) {
   return loader_->LookupLibrary(library);
 }
 
-ClassPtr BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
+ClassPtr BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass,
+                                                             bool required) {
 #if defined(DEBUG)
   LibraryLookupHandleScope library_lookup_handle_scope(library_lookup_handle_);
 #endif  // defined(DEBUG)

@@ -30,8 +30,10 @@ class BuildingTranslationHelper : public TranslationHelper {
         library_lookup_handle_(Library::Handle(thread->zone())) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
-  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library,
+                                                  bool required = true);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass,
+                                            bool required = true);
 
  private:
   KernelLoader* loader_;

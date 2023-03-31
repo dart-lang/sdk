@@ -94,7 +94,7 @@ bool instanceof(Object? o, Object type) =>
     JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
 
 @patch
-T callConstructor<T>(Object o, List<Object?> args) =>
+T callConstructor<T>(Object o, List<Object?>? args) =>
     dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o), jsifyRaw(args))) as T;
 
 @patch

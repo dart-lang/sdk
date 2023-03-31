@@ -579,7 +579,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
 }
 
 static ObjectPtr DeserializeMessage(Thread* thread, Message* message) {
-  if (message == NULL) {
+  if (message == nullptr) {
     return Object::null();
   }
   if (message->IsRaw()) {
@@ -936,9 +936,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       /*same_group=*/true, message, ILLEGAL_PORT, Message::kNormalPriority));
 
   const char* utf8_package_config =
-      packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+      packageConfig.IsNull() ? nullptr : String2UTF8(packageConfig);
   const char* utf8_debug_name =
-      debugName.IsNull() ? NULL : String2UTF8(debugName);
+      debugName.IsNull() ? nullptr : String2UTF8(debugName);
   if (closure_tuple_handle != nullptr && utf8_debug_name == nullptr) {
     const auto& closure_function = Function::Handle(zone, closure.function());
     utf8_debug_name =
@@ -963,7 +963,7 @@ static const char* CanonicalizeUri(Thread* thread,
                                    const Library& library,
                                    const String& uri,
                                    char** error) {
-  const char* result = NULL;
+  const char* result = nullptr;
   Zone* zone = thread->zone();
   auto isolate_group = thread->isolate_group();
   if (isolate_group->HasTagHandler()) {
@@ -1024,17 +1024,17 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   // Canonicalize the uri with respect to the current isolate.
   const Library& root_lib =
       Library::Handle(isolate->group()->object_store()->root_library());
-  char* error = NULL;
+  char* error = nullptr;
   const char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
-  if (canonical_uri == NULL) {
+  if (canonical_uri == nullptr) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);
   }
 
   const char* utf8_package_config =
-      packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+      packageConfig.IsNull() ? nullptr : String2UTF8(packageConfig);
   const char* utf8_debug_name =
-      debugName.IsNull() ? NULL : String2UTF8(debugName);
+      debugName.IsNull() ? nullptr : String2UTF8(debugName);
 
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
       port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,

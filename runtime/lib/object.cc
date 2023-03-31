@@ -560,7 +560,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         DartFrameIterator iterator(Thread::Current(),
                                    StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* caller_frame = iterator.NextFrame();
-        ASSERT(caller_frame != NULL);
+        ASSERT(caller_frame != nullptr);
         location = caller_frame->GetTokenPos();
       }
       const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));

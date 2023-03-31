@@ -512,7 +512,7 @@ class Utils {
   // output has been truncated.  The return value is never negative.
   //
   // The buffer will always be terminated by a '\0', unless the buffer
-  // is of size 0.  The buffer might be NULL if the size is 0.
+  // is of size 0.  The buffer might be nullptr if the size is 0.
   //
   // This specification conforms to C99 standard which is implemented
   // by glibc 2.1+ with one exception: the C99 standard allows a

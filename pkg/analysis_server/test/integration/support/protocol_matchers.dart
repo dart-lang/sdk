@@ -3135,11 +3135,11 @@ final Matcher isServerShowMessageRequestParams = LazyMatcher(() =>
 /// server.showMessageRequest result
 ///
 /// {
-///   "action": String
+///   "action": optional String
 /// }
 final Matcher isServerShowMessageRequestResult = LazyMatcher(() =>
-    MatchesJsonObject(
-        'server.showMessageRequest result', {'action': isString}));
+    MatchesJsonObject('server.showMessageRequest result', null,
+        optionalFields: {'action': isString}));
 
 /// server.shutdown params
 final Matcher isServerShutdownParams = isNull;

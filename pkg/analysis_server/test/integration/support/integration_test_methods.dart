@@ -161,9 +161,11 @@ abstract class IntegrationTest {
   ///
   /// Returns
   ///
-  /// action: String
+  /// action: String (optional)
   ///
-  ///   The label of the action that was selected by the user.
+  ///   The label of the action that was selected by the user. May be omitted
+  ///   or `null` if the user dismissed the message without clicking an action
+  ///   button.
   Future<ServerShowMessageRequestResult> sendServerShowMessageRequest(
       MessageType type, String message, List<MessageAction> actions) async {
     var params =

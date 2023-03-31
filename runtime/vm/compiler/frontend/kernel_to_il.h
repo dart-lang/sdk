@@ -223,8 +223,15 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // [incompatible_arguments] should be true if the NSM is due to a mismatch
   // between the provided arguments and the function signature.
-  Fragment ThrowNoSuchMethodError(const Function& target,
-                                  bool incompatible_arguments);
+  Fragment ThrowNoSuchMethodError(TokenPosition position,
+                                  const Function& target,
+                                  bool incompatible_arguments,
+                                  bool receiver_pushed = false);
+  Fragment ThrowNoSuchMethodError(TokenPosition position,
+                                  const String& selector,
+                                  InvocationMirror::Level level,
+                                  InvocationMirror::Kind kind,
+                                  bool receiver_pushed = false);
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const char* throw_method_name,
                                         const String& name);

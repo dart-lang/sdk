@@ -152,9 +152,25 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     await serverChannel.simulateResponseFromClient(
-        ServerShowMessageRequestResult('a').toResponse(request.id));
+        ServerShowMessageRequestResult(action: 'a').toResponse(request.id));
     var response = await responseFuture;
     expect(response, 'a');
+  }
+
+  Future<void> test_showMessage_nullResponse() async {
+    server.clientCapabilities.requests = ['showMessageRequest'];
+
+    // Send the request.
+    var responseFuture =
+        server.showUserPrompt(MessageType.warning, 'message', ['a', 'b']);
+    expect(serverChannel.serverRequestsSent, hasLength(1));
+
+    // Simulate the response.
+    var request = serverChannel.serverRequestsSent[0];
+    await serverChannel.simulateResponseFromClient(
+        ServerShowMessageRequestResult().toResponse(request.id));
+    var response = await responseFuture;
+    expect(response, isNull);
   }
 
   Future<void> test_shutdown() async {
