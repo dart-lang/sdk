@@ -7578,11 +7578,15 @@ class Parser {
         // rather than the start of a conditional expression.
         return typeInfo;
       }
-      if (optional('{', next)) {
+      if (optional('{', next) || optional('when', next)) {
         // <expression> is/as <type> ? {
-        // This could be either a nullable type (e.g. last initializer in a
-        // constructor with a body), or a non-nullable type and a conditional.
-        // As with "?[" we check and have it as a conditional if it can be.
+        //   This could be either a nullable type (e.g. last initializer in a
+        //   constructor with a body), or a non-nullable type and a conditional.
+        // <expression> is/as <type> ? when
+        //   This could be either a nullable type (e.g. a cast pattern followed
+        //   by a guard), or a non-nullable type and a conditional (where the
+        //   first token of the "then" expression is the identifier `when`).
+        // If it can be successfully parsed as a conditional, we do so.
         bool isConditional = canParseAsConditional(skipToken);
         if (!isConditional) {
           return typeInfo;

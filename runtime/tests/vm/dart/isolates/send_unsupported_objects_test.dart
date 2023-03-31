@@ -20,7 +20,7 @@ class Bar {
   Foo foo = Foo();
 }
 
-class NativeClass extends NativeFieldWrapperClass1 {}
+base class NativeClass extends NativeFieldWrapperClass1 {}
 
 class Baz {
   @pragma('vm:entry-point') // prevent tree-shaking of the field.

@@ -26,7 +26,7 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-class ClassWithNativeFields extends NativeFieldWrapperClass1 {
+base class ClassWithNativeFields extends NativeFieldWrapperClass1 {
   void m() {}
 }
 

@@ -213,9 +213,9 @@ class _ProcessStartStatus {
 
 // The NativeFieldWrapperClass1 can not be used with a mixin, due to missing
 // implicit constructor.
-class _ProcessImplNativeWrapper extends NativeFieldWrapperClass1 {}
+base class _ProcessImplNativeWrapper extends NativeFieldWrapperClass1 {}
 
-class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
+base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   static bool connectedResourceHandler = false;
 
   _ProcessImpl(

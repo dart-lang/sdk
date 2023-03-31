@@ -33,7 +33,7 @@ class Classy {
   external void badHasReceiverPointer(int v); //# 04: compile-time error
 }
 
-class NativeClassy extends NativeFieldWrapperClass1 {
+base class NativeClassy extends NativeFieldWrapperClass1 {
   // Error: Missing receiver in FfiNative annotation.
   @FfiNative<Void Function(IntPtr)>('doesntmatter') //# 05: compile-time error
   external void badMissingReceiver(int v); //# 05: compile-time error

@@ -623,7 +623,6 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       required Type keyType,
       required Type valueType,
       required Map<MapKey, Pattern> entries,
-      required bool hasRest,
       required bool hasExplicitTypeArguments}) {
     String typeArgumentsText;
     if (hasExplicitTypeArguments) {
@@ -639,8 +638,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     }
 
     MapTypeRestriction<Type> identity = new MapTypeRestriction(
-        keyType, valueType, entries.keys.toSet(), typeArgumentsText,
-        hasRest: hasRest);
+        keyType, valueType, entries.keys.toSet(), typeArgumentsText);
     StaticType staticType = createMapType(type, identity);
 
     Map<Key, Space> additionalFields = {};

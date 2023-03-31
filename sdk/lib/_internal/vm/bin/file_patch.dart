@@ -74,7 +74,7 @@ class _RandomAccessFileOps {
 }
 
 @pragma("vm:entry-point")
-class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
+base class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
     implements _RandomAccessFileOps {
   _RandomAccessFileOpsImpl._();
 

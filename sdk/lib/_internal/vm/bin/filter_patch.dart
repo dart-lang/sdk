@@ -4,7 +4,8 @@
 
 part of "common_patch.dart";
 
-class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
+base class _FilterImpl extends NativeFieldWrapperClass1
+    implements RawZLibFilter {
   @pragma("vm:external-name", "Filter_Process")
   external void process(List<int> data, int start, int end);
 
@@ -12,7 +13,7 @@ class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
   external List<int>? processed({bool flush = true, bool end = false});
 }
 
-class _ZLibInflateFilter extends _FilterImpl {
+base class _ZLibInflateFilter extends _FilterImpl {
   _ZLibInflateFilter(int windowBits, List<int>? dictionary, bool raw) {
     _init(windowBits, dictionary, raw);
   }
@@ -20,7 +21,7 @@ class _ZLibInflateFilter extends _FilterImpl {
   external void _init(int windowBits, List<int>? dictionary, bool raw);
 }
 
-class _ZLibDeflateFilter extends _FilterImpl {
+base class _ZLibDeflateFilter extends _FilterImpl {
   _ZLibDeflateFilter(bool gzip, int level, int windowBits, int memLevel,
       int strategy, List<int>? dictionary, bool raw) {
     _init(gzip, level, windowBits, memLevel, strategy, dictionary, raw);

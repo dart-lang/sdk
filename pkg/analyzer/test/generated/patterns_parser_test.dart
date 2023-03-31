@@ -8296,6 +8296,73 @@ SwitchExpression
 ''');
   }
 
+  test_typeQuestionBeforeWhen_conditional() {
+    // The logic for parsing types has special disambiguation rules for deciding
+    // whether a trailing `?` should be included in the type; these rules are
+    // based primarily on what token(s) follow the `?`.  Make sure that these
+    // rules do the right thing if the token that follows the `?` is `when`, but
+    // the `when` is an ordinary identifier.
+    _parse('''
+void f(condition, when, otherwise) => condition as bool ? when : otherwise;
+''');
+    var node = findNode.functionDeclaration('=>').functionExpression.body;
+    assertParsedNodeText(node, r'''
+ExpressionFunctionBody
+  functionDefinition: =>
+  expression: ConditionalExpression
+    condition: AsExpression
+      expression: SimpleIdentifier
+        token: condition
+      asOperator: as
+      type: NamedType
+        name: SimpleIdentifier
+          token: bool
+    question: ?
+    thenExpression: SimpleIdentifier
+      token: when
+    colon: :
+    elseExpression: SimpleIdentifier
+      token: otherwise
+  semicolon: ;
+''');
+  }
+
+  test_typeQuestionBeforeWhen_guard() {
+    // The logic for parsing types has special disambiguation rules for deciding
+    // whether a trailing `?` should be included in the type; these rules are
+    // based primarily on what token(s) follow the `?`.  Make sure that these
+    // rules do the right thing if the token that follows the `?` is the `when`
+    // of a pattern guard.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case _ as int? when x == null:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: CastPattern
+    pattern: WildcardPattern
+      name: _
+    asToken: as
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+      question: ?
+  whenClause: WhenClause
+    whenKeyword: when
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: ==
+      rightOperand: NullLiteral
+        literal: null
+''');
+  }
+
   test_variable_bare_insideCast() {
     _parse('''
 void f(x) {

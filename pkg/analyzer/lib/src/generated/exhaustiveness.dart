@@ -506,11 +506,10 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           type.typeArguments.length == 2);
       DartType keyType = type.typeArguments[0];
       DartType valueType = type.typeArguments[1];
-      bool hasRest = false;
       Map<MapKey, DartPattern> entries = {};
       for (MapPatternElement entry in pattern.elements) {
         if (entry is RestPatternElement) {
-          hasRest = true;
+          // Rest patterns are illegal in map patterns, so just skip over it.
         } else {
           Expression expression = (entry as MapPatternEntry).key;
           // TODO(johnniwinther): Assert that we have a constant value.
@@ -528,7 +527,6 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           keyType: keyType,
           valueType: valueType,
           entries: entries,
-          hasRest: hasRest,
           hasExplicitTypeArguments: pattern.typeArguments != null);
     } else if (pattern is ConstantPattern) {
       final value = constantPatternValues[pattern];
