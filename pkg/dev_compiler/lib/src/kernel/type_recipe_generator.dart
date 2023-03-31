@@ -263,6 +263,13 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
+  // Just emit the recipe for dynamic as a temporary workaround to unblock
+  // the use of record types landing in the sdk.
+  // See: https://github.com/dart-lang/sdk/issues/51904
+  // TODO(nshahan): Implement valid record type recipes.
+  String visitRecordType(RecordType node) => Recipe.pushDynamicString;
+
+  @override
   String visitTypeParameterType(TypeParameterType node) {
     var i = _unboundTypeParameters.indexOf(node.parameter.name!);
     if (i >= 0) {
