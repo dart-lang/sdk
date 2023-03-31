@@ -41,7 +41,9 @@ class WasmAnyRef extends _WasmBase {
   ///
   /// Will throw if the reference is not a Dart object.
   external Object toObject();
+}
 
+extension ExternalizeNonNullable on WasmAnyRef {
   WasmExternRef externalize() => _externalizeNonNullable(this);
 }
 
@@ -55,7 +57,9 @@ class WasmExternRef extends _WasmBase {
   // To avoid conflating the null externref with Dart's null, we provide a
   // special getter for the null externref.
   external static WasmExternRef? get nullRef;
+}
 
+extension InternalizeNonNullable on WasmExternRef {
   WasmAnyRef internalize() => _internalizeNonNullable(this);
 }
 
