@@ -7872,6 +7872,92 @@ NullCheckPattern
 ''');
   }
 
+  test_relational_containingBitwiseOrExpression_equality() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case == 1 | 2:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: |
+    rightOperand: IntegerLiteral
+      literal: 2
+''');
+  }
+
+  test_relational_containingBitwiseOrExpression_relational() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case > 1 | 2:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: |
+    rightOperand: IntegerLiteral
+      literal: 2
+''');
+  }
+
+  test_relational_containingRelationalExpression_equality() {
+    // The patterns grammar doesn't allow a relational expression inside a
+    // relational pattern (even though technically it would be unambiguous).
+    // TODO(paulberry): try to improve parser error recovery in this scenario.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case == 1 > 0:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 41, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 41, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 43, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 44, 1),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 44, 1),
+    ]);
+    // We don't care what the parsed AST is, just that there are errors.
+  }
+
+  test_relational_containingRelationalExpression_relational() {
+    // The patterns grammar doesn't allow a relational expression inside a
+    // relational pattern (even though technically it would be unambiguous).
+    // TODO(paulberry): try to improve parser error recovery in this scenario.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case > 1 > 0:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 42, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 43, 1),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 43, 1),
+    ]);
+    // We don't care what the parsed AST is, just that there are errors.
+  }
+
   test_relational_insideCase_equal() {
     _parse('''
 void f(x) {
