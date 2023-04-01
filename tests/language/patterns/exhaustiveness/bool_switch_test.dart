@@ -133,7 +133,6 @@ void unreachableCase1(bool b) {
     case true: // Unreachable
 //  ^^^^
 // [analyzer] HINT.UNREACHABLE_SWITCH_CASE
-// [cfe] This case is covered by the previous cases.
       print('true2');
       break;
   }
@@ -168,7 +167,6 @@ void unreachableCase3(bool? b) {
     case null: // Unreachable
 //  ^^^^
 // [analyzer] HINT.UNREACHABLE_SWITCH_CASE
-// [cfe] This case is covered by the previous cases.
       print('null2');
       break;
   }

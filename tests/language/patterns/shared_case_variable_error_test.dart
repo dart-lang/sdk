@@ -29,20 +29,22 @@ main() {
   // Variables in shared cases must agree on type if used in the body.
   switch ((0, 1)) {
     case (0, int x):
+      //         ^
+      // [cfe] unspecified
     case (1, num x):
       print(x);
       //    ^
       // [analyzer] unspecified
-      // [cfe] unspecified
   }
 
   switch ((0, 's')) {
     case (0, int x):
+      //         ^
+      // [cfe] unspecified
     case (2, var x): // Infer String.
       print(x);
       //    ^
       // [analyzer] unspecified
-      // [cfe] unspecified
   }
 
   // Variables must be defined in all cases if used in body.
@@ -67,11 +69,12 @@ main() {
   if (value is int) {
     switch ((0, value)) {
       case (0, var a):
+        //         ^
+        // [cfe] unspecified
       case (1, Object a):
         print(a);
         //    ^
         // [analyzer] unspecified
-        // [cfe] unspecified
     }
   }
 }
