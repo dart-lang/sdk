@@ -6050,6 +6050,166 @@ RecordPattern
 ''');
   }
 
+  test_object_otherIdentifier_async() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var async() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: async
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_await() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var await() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: await
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_hide() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var hide() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: hide
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_of() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var of() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: of
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_on() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var on() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: on
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_show() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var show() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: show
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_sync() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var sync() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: sync
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_otherIdentifier_yield() {
+    // The type name in an object pattern is a `typeIdentifier`; in the spec
+    // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
+    // allowed.
+    _parse('''
+void f(x) {
+  var yield() = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('= x').pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: yield
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
   test_object_prefixed_withTypeArgs_insideAssignment() {
     _parse('''
 void f(x) {
