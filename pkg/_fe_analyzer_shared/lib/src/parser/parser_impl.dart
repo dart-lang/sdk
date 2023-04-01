@@ -15,6 +15,7 @@ import '../scanner/scanner.dart' show ErrorToken, Token;
 import '../scanner/token.dart'
     show
         ASSIGNMENT_PRECEDENCE,
+        BITWISE_OR_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
@@ -24,7 +25,6 @@ import '../scanner/token.dart'
         PREFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
-        SHIFT_PRECEDENCE,
         StringToken,
         SyntheticBeginToken,
         SyntheticKeywordToken,
@@ -9775,12 +9775,7 @@ class Parser {
     if (type.isRelationalOperator || type.isEqualityOperator) {
       // TODO(paulberry): maybe handle other operators for error recovery?
       Token operator = next;
-      // Note: the spec says we should use RELATIONAL_PRECEDENCE here, but
-      // that leads to parsing ambiguities.  So we use SHIFT_PRECEDENCE, as
-      // suggested in https://github.com/dart-lang/language/issues/2501.
-      // TODO(paulberry): update this code if necessary when that issue is
-      // resolved.
-      token = parsePrecedenceExpression(next, SHIFT_PRECEDENCE,
+      token = parsePrecedenceExpression(next, BITWISE_OR_PRECEDENCE,
           /* allowCascades = */ false, ConstantPatternContext.none);
       listener.handleRelationalPattern(operator);
       isLastPatternAllowedInsideUnaryPattern = false;
