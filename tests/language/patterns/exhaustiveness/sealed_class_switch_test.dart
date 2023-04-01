@@ -151,7 +151,8 @@ void unreachableCase1(A a) {
       print('D');
       break;
     case A a: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('A');
       break;
@@ -179,7 +180,8 @@ void unreachableCase3(A? a) {
       print('null #1');
       break;
     case null: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('null #2');
       break;

@@ -30,6 +30,7 @@
 
 #### `dart:core`
 - Added `bool.parse` and `bool.tryParse` static methods.
+- Added `DateTime.timestamp()` constructor to get current time as UTC.
 
 - **Breaking change** [#49529][]:
   - Removed the deprecated `List` constructor, as it wasn't null safe.

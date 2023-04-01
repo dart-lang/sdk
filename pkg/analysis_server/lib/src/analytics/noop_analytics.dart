@@ -10,6 +10,9 @@ import 'package:unified_analytics/unified_analytics.dart';
 /// will be disabled for the current session, including tests.
 class NoopAnalytics implements Analytics {
   @override
+  String get getConsentMessage => throw UnimplementedError();
+
+  @override
   Map<String, ToolInfo> get parsedTools => throw UnimplementedError();
 
   @override
@@ -19,11 +22,13 @@ class NoopAnalytics implements Analytics {
   bool get telemetryEnabled => false;
 
   @override
-  String get toolsMessage => throw UnimplementedError();
-
-  @override
   Map<String, Map<String, Object?>> get userPropertyMap =>
       throw UnimplementedError();
+
+  @override
+  void clientShowedMessage() {
+    // Ignored
+  }
 
   @override
   void close() {

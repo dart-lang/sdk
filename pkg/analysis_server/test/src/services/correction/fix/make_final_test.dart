@@ -250,16 +250,28 @@ f() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51872')
-  Future<void> test_listPattern_ifCase() async {
+  Future<void> test_listPattern_ifCase_noVar() async {
     await resolveTestCode(r'''
-f(Object o) {
+void f(Object o) {
   if (o case [int x]) print(x);
 }
 ''');
     await assertHasFix(r'''
-f(Object o) {
+void f(Object o) {
   if (o case [final int x]) print(x);
+}
+''');
+  }
+
+  Future<void> test_listPattern_ifCase_untyped() async {
+    await resolveTestCode(r'''
+void f(Object o) {
+  if (o case <int>[var x]) print(x);
+}
+''');
+    await assertHasFix(r'''
+void f(Object o) {
+  if (o case <int>[final x]) print(x);
 }
 ''');
   }

@@ -26,9 +26,9 @@ main() {
   // It's an error to have an empty map pattern.
   switch (map) {
     case {}:
-    //   ^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [cfe] unspecified
   }
 
   // Later cases may be unreachable because map patterns ignore extra keys.

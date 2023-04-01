@@ -933,14 +933,11 @@ class LspAnalysisServer extends AnalysisServer {
   /// Display a message that will allow us to enable analytics on the next run.
   void _checkAnalytics() {
     // TODO(dantup): This code should move to base server.
-    var dashAnalytics = analyticsManager.analytics;
-    // The order of the conditions below is important. We need to check whether
-    // the client supports `showMessageRequest` before asking whether we need to
-    // show the message because the `Analytics` instance assumes that if
-    // `shouldShowMessage` returns `true` then the message will be shown.
-    if (supportsShowMessageRequest && dashAnalytics.shouldShowMessage) {
-      unawaited(
-          showUserPrompt(MessageType.info, dashAnalytics.toolsMessage, ['Ok']));
+    var unifiedAnalytics = analyticsManager.analytics;
+    if (supportsShowMessageRequest && unifiedAnalytics.shouldShowMessage) {
+      unawaited(showUserPrompt(
+          MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']));
+      unifiedAnalytics.clientShowedMessage();
     }
   }
 

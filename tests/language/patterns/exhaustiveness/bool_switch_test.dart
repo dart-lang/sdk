@@ -131,7 +131,8 @@ void unreachableCase1(bool b) {
       print('false');
       break;
     case true: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('true2');
       break;
@@ -165,7 +166,8 @@ void unreachableCase3(bool? b) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] This case is covered by the previous cases.
       print('null2');
       break;
