@@ -113,8 +113,8 @@ abstract class _BaseStaticType implements StaticType {
   Map<Key, StaticType> get fields => const {};
 
   @override
-  StaticType? getField(ObjectFieldLookup fieldLookup, Key name) {
-    return fields[name];
+  StaticType? getField(ObjectFieldLookup fieldLookup, Key key) {
+    return fields[key];
   }
 
   @override
@@ -330,6 +330,11 @@ class WrappedStaticType extends NonNullableStaticType {
 
   @override
   Map<Key, StaticType> get fields => wrappedType.fields;
+
+  @override
+  StaticType? getField(ObjectFieldLookup fieldLookup, Key key) {
+    return wrappedType.getField(fieldLookup, key);
+  }
 
   @override
   bool get isRecord => wrappedType.isRecord;

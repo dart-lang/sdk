@@ -12,13 +12,29 @@ class Class<Typedef> {
     */
         switch (o) {
       Typedef(:var hashCode) /*space=Object?(hashCode: int)*/ => hashCode,
-      Typedef(:var runtimeType) /*space=Object?(runtimeType: Type)*/ =>
+      Typedef(
+        :var runtimeType
+      ) /*
+       error=unreachable,
+       space=Object?(runtimeType: Type)
+      */
+        =>
         runtimeType,
-      Typedef(:var toString) /*space=Object?(toString: String Function())*/ =>
+      Typedef(
+        :var toString
+      ) /*
+       error=unreachable,
+       space=Object?(toString: String Function())
+      */
+        =>
         toString(),
       Typedef(
         :var noSuchMethod
-      ) /*space=Object?(noSuchMethod: dynamic Function(Invocation))*/ =>
+      ) /*
+       error=unreachable,
+       space=Object?(noSuchMethod: dynamic Function(Invocation))
+      */
+        =>
         noSuchMethod,
       _ /*space=()*/ => null,
     };
@@ -27,8 +43,7 @@ class Class<Typedef> {
   exhaustiveHashCode(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(hashCode: Object()),
-     fields={hashCode:-},
+     fields={hashCode:int},
      subtypes={Object,Null},
      type=Object?
     */
@@ -40,8 +55,7 @@ class Class<Typedef> {
   exhaustiveRuntimeType(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(runtimeType: Object()),
-     fields={runtimeType:-},
+     fields={runtimeType:Type},
      subtypes={Object,Null},
      type=Object?
     */
@@ -54,8 +68,7 @@ class Class<Typedef> {
   exhaustiveToString(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(toString: Object()),
-     fields={toString:-},
+     fields={toString:String Function()},
      subtypes={Object,Null},
      type=Object?
     */
@@ -70,8 +83,7 @@ class Class<Typedef> {
   exhaustiveNoSuchMethod(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(noSuchMethod: Object()),
-     fields={noSuchMethod:-},
+     fields={noSuchMethod:dynamic Function(Invocation)},
      subtypes={Object,Null},
      type=Object?
     */
@@ -86,8 +98,8 @@ class Class<Typedef> {
   nonExhaustiveRestrictedValue(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(hashCode: Object()),
-     fields={hashCode:-},
+     error=non-exhaustive:Object(hashCode: int()),
+     fields={hashCode:int},
      subtypes={Object,Null},
      type=Object?
     */
@@ -99,8 +111,8 @@ class Class<Typedef> {
   nonExhaustiveRestrictedType(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(noSuchMethod: Object()),
-     fields={noSuchMethod:-},
+     error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation) _),
+     fields={noSuchMethod:dynamic Function(Invocation)},
      subtypes={Object,Null},
      type=Object?
     */
@@ -115,20 +127,35 @@ class Class<Typedef> {
   unreachableMethod(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(hashCode: Object(), noSuchMethod: Object(), runtimeType: Object(), toString: Object()),
-     fields={hashCode:-,noSuchMethod:-,runtimeType:-,toString:-},
+     fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
      subtypes={Object,Null},
      type=Object?
     */
         switch (o) {
       Typedef(:var hashCode) /*space=Object?(hashCode: int)*/ => hashCode,
-      Typedef(:var runtimeType) /*space=Object?(runtimeType: Type)*/ =>
+      Typedef(
+        :var runtimeType
+      ) /*
+       error=unreachable,
+       space=Object?(runtimeType: Type)
+      */
+        =>
         runtimeType,
-      Typedef(:var toString) /*space=Object?(toString: String Function())*/ =>
+      Typedef(
+        :var toString
+      ) /*
+       error=unreachable,
+       space=Object?(toString: String Function())
+      */
+        =>
         toString(),
       Typedef(
         :var noSuchMethod
-      ) /*space=Object?(noSuchMethod: dynamic Function(Invocation))*/ =>
+      ) /*
+       error=unreachable,
+       space=Object?(noSuchMethod: dynamic Function(Invocation))
+      */
+        =>
         noSuchMethod,
     };
   }

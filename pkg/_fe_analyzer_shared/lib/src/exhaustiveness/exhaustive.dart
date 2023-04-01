@@ -238,6 +238,10 @@ class _Checker {
       } else {
         // This pattern doesn't test this field, so add a pattern for the
         // field that matches all values. This way the columns stay aligned.
+        // TODO(johnniwinther): Enable this assert when extension members are
+        // handled.
+        //assert(type.getField(_fieldLookup, key) != null,
+        //    "Type $type does not have a type for field $key");
         result.add(new Space(path.add(key),
             type.getField(_fieldLookup, key) ?? StaticType.nullableObject));
       }
@@ -249,6 +253,10 @@ class _Checker {
       } else {
         // This pattern doesn't test this field, so add a pattern for the
         // field that matches all values. This way the columns stay aligned.
+        // TODO(johnniwinther): Enable this assert when extension members are
+        // handled.
+        // assert(type.getAdditionalField(key) != null,
+        //    "Type $type does not have a type for additional field $key");
         result.add(new Space(path.add(key),
             type.getAdditionalField(key) ?? StaticType.nullableObject));
       }
