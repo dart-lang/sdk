@@ -45,14 +45,14 @@ import "dart:core" as core;
       }
 [631]      {
 [617]        [617] hoisted core::double l;
-[631]        if([627] [627] [598] [598] [493] [493] [478] [478] #0#0 is{ForNonNullableByDefault} self::Square && [617]([617] let [617] final dynamic #t4 = [617] [617] l = [506] [506] #0#2 in [617] [617] true) && [627] [627] [625] [625] l.{core::num::<}[627]([629] 0){(core::num) → core::bool}) {
+[631]        if([627] [627] [598] [598] [598] [598] [478] [478] #0#0 is{ForNonNullableByDefault} self::Square && [617]([617] let [617] final dynamic #t4 = [617] [617] l = [506] [506] #0#2 in [617] [617] true) && [627] [627] [625] [625] l.{core::num::<}[627]([629] 0){(core::num) → core::bool}) {
 [470]          [470] [470] #t1 = [634] [634] -1.0;
 [631]          break #L1;
         }
       }
 [677]      {
 [663]        [663] hoisted core::double r;
-[677]        if([673] [673] [644] [644] [543] [543] [478] [478] #0#0 is{ForNonNullableByDefault} self::Circle && [663]([663] let [663] final dynamic #t5 = [663] [663] r = [556] [556] #0#4 in [663] [663] true) && [673] [673] [671] [671] r.{core::num::<}[673]([675] 0){(core::num) → core::bool}) {
+[677]        if([673] [673] [644] [644] [644] [644] [478] [478] #0#0 is{ForNonNullableByDefault} self::Circle && [663]([663] let [663] final dynamic #t5 = [663] [663] r = [556] [556] #0#4 in [663] [663] true) && [673] [673] [671] [671] r.{core::num::<}[673]([675] 0){(core::num) → core::bool}) {
 [470]          [470] [470] #t1 = [680] [680] -1.0;
 [677]          break #L1;
         }

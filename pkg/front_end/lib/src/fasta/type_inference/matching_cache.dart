@@ -886,7 +886,7 @@ class CacheExpression implements CacheableExpression {
   @override
   Expression createExpression(TypeEnvironment typeEnvironment,
       [List<Expression>? effects]) {
-    return _cache.createExpression(typeEnvironment, accessKey);
+    return _cache.createExpression(typeEnvironment, accessKey, this);
   }
 
   @override
@@ -968,8 +968,13 @@ class Cache {
   /// The file offset used for synthesized AST nodes.
   final int _fileOffset;
 
-  /// Map from [AccessKey] to the corresponding [CacheExpression] that creates
+  /// Map from [AccessKey] to a corresponding [CacheExpression] that creates
   /// the expression value.
+  ///
+  /// If the expression needs a cache, the associated [CacheExpression] will be
+  /// used to create the expression. Otherwise, each expression will be created
+  /// through its own [CacheExpression]. This ensures that uncached expressions
+  /// will have their own offsets.
   Map<AccessKey, CacheExpression> _accesses = {};
 
   Cache(this.cacheKey, this._matchingCache, this._name,
@@ -992,19 +997,20 @@ class Cache {
   /// Returns a [CacheableExpression] for the [expression].
   CacheableExpression registerAccess(
       AccessKey accessKey, DelayedExpression expression) {
-    return _accesses[accessKey] ??=
+    CacheExpression cacheExpression =
         new CacheExpression(cacheKey, accessKey, this, expression);
+    _accesses[accessKey] ??= cacheExpression;
+    return cacheExpression;
   }
 
   /// Creates an [Expression] for the cacheable value for the given accessKey].
   ///
   /// If cached, the value is accessed through a caching variable, otherwise
   /// a fresh [Expression] is created.
-  Expression createExpression(
-      TypeEnvironment typeEnvironment, AccessKey accessKey) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      AccessKey accessKey, CacheExpression cacheExpression) {
     assert(_useCount >= 1);
     assert(_accesses.isNotEmpty);
-    CacheExpression cacheableExpression = _accesses[accessKey]!;
     _hasBeenCreated = true;
     bool createCache;
     if (_isLate) {
@@ -1018,8 +1024,9 @@ class Cache {
     }
     Expression result;
     if (!createCache) {
-      result = cacheableExpression.expression.createExpression(typeEnvironment);
+      result = cacheExpression.expression.createExpression(typeEnvironment);
     } else {
+      CacheExpression cacheableExpression = _accesses[accessKey]!;
       if (_accesses.length == 1) {
         VariableDeclaration? variable = _variable;
         VariableDeclaration? isSetVariable = _isSetVariable;
