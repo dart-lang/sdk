@@ -183,29 +183,29 @@ _nightly_builder(
 
 # vm|aot
 _extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-x64",
+    "vm-aot-linux-release-x64",
     category = "vm|aot|r",
 )
 _extra_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
+    "vm-aot-linux-debug-simarm_x64",
     category = "vm|aot|da",
 )
 _extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-simarm_x64",
+    "vm-aot-linux-release-simarm_x64",
     category = "vm|aot|ra",
 )
 _nightly_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-x64",
+    "vm-aot-linux-debug-x64",
     category = "vm|aot|d",
     channels = ["try"],
     properties = slow_shards,
 )
 _extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-simarm64",
+    "vm-aot-linux-release-simarm64",
     category = "vm|aot|ra6",
 )
 _nightly_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
+    "vm-aot-linux-debug-simriscv64",
     category = "vm|aot|rv",
     channels = ["try"],
     properties = [slow_shards],
@@ -217,20 +217,20 @@ _nightly_builder(
     properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 _extra_builder(
-    "vm-kernel-precomp-nnbd-mac-release-arm64",
+    "vm-aot-mac-release-arm64",
     category = "vm|aot|m1",
     channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
 )
 _extra_builder(
-    "vm-kernel-precomp-nnbd-mac-release-simarm64",
+    "vm-aot-mac-release-simarm64",
     category = "vm|aot|ma6",
     dimensions = mac,
     properties = slow_shards,
 )
 _extra_builder(
-    "vm-kernel-precomp-nnbd-win-release-x64",
+    "vm-aot-win-release-x64",
     category = "vm|aot|wr",
     dimensions = windows,
 )
