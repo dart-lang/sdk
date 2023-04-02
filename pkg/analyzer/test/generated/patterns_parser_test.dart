@@ -4092,6 +4092,106 @@ NullCheckPattern
 ''');
   }
 
+  test_list_recovery_bogusTokensAfterListElement() {
+    // If the extra tokens after a list element don't look like they could be a
+    // pattern, the parser skips to the end of the list to avoid a large number
+    // of parse errors.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [int() * 2]:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 43, 1),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ObjectPattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+      leftParenthesis: (
+      rightParenthesis: )
+  rightBracket: ]
+''');
+  }
+
+  test_list_recovery_missingClosingBracket() {
+    // If the extra tokens after a list element don't look like they could be a
+    // pattern, and the pattern doesn't have a matching `]`, the parser assumes
+    // it's the `]` that is missing.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [int():
+      break;
+  }
+}
+''', errors: [
+      error(ScannerErrorCode.EXPECTED_TOKEN, 59, 1),
+    ]);
+    var node = findNode.switchStatement('switch').members.single;
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        ObjectPattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+          leftParenthesis: (
+          rightParenthesis: )
+      rightBracket: ] <synthetic>
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_list_recovery_missingComma() {
+    // If the extra tokens after a list element look like they could be a
+    // pattern, the parser assumes there's a missing comma.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case [int() int()]:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 43, 3),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ObjectPattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+      leftParenthesis: (
+      rightParenthesis: )
+    ObjectPattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+      leftParenthesis: (
+      rightParenthesis: )
+  rightBracket: ]
+''');
+  }
+
   test_literal_boolean_insideCase() {
     _parse('''
 void f(x) {
@@ -5140,6 +5240,39 @@ NullCheckPattern
 ''');
   }
 
+  test_map_recovery_bogusTokensAfterMapElement() {
+    // If the extra tokens after a map element don't look like they could be a
+    // key expression, the parser skips to the end of the map to avoid a large
+    // number of parse errors.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {'foo': int() * 2}:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 50, 1),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'foo'
+      separator: :
+      value: ObjectPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        leftParenthesis: (
+        rightParenthesis: )
+  rightBracket: }
+''');
+  }
+
   void test_map_recovery_incompleteEntry() {
     _parse('''
 const c = 0;
@@ -5175,6 +5308,92 @@ SwitchPatternCase
     BreakStatement
       breakKeyword: break
       semicolon: ;
+''');
+  }
+
+  test_map_recovery_missingClosingBrace() {
+    // If the extra tokens after a map element don't look like they could be a
+    // key expression, and the pattern doesn't have a matching `}`, the parser
+    // assumes it's the `}` that is missing.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case ({'foo': int()):
+      break;
+  }
+}
+''', errors: [
+      error(ScannerErrorCode.EXPECTED_TOKEN, 50, 1),
+    ]);
+    var node = findNode.switchStatement('switch').members.single;
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: MapPattern
+        leftBracket: {
+        elements
+          MapPatternEntry
+            key: SimpleStringLiteral
+              literal: 'foo'
+            separator: :
+            value: ObjectPattern
+              type: NamedType
+                name: SimpleIdentifier
+                  token: int
+              leftParenthesis: (
+              rightParenthesis: )
+        rightBracket: } <synthetic>
+      rightParenthesis: )
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_map_recovery_missingComma() {
+    // If the extra tokens after a map element look like they could be a key
+    // expression, the parser assumes there's a missing comma.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case {'foo': int() 'bar': int()}:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 50, 5),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'foo'
+      separator: :
+      value: ObjectPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        leftParenthesis: (
+        rightParenthesis: )
+    MapPatternEntry
+      key: SimpleStringLiteral
+        literal: 'bar'
+      separator: :
+      value: ObjectPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        leftParenthesis: (
+        rightParenthesis: )
+  rightBracket: }
 ''');
   }
 
@@ -6510,6 +6729,131 @@ ObjectPattern
             token: int
       rightBracket: >
   leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  test_object_recovery_bogusTokensAfterPatternField() {
+    // If the extra tokens after a pattern field don't look like they could be a
+    // subsequent pattern field, the parser skips to the closing parenthesis to
+    // avoid a large number of parse errors.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case dynamic(foo: int() * 2):
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 55, 1),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: dynamic
+  leftParenthesis: (
+  fields
+    PatternField
+      name: PatternFieldName
+        name: foo
+        colon: :
+      pattern: ObjectPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        leftParenthesis: (
+        rightParenthesis: )
+  rightParenthesis: )
+''');
+  }
+
+  test_object_recovery_missingClosingParen() {
+    // If the extra tokens after a pattern don't look like they could be a
+    // subsequent pattern field, and the pattern doesn't have a matching `)`,
+    // the parser assumes it's the `)` that is missing.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case dynamic(foo: int():
+      break;
+  }
+}
+''', errors: [
+      error(ScannerErrorCode.EXPECTED_TOKEN, 71, 1),
+    ]);
+    var node = findNode.switchStatement('switch').members.single;
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: ObjectPattern
+      type: NamedType
+        name: SimpleIdentifier
+          token: dynamic
+      leftParenthesis: (
+      fields
+        PatternField
+          name: PatternFieldName
+            name: foo
+            colon: :
+          pattern: ObjectPattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+            leftParenthesis: (
+            rightParenthesis: )
+      rightParenthesis: ) <synthetic>
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
+  test_object_recovery_missingComma() {
+    // If the extra tokens after a pattern field look like they could be a
+    // subsequent pattern field, the parser assumes there's a missing comma.
+    _parse('''
+void f(x) {
+  switch (x) {
+    case dynamic(foo: int() bar: int()):
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 55, 3),
+    ]);
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: dynamic
+  leftParenthesis: (
+  fields
+    PatternField
+      name: PatternFieldName
+        name: foo
+        colon: :
+      pattern: ObjectPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        leftParenthesis: (
+        rightParenthesis: )
+    PatternField
+      name: PatternFieldName
+        name: bar
+        colon: :
+      pattern: ObjectPattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        leftParenthesis: (
+        rightParenthesis: )
   rightParenthesis: )
 ''');
   }
@@ -8830,6 +9174,89 @@ SwitchExpression
       arrow: =>
       expression: IntegerLiteral
         literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_recovery_bogusTokensAfterCase() {
+    // If the extra tokens after a switch case don't look like they could be a
+    // pattern, the parser skips to the end of the switch expression to avoid a
+    // large number of parse errors.
+    _parse('''
+f(x) => switch(x) {
+  int() => 0 : 1
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 33, 1),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ObjectPattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+          leftParenthesis: (
+          rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_recovery_missingComma() {
+    // If the extra tokens after a switch case look like they could be a
+    // pattern, the parser assumes there's a missing comma.
+    _parse('''
+f(x) => switch(x) {
+  int() => 0
+  double() => 1
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 35, 6),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ObjectPattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+          leftParenthesis: (
+          rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ObjectPattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: double
+          leftParenthesis: (
+          rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 1
   rightBracket: }
 ''');
   }
