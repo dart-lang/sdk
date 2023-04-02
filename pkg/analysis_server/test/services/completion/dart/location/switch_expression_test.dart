@@ -39,7 +39,7 @@ int f(Object p01) {
   };
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   p01
     kind: parameter
@@ -55,7 +55,7 @@ int f(Object p01) {
   };
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -68,7 +68,7 @@ int f(Object p01) {
   };
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -79,7 +79,7 @@ int f(Object p01) {
   return switch (^) {};
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   const
     kind: keyword

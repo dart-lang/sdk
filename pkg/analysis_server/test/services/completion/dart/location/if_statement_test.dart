@@ -34,7 +34,7 @@ void f(Object o) {
   if (o case var x ^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   when
     kind: keyword
@@ -47,7 +47,7 @@ void f(Object o) {
   if (o case var x w^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -62,7 +62,7 @@ void f(Object o) {
   if (o case var x when ^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   false
     kind: keyword
@@ -84,7 +84,7 @@ void f(Object o) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -92,7 +92,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -116,7 +116,7 @@ void f(Object o) {
   if (o ^) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   case
     kind: keyword
@@ -131,7 +131,7 @@ void f() {
   if (^) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   false
     kind: keyword

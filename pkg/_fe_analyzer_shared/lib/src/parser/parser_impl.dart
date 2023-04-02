@@ -9787,7 +9787,6 @@ class Parser {
       return parseVariablePattern(token, patternContext, typeInfo: typeInfo);
     }
     // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
-    // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
     // TODO(paulberry): Technically `dynamic` is valid for
     // `typeIdentifier`--file an issue
     if (next.isIdentifier) {

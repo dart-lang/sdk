@@ -31,7 +31,7 @@ class B01 {}
 ({int foo01, A0^}) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -50,7 +50,7 @@ class B01 {}
 ({int foo01, A0^ foo02}) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -69,7 +69,7 @@ class B01 {}
 ({int foo01, StringBuffer str^}) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -86,7 +86,7 @@ class B01 {}
 ({int foo01, StringBuffer ^}) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   buffer
     kind: identifier
@@ -103,7 +103,7 @@ class B01 {}
 ({int foo01, ^}) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -122,7 +122,7 @@ class B01 {}
 ({int foo01, ^ foo02}) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -141,7 +141,7 @@ class B01 {}
 (int, A0^) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -160,7 +160,7 @@ class B01 {}
 (int, A0^ foo) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -179,7 +179,7 @@ class B01 {}
 (int, A0^foo) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
   right: 3
@@ -199,7 +199,7 @@ class B01 {}
 (int, ^) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -218,7 +218,7 @@ class B01 {}
 (int, ^ foo) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -237,7 +237,7 @@ class B01 {}
 (int, ^foo) f() {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   right: 3
 suggestions

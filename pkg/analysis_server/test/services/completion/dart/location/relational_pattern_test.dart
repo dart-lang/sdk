@@ -41,7 +41,7 @@ class A02 {}
 class B01 {}
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -55,7 +55,7 @@ suggestions
     kind: constructorInvocation
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -100,7 +100,7 @@ class A02 {}
 class B01 {}
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -128,7 +128,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A01
     kind: class

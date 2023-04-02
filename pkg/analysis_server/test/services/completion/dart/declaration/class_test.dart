@@ -47,7 +47,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -74,7 +74,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -104,7 +104,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -128,7 +128,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -155,7 +155,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -183,7 +183,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -205,7 +205,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -229,7 +229,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -251,7 +251,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions

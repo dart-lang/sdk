@@ -40,7 +40,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -79,7 +79,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -118,7 +118,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -157,7 +157,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable

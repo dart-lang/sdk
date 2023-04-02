@@ -50,7 +50,7 @@ sealed class FooSealed {}
 class A extends ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
     kind: class
@@ -70,7 +70,7 @@ import 'a.dart';
 class A extends ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   Foo
     kind: class
@@ -86,13 +86,13 @@ class A extends ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
@@ -107,13 +107,13 @@ class A extends ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
@@ -128,13 +128,13 @@ class A extends ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }

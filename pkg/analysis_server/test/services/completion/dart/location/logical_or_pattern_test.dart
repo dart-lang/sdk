@@ -34,7 +34,7 @@ void f(int i) {
   if (i case < 3 || ^ ) ];
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   const
     kind: keyword

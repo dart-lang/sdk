@@ -76,7 +76,7 @@ void f(({int foo01, String foo02}) r) {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   hashCode
     kind: getter

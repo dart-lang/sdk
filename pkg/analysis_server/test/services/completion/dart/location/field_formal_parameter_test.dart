@@ -44,7 +44,7 @@ mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
       declarations: 'var foo = 0;',
       constructorParameters: 'this.f^',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -61,7 +61,7 @@ suggestions
       declarations: 'var foo = 0;',
       constructorParameters: 'this.^f',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   right: 1
 suggestions
@@ -99,7 +99,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: field
@@ -115,7 +115,7 @@ suggestions
       declarations: 'final int x; final int y;',
       constructorParameters: '{this.x, this.^}',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   y
     kind: field
@@ -131,7 +131,7 @@ suggestions
       declarations: 'final int x; final int y;',
       constructorParameters: 'this.x, this.^',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   y
     kind: field
@@ -159,7 +159,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: field
@@ -179,7 +179,7 @@ mixin M {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }

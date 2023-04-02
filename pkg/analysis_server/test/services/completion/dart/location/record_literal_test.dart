@@ -36,7 +36,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (foo0^: 0);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -52,7 +52,7 @@ suggestions
 ({int foo01, String foo02}) f() => (foo0^,);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -69,7 +69,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (foo0^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -86,7 +86,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (foo0^ );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -103,7 +103,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => ( ^ );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -120,7 +120,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (0, foo0^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -137,7 +137,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (0, ^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -154,7 +154,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (^,);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -171,7 +171,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -188,7 +188,7 @@ final bar01 = 0;
 ({int foo01, String foo02}) f() => (^: 0);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: namedArgument
@@ -204,7 +204,7 @@ final bar01 = 0;
 ''');
 
     // We don't suggest already specified `foo02`.
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -222,7 +222,7 @@ final bar01 = 0;
 ''');
 
     // We don't suggest already specified `foo02`.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -239,7 +239,7 @@ suggestions
 ''');
 
     // We don't suggest already specified `foo02`.
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -257,7 +257,7 @@ final foo01 = 0;
 ''');
 
     // We suggest a positional value anyway.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: topLevelVariable
@@ -270,7 +270,7 @@ final bar01 = 0;
 (int, {String foo01}) f() => (0, foo^ 0);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -286,7 +286,7 @@ final bar01 = 0;
 (int, {int foo01}) f() => (0, foo0^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -301,7 +301,7 @@ final bar01 = 0;
 (int, {int foo01}) f() => (0, foo0^ );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -317,7 +317,7 @@ final bar01 = 0;
 ''');
 
     // We suggest a positional value anyway.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -333,7 +333,7 @@ final bar01 = 0;
 ''');
 
     // We suggest a positional value anyway.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |foo01: |
     kind: namedArgument
@@ -348,7 +348,7 @@ final foo01 = 0;
 (int, int) f() => (foo0^, );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -363,7 +363,7 @@ final foo01 = 0;
 (int, int) f() => (foo0^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -378,7 +378,7 @@ final foo01 = 0;
 (int, int) f() => (^, );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: topLevelVariable
@@ -391,7 +391,7 @@ final foo01 = 0;
 (int, int) f() => (^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: topLevelVariable
@@ -404,7 +404,7 @@ final bar01 = 0;
 (int foo01, int foo02) f() => (^, );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   bar01
     kind: topLevelVariable
@@ -417,7 +417,7 @@ final foo01 = 0;
 (int, int) f() => (0, foo0^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -432,7 +432,7 @@ final foo01 = 0;
 (int, int) f() => (0, ^);
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: topLevelVariable

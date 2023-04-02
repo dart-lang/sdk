@@ -36,7 +36,7 @@ void f(Map<String, int> m1) {
   final {c1 : 1, ^, c1 : 3} = m1;
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -63,7 +63,7 @@ void f(Map<String, int> m1) {
   final {^} = m1;
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -92,7 +92,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -121,7 +121,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -150,7 +150,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -180,7 +180,7 @@ void f(Object o1) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -190,7 +190,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -222,7 +222,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -252,7 +252,7 @@ void f(Object o1) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -262,7 +262,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -294,7 +294,7 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
@@ -330,7 +330,7 @@ void f(Object o1) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -340,7 +340,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
