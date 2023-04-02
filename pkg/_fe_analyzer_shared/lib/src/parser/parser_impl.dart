@@ -10098,14 +10098,12 @@ class Parser {
         break;
       }
       Token? colon = null;
-      // TODO(paulberry): test error recovery
       if (optional(':', next)) {
         wasRecord = true;
         wasValidRecord = true;
         listener.handleNoName(token);
         colon = token = next;
-      } else if (optional(':', next.next!) || /* recovery */
-          optional(':', next)) {
+      } else if (optional(':', next.next!)) {
         // Record with named expression.
         wasRecord = true;
         token = ensureIdentifier(
