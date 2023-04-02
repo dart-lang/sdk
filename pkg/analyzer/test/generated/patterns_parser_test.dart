@@ -6050,6 +6050,26 @@ RecordPattern
 ''');
   }
 
+  test_object_dynamic() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case dynamic():
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: dynamic
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
   test_object_otherIdentifier_async() {
     // The type name in an object pattern is a `typeIdentifier`; in the spec
     // grammar, `typeIdentifier` includes `OTHER_IDENTIFIER`, so this is
