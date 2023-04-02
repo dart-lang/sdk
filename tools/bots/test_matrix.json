@@ -382,7 +382,7 @@
         "use-elf": true
       }
     },
-    "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm_x64|simarm64|simriscv32|simriscv64)": {
       "options": {
         "nnbd": "strong",
         "use-elf": true
@@ -1442,10 +1442,16 @@
     },
     {
       "builders": [
+        "vm-aot-linux-debug-simriscv64",
+        "vm-aot-linux-debug-x64",
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
+        "vm-aot-linux-release-simarm64",
+        "vm-aot-linux-release-x64",
+        "vm-aot-mac-release-simarm64",
         "vm-aot-win-debug-x64c",
-        "vm-aot-win-product-x64"
+        "vm-aot-win-product-x64",
+        "vm-aot-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the VM AOT builders."
@@ -1466,6 +1472,82 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        },
+        {
+          "name": "co19 tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-linux-debug-simarm_x64",
+        "vm-aot-linux-release-simarm_x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart for simarm_x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "gen_snapshot",
+            "vm_platform"
+          ]
+        },
+        {
+          "name": "build dart for simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simarm",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "build dart (cross x64)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simx64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
