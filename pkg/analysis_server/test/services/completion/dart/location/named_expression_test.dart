@@ -43,7 +43,7 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   x
     kind: parameter
@@ -69,7 +69,7 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   x
     kind: parameter
@@ -95,7 +95,7 @@ void f(int x) {
 void g({required int a}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   x
     kind: parameter

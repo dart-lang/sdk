@@ -12,7 +12,7 @@ class TextExpectationsCollector {
   static const _updatingIsEnabled = false;
 
   static const assertMethods = {
-    'AbstractCompletionDriverTest.assertResponseText',
+    'AbstractCompletionDriverTest.assertResponse',
   };
 
   static final Map<String, _File> _files = {};

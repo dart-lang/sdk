@@ -36,7 +36,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   const
     kind: keyword

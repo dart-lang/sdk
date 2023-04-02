@@ -50,7 +50,7 @@ sealed class FooSealed {}
 class A implements ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
     kind: class
@@ -71,13 +71,13 @@ class A implements ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
@@ -92,13 +92,13 @@ class A implements ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
@@ -112,7 +112,7 @@ import 'a.dart';
 class A implements ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   Foo
     kind: class
@@ -128,13 +128,13 @@ class A implements ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
@@ -146,7 +146,7 @@ base mixin FooBase {}
 class A implements ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
     kind: mixin
@@ -161,13 +161,13 @@ class A implements ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   Foo
     kind: mixin
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }

@@ -94,7 +94,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         if (isProtocolVersion2) {
           _printKeywordsOrClass();
-          assertResponse('''
+          assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -417,7 +417,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -451,7 +451,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -471,7 +471,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -499,7 +499,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -527,7 +527,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -553,7 +553,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -585,7 +585,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -615,7 +615,7 @@ class C extends B {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -655,7 +655,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -682,7 +682,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -722,7 +722,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -749,7 +749,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -774,7 +774,7 @@ class B implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -799,7 +799,7 @@ class A with M {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -825,7 +825,7 @@ class A {
       return suggestion.completion.contains('==(');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -855,7 +855,7 @@ class B extends A {
       return suggestion.completion.contains('+(');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -881,7 +881,7 @@ extension E on A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -901,7 +901,7 @@ mixin M on A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -927,7 +927,7 @@ mixin M implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -952,7 +952,7 @@ mixin M on A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions

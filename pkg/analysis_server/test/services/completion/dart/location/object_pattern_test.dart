@@ -57,7 +57,7 @@ class A1 extends A0 {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -83,7 +83,7 @@ suggestions
     kind: parameter
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -140,7 +140,7 @@ class A1 extends A0 {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -166,7 +166,7 @@ suggestions
     kind: parameter
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -222,7 +222,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   f01
     kind: field
@@ -268,7 +268,7 @@ class A1 extends A0 {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -278,7 +278,7 @@ suggestions
     kind: field
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -328,7 +328,7 @@ class A1 extends A0 {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -338,7 +338,7 @@ suggestions
     kind: field
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -387,7 +387,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 replacement
   right: 1
 suggestions
@@ -434,7 +434,7 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   f11
     kind: field
