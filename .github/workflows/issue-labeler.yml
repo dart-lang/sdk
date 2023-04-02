@@ -13,7 +13,7 @@ jobs:
       issues: write
     runs-on: ubuntu-latest
     steps:
-      - uses: github/issue-labeler@cd54a96bcc32e2a890e865b2eceffee3fc458b9d
+      - uses: github/issue-labeler@e24a3eb6b2e28c8904d086302a2b760647f5f45c
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           configuration-path: .github/issue-labeler.yml
