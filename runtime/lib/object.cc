@@ -11,7 +11,6 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -331,22 +330,6 @@ DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
                                               /*compact=*/true);
-  return Object::null();
-}
-
-DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
-#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
-  const String& filename =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  {
-    FileHeapSnapshotWriter file_writer(thread, filename.ToCString());
-    HeapSnapshotWriter writer(thread, &file_writer);
-    writer.Write();
-  }
-#else
-  Exceptions::ThrowUnsupportedError(
-      "Heap snapshots are only supported in non-product mode.");
-#endif  // !defined(PRODUCT)
   return Object::null();
 }
 

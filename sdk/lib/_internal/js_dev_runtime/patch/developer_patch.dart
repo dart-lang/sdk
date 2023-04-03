@@ -230,3 +230,11 @@ var _currentTag = _FakeUserTag._defaultTag;
 
 @patch
 UserTag getCurrentTag() => _currentTag;
+
+@patch
+abstract final class NativeRuntime {
+  @patch
+  static void writeHeapSnapshotToFile(String filepath) =>
+      throw UnsupportedError(
+          "Generating heap snapshots is not supported on the web.");
+}

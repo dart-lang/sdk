@@ -4,9 +4,8 @@
 
 // @dart=2.9
 
-import 'dart:_internal';
+import 'dart:developer';
 
-import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 import 'heap_snapshot_test.dart';
@@ -18,7 +17,7 @@ main() async {
 
   await withTempDir('heap_snapshot_test', (String dir) async {
     final file = path.join(dir, 'state1.heapsnapshot');
-    VMInternalsForTesting.writeHeapSnapshotToFile(file);
+    NativeRuntime.writeHeapSnapshotToFile(file);
     final graph = loadHeapSnapshotFromFile(file);
     final reachable = findReachableObjects(graph);
 

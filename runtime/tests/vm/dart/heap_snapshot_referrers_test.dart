@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal';
+import 'dart:developer';
 
-import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 import 'heap_snapshot_test.dart';
@@ -16,7 +15,7 @@ main() async {
 
   await withTempDir('heap_snapshot_test', (String dir) async {
     final file = path.join(dir, 'state1.heapsnapshot');
-    VMInternalsForTesting.writeHeapSnapshotToFile(file);
+    NativeRuntime.writeHeapSnapshotToFile(file);
     final graph = loadHeapSnapshotFromFile(file);
     final reachable = findReachableObjects(graph);
 

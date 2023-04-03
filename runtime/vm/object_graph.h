@@ -129,13 +129,16 @@ class ChunkedWriter : public ThreadStackResource {
 
 class FileHeapSnapshotWriter : public ChunkedWriter {
  public:
-  FileHeapSnapshotWriter(Thread* thread, const char* filename);
+  FileHeapSnapshotWriter(Thread* thread,
+                         const char* filename,
+                         bool* success = nullptr);
   ~FileHeapSnapshotWriter();
 
   virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last);
 
  private:
   void* file_ = nullptr;
+  bool* success_;
 };
 
 class CallbackHeapSnapshotWriter : public ChunkedWriter {
