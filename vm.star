@@ -189,6 +189,7 @@ _extra_builder(
 _extra_builder(
     "vm-aot-linux-debug-simarm_x64",
     category = "vm|aot|da",
+    properties = slow_shards,
 )
 _extra_builder(
     "vm-aot-linux-release-simarm_x64",
