@@ -1366,12 +1366,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return;
     }
 
+    final switchExprClass =
+        translator.classForType(dartTypeOf(node.expression));
+
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
             e is NullLiteral ||
             (e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant)));
+                (e.constant is C || e.constant is NullConstant) &&
+                (translator.hierarchy.isSubtypeOf(
+                    translator.classForType(dartTypeOf(e)), switchExprClass))));
 
     // Identify kind of switch. One of `nullableType` or `nonNullableType` will
     // be the type for Wasm local that holds the switch value.
@@ -1407,7 +1412,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
-      assert(check<InvalidExpression, Constant>());
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
       compare = () => b.ref_eq();
