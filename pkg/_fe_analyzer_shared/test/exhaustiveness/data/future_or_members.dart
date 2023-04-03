@@ -14,16 +14,11 @@ membersMethod(o) {
    type=Object?
   */
       switch (o) {
-    Typedef(
-      :var hashCode
-    ) /*cfe.space=FutureOr<dynamic>?(hashCode: int)*/ /*analyzer.space=FutureOr<dynamic>(hashCode: int)*/ =>
+    Typedef(:var hashCode) /*space=FutureOr<dynamic>(hashCode: int)*/ =>
       hashCode,
     Typedef(
       :var runtimeType
-    ) /*cfe.
-     error=unreachable,
-     space=FutureOr<dynamic>?(runtimeType: Type)
-    */ /*analyzer.
+    ) /*
      error=unreachable,
      space=FutureOr<dynamic>(runtimeType: Type)
     */
@@ -31,10 +26,7 @@ membersMethod(o) {
       runtimeType,
     Typedef(
       :var toString
-    ) /*cfe.
-     error=unreachable,
-     space=FutureOr<dynamic>?(toString: String Function())
-    */ /*analyzer.
+    ) /*
      error=unreachable,
      space=FutureOr<dynamic>(toString: String Function())
     */
@@ -42,10 +34,7 @@ membersMethod(o) {
       toString(),
     Typedef(
       :var noSuchMethod
-    ) /*cfe.
-     error=unreachable,
-     space=FutureOr<dynamic>?(noSuchMethod: dynamic Function(Invocation))
-    */ /*analyzer.
+    ) /*
      error=unreachable,
      space=FutureOr<dynamic>(noSuchMethod: dynamic Function(Invocation))
     */
@@ -57,11 +46,11 @@ membersMethod(o) {
 
 exhaustiveHashCode(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
@@ -70,20 +59,18 @@ exhaustiveHashCode(Typedef o) {
    type=FutureOr<dynamic>
   */
       switch (o) {
-    Typedef(
-      :int hashCode
-    ) /*cfe.space=FutureOr<dynamic>?(hashCode: int)*/ /*analyzer.space=FutureOr<dynamic>(hashCode: int)*/ =>
+    Typedef(:int hashCode) /*space=FutureOr<dynamic>(hashCode: int)*/ =>
       hashCode,
   };
 }
 
 exhaustiveRuntimeType(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={runtimeType:Type},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
@@ -92,20 +79,18 @@ exhaustiveRuntimeType(Typedef o) {
    type=FutureOr<dynamic>
   */
       switch (o) {
-    Typedef(
-      :Type runtimeType
-    ) /*cfe.space=FutureOr<dynamic>?(runtimeType: Type)*/ /*analyzer.space=FutureOr<dynamic>(runtimeType: Type)*/ =>
+    Typedef(:Type runtimeType) /*space=FutureOr<dynamic>(runtimeType: Type)*/ =>
       runtimeType,
   };
 }
 
 exhaustiveToString(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={toString:String Function()},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
@@ -116,18 +101,18 @@ exhaustiveToString(Typedef o) {
       switch (o) {
     Typedef(
       :String Function() toString
-    ) /*cfe.space=FutureOr<dynamic>?(toString: String Function())*/ /*analyzer.space=FutureOr<dynamic>(toString: String Function())*/ =>
+    ) /*space=FutureOr<dynamic>(toString: String Function())*/ =>
       toString,
   };
 }
 
 exhaustiveNoSuchMethod(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
@@ -138,19 +123,19 @@ exhaustiveNoSuchMethod(Typedef o) {
       switch (o) {
     Typedef(
       :dynamic Function(Invocation) noSuchMethod
-    ) /*cfe.space=FutureOr<dynamic>?(noSuchMethod: dynamic Function(Invocation))*/ /*analyzer.space=FutureOr<dynamic>(noSuchMethod: dynamic Function(Invocation))*/ =>
+    ) /*space=FutureOr<dynamic>(noSuchMethod: dynamic Function(Invocation))*/ =>
       noSuchMethod,
   };
 }
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    error=non-exhaustive:Null(hashCode: int()),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    error=non-exhaustive:Future<dynamic>(hashCode: int()),
@@ -160,21 +145,18 @@ nonExhaustiveRestrictedValue(Typedef o) {
    type=FutureOr<dynamic>
   */
       switch (o) {
-    Typedef(
-      hashCode: 5
-    ) /*cfe.space=FutureOr<dynamic>?(hashCode: 5)*/ /*analyzer.space=FutureOr<dynamic>(hashCode: 5)*/ =>
-      5,
+    Typedef(hashCode: 5) /*space=FutureOr<dynamic>(hashCode: 5)*/ => 5,
   };
 }
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    error=non-exhaustive:Null(noSuchMethod: dynamic Function(Invocation) _),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    error=non-exhaustive:Future<dynamic>(noSuchMethod: dynamic Function(Invocation) _),
@@ -186,18 +168,18 @@ nonExhaustiveRestrictedType(Typedef o) {
       switch (o) {
     Typedef(
       :int Function(Invocation) noSuchMethod
-    ) /*cfe.space=FutureOr<dynamic>?(noSuchMethod: int Function(Invocation))*/ /*analyzer.space=FutureOr<dynamic>(noSuchMethod: int Function(Invocation))*/ =>
+    ) /*space=FutureOr<dynamic>(noSuchMethod: int Function(Invocation))*/ =>
       noSuchMethod,
   };
 }
 
 unreachableMethod(Typedef o) {
   return /*cfe.
-   checkingOrder={FutureOr<dynamic>?,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
+   checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
    subtypes={FutureOr<dynamic>,Null},
-   type=FutureOr<dynamic>?
+   type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
    expandedSubtypes={Object,Null,Future<dynamic>},
@@ -206,16 +188,11 @@ unreachableMethod(Typedef o) {
    type=FutureOr<dynamic>
   */
       switch (o) {
-    Typedef(
-      :var hashCode
-    ) /*cfe.space=FutureOr<dynamic>?(hashCode: int)*/ /*analyzer.space=FutureOr<dynamic>(hashCode: int)*/ =>
+    Typedef(:var hashCode) /*space=FutureOr<dynamic>(hashCode: int)*/ =>
       hashCode,
     Typedef(
       :var runtimeType
-    ) /*cfe.
-     error=unreachable,
-     space=FutureOr<dynamic>?(runtimeType: Type)
-    */ /*analyzer.
+    ) /*
      error=unreachable,
      space=FutureOr<dynamic>(runtimeType: Type)
     */
@@ -223,10 +200,7 @@ unreachableMethod(Typedef o) {
       runtimeType,
     Typedef(
       :var toString
-    ) /*cfe.
-     error=unreachable,
-     space=FutureOr<dynamic>?(toString: String Function())
-    */ /*analyzer.
+    ) /*
      error=unreachable,
      space=FutureOr<dynamic>(toString: String Function())
     */
@@ -234,10 +208,7 @@ unreachableMethod(Typedef o) {
       toString(),
     Typedef(
       :var noSuchMethod
-    ) /*cfe.
-     error=unreachable,
-     space=FutureOr<dynamic>?(noSuchMethod: dynamic Function(Invocation))
-    */ /*analyzer.
+    ) /*
      error=unreachable,
      space=FutureOr<dynamic>(noSuchMethod: dynamic Function(Invocation))
     */

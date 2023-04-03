@@ -26,8 +26,11 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   final TypeOperations<Type> _typeOperations;
   final FieldLookup<Type> _fieldLookup;
   final Type _type;
+  @override
+  final bool isImplicitlyNullable;
 
-  TypeBasedStaticType(this._typeOperations, this._fieldLookup, this._type);
+  TypeBasedStaticType(this._typeOperations, this._fieldLookup, this._type,
+      {required this.isImplicitlyNullable});
 
   @override
   Map<Key, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
@@ -109,7 +112,8 @@ abstract class RestrictedStaticType<Type extends Object,
   final String name;
 
   RestrictedStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this.restriction, this.name);
+      this.restriction, this.name)
+      : super(isImplicitlyNullable: false);
 }
 
 /// [StaticType] for an object restricted to a single value.

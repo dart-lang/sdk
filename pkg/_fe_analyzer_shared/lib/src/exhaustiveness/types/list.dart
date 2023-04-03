@@ -55,7 +55,8 @@ part of '../types.dart';
 /// and the list of n or more elements as the witness candidates.
 class ListTypeStaticType<Type extends Object>
     extends TypeBasedStaticType<Type> {
-  ListTypeStaticType(super.typeOperations, super.fieldLookup, super.type);
+  ListTypeStaticType(super.typeOperations, super.fieldLookup, super.type)
+      : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;

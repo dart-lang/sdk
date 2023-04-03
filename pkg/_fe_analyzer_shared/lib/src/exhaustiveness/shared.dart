@@ -187,8 +187,11 @@ class ExhaustivenessCache<
         StaticType typeArgument = getStaticType(futureOrTypeArgument);
         StaticType futureType = getStaticType(
             typeOperations.instantiateFuture(futureOrTypeArgument));
+        bool isImplicitlyNullable =
+            typeOperations.isNullable(futureOrTypeArgument);
         staticType = new FutureOrStaticType(
-            typeOperations, this, nonNullable, typeArgument, futureType);
+            typeOperations, this, nonNullable, typeArgument, futureType,
+            isImplicitlyNullable: isImplicitlyNullable);
       } else {
         EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
         if (enumClass != null) {
@@ -211,8 +214,11 @@ class ExhaustivenessCache<
               staticType =
                   new ListTypeStaticType(typeOperations, this, nonNullable);
             } else {
-              staticType =
-                  new TypeBasedStaticType(typeOperations, this, nonNullable);
+              bool isImplicitlyNullable =
+                  typeOperations.isNullable(nonNullable);
+              staticType = new TypeBasedStaticType(
+                  typeOperations, this, nonNullable,
+                  isImplicitlyNullable: isImplicitlyNullable);
               Type? bound = typeOperations.getTypeVariableBound(type);
               if (bound != null) {
                 staticType =

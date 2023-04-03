@@ -57,7 +57,8 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   Iterable<StaticType>? _subtypes;
 
   SealedClassStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this._cache, this._sealedClassOperations, this._sealedInfo);
+      this._cache, this._sealedClassOperations, this._sealedInfo)
+      : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;

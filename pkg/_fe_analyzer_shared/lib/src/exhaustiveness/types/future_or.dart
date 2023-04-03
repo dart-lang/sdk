@@ -16,7 +16,8 @@ class FutureOrStaticType<Type extends Object>
   final StaticType _futureType;
 
   FutureOrStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this._typeArgument, this._futureType);
+      this._typeArgument, this._futureType,
+      {required super.isImplicitlyNullable});
 
   @override
   bool get isSealed => true;

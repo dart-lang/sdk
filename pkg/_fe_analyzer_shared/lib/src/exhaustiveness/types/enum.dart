@@ -77,7 +77,8 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
   List<StaticType>? _enumElements;
 
   EnumStaticType(
-      super.typeOperations, super.fieldLookup, super.type, this._enumInfo);
+      super.typeOperations, super.fieldLookup, super.type, this._enumInfo)
+      : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;

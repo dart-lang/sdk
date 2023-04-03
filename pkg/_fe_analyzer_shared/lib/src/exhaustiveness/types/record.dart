@@ -23,7 +23,8 @@ part of '../types.dart';
 /// Not that the fields of the record types _are_ using the type, so that
 /// the `$1` field of `(String, Object)` is known to contain only `String`s.
 class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
-  RecordStaticType(super.typeOperations, super.fieldLookup, super.type);
+  RecordStaticType(super.typeOperations, super.fieldLookup, super.type)
+      : super(isImplicitlyNullable: false);
 
   @override
   bool get isRecord => true;

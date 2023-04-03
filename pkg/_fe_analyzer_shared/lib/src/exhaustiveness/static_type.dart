@@ -69,6 +69,11 @@ abstract class StaticType {
   /// This is only used for print the type as part of a [Witness].
   bool get isRecord;
 
+  /// Return `true` if this type is implicitly nullable.
+  ///
+  /// This is used to omit the '?' for the [name] in the [NullableStaticType].
+  bool get isImplicitlyNullable;
+
   /// Returns the name of this static type.
   ///
   /// This is used for printing [Space]s.
@@ -218,6 +223,9 @@ class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
 
   @override
   StaticType get nonNullable => this;
+
+  @override
+  bool get isImplicitlyNullable => false;
 }
 
 class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
@@ -240,6 +248,9 @@ class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
 
   @override
   StaticType get nonNullable => this;
+
+  @override
+  bool get isImplicitlyNullable => false;
 }
 
 class _NullType extends NullableStaticType with _ObjectFieldMixin {
@@ -256,6 +267,9 @@ class _NullType extends NullableStaticType with _ObjectFieldMixin {
     // Avoid splitting into [nullType] and [neverType].
     return const [];
   }
+
+  @override
+  bool get isImplicitlyNullable => true;
 
   @override
   String get name => 'Null';
@@ -284,7 +298,11 @@ class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
   }
 
   @override
-  String get name => '${underlying.name}?';
+  String get name =>
+      underlying.isImplicitlyNullable ? underlying.name : '${underlying.name}?';
+
+  @override
+  bool get isImplicitlyNullable => true;
 
   @override
   StaticType get nullable => this;
@@ -355,6 +373,9 @@ class WrappedStaticType extends _BaseStaticType {
 
   @override
   String get name => wrappedType.name;
+
+  @override
+  bool get isImplicitlyNullable => wrappedType.isImplicitlyNullable;
 
   @override
   Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => wrappedType
