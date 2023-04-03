@@ -424,7 +424,9 @@ void MessageHandler::TaskCallback() {
         return;
       } else {
         PausedOnExitLocked(&ml, false);
-        status = remembered_paused_on_exit_status_;
+        if (status != kShutdown) {
+          status = remembered_paused_on_exit_status_;
+        }
       }
     }
 #endif  // !defined(PRODUCT)
