@@ -1,3 +1,6 @@
+# 2.7.8
+- [DAP] Sentinel values (such as uninitialized fields/locals) will no longer cause `scopesRequest`/`variablesRequest` to fail, instead showing appropriate text (like "<not initialized>") against the variable.
+
 # 2.7.7
 - [DAP] Debug adapters now only call `setLibraryDebuggable` when the debuggable flag changes from the default/current values, reducing the amount of VM Service traffic for new isolates/reloads.
 - [DAP] `breakpoint` events are no longer sometimes sent prior to the response to the `setBreakpointsRequest` that created them.
