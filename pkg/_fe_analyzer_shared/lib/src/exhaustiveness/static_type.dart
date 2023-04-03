@@ -158,7 +158,11 @@ abstract class _BaseStaticType implements StaticType {
 
     spaceProperties.forEach((Key key, Space space) {
       if (!first) buffer.write(', ');
-      buffer.write('${key.name}: $space');
+      if (key is ExtensionKey) {
+        buffer.write('${key.receiverType}.${key.name}: $space (${key.type})');
+      } else {
+        buffer.write('${key.name}: $space');
+      }
       first = false;
     });
 
@@ -176,16 +180,15 @@ abstract class _BaseStaticType implements StaticType {
     } else {
       buffer.write(name);
       buffer.write('(');
-      if (witnessFields.isNotEmpty) {
-        String comma = '';
-        for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
-          buffer.write(comma);
-          comma = ', ';
-
-          buffer.write(entry.key.name);
-          buffer.write(': ');
-          entry.value.witnessToText(buffer);
-        }
+      String comma = '';
+      for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+        Key key = entry.key;
+        FieldWitness witness = entry.value;
+        buffer.write(comma);
+        comma = ', ';
+        buffer.write(key.name);
+        buffer.write(': ');
+        witness.witnessToText(buffer);
       }
       buffer.write(')');
     }

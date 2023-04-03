@@ -73,7 +73,29 @@ class FieldWitness {
   final Map<Key, FieldWitness> fields = {};
 
   void witnessToText(StringBuffer buffer) {
-    type.witnessToText(buffer, this, fields);
+    if (fields.isNotEmpty) {
+      Map<StaticType, Map<Key, FieldWitness>> witnessFieldsByType = {};
+      for (MapEntry<Key, FieldWitness> entry in fields.entries) {
+        Key key = entry.key;
+        FieldWitness witness = entry.value;
+        if (key is ExtensionKey) {
+          (witnessFieldsByType[key.receiverType] ??= {})[key] = witness;
+        } else {
+          (witnessFieldsByType[type] ??= {})[key] = witness;
+        }
+      }
+      String and = '';
+      for (MapEntry<StaticType, Map<Key, FieldWitness>> entry
+          in witnessFieldsByType.entries) {
+        StaticType type = entry.key;
+        Map<Key, FieldWitness> witnessFields = entry.value;
+        buffer.write(and);
+        and = ' && ';
+        type.witnessToText(buffer, this, witnessFields);
+      }
+    } else {
+      type.witnessToText(buffer, this, fields);
+    }
   }
 
   @override

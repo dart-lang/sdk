@@ -407,17 +407,29 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// and [fieldPatterns].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createObjectSpace(Path path, StaticType contextType, Type type,
+  Space createObjectSpace(
+      Path path,
+      StaticType contextType,
+      Type type,
       Map<String, Pattern> fieldPatterns,
+      Map<String, Type> extensionPropertyTypes,
       {required bool nonNull}) {
     StaticType staticType =
         _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
     Map<Key, Space> properties = <Key, Space>{};
     for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
-      Key key = new NameKey(entry.key);
-      StaticType propertyType =
-          staticType.getPropertyType(objectFieldLookup, key) ??
-              StaticType.nullableObject;
+      String name = entry.key;
+      StaticType propertyType;
+      Type? extensionPropertyType = extensionPropertyTypes[name];
+      Key key;
+      if (extensionPropertyType != null) {
+        propertyType = createStaticType(extensionPropertyType);
+        key = new ExtensionKey(createStaticType(type), name, propertyType);
+      } else {
+        key = new NameKey(name);
+        propertyType = staticType.getPropertyType(objectFieldLookup, key) ??
+            StaticType.nullableObject;
+      }
       properties[key] = dispatchPattern(
           path.add(key), propertyType, entry.value,
           nonNull: false);

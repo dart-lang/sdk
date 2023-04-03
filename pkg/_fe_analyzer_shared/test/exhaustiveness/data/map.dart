@@ -154,13 +154,10 @@ nonExhaustiveAfterRestSameKeys(Map o) {
 unreachableAfterRestMoreKeys(Map o) {
   return /*type=Map<dynamic, dynamic>*/ switch (o) {
     {0: _} /*space={0: ()}*/ => 0,
-    {
-      0: _,
-      1: _
-    } /*
-       error=unreachable,
-       space={0: (), 1: ()}
-      */
+    {0: _, 1: _} /*
+     error=unreachable,
+     space={0: (), 1: ()}
+    */
       =>
       1,
     Map() /*space=Map<dynamic, dynamic>*/ => 2,

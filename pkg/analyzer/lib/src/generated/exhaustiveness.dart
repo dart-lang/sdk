@@ -410,6 +410,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           nonNull: nonNull);
     } else if (pattern is ObjectPattern) {
       final properties = <String, DartPattern>{};
+      final extensionPropertyTypes = <String, DartType>{};
       for (final field in pattern.fields) {
         final name = field.effectiveName;
         if (name == null) {
@@ -417,9 +418,21 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           continue;
         }
         properties[name] = field.pattern;
+        Element? element = field.element;
+        DartType? extensionPropertyType;
+        if (element is PropertyAccessorElement &&
+            element.enclosingElement is ExtensionElement) {
+          extensionPropertyType = element.returnType;
+        } else if (element is ExecutableElement &&
+            element.enclosingElement is ExtensionElement) {
+          extensionPropertyType = element.type;
+        }
+        if (extensionPropertyType != null) {
+          extensionPropertyTypes[name] = extensionPropertyType;
+        }
       }
-      return createObjectSpace(
-          path, contextType, pattern.type.typeOrThrow, properties,
+      return createObjectSpace(path, contextType, pattern.type.typeOrThrow,
+          properties, extensionPropertyTypes,
           nonNull: nonNull);
     } else if (pattern is WildcardPattern) {
       return createWildcardSpace(path, contextType, pattern.type?.typeOrThrow,

@@ -417,11 +417,15 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       {required bool nonNull}) {
     if (pattern is ObjectPattern) {
       Map<String, Pattern> properties = {};
+      Map<String, DartType> extensionPropertyTypes = {};
       for (NamedPattern field in pattern.fields) {
         properties[field.name] = field.pattern;
+        if (field.accessKind == ObjectAccessKind.Static) {
+          extensionPropertyTypes[field.name] = field.resultType!;
+        }
       }
-      return createObjectSpace(
-          path, contextType, pattern.lookupType!, properties,
+      return createObjectSpace(path, contextType, pattern.requiredType,
+          properties, extensionPropertyTypes,
           nonNull: nonNull);
     } else if (pattern is VariablePattern) {
       return createVariableSpace(path, contextType, pattern.variable.type,

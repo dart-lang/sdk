@@ -35,12 +35,6 @@ static method method(self::A a) → dynamic
           break #L1;
         }
       }
-      {
-        if(true) {
-          #t1 = 0;
-          break #L1;
-        }
-      }
     }
   } =>#t1;
 static method main() → dynamic {
