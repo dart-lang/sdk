@@ -95,12 +95,12 @@ class _AwaitVisitor extends RecursiveAstVisitor {
   @override
   visitBlockFunctionBody(BlockFunctionBody node) {
     // Stop visiting if it's a function body block.
-    // Awaits inside it shouldn't matter
+    // Awaits inside it shouldn't matter.
   }
 
   @override
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    // Stopping following the same logic as function body blocks
+    // Stopping following the same logic as function body blocks.
   }
 }
 
@@ -142,13 +142,15 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   void check(AstNode node) {
+    /// Checks each of the [statements] before [child] for a `mounted` check,
+    /// and returns whether it did not find one.
     bool checkStatements(AstNode child, NodeList<Statement> statements) {
       var index = statements.indexOf(child as Statement);
       for (var i = index - 1; i >= 0; i--) {
         var s = statements[i];
         if (isMountedCheck(s)) {
           return false;
-        } else if (isAsync(s)) {
+        } else if (s.isAsync) {
           rule.reportLint(node);
           return true;
         }
@@ -180,7 +182,7 @@ class _Visitor extends SimpleAstVisitor {
         }
       } else if (parent is IfStatement) {
         // Only check the actual statement(s), not the IF condition
-        if (child is Statement && parent.hasAsyncInCondition) {
+        if (child is Statement && parent.condition.hasAwait) {
           rule.reportLint(node);
         }
 
@@ -192,21 +194,6 @@ class _Visitor extends SimpleAstVisitor {
 
       child = parent;
     }
-  }
-
-  bool isAsync(Statement statement) {
-    if (statement is IfStatement) {
-      if (statement.hasAsyncInCondition) return true;
-      if (terminatesControl(statement.thenStatement)) {
-        var elseStatement = statement.elseStatement;
-        if (elseStatement == null || terminatesControl(elseStatement)) {
-          return false;
-        }
-      }
-    }
-    var visitor = _AwaitVisitor();
-    statement.accept(visitor);
-    return visitor.hasAwait;
   }
 
   bool isMountedCheck(Statement statement, {bool positiveCheck = false}) {
@@ -269,7 +256,7 @@ class _Visitor extends SimpleAstVisitor {
           return true;
         }
         var then = statement.thenStatement;
-        return terminatesControl(then);
+        return then.terminatesControl;
       }
     } else if (statement is TryStatement) {
       var statements = statement.finallyBlock?.statements;
@@ -284,15 +271,6 @@ class _Visitor extends SimpleAstVisitor {
       }
     }
     return false;
-  }
-
-  bool terminatesControl(Statement statement) {
-    if (statement is Block) {
-      return terminatesControl(statement.statements.last);
-    }
-    return statement is ReturnStatement ||
-        statement is BreakStatement ||
-        statement is ContinueStatement;
   }
 
   @override
@@ -335,10 +313,47 @@ extension on BinaryExpression {
   bool get isOr => operator.type == TokenType.BAR_BAR;
 }
 
-extension on IfStatement {
-  bool get hasAsyncInCondition {
+extension on Expression {
+  /// Whether this has an [AwaitExpression] inside.
+  bool get hasAwait {
     var visitor = _AwaitVisitor();
-    condition.accept(visitor);
+    accept(visitor);
     return visitor.hasAwait;
+  }
+}
+
+extension on Statement {
+  /// Whether this statement has an [AwaitExpression] inside.
+  bool get isAsync {
+    var self = this;
+    if (self is IfStatement) {
+      if (self.condition.hasAwait) return true;
+      if (self.thenStatement.terminatesControl) {
+        var elseStatement = self.elseStatement;
+        if (elseStatement == null || elseStatement.terminatesControl) {
+          return false;
+        }
+      }
+    }
+    var visitor = _AwaitVisitor();
+    accept(visitor);
+    return visitor.hasAwait;
+  }
+
+  /// Whether this statement terminates control, via a [BreakStatement], a
+  /// [ContinueStatement], or other definite exits, as determined by
+  /// [ExitDetector].
+  bool get terminatesControl {
+    var self = this;
+    if (self is Block) {
+      return self.statements.last.terminatesControl;
+    }
+    // TODO(srawlins): Make ExitDetector 100% functional for our needs. The
+    // basic (only?) difference is that it doesn't consider a `break` statement
+    // to be exiting.
+    if (self is BreakStatement || self is ContinueStatement) {
+      return true;
+    }
+    return accept(ExitDetector()) ?? false;
   }
 }
