@@ -248,9 +248,14 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 
 #### Linter
 
-Updates the Linter to `1.34.0-dev`, which includes changes that
+Updates the Linter to `1.35.0`, which includes changes that
 
-- add new lint: `unnecessary_breaks`.
+- add new lints: 
+  - `explicit_reopen`
+  - `unnecessary_breaks`
+  - `type_literal_in_constant_pattern`
+  - `invalid_case_patterns`
+- update existing lints to support patterns and class modifiers
 - remove support for:
   - `enable_null_safety`
   - `invariant_booleans`
@@ -275,7 +280,6 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - update `use_build_context_synchronously` to check context properties.
 - improve `unnecessary_parenthesis` support for property accesses and method
   invocations.
-- add new lint: `invalid_case_patterns`.
 - update `unnecessary_parenthesis` to allow parentheses in more null-aware
   cascade contexts.
 - update `unreachable_from_main` to track static elements.
@@ -290,8 +294,6 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - add new lint: `deprecated_member_use_from_same_package` which replaces the
   soft-deprecated analyzer hint of the same name.
 - update `public_member_api_docs` to not require docs on enum constructors.
-- add new lint: `implicit_reopen`.
-- add new lint: `type_literal_in_constant_pattern`.
 - update `prefer_void_to_null` to not report on as-expressions.
 
 #### Migration tool removal

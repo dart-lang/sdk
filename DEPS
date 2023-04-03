@@ -145,7 +145,7 @@ vars = {
   "http_parser_rev": "b3b283b9f139640b932d604e8815460bbd3ecab5",
   "intl_rev": "a958db01c90d041f0cd357d1732ae9813b620ee0",
   "json_rpc_2_rev": "aea3bea2d2be0113593a5c813d2ed3d2362200b6",
-  "linter_rev": "9a586c9deeb53177a02b37807b0f792893092cae", # disable rev_sdk_deps.dart
+  "linter_rev": "b56190503725de2125b626ff1b3423192fa1f7ae", # disable rev_sdk_deps.dart
   "lints_rev": "f09399a2574eb4e3f485881cf977fca72628f443",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "d437c85188806fe2bfa4f3616159300ba9dc6d2a",
