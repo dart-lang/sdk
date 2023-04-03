@@ -66,7 +66,7 @@ vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed 
 vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simarm_x64 || $arch == simriscv32 || $arch == simriscv64 ]
 *: Skip # FFI not yet supported on the arm simulator.
 
 [ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]
