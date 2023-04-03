@@ -5462,15 +5462,15 @@ class X extends E {}
   EXPECT(!lib.IsNull());
 
   const auto& class_x = Class::Handle(zone, GetClass(lib, "X"));
-  ClassFinalizer::FinalizeTypesInClass(class_x);
+  class_x.EnsureIsFinalized(thread);
   EXPECT(class_x.is_isolate_unsendable());
 
   const auto& class_a_impl = Class::Handle(zone, GetClass(lib, "AImpl"));
-  ClassFinalizer::FinalizeTypesInClass(class_a_impl);
+  class_a_impl.EnsureIsFinalized(thread);
   EXPECT(class_a_impl.is_isolate_unsendable());
 
   const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
-  ClassFinalizer::FinalizeTypesInClass(class_a_sub);
+  class_a_sub.EnsureIsFinalized(thread);
   EXPECT(class_a_sub.is_isolate_unsendable());
 }
 

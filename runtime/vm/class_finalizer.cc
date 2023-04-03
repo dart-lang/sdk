@@ -1085,7 +1085,9 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
   }
-  bool is_isolate_unsendable = cls.is_isolate_unsendable();
+
+  bool has_isolate_unsendable_pragma =
+      cls.is_isolate_unsendable_due_to_pragma();
 
   // Finalize super class.
   Class& super_class = Class::Handle(zone, cls.SuperClass());
@@ -1102,8 +1104,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (!super_type.IsNull()) {
     super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
-    is_isolate_unsendable |=
-        Class::IsIsolateUnsendable(super_type.type_class());
+    has_isolate_unsendable_pragma |=
+        Class::IsIsolateUnsendableDueToPragma(super_type.type_class());
   }
   // Finalize interface types (but not necessarily interface classes).
   const auto& interface_types = Array::Handle(zone, cls.interfaces());
@@ -1116,11 +1118,11 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     ASSERT(!interface_class.IsNull());
     FinalizeTypesInClass(interface_class);
     interface_types.SetAt(i, interface_type);
-    is_isolate_unsendable |=
-        Class::IsIsolateUnsendable(interface_type.type_class());
+    has_isolate_unsendable_pragma |=
+        Class::IsIsolateUnsendableDueToPragma(interface_type.type_class());
   }
   cls.set_is_type_finalized();
-  cls.set_is_isolate_unsendable(is_isolate_unsendable);
+  cls.set_is_isolate_unsendable_due_to_pragma(has_isolate_unsendable_pragma);
 
   RegisterClassInHierarchy(thread->zone(), cls);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

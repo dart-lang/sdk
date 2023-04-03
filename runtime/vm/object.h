@@ -1682,6 +1682,10 @@ class Class : public Object {
   static bool IsIsolateUnsendable(ClassPtr clazz) {
     return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
   }
+  static bool IsIsolateUnsendableDueToPragma(ClassPtr clazz) {
+    return IsIsolateUnsendableDueToPragmaBit::decode(
+        clazz->untag()->state_bits_);
+  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   CodePtr allocation_stub() const { return untag()->allocation_stub(); }
@@ -1927,7 +1931,11 @@ class Class : public Object {
     // Will be true iff
     //    - class is marked with `@pramga('vm:isolate-unsendable')
     //    - super class / super interface classes are marked as unsendable.
+    //    - class has native fields.
     kIsIsolateUnsendableBit,
+    // True if this class has `@pramga('vm:isolate-unsendable') annotation or
+    // base class or implemented interfaces has this bit.
+    kIsIsolateUnsendableDueToPragmaBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1958,6 +1966,9 @@ class Class : public Object {
   class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
   class IsIsolateUnsendableBit
       : public BitField<uint32_t, bool, kIsIsolateUnsendableBit, 1> {};
+  class IsIsolateUnsendableDueToPragmaBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
+  };
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -2001,9 +2012,14 @@ class Class : public Object {
 
   void set_is_isolate_unsendable(bool value) const;
   bool is_isolate_unsendable() const {
+    ASSERT(is_finalized());  // This bit is initialized in class finalizer.
     return IsIsolateUnsendableBit::decode(state_bits());
   }
 
+  void set_is_isolate_unsendable_due_to_pragma(bool value) const;
+  bool is_isolate_unsendable_due_to_pragma() const {
+    return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
+  }
 
  private:
   void set_functions(const Array& value) const;
