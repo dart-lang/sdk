@@ -1266,7 +1266,7 @@ abstract interface class Completer<T> {
   /// Completing a future with an error indicates that an exception was thrown
   /// while trying to produce a value.
   ///
-  /// If `error` is a `Future`, the future itself is used as the error value.
+  /// If [error] is a [Future], the future itself is used as the error value.
   /// If you want to complete with the result of the future, you can use:
   /// ```dart
   /// thisCompleter.complete(theFuture)
@@ -1274,6 +1274,35 @@ abstract interface class Completer<T> {
   /// or if you only want to handle an error from the future:
   /// ```dart
   /// theFuture.catchError(thisCompleter.completeError);
+  /// ```
+  ///
+  /// The [future] must have an error handler installed before the call to
+  /// [completeError]) or [error] will be considered an uncaught error.
+  ///
+  /// ```dart
+  /// void doStuff() {
+  ///   // Outputs a message like:
+  ///   // Uncaught Error: Assertion failed: "future not consumed"
+  ///   Completer().completeError(AssertionError('future not consumed'));
+  /// }
+  /// ```
+  ///
+  /// You can install an error handler through [Future.catchError],
+  /// [Future.then] or the `await` operation.
+  ///
+  /// ```dart
+  /// void doStuff() {
+  ///   final c = Completer();
+  ///   c.future.catchError((e) {
+  ///     // Handle the error.
+  ///   });
+  ///   c.completeError(AssertionError('future not consumed'));
+  /// }
+  /// ```
+  ///
+  /// See the
+  /// [Zones article](https://dart.dev/articles/archive/zones#handling-uncaught-errors)
+  /// for details on uncaught errors.
   /// ```
   void completeError(Object error, [StackTrace? stackTrace]);
 
