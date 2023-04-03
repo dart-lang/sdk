@@ -355,8 +355,8 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     if (contextType.isSubtypeOf(staticType)) {
       staticType = contextType;
     }
-    if (nonNull && staticType is NullableStaticType) {
-      staticType = staticType.underlying;
+    if (nonNull) {
+      staticType = staticType.nonNullable;
     }
     return staticType;
   }
@@ -456,8 +456,8 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       {required bool nonNull}) {
     if (type == null) {
       StaticType staticType = contextType;
-      if (nonNull && staticType is NullableStaticType) {
-        staticType = staticType.underlying;
+      if (nonNull) {
+        staticType = staticType.nonNullable;
       }
       return new Space(path, staticType);
     } else {

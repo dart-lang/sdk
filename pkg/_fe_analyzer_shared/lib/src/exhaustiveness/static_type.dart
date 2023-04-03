@@ -124,6 +124,20 @@ abstract class _BaseStaticType implements StaticType {
   Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => const [];
 
   @override
+  bool isSubtypeOf(StaticType other) {
+    if (this == other) return true;
+
+    // All types are subtypes of Object?.
+    if (other == StaticType.nullableObject) return true;
+
+    if (other is WrappedStaticType) {
+      return isSubtypeOf(other.wrappedType) && isSubtypeOf(other.impliedType);
+    }
+
+    return false;
+  }
+
+  @override
   String spaceToText(
       Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
     assert(additionalSpaceFields.isEmpty,
@@ -188,7 +202,7 @@ class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
   @override
   bool isSubtypeOf(StaticType other) {
     // Object? is a subtype of itself and Object?.
-    return this == other || other == StaticType.nullableObject;
+    return super.isSubtypeOf(other) || other == StaticType.nullableObject;
   }
 
   @override
@@ -256,6 +270,9 @@ class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
 
   @override
   bool isSubtypeOf(StaticType other) {
+    if (super.isSubtypeOf(other)) {
+      return true;
+    }
     // A nullable type is a subtype if the underlying type and Null both are.
     return this == other ||
         other is NullableStaticType && underlying.isSubtypeOf(other.underlying);
@@ -289,10 +306,7 @@ abstract class NonNullableStaticType extends _BaseStaticType {
 
   @override
   bool isSubtypeOf(StaticType other) {
-    if (this == other) return true;
-
-    // All types are subtypes of Object?.
-    if (other == StaticType.nullableObject) return true;
+    if (super.isSubtypeOf(other)) return true;
 
     // All non-nullable types are subtypes of Object.
     if (other == StaticType.nonNullableObject) return true;
@@ -303,15 +317,7 @@ abstract class NonNullableStaticType extends _BaseStaticType {
       return isSubtypeOf(other.underlying);
     }
 
-    if (isSubtypeOfInternal(other)) {
-      return true;
-    }
-
-    if (other is WrappedStaticType) {
-      return isSubtypeOf(other.wrappedType) && isSubtypeOf(other.impliedType);
-    }
-
-    return false;
+    return isSubtypeOfInternal(other);
   }
 
   bool isSubtypeOfInternal(StaticType other);
@@ -322,7 +328,7 @@ abstract class NonNullableStaticType extends _BaseStaticType {
 
 /// Static type the behaves like [wrappedType] but is also a subtype of
 /// [impliedType].
-class WrappedStaticType extends NonNullableStaticType {
+class WrappedStaticType extends _BaseStaticType {
   final StaticType wrappedType;
   final StaticType impliedType;
 
@@ -351,7 +357,9 @@ class WrappedStaticType extends NonNullableStaticType {
       .map((e) => new WrappedStaticType(e, impliedType));
 
   @override
-  bool isSubtypeOfInternal(StaticType other) {
+  bool isSubtypeOf(StaticType other) {
+    if (super.isSubtypeOf(other)) return true;
+
     return wrappedType.isSubtypeOf(other) || impliedType.isSubtypeOf(other);
   }
 
@@ -371,6 +379,18 @@ class WrappedStaticType extends NonNullableStaticType {
       Map<Key, FieldWitness> witnessFields) {
     return wrappedType.witnessToText(buffer, witness, witnessFields);
   }
+
+  @override
+  late final StaticType nonNullable = wrappedType.nonNullable == wrappedType &&
+          impliedType.nonNullable == impliedType
+      ? this
+      : new WrappedStaticType(wrappedType.nonNullable, impliedType.nonNullable);
+
+  @override
+  late final StaticType nullable =
+      wrappedType.nullable == wrappedType && impliedType.nullable == impliedType
+          ? this
+          : new WrappedStaticType(wrappedType.nullable, impliedType.nullable);
 }
 
 /// Interface for accessing the members defined on `Object`.
