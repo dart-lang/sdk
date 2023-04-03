@@ -184,7 +184,7 @@ void main() {
 /// Means that the union of D|E should be exhaustive over B, D, and E and not
 /// exhaustive over the other types in [allTypes].
 Function(List<StaticType>, String) _makeTestFunction(
-    ObjectFieldLookup fieldLookup, List<StaticType> allTypes) {
+    ObjectPropertyLookup fieldLookup, List<StaticType> allTypes) {
   assert(allTypes.length <= 6, 'Only supports up to six types.');
   var letters = 'ABCDEF';
 

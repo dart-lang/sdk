@@ -110,7 +110,7 @@ void main() {
 
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
-void expectExhaustiveOnlyAll(ObjectFieldLookup objectFieldLookup,
+void expectExhaustiveOnlyAll(ObjectPropertyLookup objectFieldLookup,
     StaticType type, List<Map<String, Object>> cases) {
   var valueSpace = Space(const Path.root(), type);
   var caseSpaces = cases.map((c) => ty(type, c)).toList();

@@ -33,7 +33,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   Map<Key, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
 
   @override
-  StaticType? getAdditionalField(Key key) =>
+  StaticType? getAdditionalPropertyType(Key key) =>
       _fieldLookup.getAdditionalFieldType(_type, key);
 
   /// Returns a [Restriction] value for static types the determines subtypes of

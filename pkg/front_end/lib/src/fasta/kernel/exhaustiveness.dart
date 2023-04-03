@@ -27,7 +27,7 @@ const AstTextStrategy textStrategy = const AstTextStrategy(
 class ExhaustivenessDataForTesting {
   /// Access to interface for looking up `Object` members on non-interface
   /// types.
-  ObjectFieldLookup? objectFieldLookup;
+  ObjectPropertyLookup? objectFieldLookup;
 
   /// Map from switch statement/expression nodes to the results of the
   /// exhaustiveness test.
@@ -416,11 +416,12 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
       {required bool nonNull}) {
     if (pattern is ObjectPattern) {
-      Map<String, Pattern> fields = {};
+      Map<String, Pattern> properties = {};
       for (NamedPattern field in pattern.fields) {
-        fields[field.name] = field.pattern;
+        properties[field.name] = field.pattern;
       }
-      return createObjectSpace(path, contextType, pattern.lookupType!, fields,
+      return createObjectSpace(
+          path, contextType, pattern.lookupType!, properties,
           nonNull: nonNull);
     } else if (pattern is VariablePattern) {
       return createVariableSpace(path, contextType, pattern.variable.type,
@@ -527,19 +528,19 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         return new Space(
             path, cache.getEnumElementStaticType(constant.classNode, constant));
       } else if (constant is RecordConstant) {
-        Map<Key, Space> fields = {};
+        Map<Key, Space> properties = {};
         for (int index = 0; index < constant.positional.length; index++) {
           Key key = new RecordIndexKey(index);
-          fields[key] = convertConstantToSpace(constant.positional[index],
+          properties[key] = convertConstantToSpace(constant.positional[index],
               path: path.add(key));
         }
         for (MapEntry<String, Constant> entry in constant.named.entries) {
           Key key = new RecordNameKey(entry.key);
-          fields[key] =
+          properties[key] =
               convertConstantToSpace(entry.value, path: path.add(key));
         }
         return new Space(path, cache.getStaticType(constant.recordType),
-            fields: fields);
+            properties: properties);
       } else if (hasPrimitiveEquality(constant)) {
         // Only if [constant] has primitive equality can we tell if it is equal
         // to itself.
@@ -583,7 +584,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   TypeOperations<DartType> get typeOperations => cache.typeOperations;
 
   @override
-  ObjectFieldLookup get objectFieldLookup => cache;
+  ObjectPropertyLookup get objectFieldLookup => cache;
 }
 
 bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {

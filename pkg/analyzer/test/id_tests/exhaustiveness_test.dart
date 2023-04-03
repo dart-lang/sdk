@@ -75,8 +75,8 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
         Set<Key> keysOfInterest = {};
         for (Space caseSpace in caseSpaces) {
           for (SingleSpace singleSpace in caseSpace.singleSpaces) {
-            fieldsOfInterest.addAll(singleSpace.fields.keys);
-            keysOfInterest.addAll(singleSpace.additionalFields.keys);
+            fieldsOfInterest.addAll(singleSpace.properties.keys);
+            keysOfInterest.addAll(singleSpace.additionalProperties.keys);
           }
         }
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);

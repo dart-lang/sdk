@@ -46,8 +46,8 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   }
 
   @override
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties) {
     StringBuffer buffer = new StringBuffer();
     buffer.write('(');
     String comma = '';
@@ -55,28 +55,28 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
       if (key is RecordIndexKey) {
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${spaceFields[key] ?? staticType}');
+        buffer.write('${spaceProperties[key] ?? staticType}');
       } else if (key is RecordNameKey) {
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${key.name}: ${spaceFields[key] ?? staticType}');
+        buffer.write('${key.name}: ${spaceProperties[key] ?? staticType}');
       }
     });
     buffer.write(')');
     String additionalStart = '(';
     String additionalEnd = '';
     comma = '';
-    spaceFields.forEach((Key key, Space value) {
+    spaceProperties.forEach((Key key, Space value) {
       if (key is! RecordKey) {
         buffer.write(additionalStart);
         additionalStart = '';
         additionalEnd = ')';
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${key.name}: ${value}');
+        buffer.write('${key.name}: $value');
       }
     });
-    additionalSpaceFields.forEach((Key key, Space value) {
+    additionalSpaceProperties.forEach((Key key, Space value) {
       if (key is! RecordKey) {
         buffer.write(additionalStart);
         additionalStart = '';

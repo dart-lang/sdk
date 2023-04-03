@@ -12,14 +12,14 @@ class MapPatternStaticType<Type extends Object>
       super.restriction, super.name);
 
   @override
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(restriction.typeArgumentsText);
     buffer.write('{');
 
     bool first = true;
-    additionalSpaceFields.forEach((Key key, Space space) {
+    additionalSpaceProperties.forEach((Key key, Space space) {
       if (!first) buffer.write(', ');
       buffer.write('$key: $space');
       first = false;

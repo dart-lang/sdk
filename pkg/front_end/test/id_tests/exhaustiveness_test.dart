@@ -75,8 +75,8 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
       Set<Key> fieldsOfInterest = {};
       for (Space caseSpace in result.caseSpaces) {
         for (SingleSpace singleSpace in caseSpace.singleSpaces) {
-          fieldsOfInterest.addAll(singleSpace.fields.keys);
-          keysOfInterest.addAll(singleSpace.additionalFields.keys);
+          fieldsOfInterest.addAll(singleSpace.properties.keys);
+          keysOfInterest.addAll(singleSpace.additionalProperties.keys);
         }
       }
       String? subtypes =

@@ -11,39 +11,39 @@ import 'static_type.dart';
 /// It has a type which determines the type of values it contains. The type may
 /// be [StaticType.nullableObject] to indicate that it doesn't filter by type.
 ///
-/// It may also contain zero or more named fields. The pattern then only matches
-/// values where the field values are matched by the corresponding field
-/// patterns.
+/// It may also contain zero or more named properties. The pattern then only
+/// matches values where the property values are matched by the corresponding
+/// property patterns.
 class SingleSpace {
   static final SingleSpace empty = new SingleSpace(StaticType.neverType);
 
   /// The type of values the pattern matches.
   final StaticType type;
 
-  /// Any field subpatterns the pattern matches.
-  final Map<Key, Space> fields;
+  /// Any property subpatterns the pattern matches.
+  final Map<Key, Space> properties;
 
-  /// Additional fields for map/list semantics.
-  final Map<Key, Space> additionalFields;
+  /// Additional properties for map/list semantics.
+  final Map<Key, Space> additionalProperties;
 
   SingleSpace(this.type,
-      {this.fields = const {}, this.additionalFields = const {}});
+      {this.properties = const {}, this.additionalProperties = const {}});
 
   @override
   late final int hashCode = Object.hash(
       type,
-      Object.hashAllUnordered(fields.keys),
-      Object.hashAllUnordered(fields.values));
+      Object.hashAllUnordered(properties.keys),
+      Object.hashAllUnordered(properties.values));
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! SingleSpace) return false;
     if (type != other.type) return false;
-    if (fields.length != other.fields.length) return false;
-    if (fields.isNotEmpty) {
-      for (MapEntry<Key, Space> entry in fields.entries) {
-        if (entry.value != other.fields[entry.key]) {
+    if (properties.length != other.properties.length) return false;
+    if (properties.isNotEmpty) {
+      for (MapEntry<Key, Space> entry in properties.entries) {
+        if (entry.value != other.properties[entry.key]) {
           return false;
         }
       }
@@ -53,7 +53,7 @@ class SingleSpace {
 
   @override
   String toString() {
-    return type.spaceToText(fields, additionalFields);
+    return type.spaceToText(properties, additionalProperties);
   }
 }
 
@@ -72,11 +72,12 @@ class Space {
   Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
 
   Space(Path path, StaticType type,
-      {Map<Key, Space> fields = const {},
-      Map<Key, Space> additionalFields = const {}})
+      {Map<Key, Space> properties = const {},
+      Map<Key, Space> additionalProperties = const {}})
       : this._(path, [
           new SingleSpace(type,
-              fields: fields, additionalFields: additionalFields)
+              properties: properties,
+              additionalProperties: additionalProperties)
         ]);
 
   Space._(this.path, this.singleSpaces);
@@ -98,12 +99,12 @@ class Space {
       singleSpacesList.add(SingleSpace.empty);
     } else if (singleSpacesList.length == 2) {
       if (singleSpacesList[0].type == StaticType.nullType &&
-          singleSpacesList[0].fields.isEmpty &&
-          singleSpacesList[1].fields.isEmpty) {
+          singleSpacesList[0].properties.isEmpty &&
+          singleSpacesList[1].properties.isEmpty) {
         singleSpacesList = [new SingleSpace(singleSpacesList[1].type.nullable)];
       } else if (singleSpacesList[1].type == StaticType.nullType &&
-          singleSpacesList[1].fields.isEmpty &&
-          singleSpacesList[0].fields.isEmpty) {
+          singleSpacesList[1].properties.isEmpty &&
+          singleSpacesList[0].properties.isEmpty) {
         singleSpacesList = [new SingleSpace(singleSpacesList[0].type.nullable)];
       }
     }

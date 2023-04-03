@@ -108,14 +108,14 @@ class ListPatternStaticType<Type extends Object>
       super.restriction, super.name);
 
   @override
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(restriction.typeArgumentText);
     buffer.write('[');
 
     bool first = true;
-    additionalSpaceFields.forEach((Key key, Space space) {
+    additionalSpaceProperties.forEach((Key key, Space space) {
       if (!first) buffer.write(', ');
       if (key is RestKey) {
         buffer.write('...');

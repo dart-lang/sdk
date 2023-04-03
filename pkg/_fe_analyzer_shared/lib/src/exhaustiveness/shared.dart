@@ -117,7 +117,7 @@ class ExhaustivenessCache<
         EnumClass extends Object,
         EnumElement extends Object,
         EnumElementValue extends Object>
-    implements FieldLookup<Type>, ObjectFieldLookup {
+    implements FieldLookup<Type>, ObjectPropertyLookup {
   final TypeOperations<Type> typeOperations;
   final EnumOperations<Type, EnumClass, EnumElement, EnumElementValue>
       enumOperations;
@@ -335,7 +335,7 @@ class ExhaustivenessCache<
 mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   TypeOperations<Type> get typeOperations;
 
-  ObjectFieldLookup get objectFieldLookup;
+  ObjectPropertyLookup get objectFieldLookup;
 
   /// Creates a [StaticType] for an unknown type.
   ///
@@ -412,15 +412,17 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       {required bool nonNull}) {
     StaticType staticType =
         _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
-    Map<Key, Space> fields = <Key, Space>{};
+    Map<Key, Space> properties = <Key, Space>{};
     for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
       Key key = new NameKey(entry.key);
-      StaticType fieldType = staticType.getField(objectFieldLookup, key) ??
-          StaticType.nullableObject;
-      fields[key] = dispatchPattern(path.add(key), fieldType, entry.value,
+      StaticType propertyType =
+          staticType.getPropertyType(objectFieldLookup, key) ??
+              StaticType.nullableObject;
+      properties[key] = dispatchPattern(
+          path.add(key), propertyType, entry.value,
           nonNull: false);
     }
-    return new Space(path, staticType, fields: fields);
+    return new Space(path, staticType, properties: properties);
   }
 
   /// Creates the [Space] at [path] for a record pattern of the required [type],
@@ -429,23 +431,26 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       List<Pattern> positionalFields, Map<String, Pattern> namedFields) {
     StaticType staticType =
         _createStaticTypeWithContext(contextType, recordType, nonNull: true);
-    Map<Key, Space> fields = <Key, Space>{};
+    Map<Key, Space> properties = <Key, Space>{};
     for (int index = 0; index < positionalFields.length; index++) {
       Key key = new RecordIndexKey(index);
-      StaticType fieldType = staticType.getField(objectFieldLookup, key) ??
-          StaticType.nullableObject;
-      fields[key] = dispatchPattern(
-          path.add(key), fieldType, positionalFields[index],
+      StaticType propertyType =
+          staticType.getPropertyType(objectFieldLookup, key) ??
+              StaticType.nullableObject;
+      properties[key] = dispatchPattern(
+          path.add(key), propertyType, positionalFields[index],
           nonNull: false);
     }
     for (MapEntry<String, Pattern> entry in namedFields.entries) {
       Key key = new RecordNameKey(entry.key);
-      StaticType fieldType = staticType.getField(objectFieldLookup, key) ??
-          StaticType.nullableObject;
-      fields[key] = dispatchPattern(path.add(key), fieldType, entry.value,
+      StaticType propertyType =
+          staticType.getPropertyType(objectFieldLookup, key) ??
+              StaticType.nullableObject;
+      properties[key] = dispatchPattern(
+          path.add(key), propertyType, entry.value,
           nonNull: false);
     }
-    return new Space(path, staticType, fields: fields);
+    return new Space(path, staticType, properties: properties);
   }
 
   /// Creates the [Space] at [path] for a wildcard pattern with the declared
@@ -585,36 +590,37 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
 
     StaticType staticType = createListType(type, identity);
 
-    Map<Key, Space> additionalFields = {};
+    Map<Key, Space> additionalProperties = {};
     for (int index = 0; index < headSize; index++) {
       Key key = new HeadKey(index);
-      StaticType fieldType =
-          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
-      additionalFields[key] = dispatchPattern(
-          path.add(key), fieldType, headElements[index],
+      StaticType propertyType = staticType.getAdditionalPropertyType(key) ??
+          StaticType.nullableObject;
+      additionalProperties[key] = dispatchPattern(
+          path.add(key), propertyType, headElements[index],
           nonNull: false);
     }
     if (hasRest) {
       Key key = new RestKey(headSize, tailSize);
-      StaticType fieldType =
-          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
+      StaticType propertyType = staticType.getAdditionalPropertyType(key) ??
+          StaticType.nullableObject;
       if (restElement != null) {
-        additionalFields[key] = dispatchPattern(
-            path.add(key), fieldType, restElement,
+        additionalProperties[key] = dispatchPattern(
+            path.add(key), propertyType, restElement,
             nonNull: false);
       } else {
-        additionalFields[key] = new Space(path.add(key), fieldType);
+        additionalProperties[key] = new Space(path.add(key), propertyType);
       }
     }
     for (int index = 0; index < tailSize; index++) {
       Key key = new TailKey(index);
-      StaticType fieldType =
-          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
-      additionalFields[key] = dispatchPattern(path.add(key), fieldType,
+      StaticType propertyType = staticType.getAdditionalPropertyType(key) ??
+          StaticType.nullableObject;
+      additionalProperties[key] = dispatchPattern(path.add(key), propertyType,
           tailElements[tailElements.length - index - 1],
           nonNull: false);
     }
-    return new Space(path, staticType, additionalFields: additionalFields);
+    return new Space(path, staticType,
+        additionalProperties: additionalProperties);
   }
 
   /// Creates the [Space] at [path] for a map pattern.
@@ -641,16 +647,17 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
         keyType, valueType, entries.keys.toSet(), typeArgumentsText);
     StaticType staticType = createMapType(type, identity);
 
-    Map<Key, Space> additionalFields = {};
+    Map<Key, Space> additionalProperties = {};
     for (MapEntry<Key, Pattern> entry in entries.entries) {
       Key key = entry.key;
-      StaticType fieldType =
-          staticType.getAdditionalField(key) ?? StaticType.nullableObject;
-      additionalFields[key] = dispatchPattern(
-          path.add(key), fieldType, entry.value,
+      StaticType propertyType = staticType.getAdditionalPropertyType(key) ??
+          StaticType.nullableObject;
+      additionalProperties[key] = dispatchPattern(
+          path.add(key), propertyType, entry.value,
           nonNull: false);
     }
-    return new Space(path, staticType, additionalFields: additionalFields);
+    return new Space(path, staticType,
+        additionalProperties: additionalProperties);
   }
 
   /// Creates the [Space] at [path] for a pattern with unknown space.
@@ -676,22 +683,23 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     if (type == null) {
       return null;
     }
-    Map<Key, Space> fields = {};
-    for (MapEntry<Key, Space> entry in a.fields.entries) {
+    Map<Key, Space> properties = {};
+    for (MapEntry<Key, Space> entry in a.properties.entries) {
       Key key = entry.key;
       Space aSpace = entry.value;
-      Space? bSpace = b.fields[key];
+      Space? bSpace = b.properties[key];
       if (bSpace != null) {
-        fields[key] = _createSpaceIntersection(path.add(key), aSpace, bSpace);
+        properties[key] =
+            _createSpaceIntersection(path.add(key), aSpace, bSpace);
       } else {
-        fields[key] = aSpace;
+        properties[key] = aSpace;
       }
     }
-    for (MapEntry<Key, Space> entry in b.fields.entries) {
+    for (MapEntry<Key, Space> entry in b.properties.entries) {
       Key key = entry.key;
-      fields[key] ??= entry.value;
+      properties[key] ??= entry.value;
     }
-    return new SingleSpace(type, fields: fields);
+    return new SingleSpace(type, properties: properties);
   }
 
   /// Creates an approximation of the intersection of spaces [a] and [b].
