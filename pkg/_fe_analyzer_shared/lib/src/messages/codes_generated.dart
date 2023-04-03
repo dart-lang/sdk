@@ -8346,6 +8346,18 @@ Message _withArgumentsLateDefinitelyUnassignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLatePatternVariableDeclaration =
+    messageLatePatternVariableDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLatePatternVariableDeclaration = const MessageCode(
+    "LatePatternVariableDeclaration",
+    index: 151,
+    problemMessage:
+        r"""A pattern variable declaration may not use the `late` keyword.""",
+    correctionMessage: r"""Try removing the keyword `late`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -1,8 +1,8 @@
 Problems reported:
 
-parser/patterns/patternVariableDeclarationStatement_disallowsLate:2:3: A pattern variable declaration may not use the `late` keyword.
-  late var (_) = x;
-  ^^^^
+parser/patterns/patternVariableDeclarationStatement_disallowsConst:2:11: A record literal with exactly one positional field requires a trailing comma.
+  const (_) = x;
+          ^
 
 beginCompilationUnit(f)
   beginMetadataStar(f)
@@ -23,17 +23,21 @@ beginCompilationUnit(f)
       endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
       beginBlockFunctionBody({)
-        handleRecoverableError(LatePatternVariableDeclaration, late, late)
-        beginMetadataStar(late)
-        endMetadataStar(0)
-        handleNoType(_)
-        handleWildcardPattern(null, _)
-        handleParenthesizedPattern(()
+        beginConstLiteral(()
+          beginParenthesizedExpressionOrRecordLiteral(()
+            handleIdentifier(_, expression)
+            handleNoTypeArguments())
+            handleNoArguments())
+            handleSend(_, ))
+            handleRecoverableError(RecordLiteralOnePositionalFieldNoTrailingComma, ), ))
+          endRecordLiteral((, 1, const)
+        endConstLiteral(=)
         handleIdentifier(x, expression)
         handleNoTypeArguments(;)
         handleNoArguments(;)
         handleSend(x, ;)
-        handlePatternVariableDeclarationStatement(var, =, ;)
+        handleAssignmentExpression(=)
+        handleExpressionStatement(;)
       endBlockFunctionBody(1, {, })
     endTopLevelMethod(f, null, })
   endTopLevelDeclaration()

@@ -6720,6 +6720,18 @@ InvalidInsideUnaryPattern:
       if (x case _ as int as num) {}
     }
 
+LatePatternVariableDeclaration:
+  problemMessage: A pattern variable declaration may not use the `late` keyword.
+  correctionMessage: Try removing the keyword `late`.
+  analyzerCode: ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION
+  index: 151
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    void f(x) {
+      late var (y, z) = x;
+    }
+
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 

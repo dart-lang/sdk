@@ -7792,10 +7792,7 @@ class Parser {
       varFinalOrConst = context.varFinalOrConst;
     }
 
-    // TODO(paulberry): maybe some of the conditions in this `if` test should be
-    // removed to allow for better error recovery.
     if (allowPatterns &&
-        lateToken == null &&
         varFinalOrConst != null &&
         (optional('var', varFinalOrConst) ||
             optional('final', varFinalOrConst))) {
@@ -7804,6 +7801,10 @@ class Parser {
           (optional('=', afterOuterPattern.next!) ||
               (forPartsContext != null &&
                   optional('in', afterOuterPattern.next!)))) {
+        if (lateToken != null) {
+          reportRecoverableError(
+              lateToken, codes.messageLatePatternVariableDeclaration);
+        }
         // If there was any metadata, then the caller was responsible for
         // parsing it; if not, then we need to let the listener know there
         // wasn't any.

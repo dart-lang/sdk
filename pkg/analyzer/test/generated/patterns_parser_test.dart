@@ -7538,20 +7538,43 @@ ForStatement
 ''');
   }
 
-  test_patternVariableDeclarationStatement_disallowsLate() {
+  test_patternVariableDeclarationStatement_disallowsConst() {
     // TODO(paulberry): do better error recovery.
+    _parse('''
+f(x) {
+  const (_) = x;
+}
+''', errors: [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 9, 9),
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 9, 9),
+      error(ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 17,
+          1),
+    ]);
+  }
+
+  test_patternVariableDeclarationStatement_disallowsLate() {
     _parse('''
 f(x) {
   late var (_) = x;
 }
 ''', errors: [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 18, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
-      error(ParserErrorCode.UNEXPECTED_TOKEN, 20, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 22, 1),
+      error(ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION, 9, 4),
     ]);
+    var node = findNode.patternVariableDeclarationStatement('= x');
+    assertParsedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: WildcardPattern
+        name: _
+      rightParenthesis: )
+    equals: =
+    expression: SimpleIdentifier
+      token: x
+  semicolon: ;
+''');
   }
 
   test_patternVariableDeclarationStatement_noMetadata_final_extractor() {
