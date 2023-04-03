@@ -2500,7 +2500,7 @@ ParserErrorCode.INVALID_HEX_ESCAPE:
 ParserErrorCode.INVALID_INITIALIZER:
   status: needsEvaluation
 ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION:
   status: needsEvaluation
 ParserErrorCode.INVALID_OPERATOR:

@@ -251,6 +251,7 @@ import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
+import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
 import 'type_literal_in_constant_pattern_test.dart'
     as type_literal_in_constant_pattern;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
@@ -480,6 +481,7 @@ void main() {
     sort_constructor_first_test.main();
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
+    surround_with_parentheses.main();
     type_literal_in_constant_pattern.main();
     update_sdk_constraints.main();
     use_curly_braces.main();

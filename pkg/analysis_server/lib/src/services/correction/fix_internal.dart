@@ -207,6 +207,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
@@ -1413,6 +1414,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [
       AddConst.new,
+    ],
+    ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN: [
+      SurroundWithParentheses.new,
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.new,

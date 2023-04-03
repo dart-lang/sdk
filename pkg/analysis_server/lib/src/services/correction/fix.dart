@@ -1760,6 +1760,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Move all unnamed constructors before named constructors',
   );
+  static const SURROUND_WITH_PARENTHESES = FixKind(
+    'dart.fix.surround.parentheses',
+    DartFixKindPriority.DEFAULT,
+    'Surround with parentheses',
+  );
   static const UPDATE_SDK_CONSTRAINTS = FixKind(
     'dart.fix.updateSdkConstraints',
     DartFixKindPriority.DEFAULT,
