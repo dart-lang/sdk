@@ -2528,7 +2528,7 @@ ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
   status: needsEvaluation
 ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
   status: needsEvaluation
 ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW:

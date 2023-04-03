@@ -137,6 +137,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_if_null_oper
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
@@ -1417,6 +1418,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN: [
       SurroundWithParentheses.new,
+    ],
+    ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [
+      RemoveLate.new,
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.new,

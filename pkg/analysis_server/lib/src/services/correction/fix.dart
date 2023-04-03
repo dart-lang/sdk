@@ -1116,6 +1116,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove unnecessary interpolation braces everywhere in file',
   );
+  static const REMOVE_LATE = FixKind(
+    'dart.fix.remove.late',
+    DartFixKindPriority.DEFAULT,
+    "Remove the 'late' keyword",
+  );
+  static const REMOVE_LATE_MULTI = FixKind(
+    'dart.fix.remove.late.multi',
+    DartFixKindPriority.DEFAULT,
+    "Remove the 'late' keyword everywhere in file",
+  );
   static const REMOVE_LEADING_UNDERSCORE = FixKind(
     'dart.fix.remove.leadingUnderscore',
     DartFixKindPriority.DEFAULT,
