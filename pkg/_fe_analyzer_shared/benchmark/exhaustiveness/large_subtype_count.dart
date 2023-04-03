@@ -88,7 +88,7 @@ void testFieldCount(int n) {
   expectExhaustive('Field count $n', env, t, [fields]);
 }
 
-void expectExhaustive(String title, ObjectFieldLookup objectFieldLookup,
+void expectExhaustive(String title, ObjectPropertyLookup objectFieldLookup,
     StaticType type, List<Map<String, Object>> cases) {
   var spaces = cases.map((c) => ty(type, c)).toList();
   profile.reset();

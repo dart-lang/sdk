@@ -28,20 +28,20 @@ String spacesToText(Space space) {
   return text;
 }
 
-/// Returns a textual representation for [fields] used for testing.
-String fieldsToText(StaticType type, ObjectFieldLookup objectFieldLookup,
+/// Returns a textual representation for [properties] used for testing.
+String fieldsToText(StaticType type, ObjectPropertyLookup objectFieldLookup,
     Set<Key> fieldsOfInterest) {
   List<Key> sortedNames = fieldsOfInterest.toList()..sort();
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
   for (Key key in sortedNames) {
-    StaticType? fieldType = type.getField(objectFieldLookup, key);
+    StaticType? propertyType = type.getPropertyType(objectFieldLookup, key);
     sb.write(comma);
     sb.write(key.name);
     sb.write(':');
-    if (fieldType != null) {
-      sb.write(staticTypeToText(fieldType));
+    if (propertyType != null) {
+      sb.write(staticTypeToText(propertyType));
     } else {
       sb.write("-");
     }

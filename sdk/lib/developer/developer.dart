@@ -82,3 +82,20 @@ external void log(
 /// NOTE: There are no guarantees of forward progress. An implementation may
 /// return the same value forever for this barrier state.
 external int get reachabilityBarrier;
+
+/// Functionality available on the native runtime.
+abstract final class NativeRuntime {
+  /// Writes a snapshot of the heap to [filepath].
+  ///
+  /// The [filepath] should be a native file path that can be opened for writing.
+  /// Relative paths will be relative to the current working directory. If the
+  /// file already exists it will be overwritten.
+  ///
+  /// **WARNING**: Only works on a native runtime in certain configurations. An
+  /// [UnsupportedError] error is thrown if this functionality is not available
+  /// (e.g. in product mode, in non-standalone VM, ...)
+  ///
+  /// NOTE: This is an experimental function. We reserve the right to change
+  /// or remove it in the future.
+  external static void writeHeapSnapshotToFile(String filepath);
+}

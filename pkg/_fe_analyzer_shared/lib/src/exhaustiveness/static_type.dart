@@ -31,14 +31,14 @@ abstract class StaticType {
   ///
   /// This is used to support implicit on the constant [StaticType]s
   /// [nullableObject], [nonNullableObject], [nullType] and [neverType].
-  StaticType? getField(ObjectFieldLookup fieldLookup, Key key);
+  StaticType? getPropertyType(ObjectPropertyLookup fieldLookup, Key key);
 
   /// Returns the static type for the [key] in this static type, or `null` if
   /// no such key exists.
   ///
   /// This is used to model keys in map patterns, and indices and ranges in list
   /// patterns.
-  StaticType? getAdditionalField(Key key);
+  StaticType? getAdditionalPropertyType(Key key);
 
   /// Returns `true` if this static type is a subtype of [other], taking the
   /// nullability and subtyping relation into account.
@@ -88,9 +88,9 @@ abstract class StaticType {
   Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest);
 
   /// Returns a textual representation of a single space consisting of this
-  /// type and the provided [fields] and [additionalFields].
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields);
+  /// type and the provided [spaceProperties] and [additionalSpaceProperties].
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties);
 
   void witnessToText(StringBuffer buffer, FieldWitness witness,
       Map<Key, FieldWitness> witnessFields);
@@ -98,7 +98,7 @@ abstract class StaticType {
 
 mixin _ObjectFieldMixin on _BaseStaticType {
   @override
-  StaticType? getField(ObjectFieldLookup fieldLookup, Key key) {
+  StaticType? getPropertyType(ObjectPropertyLookup fieldLookup, Key key) {
     return fields[key] ?? fieldLookup.getObjectFieldType(key);
   }
 }
@@ -113,12 +113,12 @@ abstract class _BaseStaticType implements StaticType {
   Map<Key, StaticType> get fields => const {};
 
   @override
-  StaticType? getField(ObjectFieldLookup fieldLookup, Key key) {
+  StaticType? getPropertyType(ObjectPropertyLookup fieldLookup, Key key) {
     return fields[key];
   }
 
   @override
-  StaticType? getAdditionalField(Key key) => null;
+  StaticType? getAdditionalPropertyType(Key key) => null;
 
   @override
   Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => const [];
@@ -138,15 +138,17 @@ abstract class _BaseStaticType implements StaticType {
   }
 
   @override
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
-    assert(additionalSpaceFields.isEmpty,
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties) {
+    assert(additionalSpaceProperties.isEmpty,
         "Additional fields not supported in ${runtimeType}.");
-    if (this == StaticType.nullableObject && spaceFields.isEmpty) return '()';
-    if (this == StaticType.neverType && spaceFields.isEmpty) return '∅';
+    if (this == StaticType.nullableObject && spaceProperties.isEmpty) {
+      return '()';
+    }
+    if (this == StaticType.neverType && spaceProperties.isEmpty) return '∅';
 
     // If there are no fields, just show the type.
-    if (spaceFields.isEmpty) return name;
+    if (spaceProperties.isEmpty) return name;
 
     StringBuffer buffer = new StringBuffer();
     buffer.write(name);
@@ -154,7 +156,7 @@ abstract class _BaseStaticType implements StaticType {
     buffer.write('(');
     bool first = true;
 
-    spaceFields.forEach((Key key, Space space) {
+    spaceProperties.forEach((Key key, Space space) {
       if (!first) buffer.write(', ');
       buffer.write('${key.name}: $space');
       first = false;
@@ -338,8 +340,8 @@ class WrappedStaticType extends _BaseStaticType {
   Map<Key, StaticType> get fields => wrappedType.fields;
 
   @override
-  StaticType? getField(ObjectFieldLookup fieldLookup, Key key) {
-    return wrappedType.getField(fieldLookup, key);
+  StaticType? getPropertyType(ObjectPropertyLookup fieldLookup, Key key) {
+    return wrappedType.getPropertyType(fieldLookup, key);
   }
 
   @override
@@ -394,7 +396,7 @@ class WrappedStaticType extends _BaseStaticType {
 }
 
 /// Interface for accessing the members defined on `Object`.
-abstract class ObjectFieldLookup {
+abstract class ObjectPropertyLookup {
   /// Returns the [StaticType] for the member with the given [key] defined on
   /// `Object`, or `null` none exists.
   StaticType? getObjectFieldType(Key key);

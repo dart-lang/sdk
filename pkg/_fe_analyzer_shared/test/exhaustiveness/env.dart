@@ -7,7 +7,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
-class TestEnvironment implements ObjectFieldLookup {
+class TestEnvironment implements ObjectPropertyLookup {
   late final _TypeOperations _typeOperations = new _TypeOperations(this);
   late final _EnumOperations _enumOperations = new _EnumOperations();
   late final _SealedClassOperations _sealedClassOperations =

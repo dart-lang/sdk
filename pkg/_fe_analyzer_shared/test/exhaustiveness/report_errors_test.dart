@@ -135,7 +135,7 @@ void main() {
   });
 }
 
-void expectReportErrors(ObjectFieldLookup objectFieldLookup,
+void expectReportErrors(ObjectPropertyLookup objectFieldLookup,
     StaticType valueType, List<Object> cases,
     [String errors = '']) {
   expect(

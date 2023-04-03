@@ -341,7 +341,7 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
 class ExhaustivenessDataForTesting {
   /// Access to interface for looking up `Object` members on non-interface
   /// types.
-  final ObjectFieldLookup objectFieldLookup;
+  final ObjectPropertyLookup objectFieldLookup;
 
   /// Map from switch statement/expression nodes to the static type of the
   /// scrutinee.
@@ -374,7 +374,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   });
 
   @override
-  ObjectFieldLookup get objectFieldLookup => cache;
+  ObjectPropertyLookup get objectFieldLookup => cache;
 
   @override
   TypeOperations<DartType> get typeOperations => cache.typeOperations;
@@ -409,17 +409,17 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           path, contextType, pattern.declaredElement!.type,
           nonNull: nonNull);
     } else if (pattern is ObjectPattern) {
-      final fields = <String, DartPattern>{};
+      final properties = <String, DartPattern>{};
       for (final field in pattern.fields) {
         final name = field.effectiveName;
         if (name == null) {
           // Error case, skip field.
           continue;
         }
-        fields[name] = field.pattern;
+        properties[name] = field.pattern;
       }
       return createObjectSpace(
-          path, contextType, pattern.type.typeOrThrow, fields,
+          path, contextType, pattern.type.typeOrThrow, properties,
           nonNull: nonNull);
     } else if (pattern is WildcardPattern) {
       return createWildcardSpace(path, contextType, pattern.type?.typeOrThrow,
@@ -549,17 +549,18 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         return Space(path, cache.getBoolValueStaticType(state.value!));
       }
     } else if (state is RecordState) {
-      final fields = <Key, Space>{};
+      final properties = <Key, Space>{};
       for (var index = 0; index < state.positionalFields.length; index++) {
         final key = RecordIndexKey(index);
         final value = state.positionalFields[index];
-        fields[key] = _convertConstantValue(value, path.add(key));
+        properties[key] = _convertConstantValue(value, path.add(key));
       }
       for (final entry in state.namedFields.entries) {
         final key = RecordNameKey(entry.key);
-        fields[key] = _convertConstantValue(entry.value, path.add(key));
+        properties[key] = _convertConstantValue(entry.value, path.add(key));
       }
-      return Space(path, cache.getStaticType(value.type), fields: fields);
+      return Space(path, cache.getStaticType(value.type),
+          properties: properties);
     }
     final type = value.type;
     if (type is InterfaceType) {

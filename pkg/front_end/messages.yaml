@@ -4,13 +4,13 @@
 
 # Run
 #
-#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
+#     dart run --no-pub pkg/front_end/tool/_fasta/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #
 # If entries with 'analyzerCode' and 'index' have been changed, run
 #
-#     dart run pkg/analyzer/tool/messages/generate.dart
+#     dart run --no-pub pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate analyzer messages.
 
