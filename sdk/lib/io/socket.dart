@@ -549,9 +549,10 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// The [host] can either be a [String] or an [InternetAddress]. If [host] is a
   /// [String], [connect] will perform a [InternetAddress.lookup] and try
-  /// all returned [InternetAddress]es, until connected. Unless a
-  /// connection was established, the error from the first failing connection is
-  /// returned.
+  /// all returned [InternetAddress]es, until connected. If IPv4 and IPv6
+  /// addresses are both availble then connections over IPv4 are preferred. If
+  /// no connection can be establed then the error from the first failing
+  /// connection is returned.
   ///
   /// The argument [sourceAddress] can be used to specify the local
   /// address to bind when making the connection. The [sourceAddress] can either

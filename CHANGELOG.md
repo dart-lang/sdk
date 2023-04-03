@@ -172,13 +172,19 @@
 
 #### `dart:io`
 
-- Deprecated `NetworkInterface.listSupported`. Has always returned true since
+- Deprecate `NetworkInterface.listSupported`. Has always returned true since
   Dart 2.3.
 - Finalize `httpEnableTimelineLogging` parameter name transition from `enable`
   to `enabled`. See [#43638][].
+- Favor IPv4 connections over IPv6 when connecting sockets. See
+  [#50868].
 - **Breaking change** [#51035][]:
   - Update `NetworkProfiling` to accommodate new `String` ids
     that are introduced in vm_service:11.0.0
+
+[#43638]: https://github.com/dart-lang/sdk/issues/43638
+[#50868]: https://github.com/dart-lang/sdk/issues/50868
+[#51035]: https://github.com/dart-lang/sdk/issues/51035
 
 #### `dart:js_util`
 
