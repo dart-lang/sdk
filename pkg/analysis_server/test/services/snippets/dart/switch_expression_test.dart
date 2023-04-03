@@ -34,6 +34,26 @@ void f() {
 void f() {
   var a = switch (/*[0*/expression/*0]*/) {
     /*[1*/pattern/*1]*/ => /*[2*/value/*2]*/,^
+  }
+}
+    ''';
+    await assertSnippet(code, expectedCode);
+  }
+
+  Future<void> test_switch_nested() async {
+    final code = r'''
+int f(String a, int b) {
+  return switch (a) {
+    _ => sw^
+  };
+}
+    ''';
+    final expectedCode = '''
+int f(String a, int b) {
+  return switch (a) {
+    _ => switch (/*[0*/expression/*0]*/) {
+      /*[1*/pattern/*1]*/ => /*[2*/value/*2]*/,^
+    }
   };
 }
     ''';
