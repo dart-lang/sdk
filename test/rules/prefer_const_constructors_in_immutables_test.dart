@@ -17,15 +17,21 @@ class PreferConstConstructorsInImmutablesTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_const_constructors_in_immutables';
 
+  @override
+  bool get addMetaPackageDep => true;
+
   test_returnOfInvalidType() async {
     await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
 class F {
   factory F.fc() => null;
 }
 ''', [
       // No lint
       error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 30, 4),
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 75, 4),
     ]);
   }
 }
