@@ -1828,13 +1828,15 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
     return false;
   }
   Definition* definition = value->definition();
-  if (definition->IsConstant() || definition->IsLoadStaticField()) {
+  if (definition->IsConstant() || definition->IsLoadStaticField() ||
+      definition->IsLoadLocal() || definition->IsAssertAssignable() ||
+      definition->IsAllocateSmallRecord() || definition->IsAllocateRecord()) {
     return true;
   }
   if (auto const alloc = definition->AsAllocateClosure()) {
     return !alloc->known_function().IsNull();
   }
-  return definition->IsLoadLocal() || definition->IsAssertAssignable();
+  return false;
 }
 
 Fragment FlowGraphBuilder::EvaluateAssertion() {
