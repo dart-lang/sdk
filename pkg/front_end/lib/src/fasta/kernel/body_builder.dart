@@ -6943,7 +6943,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  // TODO: Handle directly.
+// TODO: Handle directly.
   void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
@@ -7812,6 +7812,7 @@ class BodyBuilder extends StackListenerImpl
     push(labels ?? NullValues.Labels);
 
     List<VariableDeclaration>? jointPatternVariables;
+    List<VariableDeclaration>? jointPatternVariablesWithMismatchingFinality;
     enterLocalScope(switchCaseScope!);
     if (expressionCount > 1) {
       for (ExpressionOrPatternGuardCase expressionOrPattern
@@ -7832,16 +7833,17 @@ class BodyBuilder extends StackListenerImpl
                   in patternGuard.pattern.declaredVariables)
                 variable.name!: variable
             };
-            List<VariableDeclaration> sharedVariables = [];
             for (VariableDeclaration jointVariable in jointPatternVariables) {
+              String jointVariableName = jointVariable.name!;
               VariableDeclaration? patternVariable =
-                  patternVariablesByName[jointVariable.name!];
-              if (patternVariable != null &&
-                  patternVariable.isFinal == jointVariable.isFinal) {
-                sharedVariables.add(jointVariable);
+                  patternVariablesByName[jointVariableName];
+              if (patternVariable != null) {
+                if (patternVariable.isFinal != jointVariable.isFinal) {
+                  (jointPatternVariablesWithMismatchingFinality ??= [])
+                      .add(jointVariable);
+                }
               }
             }
-            jointPatternVariables = sharedVariables;
           }
         } else {
           // It's a non-pattern head, so no variables can be joined.
@@ -7870,9 +7872,12 @@ class BodyBuilder extends StackListenerImpl
       exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
       enterLocalScope(switchCaseScope);
     }
+    push(jointPatternVariablesWithMismatchingFinality ??
+        NullValues.VariableDeclarationList);
     push(jointPatternVariables ?? NullValues.VariableDeclarationList);
 
     assert(checkState(firstToken, [
+      ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
@@ -7959,6 +7964,7 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(firstToken, [
       ...repeatedKind(ValueKinds.Statement, statementCount),
       ValueKinds.VariableDeclarationListOrNull,
+      ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.Bool,
@@ -7969,6 +7975,8 @@ class BodyBuilder extends StackListenerImpl
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, firstToken, null);
     List<VariableDeclaration>? jointPatternVariables =
+        pop() as List<VariableDeclaration>?;
+    List<VariableDeclaration>? jointPatternVariablesWithMismatchingFinality =
         pop() as List<VariableDeclaration>?;
 
     if (jointPatternVariables != null) {
@@ -7987,6 +7995,20 @@ class BodyBuilder extends StackListenerImpl
         }
       }
       jointPatternVariables = usedJointPatternVariables;
+    }
+    if (jointPatternVariables != null &&
+        jointPatternVariablesWithMismatchingFinality != null) {
+      for (VariableDeclaration jointVariable in jointPatternVariables) {
+        if (jointPatternVariablesWithMismatchingFinality
+            .contains(jointVariable)) {
+          String jointVariableName = jointVariable.name!;
+          addProblem(
+              fasta.templateJointPatternVariablesMismatch
+                  .withArguments(jointVariableName),
+              jointVariable.fileOffset,
+              jointVariableName.length);
+        }
+      }
     }
 
     exitLocalScope(expectedScopeKinds: const [

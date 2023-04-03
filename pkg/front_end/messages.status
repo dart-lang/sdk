@@ -564,6 +564,7 @@ InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
+JointPatternVariablesMismatch/analyzerCode: Fail
 JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler specific
 JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
@@ -868,8 +869,8 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
-RestPatternMoreThanOne/analyzerCode: Fail
 RestPatternInMapPattern/analyzerCode: Fail
+RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail
@@ -1004,7 +1005,6 @@ VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
-VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/example: Fail
 WeakReferenceNotOneArgument/analyzerCode: Fail

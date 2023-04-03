@@ -6384,8 +6384,8 @@ UnspecifiedGetterNameInObjectPattern:
     abstract class A { int get foo;}
     test(dynamic x) { if (x case A(: 0)) {} }
 
-VariablePatternTypeMismatchInSwitchHeads:
-  problemMessage: "Variable pattern '#name' doesn't have the same type in all cases."
+JointPatternVariablesMismatch:
+  problemMessage: "Variable pattern '#name' doesn't have the same type or finality in all cases."
   experiments: patterns
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }

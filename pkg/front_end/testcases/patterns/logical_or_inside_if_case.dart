@@ -7,7 +7,7 @@ test1(dynamic x) {
 }
 
 test2(dynamic x) {
-  if (x case [int y, var _] || [var _, String y]) {
+  if (x case [int y, var _] || [var _, String y]) { // Error
     return y;
   } else {
     return null;

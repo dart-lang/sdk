@@ -4,7 +4,7 @@
 
 test(dynamic x) {
   switch (x) {
-    case int as || [var as]:
+    case int as || [var as]: // Error
       break;
   }
 }
