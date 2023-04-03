@@ -8,7 +8,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_printer.dart' as printer;
-import '../completion_printer.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -361,17 +360,15 @@ mixin M {
   void _printKeywordsOrClass({
     String sampleClassName = 'Object',
   }) {
-    printerConfiguration
-      ..filter = (suggestion) {
-        final completion = suggestion.completion;
-        if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
-          return true;
-        } else if (completion == sampleClassName) {
-          return true;
-        }
-        return false;
+    printerConfiguration.filter = (suggestion) {
+      final completion = suggestion.completion;
+      if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
+        return true;
+      } else if (completion == sampleClassName) {
+        return true;
       }
-      ..sorting = Sorting.completion;
+      return false;
+    };
   }
 }
 

@@ -46,22 +46,22 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -85,22 +85,22 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -124,22 +124,22 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -163,22 +163,22 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');

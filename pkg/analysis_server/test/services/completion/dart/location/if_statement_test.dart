@@ -64,15 +64,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  false
+  const
     kind: keyword
-  true
+  false
     kind: keyword
   null
     kind: keyword
-  const
-    kind: keyword
   switch
+    kind: keyword
+  true
     kind: keyword
 ''');
   }
@@ -96,15 +96,15 @@ suggestions
 replacement
   left: 1
 suggestions
-  false
+  const
     kind: keyword
-  true
+  false
     kind: keyword
   null
     kind: keyword
-  const
-    kind: keyword
   switch
+    kind: keyword
+  true
     kind: keyword
 ''');
     }
@@ -133,15 +133,15 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
-  false
+  const
     kind: keyword
-  true
+  false
     kind: keyword
   null
     kind: keyword
-  const
-    kind: keyword
   switch
+    kind: keyword
+  true
     kind: keyword
 ''');
   }

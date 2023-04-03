@@ -49,9 +49,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -76,9 +76,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -103,9 +103,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -130,9 +130,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }

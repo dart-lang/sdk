@@ -40,8 +40,8 @@ void f(Map<String, int> m1) {
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   m1
@@ -50,8 +50,8 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  const
-    kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -67,8 +67,8 @@ void f(Map<String, int> m1) {
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   m1
@@ -77,8 +77,8 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  const
-    kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -96,18 +96,18 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -125,18 +125,18 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -154,18 +154,18 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -196,18 +196,18 @@ replacement
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
     }
   }
@@ -226,18 +226,18 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -268,18 +268,18 @@ replacement
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
     }
   }
@@ -298,22 +298,22 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
+  final
+    kind: keyword
   null
+    kind: keyword
+  o1
+    kind: parameter
+  switch
     kind: keyword
   true
     kind: keyword
   v1
     kind: localVariable
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
-  switch
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -346,22 +346,22 @@ replacement
 suggestions
   c1
     kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
+  final
+    kind: keyword
   null
+    kind: keyword
+  o1
+    kind: parameter
+  switch
     kind: keyword
   true
     kind: keyword
   v1
     kind: localVariable
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
-  switch
-    kind: keyword
   var
     kind: keyword
 ''');
