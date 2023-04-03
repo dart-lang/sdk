@@ -3149,9 +3149,7 @@ WarningCode.UNNECESSARY_TYPE_CHECK_FALSE:
 WarningCode.UNNECESSARY_TYPE_CHECK_TRUE:
   status: hasFix
 WarningCode.UNNECESSARY_WILDCARD_PATTERN:
-  status: needsFix
-  notes: |-
-    The fix is to remove the wildcard pattern and the `&&` operator.
+  status: hasFix
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:

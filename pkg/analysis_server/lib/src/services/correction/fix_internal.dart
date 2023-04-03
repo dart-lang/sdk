@@ -162,6 +162,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_wildcard_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -1630,6 +1631,9 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNNECESSARY_TYPE_CHECK_TRUE: [
       RemoveComparison.typeCheck,
+    ],
+    WarningCode.UNNECESSARY_WILDCARD_PATTERN: [
+      RemoveUnnecessaryWildcardPattern.new,
     ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,

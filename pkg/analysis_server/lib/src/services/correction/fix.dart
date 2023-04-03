@@ -1368,6 +1368,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary string interpolations in file',
   );
+  static const REMOVE_UNNECESSARY_WILDCARD_PATTERN = FixKind(
+    'dart.fix.remove.unnecessaryWildcardPattern',
+    DartFixKindPriority.DEFAULT,
+    'Remove unnecessary wildcard pattern',
+  );
+  static const REMOVE_UNNECESSARY_WILDCARD_PATTERN_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryWildcardPattern.multi',
+    DartFixKindPriority.DEFAULT,
+    'Remove all unnecessary wildcard pattern in file',
+  );
   static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
     'dart.fix.remove.unusedCatchClause',
     DartFixKindPriority.DEFAULT,
