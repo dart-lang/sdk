@@ -20,7 +20,7 @@ class ReplaceEmptyMapPatternWithAnyTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.MATCH_ANY_MAP;
 
-  Future<void> test_ifCase() async {
+  Future<void> test_ifCase_withoutTypeArgs() async {
     await resolveTestCode('''
 void f(Object x) {
   if (x case {}) {
@@ -31,6 +31,23 @@ void f(Object x) {
     await assertHasFix('''
 void f(Object x) {
   if (x case Map()) {
+    return;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCase_withTypeArgs() async {
+    await resolveTestCode('''
+void f(Object x) {
+  if (x case <int, int>{}) {
+    return;
+  }
+}
+''');
+    await assertHasFix('''
+void f(Object x) {
+  if (x case Map<int, int>()) {
     return;
   }
 }
@@ -77,7 +94,7 @@ void f(Object x) {
 ''');
   }
 
-  Future<void> test_switchStatement() async {
+  Future<void> test_switchStatement_withoutTypeArgs() async {
     await resolveTestCode('''
 void f(Object x) {
   switch (x) {
@@ -89,6 +106,23 @@ void f(Object x) {
 void f(Object x) {
   switch (x) {
     case Map(isEmpty: true): return;
+  }
+}
+''');
+  }
+
+  Future<void> test_switchStatement_withTypeArgs() async {
+    await resolveTestCode('''
+void f(Object x) {
+  switch (x) {
+    case <int, int>{}: return;
+  }
+}
+''');
+    await assertHasFix('''
+void f(Object x) {
+  switch (x) {
+    case Map<int, int>(isEmpty: true): return;
   }
 }
 ''');
