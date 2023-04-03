@@ -1,5 +1,0 @@
-name: sample_project
-dependencies:
-  public_dep: any
-dev_dependencies:
-  private_dep: any

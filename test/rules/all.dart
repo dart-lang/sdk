@@ -39,6 +39,8 @@ import 'conditional_uri_does_not_exist_test.dart'
 import 'constant_identifier_names_test.dart' as constant_identifier_names;
 import 'dangling_library_doc_comments_test.dart'
     as dangling_library_doc_comments;
+import 'depend_on_referenced_packages_test.dart'
+    as depend_on_referenced_packages;
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'deprecated_member_use_from_same_package_test.dart'
     as deprecated_member_use_from_same_package;
@@ -161,6 +163,7 @@ void main() {
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
   dangling_library_doc_comments.main();
+  depend_on_referenced_packages.main();
   deprecated_consistency.main();
   deprecated_member_use_from_same_package.main();
   directives_ordering.main();

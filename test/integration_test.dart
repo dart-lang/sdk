@@ -18,8 +18,6 @@ import 'integration/always_require_non_null_named_parameters.dart'
 import 'integration/avoid_web_libraries_in_flutter.dart'
     as avoid_web_libraries_in_flutter;
 import 'integration/close_sinks.dart' as close_sinks;
-import 'integration/depend_on_referenced_packages.dart'
-    as depend_on_referenced_packages;
 import 'integration/exhaustive_cases.dart' as exhaustive_cases;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
@@ -153,7 +151,6 @@ void ruleTests() {
     exhaustive_cases.main();
     avoid_web_libraries_in_flutter.main();
     close_sinks.main();
-    depend_on_referenced_packages.main();
     always_require_non_null_named_parameters.main();
     prefer_const_constructors_in_immutables.main();
     public_member_api_docs.main();
