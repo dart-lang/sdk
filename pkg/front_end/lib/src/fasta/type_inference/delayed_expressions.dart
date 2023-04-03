@@ -852,11 +852,11 @@ class DelayedExtensionInvocation implements DelayedExpression {
   final Procedure _target;
   final List<DelayedExpression> _arguments;
   final List<DartType> _typeArguments;
-  final FunctionType _functionType;
+  final DartType _resultType;
   final int fileOffset;
 
   DelayedExtensionInvocation(
-      this._target, this._arguments, this._typeArguments, this._functionType,
+      this._target, this._arguments, this._typeArguments, this._resultType,
       {required this.fileOffset});
 
   @override
@@ -875,7 +875,7 @@ class DelayedExtensionInvocation implements DelayedExpression {
 
   @override
   DartType getType(TypeEnvironment typeEnvironment) {
-    return _functionType.returnType;
+    return _resultType;
   }
 
   @override

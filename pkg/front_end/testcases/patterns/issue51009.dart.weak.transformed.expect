@@ -12,7 +12,7 @@ static method main() → void {
   {
     final synthesized dynamic #0#0 = new core::Object::•() as{ForNonNullableByDefault} dynamic;
     {
-      hoisted dynamic x;
+      hoisted core::int x;
       if(#0#0 is{ForNonNullableByDefault} core::Object && (let final core::int #t1 = x = self::_extension#0|get#q(#0#0{core::Object}) in true)) {
         {
           core::print(x);
