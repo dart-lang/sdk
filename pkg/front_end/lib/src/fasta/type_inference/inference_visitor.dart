@@ -10342,18 +10342,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.needsCheck = _needsCheck(
         matchedType: matchedValueType, requiredType: node.requiredType);
 
-    DartType lookupType;
     if (node.needsCheck) {
-      lookupType = node.lookupType = node.requiredType;
+      node.lookupType = node.requiredType;
     } else {
-      lookupType = node.lookupType = matchedValueType;
+      node.lookupType = matchedValueType;
     }
 
     for (NamedPattern field in node.fields) {
       field.fieldName = new Name(field.name, libraryBuilder.library);
 
       ObjectAccessTarget fieldTarget = findInterfaceMember(
-          lookupType, field.fieldName, field.fileOffset,
+          node.requiredType, field.fieldName, field.fileOffset,
           includeExtensionMethods: true,
           callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
@@ -10369,11 +10368,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           field.accessKind = ObjectAccessKind.Object;
           break;
         case ObjectAccessTargetKind.recordNamed:
-          field.recordType = lookupType.resolveTypeParameterType as RecordType;
+          field.recordType =
+              node.requiredType.resolveTypeParameterType as RecordType;
           field.accessKind = ObjectAccessKind.RecordNamed;
           break;
         case ObjectAccessTargetKind.recordIndexed:
-          field.recordType = lookupType.resolveTypeParameterType as RecordType;
+          field.recordType =
+              node.requiredType.resolveTypeParameterType as RecordType;
           field.accessKind = ObjectAccessKind.RecordIndexed;
           field.recordFieldIndex = fieldTarget.recordFieldIndex!;
           break;
@@ -10387,7 +10388,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.ambiguous:
           field.pattern = new InvalidPattern(
               createMissingPropertyGet(
-                  field.fileOffset, lookupType, field.fieldName),
+                  field.fileOffset, node.requiredType, field.fieldName),
               declaredVariables: field.pattern.declaredVariables)
             ..fileOffset = field.fileOffset
             ..parent = field;
@@ -10407,7 +10408,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.extensionMember:
         case ObjectAccessTargetKind.inlineClassMember:
           field.accessKind = ObjectAccessKind.Static;
-          field.functionType = fieldTarget.getFunctionType(this);
+          field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
           field.target = fieldTarget.member;
           break;
@@ -10995,12 +10996,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required shared.RecordPatternField<TreeNode, Pattern> field,
   }) {
     String fieldName = field.name!;
-    ObjectAccessTarget fieldAccessTarget = findInterfaceMember(
-        receiverType,
-        new Name(fieldName,
-            fieldName.startsWith("_") ? libraryBuilder.library : null),
-        field.pattern.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    ObjectAccessTarget fieldAccessTarget = findInterfaceMember(receiverType,
+        new Name(fieldName, libraryBuilder.library), field.pattern.fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation,
+        includeExtensionMethods: true);
     return fieldAccessTarget.getGetterType(this);
   }
 

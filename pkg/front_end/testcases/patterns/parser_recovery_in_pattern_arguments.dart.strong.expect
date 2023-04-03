@@ -28,7 +28,7 @@ class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstr
 static method foo() → core::Map<self::C<core::String>, core::int>
   return throw 0;
 static method test() → dynamic {
-  hoisted core::int a1;
+  hoisted has-declared-initializer core::int a1;
   {
     final synthesized dynamic #0#0 = self::foo();
     final const synthesized invalid-type #0#1 = invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.

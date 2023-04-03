@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method f(dynamic x) → dynamic {
-  hoisted dynamic a;
+  hoisted has-declared-initializer dynamic a;
   {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>;
     late final synthesized dynamic #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};

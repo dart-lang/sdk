@@ -583,6 +583,10 @@ class ObjectPattern extends Pattern {
   ///
   /// This is the type the matched expression is checked against, if the
   /// [matchedValueType] is not already a subtype of [requiredType].
+  ///
+  /// This is the type on which pattern accesses from [fields] are looked up.
+  ///
+  /// This is set during inference.
   DartType requiredType;
 
   final List<NamedPattern> fields;
@@ -602,9 +606,8 @@ class ObjectPattern extends Pattern {
   /// [requiredType] or the [matchedValueType] if it is a subtype of
   /// [requiredType].
   ///
-  /// This is the type on which pattern accesses from [fields] are looked up.
-  ///
   /// This is set during inference.
+  // TODO(johnniwinther): Remove this field. It is no longer used.
   DartType? lookupType;
 
   ObjectPattern(this.requiredType, this.fields) {
@@ -1079,8 +1082,8 @@ class NamedPattern extends Pattern {
   /// When used in an object pattern, this holds the static property type for
   /// this pattern.
   ///
-  /// This is used for [ObjectAccessKind.Object] and
-  /// [ObjectAccessKind.Instance].
+  /// This is used for [ObjectAccessKind.Object], [ObjectAccessKind.Instance],
+  /// and [ObjectAccessKind.Static].
   ///
   /// This is set during inference.
   DartType? resultType;
@@ -1105,9 +1108,8 @@ class NamedPattern extends Pattern {
   /// When used in an object pattern, this holds the function type of [target]
   /// called to read the property for this pattern.
   ///
-  /// This is used for [ObjectAccessKind.Static].
-  ///
   /// This is set during inference.
+  // TODO(johnniwinther): Remove this. This is no longer used.
   FunctionType? functionType;
 
   /// When used in an object pattern, this holds the type arguments used when

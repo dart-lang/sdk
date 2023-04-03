@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 static method method() → dynamic {
-  hoisted core::double v1;
-  hoisted core::num v2;
+  hoisted has-declared-initializer core::double v1;
+  hoisted has-declared-initializer core::num v2;
   {
     final synthesized dynamic #0#0 = core::_GrowableList::_literal1<core::double>(42.0);
     function ##0#3#initializer() → core::bool

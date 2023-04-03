@@ -8,7 +8,7 @@ class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstr
     ;
 }
 static method main() → void {
-  hoisted core::int a1;
+  hoisted has-declared-initializer core::int a1;
   {
     final synthesized dynamic #0#0 = <self::C<core::String>, core::int>{#C1: 1};
     function ##0#3#initializer() → core::int?

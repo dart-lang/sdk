@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 static method guard() → dynamic
   return true;
 static method main() → dynamic {
-  hoisted core::int a;
+  hoisted has-declared-initializer core::int a;
   {
     final synthesized dynamic #0#0 = core::_GrowableList::_literal1<core::int>(5);
     if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))

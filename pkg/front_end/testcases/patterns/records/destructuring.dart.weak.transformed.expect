@@ -11,8 +11,8 @@ static method getLocation(core::String name) → (core::double, core::double) {
   }
 }
 static method main(core::List<core::String> arguments) → void {
-  final hoisted core::double lat;
-  final hoisted core::double long;
+  final hoisted has-declared-initializer core::double lat;
+  final hoisted has-declared-initializer core::double long;
   {
     final synthesized dynamic #0#0 = self::getLocation("Aarhus");
     if(!((let final core::double #t1 = lat = #0#0{(core::double, core::double)}.$1{core::double} in true) && (let final core::double #t2 = long = #0#0{(core::double, core::double)}.$2{core::double} in true)))

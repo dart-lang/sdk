@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 static method f(dynamic x) → dynamic {
-  final hoisted invalid-type a;
+  final hoisted has-declared-initializer invalid-type a;
   {
     final synthesized dynamic #0#0 = x;
     if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))

@@ -133,7 +133,7 @@ static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class
   }
 }
 static method patternTypeMismatchInIrrefutableContext(core::List<core::String> list) → dynamic {
-  core::int a;
+  has-declared-initializer core::int a;
   {
     final synthesized dynamic #0#0 = list;
     if(!invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:26:12: Error: The matched value of type 'List<String>' isn't assignable to the required type 'List<int>'.
@@ -220,7 +220,7 @@ Try changing the condition.
   }
 }
 static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
-  hoisted core::int a;
+  hoisted has-declared-initializer core::int a;
   {
     final synthesized dynamic #0#0 = x;
     if(!(!(#0#0 == null) ?{core::bool} let final core::int #t7 = a = #0#0{core::int} in true : false))

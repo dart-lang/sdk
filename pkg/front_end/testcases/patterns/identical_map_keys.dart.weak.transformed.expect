@@ -407,8 +407,8 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
   }
 }
 static method test() → dynamic {
-  hoisted core::int a;
-  hoisted core::int b;
+  hoisted has-declared-initializer core::int a;
+  hoisted has-declared-initializer core::int b;
   {
     final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
     function ##0#2#initializer() → core::bool
@@ -420,8 +420,8 @@ static method test() → dynamic {
     if(!(#0#2 && (let final core::int #t20 = a = #0#3{core::int} in true) && #0#2 && (let final core::int #t21 = b = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  hoisted core::int c;
-  hoisted core::int d;
+  hoisted has-declared-initializer core::int c;
+  hoisted has-declared-initializer core::int d;
   {
     final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
     function ##1#2#initializer() → core::bool
@@ -433,8 +433,8 @@ static method test() → dynamic {
     if(!(#1#2 && (let final core::int #t22 = c = #1#3{core::int} in true) && #1#2 && (let final core::int #t23 = d = #1#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted core::int a1;
-  final hoisted core::int b1;
+  final hoisted has-declared-initializer core::int a1;
+  final hoisted has-declared-initializer core::int b1;
   {
     final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
     function ##2#2#initializer() → core::bool
@@ -446,8 +446,8 @@ static method test() → dynamic {
     if(!(#2#2 && (let final core::int #t24 = a1 = #2#3{core::int} in true) && #2#2 && (let final core::int #t25 = b1 = #2#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted core::int a2;
-  final hoisted core::int b2;
+  final hoisted has-declared-initializer core::int a2;
+  final hoisted has-declared-initializer core::int b2;
   {
     final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
     function ##3#2#initializer() → core::bool
@@ -459,8 +459,8 @@ static method test() → dynamic {
     if(!(#3#2 && (let final core::int #t26 = a2 = #3#3{core::int} in true) && #3#2 && (let final core::int #t27 = b2 = #3#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted core::int a3;
-  final hoisted core::int b3;
+  final hoisted has-declared-initializer core::int a3;
+  final hoisted has-declared-initializer core::int b3;
   {
     final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
     function ##4#2#initializer() → core::bool

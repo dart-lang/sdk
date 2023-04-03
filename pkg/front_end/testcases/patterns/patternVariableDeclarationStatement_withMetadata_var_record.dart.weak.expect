@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static const field core::int annotation = #C1;
 static method f(dynamic x) → dynamic {
-  hoisted dynamic a;
+  hoisted has-declared-initializer dynamic a;
   {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} (dynamic);
     if(!(#0#0 is{ForNonNullableByDefault} (core::Object?) && (let final dynamic #t1 = a = #0#0{(core::Object?)}.$1{core::Object?} in true)))

@@ -9398,6 +9398,7 @@ class BodyBuilder extends StackListenerImpl
     bool isFinal = keyword.lexeme == 'final';
     for (VariableDeclaration variable in pattern.declaredVariables) {
       variable.isFinal = isFinal;
+      variable.hasDeclaredInitializer = true;
       declareVariable(variable, scope);
       typeInferrer.assignedVariables.declare(variable);
     }

@@ -423,11 +423,8 @@ class MatchingExpressionVisitor
               isObjectAccess: false, fileOffset: field.fileOffset);
           break;
         case ObjectAccessKind.Static:
-          expression = new DelayedExtensionInvocation(
-              field.target as Procedure,
-              [typedMatchedExpression],
-              field.typeArguments!,
-              field.functionType!,
+          expression = new DelayedExtensionInvocation(field.target as Procedure,
+              [typedMatchedExpression], field.typeArguments!, field.resultType!,
               fileOffset: field.fileOffset);
           staticTarget = field.target;
           break;
@@ -461,7 +458,7 @@ class MatchingExpressionVisitor
           break;
         case ObjectAccessKind.FunctionTearOff:
           expression = new DelayedFunctionTearOff(
-              typedMatchedExpression, node.lookupType!,
+              typedMatchedExpression, node.requiredType,
               fileOffset: field.fileOffset);
           break;
         case ObjectAccessKind.Error:
@@ -616,7 +613,7 @@ class MatchingExpressionVisitor
                       isImplicit: true, fileOffset: node.fileOffset)
                 ],
                 node.typeArguments!,
-                functionType,
+                functionType.returnType,
                 fileOffset: node.fileOffset);
             staticTarget = node.target;
             break;

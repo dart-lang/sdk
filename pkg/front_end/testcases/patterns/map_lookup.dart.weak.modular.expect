@@ -125,8 +125,8 @@ static method main() → dynamic {
   self::expect("match-3", self::test2(map));
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
   map.{self::MyMap::clearLog}(){() → void};
-  hoisted core::int x1;
-  hoisted core::int x2;
+  hoisted has-declared-initializer core::int x1;
+  hoisted has-declared-initializer core::int x2;
   {
     final synthesized dynamic #0#0 = map;
     if(!(#0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool} && (let final dynamic #t2 = x1 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int in true) && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final dynamic #t3 = x2 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int in true)))
@@ -134,8 +134,8 @@ static method main() → dynamic {
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
   map.{self::MyMap::clearLog}(){() → void};
-  final hoisted core::int y1;
-  final hoisted core::int y2;
+  final hoisted has-declared-initializer core::int y1;
+  final hoisted has-declared-initializer core::int y2;
   {
     final synthesized dynamic #1#0 = map;
     if(!(#1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool} && (let final dynamic #t4 = y1 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int in true) && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final dynamic #t5 = y2 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int in true)))
