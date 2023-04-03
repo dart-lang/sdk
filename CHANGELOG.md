@@ -194,6 +194,19 @@
 
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
+- The compile time flag `--nativeNonNullAsserts`, which ensures web library APIs
+are sound in their nullability, is by default set to true in sound mode. For
+more information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
+
+[NATIVE_NULL_ASSERTIONS.md]: https://github.com/dart-lang/sdk/blob/main/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
+
+#### dart2js
+- The compile time flag `--native-null-assertions`, which ensures web library
+APIs are sound in their nullability, is by default set to true in sound mode,
+unless `-O3` or higher is passed, in which case they are not checked. For more
+information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
+
+[NATIVE_NULL_ASSERTIONS.md]: https://github.com/dart-lang/sdk/blob/main/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
 
 #### Dart2js
 
