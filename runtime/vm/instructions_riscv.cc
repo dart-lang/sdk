@@ -399,21 +399,11 @@ bool PcRelativeTailCallPattern::IsValid() const {
 }
 
 void PcRelativeTrampolineJumpPattern::Initialize() {
-  UNREACHABLE();
-}
-
-int32_t PcRelativeTrampolineJumpPattern::distance() {
-  UNREACHABLE();
-  return 0;
-}
-
-void PcRelativeTrampolineJumpPattern::set_distance(int32_t distance) {
-  UNREACHABLE();
-}
-
-bool PcRelativeTrampolineJumpPattern::IsValid() const {
-  UNREACHABLE();
-  return false;
+  StoreUnaligned(reinterpret_cast<uint32_t*>(pc_),
+                 EncodeOpcode(AUIPC) | EncodeRd(TMP) | EncodeUTypeImm(0));
+  StoreUnaligned(reinterpret_cast<uint32_t*>(pc_ + 4),
+                 EncodeOpcode(JALR) | EncodeFunct3(F3_0) | EncodeRd(ZR) |
+                     EncodeRs1(TMP) | EncodeITypeImm(0));
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
