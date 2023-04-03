@@ -1364,7 +1364,7 @@ void KernelLoader::LoadClass(const Library& library,
                     /*is_invisible_function=*/nullptr, &is_isolate_unsendable,
                     &has_pragma_annotation);
   if (is_isolate_unsendable) {
-    out_class->set_is_isolate_unsendable(true);
+    out_class->set_is_isolate_unsendable_due_to_pragma(true);
   }
   if (has_pragma_annotation) {
     out_class->set_has_pragma(true);

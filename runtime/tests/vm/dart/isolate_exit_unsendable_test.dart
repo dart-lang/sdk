@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 import 'dart:isolate';
+import 'dart:nativewrappers';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -14,8 +15,17 @@ class ExtendsLocked extends Locked {}
 
 class ImplementsLocked implements Locked {}
 
+class MockNativeClass implements NativeFieldWrapperClass1 {}
+
 main() async {
   asyncStart();
+
+  // Implementing (rather than extending) NativeFieldWrapperClassN doesn't
+  // prevent sending across isolates
+  // TODO(http://dartbug.com/51896): Remove this once it's no longer possible to
+  // implement NativeFieldWrapperClassN.
+  await Isolate.run(() => MockNativeClass());
+
   final rpExit = ReceivePort();
   final rpError = RawReceivePort((e) {
     Expect.fail('Spawned isolated failed with $e');

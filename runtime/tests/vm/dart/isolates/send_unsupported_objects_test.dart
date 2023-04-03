@@ -3,14 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:nativewrappers';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-
-import 'send_unsupported_objects_init_isolate_test.dart';
 
 class Foo {
   int i = 42;
@@ -21,6 +18,8 @@ class Bar {
 }
 
 base class NativeClass extends NativeFieldWrapperClass1 {}
+
+class MockNativeClass implements NativeFieldWrapperClass1 {}
 
 class Baz {
   @pragma('vm:entry-point') // prevent tree-shaking of the field.
@@ -46,6 +45,12 @@ class ExtendsLocked extends Locked {}
 
 class ImplementsLocked implements Locked {}
 
+Future<T> sendAndReceive<T>(T object) async {
+  final rp = ReceivePort();
+  rp.sendPort.send(object);
+  return await rp.first;
+}
+
 bool checkForRetainingPath(Object? e, List<String> list) {
   if (e is! ArgumentError) {
     return false;
@@ -56,6 +61,13 @@ bool checkForRetainingPath(Object? e, List<String> list) {
 
 main() async {
   asyncStart();
+
+  // Implementing (rather than extending) NativeFieldWrapperClassN doesn't
+  // prevent sending across isolates
+  // TODO(http://dartbug.com/51896): Remove this once it's no longer possible to
+  // implement NativeFieldWrapperClassN.
+  await sendAndReceive(MockNativeClass());
+
   final rp = ReceivePort();
 
   for (final pair in [

@@ -3154,6 +3154,12 @@ void Class::set_is_isolate_unsendable(bool value) const {
   set_state_bits(IsIsolateUnsendableBit::update(value, state_bits()));
 }
 
+void Class::set_is_isolate_unsendable_due_to_pragma(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(
+      IsIsolateUnsendableDueToPragmaBit::update(value, state_bits()));
+}
+
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
   if (Object::empty_array().ptr() == Array::null()) {
@@ -3652,7 +3658,11 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     // We should never call CalculateFieldOffsets for native wrapper
     // classes, assert this.
     ASSERT(num_native_fields() == 0);
-    set_num_native_fields(super.num_native_fields());
+    const intptr_t num_native_fields = super.num_native_fields();
+    set_num_native_fields(num_native_fields);
+    if (num_native_fields > 0 || is_isolate_unsendable_due_to_pragma()) {
+      set_is_isolate_unsendable(true);
+    }
 
     host_bitmap = IsolateGroup::Current()->class_table()->GetUnboxedFieldsMapAt(
         super.id());
