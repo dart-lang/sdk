@@ -237,7 +237,7 @@ extension Extension on core::int {
 }
 static field core::int NonType = 0;
 static method testUnresolved(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -294,7 +294,7 @@ static method testUnresolved(dynamic o) → dynamic {
   } =>#t5;
 }
 static method testNonType(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -351,7 +351,7 @@ static method testNonType(dynamic o) → dynamic {
   } =>#t11;
 }
 static method testExtension(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -408,7 +408,7 @@ static method testExtension(dynamic o) → dynamic {
   } =>#t17;
 }
 static method testPrefixedUnresolved(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -465,7 +465,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   } =>#t23;
 }
 static method testPrefixedNonType(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -522,7 +522,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
   } =>#t29;
 }
 static method testPrefixedExtension(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -579,7 +579,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
   } =>#t35;
 }
 static method testUnresolvedPrefix(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type
@@ -636,7 +636,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
   } =>#t41;
 }
 static method testMemberAccess(dynamic o) → dynamic {
-  hoisted core::int field;
+  hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → invalid-type

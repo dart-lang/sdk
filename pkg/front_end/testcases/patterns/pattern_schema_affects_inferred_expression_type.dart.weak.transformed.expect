@@ -25,7 +25,7 @@ class A extends core::Object {
 static method foo<T extends core::Object? = dynamic>((self::foo::T%) → void f) → core::List<self::foo::T%>
   return throw 0;
 static method test1() → dynamic {
-  hoisted self::A x;
+  hoisted has-declared-initializer self::A x;
   {
     final synthesized dynamic #0#0 = self::foo<self::A>((self::A a) → void => a.{self::A::foo}{core::int});
     if(!(#0#0{core::List<self::A>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final self::A #t1 = x = #0#0{core::List<self::A>}.{core::List::[]}(0){(core::int) → self::A} in true)))
@@ -33,8 +33,8 @@ static method test1() → dynamic {
   }
 }
 static method test2() → dynamic {
-  hoisted core::Object? x;
-  hoisted core::List<core::Object?> y;
+  hoisted has-declared-initializer core::Object? x;
+  hoisted has-declared-initializer core::List<core::Object?> y;
   {
     final synthesized dynamic #0#0 = self::foo<core::Object?>((core::Object? e) → void => e);
     if(!(#0#0{core::List<core::Object?>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::Object? #t2 = x = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true) && (let final core::List<core::Object?> #t3 = y = #0#0{core::List<core::Object?>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::Object?>} in true)))

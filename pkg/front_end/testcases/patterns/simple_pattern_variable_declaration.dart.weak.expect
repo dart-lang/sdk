@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
-  hoisted core::int y;
+  hoisted has-declared-initializer core::int y;
   {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
     late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
@@ -13,8 +13,8 @@ static method test1(dynamic x) → dynamic {
   return y;
 }
 static method test2(dynamic x) → dynamic {
-  hoisted core::String a;
-  hoisted core::String b;
+  hoisted has-declared-initializer core::String a;
+  hoisted has-declared-initializer core::String b;
   {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::String>;
     late final synthesized core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
