@@ -3940,7 +3940,7 @@ CompileTimeErrorCode:
 
       ```dart
       void f(Object o) {
-        switch (0) {
+        switch (o) {
           case C(f: 1, [!f!]: 2):
             return;
         }
@@ -23671,6 +23671,13 @@ WarningCode:
       A setter with the override annotation does not override an existing setter.
 
       No parameters.
+  PATTERN_NEVER_MATCHES_VALUE_TYPE:
+    problemMessage: "The matched value type '{0}' can never match the required type '{1}'."
+    correctionMessage: "Try using a different pattern."
+    comment: |-
+      Parameters:
+      0: the matched value type
+      1: the required pattern type
   RECEIVER_OF_TYPE_NEVER:
     problemMessage: "The receiver is of type 'Never', and will never complete with a value."
     correctionMessage: Try checking for throw expressions or type errors in the receiver

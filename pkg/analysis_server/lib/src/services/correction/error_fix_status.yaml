@@ -3038,6 +3038,8 @@ WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
   status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
   status: hasFix
+WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE:
+  status: noFix
 WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-

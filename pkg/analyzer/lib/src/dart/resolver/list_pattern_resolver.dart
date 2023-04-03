@@ -30,10 +30,15 @@ class ListPatternResolver {
       }
     }
 
-    node.requiredType = resolverVisitor
-        .analyzeListPattern(context, node,
-            elementType: typeArguments?.arguments.first.typeOrThrow,
-            elements: node.elements)
-        .requiredType;
+    final result = resolverVisitor.analyzeListPattern(context, node,
+        elementType: typeArguments?.arguments.first.typeOrThrow,
+        elements: node.elements);
+    node.requiredType = result.requiredType;
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: node,
+      requiredType: result.requiredType,
+    );
   }
 }

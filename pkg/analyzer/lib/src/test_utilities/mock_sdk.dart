@@ -291,8 +291,7 @@ class ArgumentError extends Error {
   static T checkNotNull<T>(T argument, [String, name]) => argument;
 }
 
-// In the SDK this is an abstract class.
-class BigInt implements Comparable<BigInt> {
+abstract final class BigInt implements Comparable<BigInt> {
   int compareTo(BigInt other) => 0;
   static BigInt parse(String source, {int? radix}) => throw 0;
 }
