@@ -73,6 +73,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_wildcard_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
@@ -675,6 +676,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.type_init_formals: [
       RemoveTypeAnnotation.new,
+    ],
+    LintNames.type_literal_in_constant_pattern: [
+      ConvertToWildcardPattern.new,
     ],
     LintNames.unawaited_futures: [
       AddAwait.unawaited,

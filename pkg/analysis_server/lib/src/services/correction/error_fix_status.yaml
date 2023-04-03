@@ -2107,10 +2107,7 @@ LintCode.type_annotate_public_apis:
 LintCode.type_init_formals:
   status: hasFix
 LintCode.type_literal_in_constant_pattern:
-  status: needsFix
-  notes: |-
-    The fix is to either compare with the `Type` or to use the type as a pattern
-    (such as `int _`).
+  status: hasFix
 LintCode.unawaited_futures:
   status: hasFix
 LintCode.unnecessary_await_in_return:

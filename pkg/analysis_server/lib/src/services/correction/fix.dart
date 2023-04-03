@@ -643,6 +643,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Convert to using 'whereType' everywhere in file",
   );
+  static const CONVERT_TO_WILDCARD_PATTERN = FixKind(
+    'dart.fix.convert.toWildcardPattern',
+    DartFixKindPriority.DEFAULT,
+    "Convert to wildcard pattern",
+  );
+  static const CONVERT_TO_WILDCARD_PATTERN_MULTI = FixKind(
+    'dart.fix.convert.toWildcardPattern.multi',
+    DartFixKindPriority.DEFAULT,
+    "Convert to wildcard pattern everywhere in file",
+  );
   static const CREATE_CLASS = FixKind(
     'dart.fix.create.class',
     DartFixKindPriority.DEFAULT,
