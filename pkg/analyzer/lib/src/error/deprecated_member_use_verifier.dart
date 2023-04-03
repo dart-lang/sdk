@@ -183,13 +183,12 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
     String displayName = element!.displayName;
     if (element is ConstructorElement) {
-      // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
+      // TODO(jwren) We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName = element.enclosingElement.displayName;
-      if (element.displayName.isNotEmpty) {
-        displayName = "$displayName.${element.displayName}";
-      }
+      displayName = element.name == ''
+          ? '${element.displayName}.new'
+          : element.displayName;
     } else if (element is LibraryElement) {
       displayName = element.definingCompilationUnit.source.uri.toString();
     } else if (node is MethodInvocation &&

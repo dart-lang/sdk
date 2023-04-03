@@ -9968,7 +9968,6 @@ class Parser {
           break;
         }
 
-        // TODO(paulberry): test this error recovery logic
         // Recovery
         if (!looksLikeLiteralEntry(next)) {
           if (beginToken.endGroup!.isSynthetic) {
@@ -10028,7 +10027,6 @@ class Parser {
         token = parseExpression(token);
         Token colon = token.next!;
         if (!optional(':', colon)) {
-          // TODO(paulberry): test this error recovery logic
           // Recover from a missing colon by inserting one.
           colon = rewriteAndRecover(
               token,
@@ -10051,7 +10049,6 @@ class Parser {
       }
 
       if (comma == null) {
-        // TODO(paulberry): test this error recovery logic
         // Recovery
         if (looksLikeLiteralEntry(next)) {
           // If this looks like the start of an expression,
@@ -10098,14 +10095,12 @@ class Parser {
         break;
       }
       Token? colon = null;
-      // TODO(paulberry): test error recovery
       if (optional(':', next)) {
         wasRecord = true;
         wasValidRecord = true;
         listener.handleNoName(token);
         colon = token = next;
-      } else if (optional(':', next.next!) || /* recovery */
-          optional(':', next)) {
+      } else if (optional(':', next.next!)) {
         // Record with named expression.
         wasRecord = true;
         token = ensureIdentifier(
@@ -10122,8 +10117,6 @@ class Parser {
       }
       ++count;
       if (!optional(',', next)) {
-        // TODO(paulberry): make sure to test the error case where there's a
-        // colon but it's not a record.
         break;
       } else {
         // It is a comma, i.e. it's a record.
@@ -10189,7 +10182,6 @@ class Parser {
           token = next;
           break;
         }
-        // TODO(paulberry): test error recovery
         // Recovery
         if (looksLikeExpressionStart(next)) {
           // If this looks like the start of an expression,
@@ -10353,7 +10345,6 @@ class Parser {
         }
 
         if (comma == null) {
-          // TODO(paulberry): test this error recovery logic
           // Recovery
           if (looksLikePatternStart(next)) {
             // If this looks like the start of a pattern, then report an error,

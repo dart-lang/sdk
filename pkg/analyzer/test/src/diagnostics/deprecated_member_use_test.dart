@@ -795,8 +795,7 @@ f() {
           HintCode.DEPRECATED_MEMBER_USE,
           48,
           7,
-          // TODO(srawlins): Fix this message!
-          messageContains: ["'A.A.named' is deprecated and shouldn't be used."],
+          messageContains: ["'A.named' is deprecated and shouldn't be used."],
         ),
       ],
     );
@@ -1429,7 +1428,8 @@ class B extends A {
 }
 ''',
       [
-        error(HintCode.DEPRECATED_MEMBER_USE, 57, 13),
+        error(HintCode.DEPRECATED_MEMBER_USE, 57, 13,
+            text: "'A.named' is deprecated and shouldn't be used."),
       ],
     );
   }
@@ -1449,8 +1449,7 @@ class B extends A {
 ''',
       [
         error(HintCode.DEPRECATED_MEMBER_USE, 57, 7,
-            // TODO(srawlins): Correct this message!
-            text: "'A.A' is deprecated and shouldn't be used."),
+            text: "'A.new' is deprecated and shouldn't be used."),
       ],
     );
   }
