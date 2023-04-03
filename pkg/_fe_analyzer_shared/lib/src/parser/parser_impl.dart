@@ -9799,9 +9799,6 @@ class Parser {
         next = token.next!;
         if (next.isIdentifier) {
           secondIdentifier = token = next;
-          // TODO(paulberry): grammar specifies
-          // `typeIdentifier | qualifiedName`, but that permits `a.b.c`,
-          // which doesn't make sense.
         } else {
           secondIdentifier = IdentifierContext.expressionContinuation
               .ensureIdentifier(token, this);
