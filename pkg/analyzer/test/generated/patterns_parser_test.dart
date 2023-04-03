@@ -9237,6 +9237,46 @@ SwitchExpression
 ''');
   }
 
+  test_switchExpression_recovery_colonInsteadOfArrow() {
+    _parse('''
+f(x) => switch (x) {
+  1: 'one',
+  2: 'two'
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 36, 1),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      arrow: :
+      expression: SimpleStringLiteral
+        literal: 'one'
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 2
+      arrow: :
+      expression: SimpleStringLiteral
+        literal: 'two'
+  rightBracket: }
+''');
+  }
+
   test_switchExpression_recovery_missingComma() {
     // If the extra tokens after a switch case look like they could be a
     // pattern, the parser assumes there's a missing comma.

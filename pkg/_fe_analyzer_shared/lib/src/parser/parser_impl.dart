@@ -10325,7 +10325,16 @@ class Parser {
           when = token = next;
           token = parseExpression(token);
         }
-        Token arrow = token = ensureFunctionArrow(token);
+        Token arrow;
+        if (optional(':', next)) {
+          // User accidentally used `:` instead of `=>`
+          arrow = next;
+          reportRecoverableError(
+              arrow, codes.templateExpectedButGot.withArguments('=>'));
+        } else {
+          arrow = ensureFunctionArrow(token);
+        }
+        token = arrow;
         mayParseFunctionExpressions = true;
         token = parseExpression(token);
         mayParseFunctionExpressions = false;
