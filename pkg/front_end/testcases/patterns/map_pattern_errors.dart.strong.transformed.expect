@@ -10,15 +10,30 @@ library /*isNonNullableByDefault*/;
 //     case <int, int, String>{}:
 //                            ^
 //
+// pkg/front_end/testcases/patterns/map_pattern_errors.dart:7:15: Error: A map pattern must have at least one entry.
+// Try replacing it with an object pattern 'Map()'.
+//     case <int>{}:
+//               ^
+//
+// pkg/front_end/testcases/patterns/map_pattern_errors.dart:8:28: Error: A map pattern must have at least one entry.
+// Try replacing it with an object pattern 'Map()'.
+//     case <int, int, String>{}:
+//                            ^
+//
 import self as self;
-import "dart:core" as core;
 
 static method test(dynamic o) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<invalid-type, invalid-type> || #0#0 is{ForNonNullableByDefault} core::Map<invalid-type, invalid-type>) {
+      if(invalid-expression "pkg/front_end/testcases/patterns/map_pattern_errors.dart:7:15: Error: A map pattern must have at least one entry.
+Try replacing it with an object pattern 'Map()'.
+    case <int>{}:
+              ^" || invalid-expression "pkg/front_end/testcases/patterns/map_pattern_errors.dart:8:28: Error: A map pattern must have at least one entry.
+Try replacing it with an object pattern 'Map()'.
+    case <int, int, String>{}:
+                           ^") {
       }
     }
   }

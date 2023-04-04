@@ -1,13 +1,23 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/map_pattern_inside_case_empty.dart:7:10: Error: A map pattern must have at least one entry.
+// Try replacing it with an object pattern 'Map()'.
+//     case {}:
+//          ^
+//
 import self as self;
-import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic>) {
+      if(invalid-expression "pkg/front_end/testcases/patterns/map_pattern_inside_case_empty.dart:7:10: Error: A map pattern must have at least one entry.
+Try replacing it with an object pattern 'Map()'.
+    case {}:
+         ^") {
         {
           break #L1;
         }

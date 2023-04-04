@@ -33,14 +33,14 @@ static method test3(core::Map<core::bool, core::double> x) → dynamic {
   }
   {
     final synthesized core::Map<core::bool, core::double> #1#0 = x;
-    if(true) {
+    if(#1#0.{core::Map::containsKey}(#C9){(core::Object?) → core::bool} && #C10 =={core::num::==}{(core::Object) → core::bool} #1#0.{core::Map::[]}(#C9){(core::Object?) → core::double?} as{ForNonNullableByDefault} core::double) {
     }
   }
 }
 static method test4(self::MyMap x) → dynamic {
   {
     final synthesized self::MyMap #0#0 = x;
-    if(#0#0.{core::Map::containsKey}(#C9){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C9){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int && #0#0.{core::Map::containsKey}(#C10){(core::Object?) → core::bool} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C10){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int) {
+    if(#0#0.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C11){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int && #0#0.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C12){(core::Object?) → core::int?} as{ForNonNullableByDefault} core::int) {
     }
   }
 }
@@ -49,8 +49,8 @@ static method test5(dynamic x) → dynamic {
     hoisted dynamic y1;
     hoisted core::String y2;
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#7 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C10){(core::Object?) → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C9){(core::Object?) → core::bool} && (let final dynamic #t1 = y1 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C9){(core::Object?) → dynamic} in true) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C10){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#7! in #0#7! is{ForNonNullableByDefault} core::String && (let final dynamic #t3 = y2 = #0#7! as{ForNonNullableByDefault} core::String in true))) {
+    late final synthesized dynamic #0#7 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && (let final dynamic #t1 = y1 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C11){(core::Object?) → dynamic} in true) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#7! in #0#7! is{ForNonNullableByDefault} core::String && (let final dynamic #t3 = y2 = #0#7! as{ForNonNullableByDefault} core::String in true))) {
       return 0;
     }
     else {
@@ -68,6 +68,8 @@ constants  {
   #C6 = "bar"
   #C7 = true
   #C8 = 3.14
-  #C9 = "one"
-  #C10 = "two"
+  #C9 = false
+  #C10 = 2.71
+  #C11 = "one"
+  #C12 = "two"
 }

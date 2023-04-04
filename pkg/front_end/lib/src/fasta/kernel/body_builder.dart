@@ -4744,10 +4744,10 @@ class BodyBuilder extends StackListenerImpl
         entries.add(entry);
       } else {
         entry as RestPattern;
-        addProblem(
-            fasta.messageRestPatternInMapPattern, entry.fileOffset, noLength);
+        entries.add(forest.createMapPatternRestEntry(entry.fileOffset));
       }
     }
+
     for (int i = 0, j = entries.length - 1; i < j; i++, j--) {
       MapPatternEntry entry = entries[i];
       entries[i] = entries[j];

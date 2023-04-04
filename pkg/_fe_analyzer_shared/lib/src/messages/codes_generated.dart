@@ -3072,6 +3072,15 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEmptyMapPattern = messageEmptyMapPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEmptyMapPattern = const MessageCode("EmptyMapPattern",
+    analyzerCodes: <String>["EMPTY_MAP_PATTERN"],
+    problemMessage: r"""A map pattern must have at least one entry.""",
+    correctionMessage: r"""Try replacing it with an object pattern 'Map()'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
