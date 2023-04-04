@@ -24,8 +24,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -87,7 +87,7 @@ main(List<String> args) async {
     }
 
     // Successful run
-    final result1 = await runOutput(aotRuntime, <String>[
+    final result1 = await runOutput(dartPrecompiledRuntime, <String>[
       path.join(dir, 'main.dart.dill.so'),
       path.join(dir, 'spawnee.dart.dill.so'),
     ]);
@@ -100,7 +100,7 @@ main(List<String> args) async {
     if (!isProductMode) {
       // File exists and is AOT snapshot but was compiled with different flags
       // (namely --enable-asserts)
-      final result2 = await runHelper(aotRuntime, [
+      final result2 = await runHelper(dartPrecompiledRuntime, [
         path.join(dir, 'main.dart.dill.so'),
         path.join(dir, 'spawnee_checked.dart.dill.so'),
       ]);
@@ -111,7 +111,7 @@ main(List<String> args) async {
     }
 
     // File does not exist.
-    final result3 = await runHelper(aotRuntime, [
+    final result3 = await runHelper(dartPrecompiledRuntime, [
       path.join(dir, 'main.dart.dill.so'),
       path.join(dir, 'does_not_exist.dart.dill.so'),
     ]);

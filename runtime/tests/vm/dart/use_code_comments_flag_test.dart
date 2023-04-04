@@ -59,13 +59,13 @@ main(List<String> args) async {
     final commentsOut1 = path.join(tempDir, 'comments-out1.txt');
     final commentsOut2 = path.join(tempDir, 'comments-out2.txt');
     await Future.wait(<Future>[
-      run(aotRuntime, <String>[
+      run(dartPrecompiledRuntime, <String>[
         '--code-comments',
         scriptCommentedSnapshot,
         scriptDill,
         commentsOut1,
       ]),
-      run(aotRuntime, <String>[
+      run(dartPrecompiledRuntime, <String>[
         '--no-code-comments',
         scriptCommentedSnapshot,
         scriptDill,
@@ -77,13 +77,13 @@ main(List<String> args) async {
     final uncommentedOut1 = path.join(tempDir, 'uncommented-out1.txt');
     final uncommentedOut2 = path.join(tempDir, 'uncommented-out2.txt');
     await Future.wait(<Future>[
-      run(aotRuntime, <String>[
+      run(dartPrecompiledRuntime, <String>[
         '--code-comments',
         scriptUncommentedSnapshot,
         scriptDill,
         uncommentedOut1,
       ]),
-      run(aotRuntime, <String>[
+      run(dartPrecompiledRuntime, <String>[
         '--no-code-comments',
         scriptUncommentedSnapshot,
         scriptDill,

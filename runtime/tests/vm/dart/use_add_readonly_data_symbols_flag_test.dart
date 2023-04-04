@@ -29,8 +29,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";

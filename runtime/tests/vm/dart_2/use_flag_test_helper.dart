@@ -17,6 +17,7 @@ final sdkDir = path.dirname(path.dirname(buildDir));
 final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
 final genKernel = path.join(sdkDir, 'pkg', 'vm', 'tool',
     'gen_kernel' + (Platform.isWindows ? '.bat' : ''));
+final genKernelDart = path.join('pkg', 'vm', 'bin', 'gen_kernel.dart');
 final _genSnapshotBase = 'gen_snapshot' + (Platform.isWindows ? '.exe' : '');
 final genSnapshot = () {
   final possiblePaths = [
@@ -40,8 +41,12 @@ final genSnapshot = () {
       'using default path.');
   return possiblePaths.first;
 }();
-final aotRuntime = path.join(
+final dart = path.join(buildDir, 'dart' + (Platform.isWindows ? '.exe' : ''));
+final dartPrecompiledRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
+final checkedInDartVM = path.join('tools', 'sdks', 'dart-sdk', 'bin',
+    'dart' + (Platform.isWindows ? '.exe' : ''));
+
 final isSimulator = path.basename(buildDir).contains('SIM');
 
 String get clangBuildToolsDir {
