@@ -537,14 +537,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(identifier);
   }
 
-  void assertTypeArgumentTypes(
-    InvocationExpression node,
-    List<String> expected,
-  ) {
-    var actual = node.typeArgumentTypes!.map((t) => typeString(t)).toList();
-    expect(actual, expected);
-  }
-
   void assertTypeDynamic(Object? typeOrExpression) {
     DartType? actual;
     if (typeOrExpression is DartType?) {

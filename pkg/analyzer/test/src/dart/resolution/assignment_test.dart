@@ -24,10 +24,34 @@ g(int a) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  readElement: self::@function::g::@parameter::a
+  readType: int
+  writeElement: self::@function::g::@parameter::a
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_compound_plus_int_context_int_complex() async {
@@ -38,10 +62,49 @@ g(List<int> a) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::g::@parameter::a
+      staticType: List<int>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: ParameterMember
+        base: dart:core::@class::List::@method::[]=::@parameter::index
+        substitution: {E: int}
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  readElement: MethodMember
+    base: dart:core::@class::List::@method::[]
+    substitution: {E: int}
+  readType: int
+  writeElement: MethodMember
+    base: dart:core::@class::List::@method::[]=
+    substitution: {E: int}
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_compound_plus_int_context_int_promoted() async {
@@ -54,10 +117,34 @@ g(num a) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  readElement: self::@function::g::@parameter::a
+  readType: int
+  writeElement: self::@function::g::@parameter::a
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_compound_plus_int_context_int_promoted_with_subsequent_demotion() async {
@@ -66,17 +153,57 @@ T f<T>() => throw Error();
 g(num a, bool b) {
   if (a is int) {
     a += b ? f() : 1.0;
-    print(a);
+    a;
   }
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+=');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: ConditionalExpression
+    condition: SimpleIdentifier
+      token: b
+      staticElement: self::@function::g::@parameter::b
+      staticType: bool
+    question: ?
+    thenExpression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: f
+        staticElement: self::@function::f
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+      typeArgumentTypes
+        int
+    colon: :
+    elseExpression: DoubleLiteral
+      literal: 1.0
+      staticType: double
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: num
+  readElement: self::@function::g::@parameter::a
+  readType: int
+  writeElement: self::@function::g::@parameter::a
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: num
+''');
 
-    assertType(findNode.simple('a);').staticType, 'num');
+    assertResolvedNodeText(findNode.simple('a;'), r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@function::g::@parameter::a
+  staticType: num
+''');
   }
 
   test_indexExpression_cascade_compound() async {
@@ -998,7 +1125,34 @@ g(int? a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['int?']);
+    final node = findNode.assignment('??= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: ??=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: <null>
+    staticInvokeType: int? Function()
+    staticType: int?
+    typeArgumentTypes
+      int?
+  readElement: self::@function::g::@parameter::a
+  readType: int?
+  writeElement: self::@function::g::@parameter::a
+  writeType: int?
+  staticElement: <null>
+  staticType: int?
+''');
   }
 
   test_prefixedIdentifier_instance_compound() async {
