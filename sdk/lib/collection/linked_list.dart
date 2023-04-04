@@ -78,7 +78,7 @@ part of dart.collection;
 ///   print(linkedList.isEmpty); // true
 /// }
 /// ```
-class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
+base class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   int _modificationCount = 0;
   int _length = 0;
   E? _first;

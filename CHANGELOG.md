@@ -133,6 +133,26 @@
 
 - Deprecated the `HasNextIterator` class ([#50883][]).
 
+- **Breaking change when migrating code to Dart 3.0**:
+  Some changes to platform libraries only affect code when it is migrated
+  to language version 3.0.
+  - The following interface can no longer be extended, only implemented:
+    * `Queue`
+  - The following implementation classes can no longer be implemented:
+    * `LinkedList`
+    * `LinkedListEntry`
+  - The following implementation classes can no longer be implemented
+    or extended:
+    * `HasNextIterator` (Also deprecated.)
+    * `HashMap`
+    * `LinkedHashMap`
+    * `HashSet`
+    * `LinkedHashSet`
+    * `DoubleLinkedQueue`
+    * `ListQueue`
+    * `SplayTreeMap`
+    * `SplayTreeSet`
+
 [#50883]: https://github.com/dart-lang/sdk/issues/50883
 
 #### `dart:developer`

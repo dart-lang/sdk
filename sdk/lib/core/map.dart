@@ -35,6 +35,7 @@ abstract class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
+  // TODO: @Deprecated("Use literal <K, V>{} instead")
   external factory Map();
 
   /// Creates a [LinkedHashMap] with the same keys and values as [other].

@@ -69,130 +69,130 @@ import "cache_lookups.dart" as self;
 import "dart:collection";
 import "org-dartlang-testcase:///cache_lookups.dart";
 
-abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListMixin<cac::_CustomList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListBase<cac::_CustomList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → cac::_CustomList&Object&ListMixin<cac::_CustomList&Object&ListMixin::E%>
     : super core::Object::•()
     ;
   mixin-super-stub get first() → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::first};
+    return super.{col::ListBase::first};
   mixin-super-stub set first(covariant-by-class cac::_CustomList&Object&ListMixin::E% value) → void
-    return super.{col::ListMixin::first} = value;
+    return super.{col::ListBase::first} = value;
   mixin-super-stub get last() → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::last};
+    return super.{col::ListBase::last};
   mixin-super-stub set last(covariant-by-class cac::_CustomList&Object&ListMixin::E% value) → void
-    return super.{col::ListMixin::last} = value;
+    return super.{col::ListBase::last} = value;
   mixin-super-stub get iterator() → core::Iterator<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::iterator};
+    return super.{col::ListBase::iterator};
   mixin-super-stub method elementAt(core::int index) → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::elementAt}(index);
+    return super.{col::ListBase::elementAt}(index);
   mixin-super-stub method followedBy(covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> other) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::followedBy}(other);
+    return super.{col::ListBase::followedBy}(other);
   mixin-super-stub method forEach((cac::_CustomList&Object&ListMixin::E%) → void action) → void
-    return super.{col::ListMixin::forEach}(action);
+    return super.{col::ListBase::forEach}(action);
   mixin-super-stub get isEmpty() → core::bool
-    return super.{col::ListMixin::isEmpty};
+    return super.{col::ListBase::isEmpty};
   mixin-super-stub get isNotEmpty() → core::bool
-    return super.{col::ListMixin::isNotEmpty};
+    return super.{col::ListBase::isNotEmpty};
   mixin-super-stub get single() → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::single};
+    return super.{col::ListBase::single};
   mixin-super-stub method contains(core::Object? element) → core::bool
-    return super.{col::ListMixin::contains}(element);
+    return super.{col::ListBase::contains}(element);
   mixin-super-stub method every((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → core::bool
-    return super.{col::ListMixin::every}(test);
+    return super.{col::ListBase::every}(test);
   mixin-super-stub method any((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → core::bool
-    return super.{col::ListMixin::any}(test);
+    return super.{col::ListBase::any}(test);
   mixin-super-stub method firstWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, {covariant-by-class () →? cac::_CustomList&Object&ListMixin::E% orElse = #C4}) → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::firstWhere}(test, orElse: orElse);
+    return super.{col::ListBase::firstWhere}(test, orElse: orElse);
   mixin-super-stub method lastWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, {covariant-by-class () →? cac::_CustomList&Object&ListMixin::E% orElse = #C4}) → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::lastWhere}(test, orElse: orElse);
+    return super.{col::ListBase::lastWhere}(test, orElse: orElse);
   mixin-super-stub method singleWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, {covariant-by-class () →? cac::_CustomList&Object&ListMixin::E% orElse = #C4}) → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::singleWhere}(test, orElse: orElse);
+    return super.{col::ListBase::singleWhere}(test, orElse: orElse);
   mixin-super-stub method join([core::String separator = #C5]) → core::String
-    return super.{col::ListMixin::join}(separator);
+    return super.{col::ListBase::join}(separator);
   mixin-super-stub method where((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::where}(test);
+    return super.{col::ListBase::where}(test);
   mixin-super-stub method whereType<T extends core::Object? = dynamic>() → core::Iterable<cac::_CustomList&Object&ListMixin::whereType::T%>
-    return super.{col::ListMixin::whereType}<cac::_CustomList&Object&ListMixin::whereType::T%>();
+    return super.{col::ListBase::whereType}<cac::_CustomList&Object&ListMixin::whereType::T%>();
   mixin-super-stub method map<T extends core::Object? = dynamic>((cac::_CustomList&Object&ListMixin::E%) → cac::_CustomList&Object&ListMixin::map::T% f) → core::Iterable<cac::_CustomList&Object&ListMixin::map::T%>
-    return super.{col::ListMixin::map}<cac::_CustomList&Object&ListMixin::map::T%>(f);
+    return super.{col::ListBase::map}<cac::_CustomList&Object&ListMixin::map::T%>(f);
   mixin-super-stub method expand<T extends core::Object? = dynamic>((cac::_CustomList&Object&ListMixin::E%) → core::Iterable<cac::_CustomList&Object&ListMixin::expand::T%> f) → core::Iterable<cac::_CustomList&Object&ListMixin::expand::T%>
-    return super.{col::ListMixin::expand}<cac::_CustomList&Object&ListMixin::expand::T%>(f);
+    return super.{col::ListBase::expand}<cac::_CustomList&Object&ListMixin::expand::T%>(f);
   mixin-super-stub method reduce(covariant-by-class (cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) → cac::_CustomList&Object&ListMixin::E% combine) → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::reduce}(combine);
+    return super.{col::ListBase::reduce}(combine);
   mixin-super-stub method fold<T extends core::Object? = dynamic>(cac::_CustomList&Object&ListMixin::fold::T% initialValue, (cac::_CustomList&Object&ListMixin::fold::T%, cac::_CustomList&Object&ListMixin::E%) → cac::_CustomList&Object&ListMixin::fold::T% combine) → cac::_CustomList&Object&ListMixin::fold::T%
-    return super.{col::ListMixin::fold}<cac::_CustomList&Object&ListMixin::fold::T%>(initialValue, combine);
+    return super.{col::ListBase::fold}<cac::_CustomList&Object&ListMixin::fold::T%>(initialValue, combine);
   mixin-super-stub method skip(core::int count) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::skip}(count);
+    return super.{col::ListBase::skip}(count);
   mixin-super-stub method skipWhile((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::skipWhile}(test);
+    return super.{col::ListBase::skipWhile}(test);
   mixin-super-stub method take(core::int count) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::take}(count);
+    return super.{col::ListBase::take}(count);
   mixin-super-stub method takeWhile((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::takeWhile}(test);
+    return super.{col::ListBase::takeWhile}(test);
   mixin-super-stub method toList({core::bool growable = #C6}) → core::List<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::toList}(growable: growable);
+    return super.{col::ListBase::toList}(growable: growable);
   mixin-super-stub method toSet() → core::Set<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::toSet}();
+    return super.{col::ListBase::toSet}();
   mixin-super-stub method add(covariant-by-class cac::_CustomList&Object&ListMixin::E% element) → void
-    return super.{col::ListMixin::add}(element);
+    return super.{col::ListBase::add}(element);
   mixin-super-stub method addAll(covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void
-    return super.{col::ListMixin::addAll}(iterable);
+    return super.{col::ListBase::addAll}(iterable);
   mixin-super-stub method remove(core::Object? element) → core::bool
-    return super.{col::ListMixin::remove}(element);
+    return super.{col::ListBase::remove}(element);
   mixin-super-stub method _closeGap(core::int start, core::int end) → void
-    return super.{col::ListMixin::_closeGap}(start, end);
+    return super.{col::ListBase::_closeGap}(start, end);
   mixin-super-stub method removeWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → void
-    return super.{col::ListMixin::removeWhere}(test);
+    return super.{col::ListBase::removeWhere}(test);
   mixin-super-stub method retainWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → void
-    return super.{col::ListMixin::retainWhere}(test);
+    return super.{col::ListBase::retainWhere}(test);
   mixin-super-stub method _filter((cac::_CustomList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void
-    return super.{col::ListMixin::_filter}(test, retainMatching);
+    return super.{col::ListBase::_filter}(test, retainMatching);
   mixin-super-stub method clear() → void
-    return super.{col::ListMixin::clear}();
+    return super.{col::ListBase::clear}();
   mixin-super-stub method cast<R extends core::Object? = dynamic>() → core::List<cac::_CustomList&Object&ListMixin::cast::R%>
-    return super.{col::ListMixin::cast}<cac::_CustomList&Object&ListMixin::cast::R%>();
+    return super.{col::ListBase::cast}<cac::_CustomList&Object&ListMixin::cast::R%>();
   mixin-super-stub method removeLast() → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::removeLast}();
+    return super.{col::ListBase::removeLast}();
   mixin-super-stub method sort([(cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) →? core::int compare = #C4]) → void
-    return super.{col::ListMixin::sort}(compare);
+    return super.{col::ListBase::sort}(compare);
   mixin-super-stub method shuffle([math::Random? random = #C4]) → void
-    return super.{col::ListMixin::shuffle}(random);
+    return super.{col::ListBase::shuffle}(random);
   mixin-super-stub method asMap() → core::Map<core::int, cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::asMap}();
+    return super.{col::ListBase::asMap}();
   mixin-super-stub operator +(covariant-by-class core::List<cac::_CustomList&Object&ListMixin::E%> other) → core::List<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::+}(other);
+    return super.{col::ListBase::+}(other);
   mixin-super-stub method sublist(core::int start, [core::int? end = #C4]) → core::List<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::sublist}(start, end);
+    return super.{col::ListBase::sublist}(start, end);
   mixin-super-stub method getRange(core::int start, core::int end) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::getRange}(start, end);
+    return super.{col::ListBase::getRange}(start, end);
   mixin-super-stub method removeRange(core::int start, core::int end) → void
-    return super.{col::ListMixin::removeRange}(start, end);
+    return super.{col::ListBase::removeRange}(start, end);
   mixin-super-stub method fillRange(core::int start, core::int end, [covariant-by-class cac::_CustomList&Object&ListMixin::E? fill = #C4]) → void
-    return super.{col::ListMixin::fillRange}(start, end, fill);
+    return super.{col::ListBase::fillRange}(start, end, fill);
   mixin-super-stub method setRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable, [core::int skipCount = #C2]) → void
-    return super.{col::ListMixin::setRange}(start, end, iterable, skipCount);
+    return super.{col::ListBase::setRange}(start, end, iterable, skipCount);
   mixin-super-stub method replaceRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> newContents) → void
-    return super.{col::ListMixin::replaceRange}(start, end, newContents);
+    return super.{col::ListBase::replaceRange}(start, end, newContents);
   mixin-super-stub method indexOf(covariant-by-class core::Object? element, [core::int start = #C2]) → core::int
-    return super.{col::ListMixin::indexOf}(element, start);
+    return super.{col::ListBase::indexOf}(element, start);
   mixin-super-stub method indexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int start = #C2]) → core::int
-    return super.{col::ListMixin::indexWhere}(test, start);
+    return super.{col::ListBase::indexWhere}(test, start);
   mixin-super-stub method lastIndexOf(covariant-by-class core::Object? element, [core::int? start = #C4]) → core::int
-    return super.{col::ListMixin::lastIndexOf}(element, start);
+    return super.{col::ListBase::lastIndexOf}(element, start);
   mixin-super-stub method lastIndexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int? start = #C4]) → core::int
-    return super.{col::ListMixin::lastIndexWhere}(test, start);
+    return super.{col::ListBase::lastIndexWhere}(test, start);
   mixin-super-stub method insert(core::int index, covariant-by-class cac::_CustomList&Object&ListMixin::E% element) → void
-    return super.{col::ListMixin::insert}(index, element);
+    return super.{col::ListBase::insert}(index, element);
   mixin-super-stub method removeAt(core::int index) → cac::_CustomList&Object&ListMixin::E%
-    return super.{col::ListMixin::removeAt}(index);
+    return super.{col::ListBase::removeAt}(index);
   mixin-super-stub method insertAll(core::int index, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void
-    return super.{col::ListMixin::insertAll}(index, iterable);
+    return super.{col::ListBase::insertAll}(index, iterable);
   mixin-super-stub method setAll(core::int index, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void
-    return super.{col::ListMixin::setAll}(index, iterable);
+    return super.{col::ListBase::setAll}(index, iterable);
   mixin-super-stub get reversed() → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
-    return super.{col::ListMixin::reversed};
+    return super.{col::ListBase::reversed};
   mixin-super-stub method toString() → core::String
-    return super.{col::ListMixin::toString}();
+    return super.{col::ListBase::toString}();
 }
 class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Object&ListMixin<cac::CustomList::E%> {
   final field core::List<cac::CustomList::E%> list;

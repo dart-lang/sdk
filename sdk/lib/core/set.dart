@@ -42,6 +42,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// [Object.hashCode] implementation.
   ///
   /// The set is equivalent to one created by `LinkedHashSet<E>()`.
+  // TODO: @Deprecated("Use literal <E>{} instead")
   factory Set() = LinkedHashSet<E>;
 
   /// Creates an empty identity [Set].
