@@ -268,6 +268,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// [isAborted].
   bool _isReachable = true;
 
+  /// Is the current statement or expression nested in a [ir.BlockExpression]?
+  bool _inBlockExpression = false;
+
   HLocalValue? lastAddedParameter;
 
   Map<Local, HInstruction> parameters = {};
@@ -1902,7 +1905,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void visitExpressionStatement(ir.ExpressionStatement node) {
     if (!_isReachable) return;
     ir.Expression expression = node.expression;
-    if (expression is ir.Throw && _inliningStack.isEmpty) {
+
+    // Handle a `throw` expression in statement-position, with control flow to
+    // the exit. (In expression position the throw does not create control-flow
+    // out of CFG region for the expression).
+    if (expression is ir.Throw &&
+        _inliningStack.isEmpty &&
+        !_inBlockExpression) {
       _visitThrowExpression(expression.expression);
       _handleInTryStatement();
       final sourceInformation =
@@ -1966,7 +1975,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         return;
       }
     }
-    _emitReturn(value, sourceInformation);
+    if (_isReachable) {
+      _emitReturn(value, sourceInformation);
+    }
   }
 
   @override
@@ -3854,7 +3865,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction initializedValue = pop();
     // TODO(sra): Apply inferred type information.
     _letBindings[variable] = initializedValue;
-    node.body.accept(this);
+    if (!_isReachable) {
+      stack.add(graph.addConstantUnreachable(closedWorld));
+    } else {
+      node.body.accept(this);
+    }
   }
 
   @override
@@ -3865,7 +3880,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (!_isReachable) {
       stack.add(graph.addConstantUnreachable(closedWorld));
     } else {
-      node.value.accept(this);
+      final previous = _inBlockExpression;
+      try {
+        _inBlockExpression = true;
+        node.value.accept(this);
+      } finally {
+        _inBlockExpression = previous;
+      }
     }
   }
 
