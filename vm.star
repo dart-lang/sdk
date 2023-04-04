@@ -367,7 +367,7 @@ _low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
 _nightly_builder(
-    "vm-kernel-gcc-linux",
+    "vm-gcc-linux",
     category = "vm|misc|g",
     channels = ["try"],
     execution_timeout = 5 * time.hour,
@@ -380,7 +380,7 @@ _nightly_builder(
 )
 
 _nightly_builder(
-    "vm-kernel-msvc-windows",
+    "vm-msvc-windows",
     category = "vm|misc|m",
     channels = ["try"],
     dimensions = windows,
