@@ -1,3 +1,2 @@
 void main() {}
-Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) =>
-    switch (it) {  };
+Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) => switch (it) {};

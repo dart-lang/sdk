@@ -1,6 +1,6 @@
-exhaustiveWildcard((int, String, {bool named}) r) => switch (r) {  };
-exhaustiveTyped((int, String, {bool named}) r) => switch (r) {  };
-exhaustiveValue((int, String, {bool named}) r) => switch (r) {  };
-nonExhaustiveRestrictedValue1((int, String, {bool named}) r) => switch (r) {  };
-nonExhaustiveRestrictedValue2((int, String, {bool named}) r) => switch (r) {  };
-nonExhaustiveRestrictedValue3((int, String, {bool named}) r) => switch (r) {  };
+exhaustiveWildcard((int, String, {bool named}) r) => switch (r) {};
+exhaustiveTyped((int, String, {bool named}) r) => switch (r) {};
+exhaustiveValue((int, String, {bool named}) r) => switch (r) {};
+nonExhaustiveRestrictedValue1((int, String, {bool named}) r) => switch (r) {};
+nonExhaustiveRestrictedValue2((int, String, {bool named}) r) => switch (r) {};
+nonExhaustiveRestrictedValue3((int, String, {bool named}) r) => switch (r) {};

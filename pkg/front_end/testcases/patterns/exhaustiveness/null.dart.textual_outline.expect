@@ -1,8 +1,8 @@
 typedef Nullable = Object?;
-exhaustiveByValue(Null n) => switch (n) {  };
-exhaustiveByType(Null n) => switch (n) {  };
-exhaustiveWithField(Null n) => switch (n) {  };
-nonExhaustiveRestrictedField(Null n) => switch (n) {  };
-exhaustiveNullable(Object? o) => switch (o) {  };
-nonExhaustiveNullable(Object? o) => switch (o) {  };
-nonExhaustiveNullableRestricted(Object? o) => switch (o) {  };
+exhaustiveByValue(Null n) => switch (n) {};
+exhaustiveByType(Null n) => switch (n) {};
+exhaustiveWithField(Null n) => switch (n) {};
+nonExhaustiveRestrictedField(Null n) => switch (n) {};
+exhaustiveNullable(Object? o) => switch (o) {};
+nonExhaustiveNullable(Object? o) => switch (o) {};
+nonExhaustiveNullableRestricted(Object? o) => switch (o) {};

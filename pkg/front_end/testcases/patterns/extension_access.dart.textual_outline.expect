@@ -10,6 +10,6 @@ extension on I {
   int get member => 42;
 }
 
-method(A a) => switch (a) {  };
+method(A a) => switch (a) {};
 main() {}
 expect(expected, actual) {}

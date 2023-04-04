@@ -1,1 +1,1 @@
-f(x) => switch (x) {  };
+f(x) => switch (x) {};

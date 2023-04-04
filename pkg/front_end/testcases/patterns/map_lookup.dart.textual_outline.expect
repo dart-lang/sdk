@@ -27,6 +27,6 @@ class MyMap<K, V> extends MapBase<K, V> {
 }
 
 String test1(Object o) {}
-String test2(Object o) => switch (o) {  };
+String test2(Object o) => switch (o) {};
 main() {}
 expect(expected, actual) {}

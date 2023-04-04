@@ -1,4 +1,4 @@
 void main() {}
-List<List<A>> subs<A>(List<A> list) => switch (list) {  };
-List<List<A>> perms<A>(List<A> list) => switch (list) {  };
-bool equals<A>(List<A> a, List<A> b) => switch ((a, b)) {  };
+List<List<A>> subs<A>(List<A> list) => switch (list) {};
+List<List<A>> perms<A>(List<A> list) => switch (list) {};
+bool equals<A>(List<A> a, List<A> b) => switch ((a, b)) {};
