@@ -1579,7 +1579,8 @@
     },
     {
       "builders": [
-        "vm-kernel-gcc-linux"
+        "vm-kernel-gcc-linux",
+        "vm-gcc-linux"
       ],
       "meta": {
         "description": "This configuration builds the VM with GCC."
@@ -1644,7 +1645,8 @@
     },
     {
       "builders": [
-        "vm-kernel-msvc-windows"
+        "vm-kernel-msvc-windows",
+        "vm-msvc-windows"
       ],
       "meta": {
         "description": "This configuration builds the VM with MSVC."
