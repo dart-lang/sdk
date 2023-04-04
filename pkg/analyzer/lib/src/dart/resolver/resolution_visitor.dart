@@ -100,6 +100,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// Data structure for tracking declared pattern variables.
   late final _VariableBinder _patternVariables = _VariableBinder(
     errors: _VariableBinderErrors(this),
+    typeProvider: _typeProvider,
   );
 
   factory ResolutionVisitor({
@@ -1709,7 +1710,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
 class _VariableBinder
     extends VariableBinder<DartPatternImpl, PromotableElement> {
-  _VariableBinder({required super.errors});
+  final TypeProvider typeProvider;
+
+  _VariableBinder({
+    required super.errors,
+    required this.typeProvider,
+  });
 
   @override
   JoinPatternVariableElementImpl joinPatternVariables({
@@ -1744,7 +1750,9 @@ class _VariableBinder
             .whereType<JoinPatternVariableElementImpl>()
             .map((e) => e.inconsistency),
       ),
-    )..enclosingElement = first.enclosingElement;
+    )
+      ..enclosingElement = first.enclosingElement
+      ..type = typeProvider.dynamicType;
   }
 }
 
