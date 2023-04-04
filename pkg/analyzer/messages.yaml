@@ -10924,14 +10924,75 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
-  NON_EXHAUSTIVE_SWITCH:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases."
-    correctionMessage: "Try adding a default case or cases that match '{1}'."
+  NON_EXHAUSTIVE_SWITCH_EXPRESSION:
+    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type of the switch scrutinee
-      1: the unmatched space
+      1: the witness pattern for the unmatched value
+      2: the suggested pattern for the unmatched value
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `switch` expression is
+      missing a case for one or more of the possible values that could flow
+      through it.
+
+      #### Example
+
+      The following code produces this diagnostic because the switch expression
+      doesn't have a case for the value `E.three`:
+
+      ```dart
+      enum E { one, two, three }
+
+      String f(E e) => [!switch!] (e) {
+          E.one => 'one',
+          E.two => 'two',
+        };
+      ```
+
+      #### Common fixes
+
+      Add a case for each of the constants that aren't currently being matched:
+
+      ```dart
+      enum E { one, two, three }
+
+      String f(E e) => switch (e) {
+          E.one => 'one',
+          E.two => 'two',
+          E.three => 'three',
+        };
+      ```
+
+      If the missing values don't need to be matched, then add  a wildcard
+      pattern:
+
+      ```dart
+      enum E { one, two, three }
+
+      String f(E e) => switch (e) {
+          E.one => 'one',
+          E.two => 'two',
+          _ => 'unknown',
+        };
+      ```
+
+      But be aware that adding a wildcard pattern will cause any future values
+      of the type to also be handled, so you will have lost the ability for the
+      compiler to warn you if the `switch` needs to be updated.
+  NON_EXHAUSTIVE_SWITCH_STATEMENT:
+    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    correctionMessage: "Try adding a default case or cases that match '{2}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the switch scrutinee
+      1: the witness pattern for the unmatched value
+      2: the suggested pattern for the unmatched value
     documentation: |-
       #### Description
 
@@ -10974,7 +11035,7 @@ CompileTimeErrorCode:
       ```
 
       If the missing values don't need to be matched, then add a `default`
-      clause (or a wildcard pattern in a `switch` expression):
+      clause or a wildcard pattern:
 
       ```dart
       enum E { one, two, three }

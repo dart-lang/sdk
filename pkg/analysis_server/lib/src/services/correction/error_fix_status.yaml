@@ -988,7 +988,9 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
-CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH:
+CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
   status: hasFix

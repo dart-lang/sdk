@@ -1472,6 +1472,7 @@ subname
 subnode
 subnodes
 subpatterns
+subproperties
 subscription
 subsection
 subsections

@@ -73,7 +73,7 @@ intersectSubClass(A o1, A o2, A o3) {
       [field1, hashCode],
   };
   var c = /*
-   error=non-exhaustive:A(field1: C(), field2: C(), hashCode: int()),
+   error=non-exhaustive:A(field1: C(), field2: C(), hashCode: int())/A(field1: C(), field2: C()),
    fields={field1:B,field2:B,hashCode:int},
    type=A
   */

@@ -115,7 +115,7 @@ nullableA(A? a1, A? a2, A? a3) {
   };
   var c = /*
    checkingOrder={A?,A,Null},
-   error=non-exhaustive:A(field: int()),
+   error=non-exhaustive:A(field: int())/A(),
    fields={field:-},
    subtypes={A,Null},
    type=A?

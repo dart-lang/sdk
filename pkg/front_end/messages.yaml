@@ -6390,10 +6390,21 @@ JointPatternVariablesMismatch:
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
-NonExhaustiveSwitch:
-  problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
-  correctionMessage: "Try adding a default case or cases that match '#string'."
-  analyzerCode: NON_EXHAUSTIVE_SWITCH
+NonExhaustiveSwitchExpression:
+  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
+  correctionMessage: "Try adding a wildcard pattern or cases that match '#string2'."
+  analyzerCode: NON_EXHAUSTIVE_SWITCH_EXPRESSION
+  experiments: patterns
+  script: |
+    enum Enum { a, b }
+    String method(Enum e) => switch (e) {
+        Enum.a => 'a',
+      };
+
+NonExhaustiveSwitchStatement:
+  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
+  correctionMessage: "Try adding a default case or cases that match '#string2'."
+  analyzerCode: NON_EXHAUSTIVE_SWITCH_STATEMENT
   experiments: patterns
   script: |
     enum Enum { a, b }

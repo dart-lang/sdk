@@ -70,8 +70,9 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   Type get typeForTesting => _type;
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     if (!_typeOperations.hasSimpleName(_type)) {
       buffer.write(name);
       buffer.write(' _');
@@ -80,7 +81,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
       String additionalStart = ' && Object(';
       String additionalEnd = '';
       String comma = '';
-      for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
         Key key = entry.key;
         if (key is! ListKey) {
           buffer.write(additionalStart);
@@ -91,13 +92,14 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 
           buffer.write(key.name);
           buffer.write(': ');
-          FieldWitness field = entry.value;
-          field.witnessToText(buffer);
+          PropertyWitness field = entry.value;
+          field.witnessToText(buffer, forCorrection: forCorrection);
         }
       }
       buffer.write(additionalEnd);
     } else {
-      super.witnessToText(buffer, witness, witnessFields);
+      super.witnessToText(buffer, witness, witnessFields,
+          forCorrection: forCorrection);
     }
   }
 }
@@ -123,15 +125,16 @@ class ValueStaticType<Type extends Object, T extends Object>
       super.restriction, super.name);
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     buffer.write(name);
 
     // If we have restrictions on the value we create an and pattern.
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     String comma = '';
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is! RecordKey) {
         buffer.write(additionalStart);
@@ -142,8 +145,8 @@ class ValueStaticType<Type extends Object, T extends Object>
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness field = entry.value;
-        field.witnessToText(buffer);
+        PropertyWitness field = entry.value;
+        field.witnessToText(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);

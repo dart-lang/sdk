@@ -19,7 +19,7 @@ class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 final a = switch (0) {};
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 10, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6),
     ]);
 
     final node = findNode.singleSwitchExpression;

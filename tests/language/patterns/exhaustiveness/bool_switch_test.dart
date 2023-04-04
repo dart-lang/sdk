@@ -46,9 +46,9 @@ const f2 = false;
 void nonExhaustiveSwitch1(bool b) {
   switch (b) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'bool' is not exhaustively matched by the switch cases.
+// [cfe] The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'false'.
     case true:
       print('true');
       break;
@@ -58,9 +58,9 @@ void nonExhaustiveSwitch1(bool b) {
 void nonExhaustiveSwitch2(bool b) {
   switch (b) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'bool' is not exhaustively matched by the switch cases.
+// [cfe] The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'true'.
     case false:
       print('false');
       break;
@@ -95,9 +95,9 @@ void exhaustiveNullableSwitch(bool? b) {
 void nonExhaustiveNullableSwitch1(bool? b) {
   switch (b) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'bool?' is not exhaustively matched by the switch cases.
+// [cfe] The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case true:
       print('true');
       break;
@@ -110,9 +110,9 @@ void nonExhaustiveNullableSwitch1(bool? b) {
 void nonExhaustiveNullableSwitch2(bool? b) {
   switch (b) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'bool?' is not exhaustively matched by the switch cases.
+// [cfe] The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'false'.
     case true:
       print('true');
       break;

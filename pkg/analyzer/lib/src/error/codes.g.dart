@@ -3480,12 +3480,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the type of the switch scrutinee
-  ///  1: the unmatched space
-  static const CompileTimeErrorCode NON_EXHAUSTIVE_SWITCH =
+  ///  1: the witness pattern for the unmatched value
+  ///  2: the suggested pattern for the unmatched value
+  static const CompileTimeErrorCode NON_EXHAUSTIVE_SWITCH_EXPRESSION =
       CompileTimeErrorCode(
-    'NON_EXHAUSTIVE_SWITCH',
-    "The type '{0}' is not exhaustively matched by the switch cases.",
-    correctionMessage: "Try adding a default case or cases that match '{1}'.",
+    'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+    "The type '{0}' is not exhaustively matched by the switch cases since it "
+        "doesn't match '{1}'.",
+    correctionMessage:
+        "Try adding a wildcard pattern or cases that match '{2}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the type of the switch scrutinee
+  ///  1: the witness pattern for the unmatched value
+  ///  2: the suggested pattern for the unmatched value
+  static const CompileTimeErrorCode NON_EXHAUSTIVE_SWITCH_STATEMENT =
+      CompileTimeErrorCode(
+    'NON_EXHAUSTIVE_SWITCH_STATEMENT',
+    "The type '{0}' is not exhaustively matched by the switch cases since it "
+        "doesn't match '{1}'.",
+    correctionMessage: "Try adding a default case or cases that match '{2}'.",
     hasPublishedDocs: true,
   );
 

@@ -10,9 +10,9 @@
 void main() {
   var result = switch ([1, 2, 3]) {
     //         ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
     //                 ^
-    // [cfe] The type 'List<int>' is not exhaustively matched by the switch cases.
+    // [cfe] The type 'List<int>' is not exhaustively matched by the switch cases since it doesn't match '[]'.
     const [] => 'empty constant',
     [_, ...] => 'non-empty'
   };

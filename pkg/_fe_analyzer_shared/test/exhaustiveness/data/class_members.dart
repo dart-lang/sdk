@@ -97,7 +97,7 @@ nonExhaustiveGetterRestrictedValue(Class c) {
 
 nonExhaustiveMethodRestrictedValue(Class c) {
   return /*
-   error=non-exhaustive:Class(method: num Function(num) _),
+   error=non-exhaustive:Class(method: num Function(num) _)/Class(),
    fields={method:num Function(num)},
    type=Class
   */
@@ -131,7 +131,7 @@ exhaustiveGetterRestrictedType(Class c) {
 
 exhaustiveMethodRestrictedType(Class c) {
   return /*
-   error=non-exhaustive:Class(method: num Function(num) _),
+   error=non-exhaustive:Class(method: num Function(num) _)/Class(),
    fields={method:num Function(num)},
    type=Class
   */

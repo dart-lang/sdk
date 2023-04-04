@@ -98,7 +98,7 @@ class Class<Typedef> {
   nonExhaustiveRestrictedValue(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(hashCode: int()),
+     error=non-exhaustive:Object(hashCode: int())/Object(),
      fields={hashCode:int},
      subtypes={Object,Null},
      type=Object?
@@ -111,7 +111,7 @@ class Class<Typedef> {
   nonExhaustiveRestrictedType(Typedef o) {
     return /*
      checkingOrder={Object?,Object,Null},
-     error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation) _),
+     error=non-exhaustive:Object(noSuchMethod: dynamic Function(Invocation) _)/Object(),
      fields={noSuchMethod:dynamic Function(Invocation)},
      subtypes={Object,Null},
      type=Object?

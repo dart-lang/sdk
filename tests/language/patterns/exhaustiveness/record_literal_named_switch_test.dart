@@ -26,9 +26,9 @@ void exhaustiveSwitch(({Enum a, bool b}) r) {
 void nonExhaustiveSwitch1(({Enum a, bool b}) r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '({Enum a, bool b})' is not exhaustively matched by the switch cases.
+// [cfe] The type '({Enum a, bool b})' is not exhaustively matched by the switch cases since it doesn't match '(a: Enum.b, b: false)'.
     case (a: Enum.a, b: false):
       print('(a, false)');
       break;
@@ -44,9 +44,9 @@ void nonExhaustiveSwitch1(({Enum a, bool b}) r) {
 void nonExhaustiveSwitch2(({Enum a, bool b}) r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '({Enum a, bool b})' is not exhaustively matched by the switch cases.
+// [cfe] The type '({Enum a, bool b})' is not exhaustively matched by the switch cases since it doesn't match '(a: Enum.a, b: false)'.
     case (a: Enum.b, b: false):
       print('(b, false)');
       break;
@@ -93,9 +93,9 @@ void exhaustiveNullableSwitch(({Enum a, bool b})? r) {
 void nonExhaustiveNullableSwitch1(({Enum a, bool b})? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '({Enum a, bool b})?' is not exhaustively matched by the switch cases.
+// [cfe] The type '({Enum a, bool b})?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case (a: Enum.a, b: false):
       print('(a, false)');
       break;
@@ -114,9 +114,9 @@ void nonExhaustiveNullableSwitch1(({Enum a, bool b})? r) {
 void nonExhaustiveNullableSwitch2(({Enum a, bool b})? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '({Enum a, bool b})?' is not exhaustively matched by the switch cases.
+// [cfe] The type '({Enum a, bool b})?' is not exhaustively matched by the switch cases since it doesn't match '(a: Enum.b, b: false)'.
     case (a: Enum.a, b: false):
       print('(a, false)');
       break;

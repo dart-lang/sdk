@@ -254,9 +254,9 @@ void relationalPattern(E e) {
   // call is on the expression which we do not control.
   switch (e) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
     case == E.e1:
       break;
     case == E.e2:
@@ -264,9 +264,9 @@ void relationalPattern(E e) {
   }
   ignore(switch (e) {
   //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
   //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
+  // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
       == E.e1 => 0,
       == E.e2 => 1
   });
@@ -279,9 +279,9 @@ void withGuard(E e) {
   // The real exhaustiveness handles this.
   switch (e) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
     case E.e1 when true:
       break;
     case E.e2:
@@ -289,9 +289,9 @@ void withGuard(E e) {
   }
   ignore(switch (e) {
   //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
   //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
+  // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
       E.e1 when true => 0,
       E.e2 => 1
   });

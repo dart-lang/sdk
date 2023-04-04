@@ -2,15 +2,15 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/object_pattern.dart:28:41: Error: The type 'A' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/object_pattern.dart:28:41: Error: The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'A(field1: int())'.
 //  - 'A' is from 'pkg/front_end/testcases/patterns/exhaustiveness/object_pattern.dart'.
-// Try adding a default case or cases that match 'A(field1: int())'.
+// Try adding a wildcard pattern or cases that match 'A()'.
 // nonExhaustiveFixedField(A a) => switch (a) {
 //                                         ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/object_pattern.dart:32:41: Error: The type 'A' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/object_pattern.dart:32:41: Error: The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'A(field2: double())'.
 //  - 'A' is from 'pkg/front_end/testcases/patterns/exhaustiveness/object_pattern.dart'.
-// Try adding a default case or cases that match 'A(field2: double())'.
+// Try adding a wildcard pattern or cases that match 'A(field2: double())'.
 // nonExhaustiveTypedField(A a) => switch (a) {
 //                                         ^
 //

@@ -403,6 +403,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         mapPatternKeyValues: mapPatternKeyValues,
         constantPatternValues: constantPatternValues,
         mustBeExhaustive: true,
+        isSwitchExpression: true,
       );
     });
   }
@@ -421,6 +422,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           constantPatternValues: constantPatternValues,
           mustBeExhaustive:
               _typeSystem.isAlwaysExhaustive(node.expression.typeOrThrow),
+          isSwitchExpression: false,
         );
       } else if (_currentLibrary.isNonNullableByDefault) {
         _validateSwitchStatement_nullSafety(node);
@@ -768,6 +770,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     required Map<Expression, DartObjectImpl> mapPatternKeyValues,
     required Map<ConstantPattern, DartObjectImpl> constantPatternValues,
     required bool mustBeExhaustive,
+    required bool isSwitchExpression,
   }) {
     final scrutineeType = scrutinee.typeOrThrow;
     final scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
@@ -828,9 +831,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
         _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+          isSwitchExpression
+              ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+              : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
           switchKeyword,
-          [scrutineeType, error.witness.toString()],
+          [scrutineeType, error.witness.asWitness, error.witness.asCorrection],
         );
       }
     }

@@ -1498,7 +1498,8 @@ class ConstantsTransformer extends RemovingTransformer {
     _checkExhaustiveness(node, replacement, scrutineeType, patternGuards,
         hasDefault: hasDefault,
         mustBeExhaustive: isAlwaysExhaustiveType,
-        fileOffset: node.expression.fileOffset);
+        fileOffset: node.expression.fileOffset,
+        isSwitchExpression: false);
     // TODO(johnniwinther): Avoid this work-around for [getFileUri].
     replacement.parent = node.parent;
     // TODO(johnniwinther): Avoid transform of [replacement] by generating
@@ -1510,7 +1511,8 @@ class ConstantsTransformer extends RemovingTransformer {
       DartType expressionType, List<PatternGuard> patternGuards,
       {required int fileOffset,
       required bool hasDefault,
-      required bool mustBeExhaustive}) {
+      required bool mustBeExhaustive,
+      required bool isSwitchExpression}) {
     StaticType type = exhaustivenessCache.getStaticType(expressionType);
     List<Space> cases = [];
     PatternConverter patternConverter = new PatternConverter(
@@ -1551,8 +1553,14 @@ class ConstantsTransformer extends RemovingTransformer {
             constantEvaluator.createLocatedMessageWithOffset(
                 node,
                 fileOffset,
-                templateNonExhaustiveSwitch.withArguments(expressionType,
-                    '${error.witness}', library.isNonNullableByDefault)));
+                (isSwitchExpression
+                        ? templateNonExhaustiveSwitchExpression
+                        : templateNonExhaustiveSwitchStatement)
+                    .withArguments(
+                        expressionType,
+                        error.witness.asWitness,
+                        error.witness.asCorrection,
+                        library.isNonNullableByDefault)));
       }
     }
     if (_exhaustivenessDataForTesting != null) {
@@ -1997,7 +2005,8 @@ class ConstantsTransformer extends RemovingTransformer {
     _checkExhaustiveness(node, replacement, scrutineeType, patternGuards,
         hasDefault: false,
         mustBeExhaustive: true,
-        fileOffset: node.expression.fileOffset);
+        fileOffset: node.expression.fileOffset,
+        isSwitchExpression: true);
 
     // TODO(johnniwinther): Avoid this work-around for [getFileUri].
     replacement.parent = node.parent;

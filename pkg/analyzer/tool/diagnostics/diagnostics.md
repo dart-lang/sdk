@@ -14277,9 +14277,66 @@ enum E {
 }
 {% endprettify %}
 
-### non_exhaustive_switch
+### non_exhaustive_switch_expression
 
-_The type '{0}' is not exhaustively matched by the switch cases._
+_The type '{0}' is not exhaustively matched by the switch cases since it doesn't
+match '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `switch` expression is
+missing a case for one or more of the possible values that could flow
+through it.
+
+#### Example
+
+The following code produces this diagnostic because the switch expression
+doesn't have a case for the value `E.three`:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => [!switch!] (e) {
+    E.one => 'one',
+    E.two => 'two',
+  };
+{% endprettify %}
+
+#### Common fixes
+
+Add a case for each of the constants that aren't currently being matched:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => switch (e) {
+    E.one => 'one',
+    E.two => 'two',
+    E.three => 'three',
+  };
+{% endprettify %}
+
+If the missing values don't need to be matched, then add  a wildcard
+pattern:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => switch (e) {
+    E.one => 'one',
+    E.two => 'two',
+    _ => 'unknown',
+  };
+{% endprettify %}
+
+But be aware that adding a wildcard pattern will cause any future values
+of the type to also be handled, so you will have lost the ability for the
+compiler to warn you if the `switch` needs to be updated.
+
+### non_exhaustive_switch_statement
+
+_The type '{0}' is not exhaustively matched by the switch cases since it doesn't
+match '{1}'._
 
 #### Description
 
@@ -14322,7 +14379,7 @@ void f(E e) {
 {% endprettify %}
 
 If the missing values don't need to be matched, then add a `default`
-clause (or a wildcard pattern in a `switch` expression):
+clause or a wildcard pattern:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }

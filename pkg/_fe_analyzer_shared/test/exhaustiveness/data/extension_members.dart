@@ -79,7 +79,7 @@ exhaustiveBCD_Typed(A a) {
 nonExhaustiveBCD_Restricted(A a) {
   /*
    checkingOrder={A,B,C,D},
-   error=non-exhaustive:B(member: B()),
+   error=non-exhaustive:B(member: B())/B(),
    fields={member:-,B.member:B,C.member:C},
    subtypes={B,C,D},
    type=A
@@ -148,7 +148,7 @@ exhaustiveI_Typed(A a) {
 nonExhaustiveI_Typed(A a) {
   /*
    checkingOrder={A,B,C,D},
-   error=non-exhaustive:I(member: B()),
+   error=non-exhaustive:I(member: B())/B(),
    fields={member:-,C.member:C,I.member:B},
    subtypes={B,C,D},
    type=A
@@ -229,7 +229,7 @@ unreachableIJ_Inferred(A a) {
 nonExhaustiveIJ_Restricted(A a) {
   /*
    checkingOrder={A,B,C,D},
-   error=non-exhaustive:I(member: B()) && J(member: double()),
+   error=non-exhaustive:I(member: B()) && J(member: double())/J(member: double()),
    fields={member:-,C.member:C,I.member:B,J.member:num},
    subtypes={B,C,D},
    type=A
@@ -268,7 +268,7 @@ exhaustiveIJ_Multiple(A a) {
 nonExhaustiveIJ_MultipleRestricted(A a) {
   /*
    checkingOrder={A,B,C,D},
-   error=non-exhaustive:I(member: B(), member2: B(), member3: C()) && J(member: double(), member2: C(), member3: true),
+   error=non-exhaustive:I(member: B(), member2: B(), member3: C()) && J(member: double(), member2: C(), member3: true)/I(member2: B()) && J(member: double(), member2: C(), member3: true),
    fields={member:-,C.member:C,I.member:B,I.member2:A,I.member3:C,J.member:num,J.member2:A,J.member3:bool},
    subtypes={B,C,D},
    type=A
