@@ -70,7 +70,7 @@ class NullCheckOnNullableTypeParameter extends LintRule {
 
     var visitor = _Visitor(this, context);
     registry.addPostfixExpression(this, visitor);
-    registry.addRecordPattern(this, visitor);
+    registry.addNullAssertPattern(this, visitor);
   }
 }
 
@@ -84,6 +84,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       type is TypeParameterType && context.typeSystem.isNullable(type);
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    if (isNullableTypeParameterType(node.matchedValueType)) {
+      rule.reportLintForToken(node.operator);
+    }
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     if (node.operator.type != TokenType.BANG) return;
 
@@ -95,18 +102,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         context.typeSystem.promoteToNonNull(type!) ==
             context.typeSystem.promoteToNonNull(expectedType)) {
       rule.reportLintForToken(node.operator);
-    }
-  }
-
-  @override
-  void visitRecordPattern(RecordPattern node) {
-    for (var field in node.fields) {
-      var pattern = field.pattern;
-      if (pattern is NullAssertPattern) {
-        if (isNullableTypeParameterType(pattern.matchedValueType)) {
-          rule.reportLintForToken(pattern.operator);
-        }
-      }
     }
   }
 }
