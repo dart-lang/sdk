@@ -627,30 +627,36 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
     return old_type;
   }
 
-  // Prefer exact Cid if known.
-  if (new_type->ToCid() != kDynamicCid) {
-    return new_type;
-  }
-  if (old_type->ToCid() != kDynamicCid) {
-    return old_type;
-  }
-
-  const AbstractType* old_abstract_type = old_type->ToAbstractType();
-  const AbstractType* new_abstract_type = new_type->ToAbstractType();
   CompileType* preferred_type = nullptr;
 
-  // Prefer 'int' if known.
-  if (old_type->IsNullableInt()) {
-    preferred_type = old_type;
-  } else if (new_type->IsNullableInt()) {
-    preferred_type = new_type;
-  } else if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
-    // Prefer old type, as it is clearly more specific.
-    preferred_type = old_type;
-  } else {
-    // Prefer new type as it is more recent, even though it might be
-    // no better than the old type.
-    preferred_type = new_type;
+  // Prefer exact Cid if known.
+  const intptr_t new_type_cid = new_type->ToCid();
+  const intptr_t old_type_cid = old_type->ToCid();
+  if (new_type_cid != old_type_cid) {
+    if (new_type_cid != kDynamicCid) {
+      preferred_type = new_type;
+    } else if (old_type_cid != kDynamicCid) {
+      preferred_type = old_type;
+    }
+  }
+
+  if (preferred_type == nullptr) {
+    const AbstractType* old_abstract_type = old_type->ToAbstractType();
+    const AbstractType* new_abstract_type = new_type->ToAbstractType();
+
+    // Prefer 'int' if known.
+    if (old_type->IsNullableInt()) {
+      preferred_type = old_type;
+    } else if (new_type->IsNullableInt()) {
+      preferred_type = new_type;
+    } else if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
+      // Prefer old type, as it is clearly more specific.
+      preferred_type = old_type;
+    } else {
+      // Prefer new type as it is more recent, even though it might be
+      // no better than the old type.
+      preferred_type = new_type;
+    }
   }
 
   // Refine non-nullability and whether it can be sentinel.
