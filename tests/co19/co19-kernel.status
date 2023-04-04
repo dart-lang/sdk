@@ -18,6 +18,9 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
 LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
 
+[ $simulator ]
+LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://github.com/dart-lang/sdk/issues/37299
+
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass
 LibTest/collection/ListBase/ListBase_class_A01_t03: Slow, Pass
@@ -29,16 +32,13 @@ LibTest/core/List/List_class_A01_t03: Slow, Pass
 [ $runtime == dart_precompiled && $system == windows ]
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
 
-[ $runtime == dart_precompiled && ($arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled && $simulator ]
 LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Issue 43036
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://github.com/dart-lang/sdk/issues/37299
 
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled || $runtime == vm && $simulator ]
 LibTest/isolate/Isolate/spawnUri*: Skip

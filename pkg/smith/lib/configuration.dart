@@ -723,6 +723,18 @@ class Architecture extends NamedEnum {
 
   const Architecture._(String name) : super(name);
 
+  bool get isSimulator => _simulators.contains(this);
+  static final _simulators = <Architecture>{
+    simx64,
+    simx64c,
+    simarm,
+    simarm_x64,
+    simarm64,
+    simarm64c,
+    simriscv32,
+    simriscv64,
+  };
+
   static final Architecture host = _computeHost();
   static Architecture _computeHost() {
     String? arch;
