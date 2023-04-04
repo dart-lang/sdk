@@ -10362,11 +10362,20 @@ class Parser {
                 codes.templateExpectedButGot.withArguments(',');
             token = rewriteAndRecover(token, message, comma);
           } else {
-            reportRecoverableError(
-                next, codes.templateExpectedButGot.withArguments('}'));
             // Scanner guarantees a closing curly bracket
-            next = beginSwitch.endGroup!;
-            break;
+            Token closingBracket = beginSwitch.endGroup!;
+            comma = findNextComma(next, closingBracket);
+            if (comma == null) {
+              reportRecoverableError(
+                  next, codes.templateExpectedButGot.withArguments('}'));
+              next = closingBracket;
+              break;
+            } else {
+              reportRecoverableError(
+                  next, codes.templateExpectedButGot.withArguments(','));
+              token = comma;
+              next = token.next!;
+            }
           }
         }
       }
@@ -10377,6 +10386,22 @@ class Parser {
     assert(token.isEof || optional('}', token));
     listener.endSwitchExpression(switchKeyword, token);
     return token;
+  }
+
+  /// Finds and returns the next `,` token, starting at [token], but not
+  /// searching beyond [limit].  If a begin token is encountered, the search
+  /// proceeds after its matching end token, so the returned token (if any) will
+  /// not be any more deeply nested than the starting point.
+  Token? findNextComma(Token token, Token limit) {
+    while (true) {
+      if (token.isEof || identical(token, limit)) return null;
+      if (optional(',', token)) return token;
+      if (token is BeginToken) {
+        token = token.endGroup!;
+      } else {
+        token = token.next!;
+      }
+    }
   }
 }
 
