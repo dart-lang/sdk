@@ -231,6 +231,7 @@ import 'replace_return_type_iterable_test.dart' as replace_return_type_iterable;
 import 'replace_return_type_stream_test.dart' as replace_return_type_stream;
 import 'replace_return_type_test.dart' as replace_return_type;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
+import 'replace_with_arrow_test.dart' as replace_with_arrow;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
@@ -464,6 +465,7 @@ void main() {
     replace_return_type_iterable.main();
     replace_return_type_stream.main();
     replace_var_with_dynamic.main();
+    replace_with_arrow.main();
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
     replace_with_decorated_box.main();

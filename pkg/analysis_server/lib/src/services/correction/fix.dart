@@ -1598,6 +1598,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Replace 'var' with 'dynamic'",
   );
+  static const REPLACE_WITH_ARROW = FixKind(
+    'dart.fix.replace.withArrow',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '=>'",
+  );
+  static const REPLACE_WITH_ARROW_MULTI = FixKind(
+    'dart.fix.replace.withArrow.multi',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '=>' everywhere in file",
+  );
   static const REPLACE_WITH_BRACKETS = FixKind(
     'dart.fix.replace.withBrackets',
     DartFixKindPriority.DEFAULT,
