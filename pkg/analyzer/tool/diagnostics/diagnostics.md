@@ -12154,7 +12154,7 @@ dependencies:
   meta: ^1.0.2
 ```
 
-### missing_object_pattern_getter_name
+### missing_named_pattern_field_name
 
 _The getter name is not specified explicitly, and the pattern is not a
 variable._

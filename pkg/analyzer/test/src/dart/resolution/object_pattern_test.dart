@@ -426,7 +426,7 @@ void f(x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME, 75, 3),
+      error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 75, 3),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -674,6 +674,37 @@ ObjectPattern
       element: self::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
+''');
+  }
+
+  test_class_notGeneric_positionalField() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case Object(0)) {}
+}
+''', [
+      error(CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN, 40, 1),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
+  leftParenthesis: (
+  fields
+    PatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        matchedValueType: dynamic
+      element: <null>
+  rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 

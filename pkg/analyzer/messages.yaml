@@ -9245,10 +9245,10 @@ CompileTimeErrorCode:
     correctionMessage: "Try removing the '@'."
     hasPublishedDocs: true
     comment: No parameters.
-  MISSING_OBJECT_PATTERN_GETTER_NAME:
+  MISSING_NAMED_PATTERN_FIELD_NAME:
     problemMessage: The getter name is not specified explicitly, and the pattern is not a variable.
     correctionMessage: Try specifying the getter name explicitly, or using a variable pattern.
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     comment: No parameters.
     documentation: |-
       #### Description
@@ -12734,6 +12734,10 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the pattern variable
+  POSITIONAL_FIELD_IN_OBJECT_PATTERN:
+    problemMessage: Object patterns can only use named fields.
+    correctionMessage: Try specifying the field name.
+    comment: No parameters.
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.

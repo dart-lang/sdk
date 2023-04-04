@@ -629,7 +629,7 @@ void f(({int foo}) x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME, 49, 3),
+      error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''

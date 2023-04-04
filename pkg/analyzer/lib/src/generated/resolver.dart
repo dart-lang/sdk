@@ -526,8 +526,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   List<SharedPatternField> buildSharedPatternFields(
-    List<PatternFieldImpl> fields,
-  ) {
+    List<PatternFieldImpl> fields, {
+    required bool mustBeNamed,
+  }) {
     return fields.map((field) {
       Token? nameToken;
       var fieldName = field.name;
@@ -537,11 +538,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           nameToken = field.pattern.variablePattern?.name;
           if (nameToken == null) {
             errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
+              CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
               field,
             );
           }
         }
+      } else if (mustBeNamed) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN,
+          field,
+        );
       }
       return shared.RecordPatternField(
         node: field,
@@ -1605,10 +1611,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var nameToken = fieldNode.name?.name;
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
-        fieldNode,
-      );
       return typeProvider.dynamicType;
     }
 
