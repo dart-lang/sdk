@@ -145,7 +145,8 @@ class DevCompilerTarget extends Target {
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       _allowedTestLibrary(importer) ||
       (importer.isScheme('package') &&
-          importer.path.startsWith('dart2js_runtime_metrics/'));
+          (importer.path.startsWith('dart2js_runtime_metrics/') ||
+              importer.path == 'js/js.dart'));
 
   @override
   bool get nativeExtensionExpectsString => false;

@@ -154,9 +154,9 @@ class WasmTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     Set<Library> transitiveImportingJSInterop = {
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("package:js/js.dart")),
+          component, Uri.parse("dart:_js_annotations")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:_js_annotations"))
+          component, Uri.parse("dart:js_interop")),
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
@@ -377,4 +377,9 @@ class WasmTarget extends Target {
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       recordClasses[RecordShape(numPositionalFields, namedFields)]!;
+
+  @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      importer.isScheme('package') && importer.path == 'js/js.dart';
 }
