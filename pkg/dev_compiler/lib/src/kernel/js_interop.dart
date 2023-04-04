@@ -7,7 +7,7 @@ import 'package:kernel/kernel.dart';
 import 'kernel_helpers.dart';
 
 /// Returns true if [library] is one of the [candidates].
-/// The latter should be a list, e.g.,: ['dart:js', 'dart:_js_annotations'].
+/// The latter should be a list, e.g.,: ['dart:js', 'package:js'].
 bool _isLibrary(Library library, List<String> candidates) {
   var uri = library.importUri;
   var scheme = uri.scheme;
@@ -21,17 +21,13 @@ bool _isLibrary(Library library, List<String> candidates) {
   return false;
 }
 
-/// Returns true if [library] represents any library from
-/// `dart:_foreign_helper`, `dart:_js_annotations`, `dart:_js_helper`, or
-/// `dart:js_interop`.
+/// Returns true if [library] represents any library from `package:js` or is the
+/// internal `dart:_js_helper` library.
 bool _isJSLibrary(Library library) => _isLibrary(library, [
-      'dart:_foreign_helper',
-      'dart:_js_annotations',
+      'package:js',
       'dart:_js_helper',
-      // TODO(srujzs): For now, this allows using `dart:js_interop`'s `@JS` for
-      // `package:js` classes. In the future, we should either further dedup or
-      // disallow this.
-      'dart:js_interop',
+      'dart:_foreign_helper',
+      'dart:_js_annotations'
     ]);
 
 /// Whether [node] is a direct call to `allowInterop`.
@@ -71,9 +67,8 @@ bool isJsRestAnnotation(Expression value) =>
 bool isJSAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('JS', value) || isJSName(value);
 
-/// Returns [true] if [value] is the `JS` annotation from
-/// `dart:_js_annotations` or `dart:js_interop`.
-bool isJSInteropAnnotation(Expression value) =>
+/// Returns [true] if [value] is the `JS` annotation from `package:js`.
+bool isPublicJSAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('JS', value);
 
 bool _isJSAnonymousAnnotation(Expression value) =>
@@ -83,7 +78,7 @@ bool _isStaticInteropAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('_StaticInterop', value);
 
 /// Whether [value] is a `@JSExportName` (internal annotation used in SDK
-/// instead of `@JS` from `dart:_js_annotations`).
+/// instead of `@JS` from `package:js`).
 bool isJSExportNameAnnotation(Expression value) =>
     isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
 
@@ -130,20 +125,18 @@ bool isObjectLiteralAnnotation(Expression value) {
 bool hasObjectLiteralAnnotation(Annotatable a) =>
     a.annotations.any(isObjectLiteralAnnotation);
 
-/// Returns true iff the class has an `@JS(...)` annotation from
-/// `dart:_js_annotations` or `dart:js_interop`.
+/// Returns true iff the class has an `@JS(...)` annotation from `package:js`.
 ///
-/// Note: usually [usesJSInterop] should be used instead of this.
+/// Note: usually [_usesJSInterop] should be used instead of this.
 //
 // TODO(jmesserly): I think almost all uses of this should be replaced with
-// [usesJSInterop], which also checks that the library is marked with `@JS`.
+// [_usesJSInterop], which also checks that the library is marked with `@JS`.
 //
 // Right now we have inconsistencies: sometimes we'll respect `@JS` on the
 // class itself, other places we require it on the library. Also members are
 // inconsistent: sometimes they need to have `@JS` on them, other times they
 // need to be `external` in an `@JS` class.
-bool hasJSInteropAnnotation(Class c) =>
-    c.annotations.any(isJSInteropAnnotation);
+bool hasJSInteropAnnotation(Class c) => c.annotations.any(isPublicJSAnnotation);
 
 /// Returns true iff this element is a JS interop member.
 ///
@@ -154,11 +147,11 @@ bool hasJSInteropAnnotation(Class c) =>
 /// the class or library.
 bool usesJSInterop(NamedNode n) {
   if (n is Member && n.isExternal) {
-    return n.enclosingLibrary.annotations.any(isJSInteropAnnotation) ||
-        n.annotations.any(isJSInteropAnnotation) ||
-        (n.enclosingClass?.annotations.any(isJSInteropAnnotation) ?? false);
+    return n.enclosingLibrary.annotations.any(isPublicJSAnnotation) ||
+        n.annotations.any(isPublicJSAnnotation) ||
+        (n.enclosingClass?.annotations.any(isPublicJSAnnotation) ?? false);
   } else if (n is Class) {
-    return n.annotations.any(isJSInteropAnnotation);
+    return n.annotations.any(isPublicJSAnnotation);
   }
   return false;
 }

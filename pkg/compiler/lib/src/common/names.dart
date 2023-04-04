@@ -266,6 +266,9 @@ class Uris {
   /// The URI for 'dart:js_util'.
   static final Uri dart_js_util = Uri(scheme: 'dart', path: 'js_util');
 
+  /// The URI for 'package:js'.
+  static final Uri package_js = Uri(scheme: 'package', path: 'js/js.dart');
+
   /// The URI for 'dart:_js_annotations'.
   static final Uri dart__js_annotations =
       Uri(scheme: 'dart', path: '_js_annotations');

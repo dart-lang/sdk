@@ -40,8 +40,10 @@ class KernelAnnotationProcessor {
     String? annotationName;
     for (ConstantValue value in metadata) {
       String? name = readAnnotationName(commonElements.dartTypes, spannable,
-          value, commonElements.jsAnnotationClass!,
-          defaultValue: '');
+              value, commonElements.jsAnnotationClass1!, defaultValue: '') ??
+          readAnnotationName(commonElements.dartTypes, spannable, value,
+              commonElements.jsAnnotationClass2!,
+              defaultValue: '');
       if (annotationName == null) {
         annotationName = name;
       } else if (name != null) {

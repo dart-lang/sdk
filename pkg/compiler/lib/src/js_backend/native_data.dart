@@ -225,9 +225,8 @@ class NativeBasicData {
       //  consider these valid JS members?
       if (memberIsIgnorable(node)) return;
       jsInteropMembers[map.getMember(node)] = name;
-      if (isJsInteropObjectLiteral) {
+      if (isJsInteropObjectLiteral)
         jsInteropObjectLiterals.add(map.getMember(node));
-      }
     });
 
     return NativeBasicData(
