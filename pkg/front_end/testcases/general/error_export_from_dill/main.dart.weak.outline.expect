@@ -27,6 +27,7 @@ library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 import "dart:async" as asy;
+import "dart:collection" as col;
 additionalExports = (core::Deprecated,
   core::pragma,
   core::BigInt,
@@ -105,7 +106,9 @@ additionalExports = (core::Deprecated,
   asy::FutureRecord7,
   asy::FutureRecord8,
   asy::FutureRecord9,
-  asy::ParallelWaitError)
+  asy::ParallelWaitError,
+  col::NullableIterableExtensions,
+  col::IterableExtensions)
 
 export "dart:core";
 export "org-dartlang-testcase:///main_lib2.dart";

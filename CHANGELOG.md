@@ -136,6 +136,9 @@
 
 #### `dart:collection`
 
+- Added extension members `nonNulls`, `firstOrNull`, `lastOrNull`,
+  `singleOrNull`, `elementAtOrNull` and `indexed` on `Iterable`s.
+  Also exported from `dart:core`.
 - Deprecated the `HasNextIterator` class ([#50883][]).
 
 - **Breaking change when migrating code to Dart 3.0**:

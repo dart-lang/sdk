@@ -1,3 +1,8 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main_lib1.dart: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+//
 library /*isNonNullableByDefault*/;
 //
 // Problems in library:
@@ -39,7 +44,6 @@ library /*isNonNullableByDefault*/;
 //             ^^^^^^^^^^^
 //
 import self as self;
-import "dart:core" as core;
 
 import "org-dartlang-testcase:///main_lib1.dart" as exported;
 import "dart:core" as imported;
@@ -49,32 +53,32 @@ import "org-dartlang-testcase:///main_lib3.dart" as imported;
 static method testImported() → dynamic {
   function f(dynamic d) → void {}
   Never n;
-  core::_GrowableList::•<Never>(0);
+  <Never>[];
   invalid-type d;
   invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:15:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
   new imported.Duplicate();
       ^^^^^^^^";
-  core::_GrowableList::•<invalid-type>(0);
+  <invalid-type>[];
   invalid-type e;
   invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:18:16: Error: Couldn't find constructor 'NonExisting'.
   new imported.NonExisting();
                ^^^^^^^^^^^";
-  core::_GrowableList::•<invalid-type>(0);
+  <invalid-type>[];
 }
 static method testExported() → dynamic {
   function f(dynamic d) → void {}
   Never n;
-  core::_GrowableList::•<Never>(0);
+  <Never>[];
   invalid-type d;
   invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:27:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
   new exported.Duplicate();
       ^^^^^^^^";
-  core::_GrowableList::•<invalid-type>(0);
+  <invalid-type>[];
   invalid-type e;
   invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:30:16: Error: Couldn't find constructor 'NonExisting'.
   new exported.NonExisting();
                ^^^^^^^^^^^";
-  core::_GrowableList::•<invalid-type>(0);
+  <invalid-type>[];
 }
 
 library /*isNonNullableByDefault*/;
@@ -88,7 +92,6 @@ library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:collection" as col;
 additionalExports = (core::Deprecated,
   core::pragma,
   core::BigInt,
@@ -157,19 +160,7 @@ additionalExports = (core::Deprecated,
   core::override,
   asy::Future,
   asy::Stream,
-  asy::FutureExtensions,
-  asy::FutureIterable,
-  asy::FutureRecord2,
-  asy::FutureRecord3,
-  asy::FutureRecord4,
-  asy::FutureRecord5,
-  asy::FutureRecord6,
-  asy::FutureRecord7,
-  asy::FutureRecord8,
-  asy::FutureRecord9,
-  asy::ParallelWaitError,
-  col::NullableIterableExtensions,
-  col::IterableExtensions)
+  asy::FutureExtensions)
 
 export "dart:core";
 export "org-dartlang-testcase:///main_lib2.dart";
