@@ -219,7 +219,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 }
 
-class _AllMatchesIterable extends IterableBase<RegExpMatch> {
+class _AllMatchesIterable extends Iterable<RegExpMatch> {
   final JSSyntaxRegExp _re;
   final String _string;
   final int _start;

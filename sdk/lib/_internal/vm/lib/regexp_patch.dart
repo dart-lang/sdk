@@ -323,7 +323,7 @@ class _RegExp implements RegExp {
       Int32List(_initialBacktrackingStackSize);
 }
 
-class _AllMatchesIterable extends IterableBase<RegExpMatch> {
+class _AllMatchesIterable extends Iterable<RegExpMatch> {
   final _RegExp _re;
   final String _str;
   final int _start;

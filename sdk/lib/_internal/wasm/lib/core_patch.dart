@@ -35,7 +35,6 @@ import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 import "dart:collection"
     show
         HashMap,
-        IterableBase,
         LinkedHashMap,
         LinkedList,
         LinkedListEntry,

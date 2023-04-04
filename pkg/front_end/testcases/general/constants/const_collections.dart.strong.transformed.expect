@@ -180,14 +180,14 @@ library /*isNonNullableByDefault*/;
 //                     ^
 //
 import self as self;
-import "dart:collection" as col;
 import "dart:core" as core;
+import "dart:collection" as col;
 
 import "dart:collection";
 
-class ConstIterable extends col::IterableBase<core::int> /*hasConstConstructor*/  {
+class ConstIterable extends core::Iterable<core::int> /*hasConstConstructor*/  {
   const constructor •() → self::ConstIterable
-    : super col::IterableBase::•()
+    : super core::Iterable::•()
     ;
   get iterator() → core::Iterator<core::int>
     return core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
@@ -201,9 +201,9 @@ class WithEquals extends core::Object /*hasConstConstructor*/  {
     return o is{ForNonNullableByDefault} self::WithEquals && o{self::WithEquals}.{self::WithEquals::i}{core::int} =={core::num::==}{(core::Object) → core::bool} this.{self::WithEquals::i}{core::int};
   }
 }
-class CustomIterable extends col::IterableBase<core::String> /*hasConstConstructor*/  {
+class CustomIterable extends core::Iterable<core::String> /*hasConstConstructor*/  {
   const constructor •() → self::CustomIterable
-    : super col::IterableBase::•()
+    : super core::Iterable::•()
     ;
   get iterator() → core::Iterator<core::String>
     return core::_GrowableList::•<core::String>(0).{core::Iterable::iterator}{core::Iterator<core::String>};
@@ -383,7 +383,6 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_collections.dart:
 - CustomIterable. (from org-dartlang-testcase:///const_collections.dart:79:9)
-- IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart)
 - Iterable. (from org-dartlang-sdk:///sdk/lib/core/iterable.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)

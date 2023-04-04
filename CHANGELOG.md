@@ -21,7 +21,9 @@
 - **Breaking Change**: Non-`mixin` classes in the platform libraries
   can no longer be mixed in, unless they are explicitly marked as `mixin class`.
   The following existing classes have been made mixin classes:
-  * `IterableMixin`
+  * `Iterable`
+  * `IterableMixin` (now alias for `Iterable`)
+  * `IterableBase` (now alias for `Iterable`)
   * `ListMixin`
   * `SetMixin`
   * `MapMixin`

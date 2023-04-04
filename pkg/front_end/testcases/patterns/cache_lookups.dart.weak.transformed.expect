@@ -589,7 +589,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     return core::Comparable::compare(a as{ForNonNullableByDefault} core::Comparable<dynamic>, b as{ForNonNullableByDefault} core::Comparable<dynamic>);
   }
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
-    return col::IterableBase::iterableToFullString(list, "[", "]");
+    return core::Iterable::iterableToFullString(list, "[", "]");
 }
 class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Object&ListMixin<cac::CustomList::E%> {
   final field core::List<cac::CustomList::E%> list;

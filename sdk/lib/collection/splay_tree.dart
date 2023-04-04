@@ -947,7 +947,7 @@ class _SplayTreeMapEntryIterator<K, V>
 /// * [HashSet] the order of the objects in the iterations is not guaranteed.
 /// * [LinkedHashSet] objects stored based on insertion order.
 final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
-    with IterableMixin<E>, SetMixin<E> {
+    with Iterable<E>, SetMixin<E> {
   _SplayTreeSetNode<E>? _root;
 
   Comparator<E> _compare;
@@ -1188,5 +1188,5 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
 
   Set<E> toSet() => _clone();
 
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
+  String toString() => Iterable.iterableToFullString(this, '{', '}');
 }

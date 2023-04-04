@@ -37,14 +37,13 @@ library /*isNonNullableByDefault*/;
 //                                              ^
 //
 import self as self;
-import "dart:collection" as col;
 import "dart:core" as core;
 
 import "dart:collection";
 
-class ConstIterable extends col::IterableBase<core::int> /*hasConstConstructor*/  {
+class ConstIterable extends core::Iterable<core::int> /*hasConstConstructor*/  {
   const constructor •() → self::ConstIterable
-    : super col::IterableBase::•()
+    : super core::Iterable::•()
     ;
   get iterator() → core::Iterator<core::int>
     ;
@@ -57,9 +56,9 @@ class WithEquals extends core::Object /*hasConstConstructor*/  {
   operator ==(core::Object o) → core::bool
     ;
 }
-class CustomIterable extends col::IterableBase<core::String> /*hasConstConstructor*/  {
+class CustomIterable extends core::Iterable<core::String> /*hasConstConstructor*/  {
   const constructor •() → self::CustomIterable
-    : super col::IterableBase::•()
+    : super core::Iterable::•()
     ;
   get iterator() → core::Iterator<core::String>
     ;

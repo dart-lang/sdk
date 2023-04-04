@@ -35,7 +35,7 @@ class MySet extends Object with SetMixin {
 
 List<String> stops = [];
 List<String> expected = [
-  "set.dart:142:23 (sdk_break_with_mixin_test.dart:21:5)",
+  "set.dart:142:21 (sdk_break_with_mixin_test.dart:21:5)",
 ];
 
 var tests = <IsolateTest>[
