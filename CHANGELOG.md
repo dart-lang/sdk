@@ -194,6 +194,7 @@
 
 #### `dart:io`
 
+- Added `name` and `signalNumber` to the `ProcessSignal` class.
 - Deprecate `NetworkInterface.listSupported`. Has always returned true since
   Dart 2.3.
 - Finalize `httpEnableTimelineLogging` parameter name transition from `enable`

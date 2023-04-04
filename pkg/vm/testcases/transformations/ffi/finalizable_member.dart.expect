@@ -44,5 +44,5 @@ static method main() → asy::Future<void> async /* futureValueType= void */ {
 constants  {
   #C1 = 2
   #C2 = "SIGINT"
-  #C3 = io::ProcessSignal {_signalNumber:#C1, _name:#C2}
+  #C3 = io::ProcessSignal {signalNumber:#C1, name:#C2}
 }
