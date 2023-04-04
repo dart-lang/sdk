@@ -724,6 +724,7 @@ class JsUtilOptimizer extends Transformer {
 /// Lazily-initialized indexes for extension members and inline class members.
 class InlineExtensionIndex {
   late Map<Reference, Annotatable> _extensionAnnotatableIndex;
+  late Map<Reference, Extension> _extensionIndex;
   Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
   late Map<Reference, InlineClass> _inlineClassIndex;
   Map<Reference, InlineClassMemberDescriptor>? _inlineMemberIndex;
@@ -745,6 +746,7 @@ class InlineExtensionIndex {
     _extensionMemberIndex = {};
     _shouldTrustType = {};
     _extensionAnnotatableIndex = {};
+    _extensionIndex = {};
     for (var extension in _library.extensions) {
       for (var descriptor in extension.members) {
         var reference = descriptor.member;
@@ -764,6 +766,7 @@ class InlineExtensionIndex {
         if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
           _extensionMemberIndex![reference] = descriptor;
           _extensionAnnotatableIndex[reference] = cls;
+          _extensionIndex[reference] = extension;
         }
       }
     }
@@ -772,6 +775,11 @@ class InlineExtensionIndex {
   Annotatable? getExtensionAnnotatable(Reference reference) {
     _createExtensionIndexes();
     return _extensionAnnotatableIndex[reference];
+  }
+
+  Extension? getExtension(Reference reference) {
+    _createExtensionIndexes();
+    return _extensionIndex[reference];
   }
 
   ExtensionMemberDescriptor? getExtensionDescriptor(Reference reference) {
