@@ -2058,7 +2058,7 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 
 /// A [RecordTypeInformation] is the constructor for a record, used for Record
 /// constants and literals.
-class RecordTypeInformation extends TypeInformation {
+class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   final RecordShape recordShape;
   final AbstractValue originalType;
 

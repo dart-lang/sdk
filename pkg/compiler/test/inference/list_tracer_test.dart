@@ -265,10 +265,10 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listPassedAsNamedParameter', commonMasks.numType);
   checkType('listStoredInList', commonMasks.uint31Type);
   checkType('listStoredInListButEscapes', commonMasks.dynamicType);
-  checkType('listStoredInRecordWithIndexAccess', commonMasks.dynamicType);
-  checkType('listStoredInRecordWithNameAccess', commonMasks.dynamicType);
-  checkType('listStoredInRecordWithDynamicAccess', commonMasks.dynamicType);
-  checkType('listStoredInRecordWithoutAccess', commonMasks.dynamicType);
+  checkType('listStoredInRecordWithIndexAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithNameAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithDynamicAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithoutAccess', commonMasks.uint31Type);
 
   if (!allocation.contains('filled')) {
     checkType('listUnset', TypeMask.nonNullEmpty());

@@ -9,6 +9,7 @@
       "."
     ],
     "exclude": [
+      "^pkg/compiler/test/.*/inference_data/.*",
       "^pkg/compiler/test/.*/data/.*",
       "^pkg/compiler/test/.*/data_2/.*",
       "^pkg/compiler/test/.*/emission/.*",
