@@ -18,6 +18,9 @@ class UnrelatedTypeEqualityChecksTestLanguage300 extends LintRuleTest
   @override
   String get lintRule => 'unrelated_type_equality_checks';
 
+  @FailingTest(
+      reason: 'Error code refactoring',
+      issue: 'https://github.com/dart-lang/linter/issues/4256')
   test_switchExpression() async {
     await assertDiagnostics(r'''    
 const space = 32;
@@ -28,11 +31,15 @@ String f(int char) {
   };
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 49, 6),
+      // todo(pq): update to new error code
+      // error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 49, 6),
       lint(69, 10),
     ]);
   }
 
+  @FailingTest(
+      reason: 'Error code refactoring',
+      issue: 'https://github.com/dart-lang/linter/issues/4256')
   test_switchExpression_lessEq_ok() async {
     await assertDiagnostics(r'''
 String f(String char) {
@@ -42,11 +49,15 @@ String f(String char) {
 }
 ''', [
       // No lint.
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 33, 6),
+      // todo(pq): update to new error code
+      // error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 33, 6),
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 2),
     ]);
   }
 
+  @FailingTest(
+      reason: 'Error code refactoring',
+      issue: 'https://github.com/dart-lang/linter/issues/4256')
   test_switchExpression_notEq() async {
     await assertDiagnostics(r'''    
 const space = 32;
@@ -57,11 +68,15 @@ String f(int char) {
   };
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 49, 6),
+      // todo(pq): update to new error code
+      // error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 49, 6),
       lint(69, 10),
     ]);
   }
 
+  @FailingTest(
+      reason: 'Error code refactoring',
+      issue: 'https://github.com/dart-lang/linter/issues/4256')
   test_switchExpression_ok() async {
     await assertDiagnostics(r'''
 String f(String char) {
@@ -71,7 +86,8 @@ String f(String char) {
 }
 ''', [
       // No lint.
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 33, 6),
+      // todo(pq): update to new error code
+      // error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 33, 6),
     ]);
   }
 }

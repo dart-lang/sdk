@@ -229,9 +229,13 @@ class ExhaustiveCasesTestLanguage219 extends BaseExhaustiveCasesTest
 @reflectiveTest
 class ExhaustiveCasesTestLanguage300 extends BaseExhaustiveCasesTest
     with LanguageVersion300Mixin {
+  @FailingTest(
+      reason: 'Error code refactoring',
+      issue: 'https://github.com/dart-lang/linter/issues/4256')
   test_enum_ok() async {
     await assertDiagnostics(actualEnumSource, [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 52, 6),
+      // todo(pq): update to new error code
+      // error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 52, 6),
     ]);
   }
 }
