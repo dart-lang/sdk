@@ -1,0 +1,23 @@
+Problems reported:
+
+parser/patterns/patternVariableDeclaration_topLevel:1:5: A pattern variable declaration may not appear outside a function or method.
+var (a, b) = (0, 1);
+    ^^^^^^
+
+beginCompilationUnit(var)
+  beginMetadataStar(var)
+  endMetadataStar(0)
+  beginTopLevelMember(var)
+    handleRecoverableError(PatternVariableDeclarationOutsideFunctionOrMethod, (, ))
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, var, )
+      handleNoType(var)
+      handleIdentifier(, topLevelVariableDeclaration)
+      beginFieldInitializer(=)
+        beginParenthesizedExpressionOrRecordLiteral(()
+          handleLiteralInt(0)
+          handleLiteralInt(1)
+        endRecordLiteral((, 2, null)
+      endFieldInitializer(=, ;)
+    endTopLevelFields(null, null, null, null, var, 1, var, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

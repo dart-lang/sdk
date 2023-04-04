@@ -2651,6 +2651,8 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
   status: needsEvaluation
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
   status: needsEvaluation
+ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
+  status: needsEvaluation
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
   status: needsEvaluation
 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:

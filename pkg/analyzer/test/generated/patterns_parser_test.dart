@@ -7538,6 +7538,84 @@ ForStatement
 ''');
   }
 
+  test_patternVariableDeclaration_inClass() {
+    // If a pattern variable declaration appears outside a function or method,
+    // the parser recovers by replacing the pattern with a synthetic identifier,
+    // so that it parses as an ordinary field or top level variable declaration.
+    _parse('''
+class C {
+  var (a, b) = (0, 1);
+}
+''', errors: [
+      error(
+          ParserErrorCode
+              .PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
+          16,
+          6),
+    ]);
+    var node = findNode.classDeclaration('class');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  name: C
+  leftBracket: {
+  members
+    FieldDeclaration
+      fields: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: <empty> <synthetic>
+            equals: =
+            initializer: RecordLiteral
+              leftParenthesis: (
+              fields
+                IntegerLiteral
+                  literal: 0
+                IntegerLiteral
+                  literal: 1
+              rightParenthesis: )
+      semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_patternVariableDeclaration_topLevel() {
+    // If a pattern variable declaration appears outside a function or method,
+    // the parser recovers by replacing the pattern with a synthetic identifier,
+    // so that it parses as an ordinary field or top level variable declaration.
+    _parse('''
+var (a, b) = (0, 1);
+''', errors: [
+      error(
+          ParserErrorCode
+              .PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
+          4,
+          6),
+    ]);
+    var node = findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: <empty> <synthetic>
+            equals: =
+            initializer: RecordLiteral
+              leftParenthesis: (
+              fields
+                IntegerLiteral
+                  literal: 0
+                IntegerLiteral
+                  literal: 1
+              rightParenthesis: )
+      semicolon: ;
+''');
+  }
+
   test_patternVariableDeclarationStatement_disallowsConst() {
     // TODO(paulberry): do better error recovery.
     _parse('''

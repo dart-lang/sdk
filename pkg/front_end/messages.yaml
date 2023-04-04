@@ -6743,6 +6743,18 @@ LatePatternVariableDeclaration:
       late var (y, z) = x;
     }
 
+PatternVariableDeclarationOutsideFunctionOrMethod:
+  problemMessage: A pattern variable declaration may not appear outside a function or method.
+  correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
+  analyzerCode: ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD
+  index: 152
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    class C {
+      var (a, b) = (0, 1);
+    }
+
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 

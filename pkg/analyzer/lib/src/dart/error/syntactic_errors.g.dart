@@ -166,6 +166,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
   ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN,
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION,
+  ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1554,6 +1555,17 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage:
         "Try using a preexisting variable or changing the assignment to a "
         "pattern variable declaration.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode
+      PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD = ParserErrorCode(
+    'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
+    "A pattern variable declaration may not appear outside a function or "
+        "method.",
+    correctionMessage:
+        "Try declaring ordinary variables and assigning from within a function "
+        "or method.",
   );
 
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =

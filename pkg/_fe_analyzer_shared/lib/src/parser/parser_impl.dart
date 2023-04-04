@@ -3348,6 +3348,32 @@ class Parser {
     }
 
     Token beforeType = token;
+    if (varFinalOrConst != null) {
+      Token? afterOuterPattern = skipOuterPattern(beforeType);
+      if (afterOuterPattern != null &&
+          (optional('=', afterOuterPattern.next!))) {
+        reportRecoverableErrorWithEnd(beforeType.next!, afterOuterPattern,
+            codes.messagePatternVariableDeclarationOutsideFunctionOrMethod);
+        Token syntheticName = rewriter.insertSyntheticIdentifier(beforeType);
+
+        rewriter.dropRange(syntheticName, afterOuterPattern.next!);
+        return parseFields(
+            beforeStart,
+            /* abstractToken = */ null,
+            augmentToken,
+            externalToken,
+            /* staticToken = */ null,
+            /* covariantToken = */ null,
+            lateToken,
+            varFinalOrConst,
+            beforeType,
+            noType,
+            syntheticName,
+            DeclarationKind.TopLevel,
+            /* enclosingDeclarationName = */ null,
+            /* nameIsRecovered = */ true);
+      }
+    }
     TypeInfo typeInfo =
         computeType(token, /* required = */ false, /* inDeclaration = */ true);
     token = typeInfo.skipType(token);
@@ -4374,6 +4400,34 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
+    if (varFinalOrConst != null) {
+      Token? afterOuterPattern = skipOuterPattern(beforeType);
+      if (afterOuterPattern != null &&
+          (optional('=', afterOuterPattern.next!))) {
+        reportRecoverableErrorWithEnd(beforeType.next!, afterOuterPattern,
+            codes.messagePatternVariableDeclarationOutsideFunctionOrMethod);
+        Token syntheticName = rewriter.insertSyntheticIdentifier(beforeType);
+
+        rewriter.dropRange(syntheticName, afterOuterPattern.next!);
+        token = parseFields(
+            beforeStart,
+            abstractToken,
+            augmentToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            beforeType,
+            noType,
+            syntheticName,
+            kind,
+            enclosingDeclarationName,
+            /* nameIsRecovered = */ true);
+        listener.endMember();
+        return token;
+      }
+    }
     TypeInfo typeInfo = computeType(
       token,
       /* required = */ false,
