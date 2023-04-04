@@ -137,6 +137,6 @@ dart.ci_sandbox_builder(
     channels = [],
     execution_timeout = 5 * time.minute,
     notifies = None,
-    priority = priority.high,
+    priority = priority.highest,
     triggered_by = None,
 )

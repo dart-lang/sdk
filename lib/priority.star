@@ -10,5 +10,6 @@ priority = struct(
     low = 70,  # Used for "FYI" post-submit builds.
     normal = 50,  # Used for post-submit builds.
     high = 30,  # Used for try-jobs.
-    highest = 25,  # Used for shards in the recipes, only here for completeness.
+    very_high = 25,  # Used for shards in the recipes, here for completeness.
+    highest = 20,  # Used for very quick builders like the google builder.
 )
