@@ -217,7 +217,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           case [int a, double b] || [double b, int a]:
             // Breakpoint: bp1
             return a;
-          case [int a, String b] || [String a, int b]:
+          case [int a, String b] || [String b, int a]:
             // Breakpoint: bp2
             return a;
           default:
