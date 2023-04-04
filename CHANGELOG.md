@@ -121,6 +121,8 @@
 
 #### `dart:async`
 
+- Added extension member `wait` on iterables and 2-9 tuples of futures.
+
 - **Breaking change** [#49529][]:
   - Removed the deprecated [`DeferredLibrary`][] class.
     Use the [`deferred as`][] import syntax instead.
