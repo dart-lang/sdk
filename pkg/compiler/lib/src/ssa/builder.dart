@@ -2789,7 +2789,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     body.accept(this);
     SubGraph bodyGraph = SubGraph(newBlock, lastOpenedBlock);
 
-    HBasicBlock joinBlock = graph.addNewBlock();
+    // Create join block only if reached, otherwise it won't have a dominator.
+    late final HBasicBlock joinBlock = graph.addNewBlock();
     List<LocalsHandler> breakHandlers = [];
     handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block!.addSuccessor(joinBlock);
@@ -2801,14 +2802,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       breakHandlers.add(localsHandler);
     }
 
-    open(joinBlock);
-    localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
+    if (breakHandlers.isNotEmpty) {
+      open(joinBlock);
+      localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
 
-    // There was at least one reachable break, so the label is needed.
-    newBlock.setBlockFlow(
-        HLabeledBlockInformation(
-            HSubGraphBlockInformation(bodyGraph), handler.labels),
-        joinBlock);
+      // There was at least one reachable break, so the label is needed.
+      newBlock.setBlockFlow(
+          HLabeledBlockInformation(
+              HSubGraphBlockInformation(bodyGraph), handler.labels),
+          joinBlock);
+    }
     handler.close();
   }
 
