@@ -133,22 +133,21 @@ void f() {
 }
 ''');
 
-    assertPrefixedIdentifier(
-      findNode.prefixed('B.foo'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('foo;'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.prefixed('B.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: B
+    staticElement: self::@typeAlias::B
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@class::A::@getter::foo
+  staticType: int
+''');
   }
 
   test_implicitCall_tearOff_nullable() async {

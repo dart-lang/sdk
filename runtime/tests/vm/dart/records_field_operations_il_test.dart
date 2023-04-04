@@ -31,6 +31,12 @@ class A2 extends A {
 @pragma('vm:never-inline')
 (double, double) staticCallD() => (d(1), d(2));
 
+@pragma('vm:prefer-inline')
+void inlinedCallD((double, double) xy) {
+  var (x, y) = xy;
+  print(x - y);
+}
+
 @pragma('vm:never-inline')
 @pragma('vm:testing:print-flow-graph')
 void testDouble(A obj, double a, double b, (double, double) param) {
@@ -63,6 +69,11 @@ void testDouble(A obj, double a, double b, (double, double) param) {
   {
     var (x, y) = obj.instanceCallD();
     print(x + y);
+  }
+
+  {
+    final local = (a, b);
+    inlinedCallD(local);
   }
 }
 
@@ -124,6 +135,11 @@ void matchIL$testDouble(FlowGraph graph) {
       'v6' << match.BinaryDoubleOp('x6_unboxed', 'y6_unboxed'),
       'v6_boxed' << match.Box('v6'),
       match.MoveArgument('v6_boxed'),
+      match.StaticCall(),
+      'v7' << match.BinaryDoubleOp('a', 'b'),
+      'v7_boxed' << match.Box('v7'),
+      match.MoveArgument('v7_boxed'),
+      match.StaticCall(),
       match.Return(),
     ]),
   ]);
@@ -150,6 +166,12 @@ class B2 extends B {
 
 @pragma('vm:never-inline')
 (int, int) staticCallI() => (i(1), i(2));
+
+@pragma('vm:prefer-inline')
+void inlinedCallI((int, int) xy) {
+  var (x, y) = xy;
+  print(x - y);
+}
 
 @pragma('vm:never-inline')
 @pragma('vm:testing:print-flow-graph')
@@ -183,6 +205,11 @@ void testInt(B obj, int a, int b, (int, int) param) {
   {
     var (x, y) = obj.instanceCallI();
     print(x + y);
+  }
+
+  {
+    final local = (a, b);
+    inlinedCallI(local);
   }
 }
 
@@ -244,6 +271,10 @@ void matchIL$testInt(FlowGraph graph) {
       'v6' << match.BinaryInt64Op('x6_unboxed', 'y6_unboxed'),
       'v6_boxed' << match.BoxInt64('v6'),
       match.MoveArgument('v6_boxed'),
+      match.StaticCall(),
+      'v7' << match.BinaryInt64Op('a', 'b'),
+      'v7_boxed' << match.BoxInt64('v7'),
+      match.MoveArgument('v7_boxed'),
       match.StaticCall(),
       match.Return(),
     ]),
