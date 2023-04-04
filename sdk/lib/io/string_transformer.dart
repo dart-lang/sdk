@@ -15,7 +15,7 @@ const SystemEncoding systemEncoding = const SystemEncoding();
 
 /// The system encoding is the current code page on Windows and UTF-8 on Linux
 /// and Mac.
-class SystemEncoding extends Encoding {
+final class SystemEncoding extends Encoding {
   /// Creates a const SystemEncoding.
   ///
   /// Users should use the top-level constant, [systemEncoding].

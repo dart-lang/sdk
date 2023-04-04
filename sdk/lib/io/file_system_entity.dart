@@ -9,7 +9,7 @@ part of dart.io;
 ///
 /// These constants are used by the [FileSystemEntity] class
 /// to indicate the object's type.
-class FileSystemEntityType {
+final class FileSystemEntityType {
   static const file = const FileSystemEntityType._internal(0);
 
   static const directory = const FileSystemEntityType._internal(1);
@@ -51,7 +51,7 @@ class FileSystemEntityType {
 ///
 /// This is an immutable object, representing the snapshotted values returned
 /// by the `stat()` call.
-class FileStat {
+interface class FileStat {
   // These must agree with enum FileStat in file.h.
   static const _type = 0;
   static const _changedTime = 1;
