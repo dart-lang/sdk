@@ -9379,26 +9379,32 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
-      if (colon != null) ValueKinds.IdentifierOrNull,
+      if (colon != null)
+        unionOfKinds([ValueKinds.IdentifierOrNull, ValueKinds.ParserRecovery]),
     ]));
 
     Object? value = pop();
     Pattern pattern = toPattern(value);
     if (colon != null) {
-      Identifier? identifier = pop() as Identifier?;
-      String? name;
-      if (identifier != null) {
-        name = identifier.name;
+      Object? identifier = pop();
+      if (identifier is ParserRecovery) {
+        push(
+            new ParserErrorGenerator(this, colon, fasta.messageSyntheticToken));
       } else {
-        name = pattern.variableName;
-      }
-      if (name == null) {
-        push(forest.createInvalidPattern(
-            buildProblem(fasta.messageUnspecifiedGetterNameInObjectPattern,
-                colon.charOffset, noLength),
-            declaredVariables: const []));
-      } else {
-        push(forest.createNamedPattern(colon.charOffset, name, pattern));
+        String? name;
+        if (identifier is Identifier) {
+          name = identifier.name;
+        } else {
+          name = pattern.variableName;
+        }
+        if (name == null) {
+          push(forest.createInvalidPattern(
+              buildProblem(fasta.messageUnspecifiedGetterNameInObjectPattern,
+                  colon.charOffset, noLength),
+              declaredVariables: const []));
+        } else {
+          push(forest.createNamedPattern(colon.charOffset, name, pattern));
+        }
       }
     } else {
       push(pattern);
