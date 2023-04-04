@@ -9237,6 +9237,84 @@ SwitchExpression
 ''');
   }
 
+  test_switchExpression_recovery_bogusTokensAfterCase_laterComma() {
+    // If the extra tokens after a switch case don't look like they could be a
+    // pattern, the parser doesn't try to skip beyond the closing `}` to find
+    // the next case.
+    _parse('''
+f(x) => [switch(x) {
+  int() => 0 : 1
+}, 0];
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 34, 1),
+    ]);
+    var node = findNode.listLiteral('[');
+    assertParsedNodeText(node, r'''
+ListLiteral
+  leftBracket: [
+  elements
+    SwitchExpression
+      switchKeyword: switch
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+      rightParenthesis: )
+      leftBracket: {
+      cases
+        SwitchExpressionCase
+          guardedPattern: GuardedPattern
+            pattern: ObjectPattern
+              type: NamedType
+                name: SimpleIdentifier
+                  token: int
+              leftParenthesis: (
+              rightParenthesis: )
+          arrow: =>
+          expression: IntegerLiteral
+            literal: 0
+      rightBracket: }
+    IntegerLiteral
+      literal: 0
+  rightBracket: ]
+''');
+  }
+
+  test_switchExpression_recovery_bogusTokensAfterCase_nestedComma() {
+    // If the extra tokens after a switch case don't look like they could be a
+    // pattern, the parser doesn't try to skip to a nested `,` trying to find
+    // the next case.
+    _parse('''
+f(x) => switch(x) {
+  int() => 0 : (1, 2)
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 33, 1),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ObjectPattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+          leftParenthesis: (
+          rightParenthesis: )
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+  rightBracket: }
+''');
+  }
+
   test_switchExpression_recovery_colonInsteadOfArrow() {
     _parse('''
 f(x) => switch (x) {
@@ -9273,6 +9351,50 @@ SwitchExpression
       arrow: :
       expression: SimpleStringLiteral
         literal: 'two'
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_recovery_illegalFunctionExpressionInGuard() {
+    // If a function expression occurs in a guard, parsing skips to the case
+    // that follows.
+    _parse('''
+f(x) => switch (x) {
+  _ when () => true => 1,
+  _ => 2
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 41, 2),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: RecordLiteral
+            leftParenthesis: (
+            rightParenthesis: )
+      arrow: =>
+      expression: BooleanLiteral
+        literal: true
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 2
   rightBracket: }
 ''');
   }

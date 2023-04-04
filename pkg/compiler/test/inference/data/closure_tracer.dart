@@ -57,11 +57,11 @@ testStoredInMapOfList() {
   dynamic b = <dynamic, dynamic>{'foo': 1};
 
   b
-      /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
       ['bar'] = a;
 
   b
-          /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
+          /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
           ['bar']
 
       /*Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
@@ -127,10 +127,10 @@ testStoredInListOfListUsingAdd() {
   return res;
 }
 
-/*member: testStoredInRecord:[null|subclass=Object]*/
+/*member: testStoredInRecord:[null|exact=JSUInt31]*/
 testStoredInRecord() {
   var res;
-  /*[null|subclass=Object]*/ closure(/*[null|subclass=Object]*/ a) => res = a;
+  /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
   final a = (3, closure);
 
   a. /*[Record(RecordShape(2), [[exact=JSUInt31], [subclass=Closure]])]*/ $2(
@@ -203,6 +203,41 @@ testStaticClosure4() {
   return topLevel4;
 }
 
+/*member: bar1:[subclass=Closure]*/
+int Function(int, [int]) bar1(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSInt]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/ b,
+            [int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/
+                c = 17]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
+/*member: bar2:[subclass=Closure]*/
+int Function(int, [int]) bar2(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSInt]*/
+    (int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/ b,
+            [int /*spec.[null|subclass=Object]*/ /*prod.[null|subclass=JSInt]*/
+                c = 17]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSInt]*/ + c;
+/*member: bar3:[subclass=Closure]*/
+int Function(int, [int]) bar3(
+        int /*[exact=JSUInt31]*/ a) => /*[subclass=JSPositiveInt]*/
+    (int /*[exact=JSUInt31]*/ b, [int /*[exact=JSUInt31]*/ c = 17]) =>
+        a /*invoke: [exact=JSUInt31]*/ + b /*invoke: [subclass=JSUInt32]*/ + c;
+
+/*member: testFunctionApply:[null|subclass=Object]*/
+testFunctionApply() {
+  return Function.apply(bar1(10), [20]);
+}
+
+/*member: testRecordFunctionApply:[null|subclass=Object]*/
+testRecordFunctionApply() {
+  final rec = (bar2(10), bar3(10));
+  (rec. /*[Record(RecordShape(2), [[subclass=Closure], [subclass=Closure]])]*/ $2)(
+      2, 3);
+  return Function.apply(
+      rec. /*[Record(RecordShape(2), [[subclass=Closure], [subclass=Closure]])]*/ $1,
+      [20]);
+}
+
 /*member: main:[null]*/
 main() {
   testFunctionStatement();
@@ -219,4 +254,6 @@ main() {
   testStaticClosure2();
   testStaticClosure3();
   testStaticClosure4();
+  testFunctionApply();
+  testRecordFunctionApply();
 }

@@ -313,14 +313,14 @@ doTest(String allocation,
   checkType('mapStoredInMap', K(aKeyType), V(commonMasks.uint31Type));
   checkType('mapStoredInMapButEscapes', K(commonMasks.dynamicType),
       V(commonMasks.dynamicType));
-  checkType('mapStoredInRecordWithIndexAccess', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
-  checkType('mapStoredInRecordWithNameAccess', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
-  checkType('mapStoredInRecordWithDynamicAccess', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
-  checkType('mapStoredInRecordWithoutAccess', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
+  checkType(
+      'mapStoredInRecordWithIndexAccess', K(aKeyType), V(commonMasks.numType));
+  checkType(
+      'mapStoredInRecordWithNameAccess', K(aKeyType), V(commonMasks.numType));
+  checkType('mapStoredInRecordWithDynamicAccess', K(aKeyType),
+      V(commonMasks.numType));
+  checkType('mapStoredInRecordWithoutAccess', K(aKeyType),
+      V(commonMasks.positiveIntType));
 
   checkType('mapUnset', K(emptyType), V(emptyType));
   checkType('mapOnlySetWithConstraint', K(aKeyType), V(emptyType));

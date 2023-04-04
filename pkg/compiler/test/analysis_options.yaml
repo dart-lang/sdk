@@ -10,6 +10,7 @@ analyzer:
 
   exclude:
     - '**/data/*'
+    - '**/inference_data/*'
     - 'rti/emission/*'
     - '**/model_data/*'
     - 'deferred_loading/libs/*'

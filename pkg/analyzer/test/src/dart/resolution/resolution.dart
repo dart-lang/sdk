@@ -41,6 +41,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   late FindNode findNode;
   late FindElement findElement;
 
+  final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
+      DartObjectPrinterConfiguration();
+
   ClassElement get boolElement => typeProvider.boolElement;
 
   ClassElement get doubleElement => typeProvider.doubleElement;
@@ -129,6 +132,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var buffer = StringBuffer();
     DartObjectPrinter(
+      configuration: dartObjectPrinterConfiguration,
       sink: buffer,
       selfUriStr: '${libraryElement.source.uri}',
     ).write(object as DartObjectImpl?);
@@ -496,17 +500,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actualMapString, expected);
   }
 
-  void assertSuperExpression(Expression? node) {
-    if (node is! SuperExpression) {
-      fail('Expected SuperExpression: (${node.runtimeType}) $node');
-    }
-
-    // TODO(scheglov) I think `super` does not have type itself.
-    // It is just a signal to look for implemented method in the supertype.
-    // With mixins there isn't a type anyway.
-//    assertTypeNull(superExpression);
-  }
-
   void assertTopGetRef(String search, String name) {
     var ref = findNode.simple(search);
     assertIdentifierTopGetRef(ref, name);
@@ -535,17 +528,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  /// We have a contract with the Angular team that FunctionType(s) from
-  /// typedefs carry the element of the typedef, and the type arguments.
-  void assertTypeAlias(
-    DartType type, {
-    required TypeAliasElement element,
-    required List<String> typeArguments,
-  }) {
-    assertElement2(type.alias?.element, declaration: element);
-    assertElementTypes(type.alias?.typeArguments, typeArguments);
-  }
-
   /// Assert that the given [identifier] is a reference to a type alias, in the
   /// form that is not a separate expression, e.g. in a static method
   /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
@@ -553,14 +535,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       SimpleIdentifier identifier, TypeAliasElement expected) {
     assertElement(identifier, expected);
     assertTypeNull(identifier);
-  }
-
-  void assertTypeArgumentTypes(
-    InvocationExpression node,
-    List<String> expected,
-  ) {
-    var actual = node.typeArgumentTypes!.map((t) => typeString(t)).toList();
-    expect(actual, expected);
   }
 
   void assertTypeDynamic(Object? typeOrExpression) {

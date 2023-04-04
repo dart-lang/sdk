@@ -119,6 +119,7 @@ class TestConfiguration {
   bool get isHostChecked => configuration.isHostChecked;
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
+  bool get isSimulator => architecture.isSimulator;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useElf => configuration.useElf;

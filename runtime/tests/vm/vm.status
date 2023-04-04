@@ -212,153 +212,10 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 [ $qemu ]
 cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
 
-[ $arch == ia32 && $mode == debug ]
-dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
-dart_2/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
-
-[ $arch == ia32 && $mode == debug && $system == windows ]
-dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
-dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
-
-[ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $arch != simriscv32 && $arch != simriscv64 && $compiler == dartk && $hot_reload ]
-dart/data_uri_import_test/base64: Crash
-dart/data_uri_import_test/nocharset: Crash
-dart/data_uri_import_test/nomime: Crash
-dart/data_uri_import_test/percentencoded: Crash
-dart/data_uri_import_test/utf16: Crash
-dart/data_uri_import_test/wrongmime: Crash
-dart_2/data_uri_import_test/base64: Crash
-dart_2/data_uri_import_test/nocharset: Crash
-dart_2/data_uri_import_test/nomime: Crash
-dart_2/data_uri_import_test/percentencoded: Crash
-dart_2/data_uri_import_test/utf16: Crash
-dart_2/data_uri_import_test/wrongmime: Crash
-
-[ $builder_tag == obfuscated && $compiler == dartkp ]
-dart/extension_names_test: SkipByDesign # No demangling (obfuscated).
-dart/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
-dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
-dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
-dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
-dart/regress_37382_test: SkipByDesign # Matches the type arguments names
-dart_2/extension_names_test: SkipByDesign # No demangling (obfuscated).
-dart_2/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
-dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
-dart_2/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
-dart_2/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
-dart_2/regress_37382_test: SkipByDesign # Matches the type arguments names
-
-[ $compiler == dartk && $mode == product && $runtime == vm ]
-cc/CorelibIsolateStartup: Timeout, Pass
-
-[ $compiler == dartk && $mode == release && $runtime == vm ]
-cc/CorelibIsolateStartup: Timeout, Pass
-
-[ $compiler == dartk && $runtime == vm ]
-cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
-cc/DebuggerAPI_BreakpointStubPatching: Fail
-cc/DebuggerAPI_GetClosureInfo: Fail
-cc/DebuggerAPI_InterruptIsolate: SkipSlow
-cc/DebuggerAPI_IsolateID: Fail
-cc/DebuggerAPI_ScriptGetTokenInfo_Basic: Fail
-cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
-cc/Debugger_PrintBreakpointsToJSONArray: Fail
-cc/Debugger_Rewind_Optimized: SkipSlow
-cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-dart/spawn_shutdown_test: SkipSlow
-dart_2/spawn_shutdown_test: SkipSlow
-
-[ $compiler == dartk && $runtime == vm && $system == macos ]
-cc/IsolateReload_LibraryLookup: Fail, Crash
-
-[ $compiler == dartk && $system == linux ]
-cc/IsolateReload_LibraryLookup: Fail, Crash
-
-[ $compiler == dartk && $system == windows ]
-cc/IsolateReload_LibraryLookup: Fail, Crash
-
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
-dart/appjit*: SkipSlow # DFE too slow
-dart/b162922506_test: SkipSlow # Generates large input file
-dart/data_uri_spawn_test: Skip # Please triage.
-dart/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
-dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
-dart/isolates/fast_object_copy_test*: SkipSlow
-dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart/snapshot_version_test: RuntimeError # Please triage.
-dart_2/appjit*: SkipSlow # DFE too slow
-dart_2/b162922506_test: SkipSlow # Generates large input file
-dart_2/data_uri_spawn_test: Skip # Please triage.
-dart_2/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
-dart_2/isolates/fast_object_copy_test*: SkipSlow
-dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart_2/snapshot_version_test: RuntimeError # Please triage.
-
-[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
-dart/data_uri_spawn_test: Skip # Timeout
-dart/heap_snapshot_referrers_test: SkipSlow
-dart/heapsnapshot_cli_test: SkipSlow
-dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
-dart/kernel_determinism_test: SkipSlow
-dart/regress_48196_test: SkipSlow
-dart_2/data_uri_spawn_test: Skip # Timeout
-dart_2/heap_snapshot_referrers_test: SkipSlow
-dart_2/heapsnapshot_cli_test: SkipSlow
-dart_2/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
-dart_2/kernel_determinism_test: SkipSlow
-dart_2/regress_48196_test: SkipSlow
-
-[ $compiler == dartkp && $system == windows ]
-dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
-dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
-
-[ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
-dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
-dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
-dart/isolates/fast_object_copy_test*: SkipSlow
-dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
-dart_2/isolates/fast_object_copy_test*: SkipSlow
-
-[ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $builder_tag == tsan) ]
-dart/regress_45898_test: Pass, Slow
-dart_2/regress_45898_test: Pass, Slow
-
-[ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/spawn_shutdown_test: SkipSlow
-dart_2/spawn_shutdown_test: SkipSlow
-
-[ $mode == debug && $system == windows ]
-dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
-dart_2/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
-
-[ $mode == product && $runtime == vm ]
-cc/DartAPI_IsolateSetCheckedMode: Fail, OK # Checked mode disabled in product mode.
-
-[ $runtime == dart_precompiled && $minified ]
-dart/inline_stack_frame_test: Skip
-dart/optimized_stacktrace_line_test: Skip
-dart_2/inline_stack_frame_test: Skip
-dart_2/optimized_stacktrace_line_test: Skip
-
-[ $runtime != dart_precompiled && $runtime != vm ]
-dart/*: SkipByDesign # VM specific tests
-dart/catch_entry_state: SkipByDesign
-dart_2/*: SkipByDesign # VM specific tests
-dart_2/catch_entry_state: SkipByDesign
-
-[ $system != fuchsia && ($arch != x64 || $system != linux) ]
-cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/Fuchsia
-
-[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
-dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
-dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
-
 # On the simulator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
+[ $simulator ]
 cc/DartAPI_NativeFieldAccess: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/DartAPI_NativeFieldAccess_Throws: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
@@ -407,17 +264,148 @@ dart_2/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37
 dart_2/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart_2/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $system != macos ]
-dart/thread_priority_macos_test: SkipByDesign
-dart_2/thread_priority_macos_test: SkipByDesign
+[ $arch == ia32 && $mode == debug ]
+dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
+dart_2/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $system != windows ]
-dart/thread_priority_windows_test: SkipByDesign
-dart_2/thread_priority_windows_test: SkipByDesign
+[ $arch == ia32 && $mode == debug && $system == windows ]
+dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
+dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $system != android && $system != linux ]
-dart/thread_priority_linux_test: SkipByDesign
-dart_2/thread_priority_linux_test: SkipByDesign
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+dart/extension_names_test: SkipByDesign # No demangling (obfuscated).
+dart/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
+dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
+dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
+dart/regress_37382_test: SkipByDesign # Matches the type arguments names
+dart_2/extension_names_test: SkipByDesign # No demangling (obfuscated).
+dart_2/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
+dart_2/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
+dart_2/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
+dart_2/regress_37382_test: SkipByDesign # Matches the type arguments names
+
+[ $compiler == dartk && $mode == product && $runtime == vm ]
+cc/CorelibIsolateStartup: Timeout, Pass
+
+[ $compiler == dartk && $mode == release && $runtime == vm ]
+cc/CorelibIsolateStartup: Timeout, Pass
+
+[ $compiler == dartk && $runtime == vm ]
+cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
+cc/DebuggerAPI_BreakpointStubPatching: Fail
+cc/DebuggerAPI_GetClosureInfo: Fail
+cc/DebuggerAPI_InterruptIsolate: SkipSlow
+cc/DebuggerAPI_IsolateID: Fail
+cc/DebuggerAPI_ScriptGetTokenInfo_Basic: Fail
+cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
+cc/Debugger_PrintBreakpointsToJSONArray: Fail
+cc/Debugger_Rewind_Optimized: SkipSlow
+cc/Debugger_SetBreakpointInPartOfLibrary: Crash
+dart/spawn_shutdown_test: SkipSlow
+dart_2/spawn_shutdown_test: SkipSlow
+
+[ $compiler == dartk && $runtime == vm && $system == macos ]
+cc/IsolateReload_LibraryLookup: Fail, Crash
+
+[ $compiler == dartk && $system == linux ]
+cc/IsolateReload_LibraryLookup: Fail, Crash
+
+[ $compiler == dartk && $system == windows ]
+cc/IsolateReload_LibraryLookup: Fail, Crash
+
+[ $compiler == dartk && $hot_reload && !$simulator ]
+dart/data_uri_import_test/base64: Crash
+dart/data_uri_import_test/nocharset: Crash
+dart/data_uri_import_test/nomime: Crash
+dart/data_uri_import_test/percentencoded: Crash
+dart/data_uri_import_test/utf16: Crash
+dart/data_uri_import_test/wrongmime: Crash
+dart_2/data_uri_import_test/base64: Crash
+dart_2/data_uri_import_test/nocharset: Crash
+dart_2/data_uri_import_test/nomime: Crash
+dart_2/data_uri_import_test/percentencoded: Crash
+dart_2/data_uri_import_test/utf16: Crash
+dart_2/data_uri_import_test/wrongmime: Crash
+
+[ $compiler == dartk && $simulator ]
+dart/appjit*: SkipSlow # DFE too slow
+dart/b162922506_test: SkipSlow # Generates large input file
+dart/data_uri_spawn_test: Skip # Please triage.
+dart/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
+dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
+dart/isolates/fast_object_copy_test*: SkipSlow
+dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
+dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
+dart/snapshot_version_test: RuntimeError # Please triage.
+dart_2/appjit*: SkipSlow # DFE too slow
+dart_2/b162922506_test: SkipSlow # Generates large input file
+dart_2/data_uri_spawn_test: Skip # Please triage.
+dart_2/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
+dart_2/isolates/fast_object_copy_test*: SkipSlow
+dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
+dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
+dart_2/snapshot_version_test: RuntimeError # Please triage.
+
+[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+dart/data_uri_spawn_test: Skip # Timeout
+dart/heap_snapshot_referrers_test: SkipSlow
+dart/heapsnapshot_cli_test: SkipSlow
+dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
+dart/kernel_determinism_test: SkipSlow
+dart/regress_48196_test: SkipSlow
+dart_2/data_uri_spawn_test: Skip # Timeout
+dart_2/heap_snapshot_referrers_test: SkipSlow
+dart_2/heapsnapshot_cli_test: SkipSlow
+dart_2/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
+dart_2/kernel_determinism_test: SkipSlow
+dart_2/regress_48196_test: SkipSlow
+
+[ $compiler == dartkp && $system == windows ]
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
+
+[ $compiler == dartkp && $simulator ]
+dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
+dart/isolates/fast_object_copy_test*: SkipSlow
+dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/isolates/fast_object_copy_test*: SkipSlow
+
+[ $compiler == dartkp && ($builder_tag == tsan || $simulator) ]
+dart/regress_45898_test: Pass, Slow
+dart_2/regress_45898_test: Pass, Slow
+
+[ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
+dart/spawn_shutdown_test: SkipSlow
+dart_2/spawn_shutdown_test: SkipSlow
+
+[ $mode == debug && $system == windows ]
+dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
+dart_2/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
+
+[ $mode == product && $runtime == vm ]
+cc/DartAPI_IsolateSetCheckedMode: Fail, OK # Checked mode disabled in product mode.
+
+[ $runtime == dart_precompiled && $minified ]
+dart/inline_stack_frame_test: Skip
+dart/optimized_stacktrace_line_test: Skip
+dart_2/inline_stack_frame_test: Skip
+dart_2/optimized_stacktrace_line_test: Skip
+
+[ $runtime != dart_precompiled && $runtime != vm ]
+dart/*: SkipByDesign # VM specific tests
+dart/catch_entry_state: SkipByDesign
+dart_2/*: SkipByDesign # VM specific tests
+dart_2/catch_entry_state: SkipByDesign
+
+[ $system != fuchsia && ($arch != x64 || $system != linux) ]
+cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/Fuchsia
+
+[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && $simulator ]
+dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
+dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 
 [ $arch != x64 || $system != linux || $hot_reload || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints_verification_test: SkipByDesign # Enough to test on x64 Linux.
@@ -473,7 +461,7 @@ dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled || $runtime == vm && $simulator ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
@@ -482,6 +470,14 @@ dart_2/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart_2/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart_2/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart_2/issue32950_test: SkipByDesign # uses spawnUri.
+
+[ $system != macos || $simulator ]
+dart/thread_priority_macos_test: SkipByDesign
+dart_2/thread_priority_macos_test: SkipByDesign
+
+[ $system != windows || $simulator ]
+dart/thread_priority_windows_test: SkipByDesign
+dart_2/thread_priority_windows_test: SkipByDesign
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
@@ -510,6 +506,10 @@ dart_2/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-t
 [ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
 dart_2/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
+
+[ $simulator || $system != android && $system != linux ]
+dart/thread_priority_linux_test: SkipByDesign
+dart_2/thread_priority_linux_test: SkipByDesign
 
 # The analyze_snapshot tool tests are only supported on 64 bit AOT builds running under
 # release or product runtimes for linux and android platforms

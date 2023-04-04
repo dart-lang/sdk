@@ -1,0 +1,11 @@
+f(x) => switch (x) {
+_ when () => true => 1,
+_ => 2
+};
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+_[StringToken] when[KeywordToken] ([BeginToken])[SimpleToken] =>[SimpleToken] true[KeywordToken] =>[SimpleToken] 1[StringToken],[SimpleToken]
+_[StringToken] =>[SimpleToken] 2[StringToken]
+}[SimpleToken];[SimpleToken]
+[SimpleToken]

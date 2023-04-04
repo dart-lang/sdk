@@ -34,6 +34,7 @@ import 'debug.dart' as debug;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
+import 'record_tracer.dart';
 import 'set_tracer.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_nodes.dart';
@@ -308,6 +309,18 @@ class InferrerEngine {
     _workQueue.add(info.keyType);
     _workQueue.add(info.valueType);
     _workQueue.addAll(info.typeInfoMap.values);
+    _workQueue.add(info);
+  }
+
+  void analyzeRecordAndEnqueue(RecordTypeInformation info) {
+    if (info.analyzed) return;
+    info.analyzed = true;
+    RecordTracerVisitor tracer = RecordTracerVisitor(info, this);
+
+    bool succeeded = tracer.run();
+    if (!succeeded) return;
+
+    info.bailedOut = false;
     _workQueue.add(info);
   }
 

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
 import 'package:analysis_server/src/analytics/context_structure.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
 import 'package:analysis_server/src/analytics/request_data.dart';
@@ -63,9 +65,19 @@ class AnalyticsManager {
   /// represented by the key.
   final Map<String, Map<String, int>> _severityAdjustments = {};
 
+  /// A periodic timer used to send analytics data. This timer should be
+  /// cancelled at shutdown.
+  Timer? periodicTimer;
+
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
-  AnalyticsManager(this.analytics);
+  AnalyticsManager(this.analytics) {
+    if (analytics is! NoopAnalytics) {
+      periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
+        _sendPeriodicData();
+      });
+    }
+  }
 
   /// Record information about the number of files and the numer of lines of
   /// code in those files, for both immediate files, transitive files, and the
@@ -204,6 +216,8 @@ class AnalyticsManager {
     await _sendPeriodicData();
     await _sendAnalysisData();
 
+    periodicTimer?.cancel();
+    periodicTimer = null;
     analytics.close();
   }
 
@@ -443,18 +457,22 @@ class AnalyticsManager {
           .sendEvent(eventName: DashEvent.lintUsageCounts, eventData: {
         'usageCounts': json.encode(_lintUsageCounts),
       });
+      _lintUsageCounts.clear();
     }
   }
 
   /// Send information about the notifications handled by the server.
   Future<void> _sendNotificationHandlingTimes() async {
-    for (var data in _completedNotifications.values) {
-      await analytics
-          .sendEvent(eventName: DashEvent.clientNotification, eventData: {
-        'latency': data.latencyTimes.toAnalyticsString(),
-        'method': data.method,
-        'duration': data.handlingTimes.toAnalyticsString(),
-      });
+    if (_completedNotifications.isNotEmpty) {
+      for (var data in _completedNotifications.values) {
+        await analytics
+            .sendEvent(eventName: DashEvent.clientNotification, eventData: {
+          'latency': data.latencyTimes.toAnalyticsString(),
+          'method': data.method,
+          'duration': data.handlingTimes.toAnalyticsString(),
+        });
+      }
+      _completedNotifications.clear();
     }
   }
 
@@ -471,30 +489,37 @@ class AnalyticsManager {
   /// Send information about the response times of plugins.
   Future<void> _sendPluginResponseTimes() async {
     var responseTimes = PluginManager.pluginResponseTimes;
-    for (var pluginEntry in responseTimes.entries) {
-      for (var responseEntry in pluginEntry.value.entries) {
-        await analytics
-            .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
-          'pluginId': pluginEntry.key.pluginId,
-          'method': responseEntry.key,
-          'duration': responseEntry.value.toAnalyticsString(),
-        });
+    if (responseTimes.isNotEmpty) {
+      for (var pluginEntry in responseTimes.entries) {
+        for (var responseEntry in pluginEntry.value.entries) {
+          await analytics
+              .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
+            'pluginId': pluginEntry.key.pluginId,
+            'method': responseEntry.key,
+            'duration': responseEntry.value.toAnalyticsString(),
+          });
+        }
       }
+      PluginManager.pluginResponseTimes.clear();
     }
   }
 
   /// Send information about the response times of server.
   Future<void> _sendServerResponseTimes() async {
-    for (var data in _completedRequests.values) {
-      await analytics.sendEvent(eventName: DashEvent.clientRequest, eventData: {
-        'latency': data.latencyTimes.toAnalyticsString(),
-        'method': data.method,
-        'duration': data.responseTimes.toAnalyticsString(),
-        for (var field in data.additionalPercentiles.entries)
-          field.key: field.value.toAnalyticsString(),
-        for (var field in data.additionalEnumCounts.entries)
-          field.key: json.encode(field.value),
-      });
+    if (_completedRequests.isNotEmpty) {
+      for (var data in _completedRequests.values) {
+        await analytics
+            .sendEvent(eventName: DashEvent.clientRequest, eventData: {
+          'latency': data.latencyTimes.toAnalyticsString(),
+          'method': data.method,
+          'duration': data.responseTimes.toAnalyticsString(),
+          for (var field in data.additionalPercentiles.entries)
+            field.key: field.value.toAnalyticsString(),
+          for (var field in data.additionalEnumCounts.entries)
+            field.key: json.encode(field.value),
+        });
+      }
+      _completedRequests.clear();
     }
   }
 
@@ -520,6 +545,7 @@ class AnalyticsManager {
           .sendEvent(eventName: DashEvent.severityAdjustments, eventData: {
         'adjustmentCounts': json.encode(_severityAdjustments),
       });
+      _severityAdjustments.clear();
     }
   }
 }

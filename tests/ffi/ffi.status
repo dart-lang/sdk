@@ -53,6 +53,9 @@ regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 [ $qemu ]
 native_assets/asset_*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 
+[ $simulator ]
+*: Skip # FFI not yet supported on the arm simulator.
+
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]
 *: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
 
@@ -65,9 +68,6 @@ vmspecific_regress_37100_test: SkipByDesign # Symbols are not exposed on purpose
 vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simarm_x64 || $arch == simriscv32 || $arch == simriscv64 ]
-*: Skip # FFI not yet supported on the arm simulator.
 
 [ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.

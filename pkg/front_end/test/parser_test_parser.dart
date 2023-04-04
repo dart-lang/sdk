@@ -2856,4 +2856,13 @@ class TestParser extends Parser {
     indent--;
     return result;
   }
+
+  @override
+  Token? findNextComma(Token token, Token limit) {
+    doPrint('findNextComma(' '$token, ' '$limit)');
+    indent++;
+    var result = super.findNextComma(token, limit);
+    indent--;
+    return result;
+  }
 }
