@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1612,22 +1611,34 @@ class B extends A {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('super.foo');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSuperExpression(
-      propertyAccess.target,
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.propertyAccess('super.foo');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_super_readWrite_assignment() async {
@@ -1699,11 +1710,6 @@ AssignmentExpression
   staticType: int*
 ''');
     }
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSuperExpression(
-      propertyAccess.target,
-    );
   }
 
   test_super_write() async {
@@ -1771,11 +1777,6 @@ AssignmentExpression
   staticType: int*
 ''');
     }
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSuperExpression(
-      propertyAccess.target,
-    );
   }
 
   test_targetTypeParameter_dynamicBounded() async {

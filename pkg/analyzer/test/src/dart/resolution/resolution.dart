@@ -496,17 +496,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actualMapString, expected);
   }
 
-  void assertSuperExpression(Expression? node) {
-    if (node is! SuperExpression) {
-      fail('Expected SuperExpression: (${node.runtimeType}) $node');
-    }
-
-    // TODO(scheglov) I think `super` does not have type itself.
-    // It is just a signal to look for implemented method in the supertype.
-    // With mixins there isn't a type anyway.
-//    assertTypeNull(superExpression);
-  }
-
   void assertTopGetRef(String search, String name) {
     var ref = findNode.simple(search);
     assertIdentifierTopGetRef(ref, name);

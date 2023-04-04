@@ -437,8 +437,6 @@ abstract class B extends A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
     ]);
 
-    assertSuperExpression(findNode.super_('super.foo'));
-
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -479,8 +477,6 @@ mixin M implements A {
 ''', [
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
     ]);
-
-    assertSuperExpression(findNode.super_('super.foo'));
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -523,8 +519,6 @@ class B extends Object with A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
     ]);
 
-    assertSuperExpression(findNode.super_('super.foo'));
-
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -564,8 +558,6 @@ class B extends A {
   noSuchMethod(im) => 2;
 }
 ''');
-
-    assertSuperExpression(findNode.super_('super.foo'));
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -610,8 +602,6 @@ class C extends B {
   }
 }
 ''');
-
-    assertSuperExpression(findNode.super_('super.foo'));
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
