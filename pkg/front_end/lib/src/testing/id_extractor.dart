@@ -286,7 +286,11 @@ abstract class DataExtractor<T> extends Visitor<void>
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name != null && node.parent is! FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
-      computeForNode(node, computeDefaultNodeId(node));
+      computeForNode(
+          node,
+          computeDefaultNodeId(node,
+              // Some synthesized nodes don't have an offset.
+              skipNodeWithNoOffset: true));
     }
     // Avoid visiting annotations.
     node.initializer?.accept(this);
@@ -313,7 +317,11 @@ abstract class DataExtractor<T> extends Visitor<void>
   void visitVariableGet(VariableGet node) {
     if (node.variable.name != null && !node.variable.isInitializingFormal) {
       // Skip use of synthetic variables.
-      computeForNode(node, computeDefaultNodeId(node));
+      computeForNode(
+          node,
+          computeDefaultNodeId(node,
+              // Some synthesized nodes don't have an offset.
+              skipNodeWithNoOffset: true));
     }
     super.visitVariableGet(node);
   }

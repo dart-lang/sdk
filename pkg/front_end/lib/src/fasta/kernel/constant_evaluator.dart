@@ -1269,7 +1269,11 @@ class ConstantsTransformer extends RemovingTransformer {
         Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
           for (VariableDeclaration variable in switchCase.jointVariables)
             variable.name!: createUninitializedVariable(const DynamicType(),
-                fileOffset: node.fileOffset)
+                // Avoid step debugging on the declaration of intermediate
+                // variables.
+                // TODO(johnniwinther): Find a more systematic way of omitting
+                // offsets for better step debugging.
+                fileOffset: TreeNode.noOffset)
         };
 
         bool isContinueTarget = switchCaseIndex.containsKey(switchCase);
@@ -1852,9 +1856,12 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression replacement;
     if (primitiveEqualConstantsOnly) {
-      VariableDeclaration valueVariable = createUninitializedVariable(
-          node.staticType!,
-          fileOffset: node.fileOffset);
+      VariableDeclaration valueVariable =
+          createUninitializedVariable(node.staticType!,
+              // Avoid step debugging on the declarations of the value variable.
+              // TODO(johnniwinther): Find a more systematic way of omitting
+              // offsets for better step debugging.
+              fileOffset: TreeNode.noOffset);
 
       LabeledStatement labeledStatement =
           createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
@@ -1926,9 +1933,12 @@ class ConstantsTransformer extends RemovingTransformer {
           createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
 
       // valueVariable: `valueType` valueVariable;
-      VariableDeclaration valueVariable = createUninitializedVariable(
-          node.staticType!,
-          fileOffset: node.fileOffset);
+      VariableDeclaration valueVariable =
+          createUninitializedVariable(node.staticType!,
+              // Avoid step debugging on the declaration of the value variable.
+              // TODO(johnniwinther): Find a more systematic way of omitting
+              // offsets for better step debugging.
+              fileOffset: TreeNode.noOffset);
 
       List<Statement> cases = [];
 
@@ -1967,7 +1977,11 @@ class ConstantsTransformer extends RemovingTransformer {
               caseCondition,
               createBlock([
                 createExpressionStatement(createVariableSet(valueVariable, body,
-                    fileOffset: node.fileOffset)),
+                    // Avoid step debugging on the assignment to the value
+                    // variable.
+                    // TODO(johnniwinther): Find a more systematic way of
+                    //  omitting offsets for better step debugging.
+                    fileOffset: TreeNode.noOffset)),
                 createBreakStatement(labeledStatement,
                     fileOffset: switchCase.fileOffset),
               ], fileOffset: switchCase.fileOffset),
