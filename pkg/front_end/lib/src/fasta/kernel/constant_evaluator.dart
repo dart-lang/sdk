@@ -2004,7 +2004,8 @@ class ConstantsTransformer extends RemovingTransformer {
     }
     _checkExhaustiveness(node, replacement, scrutineeType, patternGuards,
         hasDefault: false,
-        mustBeExhaustive: true,
+        // Don't check exhaustiveness on erroneous expressions.
+        mustBeExhaustive: scrutineeType is! InvalidType,
         fileOffset: node.expression.fileOffset,
         isSwitchExpression: true);
 

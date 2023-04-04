@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue51313.dart:8:11: Error: A value of type 'Map<Object, num?>' can't be assigned to a variable of type 'int'.
+//  - 'Map' is from 'dart:core'.
+//  - 'Object' is from 'dart:core'.
+//   int i = map; // Error
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  hoisted has-declared-initializer core::num? v1;
+  hoisted has-declared-initializer core::Map<core::Object, core::num?> map;
+  {
+    final synthesized dynamic #0#0 = <core::Object, core::num?>{"one": 1, 2: 2};
+    function ##0#3#initializer() → core::num?
+      return #0#0{core::Map<core::Object, core::num?>}.{core::Map::[]}(#C1){(core::Object?) → core::num?};
+    late final synthesized core::num? #0#3 = ##0#3#initializer(){() → core::num?};
+    if(!(#0#0{core::Map<core::Object, core::num?>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#3 is{ForNonNullableByDefault} core::num? && (let final core::num? #t1 = v1 = #0#3 in true)) && #0#0{core::Map<core::Object, core::num?>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final core::num? #t2 = #0#0{core::Map<core::Object, core::num?>}.{core::Map::[]}(#C2){(core::Object?) → core::num?} in true) && (let final core::Map<core::Object, core::num?> #t3 = map = #0#0{core::Map<core::Object, core::num?>} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  core::print(map.{core::Object::runtimeType}{core::Type});
+  core::int i = invalid-expression "pkg/front_end/testcases/patterns/issue51313.dart:8:11: Error: A value of type 'Map<Object, num?>' can't be assigned to a variable of type 'int'.
+ - 'Map' is from 'dart:core'.
+ - 'Object' is from 'dart:core'.
+  int i = map; // Error
+          ^" in map as{TypeError,ForNonNullableByDefault} core::int;
+}
+
+constants  {
+  #C1 = "one"
+  #C2 = 2
+}
