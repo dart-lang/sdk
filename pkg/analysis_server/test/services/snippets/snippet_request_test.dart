@@ -406,6 +406,22 @@ mixin A {
 ''', SnippetContext.inClass);
   }
 
+  Future<void> test_pattern_switch() async {
+    await testRequest(r'''
+f(String a) => switch (a) {
+    [!^!]
+};
+''', SnippetContext.inPattern);
+  }
+
+  Future<void> test_pattern_switch_partialIdentifier() async {
+    await testRequest(r'''
+f(String a) => switch (a) {
+    [!sw^!]
+};
+''', SnippetContext.inPattern);
+  }
+
   Future<void> test_statement_forCondition() async {
     await testRequest(r'''
 foo() {

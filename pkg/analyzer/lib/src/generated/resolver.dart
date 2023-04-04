@@ -657,6 +657,25 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     assert(_rewriteStack.isEmpty);
   }
 
+  /// Reports an error if the [pattern] with the [requiredType] cannot
+  /// match the [DartPatternImpl.matchedValueType].
+  void checkPatternNeverMatchesValueType({
+    required SharedMatchContext context,
+    required DartPatternImpl pattern,
+    required DartType requiredType,
+  }) {
+    if (context.irrefutableContext == null) {
+      final matchedType = pattern.matchedValueType!;
+      if (!typeSystem.canBeSubtypeOf(matchedType, requiredType)) {
+        errorReporter.reportErrorForNode(
+          WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
+          pattern,
+          [matchedType, requiredType],
+        );
+      }
+    }
+  }
+
   void checkReadOfNotAssignedLocalVariable(
     SimpleIdentifier node,
     Element? element,
@@ -1562,12 +1581,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
 
-    node.requiredType = analyzeMapPattern(
+    final result = analyzeMapPattern(
       context,
       node,
       typeArguments: typeArguments,
       elements: node.elements,
-    ).requiredType;
+    );
+    node.requiredType = result.requiredType;
+
+    checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: node,
+      requiredType: result.requiredType,
+    );
   }
 
   @override

@@ -297,6 +297,15 @@ String f(String s) {
 ''');
   }
 
+  Future<void> test_empty() async {
+    await resolveTestCode('''
+void f(int x) {
+  switch (x) {}
+}
+''');
+    await assertNoAssistAt('(x)');
+  }
+
   Future<void> test_return_notExhaustive_noAssist() async {
     await resolveTestCode('''
 String f(int i) {

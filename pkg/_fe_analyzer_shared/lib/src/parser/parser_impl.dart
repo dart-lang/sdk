@@ -7792,10 +7792,7 @@ class Parser {
       varFinalOrConst = context.varFinalOrConst;
     }
 
-    // TODO(paulberry): maybe some of the conditions in this `if` test should be
-    // removed to allow for better error recovery.
     if (allowPatterns &&
-        lateToken == null &&
         varFinalOrConst != null &&
         (optional('var', varFinalOrConst) ||
             optional('final', varFinalOrConst))) {
@@ -7804,6 +7801,10 @@ class Parser {
           (optional('=', afterOuterPattern.next!) ||
               (forPartsContext != null &&
                   optional('in', afterOuterPattern.next!)))) {
+        if (lateToken != null) {
+          reportRecoverableError(
+              lateToken, codes.messageLatePatternVariableDeclaration);
+        }
         // If there was any metadata, then the caller was responsible for
         // parsing it; if not, then we need to let the listener know there
         // wasn't any.
@@ -9798,9 +9799,6 @@ class Parser {
         next = token.next!;
         if (next.isIdentifier) {
           secondIdentifier = token = next;
-          // TODO(paulberry): grammar specifies
-          // `typeIdentifier | qualifiedName`, but that permits `a.b.c`,
-          // which doesn't make sense.
         } else {
           secondIdentifier = IdentifierContext.expressionContinuation
               .ensureIdentifier(token, this);
@@ -10327,7 +10325,16 @@ class Parser {
           when = token = next;
           token = parseExpression(token);
         }
-        Token arrow = token = ensureFunctionArrow(token);
+        Token arrow;
+        if (optional(':', next)) {
+          // User accidentally used `:` instead of `=>`
+          arrow = next;
+          reportRecoverableError(
+              arrow, codes.templateExpectedButGot.withArguments('=>'));
+        } else {
+          arrow = ensureFunctionArrow(token);
+        }
+        token = arrow;
         mayParseFunctionExpressions = true;
         token = parseExpression(token);
         mayParseFunctionExpressions = false;

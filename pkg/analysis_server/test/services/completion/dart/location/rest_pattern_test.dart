@@ -36,15 +36,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
+  const
+    kind: keyword
   false
+    kind: keyword
+  final
     kind: keyword
   null
     kind: keyword
   true
-    kind: keyword
-  const
-    kind: keyword
-  final
     kind: keyword
   var
     kind: keyword

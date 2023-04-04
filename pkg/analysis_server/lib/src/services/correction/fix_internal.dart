@@ -73,6 +73,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_wildcard_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
@@ -136,6 +137,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_if_null_oper
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
@@ -161,6 +163,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_wildcard_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -205,6 +208,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
@@ -675,6 +679,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.type_init_formals: [
       RemoveTypeAnnotation.new,
+    ],
+    LintNames.type_literal_in_constant_pattern: [
+      ConvertToWildcardPattern.new,
     ],
     LintNames.unawaited_futures: [
       AddAwait.unawaited,
@@ -1409,6 +1416,12 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [
       AddConst.new,
     ],
+    ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN: [
+      SurroundWithParentheses.new,
+    ],
+    ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [
+      RemoveLate.new,
+    ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.new,
     ],
@@ -1626,6 +1639,9 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNNECESSARY_TYPE_CHECK_TRUE: [
       RemoveComparison.typeCheck,
+    ],
+    WarningCode.UNNECESSARY_WILDCARD_PATTERN: [
+      RemoveUnnecessaryWildcardPattern.new,
     ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,

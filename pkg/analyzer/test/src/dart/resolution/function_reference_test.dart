@@ -1814,6 +1814,74 @@ FunctionReference
 ''');
   }
 
+  test_instanceMethod_explicitReceiver_parameter_promoted() async {
+    // Based on https://github.com/dart-lang/sdk/issues/51853.
+    await assertNoErrorsInCode('''
+void f(num x) {
+  if (x is int) {
+    x.expectStaticType<Exactly<int>>;
+  }
+}
+
+extension StaticType<T> on T {
+  void expectStaticType<X extends Exactly<T>>() {}
+}
+
+typedef Exactly<T> = T Function(T);
+''');
+
+    var reference =
+        findNode.functionReference('expectStaticType<Exactly<int>>;');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: int
+    period: .
+    identifier: SimpleIdentifier
+      token: expectStaticType
+      staticElement: MethodMember
+        base: self::@extension::StaticType::@method::expectStaticType
+        substitution: {T: int, X: X}
+      staticType: null
+    staticElement: MethodMember
+      base: self::@extension::StaticType::@method::expectStaticType
+      substitution: {T: int, X: X}
+    staticType: void Function<X extends int Function(int)>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: Exactly
+          staticElement: self::@typeAlias::Exactly
+          staticType: null
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+          rightBracket: >
+        type: int Function(int)
+          alias: self::@typeAlias::Exactly
+            typeArguments
+              int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int Function(int)
+      alias: self::@typeAlias::Exactly
+        typeArguments
+          int
+''');
+  }
+
   test_instanceMethod_explicitReceiver_receiverIsNotIdentifier_call() async {
     await assertNoErrorsInCode('''
 extension on List<Object?> {
@@ -2329,6 +2397,75 @@ FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_instanceMethod_explicitReceiver_variable_promoted() async {
+    // Based on https://github.com/dart-lang/sdk/issues/51853.
+    await assertNoErrorsInCode('''
+void f(num n) {
+  num x = n;
+  if (x is int) {
+    x.expectStaticType<Exactly<int>>;
+  }
+}
+
+extension StaticType<T> on T {
+  void expectStaticType<X extends Exactly<T>>() {}
+}
+
+typedef Exactly<T> = T Function(T);
+''');
+
+    var reference =
+        findNode.functionReference('expectStaticType<Exactly<int>>;');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      staticElement: x@22
+      staticType: int
+    period: .
+    identifier: SimpleIdentifier
+      token: expectStaticType
+      staticElement: MethodMember
+        base: self::@extension::StaticType::@method::expectStaticType
+        substitution: {T: int, X: X}
+      staticType: null
+    staticElement: MethodMember
+      base: self::@extension::StaticType::@method::expectStaticType
+      substitution: {T: int, X: X}
+    staticType: void Function<X extends int Function(int)>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: Exactly
+          staticElement: self::@typeAlias::Exactly
+          staticType: null
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+          rightBracket: >
+        type: int Function(int)
+          alias: self::@typeAlias::Exactly
+            typeArguments
+              int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int Function(int)
+      alias: self::@typeAlias::Exactly
+        typeArguments
+          int
 ''');
   }
 

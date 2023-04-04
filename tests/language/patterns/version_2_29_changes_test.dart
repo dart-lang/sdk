@@ -17,11 +17,11 @@ main() {
 
   // Map patterns match even if there are extra keys.
   Expect.equals(
-      'a',
+      'a b',
       switch (map) {
+        {'a': _, 'b': _} => 'a b',
         {'a': _} => 'a',
         {'b': _} => 'b',
-        {'a': _, 'b': _} => 'a b',
         _ => '???'
       });
 }

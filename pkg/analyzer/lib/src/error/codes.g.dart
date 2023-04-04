@@ -6666,6 +6666,15 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
   );
 
+  ///  Parameters:
+  ///  0: the matched value type
+  ///  1: the required pattern type
+  static const WarningCode PATTERN_NEVER_MATCHES_VALUE_TYPE = WarningCode(
+    'PATTERN_NEVER_MATCHES_VALUE_TYPE',
+    "The matched value type '{0}' can never match the required type '{1}'.",
+    correctionMessage: "Try using a different pattern.",
+  );
+
   ///  It is not an error to call or tear-off a method, setter, or getter, or to
   ///  read or write a field, on a receiver of static type `Never`.
   ///  Implementations that provide feedback about dead or unreachable code are

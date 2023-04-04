@@ -8403,9 +8403,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         } else {
           for (VariableDeclaration jointVariable in switchCase.jointVariables) {
             if (jointVariable.type !=
-                inferredVariableTypes[jointVariable.name!]!) {
+                inferredVariableTypes[jointVariable.name!]) {
               jointVariable.initializer = helper.buildProblem(
-                  templateVariablePatternTypeMismatchInSwitchHeads
+                  templateJointPatternVariablesMismatch
                       .withArguments(jointVariable.name!),
                   jointVariable.fileOffset,
                   noLength)
@@ -10038,6 +10038,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     rewrite = popRewrite();
     if (!identical(rewrite, node.left)) {
       node.left = (rewrite as Pattern)..parent = node;
+    }
+
+    Map<String, VariableDeclaration> leftDeclaredVariablesByName = {
+      for (VariableDeclaration variable in node.left.declaredVariables)
+        variable.name!: variable
+    };
+    Set<String> jointVariableNames = {
+      for (VariableDeclaration variable in node.orPatternJointVariables)
+        variable.name!
+    };
+    for (VariableDeclaration rightVariable in node.right.declaredVariables) {
+      String rightVariableName = rightVariable.name!;
+      VariableDeclaration? leftVariable =
+          leftDeclaredVariablesByName[rightVariableName];
+      if (leftVariable != null &&
+          jointVariableNames.contains(rightVariableName) &&
+          (leftVariable.type != rightVariable.type ||
+              leftVariable.isFinal != rightVariable.isFinal)) {
+        helper.addProblem(
+            templateJointPatternVariablesMismatch
+                .withArguments(rightVariableName),
+            leftVariable.fileOffset,
+            rightVariableName.length);
+      }
     }
 
     pushRewrite(replacement ?? node);

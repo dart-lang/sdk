@@ -105,12 +105,12 @@ final bar01 = 0;
 
     assertResponse(r'''
 suggestions
+  bar01
+    kind: topLevelVariable
   |foo01: |
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-  bar01
-    kind: topLevelVariable
 ''');
   }
 
@@ -139,12 +139,12 @@ final bar01 = 0;
 
     assertResponse(r'''
 suggestions
+  bar01
+    kind: topLevelVariable
   |foo01: |
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-  bar01
-    kind: topLevelVariable
 ''');
   }
 
@@ -156,12 +156,12 @@ final bar01 = 0;
 
     assertResponse(r'''
 suggestions
+  bar01
+    kind: topLevelVariable
   |foo01: |
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-  bar01
-    kind: topLevelVariable
 ''');
   }
 
@@ -173,12 +173,12 @@ final bar01 = 0;
 
     assertResponse(r'''
 suggestions
+  bar01
+    kind: topLevelVariable
   |foo01: |
     kind: namedArgument
   |foo02: |
     kind: namedArgument
-  bar01
-    kind: topLevelVariable
 ''');
   }
 
@@ -224,12 +224,12 @@ final bar01 = 0;
     // We don't suggest already specified `foo02`.
     assertResponse(r'''
 suggestions
+  bar01
+    kind: topLevelVariable
   |foo01: |
     kind: namedArgument
   |foo03: |
     kind: namedArgument
-  bar01
-    kind: topLevelVariable
 ''');
   }
 
@@ -319,10 +319,10 @@ final bar01 = 0;
     // We suggest a positional value anyway.
     assertResponse(r'''
 suggestions
-  |foo01: |
-    kind: namedArgument
   bar01
     kind: topLevelVariable
+  |foo01: |
+    kind: namedArgument
 ''');
   }
 
@@ -335,10 +335,10 @@ final bar01 = 0;
     // We suggest a positional value anyway.
     assertResponse(r'''
 suggestions
-  |foo01: |
-    kind: namedArgument
   bar01
     kind: topLevelVariable
+  |foo01: |
+    kind: namedArgument
 ''');
   }
 

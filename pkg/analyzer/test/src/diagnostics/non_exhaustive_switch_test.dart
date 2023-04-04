@@ -128,6 +128,7 @@ void f(bool x) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 19, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 5),
     ]);
   }
 

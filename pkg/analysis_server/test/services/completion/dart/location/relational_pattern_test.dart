@@ -111,9 +111,9 @@ suggestions
   A02
     kind: constructorInvocation
   B01
-    kind: constructorInvocation
-  B01
     kind: class
+  B01
+    kind: constructorInvocation
   const
     kind: keyword
   dynamic

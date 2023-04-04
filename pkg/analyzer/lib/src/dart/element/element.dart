@@ -827,6 +827,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     super.methods = methods;
   }
 
+  /// If the class is final, returns all its subtypes.
+  /// All these subtypes can be only in the same library.
+  List<InterfaceType>? get subtypesOfFinal {
+    if (isFinal) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is InterfaceElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            result.add(elementThis);
+          }
+        }
+      }
+      return result;
+    }
+    return null;
+  }
+
   @override
   List<InterfaceType> get superclassConstraints => const [];
 

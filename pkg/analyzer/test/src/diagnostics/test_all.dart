@@ -637,6 +637,8 @@ import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
+import 'pattern_never_matches_value_type_test.dart'
+    as pattern_never_matches_value_type;
 import 'pattern_type_mismatch_in_irrefutable_context_test.dart'
     as pattern_type_mismatch_in_irrefutable_context;
 import 'pattern_variable_assignment_inside_guard_test.dart'
@@ -1292,6 +1294,7 @@ main() {
     part_of_different_library.main();
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
+    pattern_never_matches_value_type.main();
     pattern_type_mismatch_in_irrefutable_context.main();
     pattern_variable_assignment_inside_guard.main();
     positional_super_formal_parameter_with_positional_argument.main();

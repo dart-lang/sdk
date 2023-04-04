@@ -16,9 +16,6 @@ extension on I {
 
 method(A a) => switch (a) {
       I(:var member) => member,
-      // TODO(johnniwinther): Support exhaustiveness checking on extension
-      //  members.
-      _ => 0,
     };
 
 main() {

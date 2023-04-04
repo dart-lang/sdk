@@ -187,8 +187,11 @@ class ExhaustivenessCache<
         StaticType typeArgument = getStaticType(futureOrTypeArgument);
         StaticType futureType = getStaticType(
             typeOperations.instantiateFuture(futureOrTypeArgument));
+        bool isImplicitlyNullable =
+            typeOperations.isNullable(futureOrTypeArgument);
         staticType = new FutureOrStaticType(
-            typeOperations, this, nonNullable, typeArgument, futureType);
+            typeOperations, this, nonNullable, typeArgument, futureType,
+            isImplicitlyNullable: isImplicitlyNullable);
       } else {
         EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
         if (enumClass != null) {
@@ -211,8 +214,11 @@ class ExhaustivenessCache<
               staticType =
                   new ListTypeStaticType(typeOperations, this, nonNullable);
             } else {
-              staticType =
-                  new TypeBasedStaticType(typeOperations, this, nonNullable);
+              bool isImplicitlyNullable =
+                  typeOperations.isNullable(nonNullable);
+              staticType = new TypeBasedStaticType(
+                  typeOperations, this, nonNullable,
+                  isImplicitlyNullable: isImplicitlyNullable);
               Type? bound = typeOperations.getTypeVariableBound(type);
               if (bound != null) {
                 staticType =
@@ -407,17 +413,29 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// and [fieldPatterns].
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
-  Space createObjectSpace(Path path, StaticType contextType, Type type,
+  Space createObjectSpace(
+      Path path,
+      StaticType contextType,
+      Type type,
       Map<String, Pattern> fieldPatterns,
+      Map<String, Type> extensionPropertyTypes,
       {required bool nonNull}) {
     StaticType staticType =
         _createStaticTypeWithContext(contextType, type, nonNull: nonNull);
     Map<Key, Space> properties = <Key, Space>{};
     for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
-      Key key = new NameKey(entry.key);
-      StaticType propertyType =
-          staticType.getPropertyType(objectFieldLookup, key) ??
-              StaticType.nullableObject;
+      String name = entry.key;
+      StaticType propertyType;
+      Type? extensionPropertyType = extensionPropertyTypes[name];
+      Key key;
+      if (extensionPropertyType != null) {
+        propertyType = createStaticType(extensionPropertyType);
+        key = new ExtensionKey(createStaticType(type), name, propertyType);
+      } else {
+        key = new NameKey(name);
+        propertyType = staticType.getPropertyType(objectFieldLookup, key) ??
+            StaticType.nullableObject;
+      }
       properties[key] = dispatchPattern(
           path.add(key), propertyType, entry.value,
           nonNull: false);

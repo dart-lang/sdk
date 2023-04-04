@@ -1553,11 +1553,19 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
     SharedMatchContext context,
   ) {
     type.accept(resolverVisitor);
+    final requiredType = type.typeOrThrow;
+
     resolverVisitor.analyzeCastPattern(
       context: context,
       pattern: this,
       innerPattern: pattern,
-      requiredType: type.typeOrThrow,
+      requiredType: requiredType,
+    );
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: this,
+      requiredType: requiredType,
     );
   }
 
@@ -3664,10 +3672,15 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    declaredElement!.type = resolverVisitor
-        .analyzeDeclaredVariablePattern(context, this, declaredElement!,
-            declaredElement!.name, type?.typeOrThrow)
-        .staticType;
+    final result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
+        declaredElement!, declaredElement!.name, type?.typeOrThrow);
+    declaredElement!.type = result.staticType;
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: this,
+      requiredType: result.staticType,
+    );
   }
 
   @override
@@ -10004,10 +10017,16 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeObjectPattern(
+    final result = resolverVisitor.analyzeObjectPattern(
       context,
       this,
       fields: resolverVisitor.buildSharedPatternFields(fields),
+    );
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: this,
+      requiredType: result.requiredType,
     );
   }
 
@@ -14297,11 +14316,20 @@ class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    final declaredType = type?.typeOrThrow;
     resolverVisitor.analyzeWildcardPattern(
       context: context,
       node: this,
-      declaredType: type?.typeOrThrow,
+      declaredType: declaredType,
     );
+
+    if (declaredType != null) {
+      resolverVisitor.checkPatternNeverMatchesValueType(
+        context: context,
+        pattern: this,
+        requiredType: declaredType,
+      );
+    }
   }
 
   @override

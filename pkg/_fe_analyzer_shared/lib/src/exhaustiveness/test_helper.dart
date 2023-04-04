@@ -36,14 +36,22 @@ String fieldsToText(StaticType type, ObjectPropertyLookup objectFieldLookup,
   String comma = '';
   sb.write('{');
   for (Key key in sortedNames) {
-    StaticType? propertyType = type.getPropertyType(objectFieldLookup, key);
     sb.write(comma);
-    sb.write(key.name);
-    sb.write(':');
-    if (propertyType != null) {
-      sb.write(staticTypeToText(propertyType));
+    if (key is ExtensionKey) {
+      sb.write(key.receiverType);
+      sb.write('.');
+      sb.write(key.name);
+      sb.write(':');
+      sb.write(staticTypeToText(key.type));
     } else {
-      sb.write("-");
+      StaticType? fieldType = type.getPropertyType(objectFieldLookup, key);
+      sb.write(key.name);
+      sb.write(':');
+      if (fieldType != null) {
+        sb.write(staticTypeToText(fieldType));
+      } else {
+        sb.write("-");
+      }
     }
     comma = ',';
   }

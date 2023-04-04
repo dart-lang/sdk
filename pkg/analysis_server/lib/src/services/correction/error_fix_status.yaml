@@ -2107,10 +2107,7 @@ LintCode.type_annotate_public_apis:
 LintCode.type_init_formals:
   status: hasFix
 LintCode.type_literal_in_constant_pattern:
-  status: needsFix
-  notes: |-
-    The fix is to either compare with the `Type` or to use the type as a pattern
-    (such as `int _`).
+  status: hasFix
 LintCode.unawaited_futures:
   status: hasFix
 LintCode.unnecessary_await_in_return:
@@ -2503,7 +2500,7 @@ ParserErrorCode.INVALID_HEX_ESCAPE:
 ParserErrorCode.INVALID_INITIALIZER:
   status: needsEvaluation
 ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION:
   status: needsEvaluation
 ParserErrorCode.INVALID_OPERATOR:
@@ -2530,6 +2527,8 @@ ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
   status: needsEvaluation
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
   status: needsEvaluation
+ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
+  status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
   status: needsEvaluation
 ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW:
@@ -3039,6 +3038,8 @@ WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
   status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
   status: hasFix
+WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE:
+  status: noFix
 WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
@@ -3150,9 +3151,7 @@ WarningCode.UNNECESSARY_TYPE_CHECK_FALSE:
 WarningCode.UNNECESSARY_TYPE_CHECK_TRUE:
   status: hasFix
 WarningCode.UNNECESSARY_WILDCARD_PATTERN:
-  status: needsFix
-  notes: |-
-    The fix is to remove the wildcard pattern and the `&&` operator.
+  status: hasFix
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:

@@ -648,7 +648,10 @@ class DeferredHolderExpressionFinalizerImpl
       // Sort holders by reference count within this resource.
       var sortedHolders = holders.toList(growable: false);
       sortedHolders.sort((a, b) {
-        return b.refCount(resource).compareTo(a.refCount(resource));
+        final refCountCmp =
+            b.refCount(resource).compareTo(a.refCount(resource));
+        if (refCountCmp != 0) return refCountCmp;
+        return a.key.compareTo(b.key);
       });
 
       // Assign names based on frequency. This will be ignored unless

@@ -4980,7 +4980,7 @@ matched twice in the same object pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
-  switch (0) {
+  switch (o) {
     case C(f: 1, [!f!]: 2):
       return;
   }

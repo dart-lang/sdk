@@ -1,4 +1,15 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/logical_or_inside_if_case.dart:10:19: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+//   if (x case [int y, var _] || [var _, String y]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/patterns/logical_or_inside_if_case.dart:26:19: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+//   if (x case [int y, var _, _] || [var _, String y, _] || [var _, bool y, _]) {
+//                   ^
+//
 import self as self;
 import "dart:core" as core;
 

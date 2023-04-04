@@ -23,10 +23,10 @@ void f(List<(int, int)> x01) {
 ''');
     assertResponse(r'''
 suggestions
-  x01
-    kind: parameter
   await
     kind: keyword
+  x01
+    kind: parameter
 ''');
   }
 
@@ -86,9 +86,9 @@ void f(Object x) {
 ''');
     assertResponse(r'''
 suggestions
-  var
-    kind: keyword
   final
+    kind: keyword
+  var
     kind: keyword
 ''');
   }
@@ -101,9 +101,9 @@ void f(Object x) {
 ''');
     assertResponse(r'''
 suggestions
-  var
-    kind: keyword
   final
+    kind: keyword
+  var
     kind: keyword
 ''');
   }

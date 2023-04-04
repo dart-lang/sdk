@@ -1749,7 +1749,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         Future<Variable> convert(int index, vm.BoundVariable variable) {
           // Store the expression that gets this object as we may need it to
           // compute evaluateNames for child objects later.
-          storeEvaluateName(variable.value, variable.name);
+          final value = variable.value;
+          if (value is vm.InstanceRef) {
+            storeEvaluateName(value, variable.name);
+          }
           return _converter.convertVmResponseToVariable(
             thread,
             variable.value,

@@ -29,19 +29,29 @@ class ReplaceEmptyMapPattern extends CorrectionProducer {
   @override
   FixKind get fixKind => _style.fixKind;
 
-  /// Return the replacement for the map pattern.
-  String get replacement =>
-      _style == _Style.any ? 'Map()' : 'Map(isEmpty: true)';
-
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var targetNode = node;
     if (targetNode is MapPattern) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(targetNode), replacement);
-      });
+      var typeArguments = targetNode.typeArguments;
+      if (typeArguments == null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.node(targetNode), replacement(''));
+        });
+      } else {
+        var text = utils.getNodeText(typeArguments);
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(
+              range.node(targetNode), replacement(text));
+        });
+      }
     }
   }
+
+  /// Return the replacement for the map pattern.
+  String replacement(String typeArguments) => _style == _Style.any
+      ? 'Map$typeArguments()'
+      : 'Map$typeArguments(isEmpty: true)';
 }
 
 /// An indication of the style of replacement being offered.

@@ -182,12 +182,6 @@ import "package:foo/foo.dart";
     // TODO(brianwilkerson) Should not suggest export or part directives.
     assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -200,10 +194,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -233,10 +233,10 @@ import foo;
 ''');
     assertResponse(r'''
 suggestions
-  import '';
+  export '';
     kind: keyword
     selection: 8
-  export '';
+  import '';
     kind: keyword
     selection: 8
   library
@@ -266,12 +266,6 @@ suggestions
 replacement
   left: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -284,10 +278,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -328,12 +328,6 @@ suggestions
 replacement
   left: 2
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -346,10 +340,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -383,12 +383,6 @@ import "package:foo/foo.dart";
 replacement
   right: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -401,10 +395,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -489,25 +489,21 @@ suggestions
 replacement
   left: 1
 suggestions
-  class
-    kind: keyword
-  const
-    kind: keyword
-  void
-    kind: keyword
-  final
-    kind: keyword
-  typedef
-    kind: keyword
   abstract
     kind: keyword
   base
+    kind: keyword
+  class
+    kind: keyword
+  const
     kind: keyword
   covariant
     kind: keyword
   dynamic
     kind: keyword
   extension
+    kind: keyword
+  final
     kind: keyword
   interface
     kind: keyword
@@ -517,7 +513,11 @@ suggestions
     kind: keyword
   sealed
     kind: keyword
+  typedef
+    kind: keyword
   var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
@@ -594,12 +594,6 @@ suggestions
 replacement
   left: 1
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -612,10 +606,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -673,12 +673,6 @@ suggestions
 replacement
   left: 2
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -691,10 +685,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -776,12 +776,6 @@ suggestions
 replacement
   right: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -794,10 +788,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -843,12 +843,6 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -861,10 +855,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -893,12 +893,6 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -911,10 +905,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -959,12 +959,6 @@ suggestions
 replacement
   left: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -977,10 +971,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -1024,12 +1024,6 @@ suggestions
 replacement
   left: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -1042,10 +1036,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -1193,12 +1193,6 @@ suggestions
 replacement
   left: 1
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -1211,10 +1205,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late

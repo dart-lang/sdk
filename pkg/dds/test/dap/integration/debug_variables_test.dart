@@ -710,6 +710,48 @@ void main() {
       );
     });
 
+    test('handles sentinel fields', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+class Foo {
+  late String foo;
+}
+
+void main() {
+  final myVariable = Foo();
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'Foo',
+        expectedVariables: 'foo: <not initialized>',
+      );
+    });
+
+    test('handles sentinel locals', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main() {
+  late String foo;
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+      await client.expectScopeVariables(
+        stop.threadId!,
+        'Locals',
+        'foo: <not initialized>',
+      );
+    });
+
     group('inspect()', () {
       /// Helper to test `inspect()` with varying expressions.
       void checkInspect(

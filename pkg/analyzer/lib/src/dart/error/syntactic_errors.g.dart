@@ -165,6 +165,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.SEALED_MIXIN,
   ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
   ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN,
+  ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1126,6 +1127,14 @@ class ParserErrorCode extends ErrorCode {
     "Can't have modifier '{0}' in an extension.",
     correctionMessage: "Try removing '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode LATE_PATTERN_VARIABLE_DECLARATION =
+      ParserErrorCode(
+    'LATE_PATTERN_VARIABLE_DECLARATION',
+    "A pattern variable declaration may not use the `late` keyword.",
+    correctionMessage: "Try removing the keyword `late`.",
   );
 
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(

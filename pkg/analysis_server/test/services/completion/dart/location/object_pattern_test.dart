@@ -93,20 +93,20 @@ suggestions
     kind: class
   A1
     kind: constructorInvocation
+  const
+    kind: keyword
   false
+    kind: keyword
+  final
     kind: keyword
   null
     kind: keyword
   true
     kind: keyword
-  x0
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
+  x0
+    kind: parameter
 ''');
     }
   }
@@ -176,20 +176,20 @@ suggestions
     kind: class
   A1
     kind: constructorInvocation
+  const
+    kind: keyword
   false
+    kind: keyword
+  final
     kind: keyword
   null
     kind: keyword
   true
     kind: keyword
-  x0
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
+  x0
+    kind: parameter
 ''');
     }
   }

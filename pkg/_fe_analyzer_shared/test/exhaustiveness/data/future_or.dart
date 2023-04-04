@@ -471,10 +471,10 @@ exhaustiveNullable(
       break;
   }
   /*
-   checkingOrder={FutureOr<bool?>?,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
+   checkingOrder={FutureOr<bool?>,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
    expandedSubtypes={true,false,Null,Future<bool?>},
    subtypes={FutureOr<bool?>,Null},
-   type=FutureOr<bool?>?
+   type=FutureOr<bool?>
   */
   switch (f3) {
     /*space=true*/
@@ -566,11 +566,11 @@ nonExhaustiveNullable(
       break;
   }
   /*
-   checkingOrder={FutureOr<bool?>?,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
+   checkingOrder={FutureOr<bool?>,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
    error=non-exhaustive:null,
    expandedSubtypes={true,false,Null,Future<bool?>},
    subtypes={FutureOr<bool?>,Null},
-   type=FutureOr<bool?>?
+   type=FutureOr<bool?>
   */
   switch (f3) {
     /*space=true*/
@@ -587,11 +587,11 @@ nonExhaustiveNullable(
       break;
   }
   /*
-   checkingOrder={FutureOr<bool?>?,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
+   checkingOrder={FutureOr<bool?>,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
    error=non-exhaustive:Future<bool?>(),
    expandedSubtypes={true,false,Null,Future<bool?>},
    subtypes={FutureOr<bool?>,Null},
-   type=FutureOr<bool?>?
+   type=FutureOr<bool?>
   */
   switch (f3) {
     /*space=true*/

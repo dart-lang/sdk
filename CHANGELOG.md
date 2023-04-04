@@ -172,13 +172,19 @@
 
 #### `dart:io`
 
-- Deprecated `NetworkInterface.listSupported`. Has always returned true since
+- Deprecate `NetworkInterface.listSupported`. Has always returned true since
   Dart 2.3.
 - Finalize `httpEnableTimelineLogging` parameter name transition from `enable`
   to `enabled`. See [#43638][].
+- Favor IPv4 connections over IPv6 when connecting sockets. See
+  [#50868].
 - **Breaking change** [#51035][]:
   - Update `NetworkProfiling` to accommodate new `String` ids
     that are introduced in vm_service:11.0.0
+
+[#43638]: https://github.com/dart-lang/sdk/issues/43638
+[#50868]: https://github.com/dart-lang/sdk/issues/50868
+[#51035]: https://github.com/dart-lang/sdk/issues/51035
 
 #### `dart:js_util`
 
@@ -194,6 +200,19 @@
 
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
+- The compile time flag `--nativeNonNullAsserts`, which ensures web library APIs
+are sound in their nullability, is by default set to true in sound mode. For
+more information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
+
+[NATIVE_NULL_ASSERTIONS.md]: https://github.com/dart-lang/sdk/blob/main/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
+
+#### dart2js
+- The compile time flag `--native-null-assertions`, which ensures web library
+APIs are sound in their nullability, is by default set to true in sound mode,
+unless `-O3` or higher is passed, in which case they are not checked. For more
+information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
+
+[NATIVE_NULL_ASSERTIONS.md]: https://github.com/dart-lang/sdk/blob/main/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
 
 #### Dart2js
 
@@ -229,9 +248,14 @@
 
 #### Linter
 
-Updates the Linter to `1.34.0-dev`, which includes changes that
+Updates the Linter to `1.35.0`, which includes changes that
 
-- add new lint: `unnecessary_breaks`.
+- add new lints: 
+  - `explicit_reopen`
+  - `unnecessary_breaks`
+  - `type_literal_in_constant_pattern`
+  - `invalid_case_patterns`
+- update existing lints to support patterns and class modifiers
 - remove support for:
   - `enable_null_safety`
   - `invariant_booleans`
@@ -256,7 +280,6 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - update `use_build_context_synchronously` to check context properties.
 - improve `unnecessary_parenthesis` support for property accesses and method
   invocations.
-- add new lint: `invalid_case_patterns`.
 - update `unnecessary_parenthesis` to allow parentheses in more null-aware
   cascade contexts.
 - update `unreachable_from_main` to track static elements.
@@ -271,8 +294,6 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - add new lint: `deprecated_member_use_from_same_package` which replaces the
   soft-deprecated analyzer hint of the same name.
 - update `public_member_api_docs` to not require docs on enum constructors.
-- add new lint: `implicit_reopen`.
-- add new lint: `type_literal_in_constant_pattern`.
 - update `prefer_void_to_null` to not report on as-expressions.
 
 #### Migration tool removal

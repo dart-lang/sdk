@@ -13,6 +13,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 class ConvertToSwitchExpression extends CorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
@@ -309,7 +310,7 @@ class ConvertToSwitchExpression extends CorrectionProducer {
   bool isEffectivelyExhaustive(DartType? type, SwitchStatement node) {
     if (type == null) return false;
     if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(type)) return true;
-    var last = node.members.last;
+    var last = node.members.lastOrNull;
     if (last is SwitchPatternCase) {
       var pattern = last.guardedPattern.pattern;
       return pattern is WildcardPattern;

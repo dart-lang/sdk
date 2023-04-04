@@ -59,6 +59,9 @@ suggestions
   }
 
   Future<void> test_field_hasContextType_subtypes() async {
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
+
     await _checkLocations(
       classCode: r'''
 class A {
@@ -140,6 +143,9 @@ suggestions
   }
 
   Future<void> test_getter_hasContextType_subtypes() async {
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
+
     await _checkLocations(
       classCode: r'''
 class A {

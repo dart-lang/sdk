@@ -111,10 +111,10 @@ suggestions
 replacement
   left: 3
 suggestions
-  import '';
+  export '';
     kind: keyword
     selection: 8
-  export '';
+  import '';
     kind: keyword
     selection: 8
   part '';

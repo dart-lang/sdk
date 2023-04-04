@@ -26,8 +26,9 @@ main() {
   // It's an error to have an empty map pattern.
   switch (map) {
     case {}:
+//       ^^
+// [analyzer] COMPILE_TIME_ERROR.EMPTY_MAP_PATTERN
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
 // [cfe] unspecified
   }
 

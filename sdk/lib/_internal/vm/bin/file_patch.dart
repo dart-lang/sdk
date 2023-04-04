@@ -271,9 +271,9 @@ abstract class _FileSystemWatcher {
 
         void rewriteMove(event, isDir) {
           if (event[3]) {
-            add(event[4], new FileSystemCreateEvent._(getPath(event), isDir));
+            add(event[4], new FileSystemCreateEvent(getPath(event), isDir));
           } else {
-            add(event[4], new FileSystemDeleteEvent._(getPath(event), false));
+            add(event[4], new FileSystemDeleteEvent(getPath(event), false));
           }
         }
 
@@ -291,13 +291,13 @@ abstract class _FileSystemWatcher {
             bool isDir = getIsDir(event);
             var path = getPath(event);
             if ((event[0] & FileSystemEvent.create) != 0) {
-              add(event[4], new FileSystemCreateEvent._(path, isDir));
+              add(event[4], new FileSystemCreateEvent(path, isDir));
             }
             if ((event[0] & FileSystemEvent.modify) != 0) {
-              add(event[4], new FileSystemModifyEvent._(path, isDir, true));
+              add(event[4], new FileSystemModifyEvent(path, isDir, true));
             }
             if ((event[0] & FileSystemEvent._modifyAttributes) != 0) {
-              add(event[4], new FileSystemModifyEvent._(path, isDir, false));
+              add(event[4], new FileSystemModifyEvent(path, isDir, false));
             }
             if ((event[0] & FileSystemEvent.move) != 0) {
               int link = event[1];
@@ -306,7 +306,7 @@ abstract class _FileSystemWatcher {
                 if (pair[pathId].containsKey(link)) {
                   add(
                       event[4],
-                      new FileSystemMoveEvent._(
+                      new FileSystemMoveEvent(
                           getPath(pair[pathId][link]), isDir, path));
                   pair[pathId].remove(link);
                 } else {
@@ -317,10 +317,10 @@ abstract class _FileSystemWatcher {
               }
             }
             if ((event[0] & FileSystemEvent.delete) != 0) {
-              add(event[4], new FileSystemDeleteEvent._(path, false));
+              add(event[4], new FileSystemDeleteEvent(path, false));
             }
             if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
-              add(event[4], new FileSystemDeleteEvent._(path, false));
+              add(event[4], new FileSystemDeleteEvent(path, false));
               // Signal done event.
               stops.add([event[4], null]);
             }

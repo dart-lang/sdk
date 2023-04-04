@@ -1287,6 +1287,11 @@ Usage: dart compile js [arguments] <dart entry point>
     dart2js to generate smaller code by removing late variable names from the
     generated JavaScript.
 
+  --native-null-assertions
+    Add assertions to web library APIs to ensure that non-nullable APIs do not
+    return null. This is by default set to true in sound null-safety, unless
+    -O3 or higher is passed.
+
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve
     performance of the generated code for deployment.

@@ -246,6 +246,9 @@ class _Checker {
         // This pattern doesn't test this property, so add a pattern for the
         // property that matches all values. This way the columns stay aligned.
         StaticType? propertyType = type.getPropertyType(_propertyLookup, key);
+        if (propertyType == null && key is ExtensionKey) {
+          propertyType = key.type;
+        }
         // TODO(johnniwinther): Enable this assert when extension members are
         // handled.
         /*assert(propertyType != null,

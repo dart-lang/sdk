@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'static_type.dart';
+
 /// A value that defines the key of an additional field.
 ///
 /// This is used for accessing entries in maps and elements in lists.
@@ -39,7 +41,7 @@ class MapKey extends Key {
       // Map keys after list keys.
       return 1;
     } else {
-      // Map keys before record index and name keys,
+      // Map keys before record index, name and extension keys,
       return -1;
     }
   }
@@ -111,7 +113,7 @@ class TailKey extends Key implements ListKey {
       // Tail keys after head and rest keys.
       return 1;
     } else {
-      // Tail keys before map, record index and name keys,
+      // Tail keys before map, record index, name and extension keys,
       return -1;
     }
   }
@@ -154,7 +156,7 @@ class RestKey extends Key implements ListKey {
       // Rest keys after head keys.
       return 1;
     } else {
-      // Rest keys before tail, map, record index and name keys,
+      // Rest keys before tail, map, record index, name and extension keys,
       return -1;
     }
   }
@@ -186,6 +188,9 @@ class NameKey extends Key {
       return 1;
     } else if (other is NameKey) {
       return name.compareTo(other.name);
+    } else if (other is ExtensionKey) {
+      // Name keys before extension keys.
+      return -1;
     } else {
       // Name keys after other keys.
       return 1;
@@ -210,6 +215,9 @@ class RecordIndexKey extends NameKey implements RecordKey {
     } else if (other is NameKey) {
       // Record index keys before name keys.
       return -1;
+    } else if (other is ExtensionKey) {
+      // Record index keys before extension keys.
+      return -1;
     } else {
       // Record index keys after other keys.
       return 1;
@@ -220,4 +228,43 @@ class RecordIndexKey extends NameKey implements RecordKey {
 /// Specialized [NameKey] for a named record field.
 class RecordNameKey extends NameKey implements RecordKey {
   RecordNameKey(super.name);
+}
+
+class ExtensionKey implements Key {
+  final StaticType receiverType;
+  @override
+  final String name;
+  final StaticType type;
+
+  ExtensionKey(this.receiverType, this.name, this.type);
+
+  @override
+  int compareTo(Key other) {
+    if (other is ExtensionKey) {
+      // Sorting is only used for a stable choice of witness, so it's ok that in
+      // edge cases `receiverType.name` is not unique.
+      int result = receiverType.name.compareTo(other.receiverType.name);
+      if (result == 0) {
+        result = name.compareTo(other.name);
+      }
+      return result;
+    } else {
+      // Extension keys after other keys.
+      return 1;
+    }
+  }
+
+  @override
+  int get hashCode => Object.hash(receiverType, name);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ExtensionKey &&
+        receiverType == other.receiverType &&
+        name == other.name;
+  }
+
+  @override
+  String toString() => 'ExtensionKey($receiverType.$name:$type)';
 }
