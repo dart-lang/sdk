@@ -1675,10 +1675,14 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
 
   final List<VariableDeclaration> jointVariables;
 
+  // TODO(johnniwinther): Serialize this field.
+  final List<int>? jointVariableFirstUseOffsets;
+
   PatternSwitchCase(this.caseOffsets, this.patternGuards, this.body,
       {required this.isDefault,
       required this.hasLabel,
-      required this.jointVariables}) {
+      required this.jointVariables,
+      required this.jointVariableFirstUseOffsets}) {
     setParents(patternGuards, this);
     setParents(jointVariables, this);
     body.parent = this;
@@ -2186,7 +2190,10 @@ final PatternGuard dummyPatternGuard = new PatternGuard(dummyPattern);
 
 final PatternSwitchCase dummyPatternSwitchCase = new PatternSwitchCase(
     [], [], dummyStatement,
-    isDefault: true, hasLabel: false, jointVariables: []);
+    isDefault: true,
+    hasLabel: false,
+    jointVariables: [],
+    jointVariableFirstUseOffsets: null);
 
 final SwitchExpressionCase dummySwitchExpressionCase =
     new SwitchExpressionCase(dummyPatternGuard, dummyExpression);

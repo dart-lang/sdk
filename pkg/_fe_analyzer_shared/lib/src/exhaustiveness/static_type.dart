@@ -97,8 +97,14 @@ abstract class StaticType {
   String spaceToText(Map<Key, Space> spaceProperties,
       Map<Key, Space> additionalSpaceProperties);
 
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields);
+  /// Write this [witness] with the [witnessFields] as a pattern into [buffer]
+  /// using this [StaticType] to determine the syntax.
+  ///
+  /// If [forCorrection] is true, [witnessFields] that fully cover their static
+  /// type are omitted if possible.
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection});
 }
 
 mixin _ObjectFieldMixin on _BaseStaticType {
@@ -176,8 +182,9 @@ abstract class _BaseStaticType implements StaticType {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     if (this == StaticType.nullableObject && witnessFields.isEmpty) {
       buffer.write('_');
     } else if (this == StaticType.nullType && witnessFields.isEmpty) {
@@ -186,14 +193,14 @@ abstract class _BaseStaticType implements StaticType {
       buffer.write(name);
       buffer.write('(');
       String comma = '';
-      for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
         Key key = entry.key;
-        FieldWitness witness = entry.value;
+        PropertyWitness witness = entry.value;
         buffer.write(comma);
         comma = ', ';
         buffer.write(key.name);
         buffer.write(': ');
-        witness.witnessToText(buffer);
+        witness.witnessToText(buffer, forCorrection: forCorrection);
       }
       buffer.write(')');
     }
@@ -401,9 +408,11 @@ class WrappedStaticType extends _BaseStaticType {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
-    return wrappedType.witnessToText(buffer, witness, witnessFields);
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
+    return wrappedType.witnessToText(buffer, witness, witnessFields,
+        forCorrection: forCorrection);
   }
 
   @override

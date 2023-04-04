@@ -61,7 +61,7 @@ main() async {
       if (uri == '') {
         // We don't verify non-user-visible objects.
       } else if (uri.startsWith('dart') &&
-          ['Array', 'List'].any((p) => klass.name.contains(p))) {
+          ['Array', 'List', 'Record'].any((p) => klass.name.contains(p))) {
         Expect.isTrue(fields.length <= object.references.length);
       } else {
         Expect.equals(fields.length, object.references.length);

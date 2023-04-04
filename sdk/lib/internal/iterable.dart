@@ -222,7 +222,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
   }
 }
 
-class SubListIterable<E> extends ListIterable<E> {
+base class SubListIterable<E> extends ListIterable<E> {
   final Iterable<E> _iterable; // Has efficient length and elementAt.
   final int _start;
   /** If null, represents the length of the iterable. */
@@ -405,7 +405,7 @@ class MappedIterator<S, T> implements Iterator<T> {
  *
  * Expects efficient `length` and `elementAt` on the source iterable.
  */
-class MappedListIterable<S, T> extends ListIterable<T> {
+base class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 

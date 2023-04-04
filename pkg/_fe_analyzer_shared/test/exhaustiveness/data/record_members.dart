@@ -90,7 +90,7 @@ exhaustiveNoSuchMethod(Typedef o) {
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
-   error=non-exhaustive:(_, _) && Object(hashCode: int()),
+   error=non-exhaustive:(_, _) && Object(hashCode: int())/(_, _),
    fields={hashCode:int},
    type=(int, String)
   */

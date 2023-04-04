@@ -37,9 +37,9 @@ void exhaustiveSwitch(A r) {
 void nonExhaustiveSwitch1(A r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: Enum.b, b: false)'.
     case A(a: Enum.a, b: false):
       print('A(a, false)');
       break;
@@ -55,9 +55,9 @@ void nonExhaustiveSwitch1(A r) {
 void nonExhaustiveSwitch2(A r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: Enum.a, b: false)'.
     case A(a: Enum.b, b: false):
       print('A(b, false)');
       break;
@@ -104,9 +104,9 @@ void exhaustiveNullableSwitch(A? r) {
 void nonExhaustiveNullableSwitch1(A? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A?' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case A(a: Enum.a, b: false):
       print('A(a, false)');
       break;
@@ -125,9 +125,9 @@ void nonExhaustiveNullableSwitch1(A? r) {
 void nonExhaustiveNullableSwitch2(A? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A?' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'B(a: Enum.b, b: false)'.
     case A(a: Enum.a, b: false):
       print('A(a, false)');
       break;

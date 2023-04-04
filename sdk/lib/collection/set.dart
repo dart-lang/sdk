@@ -5,25 +5,26 @@
 /// Base implementations of [Set].
 part of dart.collection;
 
-/// Mixin implementation of [Set].
+/// Base implementation of [Set].
 ///
 /// This class provides a base implementation of a `Set` that depends only
 /// on the abstract members: [add], [contains], [lookup], [remove],
 /// [iterator], [length] and [toSet].
 ///
 /// Some of the methods assume that `toSet` creates a modifiable set.
-/// If using this mixin for an unmodifiable set,
+/// If using this base class for an unmodifiable set,
 /// where `toSet` should return an unmodifiable set,
 /// it's necessary to reimplement
 /// [retainAll], [union], [intersection] and [difference].
 ///
-/// Implementations of `Set` using this mixin should consider also implementing
+/// Implementations of `Set` using this base should consider also implementing
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
-abstract mixin class SetMixin<E> implements Set<E> {
+abstract mixin class SetBase<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
   // Mixin class from IterableMixin and the new methods of this class.
+  const SetBase();
 
   bool add(E value);
 
@@ -128,11 +129,10 @@ abstract mixin class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
+  String toString() => setToString(this);
 
-  // Copied from IterableMixin.
+  // Copied from Iterable.
   // Should be inherited if we had multi-level mixins.
-
   Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
@@ -278,24 +278,7 @@ abstract mixin class SetMixin<E> implements Set<E> {
     throw IndexError.withLength(index, elementIndex,
         indexable: this, name: "index");
   }
-}
 
-/// Base implementation of [Set].
-///
-/// This class provides a base implementation of a `Set` that depends only
-/// on the abstract members: [add], [contains], [lookup], [remove],
-/// [iterator], [length] and [toSet].
-///
-/// Some of the methods assume that `toSet` creates a modifiable set.
-/// If using this base class for an unmodifiable set,
-/// where `toSet` should return an unmodifiable set,
-/// it's necessary to reimplement
-/// [retainAll], [union], [intersection] and [difference].
-///
-/// Implementations of `Set` using this base should consider also implementing
-/// `clear` in constant time. The default implementation works by removing every
-/// element.
-abstract class SetBase<E> with SetMixin<E> {
   /// Converts a [Set] to a [String].
   ///
   /// Converts [set] to a string by converting each element to a string (by
@@ -308,8 +291,28 @@ abstract class SetBase<E> with SetMixin<E> {
       IterableBase.iterableToFullString(set, '{', '}');
 }
 
+/// Mixin implementation of [Set].
+///
+/// This class provides a base implementation of a `Set` that depends only
+/// on the abstract members: [add], [contains], [lookup], [remove],
+/// [iterator], [length] and [toSet].
+///
+/// Some of the methods assume that `toSet` creates a modifiable set.
+/// If using this mixin for an unmodifiable set,
+/// where `toSet` should return an unmodifiable set,
+/// it's necessary to reimplement
+/// [retainAll], [union], [intersection] and [difference].
+///
+/// Implementations of `Set` using this mixin should consider also implementing
+/// `clear` in constant time. The default implementation works by removing every
+/// element.
+// TODO: @Deprecated("Use SetBase instead")
+// Longer term: Deprecate `Set` unnamed constructor, to allow using `Set`
+// as skeleton class and replace `SetBase`.
+typedef SetMixin<E> = SetBase<E>;
+
 /// Common internal implementation of some [Set] methods.
-abstract class _SetBase<E> with SetMixin<E> {
+abstract class _SetBase<E> extends SetBase<E> {
   // The following two methods override the ones in SetBase.
   // It's possible to be more efficient if we have a way to create an empty
   // set of the correct type.

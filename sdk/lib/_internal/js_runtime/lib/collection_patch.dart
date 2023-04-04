@@ -56,7 +56,7 @@ class HashMap<K, V> {
   factory HashMap.identity() = _IdentityHashMap<K, V>;
 }
 
-class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
+base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -380,7 +380,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 }
 
-class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
@@ -398,7 +398,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 }
 
-class _CustomHashMap<K, V> extends _HashMap<K, V> {
+base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
@@ -448,6 +448,7 @@ class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
 
   int get length => _map._length;
   bool get isEmpty => _map._length == 0;
+  bool get isNotEmpty => _map._length != 0;
 
   Iterator<E> get iterator {
     return new _HashMapKeyIterator<E>(_map, _map._computeKeys());
@@ -561,7 +562,7 @@ class LinkedHashMap<K, V> {
       fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
 
-class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
+base class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
   _LinkedIdentityHashMap();
 
   int internalComputeHashCode(var key) {
@@ -583,7 +584,7 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
 }
 
 // TODO(floitsch): use ES6 maps when available.
-class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
+base class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
@@ -666,7 +667,7 @@ class HashSet<E> {
   factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
+base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -948,7 +949,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   }
 }
 
-class _IdentityHashSet<E> extends _HashSet<E> {
+base class _IdentityHashSet<E> extends _HashSet<E> {
   Set<E> _newSet() => new _IdentityHashSet<E>();
   Set<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
 
@@ -969,7 +970,7 @@ class _IdentityHashSet<E> extends _HashSet<E> {
   }
 }
 
-class _CustomHashSet<E> extends _HashSet<E> {
+base class _CustomHashSet<E> extends _HashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
   _Predicate _validKey;
@@ -1105,7 +1106,7 @@ class LinkedHashSet<E> {
       fillLiteralSet(values, new _LinkedHashSet());
 }
 
-class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
+base class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -1422,7 +1423,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   }
 }
 
-class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
+base class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
   Set<E> _newSet() => new _LinkedIdentityHashSet<E>();
   Set<R> _newSimilarSet<R>() => new _LinkedIdentityHashSet<R>();
 
@@ -1444,7 +1445,7 @@ class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
   }
 }
 
-class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
+base class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
   _Predicate _validKey;

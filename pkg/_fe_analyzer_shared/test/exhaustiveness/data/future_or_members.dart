@@ -131,14 +131,14 @@ exhaustiveNoSuchMethod(Typedef o) {
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*cfe.
    checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
-   error=non-exhaustive:Null(hashCode: int()),
+   error=non-exhaustive:Null(hashCode: int())/null,
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
-   error=non-exhaustive:Future<dynamic>(hashCode: int()),
+   error=non-exhaustive:Future<dynamic>(hashCode: int())/Future<dynamic>(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={Object?,Future<dynamic>},
@@ -152,14 +152,14 @@ nonExhaustiveRestrictedValue(Typedef o) {
 nonExhaustiveRestrictedType(Typedef o) {
   return /*cfe.
    checkingOrder={FutureOr<dynamic>,FutureOr<dynamic>,Null,Object?,Future<dynamic>,Object,Null},
-   error=non-exhaustive:Null(noSuchMethod: dynamic Function(Invocation) _),
+   error=non-exhaustive:Null(noSuchMethod: dynamic Function(Invocation) _)/null,
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={FutureOr<dynamic>,Null},
    type=FutureOr<dynamic>
   */ /*analyzer.
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
-   error=non-exhaustive:Future<dynamic>(noSuchMethod: dynamic Function(Invocation) _),
+   error=non-exhaustive:Future<dynamic>(noSuchMethod: dynamic Function(Invocation) _)/Future<dynamic>(),
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={Object?,Future<dynamic>},

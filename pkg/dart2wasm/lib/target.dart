@@ -71,7 +71,7 @@ class WasmTarget extends Target {
         'dart:js_interop',
         'dart:js',
         'dart:js_util',
-        'dart:wasm',
+        'dart:_wasm',
         'dart:developer',
       ];
 
@@ -82,8 +82,12 @@ class WasmTarget extends Target {
         'dart:typed_data',
         'dart:js_interop',
         'dart:js_util',
-        'dart:wasm',
+        'dart:_wasm',
       ];
+
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      importer.path.contains('tests/web/wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of

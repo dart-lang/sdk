@@ -1123,6 +1123,12 @@ class Cache {
               ..isConst = _isConst
               ..isLate = _isLate
               ..name = _name;
+            if (_isLate) {
+              // Avoid step debugging on the declaration of caching variables.
+              // TODO(johnniwinther): Find a more systematic way of omitting
+              // offsets for better step debugging.
+              variable.fileOffset = TreeNode.noOffset;
+            }
             _matchingCache.registerDeclaration(variable);
           }
         }
@@ -1149,12 +1155,20 @@ class Cache {
           }
           variable = _variable =
               createUninitializedVariable(cacheType!, fileOffset: _fileOffset)
-                ..name = _name;
+                ..name = _name
+                // Avoid step debugging on the declaration of caching variables.
+                // TODO(johnniwinther): Find a more systematic way of omitting
+                // offsets for better step debugging.
+                ..fileOffset = TreeNode.noOffset;
+
           _matchingCache.registerDeclaration(variable);
           isSetVariable = _isSetVariable = createInitializedVariable(
               createBoolLiteral(false, fileOffset: _fileOffset),
               typeEnvironment.coreTypes.boolNonNullableRawType,
-              fileOffset: _fileOffset)
+              // Avoid step debugging on the declaration of caching variables.
+              // TODO(johnniwinther): Find a more systematic way of omitting
+              // offsets for better step debugging.
+              fileOffset: TreeNode.noOffset)
             ..name = '$_name#isSet';
           _matchingCache.registerDeclaration(isSetVariable);
         }

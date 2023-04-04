@@ -33,6 +33,8 @@ class MySet extends Object with SetMixin {
 }
 
 List<String> stops = [];
+// THIS TEST DEPENDS ON SPECIFIC LINE NUMBERS IN UNRELATED PLATFORM LIBRARIES
+// STAYING FIXED. VERY FRAGILE. SHOULD BE FIXED OR REMOVED.
 List<String> expected = [
   "set.dart:142:23 (sdk_break_with_mixin_test.dart:20:5)",
 ];
@@ -53,4 +55,3 @@ main(args) {
       pause_on_start: false,
       pause_on_exit: true);
 }
-

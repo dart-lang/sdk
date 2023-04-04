@@ -2,43 +2,43 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:22:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:22:11: Error: The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.c'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'Enum.c'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:33:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:33:11: Error: The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.b'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'Enum.b'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:44:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:44:11: Error: The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.a'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'Enum.a'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:55:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:55:11: Error: The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.a'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'Enum.a'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:91:11: Error: The type 'Enum?' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:91:11: Error: The type 'Enum?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'null'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:105:11: Error: The type 'Enum?' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:105:11: Error: The type 'Enum?' is not exhaustively matched by the switch cases since it doesn't match 'Enum.b'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'Enum.b'.
 //   switch (e) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:136:11: Error: The type 'Enum' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart:136:11: Error: The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.c'.
 //  - 'Enum' is from 'pkg/front_end/testcases/patterns/exhaustiveness/enum_switch.dart'.
 // Try adding a default case or cases that match 'Enum.c'.
 //   switch (e) /* Non-exhaustive */ {

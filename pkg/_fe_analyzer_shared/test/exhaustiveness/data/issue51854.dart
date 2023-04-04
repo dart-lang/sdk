@@ -39,10 +39,10 @@ int sum1(
 int sum2(
         Iterable<int>
             list) => /*
- error=non-exhaustive:Iterable<int>(first: int(), isEmpty: false, rest: Iterable<int>()),
- fields={first:int,isEmpty:bool,Iterable<int>.rest:Iterable<int>},
- type=Iterable<int>
-*/
+             error=non-exhaustive:Iterable<int>(first: int(), isEmpty: false, rest: Iterable<int>())/Iterable<int>(isEmpty: false),
+             fields={first:int,isEmpty:bool,Iterable<int>.rest:Iterable<int>},
+             type=Iterable<int>
+            */
     switch (list) {
       Iterable(isEmpty: true) /*space=Iterable<int>(isEmpty: true)*/ => 0,
       Iterable(

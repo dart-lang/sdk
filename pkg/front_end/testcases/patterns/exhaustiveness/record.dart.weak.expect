@@ -2,18 +2,18 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/record.dart:18:73: Error: The type '(int, String, {bool named})' is not exhaustively matched by the switch cases.
-// Try adding a default case or cases that match '(int(), String(), named: true)'.
+// pkg/front_end/testcases/patterns/exhaustiveness/record.dart:18:73: Error: The type '(int, String, {bool named})' is not exhaustively matched by the switch cases since it doesn't match '(int(), String(), named: true)'.
+// Try adding a wildcard pattern or cases that match '(_, _, named: true)'.
 // nonExhaustiveRestrictedValue1((int, String, {bool named}) r) => switch (r) {
 //                                                                         ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/record.dart:22:73: Error: The type '(int, String, {bool named})' is not exhaustively matched by the switch cases.
-// Try adding a default case or cases that match '(int(), String(), named: true)'.
+// pkg/front_end/testcases/patterns/exhaustiveness/record.dart:22:73: Error: The type '(int, String, {bool named})' is not exhaustively matched by the switch cases since it doesn't match '(int(), String(), named: true)'.
+// Try adding a wildcard pattern or cases that match '(_, _, named: true)'.
 // nonExhaustiveRestrictedValue2((int, String, {bool named}) r) => switch (r) {
 //                                                                         ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/record.dart:26:73: Error: The type '(int, String, {bool named})' is not exhaustively matched by the switch cases.
-// Try adding a default case or cases that match '(int(), String(), named: false)'.
+// pkg/front_end/testcases/patterns/exhaustiveness/record.dart:26:73: Error: The type '(int, String, {bool named})' is not exhaustively matched by the switch cases since it doesn't match '(int(), String(), named: false)'.
+// Try adding a wildcard pattern or cases that match '(_, _, named: false)'.
 // nonExhaustiveRestrictedValue3((int, String, {bool named}) r) => switch (r) {
 //                                                                         ^
 //

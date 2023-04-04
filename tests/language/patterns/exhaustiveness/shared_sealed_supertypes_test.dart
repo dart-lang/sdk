@@ -69,9 +69,9 @@ test(A a) {
   // Missing leaf.
   switch (a) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'D()'.
     case E _:
       print('E');
     case F _:
@@ -80,9 +80,9 @@ test(A a) {
 
   switch (a) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'E()'.
     case D _:
       print('D');
     case F _:
@@ -91,9 +91,9 @@ test(A a) {
 
   switch (a) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'F()'.
     case D _:
       print('D');
     case E _:

@@ -92,8 +92,9 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     buffer.write('(');
     String comma = '';
     for (Key key in fields.keys) {
@@ -101,9 +102,9 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
         buffer.write(comma);
         comma = ', ';
 
-        FieldWitness? field = witnessFields[key];
+        PropertyWitness? field = witnessFields[key];
         if (field != null) {
-          field.witnessToText(buffer);
+          field.witnessToText(buffer, forCorrection: forCorrection);
         } else {
           buffer.write('_');
         }
@@ -113,9 +114,9 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness? field = witnessFields[key];
+        PropertyWitness? field = witnessFields[key];
         if (field != null) {
-          field.witnessToText(buffer);
+          field.witnessToText(buffer, forCorrection: forCorrection);
         } else {
           buffer.write('_');
         }
@@ -127,7 +128,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is! RecordKey) {
         buffer.write(additionalStart);
@@ -138,8 +139,8 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness field = entry.value;
-        field.witnessToText(buffer);
+        PropertyWitness field = entry.value;
+        field.witnessToText(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);

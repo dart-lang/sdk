@@ -80,7 +80,13 @@ String? typesToText(Iterable<StaticType> types) {
 
 String errorToText(ExhaustivenessError error) {
   if (error is NonExhaustiveError) {
-    return 'non-exhaustive:${error.witness}';
+    String witnessText = error.witness.asWitness;
+    String correctionText = error.witness.asCorrection;
+    if (witnessText != correctionText) {
+      return 'non-exhaustive:$witnessText/$correctionText';
+    } else {
+      return 'non-exhaustive:$witnessText';
+    }
   } else {
     assert(error is UnreachableCaseError);
     return 'unreachable';

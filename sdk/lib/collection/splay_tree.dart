@@ -388,7 +388,7 @@ Comparator<K> _defaultCompare<K>() {
 /// * [Map], the general interface of key/value pair collections.
 /// * [HashMap] is unordered (the order of iteration is not guaranteed).
 /// * [LinkedHashMap] iterates in key insertion order.
-class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
+final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     with MapMixin<K, V> {
   _SplayTreeMapNode<K, V>? _root;
 
@@ -946,7 +946,7 @@ class _SplayTreeMapEntryIterator<K, V>
 /// * [Set] is a base-class for collection of objects.
 /// * [HashSet] the order of the objects in the iterations is not guaranteed.
 /// * [LinkedHashSet] objects stored based on insertion order.
-class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
+final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
     with IterableMixin<E>, SetMixin<E> {
   _SplayTreeSetNode<E>? _root;
 

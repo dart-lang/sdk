@@ -41,9 +41,9 @@ void test(int? maybeInt) {
   // Must cover null somehow.
   result = switch (maybeInt) {
     //     ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
     //             ^
-    // [cfe] The type 'int?' is not exhaustively matched by the switch cases.
+    // [cfe] The type 'int?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     int _ => 'int',
   };
 }

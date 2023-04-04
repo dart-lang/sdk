@@ -1020,8 +1020,8 @@ class Intrinsifier {
       }
     }
 
-    // dart:wasm static functions
-    if (node.target.enclosingLibrary.name == "dart.wasm") {
+    // dart:_wasm static functions
+    if (node.target.enclosingLibrary.name == "dart._wasm") {
       Expression value = node.arguments.positional.single;
       switch (name) {
         case "_externalizeNonNullable":

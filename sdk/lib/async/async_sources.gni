@@ -11,6 +11,7 @@ async_sdk_sources = [
   "broadcast_stream_controller.dart",
   "deferred_load.dart",
   "future.dart",
+  "future_extensions.dart",
   "future_impl.dart",
   "schedule_microtask.dart",
   "stream.dart",

@@ -85,7 +85,7 @@ const POWERS_OF_TEN = const [
 /**
  * An [Iterable] of the UTF-16 code units of a [String] in index order.
  */
-class CodeUnits extends UnmodifiableListBase<int> {
+final class CodeUnits extends UnmodifiableListBase<int> {
   /** The string that this is the code units of. */
   final String _string;
 
@@ -973,6 +973,12 @@ abstract class HttpStatus {
 // `DoubleLinkedQueue.lastEntry` members.
 // Still, someone might have based their own double-linked list on this
 // class, so we keep it functional.
+//
+// Should really be marked `base`, but the only use in the platform
+// libraries is to implement the interface in a class which used to have
+// this publicly visible type.
+//
+// TODO: @Deprecated("Will be removed in a future release")
 class DoubleLinkedQueueEntry<E> {
   DoubleLinkedQueueEntry<E>? _previousLink;
   DoubleLinkedQueueEntry<E>? _nextLink;

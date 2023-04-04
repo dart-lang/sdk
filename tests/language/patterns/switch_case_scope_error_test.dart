@@ -11,23 +11,21 @@ main() {
   // considered in scope and an error to use.
   switch ('value') {
     case final int local when false: // Guard to make the next case reachable.
-      //           ^^^^^
-      // [cfe] unspecified
     case int local:
       print(local);
       //    ^^^^^
       // [analyzer] unspecified
+      // [cfe] unspecified
   }
 
   // If cases sharing a body don't agree on a variable's type, it is still
   // considered in scope and an error to use.
   switch ('value') {
     case bool local:
-      //      ^^^^^
-      // [cfe] unspecified
     case int local:
       print(local);
       //    ^^^^^
       // [analyzer] unspecified
+      // [cfe] unspecified
   }
 }

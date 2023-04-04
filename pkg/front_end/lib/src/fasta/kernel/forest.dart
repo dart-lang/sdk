@@ -1076,11 +1076,13 @@ class Forest {
       List<int> caseOffsets, List<PatternGuard> patternGuards, Statement body,
       {required bool isDefault,
       required bool hasLabel,
-      required List<VariableDeclaration> jointVariables}) {
+      required List<VariableDeclaration> jointVariables,
+      required List<int>? jointVariableFirstUseOffsets}) {
     return new PatternSwitchCase(caseOffsets, patternGuards, body,
         isDefault: isDefault,
         hasLabel: hasLabel,
-        jointVariables: jointVariables)
+        jointVariables: jointVariables,
+        jointVariableFirstUseOffsets: jointVariableFirstUseOffsets)
       ..fileOffset = fileOffset;
   }
 

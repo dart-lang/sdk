@@ -313,7 +313,10 @@ void _testPatternSwitchStatement() {
   testStatement(
       new PatternSwitchStatement(expression, [
         new PatternSwitchCase([0], [case0], emptyBlock,
-            isDefault: false, hasLabel: false, jointVariables: [])
+            isDefault: false,
+            hasLabel: false,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null)
       ]),
       '''
 switch (null) {
@@ -325,7 +328,10 @@ switch (null) { case 0: }''');
   testStatement(
       new PatternSwitchStatement(expression, [
         new PatternSwitchCase([], [], emptyBlock,
-            hasLabel: false, isDefault: true, jointVariables: [])
+            hasLabel: false,
+            isDefault: true,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null)
       ]),
       '''
 switch (null) {
@@ -337,9 +343,15 @@ switch (null) { default: }''');
   testStatement(
       new PatternSwitchStatement(expression, [
         new PatternSwitchCase([0, 1], [case0, case1], returnBlock1,
-            hasLabel: false, isDefault: false, jointVariables: []),
+            hasLabel: false,
+            isDefault: false,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null),
         new PatternSwitchCase([2], [case2], returnBlock2,
-            hasLabel: true, isDefault: true, jointVariables: [])
+            hasLabel: true,
+            isDefault: true,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null)
       ]),
       '''
 switch (null) {

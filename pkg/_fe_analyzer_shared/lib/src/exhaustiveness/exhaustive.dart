@@ -105,12 +105,19 @@ class _Checker {
       }
     }
     for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
+      StaticType contextType = firstValuePattern.type;
       List<StaticType> stack = [firstValuePattern.type];
       while (stack.isNotEmpty) {
         StaticType type = stack.removeAt(0);
         if (type.isSealed) {
-          Witness? result = _filterByType(type, caseRows, firstValuePattern,
-              valuePatterns, witnessPredicates, firstValuePatterns.path);
+          Witness? result = _filterByType(
+              contextType,
+              type,
+              caseRows,
+              firstValuePattern,
+              valuePatterns,
+              witnessPredicates,
+              firstValuePatterns.path);
           if (result == null) {
             // This type was fully handled so no need to test its
             // subtypes.
@@ -120,8 +127,14 @@ class _Checker {
             stack.addAll(type.getSubtypes(keysOfInterest));
           }
         } else {
-          Witness? result = _filterByType(type, caseRows, firstValuePattern,
-              valuePatterns, witnessPredicates, firstValuePatterns.path);
+          Witness? result = _filterByType(
+              contextType,
+              type,
+              caseRows,
+              firstValuePattern,
+              valuePatterns,
+              witnessPredicates,
+              firstValuePatterns.path);
 
           // If we found a witness for a subtype that no rows match, then we
           // can stop. There may be others but we don't need to find more.
@@ -136,6 +149,7 @@ class _Checker {
   }
 
   Witness? _filterByType(
+      StaticType contextType,
       StaticType type,
       List<List<Space>> caseRows,
       SingleSpace firstSingleSpaceValue,
@@ -146,7 +160,7 @@ class _Checker {
     // Extend the witness with the type we're matching.
     List<Predicate> extendedWitness = [
       ...witnessPredicates,
-      new Predicate(path, type)
+      new Predicate(path, contextType, type)
     ];
 
     // 1) Discard any rows that might not match because the column's type isn't

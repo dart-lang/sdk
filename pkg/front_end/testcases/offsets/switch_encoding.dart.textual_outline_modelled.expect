@@ -1,0 +1,31 @@
+class NonPrimitiveEquals {
+  bool operator ==(Object other) {}
+  const NonPrimitiveEquals(this.field);
+  final int field;
+  int get hashCode => field.hashCode;
+}
+
+class PrimitiveEquals {
+  const PrimitiveEquals(this.field);
+  final int field;
+}
+
+enum E { a, b, c }
+
+switchExpression(o) {}
+switchExpressionEnum(E o) {}
+switchExpressionEnumWithGuard(E o) {}
+switchExpressionNonPrimitiveEquals(o) {}
+switchExpressionPrimitiveEquals(o) {}
+switchExpressionSymbol(Symbol s) {}
+switchStatement(o) {}
+switchStatementEnum(E o) {}
+switchStatementEnumWithContinue(E o) {}
+switchStatementEnumWithGuard(E o) {}
+switchStatementEnumWithLabel(E o) {}
+switchStatementNonPrimitiveEquals(o) {}
+switchStatementPrimitiveEquals(o) {}
+switchStatementSymbol(Symbol s) {}
+switchStatementWithContinue(o) {}
+switchStatementWithContinueNested(o1, o2) {}
+switchStatementWithLabel(o) {}

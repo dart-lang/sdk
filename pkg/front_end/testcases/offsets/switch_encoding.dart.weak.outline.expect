@@ -1,0 +1,73 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+[222]class E extends core::_Enum /*isEnum*/  {
+[222]  static const field core::List<self::E> values = [-1] [-1] const <self::E>[[-1] self::E::a, [-1] self::E::b, [-1] self::E::c];
+[226]  enum-element static const field self::E a = [226] [226] const self::E::• [-1]([-1] 0, [-1] "a");
+[229]  enum-element static const field self::E b = [229] [229] const self::E::• [-1]([-1] 1, [-1] "b");
+[232]  enum-element static const field self::E c = [232] [232] const self::E::• [-1]([-1] 2, [-1] "c");
+[222]  const constructor •([222] core::int #index, [222] core::String #name) → self::E
+    : [-1] super core::_Enum::• [-1]([-1] #index, [-1] #name)
+[-1]    ;
+[222]  method _enumToString() → core::String
+[-1]    return [-1] [-1] "E.${[-1] [-1] [-1] [-1] this.{core::_Enum::_name}{core::String}}";
+}
+[243]class PrimitiveEquals extends core::Object /*hasConstConstructor*/  {
+[273]  final field core::int field;
+[289]  const constructor •([310] core::int field) → self::PrimitiveEquals
+    : [310] self::PrimitiveEquals::field = [-1] [-1] field, [289] super core::Object::• [-1]()
+[-1]    ;
+}
+[327]class NonPrimitiveEquals extends core::Object /*hasConstConstructor*/  {
+[360]  final field core::int field;
+[376]  const constructor •([400] core::int field) → self::NonPrimitiveEquals
+    : [400] self::NonPrimitiveEquals::field = [-1] [-1] field, [376] super core::Object::• [-1]()
+[-1]    ;
+[419]  get hashCode() → core::int
+[-1]    ;
+[464]  operator ==([474] core::Object other) → core::bool
+[-1]    ;
+}
+[599]static method switchStatement([615] dynamic o) → dynamic
+[-1]  ;
+[756]static method switchStatementWithLabel([781] dynamic o) → dynamic
+[-1]  ;
+[961]static method switchStatementWithContinue([989] dynamic o) → dynamic
+[-1]  ;
+[1284]static method switchStatementWithContinueNested([1318] dynamic o1, [1322] dynamic o2) → dynamic
+[-1]  ;
+[2391]static method switchStatementEnum([2413] self::E o) → dynamic
+[-1]  ;
+[2536]static method switchStatementEnumWithGuard([2567] self::E o) → dynamic
+[-1]  ;
+[2680]static method switchStatementEnumWithLabel([2711] self::E o) → dynamic
+[-1]  ;
+[2845]static method switchStatementEnumWithContinue([2879] self::E o) → dynamic
+[-1]  ;
+[3072]static method switchStatementPrimitiveEquals([3103] dynamic o) → dynamic
+[-1]  ;
+[3236]static method switchStatementNonPrimitiveEquals([3270] dynamic o) → dynamic
+[-1]  ;
+[3409]static method switchExpression([3426] dynamic o) → dynamic
+[-1]  ;
+[3515]static method switchExpressionEnum([3538] self::E o) → dynamic
+[-1]  ;
+[3615]static method switchExpressionEnumWithGuard([3647] self::E o) → dynamic
+[-1]  ;
+[3732]static method switchExpressionPrimitiveEquals([3764] dynamic o) → dynamic
+[-1]  ;
+[3881]static method switchExpressionNonPrimitiveEquals([3916] dynamic o) → dynamic
+[-1]  ;
+[4039]static method switchStatementSymbol([4068] core::Symbol s) → dynamic
+[-1]  ;
+[4197]static method switchExpressionSymbol([4227] core::Symbol s) → dynamic
+[-1]  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///switch_encoding.dart:5:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "a"}, const E{_Enum.index: 1, _Enum._name: "b"}, const E{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_encoding.dart:5:10 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_encoding.dart:5:13 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_encoding.dart:5:16 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "c"})
+Extra constant evaluation: evaluated: 11, effectively constant: 4

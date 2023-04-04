@@ -110,12 +110,12 @@ exhaustiveNoSuchMethod(Typedef o) {
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*cfe.
    checkingOrder={void,void,Null},
-   error=non-exhaustive:void(hashCode: int()),
+   error=non-exhaustive:void(hashCode: int())/void(),
    fields={hashCode:int},
    subtypes={void,Null},
    type=void
   */ /*analyzer.
-   error=non-exhaustive:void(hashCode: int()),
+   error=non-exhaustive:void(hashCode: int())/void(),
    fields={hashCode:int},
    type=void
   */
@@ -127,12 +127,12 @@ nonExhaustiveRestrictedValue(Typedef o) {
 nonExhaustiveRestrictedType(Typedef o) {
   return /*cfe.
    checkingOrder={void,void,Null},
-   error=non-exhaustive:void(noSuchMethod: dynamic Function(Invocation) _),
+   error=non-exhaustive:void(noSuchMethod: dynamic Function(Invocation) _)/void(),
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={void,Null},
    type=void
   */ /*analyzer.
-   error=non-exhaustive:void(noSuchMethod: dynamic Function(Invocation) _),
+   error=non-exhaustive:void(noSuchMethod: dynamic Function(Invocation) _)/void(),
    fields={noSuchMethod:dynamic Function(Invocation)},
    type=void
   */

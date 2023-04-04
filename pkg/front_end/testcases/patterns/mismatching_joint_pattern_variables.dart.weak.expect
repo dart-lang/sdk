@@ -2,8 +2,8 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:10:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
-//     case int y when y == 0: // Error
+// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:12:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+//       return y;
 //              ^
 //
 // pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:13:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
@@ -14,8 +14,8 @@ library /*isNonNullableByDefault*/;
 //     case int y || [final int y] when y == 0: // Error.
 //              ^
 //
-// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:7:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
-//     case int y when y == 0: // Error
+// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:9:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+//       return y;
 //              ^
 //
 import self as self;
@@ -33,8 +33,8 @@ static method test(dynamic x) → dynamic {
       lowered hoisted core::int y#case#0;
       lowered hoisted dynamic y#case#1;
       if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = y#case#0 = #0#0{core::int} in true) && y#case#0 =={core::num::==}{(core::Object) → core::bool} 0 && (let final dynamic #t4 = #t1 = y#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t5 = y#case#1 = #0#6 in true) && y#case#1 =={core::Object::==}{(core::Object) → core::bool} 0 && (let final dynamic #t6 = #t1 = y#case#1 in true)) {
-        core::int y = invalid-expression "pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:7:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
-    case int y when y == 0: // Error
+        core::int y = invalid-expression "pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:9:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+      return y;
              ^";
         {
           return y;

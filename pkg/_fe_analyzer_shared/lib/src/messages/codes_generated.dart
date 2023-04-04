@@ -10983,6 +10983,19 @@ const MessageCode messagePatternMatchingError = const MessageCode(
     problemMessage: r"""Pattern matching error""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatternVariableDeclarationOutsideFunctionOrMethod =
+    messagePatternVariableDeclarationOutsideFunctionOrMethod;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatternVariableDeclarationOutsideFunctionOrMethod =
+    const MessageCode("PatternVariableDeclarationOutsideFunctionOrMethod",
+        index: 152,
+        problemMessage:
+            r"""A pattern variable declaration may not appear outside a function or method.""",
+        correctionMessage:
+            r"""Try declaring ordinary variables and assigning from within a function or method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =
     messagePlatformPrivateLibraryAccess;
 

@@ -103,7 +103,7 @@ part of dart.collection;
 /// occur only once.
 /// * [HashSet] the order of the objects in the iteration is not guaranteed.
 /// * [SplayTreeSet] iterates the objects in sorted order.
-abstract class LinkedHashSet<E> implements Set<E> {
+abstract final class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
   /// [equals] and [hashCode].
   ///

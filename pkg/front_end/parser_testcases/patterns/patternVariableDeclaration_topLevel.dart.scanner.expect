@@ -1,0 +1,5 @@
+var (a, b) = (0, 1);
+
+
+var[KeywordToken] ([BeginToken]a[StringToken],[SimpleToken] b[StringToken])[SimpleToken] =[SimpleToken] ([BeginToken]0[StringToken],[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

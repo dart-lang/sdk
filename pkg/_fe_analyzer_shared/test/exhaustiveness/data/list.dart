@@ -49,7 +49,7 @@ restWithSubpattern(List list) {
   };
   var b = /*
    checkingOrder={List<dynamic>,[...]},
-   error=non-exhaustive:[...[...]],
+   error=non-exhaustive:[...[...]]/[...],
    subtypes={[...]},
    type=List<dynamic>
   */
@@ -341,7 +341,7 @@ nonExhaustiveRestrictedTailElement(List list) {
 nonExhaustiveRestrictedRest(List list) {
   return /*
    checkingOrder={List<dynamic>,[],[()],[(), ()],[(), (), (), ...]},
-   error=non-exhaustive:[Object(), Object(), Object(), ...[...]],
+   error=non-exhaustive:[Object(), Object(), Object(), ...[...]]/[Object(), Object(), Object(), ...],
    subtypes={[],[()],[(), ()],[(), (), (), ...]},
    type=List<dynamic>
   */
@@ -452,17 +452,32 @@ exhaustiveSealed(List<A> list) {
   };
 }
 
-nonExhaustiveSealed(List<A> list) {
+nonExhaustiveSealedSubtype(List<A> list) {
   return /*
-   checkingOrder={List<A>,<A>[],<A>[()],<A>[(), (), ...]},
-   error=non-exhaustive:[C()],
-   subtypes={<A>[],<A>[()],<A>[(), (), ...]},
+   checkingOrder={List<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
+   error=non-exhaustive:[B(), C()],
+   subtypes={<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
    type=List<A>
   */
       switch (list) {
     [] /*space=<[]>*/ => 0,
-    [B()] /*space=<[B]>*/ => 1,
-    [_, _, ...] /*space=<[A, A, ...List<A>]>*/ => 3,
+    [_] /*space=<[A]>*/ => 1,
+    [_, B()] /*space=<[A, B]>*/ => 2,
+    [_, _, _, ...] /*space=<[A, A, A, ...List<A>]>*/ => 3,
+  };
+}
+
+nonExhaustiveSealedCount(List<A> list) {
+  return /*
+   checkingOrder={List<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
+   error=non-exhaustive:[_, _],
+   subtypes={<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
+   type=List<A>
+  */
+      switch (list) {
+    [] /*space=<[]>*/ => 0,
+    [_] /*space=<[A]>*/ => 1,
+    [_, _, _, ...] /*space=<[A, A, A, ...List<A>]>*/ => 3,
   };
 }
 
@@ -483,5 +498,34 @@ reachableRest(List<A> list) {
     */
       =>
       4,
+  };
+}
+
+nonExhaustiveSubtype(List<Object> list) {
+  return /*
+   checkingOrder={List<Object>,<Object>[],<Object>[()],<Object>[(), ()],<Object>[(), (), (), ...]},
+   error=non-exhaustive:[Object(), Object()]/[_, _],
+   subtypes={<Object>[],<Object>[()],<Object>[(), ()],<Object>[(), (), (), ...]},
+   type=List<Object>
+  */
+      switch (list) {
+    [] /*space=<[]>*/ => 0,
+    [_] /*space=<[Object]>*/ => 1,
+    [_, String()] /*space=<[Object, String]>*/ => 2,
+    [_, _, _, ...] /*space=<[Object, Object, Object, ...List<Object>]>*/ => 3,
+  };
+}
+
+nonExhaustiveCount(List<Object> list) {
+  return /*
+   checkingOrder={List<Object>,<Object>[],<Object>[()],<Object>[(), ()],<Object>[(), (), (), ...]},
+   error=non-exhaustive:[_, _],
+   subtypes={<Object>[],<Object>[()],<Object>[(), ()],<Object>[(), (), (), ...]},
+   type=List<Object>
+  */
+      switch (list) {
+    [] /*space=<[]>*/ => 0,
+    [_] /*space=<[Object]>*/ => 1,
+    [_, _, _, ...] /*space=<[Object, Object, Object, ...List<Object>]>*/ => 3,
   };
 }

@@ -5109,6 +5109,10 @@ class EquivalenceStrategy {
     if (!checkPatternSwitchCase_jointVariables(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkPatternSwitchCase_jointVariableFirstUseOffsets(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkPatternSwitchCase_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -9324,6 +9328,17 @@ class EquivalenceStrategy {
       PatternSwitchCase node, PatternSwitchCase other) {
     return visitor.checkLists(node.jointVariables, other.jointVariables,
         visitor.checkNodes, 'jointVariables');
+  }
+
+  bool checkPatternSwitchCase_jointVariableFirstUseOffsets(
+      EquivalenceVisitor visitor,
+      PatternSwitchCase node,
+      PatternSwitchCase other) {
+    return visitor.checkLists(
+        node.jointVariableFirstUseOffsets,
+        other.jointVariableFirstUseOffsets,
+        visitor.checkValues,
+        'jointVariableFirstUseOffsets');
   }
 
   bool checkPatternSwitchCase_fileOffset(EquivalenceVisitor visitor,

@@ -39,10 +39,6 @@ List<String> stops = [];
 
 List<String> expected = [
   "$FILE:${LINE + 0}:28", // on 'shape' before 'switch'
-  "$FILE:${LINE + 0}:38", // on 'switch'
-  "$FILE:${LINE + 0}:46", // on 'shape' after 'switch'
-  "$FILE:${LINE + 1}:20", // on ':'
-  "$FILE:${LINE + 2}:20", // on ':'
   "$FILE:${LINE + 1}:7", // on 'Square'
   "$FILE:${LINE + 2}:7", // on 'Circle'
   "$FILE:${LINE + 2}:26", // on 'r' right after 'var'
@@ -51,7 +47,6 @@ List<String> expected = [
   "$FILE:${LINE + 4}:7", // on 'Circle'
   "$FILE:${LINE + 4}:26", // on 'r' right after 'var'
   "$FILE:${LINE + 4}:36", // on '<'
-  "$FILE:${LINE + 0}:38", // on 'switch'
   "$FILE:${LINE + 4}:40", // on '=>'
   "$FILE:${LINE + 0}:38", // on 'switch'
   "$FILE:36:1", // on closing '}' of [testMain]

@@ -30,9 +30,9 @@ void exhaustiveSwitch((Enum, bool) r) {
 void nonExhaustiveSwitch1((Enum, bool) r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases since it doesn't match '(Enum.b, false)'.
     case r0:
       print('(a, false)');
       break;
@@ -48,9 +48,9 @@ void nonExhaustiveSwitch1((Enum, bool) r) {
 void nonExhaustiveSwitch2((Enum, bool) r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases since it doesn't match '(Enum.a, false)'.
     case r1:
       print('(b, false)');
       break;
@@ -97,9 +97,9 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
 void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case r0:
       print('(a, false)');
       break;
@@ -118,9 +118,9 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
 void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(Enum.b, false)'.
     case r0:
       print('(a, false)');
       break;

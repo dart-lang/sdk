@@ -8401,13 +8401,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             jointVariable.type = inferredVariableTypes[jointVariable.name!]!;
           }
         } else {
-          for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+          for (int i = 0; i < switchCase.jointVariables.length; ++i) {
+            VariableDeclaration jointVariable = switchCase.jointVariables[i];
             if (jointVariable.type !=
                 inferredVariableTypes[jointVariable.name!]) {
               jointVariable.initializer = helper.buildProblem(
                   templateJointPatternVariablesMismatch
                       .withArguments(jointVariable.name!),
-                  jointVariable.fileOffset,
+                  switchCase.jointVariableFirstUseOffsets?[i] ??
+                      jointVariable.fileOffset,
                   noLength)
                 ..parent = jointVariable;
             }

@@ -324,7 +324,7 @@ class DispatchTable {
       final ClassInfo? superInfo = info.superInfo;
 
       // Add the class to its inherited members' selectors. Skip `_WasmBase`:
-      // it's defined as a Dart class (in `dart.wasm` library) but it's special
+      // it's defined as a Dart class (in `dart._wasm` library) but it's special
       // and does not inherit from `Object`.
       if (superInfo != null && info.cls != translator.wasmTypesBaseClass) {
         int superId = superInfo.classId;

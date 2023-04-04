@@ -7979,8 +7979,10 @@ class BodyBuilder extends StackListenerImpl
     List<VariableDeclaration>? jointPatternVariablesWithMismatchingFinality =
         pop() as List<VariableDeclaration>?;
 
+    List<int>? jointVariableFirstUseOffsets;
     if (jointPatternVariables != null) {
-      List<VariableDeclaration>? usedJointPatternVariables;
+      List<VariableDeclaration> usedJointPatternVariables = [];
+      Map<VariableDeclaration, int> firstUseOffsets = {};
       Scope? jointVariablesScope = scope;
       while (jointVariablesScope != null &&
           jointVariablesScope.kind != ScopeKind.jointVariables) {
@@ -7989,26 +7991,30 @@ class BodyBuilder extends StackListenerImpl
       assert(jointVariablesScope != null,
           "Can't find the scope the joint variables are declared in.");
       for (VariableDeclaration variable in jointPatternVariables) {
-        if (jointVariablesScope?.usedNames?.containsKey(variable.name!) ??
-            false) {
-          (usedJointPatternVariables ??= <VariableDeclaration>[]).add(variable);
+        int? firstUseOffset = jointVariablesScope?.usedNames?[variable.name!];
+        if (firstUseOffset != null) {
+          usedJointPatternVariables.add(variable);
+          firstUseOffsets[variable] = firstUseOffset;
         }
       }
       jointPatternVariables = usedJointPatternVariables;
-    }
-    if (jointPatternVariables != null &&
-        jointPatternVariablesWithMismatchingFinality != null) {
-      for (VariableDeclaration jointVariable in jointPatternVariables) {
-        if (jointPatternVariablesWithMismatchingFinality
-            .contains(jointVariable)) {
-          String jointVariableName = jointVariable.name!;
-          addProblem(
-              fasta.templateJointPatternVariablesMismatch
-                  .withArguments(jointVariableName),
-              jointVariable.fileOffset,
-              jointVariableName.length);
+      if (jointPatternVariablesWithMismatchingFinality != null) {
+        for (VariableDeclaration jointVariable in jointPatternVariables) {
+          if (jointPatternVariablesWithMismatchingFinality
+              .contains(jointVariable)) {
+            String jointVariableName = jointVariable.name!;
+            addProblem(
+                fasta.templateJointPatternVariablesMismatch
+                    .withArguments(jointVariableName),
+                firstUseOffsets[jointVariable]!,
+                jointVariableName.length);
+          }
         }
       }
+      jointVariableFirstUseOffsets = [
+        for (VariableDeclaration variable in jointPatternVariables)
+          firstUseOffsets[variable]!
+      ];
     }
 
     exitLocalScope(expectedScopeKinds: const [
@@ -8043,7 +8049,8 @@ class BodyBuilder extends StackListenerImpl
           firstToken.charOffset, caseOffsets, patternGuards, block,
           isDefault: defaultKeyword != null,
           hasLabel: labels != null,
-          jointVariables: jointPatternVariables ?? []));
+          jointVariables: jointPatternVariables ?? [],
+          jointVariableFirstUseOffsets: jointVariableFirstUseOffsets));
     } else {
       List<Expression> expressions = <Expression>[];
       List<int> caseOffsets = [];
@@ -8117,7 +8124,8 @@ class BodyBuilder extends StackListenerImpl
               switchCase.body,
               isDefault: switchCase.isDefault,
               hasLabel: switchCase.hasLabel,
-              jointVariables: []);
+              jointVariables: [],
+              jointVariableFirstUseOffsets: null);
         }
         List<Statement>? users = labelUsers[index];
         if (users != null) {

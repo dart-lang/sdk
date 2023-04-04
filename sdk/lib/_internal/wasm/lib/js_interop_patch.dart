@@ -4,11 +4,11 @@
 
 import 'dart:_internal' show patch;
 import 'dart:_js_helper';
+import 'dart:_wasm';
 import 'dart:async' show Completer;
 import 'dart:js_interop';
 import 'dart:js_util' show NullRejectionException;
 import 'dart:typed_data';
-import 'dart:wasm';
 
 /// Some helpers for working with JS types internally. If we implement the JS
 /// types as inline classes then these should go away.

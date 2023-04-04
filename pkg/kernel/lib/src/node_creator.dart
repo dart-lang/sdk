@@ -1787,14 +1787,18 @@ class NodeCreator {
       case NodeKind.PatternSwitchCase:
         return _createOneOf(_pendingNodes, kind, index, [
           () => new PatternSwitchCase([], [], _createStatement(),
-              isDefault: true, hasLabel: false, jointVariables: []),
+              isDefault: true,
+              hasLabel: false,
+              jointVariables: [],
+              jointVariableFirstUseOffsets: null),
           () => new PatternSwitchCase(
               [0],
               [_createNodeFromKind(NodeKind.PatternGuard) as PatternGuard],
               _createStatement(),
               isDefault: false,
               hasLabel: true,
-              jointVariables: []),
+              jointVariables: [],
+              jointVariableFirstUseOffsets: null),
         ]);
       case NodeKind.SwitchExpressionCase:
         return new SwitchExpressionCase(

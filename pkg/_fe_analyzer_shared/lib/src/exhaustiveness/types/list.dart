@@ -130,12 +130,13 @@ class ListPatternStaticType<Type extends Object>
   }
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     int maxHeadSize = 0;
     int maxTailSize = 0;
-    FieldWitness? restWitness;
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    PropertyWitness? restWitness;
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is HeadKey && key.index >= maxHeadSize) {
         maxHeadSize = key.index + 1;
@@ -155,9 +156,9 @@ class ListPatternStaticType<Type extends Object>
     for (int index = 0; index < maxHeadSize; index++) {
       buffer.write(comma);
       Key key = new HeadKey(index);
-      FieldWitness? witness = witnessFields[key];
+      PropertyWitness? witness = witnessFields[key];
       if (witness != null) {
-        witness.witnessToText(buffer);
+        witness.witnessToText(buffer, forCorrection: forCorrection);
       } else {
         buffer.write('_');
       }
@@ -167,16 +168,16 @@ class ListPatternStaticType<Type extends Object>
       buffer.write(comma);
       buffer.write('...');
       if (restWitness != null) {
-        restWitness.witnessToText(buffer);
+        restWitness.witnessToText(buffer, forCorrection: forCorrection);
       }
       comma = ', ';
     }
     for (int index = maxTailSize - 1; index >= 0; index--) {
       buffer.write(comma);
       Key key = new TailKey(index);
-      FieldWitness? witness = witnessFields[key];
+      PropertyWitness? witness = witnessFields[key];
       if (witness != null) {
-        witness.witnessToText(buffer);
+        witness.witnessToText(buffer, forCorrection: forCorrection);
       } else {
         buffer.write('_');
       }
@@ -188,7 +189,7 @@ class ListPatternStaticType<Type extends Object>
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is! ListKey) {
         buffer.write(additionalStart);
@@ -199,8 +200,8 @@ class ListPatternStaticType<Type extends Object>
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness field = entry.value;
-        field.witnessToText(buffer);
+        PropertyWitness field = entry.value;
+        field.witnessToText(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);
