@@ -179,6 +179,14 @@ class A {}
 ''', SnippetContext.inComment);
   }
 
+  Future<void> test_enum() async {
+    await testRequest(r'''
+enum A {
+  [!^!]
+}
+''', SnippetContext.inClass);
+  }
+
   Future<void> test_expression_constructor() async {
     await testRequest(r'''
 final a = new [!^!]

@@ -115,7 +115,8 @@ class DartSnippetRequest {
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
-          node is MixinDeclaration) {
+          node is MixinDeclaration ||
+          node is EnumDeclaration) {
         return SnippetContext.inClass;
       }
 

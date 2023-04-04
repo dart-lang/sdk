@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue51676.dart:7:46: Error: Expected ',' before this.
+//     case B(const bool.fromEnvironment('x') ? 0 : 1):
+//                                              ^
+//
+// pkg/front_end/testcases/patterns/issue51676.dart:7:46: Error: Expected an identifier, but got '0'.
+// Try inserting an identifier before '0'.
+//     case B(const bool.fromEnvironment('x') ? 0 : 1):
+//                                              ^
+//
+// pkg/front_end/testcases/patterns/issue51676.dart:7:48: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//     case B(const bool.fromEnvironment('x') ? 0 : 1):
+//                                                ^
+//
+// pkg/front_end/testcases/patterns/issue51676.dart:7:44: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//     case B(const bool.fromEnvironment('x') ? 0 : 1):
+//                                            ^
+//
+// pkg/front_end/testcases/patterns/issue51676.dart:7:10: Error: 'B' isn't a type.
+//     case B(const bool.fromEnvironment('x') ? 0 : 1):
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method case3() → core::int {
+  #L1:
+  {
+    final synthesized dynamic #0#0 = null as{ForNonNullableByDefault} dynamic;
+    {
+      if(#0#0 is{ForNonNullableByDefault} invalid-type) {
+        {
+          return 1;
+        }
+      }
+    }
+    {
+      {
+        {
+          return 2;
+        }
+      }
+    }
+  }
+}
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///issue51676.dart:6:16 -> NullConstant(null)
+Extra constant evaluation: evaluated: 3, effectively constant: 1
