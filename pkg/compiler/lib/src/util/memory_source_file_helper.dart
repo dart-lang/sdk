@@ -41,20 +41,19 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
     }
     api.Input<List<int>> input;
     StringSourceFile? stringFile;
+    registerUri(resourceUri);
     if (source is String) {
       stringFile = StringSourceFile.fromUri(resourceUri, source);
     }
     switch (inputKind) {
       case api.InputKind.UTF8:
-        utf8SourceFiles[resourceUri] =
-            input = stringFile ?? Utf8BytesSourceFile(resourceUri, source);
+        input = stringFile ?? Utf8BytesSourceFile(resourceUri, source);
         break;
       case api.InputKind.binary:
         if (stringFile != null) {
-          utf8SourceFiles[resourceUri] = stringFile;
           source = stringFile.data;
         }
-        input = binarySourceFiles[resourceUri] = Binary(resourceUri, source);
+        input = Binary(resourceUri, source);
         break;
     }
     return Future.value(input);
@@ -64,4 +63,12 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
   Future<api.Input<List<int>>> readFromUri(Uri resourceUri,
           {api.InputKind inputKind = api.InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
+
+  @override
+  api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
+    var source = memorySourceFiles[resourceUri.path];
+    return source is String
+        ? StringSourceFile.fromUri(resourceUri, source)
+        : Utf8BytesSourceFile(resourceUri, source);
+  }
 }
