@@ -41,6 +41,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   late FindNode findNode;
   late FindElement findElement;
 
+  final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
+      DartObjectPrinterConfiguration();
+
   ClassElement get boolElement => typeProvider.boolElement;
 
   ClassElement get doubleElement => typeProvider.doubleElement;
@@ -129,6 +132,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var buffer = StringBuffer();
     DartObjectPrinter(
+      configuration: dartObjectPrinterConfiguration,
       sink: buffer,
       selfUriStr: '${libraryElement.source.uri}',
     ).write(object as DartObjectImpl?);
@@ -522,17 +526,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(typeString(actual), expected);
     }
-  }
-
-  /// We have a contract with the Angular team that FunctionType(s) from
-  /// typedefs carry the element of the typedef, and the type arguments.
-  void assertTypeAlias(
-    DartType type, {
-    required TypeAliasElement element,
-    required List<String> typeArguments,
-  }) {
-    assertElement2(type.alias?.element, declaration: element);
-    assertElementTypes(type.alias?.typeArguments, typeArguments);
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -21,12 +20,28 @@ G<int> g;
 
 typedef T G<T>();
 ''');
-    var type = findElement.topVar('g').type as FunctionType;
-    assertType(type, 'int Function()');
-    assertTypeAlias(
-      type,
-      element: findElement.typeAlias('G'),
-      typeArguments: ['int'],
-    );
+
+    final node = findNode.namedType('G<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: G
+    staticElement: self::@typeAlias::G
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  type: int Function()
+    alias: self::@typeAlias::G
+      typeArguments
+        int
+''');
   }
 }

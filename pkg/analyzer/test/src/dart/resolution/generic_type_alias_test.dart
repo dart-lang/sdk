@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -241,13 +240,30 @@ G<int>? g;
 
 typedef G<T> = T Function(double);
 ''');
-    var type = findElement.topVar('g').type as FunctionType;
-    assertType(type, 'int Function(double)?');
-    assertTypeAlias(
-      type,
-      element: findElement.typeAlias('G'),
-      typeArguments: ['int'],
-    );
+
+    final node = findNode.namedType('G<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: G
+    staticElement: self::@typeAlias::G
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  question: ?
+  type: int Function(double)?
+    alias: self::@typeAlias::G
+      typeArguments
+        int
+''');
   }
 
   test_typeParameters() async {
