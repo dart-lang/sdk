@@ -6755,6 +6755,19 @@ PatternVariableDeclarationOutsideFunctionOrMethod:
       var (a, b) = (0, 1);
     }
 
+DefaultInSwitchExpression:
+  problemMessage: A switch expression may not use the `default` keyword.
+  correctionMessage: Try replacing `default` with `_`.
+  analyzerCode: ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION
+  index: 153
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    void f(x) => switch (x) {
+      1 => 'one',
+      default => 'other'
+    };
+
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 

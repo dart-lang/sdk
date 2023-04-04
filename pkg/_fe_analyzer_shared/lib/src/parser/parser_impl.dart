@@ -10371,7 +10371,20 @@ class Parser {
       mayParseFunctionExpressions = false;
       while (true) {
         listener.beginSwitchExpressionCase();
-        token = parsePattern(token, PatternContext.matching);
+        next = token.next!;
+        if (optional('default', next)) {
+          reportRecoverableError(next, codes.messageDefaultInSwitchExpression);
+          listener.handleNoType(next);
+          listener.handleWildcardPattern(null, next);
+          token = next;
+        } else {
+          if (optional('case', next)) {
+            reportRecoverableError(
+                next, codes.templateUnexpectedToken.withArguments(next));
+            token = next;
+          }
+          token = parsePattern(token, PatternContext.matching);
+        }
         listener.handleSwitchExpressionCasePattern(token);
         Token? when;
         next = token.next!;
@@ -10400,6 +10413,12 @@ class Parser {
         if (optional(',', next)) {
           comma = token = next;
           next = token.next!;
+        } else if (optional(';', next)) {
+          // User accidentally used `;` instead of `,`
+          reportRecoverableError(
+              next, codes.templateExpectedButGot.withArguments(','));
+          comma = token = next;
+          next = token.next!;
         }
         if (optional('}', next)) {
           break;
@@ -10418,13 +10437,16 @@ class Parser {
           } else {
             // Scanner guarantees a closing curly bracket
             Token closingBracket = beginSwitch.endGroup!;
-            comma = findNextComma(next, closingBracket);
+            comma = findNextCommaOrSemicolon(next, closingBracket);
             if (comma == null) {
               reportRecoverableError(
                   next, codes.templateExpectedButGot.withArguments('}'));
               next = closingBracket;
               break;
             } else {
+              // Note: `findNextCommaOrSemicolon` might have found a `;` instead
+              // of a `,`, but if it did, there's need to report an additional
+              // error.
               reportRecoverableError(
                   next, codes.templateExpectedButGot.withArguments(','));
               token = comma;
@@ -10442,14 +10464,14 @@ class Parser {
     return token;
   }
 
-  /// Finds and returns the next `,` token, starting at [token], but not
+  /// Finds and returns the next `,` or `;` token, starting at [token], but not
   /// searching beyond [limit].  If a begin token is encountered, the search
   /// proceeds after its matching end token, so the returned token (if any) will
   /// not be any more deeply nested than the starting point.
-  Token? findNextComma(Token token, Token limit) {
+  Token? findNextCommaOrSemicolon(Token token, Token limit) {
     while (true) {
       if (token.isEof || identical(token, limit)) return null;
-      if (optional(',', token)) return token;
+      if (optional(',', token) || optional(';', token)) return token;
       if (token is BeginToken) {
         token = token.endGroup!;
       } else {

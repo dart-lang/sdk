@@ -5505,7 +5505,9 @@ class AstBuilder extends StackListener {
   void handleWildcardPattern(Token? keyword, Token wildcard) {
     debugEvent('WildcardPattern');
     assert(_featureSet.isEnabled(Feature.patterns));
-    assert(wildcard.lexeme == '_');
+    // Note: if `default` appears in a switch expression, parser error recovery
+    // treats it as a wildcard pattern.
+    assert(wildcard.lexeme == '_' || wildcard.lexeme == 'default');
     var type = pop() as TypeAnnotationImpl?;
     push(
       WildcardPatternImpl(

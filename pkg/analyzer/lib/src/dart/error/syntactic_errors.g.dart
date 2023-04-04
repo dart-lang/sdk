@@ -167,6 +167,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN,
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION,
   ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
+  ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -413,6 +414,13 @@ class ParserErrorCode extends ErrorCode {
     'COVARIANT_TOP_LEVEL_DECLARATION',
     "Top-level declarations can't be declared to be covariant.",
     correctionMessage: "Try removing the keyword 'covariant'.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode DEFAULT_IN_SWITCH_EXPRESSION = ParserErrorCode(
+    'DEFAULT_IN_SWITCH_EXPRESSION',
+    "A switch expression may not use the `default` keyword.",
+    correctionMessage: "Try replacing `default` with `_`.",
   );
 
   ///  No parameters.

@@ -9393,6 +9393,46 @@ SwitchExpression
 ''');
   }
 
+  test_switchExpression_recovery_caseKeyword() {
+    _parse('''
+f(x) => switch (x) {
+  case 1 => 'one',
+  case 2 => 'two'
+};
+''', errors: [
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 23, 4),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 42, 4),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      arrow: =>
+      expression: SimpleStringLiteral
+        literal: 'one'
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 2
+      arrow: =>
+      expression: SimpleStringLiteral
+        literal: 'two'
+  rightBracket: }
+''');
+  }
+
   test_switchExpression_recovery_colonInsteadOfArrow() {
     _parse('''
 f(x) => switch (x) {
@@ -9433,12 +9473,96 @@ SwitchExpression
 ''');
   }
 
+  test_switchExpression_recovery_defaultKeyword() {
+    _parse('''
+f(x) => switch (x) {
+  1 => 'one',
+  default => 'other'
+};
+''', errors: [
+      error(ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION, 37, 7),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      arrow: =>
+      expression: SimpleStringLiteral
+        literal: 'one'
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: default
+      arrow: =>
+      expression: SimpleStringLiteral
+        literal: 'other'
+  rightBracket: }
+''');
+  }
+
   test_switchExpression_recovery_illegalFunctionExpressionInGuard() {
     // If a function expression occurs in a guard, parsing skips to the case
     // that follows.
     _parse('''
 f(x) => switch (x) {
   _ when () => true => 1,
+  _ => 2
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 41, 2),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: RecordLiteral
+            leftParenthesis: (
+            rightParenthesis: )
+      arrow: =>
+      expression: BooleanLiteral
+        literal: true
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 2
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_recovery_illegalFunctionExpressionInGuard_semicolon() {
+    // If a function expression occurs in a guard, parsing skips to the case
+    // that follows.  The logic to skip to the next case understands that a
+    // naive user might have mistakenly used `;` instead of `,` to separate
+    // cases.
+    _parse('''
+f(x) => switch (x) {
+  _ when () => true => 1;
   _ => 2
 };
 ''', errors: [
@@ -9520,6 +9644,45 @@ SwitchExpression
       arrow: =>
       expression: IntegerLiteral
         literal: 1
+  rightBracket: }
+''');
+  }
+
+  test_switchExpression_recovery_semicolonInsteadOfComma() {
+    _parse('''
+f(x) => switch (x) {
+  1 => 'one';
+  2 => 'two'
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 33, 1),
+    ]);
+    var node = findNode.switchExpression('switch');
+    assertParsedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 1
+      arrow: =>
+      expression: SimpleStringLiteral
+        literal: 'one'
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 2
+      arrow: =>
+      expression: SimpleStringLiteral
+        literal: 'two'
   rightBracket: }
 ''');
   }

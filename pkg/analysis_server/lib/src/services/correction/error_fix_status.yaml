@@ -2320,6 +2320,8 @@ ParserErrorCode.COVARIANT_MEMBER:
   status: needsEvaluation
 ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
   status: needsEvaluation
+ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
+  status: needsEvaluation
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
   status: needsEvaluation
 ParserErrorCode.DEFERRED_AFTER_PREFIX:
