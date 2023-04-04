@@ -53,7 +53,7 @@ class _WasmTransformer extends Transformer {
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
-        _wasmBaseClass = coreTypes.index.getClass('dart:wasm', '_WasmBase'),
+        _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
         _coreLibrary = coreTypes.index.getLibrary('dart:core');
 
   @override

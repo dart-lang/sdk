@@ -80,5 +80,5 @@ inst.exports.baz(2);
 In the signatures of imported and exported functions, use the following types:
 
 - For numbers, use `double`.
-- For JS objects, use the `WasmExternRef?` type from the `dart:wasm` package, which translates to the Wasm `externref` type. These can be passed around and stored as opaque values on the Dart side.
-- For Dart objects, use the corresponding Dart type. This will be emitted as `externref` and automatically converted to and from the Dart type at the boundary.
+- For JS objects, use a JS interop type, e.g. `JSAny`, which translates to the Wasm `externref` type. These can be passed around and stored as opaque values on the Dart side.
+- For Dart objects, use the corresponding Dart type. This will be emitted as `anyref` and automatically converted to and from the Dart type at the boundary.

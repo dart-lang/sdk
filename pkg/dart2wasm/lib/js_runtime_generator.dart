@@ -94,7 +94,7 @@ class _JSLowerer extends Transformer {
         _inlineJSTarget =
             _coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         _wasmExternRefClass =
-            _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
+            _coreTypes.index.getClass('dart:_wasm', 'WasmExternRef'),
         _numToIntTarget = _coreTypes.index
             .getClass('dart:core', 'num')
             .procedures

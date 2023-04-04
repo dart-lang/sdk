@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.wasm;
+library dart._wasm;
 
 // A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:

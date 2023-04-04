@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:wasm';
+import 'dart:_wasm';
 
 // Signature of the inner function of a `sync*` function. It takes the state
 // object and a pending exception to be thrown (only for `yield*`).

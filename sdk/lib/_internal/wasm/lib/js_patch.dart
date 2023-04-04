@@ -8,8 +8,8 @@ library dart.js;
 
 import 'dart:_internal' show patch;
 import 'dart:_js_helper';
+import 'dart:_wasm';
 import 'dart:collection' show ListMixin;
-import 'dart:wasm';
 
 @patch
 JsObject get context => throw UnimplementedError();

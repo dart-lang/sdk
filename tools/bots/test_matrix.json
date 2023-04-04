@@ -3141,6 +3141,7 @@
             "tools/verify_docs/bin/verify_docs.dart",
             "dart:_http",
             "dart:_internal",
+            "dart:_wasm",
             "dart:cli",
             "dart:convert",
             "dart:developer",
@@ -3149,8 +3150,7 @@
             "dart:js",
             "dart:js_util",
             "dart:math",
-            "dart:mirrors",
-            "dart:wasm"
+            "dart:mirrors"
           ]
         },
         {

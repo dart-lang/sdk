@@ -44,7 +44,7 @@ void transformLibraries(
     'dart:_internal',
     'dart:typed_data',
     'dart:nativewrappers',
-    'dart:wasm'
+    'dart:_wasm'
   ]);
   final transformer = WasmFfiNativeTransformer(
       index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
@@ -79,37 +79,37 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex)
-      : wasmI32Class = index.getClass('dart:wasm', 'WasmI32'),
-        wasmI64Class = index.getClass('dart:wasm', 'WasmI64'),
-        wasmF32Class = index.getClass('dart:wasm', 'WasmF32'),
-        wasmF64Class = index.getClass('dart:wasm', 'WasmF64'),
-        wasmEqRefClass = index.getClass('dart:wasm', 'WasmEqRef'),
-        wasmI32FromInt = index.getProcedure('dart:wasm', 'WasmI32', 'fromInt'),
+      : wasmI32Class = index.getClass('dart:_wasm', 'WasmI32'),
+        wasmI64Class = index.getClass('dart:_wasm', 'WasmI64'),
+        wasmF32Class = index.getClass('dart:_wasm', 'WasmF32'),
+        wasmF64Class = index.getClass('dart:_wasm', 'WasmF64'),
+        wasmEqRefClass = index.getClass('dart:_wasm', 'WasmEqRef'),
+        wasmI32FromInt = index.getProcedure('dart:_wasm', 'WasmI32', 'fromInt'),
         wasmI32Int8FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'int8FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'int8FromInt'),
         wasmI32Uint8FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'uint8FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'uint8FromInt'),
         wasmI32Int16FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'int16FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'int16FromInt'),
         wasmI32Uint16FromInt =
-            index.getProcedure('dart:wasm', 'WasmI32', 'uint16FromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'uint16FromInt'),
         wasmI32FromBool =
-            index.getProcedure('dart:wasm', 'WasmI32', 'fromBool'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'fromBool'),
         wasmI32ToIntSigned =
-            index.getProcedure('dart:wasm', 'WasmI32', 'toIntSigned'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'toIntSigned'),
         wasmI32ToIntUnsigned =
-            index.getProcedure('dart:wasm', 'WasmI32', 'toIntUnsigned'),
-        wasmI32ToBool = index.getProcedure('dart:wasm', 'WasmI32', 'toBool'),
-        wasmI64ToInt = index.getProcedure('dart:wasm', 'WasmI64', 'toInt'),
-        wasmI64FromInt = index.getProcedure('dart:wasm', 'WasmI64', 'fromInt'),
+            index.getProcedure('dart:_wasm', 'WasmI32', 'toIntUnsigned'),
+        wasmI32ToBool = index.getProcedure('dart:_wasm', 'WasmI32', 'toBool'),
+        wasmI64ToInt = index.getProcedure('dart:_wasm', 'WasmI64', 'toInt'),
+        wasmI64FromInt = index.getProcedure('dart:_wasm', 'WasmI64', 'fromInt'),
         wasmF32FromDouble =
-            index.getProcedure('dart:wasm', 'WasmF32', 'fromDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF32', 'fromDouble'),
         wasmF32ToDouble =
-            index.getProcedure('dart:wasm', 'WasmF32', 'toDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF32', 'toDouble'),
         wasmF64FromDouble =
-            index.getProcedure('dart:wasm', 'WasmF64', 'fromDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF64', 'fromDouble'),
         wasmF64ToDouble =
-            index.getProcedure('dart:wasm', 'WasmF64', 'toDouble'),
+            index.getProcedure('dart:_wasm', 'WasmF64', 'toDouble'),
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
 
