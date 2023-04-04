@@ -3387,7 +3387,10 @@ class BinaryBuilder {
       cases = new List<PatternSwitchCase>.generate(
           count,
           (_) => new PatternSwitchCase([], [], dummyStatement,
-              isDefault: false, hasLabel: false, jointVariables: []),
+              isDefault: false,
+              hasLabel: false,
+              jointVariables: [],
+              jointVariableFirstUseOffsets: null),
           growable: useGrowableLists);
     }
     switchCaseStack.addAll(cases);
