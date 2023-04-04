@@ -3263,7 +3263,6 @@ bar() {
 }
 ''');
 
-    assertTypeAliasRef(findNode.simple('TA.'), findElement.typeAlias('TA'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
