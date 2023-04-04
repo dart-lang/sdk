@@ -10645,6 +10645,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = error.fileOffset;
     }
 
+    error = analysisResult.emptyMapPatternError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
+    }
+
     // TODO(johnniwinther): The required type computed by the type analyzer
     // isn't trivially `Map<dynamic, dynamic>` in all cases. Does that matter
     // for the lowering?
@@ -10687,6 +10694,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Object? rewrite = popRewrite();
       if (!identical(node.entries[i], rewrite)) {
         node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
+      }
+    }
+
+    Map<int, InvalidExpression>? restPatternErrors =
+        analysisResult.restPatternErrors;
+    if (restPatternErrors != null) {
+      InvalidExpression? firstError;
+      int insertionIndex = 0;
+      for (int readIndex = 0; readIndex < node.entries.length; readIndex++) {
+        InvalidExpression? error = restPatternErrors[readIndex];
+        if (error != null) {
+          firstError ??= error;
+        } else {
+          node.entries[insertionIndex++] = node.entries[readIndex];
+        }
+      }
+      node.entries.length = insertionIndex;
+      if (insertionIndex == 0) {
+        replacement ??= new InvalidPattern(firstError!,
+            declaredVariables: node.declaredVariables)
+          ..fileOffset = node.fileOffset;
       }
     }
 

@@ -24,6 +24,10 @@ static method duplicateRecordPatternField(dynamic o) → dynamic
   ;
 static method duplicateRestPattern(dynamic o) → dynamic
   ;
+static method emptyMapPattern(dynamic o) → dynamic
+  ;
+static method singleRestPatternInMap(dynamic o) → dynamic
+  ;
 static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → dynamic
   ;
 static method nonBooleanCondition(core::int i) → dynamic

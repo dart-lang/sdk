@@ -6544,7 +6544,7 @@ MapPatternTypeArgumentMismatch:
   experiments: patterns
   script: |
     method(x) {
-      if (x case <int>{}) {}
+      if (x case <int>{0: 0}) {}
     }
 
 ListPatternTooManyTypeArguments:
@@ -6771,3 +6771,13 @@ EqualKeysInMapPatternContext:
 
 PatternMatchingError:
   problemMessage: "Pattern matching error"
+
+EmptyMapPattern:
+  problemMessage: A map pattern must have at least one entry.
+  correctionMessage: Try replacing it with an object pattern 'Map()'.
+  analyzerCode: EMPTY_MAP_PATTERN
+  script: |
+    method(Map m) => switch (m) {
+        {} => 0,
+        _ => 1,
+      };

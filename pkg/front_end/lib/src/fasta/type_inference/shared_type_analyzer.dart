@@ -108,10 +108,11 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void emptyMapPattern({
+  InvalidExpression emptyMapPattern({
     required Pattern pattern,
   }) {
-    // TODO(scheglov): implement emptyMapPattern
+    return helper.buildProblem(
+        messageEmptyMapPattern, pattern.fileOffset, noLength);
   }
 
   @override
@@ -220,11 +221,12 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternInMap({
+  InvalidExpression restPatternInMap({
     required Pattern node,
     required TreeNode element,
   }) {
-    // This is reported in the body builder.
+    return helper.buildProblem(
+        messageRestPatternInMapPattern, element.fileOffset, noLength);
   }
 
   @override

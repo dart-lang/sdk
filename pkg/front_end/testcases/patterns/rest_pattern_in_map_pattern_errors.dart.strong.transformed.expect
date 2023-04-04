@@ -2,25 +2,25 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:6:26: Error: The '...' pattern can't appear in map patterns.
-//   if (x case {..., 1: 1, ...}) { // Error.
-//                          ^
-//
 // pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:6:15: Error: The '...' pattern can't appear in map patterns.
 //   if (x case {..., 1: 1, ...}) { // Error.
 //               ^
 //
-// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:37: Error: The '...' pattern can't appear in map patterns.
-//   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
-//                                     ^
-//
-// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:26: Error: The '...' pattern can't appear in map patterns.
-//   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:6:26: Error: The '...' pattern can't appear in map patterns.
+//   if (x case {..., 1: 1, ...}) { // Error.
 //                          ^
 //
 // pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:15: Error: The '...' pattern can't appear in map patterns.
 //   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
 //               ^
+//
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:26: Error: The '...' pattern can't appear in map patterns.
+//   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
+//                          ^
+//
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:37: Error: The '...' pattern can't appear in map patterns.
+//   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
+//                                     ^
 //
 // pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:12:21: Error: The '...' pattern can't appear in map patterns.
 //   if (x case {1: 1, ..., 2: 2}) { // Error.

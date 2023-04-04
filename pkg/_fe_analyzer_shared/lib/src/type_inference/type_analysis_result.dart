@@ -147,9 +147,19 @@ class MapPatternResult<Type extends Object, Error> {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
+  /// Error for when the map pattern is empty.
+  final Error? emptyMapPatternError;
+
+  /// Errors for when the map pattern contains rest patterns.
+  ///
+  /// The key is the indices it which the rest pattern occurred.
+  final Map<int, Error>? restPatternErrors;
+
   MapPatternResult(
       {required this.requiredType,
-      required this.patternTypeMismatchInIrrefutableContextError});
+      required this.patternTypeMismatchInIrrefutableContextError,
+      required this.emptyMapPatternError,
+      required this.restPatternErrors});
 }
 
 /// Information about the code context surrounding a pattern match.
