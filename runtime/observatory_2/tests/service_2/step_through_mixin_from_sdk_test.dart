@@ -31,23 +31,28 @@ class Foo extends Object with ListMixin<int> {
   void operator []=(int index, int value) {}
 }
 
+// THIS TEST ASSUMES SPECIFIC CODE AT SPECIFIC LINES OF PLATFORM LIBRARIES.
+// THE TEST IS FRAGILE AGAINST UNRELATED CHANGES.
+
+// Print updated lines by setting `debugPrint` to `true` below.
+
 List<String> stops = [];
 List<String> expected = [
   "$file:${LINE + 0}:17", // on "Foo" (in "new Foo()")
   "$file:${LINE + 1}:11", // on "="
-  "list.dart:125:25", // on parameter to "contains"
-  "list.dart:126:23", // on "length" in "this.length"
-  "list.dart:127:16", // on "=" in "i = 0"
-  "list.dart:127:23", // on "<" in "i < length"
-  "list.dart:128:15", // on "[" in "this[i]"
+  "list.dart:89:25", // on parameter to "contains"
+  "list.dart:90:23", // on "length" in "this.length"
+  "list.dart:91:16", // on "=" in "i = 0"
+  "list.dart:91:23", // on "<" in "i < length"
+  "list.dart:92:15", // on "[" in "this[i]"
   "$file:${LINE + 13}:23", // on parameter in "operator []"
   "$file:${LINE + 14}:5", // on "return"
-  "list.dart:128:19", // on "=="
-  "list.dart:129:26", // on "length" in "this.length"
-  "list.dart:129:18", // on "!="
-  "list.dart:127:34", // on "++" in "i++"
-  "list.dart:127:23", // on "<" in "i < length"
-  "list.dart:133:5", // on "return"
+  "list.dart:92:19", // on "=="
+  "list.dart:93:26", // on "length" in "this.length"
+  "list.dart:93:18", // on "!="
+  "list.dart:91:34", // on "++" in "i++"
+  "list.dart:91:23", // on "<" in "i < length"
+  "list.dart:97:5", // on "return"
   "$file:${LINE + 4}:5", // on "print"
   "$file:${LINE + 6}:1" // on ending '}'
 ];
@@ -56,7 +61,7 @@ var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   runStepIntoThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected, removeDuplicates: true)
+  checkRecordedStops(stops, expected, removeDuplicates: true, debugPrint: true)
 ];
 
 main(args) {
