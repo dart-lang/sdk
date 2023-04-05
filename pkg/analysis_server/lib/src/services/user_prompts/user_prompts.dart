@@ -21,11 +21,11 @@ class UserPromptPreferences {
 
   /// The file for storing preferences.
   @visibleForTesting
-  late final File preferencesFile;
+  late final File? preferencesFile;
 
   UserPromptPreferences(this.resourceProvider, this.instrumentationService) {
-    preferencesFile = (resourceProvider.getStateLocation('.prompts')!..create())
-        .getChildAssumingFile('preferences.json');
+    preferencesFile = (resourceProvider.getStateLocation('.prompts')?..create())
+        ?.getChildAssumingFile('preferences.json');
   }
 
   bool get showDartFixPrompts => _readBool('showDartFixPrompts', true);
@@ -39,6 +39,14 @@ class UserPromptPreferences {
   /// Returns `null` if the file does not exist or cannot be read/parsed for
   /// any reason.
   Map<String, Object?>? _readFile() {
+    var preferencesFile = this.preferencesFile;
+    if (preferencesFile == null) {
+      instrumentationService.logError(
+        'Failed to parse preferences JSON from null preferencesFile',
+      );
+      return null;
+    }
+
     try {
       final contents = preferencesFile.readAsStringSync();
       return jsonDecode(contents) as Map<String, Object?>;
@@ -80,6 +88,12 @@ class UserPromptPreferences {
   /// Returns whether the write was successful. If unsuccessful, the error is
   /// written to the instrumentation log.
   bool _writeFile(Map<String, Object?> data) {
+    var preferencesFile = this.preferencesFile;
+    if (preferencesFile == null) {
+      instrumentationService.logError(
+          'Failed to write prompt preferences: preferencesFile is null');
+      return false;
+    }
     try {
       final contents = _jsonEncoder.convert(data);
       preferencesFile.writeAsStringSync(contents);

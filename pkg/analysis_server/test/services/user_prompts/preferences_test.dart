@@ -20,13 +20,13 @@ void main() {
 @reflectiveTest
 class UserPromptPreferencesTest with ResourceProviderMixin {
   late UserPromptPreferences preferences;
-  late File preferencesFile;
+  File? preferencesFile;
 
-  String get currentFileContents => preferencesFile.readAsStringSync();
+  String get currentFileContents => preferencesFile!.readAsStringSync();
 
   Map<String, Object?> get currentFileJson =>
       jsonDecode(currentFileContents) as Map<String, Object?>;
-  bool get fileExists => preferencesFile.exists;
+  bool get fileExists => preferencesFile!.exists;
   void setUp() {
     preferences = UserPromptPreferences(
       resourceProvider,
@@ -47,7 +47,7 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
 
   Future<void> test_handlesCorruptFile() async {
     // Write a corrupt file and ensure we get the usual default (true).
-    preferencesFile.writeAsStringSync('Not JSON');
+    preferencesFile!.writeAsStringSync('Not JSON');
 
     expect(preferences.showDartFixPrompts, isTrue);
 
@@ -68,7 +68,7 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
     );
 
     // Update the file directly to another value.
-    preferencesFile.writeAsStringSync(
+    preferencesFile!.writeAsStringSync(
       jsonEncode({'showDartFixPrompts': false}),
     );
 
