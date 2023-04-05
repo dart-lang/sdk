@@ -190,12 +190,6 @@ class RunCommand extends DartdevCommand {
         help: 'The path to a directory that dart:io calls will treat as the '
             'root of the filesystem.',
       )
-      ..addFlag(
-        'pub',
-        defaultsTo: true,
-        hide: !verbose,
-        help: 'Run an implicit `pub get` to resolve `pubspec.yaml` first.',
-      )
       ..addOption(
         'root-certs-file',
         hide: !verbose,
@@ -307,8 +301,6 @@ class RunCommand extends DartdevCommand {
     DartExecutableWithPackageConfig executable;
     final hasExperiments = args.enabledExperiments.isNotEmpty;
     try {
-      // TODO(sigurdm): We want to also be able to run this from a subdir
-      // inside a project.
       executable = await getExecutableForCommand(
         mainCommand,
         allowSnapshot: !(useResidentServer || hasExperiments),
@@ -316,12 +308,6 @@ class RunCommand extends DartdevCommand {
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
-    }
-    if (args['pub'] &&
-        args['packages'] == null &&
-        executable.packageConfig == null) {
-      await findEnclosingProjectAndResolveIfNeeded(
-          dirname(executable.executable));
     }
 
     final residentServerInfoFile = hasServerInfoOption

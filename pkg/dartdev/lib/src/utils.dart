@@ -7,9 +7,6 @@ import 'dart:math' as math;
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub/pub.dart';
-
-import 'core.dart';
 
 /// For commands where we are able to initialize the [ArgParser], this value
 /// is used as the usageLineLength.
@@ -323,45 +320,4 @@ class _MarkdownCell {
   final bool right;
 
   _MarkdownCell(this.value, this.right);
-}
-
-/// Looks for a "project folder" in [dir] and all parent directories.
-///
-/// A project folder is one with either a pubspec.yaml or a
-/// .dart_tool/package_config.json.
-///
-/// If the folder found has a pubspec.yaml, we ensure that is resolved to an
-/// up-to-date .dart_tool/package_config.json. If that fails to resolve we print
-/// an error and exit.
-///
-/// Returns the path of the folder was found, or `null` if no folder was found.
-Future<String?> findEnclosingProjectAndResolveIfNeeded(String dir) async {
-  while (true) {
-    if (File(p.join(dir, 'pubspec.yaml')).existsSync()) {
-      try {
-        await ensurePubspecResolved(
-          dir,
-          // Give full output to inform about outdated dependencies.
-          // This will only happen if pub decides it needs a new resolution.
-          summaryOnly: false,
-        );
-      } on ResolutionFailedException catch (e) {
-        log.stderr(e.message);
-        exit(255);
-      }
-      return dir;
-    }
-    if (File(p.join(dir, '.dart_tool', 'package_config.json')).existsSync()) {
-      return dir;
-    }
-    if (p.equals(dir, '.')) {
-      dir = p.absolute(dir);
-    }
-    final parent = p.dirname(dir);
-    if (p.equals(parent, dir)) {
-      // We have reached the root.
-      return null;
-    }
-    dir = parent;
-  }
 }

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -130,38 +127,5 @@ class Foo {
     // TODO (mit): Update this test to actually test for the
     // --validate-links flag.
     expect(result.stdout, contains('Documenting dartdev_temp'));
-  });
-
-  test('`doc <dir>` resolves pubspec for target dir', () async {
-    final bar = project(name: 'bar', mainSrc: 'final x = 42;');
-
-    final p = project(mainSrc: '''
-import 'package:bar/main.dart';
-/// Prints hello.
-void sayHello(args) {
-  print('hello');
-}
-''', pubspecExtras: {
-      'dependencies': {
-        'bar': {'path': bar.dirPath}
-      }
-    });
-    // Run in a sibling-dir to the project with a relative path to the main.
-    // The pubspec should be resolved.
-    final siblingDir = path.join(p.root.path, 'sibling');
-    Directory(siblingDir).createSync();
-    final target = path.relative(p.dirPath, from: siblingDir);
-    final outputDir = path.join(siblingDir, 'doc', 'api');
-
-    final result = await p.run(['doc', target], workingDir: siblingDir);
-    expect(
-        result.stdout,
-        allOf(
-          contains('Documenting dartdev_temp...'),
-          contains('Documented 1 public library'),
-          contains('Success! Docs generated into $outputDir'),
-        ));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
   });
 }

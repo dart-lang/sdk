@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/analysis_server.dart';
 import 'package:dartdev/src/commands/analyze.dart';
@@ -530,32 +528,6 @@ void f() {
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('No issues found!'));
     expect(cache.findDirectory('.analysis-driver'), isNotNull);
-  });
-
-  test('with no target resolves pubspec in current dir', () async {
-    final bar = project(name: 'bar', mainSrc: 'final x = 42;');
-
-    final p = project(pubspecExtras: {
-      'dependencies': {
-        'bar': {'path': bar.dirPath}
-      }
-    });
-    p.file('main.dart', '''
-import 'package:bar/main.dart';
-int get foo => 'str'; // An error, to ensure we actually analyze the thing.
-void main(args) {
-  print(x); // this should not be.
-}
-''');
-    // Run in a sub-dir of the project with a relative path to the main.
-    // The pubspec should be resolved. And the whole project analyzed.
-    final subDir = path.join(p.dirPath, 'subdir');
-    Directory(subDir).createSync();
-    final result = await p.runAnalyze([], workingDir: subDir);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout,
-        allOf(contains('return_of_invalid_type'), contains('1 issue found.')));
-    expect(result.exitCode, isNot(0));
   });
 
   group('display mode', () {
