@@ -1,3 +1,8 @@
+## 11.3.1-dev
+- Throw a `StateError` if an instance of `VmServerConnection` is created with
+  `StreamSink<Map<String, Object>>`, which does not allow for instances of
+  `Map<String, Object?>`
+
 ## 11.3.0
 - Update to version `4.4` of the spec.
 - Add `label` property to `InstanceRef`.
