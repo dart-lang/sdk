@@ -7836,10 +7836,12 @@ class BodyBuilder extends StackListenerImpl
 
     List<VariableDeclaration>? jointPatternVariables;
     List<VariableDeclaration>? jointPatternVariablesWithMismatchingFinality;
+    List<VariableDeclaration>? jointPatternVariablesNotInAll;
     enterLocalScope(switchCaseScope!);
     if (expressionCount > 1) {
-      for (ExpressionOrPatternGuardCase expressionOrPattern
-          in expressionOrPatterns) {
+      for (int i = 0; i < expressionOrPatterns.length; i++) {
+        ExpressionOrPatternGuardCase expressionOrPattern =
+            expressionOrPatterns[i];
         PatternGuard? patternGuard = expressionOrPattern.patternGuard;
         if (patternGuard != null) {
           if (jointPatternVariables == null) {
@@ -7850,6 +7852,12 @@ class BodyBuilder extends StackListenerImpl
                     variable.fileOffset, variable.name!)
                   ..isFinal = variable.isFinal
             ];
+            if (i != 0) {
+              // The previous heads were non-pattern ones, so no variables can
+              // be joined.
+              (jointPatternVariablesNotInAll ??= [])
+                  .addAll(jointPatternVariables);
+            }
           } else {
             Map<String, VariableDeclaration> patternVariablesByName = {
               for (VariableDeclaration variable
@@ -7859,19 +7867,34 @@ class BodyBuilder extends StackListenerImpl
             for (VariableDeclaration jointVariable in jointPatternVariables) {
               String jointVariableName = jointVariable.name!;
               VariableDeclaration? patternVariable =
-                  patternVariablesByName[jointVariableName];
+                  patternVariablesByName.remove(jointVariableName);
               if (patternVariable != null) {
                 if (patternVariable.isFinal != jointVariable.isFinal) {
                   (jointPatternVariablesWithMismatchingFinality ??= [])
                       .add(jointVariable);
                 }
+              } else {
+                (jointPatternVariablesNotInAll ??= []).add(jointVariable);
+              }
+            }
+            if (patternVariablesByName.isNotEmpty) {
+              for (VariableDeclaration variable
+                  in patternVariablesByName.values) {
+                VariableDeclaration jointVariable = forest
+                    .createVariableDeclaration(
+                        variable.fileOffset, variable.name!)
+                  ..isFinal = variable.isFinal;
+                (jointPatternVariablesNotInAll ??= []).add(jointVariable);
+                jointPatternVariables.add(jointVariable);
               }
             }
           }
         } else {
           // It's a non-pattern head, so no variables can be joined.
-          jointPatternVariables = null;
-          break;
+          if (jointPatternVariables != null) {
+            (jointPatternVariablesNotInAll ??= [])
+                .addAll(jointPatternVariables);
+          }
         }
       }
       if (jointPatternVariables != null) {
@@ -7895,11 +7918,17 @@ class BodyBuilder extends StackListenerImpl
       exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
       enterLocalScope(switchCaseScope);
     }
+    push(jointPatternVariablesNotInAll ?? NullValues.VariableDeclarationList);
     push(jointPatternVariablesWithMismatchingFinality ??
         NullValues.VariableDeclarationList);
     push(jointPatternVariables ?? NullValues.VariableDeclarationList);
 
+    createAndEnterLocalScope(
+        debugName: "switch-case-body", kind: ScopeKind.switchCaseBody);
+
     assert(checkState(firstToken, [
+      ValueKinds.Scope,
+      ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.Scope,
@@ -7986,6 +8015,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("SwitchCase");
     assert(checkState(firstToken, [
       ...repeatedKind(ValueKinds.Statement, statementCount),
+      ValueKinds.Scope,
+      ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.Scope,
@@ -7993,38 +8024,51 @@ class BodyBuilder extends StackListenerImpl
       ValueKinds.Bool,
       ValueKinds.ExpressionOrPatternGuardCaseList,
     ]));
+
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, firstToken, null);
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.switchCaseBody]);
     List<VariableDeclaration>? jointPatternVariables =
         pop() as List<VariableDeclaration>?;
     List<VariableDeclaration>? jointPatternVariablesWithMismatchingFinality =
         pop() as List<VariableDeclaration>?;
+    List<VariableDeclaration>? jointPatternVariablesNotInAll =
+        pop() as List<VariableDeclaration>?;
 
+    // The current scope should be the scope of the body of the switch case
+    // because we want to lookup the first use of the pattern variables
+    // specifically in the body of the case, as opposed to, for example, the
+    // guard in one of the heads of the case.
+    assert(
+        scope.kind == ScopeKind.switchCase ||
+            scope.kind == ScopeKind.jointVariables,
+        "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
+        "or '${ScopeKind.jointVariables}', but got '${scope.kind}.");
+    Map<String, int>? usedNamesOffsets = scope.usedNames;
+
+    bool hasDefaultOrLabels = defaultKeyword != null || labelCount > 0;
+
+    List<VariableDeclaration>? usedJointPatternVariables;
     List<int>? jointVariableFirstUseOffsets;
     if (jointPatternVariables != null) {
-      List<VariableDeclaration> usedJointPatternVariables = [];
+      usedJointPatternVariables = [];
       Map<VariableDeclaration, int> firstUseOffsets = {};
-      Scope? jointVariablesScope = scope;
-      while (jointVariablesScope != null &&
-          jointVariablesScope.kind != ScopeKind.jointVariables) {
-        jointVariablesScope = jointVariablesScope.parent;
-      }
-      assert(jointVariablesScope != null,
-          "Can't find the scope the joint variables are declared in.");
       for (VariableDeclaration variable in jointPatternVariables) {
-        int? firstUseOffset = jointVariablesScope?.usedNames?[variable.name!];
+        int? firstUseOffset = usedNamesOffsets?[variable.name!];
         if (firstUseOffset != null) {
           usedJointPatternVariables.add(variable);
           firstUseOffsets[variable] = firstUseOffset;
         }
       }
-      jointPatternVariables = usedJointPatternVariables;
-      if (jointPatternVariablesWithMismatchingFinality != null) {
-        for (VariableDeclaration jointVariable in jointPatternVariables) {
+      if (jointPatternVariablesWithMismatchingFinality != null ||
+          jointPatternVariablesNotInAll != null ||
+          hasDefaultOrLabels) {
+        for (VariableDeclaration jointVariable in usedJointPatternVariables) {
           if (jointPatternVariablesWithMismatchingFinality
-              .contains(jointVariable)) {
+                  ?.contains(jointVariable) ??
+              false) {
             String jointVariableName = jointVariable.name!;
             addProblem(
                 fasta.templateJointPatternVariablesMismatch
@@ -8032,10 +8076,26 @@ class BodyBuilder extends StackListenerImpl
                 firstUseOffsets[jointVariable]!,
                 jointVariableName.length);
           }
+          if (jointPatternVariablesNotInAll?.contains(jointVariable) ?? false) {
+            String jointVariableName = jointVariable.name!;
+            addProblem(
+                fasta.templateJointPatternVariableNotInAll
+                    .withArguments(jointVariableName),
+                firstUseOffsets[jointVariable]!,
+                jointVariableName.length);
+          }
+          if (hasDefaultOrLabels) {
+            String jointVariableName = jointVariable.name!;
+            addProblem(
+                fasta.templateJointPatternVariableWithLabelDefault
+                    .withArguments(jointVariableName),
+                firstUseOffsets[jointVariable]!,
+                jointVariableName.length);
+          }
         }
       }
       jointVariableFirstUseOffsets = [
-        for (VariableDeclaration variable in jointPatternVariables)
+        for (VariableDeclaration variable in usedJointPatternVariables)
           firstUseOffsets[variable]!
       ];
     }
@@ -8051,6 +8111,28 @@ class BodyBuilder extends StackListenerImpl
     bool containsPatterns = pop() as bool;
     List<ExpressionOrPatternGuardCase> expressionsOrPatternGuards =
         pop() as List<ExpressionOrPatternGuardCase>;
+
+    if (expressionCount == 1 &&
+        containsPatterns &&
+        hasDefaultOrLabels &&
+        usedNamesOffsets != null) {
+      PatternGuard? patternGuard =
+          expressionsOrPatternGuards.first.patternGuard;
+      if (patternGuard != null) {
+        for (VariableDeclaration variable
+            in patternGuard.pattern.declaredVariables) {
+          String variableName = variable.name!;
+          int? offset = usedNamesOffsets[variableName];
+          if (offset != null) {
+            addProblem(
+                fasta.templateJointPatternVariableWithLabelDefault
+                    .withArguments(variableName),
+                offset,
+                variableName.length);
+          }
+        }
+      }
+    }
     if (containsPatterns || libraryFeatures.patterns.isEnabled) {
       // If patterns are enabled, we always use the pattern switch encoding.
       // Otherwise, we use pattern switch encoding to handle the erroneous case
@@ -8072,7 +8154,7 @@ class BodyBuilder extends StackListenerImpl
           firstToken.charOffset, caseOffsets, patternGuards, block,
           isDefault: defaultKeyword != null,
           hasLabel: labels != null,
-          jointVariables: jointPatternVariables ?? [],
+          jointVariables: usedJointPatternVariables ?? [],
           jointVariableFirstUseOffsets: jointVariableFirstUseOffsets));
     } else {
       List<Expression> expressions = <Expression>[];

@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic
+  ;
+static method test2(dynamic x) → dynamic
+  ;
+static method test3(dynamic x) → dynamic
+  ;
+static method test4(dynamic x) → dynamic
+  ;
+static method test5(dynamic x) → dynamic
+  ;
+static method test6(dynamic x, core::bool b) → dynamic
+  ;
+static method test7(dynamic x) → dynamic
+  ;

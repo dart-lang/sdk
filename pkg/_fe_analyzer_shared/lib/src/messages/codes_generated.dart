@@ -7523,6 +7523,62 @@ Message _withArgumentsInvokeNonFunction(String name) {
 const Template<
     Message Function(
         String
+            name)> templateJointPatternVariableNotInAll = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The variable '#name' is available in some, but not all cases that share this body.""",
+    withArguments: _withArgumentsJointPatternVariableNotInAll);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeJointPatternVariableNotInAll =
+    const Code<Message Function(String name)>("JointPatternVariableNotInAll",
+        analyzerCodes: <String>[
+      "INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJointPatternVariableNotInAll(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJointPatternVariableNotInAll,
+      problemMessage:
+          """The variable '${name}' is available in some, but not all cases that share this body.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJointPatternVariableWithLabelDefault = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The variable '#name' is not available because there is a label or 'default' case.""",
+    withArguments: _withArgumentsJointPatternVariableWithLabelDefault);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJointPatternVariableWithLabelDefault =
+    const Code<Message Function(String name)>(
+        "JointPatternVariableWithLabelDefault",
+        analyzerCodes: <String>[
+      "INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJointPatternVariableWithLabelDefault(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJointPatternVariableWithLabelDefault,
+      problemMessage:
+          """The variable '${name}' is not available because there is a label or 'default' case.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateJointPatternVariablesMismatch = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
