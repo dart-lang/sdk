@@ -11,18 +11,47 @@ typedef _Predicate<T> = bool Function(T value);
 /// and right children in the tree.
 class _SoundSplayTreeNode<inout K> {
   final K key;
-  _SoundSplayTreeNode<K> left;
-  _SoundSplayTreeNode<K> right;
+  _SoundSplayTreeNode<K>? left;
+  _SoundSplayTreeNode<K>? right;
 
   _SoundSplayTreeNode(this.key);
+}
+
+class _DummySoundSplayTreeNode<inout K> implements _SoundSplayTreeNode<K> {
+  @override
+  _SoundSplayTreeNode<K>? left;
+
+  @override
+  _SoundSplayTreeNode<K>? right;
+
+  @override
+  // TODO: implement key
+  K get key => throw UnimplementedError();
+
 }
 
 /// A node in a splay tree based map.
 ///
 /// A [_SoundSplayTreeNode] that also contains a value
 class _SoundSplayTreeMapNode<inout K, inout V> extends _SoundSplayTreeNode<K> {
-  V value;
+  V? value;
   _SoundSplayTreeMapNode(K key, this.value) : super(key);
+}
+
+class _DummySoundSplayTreeMapNode<inout K, inout V> implements _SoundSplayTreeMapNode<K, V> {
+  @override
+  _SoundSplayTreeNode<K>? left;
+
+  @override
+  _SoundSplayTreeNode<K>? right;
+
+  @override
+  V? value;
+
+  @override
+  // TODO: implement key
+  K get key => throw UnimplementedError();
+
 }
 
 /// A splay tree is a self-balancing binary search tree.
@@ -32,15 +61,15 @@ class _SoundSplayTreeMapNode<inout K, inout V> extends _SoundSplayTreeNode<K> {
 /// It performs basic operations such as insertion, look-up and
 /// removal, in O(log(n)) amortized time.
 /// TODO(kallentu): Add a variance modifier to the Node type parameter.
-abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
+abstract class _SoundSplayTree<inout K> {
   // The root node of the splay tree. It will contain either the last
   // element inserted or the last element looked up.
-  Node get _root;
-  set _root(Node newValue);
+  _SoundSplayTreeNode<K>? get _root;
+  set _root(_SoundSplayTreeNode<K>? newValue);
 
   // The dummy node used when performing a splay on the tree. Reusing it
   // avoids allocating a node each time a splay is performed.
-  Node get _dummy;
+  _SoundSplayTreeNode<K> get _dummy;
 
   // Number of elements in the splay tree.
   int _count = 0;
@@ -80,18 +109,18 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
     // the L tree of the algorithm.  The left child of the dummy node
     // will hold the R tree of the algorithm.  Using a dummy node, left
     // and right will always be nodes and we avoid special cases.
-    Node left = _dummy;
-    Node right = _dummy;
-    Node current = _root;
+    _SoundSplayTreeNode<K> left = _dummy;
+    _SoundSplayTreeNode<K> right = _dummy;
+    _SoundSplayTreeNode<K> current = _root!;
     int comp;
     while (true) {
       comp = _compare(current.key, key);
       if (comp > 0) {
         if (current.left == null) break;
-        comp = _compare(current.left.key, key);
+        comp = _compare(current.left!.key, key);
         if (comp > 0) {
           // Rotate right.
-          _SoundSplayTreeNode<K> tmp = current.left;
+          final _SoundSplayTreeNode<K> tmp = current.left!;
           current.left = tmp.right;
           tmp.right = current;
           current = tmp;
@@ -100,13 +129,13 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
         // Link right.
         right.left = current;
         right = current;
-        current = current.left;
+        current = current.left!;
       } else if (comp < 0) {
         if (current.right == null) break;
-        comp = _compare(current.right.key, key);
+        comp = _compare(current.right!.key, key);
         if (comp < 0) {
           // Rotate left.
-          Node tmp = current.right;
+          final _SoundSplayTreeNode<K> tmp = current.right!;
           current.right = tmp.left;
           tmp.left = current;
           current = tmp;
@@ -115,7 +144,7 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
         // Link left.
         left.right = current;
         left = current;
-        current = current.right;
+        current = current.right!;
       } else {
         break;
       }
@@ -137,10 +166,10 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
   // anchored at [node].
   // and that node is returned. It should replace the reference to [node]
   // in any parent tree or root pointer.
-  Node _splayMin(Node node) {
-    Node current = node;
+  _SoundSplayTreeNode<K> _splayMin(_SoundSplayTreeNode<K> node) {
+    _SoundSplayTreeNode<K> current = node;
     while (current.left != null) {
-      Node left = current.left;
+      final _SoundSplayTreeNode<K> left = current.left!;
       current.left = left.right;
       left.right = current;
       current = left;
@@ -153,10 +182,10 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
   // After this, the largest element in the tree is the root of the subtree,
   // and that node is returned. It should replace the reference to [node]
   // in any parent tree or root pointer.
-  Node _splayMax(Node node) {
-    Node current = node;
+  _SoundSplayTreeNode<K> _splayMax(_SoundSplayTreeNode<K> node) {
+    _SoundSplayTreeNode<K> current = node;
     while (current.right != null) {
-      Node right = current.right;
+      final _SoundSplayTreeNode<K> right = current.right!;
       current.right = right.left;
       right.left = current;
       current = right;
@@ -164,60 +193,61 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
     return current;
   }
 
-  Node _remove(K key) {
+  _SoundSplayTreeNode<K>? _remove(K key) {
     if (_root == null) return null;
-    int comp = _splay(key);
+    final int comp = _splay(key);
     if (comp != 0) return null;
-    Node result = _root;
+    final _SoundSplayTreeNode<K> result = _root!;
     _count--;
     // assert(_count >= 0);
-    if (_root.left == null) {
-      _root = _root.right;
+    if (_root!.left == null) {
+      _root = _root!.right;
     } else {
-      Node right = _root.right;
+      final _SoundSplayTreeNode<K>? right = _root!.right;
       // Splay to make sure that the new root has an empty right child.
-      _root = _splayMax(_root.left);
+      _root = _splayMax(_root!.left!);
       // Insert the original right child as the right child of the new
       // root.
-      _root.right = right;
+      _root!.right = right;
     }
     _modificationCount++;
     return result;
   }
 
-  /// Adds a new root node with the given [key] or [value].
+  /// Adds a new root node with the given key or value.
   ///
   /// The [comp] value is the result of comparing the existing root's key
   /// with key.
-  void _addNewRoot(Node node, int comp) {
+  void _addNewRoot(_SoundSplayTreeNode<K> node, int comp) {
     _count++;
     _modificationCount++;
     if (_root == null) {
       _root = node;
       return;
     }
+    final root = _root!;
     // assert(_count >= 0);
     if (comp < 0) {
-      node.left = _root;
-      node.right = _root.right;
-      _root.right = null;
+      node.left = root;
+      node.right = root.right;
+      root.right = null;
     } else {
-      node.right = _root;
-      node.left = _root.left;
-      _root.left = null;
+      node.right = root;
+      node.left = root.left;
+      root.left = null;
     }
     _root = node;
   }
 
-  Node get _first {
+  _SoundSplayTreeNode<K>? get _first {
     if (_root == null) return null;
-    _root = _splayMin(_root);
+    _root = _splayMin(_root!);
     return _root;
   }
 
-  Node get _last {
+  _SoundSplayTreeNode<K>? get _last {
     if (_root == null) return null;
-    _root = _splayMax(_root);
+    _root = _splayMax(_root!);
     return _root;
   }
 
@@ -228,16 +258,12 @@ abstract class _SoundSplayTree<inout K, Node extends _SoundSplayTreeNode<K>> {
   }
 }
 
-class _TypeTest<T> {
-  bool test(v) => v is T;
-}
-
 int _dynamicCompare(dynamic a, dynamic b) => Comparable.compare(a, b);
 
 Comparator<K> _defaultCompare<K>() {
   // If K <: Comparable, then we can just use Comparable.compare
   // with no casts.
-  Object compare = Comparable.compare;
+  final Object compare = Comparable.compare;
   if (compare is Comparator<K>) {
     return compare;
   }
@@ -266,15 +292,19 @@ Comparator<K> _defaultCompare<K>() {
 /// using the `compare` function on an argument value that may not be a [K]
 /// value. If omitted, the `isValidKey` function defaults to testing if the
 /// value is a [K].
-class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplayTreeMapNode<K, V>>
+class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K>
     with MapMixin<K, V> {
-  _SoundSplayTreeMapNode<K, V> _root;
-  final _SoundSplayTreeMapNode<K, V> _dummy = _SoundSplayTreeMapNode<K, V>(null, null);
+  @override
+  covariant _SoundSplayTreeMapNode<K, V>? _root;
+  @override
+  final _SoundSplayTreeMapNode<K, V> _dummy = _DummySoundSplayTreeMapNode<K, V>();
 
+  @override
   Comparator<K> _comparator;
+  @override
   _Predicate _validKey;
 
-  SoundSplayTreeMap([int compare(K key1, K key2), bool isValidKey(potentialKey)])
+  SoundSplayTreeMap([int Function(K key1, K key2)? compare, bool Function(Object? potentialKey)? isValidKey])
       : _comparator = compare ?? _defaultCompare<K>(),
         _validKey = isValidKey ?? ((v) => v is K);
 
@@ -283,8 +313,8 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
   /// The keys must all be instances of [K] and the values of [V].
   /// The [other] map itself can have any type.
   factory SoundSplayTreeMap.from(Map other,
-      [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
-    SoundSplayTreeMap<K, V> result = SoundSplayTreeMap<K, V>(compare, isValidKey);
+      [int Function(K key1, K key2)? compare, bool Function(Object? potentialKey)? isValidKey]) {
+    final SoundSplayTreeMap<K, V> result = SoundSplayTreeMap<K, V>(compare, isValidKey);
     other.forEach((k, v) {
       result[k] = v;
     });
@@ -293,7 +323,7 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
 
   /// Creates a [SoundSplayTreeMap] that contains all key/value pairs of [other].
   factory SoundSplayTreeMap.of(Map<K, V> other,
-          [int compare(K key1, K key2), bool isValidKey(potentialKey)]) =>
+          [int Function(K key1, K key2)? compare, bool Function(Object? potentialKey)? isValidKey]) =>
       SoundSplayTreeMap<K, V>(compare, isValidKey)..addAll(other);
 
   /// Creates a [SoundSplayTreeMap] where the keys and values are computed from the
@@ -307,22 +337,22 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
   ///
   /// If no functions are specified for [key] and [value] the default is to
   /// use the iterable value itself.
-  factory SoundSplayTreeMap.fromIterable(Iterable iterable,
-      {K key(element),
-      V value(element),
-      int compare(K key1, K key2),
-      bool isValidKey(potentialKey)}) {
-    SoundSplayTreeMap<K, V> map = SoundSplayTreeMap<K, V>(compare, isValidKey);
-    fillMapWithMappedIterable(map, iterable, key, value);
+  static SoundSplayTreeMap<K, V> fromIterable<K, V, E>(Iterable<E> iterable,
+      {K Function(E element)? key,
+      V Function(E element)? value,
+      int Function(K key1, K key2)? compare,
+      bool Function(Object? potentialKey)? isValidKey}) {
+    final SoundSplayTreeMap<K, V> map = SoundSplayTreeMap<K, V>(compare, isValidKey);
+    fillMapWithMappedIterable<K, V, E>(map, iterable, key, value);
     return map;
   }
 
   static _id(x) => x;
 
-  static void fillMapWithMappedIterable(
-      Map map, Iterable iterable, key(element), value(element)) {
-    key ??= _id;
-    value ??= _id;
+  static void fillMapWithMappedIterable<K, V, E>(
+      Map<K, V> map, Iterable<E> iterable, K Function(E element)? key, V Function(E element)? value) {
+    key ??= _id as K Function(E);
+    value ??= _id as V Function(E);
 
     for (var element in iterable) {
       map[key(element)] = value(element);
@@ -357,7 +387,7 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
   ///
   /// It is an error if the two [Iterable]s don't have the same length.
   factory SoundSplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
-      [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
+      [int Function(K key1, K key2)? compare, bool Function(Object? potentialKey)? isValidKey]) {
     SoundSplayTreeMap<K, V> map = SoundSplayTreeMap<K, V>(compare, isValidKey);
     fillMapWithIterables(map, keys, values);
     return map;
@@ -365,22 +395,20 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
 
   int _compare(K key1, K key2) => _comparator(key1, key2);
 
-  SoundSplayTreeMap._internal();
-
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (!_validKey(key)) return null;
     if (_root != null) {
-      int comp = _splay(key);
+      int comp = _splay(key as K);
       if (comp == 0) {
-        return _root.value;
+        return _root!.value;
       }
     }
     return null;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (!_validKey(key)) return null;
-    _SoundSplayTreeMapNode<K, V> mapRoot = _remove(key);
+    final _SoundSplayTreeMapNode<K, V>? mapRoot = _remove(key as K) as _SoundSplayTreeMapNode<K, V>?;
     if (mapRoot != null) return mapRoot.value;
     return null;
   }
@@ -391,17 +419,17 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
     // the key to the root of the tree.
     int comp = _splay(key);
     if (comp == 0) {
-      _root.value = value;
+      _root!.value = value;
       return;
     }
-    _addNewRoot(_SoundSplayTreeMapNode(key, value), comp);
+    _addNewRoot(_SoundSplayTreeMapNode<K, V>(key, value), comp);
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
     if (key == null) throw ArgumentError(key);
     int comp = _splay(key);
     if (comp == 0) {
-      return _root.value;
+      return _root!.value!;
     }
     int modificationCount = _modificationCount;
     int splayCount = _splayCount;
@@ -414,7 +442,7 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
       // Key is still not there, otherwise _modificationCount would be changed.
       assert(comp != 0);
     }
-    _addNewRoot(_SoundSplayTreeMapNode(key, value), comp);
+    _addNewRoot(_SoundSplayTreeMapNode<K, V>(key, value), comp);
     return value;
   }
 
@@ -431,10 +459,10 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
   bool get isNotEmpty => !isEmpty;
 
   void forEach(void f(K key, V value)) {
-    Iterator<_SoundSplayTreeNode<K>> nodes = _SoundSplayTreeNodeIterator<K>(this);
+    Iterator<_SoundSplayTreeNode<K>?> nodes = _SoundSplayTreeNodeIterator<K>(this);
     while (nodes.moveNext()) {
-      _SoundSplayTreeMapNode<K, V> node = nodes.current;
-      f(node.key, node.value);
+      _SoundSplayTreeMapNode<K, V> node = nodes.current as _SoundSplayTreeMapNode<K, V>;
+      f(node.key, node.value!);
     }
   }
 
@@ -446,20 +474,20 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
     _clear();
   }
 
-  bool containsKey(Object key) {
-    return _validKey(key) && _splay(key) == 0;
+  bool containsKey(Object? key) {
+    return _validKey(key) && _splay(key as K) == 0;
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     int initialSplayCount = _splayCount;
-    bool visit(_SoundSplayTreeMapNode<K, V> node) {
+    bool visit(_SoundSplayTreeMapNode<K, V>? node) {
       while (node != null) {
         if (node.value == value) return true;
         if (initialSplayCount != _splayCount) {
           throw ConcurrentModificationError(this);
         }
-        if (node.right != null && visit(node.right)) return true;
-        node = node.left;
+        if (node.right != null && visit(node.right as _SoundSplayTreeMapNode<K, V>)) return true;
+        node = node.left as _SoundSplayTreeMapNode<K,V>?;
       }
       return false;
     }
@@ -472,27 +500,27 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
   Iterable<V> get values => _SoundSplayTreeValueIterable<K, V>(this);
 
   /// Get the first key in the map. Returns [:null:] if the map is empty.
-  K firstKey() {
+  K? firstKey() {
     if (_root == null) return null;
-    return _first.key;
+    return _first!.key;
   }
 
   /// Get the last key in the map. Returns [:null:] if the map is empty.
-  K lastKey() {
+  K? lastKey() {
     if (_root == null) return null;
-    return _last.key;
+    return _last!.key;
   }
 
   /// Get the last key in the map that is strictly smaller than [key]. Returns
   /// [:null:] if no key was not found.
-  K lastKeyBefore(K key) {
+  K? lastKeyBefore(K key) {
     if (key == null) throw ArgumentError(key);
     if (_root == null) return null;
     int comp = _splay(key);
-    if (comp < 0) return _root.key;
-    _SoundSplayTreeNode<K> node = _root.left;
+    if (comp < 0) return _root!.key;
+    _SoundSplayTreeNode<K>? node = _root!.left;
     if (node == null) return null;
-    while (node.right != null) {
+    while (node!.right != null) {
       node = node.right;
     }
     return node.key;
@@ -500,14 +528,14 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
 
   /// Get the first key in the map that is strictly larger than [key]. Returns
   /// [:null:] if no key was not found.
-  K firstKeyAfter(K key) {
+  K? firstKeyAfter(K key) {
     if (key == null) throw ArgumentError(key);
     if (_root == null) return null;
     int comp = _splay(key);
-    if (comp > 0) return _root.key;
-    _SoundSplayTreeNode<K> node = _root.right;
+    if (comp > 0) return _root!.key;
+    _SoundSplayTreeNode<K>? node = _root!.right;
     if (node == null) return null;
-    while (node.left != null) {
+    while (node!.left != null) {
       node = node.left;
     }
     return node.key;
@@ -516,7 +544,7 @@ class SoundSplayTreeMap<inout K, inout V> extends _SoundSplayTree<K, _SoundSplay
 
 
 abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> {
-  final _SoundSplayTree<K, _SoundSplayTreeNode<K>> _tree;
+  final _SoundSplayTree<K> _tree;
 
   /// Worklist of nodes to visit.
   ///
@@ -540,38 +568,26 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
   /// Count of splay operations on [_tree] when [_workList] was built.
   ///
   /// If the splay count on [_tree] increases, [_workList] becomes invalid.
-  int _splayCount;
+  int? _splayCount;
 
   /// Current node.
-  _SoundSplayTreeNode<K> _currentNode;
+  _SoundSplayTreeNode<K>? _currentNode;
 
-  _SoundSplayTreeIterator(_SoundSplayTree<K, _SoundSplayTreeNode<K>> tree)
+  _SoundSplayTreeIterator(_SoundSplayTree<K> tree)
       : _tree = tree,
         _modificationCount = tree._modificationCount,
         _splayCount = tree._splayCount {
     _findLeftMostDescendant(tree._root);
   }
 
-  _SoundSplayTreeIterator.startAt(_SoundSplayTree<K, _SoundSplayTreeNode<K>> tree, K startKey)
-      : _tree = tree,
-        _modificationCount = tree._modificationCount {
-    if (tree._root == null) return;
-    int compare = tree._splay(startKey);
-    _splayCount = tree._splayCount;
-    if (compare < 0) {
-      // Don't include the root, start at the next element after the root.
-      _findLeftMostDescendant(tree._root.right);
-    } else {
-      _workList.add(tree._root);
-    }
-  }
-
   T get current {
-    if (_currentNode == null) return null;
-    return _getValue(_currentNode);
+    if (_currentNode == null) {
+      throw StateError('Use moveNext to detect the end of an iterator');
+    }
+    return _getValue(_currentNode!);
   }
 
-  void _findLeftMostDescendant(_SoundSplayTreeNode<K> node) {
+  void _findLeftMostDescendant(_SoundSplayTreeNode<K>? node) {
     while (node != null) {
       _workList.add(node);
       node = node.left;
@@ -584,14 +600,14 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
   /// If the key-set changes, iteration is aborted before getting
   /// here, so we know that the keys are the same as before, it's
   /// only the tree that has been reordered.
-  void _rebuildWorkList(_SoundSplayTreeNode<K> currentNode) {
+  void _rebuildWorkList(_SoundSplayTreeNode<K>? currentNode) {
     assert(_workList.isNotEmpty);
     _workList.clear();
     if (currentNode == null) {
       _findLeftMostDescendant(_tree._root);
     } else {
       _tree._splay(currentNode.key);
-      _findLeftMostDescendant(_tree._root.right);
+      _findLeftMostDescendant(_tree._root!.right);
       assert(_workList.isNotEmpty);
     }
   }
@@ -613,7 +629,7 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
       _rebuildWorkList(_currentNode);
     }
     _currentNode = _workList.removeLast();
-    _findLeftMostDescendant(_currentNode.right);
+    _findLeftMostDescendant(_currentNode!.right);
     return true;
   }
 
@@ -621,7 +637,7 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
 }
 
 class _SoundSplayTreeKeyIterable<inout K> extends EfficientLengthIterable<K> {
-  _SoundSplayTree<K, _SoundSplayTreeNode<K>> _tree;
+  _SoundSplayTree<K> _tree;
   _SoundSplayTreeKeyIterable(this._tree);
   int get length => _tree._count;
   bool get isEmpty => _tree._count == 0;
@@ -644,24 +660,24 @@ class _SoundSplayTreeValueIterable<inout K, inout V> extends EfficientLengthIter
 }
 
 class _SoundSplayTreeKeyIterator<inout K> extends _SoundSplayTreeIterator<K, K> {
-  _SoundSplayTreeKeyIterator(_SoundSplayTree<K, _SoundSplayTreeNode<K>> map) : super(map);
+  _SoundSplayTreeKeyIterator(_SoundSplayTree<K> map) : super(map);
+  @override
   K _getValue(_SoundSplayTreeNode<K> node) => node.key;
 }
 
 class _SoundSplayTreeValueIterator<inout K, inout V> extends _SoundSplayTreeIterator<K, V> {
   _SoundSplayTreeValueIterator(SoundSplayTreeMap<K, V> map) : super(map);
   V _getValue(_SoundSplayTreeNode<K> node) {
-    _SoundSplayTreeMapNode<K, V> mapNode = node;
-    return mapNode.value;
+    _SoundSplayTreeMapNode<K, V> mapNode = node as _SoundSplayTreeMapNode<K, V>;
+    return mapNode.value!;
   }
 }
 
 class _SoundSplayTreeNodeIterator<inout K>
     extends _SoundSplayTreeIterator<K, _SoundSplayTreeNode<K>> {
-  _SoundSplayTreeNodeIterator(_SoundSplayTree<K, _SoundSplayTreeNode<K>> tree) : super(tree);
-  _SoundSplayTreeNodeIterator.startAt(
-      _SoundSplayTree<K, _SoundSplayTreeNode<K>> tree, K startKey)
-      : super.startAt(tree, startKey);
+  _SoundSplayTreeNodeIterator(_SoundSplayTree<K> tree) : super(tree);
+
+  @override
   _SoundSplayTreeNode<K> _getValue(_SoundSplayTreeNode<K> node) => node;
 }
 
@@ -679,10 +695,10 @@ class _SoundSplayTreeNodeIterator<inout K>
 /// [Comparable], and are compared using their [Comparable.compareTo] method.
 /// Non-comparable objects (including `null`) will not work as an element
 /// in that case.
-class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<E>>
+class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E>
     with IterableMixin<E>, SetMixin<E> {
-  _SoundSplayTreeNode<E> _root;
-  final _SoundSplayTreeNode<E> _dummy = _SoundSplayTreeNode<E>(null);
+  _SoundSplayTreeNode<E>? _root;
+  final _SoundSplayTreeNode<E> _dummy = _DummySoundSplayTreeNode<E>();
 
   Comparator<E> _comparator;
   _Predicate _validKey;
@@ -709,7 +725,7 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
   ///
   /// If omitted, the `isValidKey` function defaults to checking against the
   /// type parameter: `other is E`.
-  SoundSplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)])
+  SoundSplayTreeSet([int Function(E key1, E key2)? compare, bool Function(Object? potentialKey)? isValidKey])
       : _comparator = compare ?? _defaultCompare<E>(),
         _validKey = isValidKey ?? ((v) => v is E);
 
@@ -727,7 +743,7 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
   ///     new SplayTreeSet<SubType>.from(superSet.whereType<SubType>());
   /// ```
   factory SoundSplayTreeSet.from(Iterable elements,
-      [int compare(E key1, E key2), bool isValidKey(potentialKey)]) {
+      [int Function(E key1, E key2)? compare, bool Function(Object? potentialKey)? isValidKey]) {
     SoundSplayTreeSet<E> result = SoundSplayTreeSet<E>(compare, isValidKey);
     for (final element in elements) {
       E e = element;
@@ -742,7 +758,7 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
   ///
   /// All the [elements] should be valid as arguments to the [compare] function.
   factory SoundSplayTreeSet.of(Iterable<E> elements,
-          [int compare(E key1, E key2), bool isValidKey(potentialKey)]) =>
+          [int Function(E key1, E key2)? compare, bool Function(Object? potentialKey)? isValidKey]) =>
       SoundSplayTreeSet(compare, isValidKey)..addAll(elements);
 
   Set<T> _newSet<T>() =>
@@ -761,64 +777,64 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
 
   E get first {
     if (_count == 0) throw IterableElementError.noElement();
-    return _first.key;
+    return _first!.key;
   }
 
   E get last {
     if (_count == 0) throw IterableElementError.noElement();
-    return _last.key;
+    return _last!.key;
   }
 
   E get single {
     if (_count == 0) throw IterableElementError.noElement();
     if (_count > 1) throw IterableElementError.tooMany();
-    return _root.key;
+    return _root!.key;
   }
 
   // From Set.
-  bool contains(Object element) {
-    return _validKey(element) && _splay(element) == 0;
+  bool contains(Object? element) {
+    return _validKey(element) && _splay(element as E) == 0;
   }
 
   bool add(E element) {
     int compare = _splay(element);
     if (compare == 0) return false;
-    _addNewRoot(_SoundSplayTreeNode(element), compare);
+    _addNewRoot(_SoundSplayTreeNode<E>(element), compare);
     return true;
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (!_validKey(object)) return false;
-    return _remove(object) != null;
+    return _remove(object as E) != null;
   }
 
   void addAll(Iterable<E> elements) {
     for (E element in elements) {
       int compare = _splay(element);
       if (compare != 0) {
-        _addNewRoot(_SoundSplayTreeNode(element), compare);
+        _addNewRoot(_SoundSplayTreeNode<E>(element), compare);
       }
     }
   }
 
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (_validKey(element)) _remove(element);
+  void removeAll(Iterable<Object?> elements) {
+    for (Object? element in elements) {
+      if (_validKey(element)) _remove(element as E);
     }
   }
 
-  void retainAll(Iterable<Object> elements) {
+  void retainAll(Iterable<Object?> elements) {
     // Build a set with the same sense of equality as this set.
     SoundSplayTreeSet<E> retainSet = SoundSplayTreeSet<E>(_comparator, _validKey);
     int modificationCount = _modificationCount;
-    for (Object object in elements) {
+    for (Object? object in elements) {
       if (modificationCount != _modificationCount) {
         // The iterator should not have side effects.
         throw ConcurrentModificationError(this);
       }
       // Equivalent to this.contains(object).
-      if (_validKey(object) && _splay(object) == 0) {
-        retainSet.add(_root.key);
+      if (_validKey(object) && _splay(object as E) == 0) {
+        retainSet.add(_root!.key);
       }
     }
     // Take over the elements from the retained set, if it differs.
@@ -829,14 +845,14 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
     }
   }
 
-  E lookup(Object object) {
+  E? lookup(Object? object) {
     if (!_validKey(object)) return null;
-    int comp = _splay(object);
+    int comp = _splay(object as E);
     if (comp != 0) return null;
-    return _root.key;
+    return _root!.key;
   }
 
-  Set<E> intersection(Set<Object> other) {
+  Set<E> intersection(Set<Object?> other) {
     Set<E> result = SoundSplayTreeSet<E>(_comparator, _validKey);
     for (E element in this) {
       if (other.contains(element)) result.add(element);
@@ -844,7 +860,7 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
     return result;
   }
 
-  Set<E> difference(Set<Object> other) {
+  Set<E> difference(Set<Object?> other) {
     Set<E> result = SoundSplayTreeSet<E>(_comparator, _validKey);
     for (E element in this) {
       if (!other.contains(element)) result.add(element);
@@ -865,11 +881,11 @@ class SoundSplayTreeSet<inout E> extends _SoundSplayTree<E, _SoundSplayTreeNode<
 
   // Copies the structure of a SplayTree into a new similar structure.
   // Works on _SplayTreeMapNode as well, but only copies the keys,
-  _SoundSplayTreeNode<E> _copyNode(_SoundSplayTreeNode<E> node) {
+  _SoundSplayTreeNode<E>? _copyNode(_SoundSplayTreeNode<E>? node) {
     if (node == null) return null;
-    return _SoundSplayTreeNode<E>(node.key)
+    return (_SoundSplayTreeNode<E>(node.key)
       ..left = _copyNode(node.left)
-      ..right = _copyNode(node.right);
+      ..right = _copyNode(node.right));
   }
 
   void clear() {
