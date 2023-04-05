@@ -357,17 +357,13 @@ class Duration implements Comparable<Duration> {
 
     var secondsPadding = seconds < 10 ? "0" : "";
 
-    var microsecondsText = microseconds.toString();
-
     // Padding up to six digits for microseconds.
-    const zeroPadding = ["00000", "0000", "000", "00", "0", ""];
-    assert(microsecondsText.length >= 1 && microsecondsText.length <= 6);
-    var microsecondsPadding = zeroPadding[microsecondsText.length - 1];
+    var microsecondsText = microseconds.toString().padLeft(6, "0");
 
     return "$sign$hours:"
         "$minutesPadding$minutes:"
         "$secondsPadding$seconds."
-        "$microsecondsPadding$microsecondsText";
+        "$microsecondsText";
   }
 
   /// Whether this [Duration] is negative.
