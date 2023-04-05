@@ -7,13 +7,7 @@
   _extension#1,
   _extension#2,
   _extension#3,
-  _extension#4,
-  async.dart.FutureExtensions,
-  collection.dart.IterableExtensions,
-  collection.dart.NullableIterableExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+  _extension#4]*/
 
 class A1 {}
 

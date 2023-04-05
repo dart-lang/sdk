@@ -6,13 +6,7 @@
   A2,
   B2,
   B3,
-  B4,
-  async.dart.FutureExtensions,
-  collection.dart.IterableExtensions,
-  collection.dart.NullableIterableExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+  B4]*/
 
 class A1 {}
 
