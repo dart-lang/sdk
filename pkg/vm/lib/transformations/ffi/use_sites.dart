@@ -249,7 +249,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node,
+            allowCompounds: true, allowVoid: true);
 
         if (nativeType is InterfaceType) {
           Expression? inlineSizeOf = _inlineSizeOf(nativeType);
@@ -386,7 +387,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node,
+            allowCompounds: true, allowVoid: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
