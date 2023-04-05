@@ -156,15 +156,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementName(Element element, String name,
-      {bool isSynthetic = false, int? offset}) {
-    expect(element.name, name);
-    expect(element.isSynthetic, isSynthetic);
-    if (offset != null) {
-      expect(element.nameOffset, offset);
-    }
-  }
-
   void assertElementNull(Object? nodeOrElement) {
     Element? element;
     if (nodeOrElement is AstNode) {

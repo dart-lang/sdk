@@ -26,6 +26,8 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  FieldDeclaration get singleFieldDeclaration => _single();
+
   ForElement get singleForElement => _single();
 
   ForStatement get singleForStatement => _single();
@@ -39,6 +41,8 @@ class FindNode {
   IfStatement get singleIfStatement => _single();
 
   LibraryDirective get singleLibraryDirective => _single();
+
+  MethodDeclaration get singleMethodDeclaration => _single();
 
   PatternAssignment get singlePatternAssignment => _single();
 
