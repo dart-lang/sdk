@@ -90,15 +90,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     newFile(testFile.path, content);
   }
 
-  /// Assert that the given [identifier] is a reference to a class, in the
-  /// form that is not a separate expression, e.g. in a static method
-  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
-  void assertClassRef(Expression? identifier, ClassElement expectedElement) {
-    identifier as SimpleIdentifier;
-    assertElement(identifier, expectedElement);
-    assertTypeNull(identifier);
-  }
-
   void assertDartObjectText(
     DartObject? object,
     String expected, {

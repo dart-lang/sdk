@@ -3056,7 +3056,6 @@ bar() {
 }
 ''');
 
-    assertClassRef(findNode.simple('A.'), findElement.class_('A'));
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
 FunctionReference
   function: PrefixedIdentifier
@@ -3101,9 +3100,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.A'), findElement.prefix('a'));
-    assertClassRef(findNode.simple('A.'),
-        findElement.importFind('package:test/a.dart').class_('A'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
