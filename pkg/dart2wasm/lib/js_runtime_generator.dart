@@ -903,11 +903,11 @@ JSRuntimeFinalizer createJSRuntimeFinalizer(
     Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("package:js/js.dart")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_annotations")),
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_helper")),
+    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+        component, Uri.parse("dart:js_interop")),
   };
   Map<Procedure, String> jsInteropMethods = {};
   jsInteropMethods = _performJSInteropTransformations(
