@@ -183,6 +183,8 @@ export "dart:async"
         FutureRecord9,
         ParallelWaitError;
 
+export "dart:collection" show NullableIterableExtensions, IterableExtensions;
+
 part "annotations.dart";
 part "bigint.dart";
 part "bool.dart";

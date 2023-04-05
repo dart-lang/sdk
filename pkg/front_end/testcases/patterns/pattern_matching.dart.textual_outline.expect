@@ -16,6 +16,6 @@ class Circle implements Shape {
   double calculateArea() => math.pi * radius * radius;
 }
 
-double calculateArea(Shape shape) => switch (shape) {  };
+double calculateArea(Shape shape) => switch (shape) {};
 main() {}
 expect(expected, actual) {}

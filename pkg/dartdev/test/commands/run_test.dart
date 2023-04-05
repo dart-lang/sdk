@@ -222,87 +222,6 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
-  test('Resolves pubspec in the project where target file resides', () async {
-    final bar = project(name: 'bar', mainSrc: 'final x = 42;');
-
-    p = project(pubspecExtras: {
-      'dependencies': {
-        'bar': {'path': bar.dirPath}
-      }
-    });
-    p.file('main.dart', '''
-import 'package:bar/main.dart';
-void main(args) {
-  print(x);
-  print(args);
-}
-''');
-    // Run in a sibling-dir to the project with a relative path to the main.
-    // The pubspec should be resolved.
-    final siblingDir = path.join(p.root.path, 'sibling');
-    Directory(siblingDir).createSync();
-    final target =
-        path.relative(path.join(p.dirPath, 'main.dart'), from: siblingDir);
-    final result = await p.run(
-      [
-        'run',
-        '--enable-experiment=test-experiment',
-        target,
-        '--argument1',
-        'argument2',
-      ],
-      workingDir: siblingDir,
-    );
-
-    // --enable-experiment and main.dart should not be passed.
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, equals('42\n[--argument1, argument2]\n'));
-    expect(result.exitCode, 0);
-  });
-
-  test('Reports errors from pubspec in the project where target file resides',
-      () async {
-    p = project(pubspecExtras: {
-      'dependencies': {
-        'bar': {'path': '../does_not_exist'}
-      }
-    });
-    p.file('main.dart', '''
-import 'package:bar/main.dart';
-void main(args) {
-  print(x);
-  print(args);
-}
-''');
-    // Run in a sibling-dir to the project with a relative path to the main.
-    // The pubspec should be resolved.
-    final siblingDir = path.join(p.root.path, 'sibling');
-    Directory(siblingDir).createSync();
-    final target =
-        path.relative(path.join(p.dirPath, 'main.dart'), from: siblingDir);
-    final result = await p.run(
-      [
-        'run',
-        '--enable-experiment=test-experiment',
-        target,
-        '--argument1',
-        'argument2',
-      ],
-      workingDir: siblingDir,
-    );
-
-    // --enable-experiment and main.dart should not be passed.
-    expect(
-      result.stderr,
-      allOf(
-        contains('(could not find package bar at "../does_not_exist")'),
-        contains('version solving failed.'),
-      ),
-    );
-    expect(result.stdout, isEmpty);
-    expect(result.exitCode, 255);
-  });
-
   test('with file uri', () async {
     p = project();
     p.file('main.dart', 'void main(args) { print(args); }');
@@ -852,7 +771,7 @@ void residentRun() {
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
       sdkConstraint: VersionConstraint.parse(
-        '^3.0.0-0',
+        '^3.0.0',
       ),
     );
     final result = await p.run([

@@ -12,5 +12,5 @@ class Circle implements Shape {
   Circle(this.radius);
 }
 
-double calculateArea(Shape shape) => switch (shape) {  };
+double calculateArea(Shape shape) => switch (shape) {};
 testMain() {}

@@ -72,58 +72,13 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
     if (!Sdk.checkArtifactExists(librariesPath)) return 255;
 
-    // We need to find the single bare arg (argument that is not an option or
-    // flag).
-    //
-    // dart2js argument parsing is a bit idiosyncratic:
-    //
-    // The only options that can be separated from their value is --output, --out
-    // -o and --define. (But not the synonym -D).
-    //
-    // (see: /usr/local/google/home/sigurdm/projects/dart-sdk/sdk/pkg/compiler/lib/src/dart2js.dart
-    // those that allow separation are those defined with `_ManyOptions`).
-    //
-    // dart2js argument handling doesn't support the -- convention.
-    //
-    // TODO(sigurdm): try finding a cleaner solution.
-    var hasSeenPackages = false;
-    // Whether the `--pub` flag is enabled.
-    var pubArg = true; // default to true.
-    final arguments = argResults!.arguments.toList();
-    String? target;
-    for (int i = 0; i < arguments.length; i++) {
-      final arg = arguments[i];
-      if (arg == '--pub' || arg == '--no-pub') {
-        pubArg = (arg == '--pub');
-        // Don't pass this argument to dart2js.
-        arguments.removeAt(i);
-        i--;
-      } else if (arg.startsWith('-')) {
-        if (['-o', '--output', '--out', '--define'].contains(arg)) {
-          i++;
-        } else if (arg.startsWith('--packages=')) {
-          hasSeenPackages = true;
-        }
-      } else {
-        // Multiple bare arguments will be rejected by dart2js
-        target = arg;
-      }
-    }
-    if (pubArg &&
-        !hasSeenPackages &&
-        target != null &&
-        File(target).existsSync()) {
-      // Resolve the pubspec of the project surrounding [sourcePath].
-      await findEnclosingProjectAndResolveIfNeeded(path.dirname(target));
-    }
-
     VmInteropHandler.run(
       sdk.dart2jsSnapshot,
       [
         '--libraries-spec=$librariesPath',
         '--cfe-invocation-modes=compile',
         '--invoker=dart_cli',
-        ...arguments,
+        ...argResults!.arguments,
       ],
       packageConfigOverride: null,
     );
@@ -178,13 +133,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
           help: soundNullSafetyOption.help,
           defaultsTo: soundNullSafetyOption.flagDefaultsTo,
           hide: true)
-      ..addExperimentalFlags(verbose: verbose)
-      ..addFlag(
-        'pub',
-        defaultsTo: true,
-        hide: !verbose,
-        help: 'Run an implicit `pub get` to resolve `pubspec.yaml` first.',
-      );
+      ..addExperimentalFlags(verbose: verbose);
   }
 
   @override
@@ -249,10 +198,6 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     }
 
     final String? packages = args[packagesOption.flag];
-    if (args['pub'] && packages == null) {
-      // Resolve the pubspec of the project surrounding [sourcePath].
-      await findEnclosingProjectAndResolveIfNeeded(path.dirname(sourcePath));
-    }
     if (packages != null) {
       buildArgs.add('--packages=$packages');
     }
@@ -330,12 +275,6 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
       )
-      ..addFlag(
-        'pub',
-        defaultsTo: true,
-        hide: !verbose,
-        help: 'Run an implicit `pub get` to resolve `pubspec.yaml` first.',
-      )
       ..addFlag(soundNullSafetyOption.flag,
           help: soundNullSafetyOption.help,
           defaultsTo: soundNullSafetyOption.flagDefaultsTo,
@@ -387,19 +326,13 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    var packages = args['packages'];
-    if (args['pub'] && packages == null) {
-      // Resolve the pubspec of the project surrounding [sourcePath].
-      await findEnclosingProjectAndResolveIfNeeded(path.dirname(sourcePath));
-    }
-
     try {
       await generateNative(
         kind: format,
         sourceFile: sourcePath,
         outputFile: args['output'],
         defines: args['define'],
-        packages: packages,
+        packages: args['packages'],
         enableAsserts:
             commandName != exeCmdName ? args['enable-asserts'] : false,
         enableExperiment: args.enabledExperiments.join(','),

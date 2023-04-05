@@ -1040,3 +1040,16 @@ class DoubleLinkedQueueEntry<E> {
 /// through scheduled events or timers, which would put the object into
 /// an inconsistent state if simply being copied.
 const vmIsolateUnsendable = pragma("vm:isolate-unsendable");
+
+// Helpers used to detect cycles in collection `toString`s.
+
+/// A collection used to identify cyclic lists during `toString` calls.
+final List<Object> toStringVisiting = [];
+
+/// Check if we are currently visiting [object] in a `toString` call.
+bool isToStringVisiting(Object object) {
+  for (int i = 0; i < toStringVisiting.length; i++) {
+    if (identical(object, toStringVisiting[i])) return true;
+  }
+  return false;
+}

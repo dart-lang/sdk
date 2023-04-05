@@ -109,14 +109,14 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
   String toString() => mapToString(this);
 
   static String mapToString(Map<Object?, Object?> m) {
-    // Reuses the list in IterableBase for detecting toString cycles.
-    if (_isToStringVisiting(m)) {
+    // Reuses the list used by Iterable for detecting toString cycles.
+    if (isToStringVisiting(m)) {
       return '{...}';
     }
 
     var result = StringBuffer();
     try {
-      _toStringVisiting.add(m);
+      toStringVisiting.add(m);
       result.write('{');
       bool first = true;
       m.forEach((Object? k, Object? v) {
@@ -130,8 +130,8 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
       });
       result.write('}');
     } finally {
-      assert(identical(_toStringVisiting.last, m));
-      _toStringVisiting.removeLast();
+      assert(identical(toStringVisiting.last, m));
+      toStringVisiting.removeLast();
     }
 
     return result.toString();

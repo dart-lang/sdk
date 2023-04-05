@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+typedef Parser<unrelated T extends core::Object? = dynamic> = (core::String) → (self::Result<T%>, core::String);
+abstract sealed class Result<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Result<self::Result::T%>
+    : super core::Object::•()
+    ;
+}
+final class Ok<T extends core::Object? = dynamic> extends self::Result<self::Ok::T%> /*hasConstConstructor*/  {
+  final field self::Ok::T% value;
+  const constructor •(self::Ok::T% value) → self::Ok<self::Ok::T%>
+    : self::Ok::value = value, super self::Result::•()
+    ;
+}
+final class Error<T extends core::Object? = dynamic> extends self::Result<self::Error::T%> /*hasConstConstructor*/  {
+  final field core::String error;
+  const constructor •(core::String error) → self::Error<self::Error::T%>
+    : self::Error::error = error, super self::Result::•()
+    ;
+}
+static method not((core::String) → (self::Result<dynamic>, core::String) parser) → (core::String) → (self::Result<void>, core::String) {
+  return (core::String input) → (self::Result<void>, core::String) => block {
+    (self::Result<void>, core::String) #t1;
+    final synthesized(self::Result<dynamic>, core::String) #0#0 = parser(input){(core::String) → (self::Result<dynamic>, core::String)};
+    #L1:
+    {
+      {
+        if(#0#0.$1{self::Result<dynamic>} is{ForNonNullableByDefault} self::Ok<dynamic>) {
+          #t1 = (#C2, input);
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = (#C4, input);
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+}
+
+constants  {
+  #C1 = "unexpected input"
+  #C2 = self::Error<void> {error:#C1}
+  #C3 = null
+  #C4 = self::Ok<void> {value:#C3}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue51940.dart:
+- Error. (from org-dartlang-testcase:///issue51940.dart:17:9)
+- Result. (from org-dartlang-testcase:///issue51940.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Ok. (from org-dartlang-testcase:///issue51940.dart:12:9)

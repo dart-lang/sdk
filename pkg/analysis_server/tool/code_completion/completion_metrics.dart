@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This file has commented out code that uses code that otherwise unreachable.
+// ignore_for_file: unreachable_from_main
+
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show stdout;

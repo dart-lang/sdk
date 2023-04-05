@@ -518,7 +518,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     return core::Comparable::compare(a as{ForNonNullableByDefault} core::Comparable<dynamic>, b as{ForNonNullableByDefault} core::Comparable<dynamic>);
   }
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
-    return col::IterableBase::iterableToFullString(list, "[", "]");
+    return core::Iterable::iterableToFullString(list, "[", "]");
 }
 class NegativeLengthList<E extends core::Object? = dynamic> extends self::_NegativeLengthList&Object&ListMixin<self::NegativeLengthList::E%> {
   final field core::List<self::NegativeLengthList::E%> _list;

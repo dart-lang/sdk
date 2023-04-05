@@ -60,6 +60,7 @@ class AssignmentCheckerTest extends Object
 
   final AssignmentCheckerForTesting checker;
 
+  // ignore: unreachable_from_main
   factory AssignmentCheckerTest() {
     var typeProvider = TestTypeProvider().asLegacy;
     _setCoreLibrariesTypeSystem(typeProvider);

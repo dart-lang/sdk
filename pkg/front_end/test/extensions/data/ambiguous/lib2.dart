@@ -7,6 +7,8 @@
   AmbiguousExtension2,
   UnambiguousExtension2,
   async.dart.FutureExtensions,
+  collection.dart.IterableExtensions,
+  collection.dart.NullableIterableExtensions,
   core.dart.DateTimeCopyWith,
   core.dart.EnumByName,
   core.dart.EnumName]*/

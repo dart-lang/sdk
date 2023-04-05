@@ -2,6 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
+import "dart:_internal" as _in;
 
 import "dart:collection";
 
@@ -134,12 +135,12 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ toString() → core::String
     return col::MapBase::mapToString(this);
   static method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ mapToString(core::Map<core::Object?, core::Object?> m) → core::String {
-    if(col::_isToStringVisiting(m)) {
+    if(_in::isToStringVisiting(m)) {
       return "{...}";
     }
     core::StringBuffer result = new core::StringBuffer::•();
     try {
-      col::_toStringVisiting.{core::List::add}(m){(core::Object) → void};
+      _in::toStringVisiting.{core::List::add}(m){(core::Object) → void};
       result.{core::StringBuffer::write}("{"){(core::Object?) → void};
       core::bool first = true;
       m.{core::Map::forEach}((core::Object? k, core::Object? v) → void {
@@ -154,8 +155,8 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
       result.{core::StringBuffer::write}("}"){(core::Object?) → void};
     }
     finally {
-      assert(core::identical(col::_toStringVisiting.{core::Iterable::last}{core::Object}, m));
-      col::_toStringVisiting.{core::List::removeLast}(){() → core::Object};
+      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, m));
+      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
     }
     return result.{core::StringBuffer::toString}(){() → core::String};
   }

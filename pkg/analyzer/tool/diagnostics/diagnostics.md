@@ -12154,7 +12154,7 @@ dependencies:
   meta: ^1.0.2
 ```
 
-### missing_object_pattern_getter_name
+### missing_named_pattern_field_name
 
 _The getter name is not specified explicitly, and the pattern is not a
 variable._
@@ -16309,6 +16309,40 @@ void f(int x) {
   if (x case var a when 1 > 0) {
     print(a);
   }
+}
+{% endprettify %}
+
+### positional_field_in_object_pattern
+
+_Object patterns can only use named fields._
+
+#### Description
+
+The analyzer produces this diagnostic when an object pattern contains a
+field that doesn't have a getter name. The fields provide a pattern to
+match against the value returned by a getter, and not specifying the name
+of the getter means that there's no way to access the value that the
+pattern is intended to match against.
+
+#### Example
+
+The following code produces this diagnostic because the object pattern
+`String(1)` doesn't say which value to compare with `1`:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  if (o case String([!1!])) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add both the name of the getter to use to access the value and a colon
+before the value:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  if (o case String(length: 1)) {}
 }
 {% endprettify %}
 

@@ -133,6 +133,7 @@ abstract mixin class SetBase<E> implements Set<E> {
 
   // Copied from Iterable.
   // Should be inherited if we had multi-level mixins.
+
   Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
@@ -170,17 +171,20 @@ abstract mixin class SetBase<E> implements Set<E> {
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
-    StringBuffer buffer = StringBuffer();
-    if (separator == null || separator == "") {
+    var first = iterator.current.toString();
+    if (!iterator.moveNext()) return first;
+    var buffer = StringBuffer(first);
+    // TODO(51681): Drop null check when de-supporting pre-2.12 code.
+    if (separator == null || separator.isEmpty) {
       do {
         buffer.write(iterator.current);
       } while (iterator.moveNext());
     } else {
-      buffer.write(iterator.current);
-      while (iterator.moveNext()) {
-        buffer.write(separator);
-        buffer.write(iterator.current);
-      }
+      do {
+        buffer
+          ..write(separator)
+          ..write(iterator.current);
+      } while (iterator.moveNext());
     }
     return buffer.toString();
   }
@@ -237,45 +241,47 @@ abstract mixin class SetBase<E> implements Set<E> {
   }
 
   E lastWhere(bool test(E value), {E Function()? orElse}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        result = element;
-        foundMatching = true;
+    var iterator = this.iterator;
+    E result;
+    do {
+      if (!iterator.moveNext()) {
+        if (orElse != null) return orElse();
+        throw IterableElementError.noElement();
       }
+      result = iterator.current;
+    } while (!test(result));
+    while (iterator.moveNext()) {
+      var current = iterator.current;
+      if (test(current)) result = current;
     }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
+    return result;
   }
 
   E singleWhere(bool test(E value), {E Function()? orElse}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
+    var iterator = this.iterator;
+    E result;
+    do {
+      if (!iterator.moveNext()) {
+        if (orElse != null) return orElse();
+        throw IterableElementError.noElement();
       }
+      result = iterator.current;
+    } while (!test(result));
+    while (iterator.moveNext()) {
+      if (test(iterator.current)) throw IterableElementError.tooMany();
     }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
+    return result;
   }
 
   E elementAt(int index) {
-    checkNotNullable(index, "index");
     RangeError.checkNotNegative(index, "index");
-    int elementIndex = 0;
-    for (E element in this) {
-      if (index == elementIndex) return element;
-      elementIndex++;
+    var iterator = this.iterator;
+    var skipCount = index;
+    while (iterator.moveNext()) {
+      if (skipCount == 0) return iterator.current;
+      skipCount--;
     }
-    throw IndexError.withLength(index, elementIndex,
+    throw IndexError.withLength(index, index - skipCount,
         indexable: this, name: "index");
   }
 

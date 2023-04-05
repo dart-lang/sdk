@@ -514,7 +514,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return dart.core::Comparable::compare(a as{ForNonNullableByDefault} dart.core::Comparable<dynamic>, b as{ForNonNullableByDefault} dart.core::Comparable<dynamic>);
     }
     static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(dart.core::List<dart.core::Object?> list) → dart.core::String
-      return dart.collection::IterableBase::iterableToFullString(list, "[", "]");
+      return dart.core::Iterable::iterableToFullString(list, "[", "]");
   }
   class WithListMixin extends main::_WithListMixin&Object&ListMixin {
     field dart.core::int length = 2;

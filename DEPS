@@ -50,7 +50,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "cd2670bfc29f0be99ca9d3e079f314f686680afc",
+  "co19_rev": "866b487c88e24b6a02e9fd95de4f4982aba34a32",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "93b818c9cf570a63cbea56508e393770787fd5ab",
 
@@ -133,7 +133,7 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "568333db2650e77c0f96ebc77969c9469cf514f0", # disable rev_sdk_deps.dart
+  "dart_style_rev": "33efb2560c62b7b7bf330009cd757495b0e1456a", # disable rev_sdk_deps.dart
   "dartdoc_rev": "1a7952b13858ed307185a28f9b4ea861c0abb1c5",
   "ffi_rev": "04fa38ab45cb2957f9059e03031b53906c2c4385",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",

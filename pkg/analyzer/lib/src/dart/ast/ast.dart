@@ -10020,7 +10020,10 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     final result = resolverVisitor.analyzeObjectPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(
+        fields,
+        mustBeNamed: true,
+      ),
     );
 
     resolverVisitor.checkPatternNeverMatchesValueType(
@@ -11123,7 +11126,10 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeRecordPatternSchema(
-      fields: resolverVisitor.buildSharedPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(
+        fields,
+        mustBeNamed: false,
+      ),
     );
   }
 
@@ -11135,7 +11141,10 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     resolverVisitor.analyzeRecordPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(
+        fields,
+        mustBeNamed: false,
+      ),
     );
   }
 

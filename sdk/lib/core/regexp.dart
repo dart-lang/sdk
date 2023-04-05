@@ -483,4 +483,6 @@ abstract interface class RegExpMatch implements Match {
 
   /// The names of the named capture groups of [pattern].
   Iterable<String> get groupNames;
+
+  RegExp get pattern;
 }

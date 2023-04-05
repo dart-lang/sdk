@@ -163,7 +163,7 @@ class JSSyntaxRegExp implements RegExp {
 }
 
 class _MatchImplementation implements RegExpMatch {
-  final Pattern pattern;
+  final RegExp pattern;
   // Contains a JS RegExp match object.
   // It is an Array of String values with extra 'index' and 'input' properties.
   // If there were named capture groups, there will also be an extra 'groups'
@@ -219,7 +219,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 }
 
-class _AllMatchesIterable extends IterableBase<RegExpMatch> {
+class _AllMatchesIterable extends Iterable<RegExpMatch> {
   final JSSyntaxRegExp _re;
   final String _string;
   final int _start;

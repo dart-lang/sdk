@@ -81,9 +81,19 @@ part of dart.core;
 /// For methods like [map] and [where], the returned iterable will execute the
 /// argument function on every iteration, so those functions should also not
 /// have side effects.
-abstract class Iterable<E> {
-  // TODO(lrn): When we allow forwarding const constructors through
-  // mixin applications, make this class implement [IterableMixin].
+///
+/// The `Iterable` declaration provides a default implementation,
+/// which can be extended or mixed in to implement the `Iterable` interface.
+/// It implements every member other than the [iterator] getter,
+/// using the [Iterator] provided by [iterator].
+/// An implementation of the `Iterable` interface should
+/// provide a more efficient implementation of the members of `Iterable`
+/// when it can do so.
+abstract mixin class Iterable<E> {
+  // This class has methods copied verbatim into:
+  // - SetMixin
+  // If changing a method here, also change other copies.
+
   const Iterable();
 
   /// Creates an `Iterable` which generates its elements dynamically.
@@ -100,7 +110,19 @@ abstract class Iterable<E> {
   /// As an `Iterable`, `Iterable.generate(n, generator))` is equivalent to
   /// `const [0, ..., n - 1].map(generator)`.
   factory Iterable.generate(int count, [E generator(int index)?]) {
+    // Always OK to omit generator when count is zero.
     if (count <= 0) return EmptyIterable<E>();
+    if (generator == null) {
+      // If generator is omitted, we generate integers.
+      // If `E` does not allow integers, it's an error.
+      Function id = _GeneratorIterable._id;
+      if (id is! E Function(int)) {
+        throw ArgumentError(
+            "Generator must be supplied or element type must allow integers",
+            "generator");
+      }
+      generator = id;
+    }
     return _GeneratorIterable<E>(count, generator);
   }
 
@@ -119,8 +141,7 @@ abstract class Iterable<E> {
   static Iterable<T> castFrom<S, T>(Iterable<S> source) =>
       CastIterable<S, T>(source);
 
-  /// Returns a new `Iterator` that allows iterating the elements of this
-  /// `Iterable`.
+  /// A new `Iterator` that allows iterating the elements of this `Iterable`.
   ///
   /// Iterable classes may specify the iteration order of their elements
   /// (for example [List] always iterate in index order),
@@ -147,7 +168,7 @@ abstract class Iterable<E> {
   /// break iteration.
   Iterator<E> get iterator;
 
-  /// Provides a view of this iterable as an iterable of [R] instances.
+  /// A view of this iterable as an iterable of [R] instances.
   ///
   /// If this iterable only contains instances of [R], all operations
   /// will work correctly. If any operation tries to access an element
@@ -155,9 +176,9 @@ abstract class Iterable<E> {
   ///
   /// When the returned iterable creates a new object that depends on
   /// the type [R], e.g., from [toList], it will have exactly the type [R].
-  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
+  Iterable<R> cast<R>() => CastIterable<E, R>(this);
 
-  /// Returns the lazy concatenation of this iterable and [other].
+  /// Creates the lazy concatenation of this iterable and [other].
   ///
   /// The returned iterable will provide the same elements as this iterable,
   /// and, after that, the elements of [other], in the same order as in the
@@ -216,7 +237,7 @@ abstract class Iterable<E> {
   /// ```
   Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
 
-  /// Returns a new lazy [Iterable] with all elements that satisfy the
+  /// Creates a new lazy [Iterable] with all elements that satisfy the
   /// predicate [test].
   ///
   /// The matching elements have the same order in the returned iterable
@@ -238,7 +259,7 @@ abstract class Iterable<E> {
   /// ```
   Iterable<E> where(bool test(E element)) => WhereIterable<E>(this, test);
 
-  /// Returns a new lazy [Iterable] with all elements that have type [T].
+  /// Creates a new lazy [Iterable] with all elements that have type [T].
   ///
   /// The matching elements have the same order in the returned iterable
   /// as they have in [iterator].
@@ -421,17 +442,20 @@ abstract class Iterable<E> {
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
-    StringBuffer buffer = StringBuffer();
-    if (separator == null || separator == "") {
+    var first = iterator.current.toString();
+    if (!iterator.moveNext()) return first;
+    var buffer = StringBuffer(first);
+    // TODO(51681): Drop null check when de-supporting pre-2.12 code.
+    if (separator == null || separator.isEmpty) {
       do {
         buffer.write(iterator.current.toString());
       } while (iterator.moveNext());
     } else {
-      buffer.write(iterator.current.toString());
-      while (iterator.moveNext()) {
-        buffer.write(separator);
-        buffer.write(iterator.current.toString());
-      }
+      do {
+        buffer
+          ..write(separator)
+          ..write(iterator.current.toString());
+      } while (iterator.moveNext());
     }
     return buffer.toString();
   }
@@ -466,9 +490,8 @@ abstract class Iterable<E> {
   /// final valuesList =
   ///     planets.values.toList(growable: false); // [Mercury, Venus, Mars]
   /// ```
-  List<E> toList({bool growable = true}) {
-    return List<E>.of(this, growable: growable);
-  }
+  List<E> toList({bool growable = true}) =>
+      List<E>.of(this, growable: growable);
 
   /// Creates a [Set] containing the same elements as this iterable.
   ///
@@ -485,15 +508,16 @@ abstract class Iterable<E> {
   /// ```
   Set<E> toSet() => Set<E>.of(this);
 
-  /// Returns the number of elements in [this].
+  /// The number of elements in [this].
   ///
   /// Counting all elements may involve iterating through all elements and can
   /// therefore be slow.
   /// Some iterables have a more efficient way to find the number of elements.
+  /// These *must* override the default implementation of `length`.
   int get length {
     assert(this is! EfficientLengthIterable);
     int count = 0;
-    Iterator it = iterator;
+    Iterator<Object?> it = iterator;
     while (it.moveNext()) {
       count++;
     }
@@ -524,7 +548,7 @@ abstract class Iterable<E> {
   /// ```
   bool get isNotEmpty => !isEmpty;
 
-  /// Returns a lazy iterable of the [count] first elements of this iterable.
+  /// Creates a lazy iterable of the [count] first elements of this iterable.
   ///
   /// The returned `Iterable` may contain fewer than `count` elements, if `this`
   /// contains fewer than `count` elements.
@@ -540,11 +564,9 @@ abstract class Iterable<E> {
   /// final result = numbers.take(4); // (1, 2, 3, 5)
   /// final takeAll = numbers.take(100); // (1, 2, 3, 5, 6, 7)
   /// ```
-  Iterable<E> take(int count) {
-    return TakeIterable<E>(this, count);
-  }
+  Iterable<E> take(int count) => TakeIterable<E>(this, count);
 
-  /// Returns a lazy iterable of the leading elements satisfying [test].
+  /// Creates a lazy iterable of the leading elements satisfying [test].
   ///
   /// The filtering happens lazily. Every new iterator of the returned
   /// iterable starts iterating over the elements of `this`.
@@ -561,11 +583,9 @@ abstract class Iterable<E> {
   /// result = numbers.takeWhile((x) => x != 4); // (1, 2, 3, 5, 6, 7)
   /// result = numbers.takeWhile((x) => x.isOdd); // (1)
   /// ```
-  Iterable<E> takeWhile(bool test(E value)) {
-    return TakeWhileIterable<E>(this, test);
-  }
+  Iterable<E> takeWhile(bool test(E value)) => TakeWhileIterable<E>(this, test);
 
-  /// Returns an [Iterable] that provides all but the first [count] elements.
+  /// Creates an [Iterable] that provides all but the first [count] elements.
   ///
   /// When the returned iterable is iterated, it starts iterating over `this`,
   /// first skipping past the initial [count] elements.
@@ -586,11 +606,9 @@ abstract class Iterable<E> {
   /// ```
   ///
   /// The [count] must not be negative.
-  Iterable<E> skip(int count) {
-    return SkipIterable<E>(this, count);
-  }
+  Iterable<E> skip(int count) => SkipIterable<E>(this, count);
 
-  /// Returns an `Iterable` that skips leading elements while [test] is satisfied.
+  /// Creates an `Iterable` that skips leading elements while [test] is satisfied.
   ///
   /// The filtering happens lazily. Every new [Iterator] of the returned
   /// iterable iterates over all elements of `this`.
@@ -609,11 +627,9 @@ abstract class Iterable<E> {
   /// result = numbers.skipWhile((x) => x != 4); // ()
   /// result = numbers.skipWhile((x) => x.isOdd); // (2, 3, 5, 6, 7)
   /// ```
-  Iterable<E> skipWhile(bool test(E value)) {
-    return SkipWhileIterable<E>(this, test);
-  }
+  Iterable<E> skipWhile(bool test(E value)) => SkipWhileIterable<E>(this, test);
 
-  /// Returns the first element.
+  /// The first element.
   ///
   /// Throws a [StateError] if `this` is empty.
   /// Otherwise returns the first element in the iteration order,
@@ -626,7 +642,7 @@ abstract class Iterable<E> {
     return it.current;
   }
 
-  /// Returns the last element.
+  /// The last element.
   ///
   /// Throws a [StateError] if `this` is empty.
   /// Otherwise may iterate through the elements and returns the last one
@@ -657,7 +673,7 @@ abstract class Iterable<E> {
     return result;
   }
 
-  /// Returns the first element that satisfies the given predicate [test].
+  /// The first element that satisfies the given predicate [test].
   ///
   /// Iterates through elements and returns the first to satisfy [test].
   ///
@@ -681,7 +697,7 @@ abstract class Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  /// Returns the last element that satisfies the given predicate [test].
+  /// The last element that satisfies the given predicate [test].
   ///
   /// An iterable that can access its elements directly may check its
   /// elements in any order (for example a list starts by checking the
@@ -703,20 +719,25 @@ abstract class Iterable<E> {
   /// function is returned.
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
   E lastWhere(bool test(E element), {E orElse()?}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        result = element;
-        foundMatching = true;
+    var iterator = this.iterator;
+    // Potential result during first loop.
+    E result;
+    do {
+      if (!iterator.moveNext()) {
+        if (orElse != null) return orElse();
+        throw IterableElementError.noElement();
       }
+      result = iterator.current;
+    } while (!test(result));
+    // Now `result` is actual result, unless a later one is found.
+    while (iterator.moveNext()) {
+      var current = iterator.current;
+      if (test(current)) result = current;
     }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
+    return result;
   }
 
-  /// Returns the single element that satisfies [test].
+  /// The single element that satisfies [test].
   ///
   /// Checks elements to see if `test(element)` returns true.
   /// If exactly one element satisfies [test], that element is returned.
@@ -740,20 +761,19 @@ abstract class Iterable<E> {
   /// result = numbers.singleWhere((element) => element == 2); // Throws Error.
   /// ```
   E singleWhere(bool test(E element), {E orElse()?}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
+    var iterator = this.iterator;
+    E result;
+    do {
+      if (!iterator.moveNext()) {
+        if (orElse != null) return orElse();
+        throw IterableElementError.noElement();
       }
+      result = iterator.current;
+    } while (!test(result));
+    while (iterator.moveNext()) {
+      if (test(iterator.current)) throw IterableElementError.tooMany();
     }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
+    return result;
   }
 
   /// Returns the [index]th element.
@@ -773,12 +793,13 @@ abstract class Iterable<E> {
   /// ```
   E elementAt(int index) {
     RangeError.checkNotNegative(index, "index");
-    int elementIndex = 0;
-    for (E element in this) {
-      if (index == elementIndex) return element;
-      elementIndex++;
+    var iterator = this.iterator;
+    var skipCount = index;
+    while (iterator.moveNext()) {
+      if (skipCount == 0) return iterator.current;
+      skipCount--;
     }
-    throw IndexError.withLength(index, elementIndex,
+    throw IndexError.withLength(index, index - skipCount,
         indexable: this, name: "index");
   }
 
@@ -796,10 +817,69 @@ abstract class Iterable<E> {
   /// The conversion may omit calling `toString` on some elements if they
   /// are known to not occur in the output, and it may stop iterating after
   /// a hundred elements.
-  String toString() => IterableBase.iterableToShortString(this, '(', ')');
+  String toString() => iterableToShortString(this, '(', ')');
+
+  /// Convert an `Iterable` to a string like [Iterable.toString].
+  ///
+  /// Allows using other delimiters than '(' and ')'.
+  ///
+  /// Handles circular references where converting one of the elements
+  /// to a string ends up converting [iterable] to a string again.
+  static String iterableToShortString(Iterable iterable,
+      [String leftDelimiter = '(', String rightDelimiter = ')']) {
+    if (isToStringVisiting(iterable)) {
+      if (leftDelimiter == "(" && rightDelimiter == ")") {
+        // Avoid creating a new string in the "common" case.
+        return "(...)";
+      }
+      return "$leftDelimiter...$rightDelimiter";
+    }
+    List<String> parts = <String>[];
+    toStringVisiting.add(iterable);
+    try {
+      _iterablePartsToStrings(iterable, parts);
+    } finally {
+      assert(identical(toStringVisiting.last, iterable));
+      toStringVisiting.removeLast();
+    }
+    return (StringBuffer(leftDelimiter)
+          ..writeAll(parts, ", ")
+          ..write(rightDelimiter))
+        .toString();
+  }
+
+  /// Converts an `Iterable` to a string.
+  ///
+  /// Converts each elements to a string, and separates the results by ", ".
+  /// Then wraps the result in [leftDelimiter] and [rightDelimiter].
+  ///
+  /// Unlike [iterableToShortString], this conversion doesn't omit any
+  /// elements or puts any limit on the size of the result.
+  ///
+  /// Handles circular references where converting one of the elements
+  /// to a string ends up converting [iterable] to a string again.
+  static String iterableToFullString(Iterable iterable,
+      [String leftDelimiter = '(', String rightDelimiter = ')']) {
+    if (isToStringVisiting(iterable)) {
+      return "$leftDelimiter...$rightDelimiter";
+    }
+    StringBuffer buffer = StringBuffer(leftDelimiter);
+    toStringVisiting.add(iterable);
+    try {
+      buffer.writeAll(iterable, ", ");
+    } finally {
+      assert(identical(toStringVisiting.last, iterable));
+      toStringVisiting.removeLast();
+    }
+    buffer.write(rightDelimiter);
+    return buffer.toString();
+  }
 }
 
 class _GeneratorIterable<E> extends ListIterable<E> {
+  // Methods have efficient implementations from `ListIterable`,
+  // based on `length` and `elementAt`.
+
   /// The length of the generated iterable.
   final int length;
 
@@ -807,12 +887,7 @@ class _GeneratorIterable<E> extends ListIterable<E> {
   final E Function(int) _generator;
 
   /// Creates the generated iterable.
-  ///
-  /// If [generator] is `null`, it is checked that `int` is assignable to [E].
-  _GeneratorIterable(this.length, E generator(int index)?)
-      : // The `as` below is used as check to make sure that `int` is assignable
-        // to [E].
-        _generator = generator ?? (_id as E Function(int));
+  _GeneratorIterable(this.length, this._generator);
 
   E elementAt(int index) {
     IndexError.check(index, length, indexable: this);
@@ -821,4 +896,117 @@ class _GeneratorIterable<E> extends ListIterable<E> {
 
   /// Helper function used as default _generator function.
   static int _id(int n) => n;
+}
+
+/// Convert elements of [iterable] to strings and store them in [parts].
+void _iterablePartsToStrings(Iterable<Object?> iterable, List<String> parts) {
+  // This is the complicated part of [iterableToShortString].
+  // It is extracted as a separate function to avoid having too much code
+  // inside the try/finally.
+
+  // Try to stay below this many characters.
+  const int lengthLimit = 80;
+
+  // Always at least this many elements at the start.
+  const int headCount = 3;
+
+  // Always at least this many elements at the end.
+  const int tailCount = 2;
+
+  // Stop iterating after this many elements. Iterables can be infinite.
+  const int maxCount = 100;
+  // Per entry length overhead. It's for ", " for all after the first entry,
+  // and for "(" and ")" for the initial entry. By pure luck, that's the same
+  // number.
+  const int overhead = 2;
+  const int ellipsisSize = 3; // "...".length.
+
+  int length = 0;
+  int count = 0;
+  Iterator<Object?> it = iterable.iterator;
+  // Initial run of elements, at least headCount, and then continue until
+  // passing at most lengthLimit characters.
+  while (length < lengthLimit || count < headCount) {
+    if (!it.moveNext()) return;
+    String next = "${it.current}";
+    parts.add(next);
+    length += next.length + overhead;
+    count++;
+  }
+
+  String penultimateString;
+  String ultimateString;
+
+  // Find last two elements. One or more of them may already be in the
+  // parts array. Include their length in `length`.
+  if (!it.moveNext()) {
+    if (count <= headCount + tailCount) return;
+    ultimateString = parts.removeLast();
+    penultimateString = parts.removeLast();
+  } else {
+    Object? penultimate = it.current;
+    count++;
+    if (!it.moveNext()) {
+      if (count <= headCount + 1) {
+        parts.add("$penultimate");
+        return;
+      }
+      ultimateString = "$penultimate";
+      penultimateString = parts.removeLast();
+      length += ultimateString.length + overhead;
+    } else {
+      Object? ultimate = it.current;
+      count++;
+      // Then keep looping, keeping the last two elements in variables.
+      assert(count < maxCount);
+      while (it.moveNext()) {
+        penultimate = ultimate;
+        ultimate = it.current;
+        count++;
+        if (count > maxCount) {
+          // If we haven't found the end before maxCount, give up.
+          // This cannot happen in the code above because each entry
+          // increases length by at least two, so there is no way to
+          // visit more than ~40 elements before this loop.
+
+          // Remove any surplus elements until length, including ", ...)",
+          // is at most lengthLimit.
+          while (length > lengthLimit - ellipsisSize - overhead &&
+              count > headCount) {
+            length -= parts.removeLast().length + overhead;
+            count--;
+          }
+          parts.add("...");
+          return;
+        }
+      }
+      penultimateString = "$penultimate";
+      ultimateString = "$ultimate";
+      length += ultimateString.length + penultimateString.length + 2 * overhead;
+    }
+  }
+
+  // If there is a gap between the initial run and the last two,
+  // prepare to add an ellipsis.
+  String? elision;
+  if (count > parts.length + tailCount) {
+    elision = "...";
+    length += ellipsisSize + overhead;
+  }
+
+  // If the last two elements were very long, and we have more than
+  // headCount elements in the initial run, drop some to make room for
+  // the last two.
+  while (length > lengthLimit && parts.length > headCount) {
+    length -= parts.removeLast().length + overhead;
+    if (elision == null) {
+      elision = "...";
+      length += ellipsisSize + overhead;
+    }
+  }
+  if (elision != null) {
+    parts.add(elision);
+  }
+  parts.add(penultimateString);
+  parts.add(ultimateString);
 }

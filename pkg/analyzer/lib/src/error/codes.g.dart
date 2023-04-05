@@ -2926,15 +2926,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const CompileTimeErrorCode MISSING_OBJECT_PATTERN_GETTER_NAME =
+  static const CompileTimeErrorCode MISSING_NAMED_PATTERN_FIELD_NAME =
       CompileTimeErrorCode(
-    'MISSING_OBJECT_PATTERN_GETTER_NAME',
+    'MISSING_NAMED_PATTERN_FIELD_NAME',
     "The getter name is not specified explicitly, and the pattern is not a "
         "variable.",
     correctionMessage:
         "Try specifying the getter name explicitly, or using a variable "
         "pattern.",
-    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3991,6 +3990,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "all cases.",
     hasPublishedDocs: true,
     uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode POSITIONAL_FIELD_IN_OBJECT_PATTERN =
+      CompileTimeErrorCode(
+    'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
+    "Object patterns can only use named fields.",
+    correctionMessage: "Try specifying the field name.",
   );
 
   ///  No parameters.

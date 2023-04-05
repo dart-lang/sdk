@@ -12,9 +12,23 @@ final isAOTRuntime = path.basenameWithoutExtension(Platform.executable) ==
     'dart_precompiled_runtime';
 final buildDir = path.dirname(Platform.executable);
 final sdkDir = path.dirname(path.dirname(buildDir));
-final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
+late final platformDill = () {
+  final possiblePaths = [
+    // No cross compilation.
+    path.join(buildDir, 'vm_platform_strong.dill'),
+    // ${MODE}SIMARM_X64 for X64->SIMARM cross compilation.
+    path.join('${buildDir}_X64', 'vm_platform_strong.dill'),
+  ];
+  for (final path in possiblePaths) {
+    if (File(path).existsSync()) {
+      return path;
+    }
+  }
+  throw 'Could not find vm_platform_strong.dill for build directory $buildDir';
+}();
 final genKernel = path.join(sdkDir, 'pkg', 'vm', 'tool',
     'gen_kernel' + (Platform.isWindows ? '.bat' : ''));
+final genKernelDart = path.join('pkg', 'vm', 'bin', 'gen_kernel.dart');
 final _genSnapshotBase = 'gen_snapshot' + (Platform.isWindows ? '.exe' : '');
 // Lazily initialize `genSnapshot` so that tests that don't use it on platforms
 // that don't have a `gen_snapshot` don't fail.
@@ -34,8 +48,12 @@ late final genSnapshot = () {
   }
   throw 'Could not find gen_snapshot for build directory $buildDir';
 }();
-final aotRuntime = path.join(
+final dart = path.join(buildDir, 'dart' + (Platform.isWindows ? '.exe' : ''));
+final dartPrecompiledRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
+final checkedInDartVM = path.join('tools', 'sdks', 'dart-sdk', 'bin',
+    'dart' + (Platform.isWindows ? '.exe' : ''));
+
 final isSimulator = path.basename(buildDir).contains('SIM');
 
 String? get clangBuildToolsDir {

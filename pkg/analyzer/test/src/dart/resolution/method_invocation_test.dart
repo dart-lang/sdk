@@ -6188,7 +6188,6 @@ MethodInvocation
   staticType: void
 ''');
     }
-    assertClassRef(node.target, findElement.class_('C'));
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {

@@ -483,7 +483,7 @@ final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     return _DoubleLinkedQueueIterator<E>(this);
   }
 
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
+  String toString() => Iterable.iterableToFullString(this, '{', '}');
 }
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
@@ -803,7 +803,7 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     }
   }
 
-  String toString() => IterableBase.iterableToFullString(this, "{", "}");
+  String toString() => Iterable.iterableToFullString(this, "{", "}");
 
   // Queue interface.
 

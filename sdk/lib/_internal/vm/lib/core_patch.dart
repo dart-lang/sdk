@@ -42,7 +42,6 @@ import "dart:async" show Completer, DeferredLoadException, Future, Timer, Zone;
 import "dart:collection"
     show
         HashMap,
-        IterableBase,
         LinkedHashMap,
         LinkedList,
         LinkedListEntry,

@@ -461,7 +461,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                     f.fileUri);
               }
               for (var dimension in dimensions) {
-                if (dimension < 0) {
+                if (dimension <= 0) {
                   diagnosticReporter.report(messageNonPositiveArrayDimensions,
                       f.fileOffset, f.name.text.length, f.fileUri);
                   success = false;

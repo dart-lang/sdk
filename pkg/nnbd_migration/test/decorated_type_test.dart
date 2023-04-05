@@ -37,6 +37,7 @@ class DecoratedTypeTest extends Object
   @override
   final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
+  // ignore: unreachable_from_main
   factory DecoratedTypeTest() {
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraph();

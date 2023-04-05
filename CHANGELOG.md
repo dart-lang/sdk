@@ -21,7 +21,9 @@
 - **Breaking Change**: Non-`mixin` classes in the platform libraries
   can no longer be mixed in, unless they are explicitly marked as `mixin class`.
   The following existing classes have been made mixin classes:
-  * `IterableMixin`
+  * `Iterable`
+  * `IterableMixin` (now alias for `Iterable`)
+  * `IterableBase` (now alias for `Iterable`)
   * `ListMixin`
   * `SetMixin`
   * `MapMixin`
@@ -31,6 +33,7 @@
 #### `dart:core`
 - Added `bool.parse` and `bool.tryParse` static methods.
 - Added `DateTime.timestamp()` constructor to get current time as UTC.
+- The type of `RegExpMatch.pattern` is now `RegExp`, not just `Pattern`.
 
 - **Breaking change** [#49529][]:
   - Removed the deprecated `List` constructor, as it wasn't null safe.
@@ -133,6 +136,9 @@
 
 #### `dart:collection`
 
+- Added extension members `nonNulls`, `firstOrNull`, `lastOrNull`,
+  `singleOrNull`, `elementAtOrNull` and `indexed` on `Iterable`s.
+  Also exported from `dart:core`.
 - Deprecated the `HasNextIterator` class ([#50883][]).
 
 - **Breaking change when migrating code to Dart 3.0**:

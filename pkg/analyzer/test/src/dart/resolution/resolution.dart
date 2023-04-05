@@ -7,12 +7,10 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -78,8 +76,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement get objectElement =>
       typeProvider.objectType.element as ClassElement;
 
-  InterfaceType get objectType => typeProvider.objectType;
-
   ClassElement get stringElement => typeProvider.stringElement;
 
   InterfaceType get stringType => typeProvider.stringType;
@@ -90,37 +86,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   TypeSystemImpl get typeSystem => result.typeSystem as TypeSystemImpl;
 
-  VoidType get voidType => VoidTypeImpl.instance;
-
   void addTestFile(String content) {
     newFile(testFile.path, content);
-  }
-
-  /// Assert that the given [identifier] is a reference to a class, in the
-  /// form that is not a separate expression, e.g. in a static method
-  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
-  void assertClassRef(Expression? identifier, ClassElement expectedElement) {
-    identifier as SimpleIdentifier;
-    assertElement(identifier, expectedElement);
-    assertTypeNull(identifier);
-  }
-
-  void assertConstructorElement(ConstructorElement? actual, Object? expected) {
-    if (actual is ConstructorMember && expected is ConstructorMember) {
-      expect(actual.declaration, same(expected.declaration));
-      // TODO(brianwilkerson) Compare the type arguments of the two members.
-    } else {
-      assertElement(actual, expected);
-    }
-  }
-
-  void assertConstructors(ClassElement class_, List<String> expected) {
-    expect(
-      class_.constructors.map((c) {
-        return c.getDisplayString(withNullability: false);
-      }).toList(),
-      unorderedEquals(expected),
-    );
   }
 
   void assertDartObjectText(
@@ -177,20 +144,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       if (isLegacy || substitution.isNotEmpty) {
         fail('Expected to be a Member: (${element.runtimeType}) $element');
       }
-    }
-  }
-
-  void assertElementLibraryUri(Element? element, String expected) {
-    var uri = element!.library!.source.uri;
-    expect('$uri', expected);
-  }
-
-  void assertElementName(Element element, String name,
-      {bool isSynthetic = false, int? offset}) {
-    expect(element.name, name);
-    expect(element.isSynthetic, isSynthetic);
-    if (offset != null) {
-      expect(element.nameOffset, offset);
     }
   }
 
@@ -540,25 +493,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isDynamicType);
   }
 
-  void assertTypeLegacy(Expression? expression) {
-    expression!;
-    NullabilitySuffix actual = expression.typeOrThrow.nullabilitySuffix;
-    expect(actual, NullabilitySuffix.star);
-  }
-
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
-  }
-
-  void assertUnresolvedIndexExpression(IndexExpression node) {
-    assertElementNull(node);
-    assertTypeNull(node);
-  }
-
-  void assertUnresolvedPrefixedIdentifier(PrefixedIdentifier node) {
-    assertElementNull(node);
-    assertTypeNull(node);
-    assertUnresolvedSimpleIdentifier(node.identifier);
   }
 
   /// TODO(scheglov) Remove [disableElementCheck]

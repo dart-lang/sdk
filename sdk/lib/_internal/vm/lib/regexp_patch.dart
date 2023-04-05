@@ -117,7 +117,7 @@ class _RegExpMatch implements RegExpMatch {
 
   int get groupCount => _regexp._groupCount;
 
-  Pattern get pattern => _regexp;
+  RegExp get pattern => _regexp;
 
   String? namedGroup(String name) {
     var idx = _regexp._groupNameIndex(name);
@@ -323,7 +323,7 @@ class _RegExp implements RegExp {
       Int32List(_initialBacktrackingStackSize);
 }
 
-class _AllMatchesIterable extends IterableBase<RegExpMatch> {
+class _AllMatchesIterable extends Iterable<RegExpMatch> {
   final _RegExp _re;
   final String _str;
   final int _start;

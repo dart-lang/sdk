@@ -62,7 +62,7 @@ main() async {
           ['Array', 'List', 'Record'].any((p) => klass.name.contains(p))) {
         Expect.isTrue(fields.length <= object.references.length);
       } else {
-        Expect.equals(fields.length, object.references.length);
+        Expect.equals(fields.length, object.references.length, klass.name);
       }
     }
 

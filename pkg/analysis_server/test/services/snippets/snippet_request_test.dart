@@ -19,7 +19,9 @@ void main() {
 
 @reflectiveTest
 class SnippetRequestTest extends AbstractSingleUnitTest {
-  SnippetRequestTest() {
+  @override
+  void setUp() {
+    super.setUp();
     verifyNoTestUnitErrors = false;
   }
 

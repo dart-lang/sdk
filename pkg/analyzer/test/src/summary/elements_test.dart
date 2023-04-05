@@ -9205,6 +9205,342 @@ library
 ''');
   }
 
+  test_classAlias_constructors_default() async {
+    var library = await buildLibrary('''
+class A {}
+mixin class M {}
+class X = A with M;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      mixin class M @23
+        constructors
+          synthetic @-1
+      class alias X @34
+        supertype: A
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_classAlias_constructors_dependencies() async {
+    var library = await buildLibrary('''
+class A {
+  A(int i);
+}
+mixin class M1 {}
+mixin class M2 {}
+
+class C2 = C1 with M2;
+class C1 = A with M1;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional i @18
+                type: int
+      mixin class M1 @36
+        constructors
+          synthetic @-1
+      mixin class M2 @54
+        constructors
+          synthetic @-1
+      class alias C2 @67
+        supertype: C1
+        mixins
+          M2
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional i @-1
+                type: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: i @-1
+                      staticElement: self::@class::C2::@constructor::new::@parameter::i
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::C1::@constructor::new
+            superConstructor: self::@class::C1::@constructor::new
+      class alias C1 @90
+        supertype: A
+        mixins
+          M1
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional i @-1
+                type: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: i @-1
+                      staticElement: self::@class::C1::@constructor::new::@parameter::i
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_classAlias_constructors_optionalParameters() async {
+    var library = await buildLibrary('''
+class A {
+  A.c1(int a);
+  A.c2(int a, [int? b, int c = 0]);
+  A.c3(int a, {int? b, int c = 0});
+}
+
+mixin M {}
+
+class C = A with M;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          c1 @14
+            periodOffset: 13
+            nameEnd: 16
+            parameters
+              requiredPositional a @21
+                type: int
+          c2 @29
+            periodOffset: 28
+            nameEnd: 31
+            parameters
+              requiredPositional a @36
+                type: int
+              optionalPositional b @45
+                type: int?
+              optionalPositional c @52
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @56
+                    staticType: int
+          c3 @65
+            periodOffset: 64
+            nameEnd: 67
+            parameters
+              requiredPositional a @72
+                type: int
+              optionalNamed b @81
+                type: int?
+              optionalNamed c @88
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @92
+                    staticType: int
+      class alias C @118
+        supertype: A
+        mixins
+          M
+        constructors
+          synthetic c1 @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: c1 @-1
+                  staticElement: self::@class::A::@constructor::c1
+                  staticType: null
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: self::@class::C::@constructor::c1::@parameter::a
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::c1
+            superConstructor: self::@class::A::@constructor::c1
+          synthetic c2 @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+              optionalPositional b @-1
+                type: int?
+              optionalPositional c @-1
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @56
+                    staticType: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: c2 @-1
+                  staticElement: self::@class::A::@constructor::c2
+                  staticType: null
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: self::@class::C::@constructor::c2::@parameter::a
+                      staticType: int
+                    SimpleIdentifier
+                      token: b @-1
+                      staticElement: self::@class::C::@constructor::c2::@parameter::b
+                      staticType: int?
+                    SimpleIdentifier
+                      token: c @-1
+                      staticElement: self::@class::C::@constructor::c2::@parameter::c
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::c2
+            superConstructor: self::@class::A::@constructor::c2
+          synthetic c3 @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+              optionalNamed b @-1
+                type: int?
+              optionalNamed c @-1
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @92
+                    staticType: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: c3 @-1
+                  staticElement: self::@class::A::@constructor::c3
+                  staticType: null
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: self::@class::C::@constructor::c3::@parameter::a
+                      staticType: int
+                    SimpleIdentifier
+                      token: b @-1
+                      staticElement: self::@class::C::@constructor::c3::@parameter::b
+                      staticType: int?
+                    SimpleIdentifier
+                      token: c @-1
+                      staticElement: self::@class::C::@constructor::c3::@parameter::c
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::c3
+            superConstructor: self::@class::A::@constructor::c3
+    mixins
+      mixin M @106
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_classAlias_constructors_requiredParameters() async {
+    var library = await buildLibrary('''
+class A<T extends num> {
+  A(T x, T y);
+}
+
+mixin M {}
+
+class B<E extends num> = A<E> with M;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            bound: num
+            defaultType: num
+        constructors
+          @27
+            parameters
+              requiredPositional x @31
+                type: T
+              requiredPositional y @36
+                type: T
+      class alias B @61
+        typeParameters
+          covariant E @63
+            bound: num
+            defaultType: num
+        supertype: A<E>
+        mixins
+          M
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional x @-1
+                type: E
+              requiredPositional y @-1
+                type: E
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: self::@class::B::@constructor::new::@parameter::x
+                      staticType: E
+                    SimpleIdentifier
+                      token: y @-1
+                      staticElement: self::@class::B::@constructor::new::@parameter::y
+                      staticType: E
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::new
+              substitution: {T: E}
+    mixins
+      mixin M @49
+        superclassConstraints
+          Object
+''');
+  }
+
   test_classAlias_documented() async {
     var library = await buildLibrary('''
 /**

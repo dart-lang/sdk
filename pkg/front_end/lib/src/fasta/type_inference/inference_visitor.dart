@@ -8825,7 +8825,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(node.initializer, rewrite)) {
-      node.initializer = rewrite as Expression;
+      node.initializer = rewrite as Expression..parent = node;
     }
 
     return const StatementInferenceResult();
@@ -9480,7 +9480,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (node as SwitchExpression).cases[caseIndex];
     Object? rewrite = popRewrite();
     if (!identical(switchExpressionCase.expression, rewrite)) {
-      switchExpressionCase.expression = rewrite as Expression;
+      switchExpressionCase.expression = rewrite as Expression
+        ..parent = switchExpressionCase;
     }
   }
 

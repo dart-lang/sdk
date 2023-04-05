@@ -611,16 +611,23 @@ class Types {
     }
 
     if (type.typeArguments.any((t) => t is! DynamicType)) {
-      // If the tested-against type as an instance of the static operand type
-      // has the same type arguments as the static operand type, it is not
-      // necessary to test the type arguments.
+      // Type has at least one type argument that is not `dynamic`.
+      //
+      // In cases like `x is List<T>` where `x : Iterable<T>` (tested-against
+      // type is a subtype of the operand's static type and the types have same
+      // number of type arguments), it is not necessary to test the type
+      // arguments.
       Class cls = translator.classForType(operandType);
       InterfaceType? base = translator.hierarchy
           .getTypeAsInstanceOf(type, cls,
               isNonNullableByDefault:
                   codeGen.member.enclosingLibrary.isNonNullableByDefault)
           ?.withDeclaredNullability(operandType.declaredNullability);
-      if (base != operandType) {
+
+      final sameNumTypeParams = operandType is InterfaceType &&
+          operandType.typeArguments.length == type.typeArguments.length;
+
+      if (!(sameNumTypeParams && base == operandType)) {
         makeType(codeGen, type);
         codeGen.call(translator.isSubtype.reference);
         _endPotentiallyNullableBlock();
