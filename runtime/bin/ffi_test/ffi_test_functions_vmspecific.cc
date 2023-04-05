@@ -1311,4 +1311,8 @@ DART_EXPORT void Regress216834909_SetAtExit(int64_t install) {
 #endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||
         // defined(DART_HOST_OS_MACOS)
 
+DART_EXPORT bool IsNull(Dart_Handle object) {
+  return Dart_IsNull(object);
+}
+
 }  // namespace dart

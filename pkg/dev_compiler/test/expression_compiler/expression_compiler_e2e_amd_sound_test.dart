@@ -25,7 +25,6 @@ void main() async {
           legacyCode: false,
           moduleFormat: ModuleFormat.amd);
       setup.options.verbose = debug;
-      runAgnosticSharedTests(setup, driver);
       runNullSafeSharedTests(setup, driver);
     });
   });

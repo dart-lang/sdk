@@ -367,6 +367,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    optype.completionLocation = 'CaseClause_pattern';
+    optype.includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.mustBeConst = true;
+  }
+
+  @override
   void visitCastPattern(CastPattern node) {
     if (identical(entity, node.type)) {
       optype.completionLocation = 'CastPattern_type';
@@ -1435,6 +1443,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'SwitchExpression_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else {
+      optype.completionLocation = 'SwitchExpression_body';
+      optype.includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.mustBeConst = true;
     }
   }
 

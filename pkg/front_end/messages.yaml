@@ -6817,3 +6817,25 @@ EmptyMapPattern:
         {} => 0,
         _ => 1,
       };
+
+PatternVariableAssignmentInsideGuard:
+  problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+  correctionMessage: Try assigning to a different variable.
+  analyzerCode: PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+  script: |
+    method(o) => switch (o) {
+      int i when (i = 5) > 0 => 0,
+      _ => -1,
+    };
+
+JointPatternVariableNotInAll:
+  problemMessage: "The variable '#name' is available in some, but not all cases that share this body."
+  analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+  script: |
+    test(x) { switch(x) { case var a: case < 0: case [var a]: return a; default: return null; } }
+
+JointPatternVariableWithLabelDefault:
+  problemMessage: "The variable '#name' is not available because there is a label or 'default' case."
+  analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+  script: |
+    test(x) { switch(x) { case var a: default: return a; } }

@@ -5,13 +5,7 @@
 /*library: scope=[
   AmbiguousExtension1,
   AmbiguousExtension2,
-  UnambiguousExtension1,
-  async.dart.FutureExtensions,
-  collection.dart.IterableExtensions,
-  collection.dart.NullableIterableExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+  UnambiguousExtension1]*/
 
 /*class: AmbiguousExtension1:
  builder-name=AmbiguousExtension1,

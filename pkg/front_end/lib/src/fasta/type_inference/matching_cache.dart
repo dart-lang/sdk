@@ -300,11 +300,15 @@ class MatchingCache {
   /// on [receiver] of type [receiverType].
   CacheableExpression createPropertyGetExpression(CacheableExpression receiver,
       String propertyName, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      cacheKey =
-          new StaticAccessKey(receiver.cacheKey, staticTarget, propertyName);
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
+      cacheKey = new StaticAccessKey(
+          receiver.cacheKey, staticTarget, typeArguments!, propertyName);
     } else {
       cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName);
     }
@@ -320,11 +324,15 @@ class MatchingCache {
   /// against [right] with the [operator] operator.
   CacheableExpression createComparisonExpression(CacheableExpression left,
       String operator, CacheableExpression right, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      cacheKey = new StaticAccessKey(
-          left.cacheKey, staticTarget, operator, [right.cacheKey]);
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
+      cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
+          typeArguments!, operator, [right.cacheKey]);
     } else {
       cacheKey =
           new DynamicAccessKey(left.cacheKey, operator, [right.cacheKey]);
@@ -342,11 +350,15 @@ class MatchingCache {
   /// for equality against [right]. If [isNot] is `true`, the result is negated.
   CacheableExpression createEqualsExpression(CacheableExpression left,
       CacheableExpression right, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      cacheKey = new StaticAccessKey(
-          left.cacheKey, staticTarget, equalsName.text, [right.cacheKey]);
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
+      cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
+          typeArguments!, equalsName.text, [right.cacheKey]);
     } else {
       cacheKey = new DynamicAccessKey(
           left.cacheKey, equalsName.text, [right.cacheKey]);
@@ -381,11 +393,15 @@ class MatchingCache {
   /// This is used access the first elements in a list.
   CacheableExpression createHeadIndexExpression(
       CacheableExpression receiver, int headSize, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          indexGetName.text, [new IntegerKey(headSize)]);
+          typeArguments!, indexGetName.text, [new IntegerKey(headSize)]);
     } else {
       cacheKey = new DynamicAccessKey(
           receiver.cacheKey, indexGetName.text, [new IntegerKey(headSize)]);
@@ -405,12 +421,16 @@ class MatchingCache {
   /// This is used access the last elements in a list.
   CacheableExpression createTailIndexExpression(CacheableExpression receiver,
       CacheableExpression length, int tailSize, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     const String propertyName = 'tail[]';
     CacheKey cacheKey;
     if (staticTarget != null) {
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          propertyName, [new IntegerKey(tailSize)]);
+          typeArguments!, propertyName, [new IntegerKey(tailSize)]);
     } else {
       cacheKey = new DynamicAccessKey(
           receiver.cacheKey, propertyName, [new IntegerKey(tailSize)]);
@@ -435,12 +455,15 @@ class MatchingCache {
       int tailSize,
       DelayedExpression expression,
       {Member? staticTarget,
+      List<DartType>? typeArguments,
       required int fileOffset}) {
     const String propertyName = 'sublist[]';
     CacheKey cacheKey;
     if (staticTarget != null) {
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          propertyName, [new IntegerKey(tailSize)]);
+          typeArguments!, propertyName, [new IntegerKey(tailSize)]);
     } else {
       cacheKey = new DynamicAccessKey(
           receiver.cacheKey, propertyName, [new IntegerKey(tailSize)]);
@@ -458,11 +481,15 @@ class MatchingCache {
   /// [receiver] of type [receiverType] with the given [key].
   CacheableExpression createContainsKeyExpression(CacheableExpression receiver,
       CacheableExpression key, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          containsKeyName.text, [key.cacheKey]);
+          typeArguments!, containsKeyName.text, [key.cacheKey]);
     } else {
       cacheKey = new DynamicAccessKey(
           receiver.cacheKey, containsKeyName.text, [key.cacheKey]);
@@ -480,11 +507,15 @@ class MatchingCache {
   /// type [receiverType] with the given [key].
   CacheableExpression createIndexExpression(CacheableExpression receiver,
       CacheableExpression key, DelayedExpression expression,
-      {Member? staticTarget, required int fileOffset}) {
+      {Member? staticTarget,
+      List<DartType>? typeArguments,
+      required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      cacheKey = new StaticAccessKey(
-          receiver.cacheKey, staticTarget, indexGetName.text, [key.cacheKey]);
+      assert(typeArguments != null,
+          "No type arguments provided for static target $staticTarget.");
+      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
+          typeArguments!, indexGetName.text, [key.cacheKey]);
     } else {
       cacheKey = new DynamicAccessKey(
           receiver.cacheKey, indexGetName.text, [key.cacheKey]);
@@ -701,16 +732,18 @@ class DynamicAccessKey extends CacheKey {
 class StaticAccessKey extends CacheKey {
   final CacheKey receiver;
   final Member target;
+  final List<DartType> typeArguments;
   final String propertyName;
   final List<CacheKey>? arguments;
 
-  StaticAccessKey(this.receiver, this.target, this.propertyName,
+  StaticAccessKey(
+      this.receiver, this.target, this.typeArguments, this.propertyName,
       [this.arguments]);
 
   @override
   String get name {
     StringBuffer sb = new StringBuffer();
-    sb.write('${receiver.name}_${target}');
+    sb.write('${receiver.name}_${target}_${typeArguments}');
     if (arguments != null) {
       for (CacheKey argument in arguments!) {
         sb.write('_${argument.name}');
@@ -720,7 +753,11 @@ class StaticAccessKey extends CacheKey {
   }
 
   @override
-  int get hashCode => Object.hash(receiver, target, propertyName,
+  int get hashCode => Object.hash(
+      receiver,
+      target,
+      Object.hashAll(typeArguments),
+      propertyName,
       arguments != null ? Object.hashAll(arguments!) : null);
 
   @override
@@ -729,6 +766,7 @@ class StaticAccessKey extends CacheKey {
     return other is StaticAccessKey &&
         receiver == other.receiver &&
         target == other.target &&
+        equalLists(typeArguments, other.typeArguments) &&
         propertyName == other.propertyName &&
         equalLists(arguments, other.arguments);
   }

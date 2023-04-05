@@ -14064,6 +14064,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   // TODO(paulberry): include commas.
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('lateKeyword', lateKeyword)
     ..addToken('keyword', keyword)
     ..addNode('type', type)
     ..addNodeList('variables', variables);

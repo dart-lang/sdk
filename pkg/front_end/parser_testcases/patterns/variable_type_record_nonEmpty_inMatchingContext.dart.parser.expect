@@ -1,0 +1,15 @@
+void f(x) {
+switch (x) {
+case (int, String) y:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] y[StringToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

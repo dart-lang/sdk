@@ -1,0 +1,7 @@
+test1(dynamic x) {}
+test2(dynamic x) {}
+test3(dynamic x) {}
+test4(dynamic x) {}
+test5(dynamic x) {}
+test6(dynamic x, bool b) {}
+test7(dynamic x) {}

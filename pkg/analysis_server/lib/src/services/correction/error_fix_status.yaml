@@ -363,43 +363,43 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
   status: hasFix
 CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
@@ -409,48 +409,50 @@ CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIB
 CompileTimeErrorCode.CONST_INSTANCE_FIELD:
   status: hasFix
 CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_NOT_INITIALIZED:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_WITH_NON_CONST:
   status: hasFix
 CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_WITH_NON_TYPE:
   status: hasFix
 CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
-  status: needsEvaluation
+  status: noFix
   since: 2.15
 CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF:
-  status: needsEvaluation
+  status: noFix
   since: 2.15
 CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
   status: hasFix
   notes: |-
     Has fix for expression that can be made constant. More cases to be
     implemented as per the tests.
 CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.COULD_NOT_INFER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
   status: noFix
   notes: |-
     Removed in Dart 3.0.
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the default value.
 CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION:
@@ -458,32 +460,59 @@ CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION:
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
 CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the duplicated import.
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
 CompileTimeErrorCode.DUPLICATE_DEFINITION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
 CompileTimeErrorCode.DUPLICATE_FIELD_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
 CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
 CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Look for other named parameters with similar name and suggest renaming the
+    argument. If there are none that are similar enough, then we could just
+    suggest all of the names that aren't already being used.
 CompileTimeErrorCode.DUPLICATE_PART:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the duplicated import.
 CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
   status: needsFix
   notes: |-
     We can suggest names from the context, as in did you mean this?
 CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Look for other named parameters with similar name and suggest renaming the
+    argument. If there are none that are similar enough, then we could just
+    suggest all of the names that aren't already being used.
 CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
   status: noFix
   notes: |-
@@ -525,32 +554,48 @@ CompileTimeErrorCode.ENUM_WITH_NAME_VALUES:
   notes: |-
     Requires a rename.
 CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the duplicates.
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the duplicates.
 CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN:
-  status: noFix
+  status: needsFix
+  notes: |-
+    Remove the duplicates.
 CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
   status: noFix
 CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
   status: noFix
   notes: |-
     We do not know the user's intent here and so cannot figure out what to
     add or delete.
 CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the export.
 CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed as of Dart 3.0.
 CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Find the library containing the part being export, update the export to the
+    library, and add a show combinator (if there isn't one already) that limits
+    the export to the names defined in the part.
 CompileTimeErrorCode.EXPRESSION_IN_MAP:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Based on the type, add the separator either before or after the expression.
 CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS:
   status: needsFix
   notes: |-
@@ -562,53 +607,80 @@ CompileTimeErrorCode.EXTENDS_NON_CLASS:
 CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Offer to delete the invalid member.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the `..` with `.`.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword. Remove the initializer.
 CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword. Remove the initializer.
 CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword. Remove the initializer.
 CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED:
   status: hasFix
 CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
+    Replace the field name with the name of a different field (from the
+    enclosing class).
 CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
 CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
 CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the field formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the field formal parameter with a normal parameter and add an
+    assignment to the field in the method.
 CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the field formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED:
   status: hasFix
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1:
@@ -618,22 +690,22 @@ CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2:
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
   status: hasFix
 CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
   status: needsFix
   since: 2.15
 CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
@@ -689,54 +761,77 @@ CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the import.
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the import.
 CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the import.
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add a stub of the method that needs to be implemented.
 CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace (or add) the language override in the parts to match the library.
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
   status: noFix
   notes: |-
     We cannot figure out the the user's intent here, and so cannot generate a
     fix that would be right.
 CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest a different field whose name is similar.
 CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest a different field whose name is similar.
 CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD:
   status: hasFix
 CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
 CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically, we could give the extension a name and then use the name to
+    access the static member.
 CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove the `abstract` modifier.
 CompileTimeErrorCode.INSTANTIATE_ENUM:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
   status: hasFix
 CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the literal with a constructor for `BigInt`.
 CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Theoretically we could remove the `interface` modifier from the superclass.
 CompileTimeErrorCode.INVALID_ANNOTATION:
   status: hasFix
 CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
@@ -750,43 +845,79 @@ CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.INVALID_ASSIGNMENT:
   status: hasFix
 CompileTimeErrorCode.INVALID_CAST_FUNCTION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_SET:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_METHOD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_NEW_EXPR:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Removed i Dart 3.0
 CompileTimeErrorCode.INVALID_CONSTANT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The diagnostic is too general. It needs to be replaced with multiple more
+    specific diagnostics.
 CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the arguments. Not clear how much value that adds.
 CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the name of the factory with the name of the class (or prefix it
+    with the name of the class if it's lowercase?).
 CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Make the name public.
 CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the signature with the valid signature.
 CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the signature with the valid signature.
 CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace with the equivalent generic function type.
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the modifier.
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the modifier.
 CompileTimeErrorCode.INVALID_OVERRIDE:
   status: hasFix
 CompileTimeErrorCode.INVALID_OVERRIDE_SETTER:
@@ -795,62 +926,87 @@ CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
   status: noFix
   since: 2.17
 CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
   status: needsFix
   since: 2.17
 CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_URI:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the keyword.
 CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add a call method to the extension.
 CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest similarly named functions.
 CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION:
   status: hasFix
 CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.LABEL_UNDEFINED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest similarly named label.
 CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `late`.
+    Remove `const`.
 CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove `final`.
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the type of the first parameter.
 CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the named parameters.
 CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the invalid parameters.
 CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Not displayed to users.
 CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Not displayed to users.
 CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Not displayed to users.
 CompileTimeErrorCode.MISSING_DART_LIBRARY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
@@ -864,33 +1020,39 @@ CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
 CompileTimeErrorCode.MISSING_VARIABLE_PATTERN:
   status: noFix
 CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Update the type in the mixin.
 CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the extends clause.
 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
-  status: needsEvaluation
+  notes: |-
+    Remove the constructor.
 CompileTimeErrorCode.MIXIN_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT:
-  status: needsEvaluation
+  notes: |-
+    Remove the extends clause.
 CompileTimeErrorCode.MIXIN_INSTANTIATE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS:
   status: hasFix
 CompileTimeErrorCode.MIXIN_OF_NON_CLASS:
   status: hasFix
 CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsFix
   notes: |-
@@ -900,13 +1062,19 @@ CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove one of the uses of the class.
 CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the redirecting constructor invocations.
 CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove all but one of the redirecting constructor invocations.
 CompileTimeErrorCode.NEW_WITH_NON_TYPE:
   status: hasFix
 CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR:
@@ -914,15 +1082,17 @@ CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR:
 CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add an empty argument list.
 CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
   status: hasFix
 CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT:
   status: hasFix
 CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
   status: hasFix
 CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR:
@@ -936,40 +1106,50 @@ CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO:
 CompileTimeErrorCode.NON_BOOL_CONDITION:
   status: hasFix
 CompileTimeErrorCode.NON_BOOL_EXPRESSION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_BOOL_OPERAND:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
   status: hasFix
   since: 2.17
 CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `const` keyword.
 CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `const` to the constructor (if doing so would be valid).
 CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    I think this is a pre-3.0 only issue, so might not be worth supporting. If
+    it is worth supporting, then we could potentially add `const` to make it a
+    constant expression.
 CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `const` if the expression can be a constant expression.
 CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
@@ -977,7 +1157,7 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
   status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
@@ -987,34 +1167,49 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
   notes: |-
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the missing cases.
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add the missing cases.
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
   status: hasFix
   since: 2.17
 CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest generative constructors that could be invoked.
 CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Suggest generative constructors that could be invoked.
 CompileTimeErrorCode.NON_SYNC_FACTORY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the modifier on the body.
 CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT:
   status: hasFix
 CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
 CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Change the return type to `void`.
 CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the return type.
+    Change the return type to `void`.
 CompileTimeErrorCode.NOT_A_TYPE:
   status: hasFix
 CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_BINARY_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
   status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
@@ -1026,17 +1221,19 @@ CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
 CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
   status: hasFix
 CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_INSTANTIATED_BOUND:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_ITERABLE_SPREAD:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_MAP_SPREAD:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Convert to a null-aware spread operator.
 CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE:
   status: hasFix
 CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE:
@@ -1050,15 +1247,19 @@ CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
 CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
 CompileTimeErrorCode.ON_REPEATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the repeated type.
 CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PART_OF_NON_PART:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace the library name with a URI.
 CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
   status: noFix
 CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
@@ -1073,66 +1274,72 @@ CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
     We do not have enough information to figure out the user's intent with the
     use of the variable in the pattern.
 CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Make all of the types / finalities the same.
 CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If the problem is a default, split the case group into two pieces.
 CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix
   since: 2.17
 CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the underscore
 CompileTimeErrorCode.PRIVATE_SETTER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_NON_CLASS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
   status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
@@ -1143,29 +1350,34 @@ CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/51892
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the return.
+    Convert to a factory constructor.
 CompileTimeErrorCode.RETURN_IN_GENERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Replace with a yield.
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
   status: hasFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD:
   status: hasFix
 CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.SHARED_DEFERRED_PREFIX:
   status: noFix
 CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
@@ -1173,11 +1385,15 @@ CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `base`, `final`, or `sealed`.
 CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Add `base`, `final`, or `sealed`.
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: hasFix
   since: 2.17
@@ -1206,7 +1422,10 @@ CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
     user really needs to think about what member they were trying to invoke
     and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the super initialize.
+    Remove the redirection.
 CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
   status: noFix
   notes: |-

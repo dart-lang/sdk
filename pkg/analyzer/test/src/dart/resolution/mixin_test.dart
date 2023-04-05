@@ -130,6 +130,7 @@ mixin M<T> {
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
+    lateKeyword: late
     type: NamedType
       name: SimpleIdentifier
         token: T

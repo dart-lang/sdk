@@ -8371,6 +8371,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
       PatternSwitchCase switchCase = node.cases[caseIndex];
+      List<VariableDeclaration> jointVariablesNotInAll = [];
       for (int headIndex = 0;
           headIndex < switchCase.patternGuards.length;
           headIndex++) {
@@ -8398,13 +8399,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         };
         if (headIndex == 0) {
           for (VariableDeclaration jointVariable in switchCase.jointVariables) {
-            jointVariable.type = inferredVariableTypes[jointVariable.name!]!;
+            DartType? inferredType = inferredVariableTypes[jointVariable.name!];
+            if (inferredType != null) {
+              jointVariable.type = inferredType;
+            } else {
+              jointVariable.type = const InvalidType();
+              jointVariablesNotInAll.add(jointVariable);
+            }
           }
         } else {
           for (int i = 0; i < switchCase.jointVariables.length; ++i) {
             VariableDeclaration jointVariable = switchCase.jointVariables[i];
-            if (jointVariable.type !=
-                inferredVariableTypes[jointVariable.name!]) {
+            // The error on joint variables not present in all case heads is
+            // reported in BodyBuilder.
+            DartType? inferredType = inferredVariableTypes[jointVariable.name!];
+            if (!jointVariablesNotInAll.contains(jointVariable) &&
+                inferredType != null &&
+                jointVariable.type != inferredType) {
               jointVariable.initializer = helper.buildProblem(
                   templateJointPatternVariablesMismatch
                       .withArguments(jointVariable.name!),

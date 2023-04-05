@@ -22,7 +22,6 @@ void main() async {
           soundNullSafety: true,
           legacyCode: false,
           moduleFormat: ModuleFormat.ddc);
-      runAgnosticSharedTests(setup, driver);
       runNullSafeSharedTests(setup, driver);
     });
   });

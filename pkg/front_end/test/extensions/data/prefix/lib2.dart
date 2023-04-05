@@ -4,13 +4,7 @@
 
 /*library: scope=[
   HiddenExtension2,
-  ShownExtension2,
-  async.dart.FutureExtensions,
-  collection.dart.IterableExtensions,
-  collection.dart.NullableIterableExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+  ShownExtension2]*/
 
 /*class: HiddenExtension2:
  builder-name=HiddenExtension2,

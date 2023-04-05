@@ -2,14 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[
-  A2,
-  async.dart.FutureExtensions,
-  collection.dart.IterableExtensions,
-  collection.dart.NullableIterableExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+/*library: scope=[A2]*/
 
 class A1 {
   Object? field;

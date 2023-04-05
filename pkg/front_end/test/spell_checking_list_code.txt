@@ -504,6 +504,7 @@ exchanging
 execute
 executor
 executors
+exhaust
 exhausted
 exhaustively
 exhaustiveness

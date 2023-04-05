@@ -1,0 +1,19 @@
+class A<T> extends J<T> {}
+class I<T> {}
+class J<T> extends I<T> {}
+extension<T> on I<T> {
+  num get member {}
+}
+int counter = 0;
+num method1(I<num> i) => 
+switch (i) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+num method2(A<num> i) => 
+switch (i) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}

@@ -46,15 +46,15 @@ const Set<Test> data = {
   const Test('T', 'T', 'T extends bool'),
   const Test('T?', 'T?', 'T extends bool'),
   const Test('T*', 'T*', 'T extends bool'),
-  const Test('T', 'T', 'T extends FutureOr<bool>'),
-  const Test('T?', 'T?', 'T extends FutureOr<bool>'),
-  const Test('T*', 'T*', 'T extends FutureOr<bool>'),
+  const Test('T', 'bool', 'T extends FutureOr<bool>'),
+  const Test('T?', 'bool?', 'T extends FutureOr<bool>'),
+  const Test('T*', 'bool*', 'T extends FutureOr<bool>'),
   const Test('T', 'bool', 'T extends Future<bool>'),
   const Test('T?', 'bool?', 'T extends Future<bool>'),
   const Test('T*', 'bool*', 'T extends Future<bool>'),
-  const Test('T & bool', 'T & bool', 'T'),
-  const Test('T & bool?', 'T & bool?', 'T'),
-  const Test('T & bool*', 'T & bool*', 'T'),
+  const Test('T & bool', 'T', 'T'),
+  const Test('T & bool?', 'T', 'T'),
+  const Test('T & bool*', 'T', 'T'),
 };
 
 class Test {
