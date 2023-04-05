@@ -9888,6 +9888,100 @@ NullCheckPattern
 ''');
   }
 
+  test_variable_type_record_empty_inDeclarationContext() {
+    _parse('''
+void f(x) {
+  var (() y) = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('var').pattern;
+    assertParsedNodeText(node, '''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      rightParenthesis: )
+    name: y
+  rightParenthesis: )
+''');
+  }
+
+  test_variable_type_record_empty_inMatchingContext() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case () y:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, '''
+DeclaredVariablePattern
+  type: RecordTypeAnnotation
+    leftParenthesis: (
+    rightParenthesis: )
+  name: y
+''');
+  }
+
+  test_variable_type_record_nonEmpty_inDeclarationContext() {
+    _parse('''
+void f(x) {
+  var ((int, String) y) = x;
+}
+''');
+    var node = findNode.patternVariableDeclaration('var').pattern;
+    assertParsedNodeText(node, '''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    type: RecordTypeAnnotation
+      leftParenthesis: (
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: SimpleIdentifier
+              token: String
+      rightParenthesis: )
+    name: y
+  rightParenthesis: )
+''');
+  }
+
+  test_variable_type_record_nonEmpty_inMatchingContext() {
+    _parse('''
+void f(x) {
+  switch (x) {
+    case (int, String) y:
+      break;
+  }
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertParsedNodeText(node, '''
+DeclaredVariablePattern
+  type: RecordTypeAnnotation
+    leftParenthesis: (
+    positionalFields
+      RecordTypeAnnotationPositionalField
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+      RecordTypeAnnotationPositionalField
+        type: NamedType
+          name: SimpleIdentifier
+            token: String
+    rightParenthesis: )
+  name: y
+''');
+  }
+
   test_variable_typed_insideCase() {
     _parse('''
 void f(x) {
