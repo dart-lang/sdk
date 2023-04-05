@@ -340,6 +340,8 @@ class BodyBuilder extends StackListenerImpl
 
   Scope scope;
 
+  Set<VariableDeclaration>? declaredInCurrentGuard;
+
   JumpTarget? breakTarget;
 
   JumpTarget? continueTarget;
@@ -473,6 +475,16 @@ class BodyBuilder extends StackListenerImpl
         "Expected the current scope to be one of the kinds "
         "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
         "but got '${scope.kind}'.");
+    if (isGuardScope(scope) && declaredInCurrentGuard != null) {
+      for (Builder builder in scope.localMembers) {
+        if (builder is VariableBuilder) {
+          declaredInCurrentGuard!.remove(builder.variable);
+        }
+      }
+      if (declaredInCurrentGuard!.isEmpty) {
+        declaredInCurrentGuard = null;
+      }
+    }
     scope = pop() as Scope;
     // ignore: unnecessary_null_comparison
     assert(scope != null);
@@ -799,6 +811,9 @@ class BodyBuilder extends StackListenerImpl
             .withLocation(uri, existing.charOffset, name.length)
       ]);
       return;
+    }
+    if (isGuardScope(scope)) {
+      (declaredInCurrentGuard ??= {}).add(variable);
     }
     LocatedMessage? context = scope.declare(
         variable.name!, new VariableBuilderImpl(variable, member, uri), uri);
@@ -3190,6 +3205,14 @@ class BodyBuilder extends StackListenerImpl
     return new ReadOnlyAccessGenerator(
         this, token, createVariableGet(variable, charOffset), name ?? '', kind);
   }
+
+  @override
+  bool isDeclaredInEnclosingCase(VariableDeclaration variable) {
+    return declaredInCurrentGuard?.contains(variable) ?? false;
+  }
+
+  bool isGuardScope(Scope scope) =>
+      scope.kind == ScopeKind.caseHead || scope.kind == ScopeKind.ifCaseHead;
 
   /// Look up [name] in [scope] using [token] as location information (both to
   /// report problems and as the file offset in the generated kernel code).

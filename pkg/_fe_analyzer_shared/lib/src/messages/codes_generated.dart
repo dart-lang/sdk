@@ -10995,6 +10995,18 @@ const MessageCode messagePatternMatchingError = const MessageCode(
     problemMessage: r"""Pattern matching error""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatternVariableAssignmentInsideGuard =
+    messagePatternVariableAssignmentInsideGuard;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatternVariableAssignmentInsideGuard = const MessageCode(
+    "PatternVariableAssignmentInsideGuard",
+    analyzerCodes: <String>["PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD"],
+    problemMessage:
+        r"""Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
+    correctionMessage: r"""Try assigning to a different variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePatternVariableDeclarationOutsideFunctionOrMethod =
     messagePatternVariableDeclarationOutsideFunctionOrMethod;
 

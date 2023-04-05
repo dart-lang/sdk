@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method test1() → void
+  ;
+static method test2() → void
+  ;
+static method test3() → void
+  ;
+static method test4() → void
+  ;
+static method test5(dynamic o) → void
+  ;

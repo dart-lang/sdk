@@ -1,4 +1,17 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/switch_expressions_variable_capture.dart:23:84: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// Try assigning to a different variable.
+//     [int a, int b] when (captured = (x) { return a + b; }) is dynamic => captured!(a = b),
+//                                                                                    ^
+//
+// pkg/front_end/testcases/patterns/switch_expressions_variable_capture.dart:24:90: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// Try assigning to a different variable.
+//     [String a, String b] when (captured = (x) { return a + b; }) is dynamic => captured!(a = b),
+//                                                                                          ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
