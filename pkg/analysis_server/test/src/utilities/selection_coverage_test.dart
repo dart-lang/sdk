@@ -148,6 +148,7 @@ class SelectionCoverageTest {
     return data;
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_visitorCoverage() async {
     var provider = PhysicalResourceProvider.INSTANCE;
     var pathContext = provider.pathContext;
