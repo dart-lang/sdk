@@ -109,6 +109,10 @@ class _Checker {
       List<StaticType> stack = [firstValuePattern.type];
       while (stack.isNotEmpty) {
         StaticType type = stack.removeAt(0);
+        if (type.isSubtypeOf(StaticType.neverType)) {
+          // Don't try to exhaust the Never type.
+          continue;
+        }
         if (type.isSealed) {
           Witness? result = _filterByType(
               contextType,

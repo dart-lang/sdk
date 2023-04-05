@@ -13,9 +13,30 @@ membersMethod(o) {
   */
       switch (o) {
     Typedef(:var hashCode) /*space=Never(hashCode: ∅)*/ => hashCode,
-    Typedef(:var runtimeType) /*space=Never(runtimeType: ∅)*/ => runtimeType,
-    Typedef(:var toString) /*space=Never(toString: ∅)*/ => toString(),
-    Typedef(:var noSuchMethod) /*space=Never(noSuchMethod: ∅)*/ => noSuchMethod,
+    Typedef(
+      :var runtimeType
+    ) /*
+     error=unreachable,
+     space=Never(runtimeType: ∅)
+    */
+      =>
+      runtimeType,
+    Typedef(
+      :var toString
+    ) /*
+     error=unreachable,
+     space=Never(toString: ∅)
+    */
+      =>
+      toString(),
+    Typedef(
+      :var noSuchMethod
+    ) /*
+     error=unreachable,
+     space=Never(noSuchMethod: ∅)
+    */
+      =>
+      noSuchMethod,
     _ /*space=()*/ => null,
   };
 }
@@ -69,7 +90,6 @@ exhaustiveNoSuchMethod(Typedef o) {
 
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
-   error=non-exhaustive:Never(hashCode: int())/Never(),
    fields={hashCode:int},
    type=Never
   */
@@ -80,7 +100,6 @@ nonExhaustiveRestrictedValue(Typedef o) {
 
 nonExhaustiveRestrictedType(Typedef o) {
   return /*
-   error=non-exhaustive:Never(noSuchMethod: dynamic Function(Invocation) _)/Never(),
    fields={noSuchMethod:dynamic Function(Invocation)},
    type=Never
   */
@@ -94,14 +113,34 @@ nonExhaustiveRestrictedType(Typedef o) {
 
 unreachableMethod(Typedef o) {
   return /*
-   error=non-exhaustive:Never(hashCode: int(), noSuchMethod: dynamic Function(Invocation) _, runtimeType: Type(), toString: String Function() _)/Never(),
    fields={hashCode:int,noSuchMethod:dynamic Function(Invocation),runtimeType:Type,toString:String Function()},
    type=Never
   */
       switch (o) {
     Typedef(:var hashCode) /*space=Never(hashCode: ∅)*/ => hashCode,
-    Typedef(:var runtimeType) /*space=Never(runtimeType: ∅)*/ => runtimeType,
-    Typedef(:var toString) /*space=Never(toString: ∅)*/ => toString(),
-    Typedef(:var noSuchMethod) /*space=Never(noSuchMethod: ∅)*/ => noSuchMethod,
+    Typedef(
+      :var runtimeType
+    ) /*
+     error=unreachable,
+     space=Never(runtimeType: ∅)
+    */
+      =>
+      runtimeType,
+    Typedef(
+      :var toString
+    ) /*
+     error=unreachable,
+     space=Never(toString: ∅)
+    */
+      =>
+      toString(),
+    Typedef(
+      :var noSuchMethod
+    ) /*
+     error=unreachable,
+     space=Never(noSuchMethod: ∅)
+    */
+      =>
+      noSuchMethod,
   };
 }

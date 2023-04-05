@@ -1537,7 +1537,11 @@ class ConstantsTransformer extends RemovingTransformer {
       required bool hasDefault,
       required bool mustBeExhaustive,
       required bool isSwitchExpression}) {
-    StaticType type = exhaustivenessCache.getStaticType(expressionType);
+    StaticType type = exhaustivenessCache.getStaticType(
+        // Treat invalid types as empty.
+        expressionType is InvalidType
+            ? const NeverType.nonNullable()
+            : expressionType);
     List<Space> cases = [];
     PatternConverter patternConverter = new PatternConverter(
         exhaustivenessCache, staticTypeContext,

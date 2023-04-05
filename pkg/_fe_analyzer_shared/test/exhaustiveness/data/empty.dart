@@ -49,3 +49,38 @@ emptyEnum(E e) {
     
   };
 }
+
+sealed class Empty {}
+
+emptySealed(Empty empty) => /*
+ checkingOrder={Empty},
+ type=Empty
+*/
+    switch (empty) {
+      
+    };
+
+emptyNever(Never never) => /*type=Never*/ switch (never) {  };
+
+emptyUnresolved(
+        Unresolved
+            unresolved) => /*cfe.type=Never*/ /*analyzer.
+ checkingOrder={Object?,Object,Null},
+ error=non-exhaustive:Object(),
+ subtypes={Object,Null},
+ type=Object?
+*/
+    switch (unresolved) {
+      
+    };
+
+nonEmptyUnresolved(
+        Unresolved
+            unresolved) => /*cfe.type=Never*/ /*analyzer.
+ checkingOrder={Object?,Object,Null},
+ subtypes={Object,Null},
+ type=Object?
+*/
+    switch (unresolved) {
+      _ /*cfe.space=∅*/ /*analyzer.space=()*/ => 0,
+    };
