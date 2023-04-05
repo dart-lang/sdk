@@ -3460,6 +3460,36 @@ abstract class DartPatternImpl extends AstNodeImpl
   @override
   DartType? matchedValueType;
 
+  /// Returns the context for this pattern.
+  /// * Declaration context: [PatternVariableDeclarationImpl]
+  /// * Assignment context: [PatternAssignmentImpl]
+  /// * Matching context: [GuardedPatternImpl]
+  AstNodeImpl? get patternContext {
+    for (DartPatternImpl current = this;;) {
+      var parent = current.parent;
+      if (parent is MapPatternEntry) {
+        parent = parent.parent;
+      } else if (parent is PatternFieldImpl) {
+        parent = parent.parent;
+      } else if (parent is RestPatternElementImpl) {
+        parent = parent.parent;
+      }
+      if (parent is ForEachPartsWithPatternImpl) {
+        return parent;
+      } else if (parent is PatternVariableDeclarationImpl) {
+        return parent;
+      } else if (parent is PatternAssignmentImpl) {
+        return parent;
+      } else if (parent is GuardedPatternImpl) {
+        return parent;
+      } else if (parent is DartPatternImpl) {
+        current = parent;
+      } else {
+        return null;
+      }
+    }
+  }
+
   @override
   DartPattern get unParenthesized => this;
 
@@ -3616,36 +3646,6 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
       return keyword;
     }
     return null;
-  }
-
-  /// Returns the context for this pattern.
-  /// * Declaration context: [PatternVariableDeclarationImpl]
-  /// * Assignment context: [PatternAssignmentImpl]
-  /// * Matching context: [GuardedPatternImpl]
-  AstNodeImpl? get patternContext {
-    for (DartPatternImpl current = this;;) {
-      var parent = current.parent;
-      if (parent is MapPatternEntry) {
-        parent = parent.parent;
-      } else if (parent is PatternFieldImpl) {
-        parent = parent.parent;
-      } else if (parent is RestPatternElementImpl) {
-        parent = parent.parent;
-      }
-      if (parent is ForEachPartsWithPatternImpl) {
-        return parent;
-      } else if (parent is PatternVariableDeclarationImpl) {
-        return parent;
-      } else if (parent is PatternAssignmentImpl) {
-        return parent;
-      } else if (parent is GuardedPatternImpl) {
-        return parent;
-      } else if (parent is DartPatternImpl) {
-        current = parent;
-      } else {
-        return null;
-      }
-    }
   }
 
   @override
