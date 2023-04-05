@@ -3998,6 +3998,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
     "Object patterns can only use named fields.",
     correctionMessage: "Try specifying the field name.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.

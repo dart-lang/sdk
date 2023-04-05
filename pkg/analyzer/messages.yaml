@@ -12738,6 +12738,7 @@ CompileTimeErrorCode:
     problemMessage: Object patterns can only use named fields.
     correctionMessage: Try specifying the field name.
     comment: No parameters.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
