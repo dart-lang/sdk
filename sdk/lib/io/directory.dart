@@ -97,7 +97,7 @@ part of dart.io;
 ///   a tutorial about writing command-line apps, includes information about
 ///   files and directories.
 @pragma("vm:entry-point")
-abstract class Directory implements FileSystemEntity {
+abstract interface class Directory implements FileSystemEntity {
   /// Gets the path of this directory.
   String get path;
 

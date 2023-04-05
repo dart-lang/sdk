@@ -190,6 +190,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_return_type
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_iterable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_stream.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_var_with_dynamic.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_arrow.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_decorated_box.dart';
@@ -1403,6 +1404,7 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,
+      ReplaceWithArrow.new,
     ],
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
       RemoveParametersInGetterDeclaration.new,

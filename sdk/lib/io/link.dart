@@ -6,7 +6,7 @@ part of dart.io;
 
 /// References to filesystem links.
 @pragma("vm:entry-point")
-abstract class Link implements FileSystemEntity {
+abstract interface class Link implements FileSystemEntity {
   /// Creates a Link object.
   @pragma("vm:entry-point")
   factory Link(String path) {

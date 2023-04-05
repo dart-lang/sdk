@@ -2313,6 +2313,18 @@ const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
         problemMessage: r"""This is one of the overridden members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDefaultInSwitchExpression =
+    messageDefaultInSwitchExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDefaultInSwitchExpression = const MessageCode(
+    "DefaultInSwitchExpression",
+    index: 153,
+    problemMessage:
+        r"""A switch expression may not use the `default` keyword.""",
+    correctionMessage: r"""Try replacing `default` with `_`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDefaultValueInRedirectingFactoryConstructor =
     const Template<Message Function(String name)>(

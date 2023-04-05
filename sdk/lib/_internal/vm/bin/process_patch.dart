@@ -80,7 +80,7 @@ class Process {
   static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(signal, "signal");
-    return _ProcessUtils._killPid(pid, signal._signalNumber);
+    return _ProcessUtils._killPid(pid, signal.signalNumber);
   }
 }
 
@@ -101,7 +101,7 @@ class _SignalController {
   Stream<ProcessSignal> get stream => _controller.stream;
 
   void _listen() {
-    var id = _setSignalHandler(signal._signalNumber);
+    var id = _setSignalHandler(signal.signalNumber);
     if (id is! int) {
       _controller
           .addError(new SignalException("Failed to listen for $signal", id));
@@ -121,7 +121,7 @@ class _SignalController {
 
   void _cancel() {
     if (_id != null) {
-      _clearSignalHandler(signal._signalNumber);
+      _clearSignalHandler(signal.signalNumber);
       _id = null;
     }
   }
@@ -170,10 +170,10 @@ class _ProcessUtils {
   }
 
   static Stream<ProcessSignal> _watchSignalInternal(ProcessSignal signal) {
-    if (_signalControllers[signal._signalNumber] == null) {
-      _signalControllers[signal._signalNumber] = new _SignalController(signal);
+    if (_signalControllers[signal.signalNumber] == null) {
+      _signalControllers[signal.signalNumber] = new _SignalController(signal);
     }
-    return _signalControllers[signal._signalNumber]!.stream;
+    return _signalControllers[signal.signalNumber]!.stream;
   }
 }
 
@@ -541,7 +541,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     ArgumentError.checkNotNull(kill, "kill");
     assert(_started);
     if (_ended) return false;
-    return _ProcessUtils._killPid(pid, signal._signalNumber);
+    return _ProcessUtils._killPid(pid, signal.signalNumber);
   }
 
   int get pid => _ProcessUtils._pid(this);

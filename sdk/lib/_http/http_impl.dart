@@ -4,7 +4,7 @@
 
 part of dart._http;
 
-abstract class HttpProfiler {
+final class HttpProfiler {
   static const _kType = 'HttpProfile';
 
   static final Map<String, _HttpProfileData> _profile = {};
@@ -3156,7 +3156,8 @@ final class _HttpConnection extends LinkedListEntry<_HttpConnection>
 
 // Common interface of [ServerSocket] and [SecureServerSocket] used by
 // [_HttpServer].
-abstract class ServerSocketBase<T extends Socket> implements Stream<T> {
+abstract interface class ServerSocketBase<T extends Socket>
+    implements Stream<T> {
   int get port;
   InternetAddress get address;
   Future<void> close();
@@ -3671,7 +3672,7 @@ abstract class _HttpClientCredentials implements HttpClientCredentials {
   void authorizeProxy(_ProxyCredentials credentials, HttpClientRequest request);
 }
 
-class _HttpClientBasicCredentials extends _HttpClientCredentials
+final class _HttpClientBasicCredentials extends _HttpClientCredentials
     implements HttpClientBasicCredentials {
   String username;
   String password;
@@ -3700,7 +3701,7 @@ class _HttpClientBasicCredentials extends _HttpClientCredentials
   }
 }
 
-class _HttpClientDigestCredentials extends _HttpClientCredentials
+final class _HttpClientDigestCredentials extends _HttpClientCredentials
     implements HttpClientDigestCredentials {
   String username;
   String password;

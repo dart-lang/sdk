@@ -15,7 +15,7 @@ part of dart.io;
 /// to add or write to the [IOSink] will fail until the [addStream] completes.
 ///
 /// It is an error to add data to the [IOSink] after the sink is closed.
-abstract class IOSink implements StreamSink<List<int>>, StringSink {
+abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   /// Create an [IOSink] that outputs to a [target] [StreamConsumer] of bytes.
   ///
   /// Text written to [StreamSink] methods is encoded to bytes using [encoding]

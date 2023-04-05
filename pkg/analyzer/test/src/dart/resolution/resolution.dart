@@ -546,14 +546,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, NullabilitySuffix.star);
   }
 
-  void assertTypeLiteral(
-      TypeLiteral node, Element? expectedElement, String expectedType,
-      {Element? expectedPrefix}) {
-    assertType(node, 'Type');
-    assertNamedType(node.type, expectedElement, expectedType,
-        expectedPrefix: expectedPrefix);
-  }
-
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
   }

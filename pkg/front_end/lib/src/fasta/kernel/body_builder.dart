@@ -9365,7 +9365,9 @@ class BodyBuilder extends StackListenerImpl
         libraryFeatures.patterns, wildcard.charOffset, wildcard.charCount);
     TypeBuilder? type = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
-    assert(wildcard.lexeme == '_');
+    // Note: if `default` appears in a switch expression, parser error recovery
+    // treats it as a wildcard pattern.
+    assert(wildcard.lexeme == '_' || wildcard.lexeme == 'default');
     push(forest.createWildcardPattern(wildcard.charOffset, patternType));
   }
 
