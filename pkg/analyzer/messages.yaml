@@ -12738,6 +12738,36 @@ CompileTimeErrorCode:
     problemMessage: Object patterns can only use named fields.
     correctionMessage: Try specifying the field name.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an object pattern contains a
+      field that doesn't have a getter name. The fields provide a pattern to
+      match against the value returned by a getter, and not specifying the name
+      of the getter means that there's no way to access the value that the
+      pattern is intended to match against.
+
+      #### Example
+
+      The following code produces this diagnostic because the object pattern
+      `String(1)` doesn't say which value to compare with `1`:
+
+      ```dart
+      void f(Object o) {
+        if (o case String([!1!])) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Add both the name of the getter to use to access the value and a colon
+      before the value:
+
+      ```dart
+      void f(Object o) {
+        if (o case String(length: 1)) {}
+      }
+      ```
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
