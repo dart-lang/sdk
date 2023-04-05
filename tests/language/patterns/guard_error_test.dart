@@ -10,8 +10,7 @@ main() {
     case bool x when x = true:
       //             ^
       // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
-      //               ^
-      // [cfe] unspecified
+      // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       print(x);
     default:
   }
@@ -20,16 +19,14 @@ main() {
     bool x when x = true => x,
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
-    //               ^
-    // [cfe] unspecified
+    // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     _ => false
   });
 
   if (false case bool x when x = true) {
     //                       ^
     // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
-    //                         ^
-    // [cfe] unspecified
+    // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     print(x);
   }
 
@@ -37,8 +34,7 @@ main() {
     if (false case bool x when x = true)
       //                       ^
       // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
-      //                         ^
-      // [cfe] unspecified
+      // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       x
   ]);
 
@@ -49,9 +45,8 @@ main() {
           return x = true;
           //     ^
           // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
         }():
-      //                  ^
-      // [cfe] unspecified
       print(x);
     default:
   }
@@ -62,10 +57,9 @@ main() {
           return x = true;
           //     ^
           // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
         })() =>
       x,
-    //                  ^
-    // [cfe] unspecified
     _ => false
   });
 
@@ -74,9 +68,8 @@ main() {
         return x = true;
         //     ^
         // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+        // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       })()) {
-    //                            ^
-    // [cfe] unspecified
     print(x);
   }
 
@@ -86,9 +79,8 @@ main() {
           return x = true;
           //     ^
           // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
         })())
-      //                          ^
-      // [cfe] unspecified
       x
   ]);
 
