@@ -1,4 +1,4 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,17 +12,17 @@ import 'expression_compiler_e2e_suite.dart';
 void main() async {
   var driver = await TestDriver.init();
 
-  group('(Unsound null safety)', () {
+  group('(Sound null safety) (Agnostic code shard 2)', () {
     tearDownAll(() async {
       await driver.finish();
     });
 
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: false,
+          soundNullSafety: true,
           legacyCode: false,
           moduleFormat: ModuleFormat.amd);
-      runNullSafeSharedTests(setup, driver);
+      runAgnosticSharedTestsShard2(setup, driver);
     });
   });
 }
