@@ -262,11 +262,9 @@ class Driver implements ServerStarter {
     if (disableAnalyticsForSession) {
       analyticsManager = AnalyticsManager(NoopAnalytics());
     } else {
-      // TODO(brianwilkerson) Create the real Analytics instance when we have
-      // implemented a way for users to disable analytics.
       // TODO(jcollins): implement a full map of `clientId`s to tools to cover
       // more analyzer entry points than vscode.
-      if (2 < 1 && clientId == 'VS-Code') {
+      if (clientId == 'VS-Code') {
         analyticsManager = AnalyticsManager(_createAnalytics(
             defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
       } else {
