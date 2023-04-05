@@ -672,11 +672,6 @@ class VmServerConnection {
 
   VmServerConnection(this._requestStream, this._responseSink,
       this._serviceExtensionRegistry, this._serviceImplementation) {
-    if (_responseSink is StreamSink<Map<String, Object>>) {
-      throw StateError(
-        'The StreamSink passed to VmServiceConnection does not allow for null values',
-      );
-    }
     _requestStream.listen(_delegateRequest, onDone: _doneCompleter.complete);
     done.then((_) {
       for (var sub in _streamSubscriptions.values) {
