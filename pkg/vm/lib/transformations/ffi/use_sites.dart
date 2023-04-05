@@ -272,8 +272,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
-        final InterfaceType nativeType = InterfaceType(
-            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+        final InterfaceType nativeType = InterfaceType(nativeFunctionClass,
+            Nullability.nonNullable, [node.arguments.types[0]]);
 
         ensureNativeTypeValid(nativeType, node);
         ensureNativeTypeToDartType(nativeType, dartType, node);

@@ -668,6 +668,16 @@ class FfiNativeTransformer extends FfiTransformer {
     node.annotations.remove(ffiNativeAnnotation);
 
     final ffiConstant = ffiNativeAnnotation.constant as InstanceConstant;
+    final nativeType = ffiConstant.typeArguments[0];
+    try {
+      final nativeFunctionType = InterfaceType(
+          nativeFunctionClass, Nullability.nonNullable, [nativeType]);
+      ensureNativeTypeValid(nativeFunctionType, ffiNativeAnnotation,
+          allowCompounds: true, allowHandle: true);
+    } on FfiStaticTypeError {
+      // We've already reported an error.
+      return node;
+    }
     final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
     final nativeFunctionConst =
         (ffiConstant.fieldValues[nativeSymbolField.fieldReference] ??
