@@ -429,6 +429,7 @@ import "dart:_internal" as _in;
 [2665]    {
 [2665]      if([2670] [2670] true) {
       }
+[2665]      break #L24;
     }
 [2574]    [2574] [2574] throw [2574] [2574] new _in::ReachabilityError::• [2574]([2574] "`null` encountered as case in a switch statement with a non-nullable type.");
   }

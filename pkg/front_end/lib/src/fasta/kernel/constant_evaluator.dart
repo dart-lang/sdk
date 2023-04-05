@@ -1129,6 +1129,7 @@ class ConstantsTransformer extends RemovingTransformer {
         computeIsAlwaysExhaustiveType(scrutineeType, typeEnvironment.coreTypes);
 
     Statement replacement;
+    LabeledStatement? outerLabeledStatement;
     if (primitiveEqualConstantsOnly) {
       List<SwitchCase> switchCases = [];
       for (PatternSwitchCase patternSwitchCase in node.cases) {
@@ -1155,7 +1156,6 @@ class ConstantsTransformer extends RemovingTransformer {
         }
       }
 
-      LabeledStatement? outerLabeledStatement;
       if (isAlwaysExhaustiveType &&
           !hasDefault &&
           constantEvaluator.evaluationMode != EvaluationMode.strong) {
@@ -1198,11 +1198,6 @@ class ConstantsTransformer extends RemovingTransformer {
       replacement = createSwitchStatement(node.expression, switchCases,
           isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
           fileOffset: node.fileOffset);
-      if (outerLabeledStatement != null) {
-        outerLabeledStatement.body = replacement
-          ..parent = outerLabeledStatement;
-        replacement = outerLabeledStatement;
-      }
     } else {
       // matchResultVariable: int RVAR = -1;
       VariableDeclaration matchResultVariable = createInitializedVariable(
@@ -1259,6 +1254,11 @@ class ConstantsTransformer extends RemovingTransformer {
       // TODO(johnniwinther): Remove this when an error is reported in case of
       // variables and labels on the same switch case.
       Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
+
+      // In weak mode we need to throw on `null` for non-nullable types.
+      bool needsThrowForNull = isAlwaysExhaustiveType &&
+          !hasDefault &&
+          constantEvaluator.evaluationMode != EvaluationMode.strong;
 
       for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
         PatternSwitchCase switchCase = node.cases[caseIndex];
@@ -1437,13 +1437,28 @@ class ConstantsTransformer extends RemovingTransformer {
           caseBlock = createIfStatement(caseCondition, caseBlock,
               fileOffset: switchCase.fileOffset);
         }
-        cases.add(createBlock([...caseVariables, caseBlock],
-            fileOffset: switchCase.fileOffset));
+        BreakStatement? breakStatement;
+        if (caseIndex == node.cases.length - 1 &&
+            needsThrowForNull &&
+            !node.lastCaseTerminates) {
+          LabeledStatement target;
+          if (node.parent is LabeledStatement) {
+            target = node.parent as LabeledStatement;
+          } else {
+            target =
+                outerLabeledStatement = new LabeledStatement(dummyStatement);
+          }
+          breakStatement =
+              createBreakStatement(target, fileOffset: switchCase.fileOffset);
+        }
+        cases.add(createBlock([
+          ...caseVariables,
+          caseBlock,
+          if (breakStatement != null) breakStatement
+        ], fileOffset: switchCase.fileOffset));
       }
 
-      if (isAlwaysExhaustiveType &&
-          !hasDefault &&
-          constantEvaluator.evaluationMode != EvaluationMode.strong) {
+      if (needsThrowForNull) {
         cases.add(
             createExpressionStatement(createThrow(createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
@@ -1495,6 +1510,11 @@ class ConstantsTransformer extends RemovingTransformer {
           ..fileOffset = node.fileOffset;
       }
     }
+    if (outerLabeledStatement != null) {
+      outerLabeledStatement.body = replacement..parent = outerLabeledStatement;
+      replacement = outerLabeledStatement;
+    }
+
     List<PatternGuard> patternGuards = [];
     for (PatternSwitchCase switchCase in node.cases) {
       patternGuards.addAll(switchCase.patternGuards);

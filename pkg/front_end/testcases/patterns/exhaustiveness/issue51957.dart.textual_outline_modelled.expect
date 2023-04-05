@@ -1,0 +1,7 @@
+class C1 extends Sealed {}
+
+class C2 extends Sealed {}
+
+sealed class Sealed {}
+
+void main() {}
