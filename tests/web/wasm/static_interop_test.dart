@@ -311,7 +311,7 @@ extension AnonymousJSClassExtension on AnonymousJSClass {
   external String? get bleep;
   external int? get goo;
   external int? get ooo;
-  external List<Object?>? saz;
+  external List<double>? saz;
   external List<double>? zoo;
 }
 
