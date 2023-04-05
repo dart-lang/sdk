@@ -3604,7 +3604,7 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  Token get beginToken => type?.beginToken ?? name;
+  Token get beginToken => keyword ?? type?.beginToken ?? name;
 
   @override
   Token get endToken => name;
