@@ -271,6 +271,8 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
   package uses a Dart SDK element annotated with `@Since`, analyzer will report
   a warning if the package's [Dart SDK constraint] allows versions of Dart
   which don't include that element.
+- Protects the Dart Analysis Server against extreme memory usage by limiting
+  the number of plugins per analysis context to 1. (issue [#50981][]).
 
 [changing the severity of rules]: https://dart.dev/guides/language/analysis-options#changing-the-severity-of-rules
 [Dart SDK constraint]: https://dart.dev/tools/pub/pubspec#sdk-constraints
@@ -364,8 +366,8 @@ This is a patch release that:
 
 - Updates DDC test and builder configuration. (issue [#51481][]).
 
-- Improves the performance of the Dart Analysis Server by limiting the analysis
-  context to 1. (issue [#50981][]).
+- Protects the Dart Analysis Server against extreme memory usage by limiting
+  the number of plugins per analysis context to 1. (issue [#50981][]).
 
 [#50981]: https://github.com/dart-lang/sdk/issues/50981
 [#51481]: https://github.com/dart-lang/sdk/issues/51481
