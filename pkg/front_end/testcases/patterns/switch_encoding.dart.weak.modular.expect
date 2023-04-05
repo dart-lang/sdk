@@ -419,6 +419,7 @@ static method switchStatementEnumWithGuard(self::E o) → dynamic {
     {
       if(true) {
       }
+      break #L24;
     }
     throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
