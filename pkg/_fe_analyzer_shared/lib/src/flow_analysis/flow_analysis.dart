@@ -4592,7 +4592,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     FlowModel<Type>? breakState = context._breakModel;
 
     // If there is an implicit fall-through default, join it to any breaks.
-    if (!isExhaustive) breakState = _join(breakState, context._previous);
+    if (!isExhaustive) breakState = _join(breakState, context._unmatched);
 
     // If there were no breaks (neither implicit nor explicit), then
     // `breakState` will be `null`.  This means this is an empty switch
