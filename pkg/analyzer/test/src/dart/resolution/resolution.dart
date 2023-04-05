@@ -99,15 +99,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(identifier);
   }
 
-  void assertConstructors(ClassElement class_, List<String> expected) {
-    expect(
-      class_.constructors.map((c) {
-        return c.getDisplayString(withNullability: false);
-      }).toList(),
-      unorderedEquals(expected),
-    );
-  }
-
   void assertDartObjectText(
     DartObject? object,
     String expected, {

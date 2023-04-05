@@ -15,15 +15,6 @@ main() {
 
 @reflectiveTest
 class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
-  test_defaultConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-mixin class M {}
-class X = A with M;
-''');
-    assertConstructors(findElement.class_('X'), ['X X()']);
-  }
-
   test_element() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -145,58 +136,5 @@ class C = A with M;
 
 const x = const C();
 ''');
-  }
-
-  test_implicitConstructors_dependencies() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A(int i);
-}
-mixin class M1 {}
-mixin class M2 {}
-
-class C2 = C1 with M2;
-class C1 = A with M1;
-''');
-
-    assertConstructors(findElement.class_('C1'), ['C1 C1(int i)']);
-    assertConstructors(findElement.class_('C2'), ['C2 C2(int i)']);
-  }
-
-  test_implicitConstructors_optionalParameters() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A.c1(int a);
-  A.c2(int a, [int? b, int c = 0]);
-  A.c3(int a, {int? b, int c = 0});
-}
-
-mixin M {}
-
-class C = A with M;
-''');
-
-    assertConstructors(
-      findElement.class_('C'),
-      [
-        'C C.c1(int a)',
-        'C C.c2(int a, [int b, int c = 0])',
-        'C C.c3(int a, {int b, int c = 0})'
-      ],
-    );
-  }
-
-  test_implicitConstructors_requiredParameters() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends num> {
-  A(T x, T y);
-}
-
-mixin M {}
-
-class B<E extends num> = A<E> with M;
-''');
-
-    assertConstructors(findElement.class_('B'), ['B<E> B(E x, E y)']);
   }
 }
