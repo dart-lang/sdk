@@ -51,23 +51,6 @@ class AddTypeAnnotation extends CorrectionProducer {
       await _forSimpleFormalParameter(builder, node.name!, node);
       return;
     }
-    if (node is DeclaredVariablePattern) {
-      var type = node.matchedValueType;
-      var keyword = node.keyword;
-      await _applyChange(builder, keyword, node.name, type!);
-      return;
-    }
-
-    if (node is TypedLiteral) {
-      var type =
-          '<${(node.staticType as InterfaceType).typeArguments.join(', ')}>';
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(node.offset, (builder) {
-          builder.write(type);
-        });
-      });
-      return;
-    }
 
     for (var node in this.node.withParents) {
       if (node is VariableDeclarationList) {
@@ -92,7 +75,7 @@ class AddTypeAnnotation extends CorrectionProducer {
   }
 
   Future<void> _applyChange(
-      ChangeBuilder builder, Token? keyword, Token name, DartType type) async {
+      ChangeBuilder builder, Token? keyword, int offset, DartType type) async {
     _configureTargetLocation(node);
 
     await builder.addDartFileEdit(file, (builder) {
@@ -102,7 +85,7 @@ class AddTypeAnnotation extends CorrectionProducer {
             builder.writeType(type);
           });
         } else {
-          builder.addInsertion(name.offset, (builder) {
+          builder.addInsertion(offset, (builder) {
             builder.writeType(type);
             builder.write(' ');
           });
@@ -135,8 +118,8 @@ class AddTypeAnnotation extends CorrectionProducer {
         type is! RecordType) {
       return;
     }
-    await _applyChange(
-        builder, declaredIdentifier.keyword, declaredIdentifier.name, type);
+    await _applyChange(builder, declaredIdentifier.keyword,
+        declaredIdentifier.name.offset, type);
   }
 
   Future<void> _forSimpleFormalParameter(ChangeBuilder builder, Token name,
@@ -156,7 +139,7 @@ class AddTypeAnnotation extends CorrectionProducer {
         type is! RecordType) {
       return;
     }
-    await _applyChange(builder, null, name, type);
+    await _applyChange(builder, null, name.offset, type);
   }
 
   Future<void> _forVariableDeclaration(
@@ -187,7 +170,7 @@ class AddTypeAnnotation extends CorrectionProducer {
         type is! RecordType) {
       return;
     }
-    await _applyChange(builder, declarationList.keyword, variable.name, type);
+    await _applyChange(builder, declarationList.keyword, variable.offset, type);
   }
 
   DartType? _typeForVariable(VariableDeclaration variable) {
