@@ -318,8 +318,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       final typeArguments = annotation.typeArguments?.arguments;
       final arguments = annotation.arguments?.arguments;
-      if (typeArguments == null || arguments == null) {
-        continue;
+      if (typeArguments == null) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, errorNode, ['T', 'Native']);
+        return;
       }
 
       final ffiSignature = typeArguments[0].type! as FunctionType;
@@ -400,13 +402,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
             errorNode,
-            [nativeType, 'FfiNative']);
+            [nativeType, 'Native']);
         return;
       }
       if (!_validateCompatibleFunctionTypes(dartType, nativeType,
           nativeFieldWrappersAsPointer: true, allowStricterReturn: true)) {
         _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, errorNode,
-            [nativeType, dartType, 'FfiNative']);
+            [nativeType, dartType, 'Native']);
         return;
       }
     }
@@ -926,8 +928,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateFfiLeafCallUsesNoHandles(
-      NodeList<Expression> args, DartType nativeType, AstNode errorNode) {
-    if (args.isEmpty) {
+      NodeList<Expression>? args, DartType nativeType, AstNode errorNode) {
+    if (args == null || args.isEmpty) {
       return;
     }
     for (final arg in args) {
