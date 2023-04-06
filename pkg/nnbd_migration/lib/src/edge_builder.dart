@@ -1960,6 +1960,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var hasLabel = member.labels.isNotEmpty;
         _flowAnalysis!.switchStatement_beginAlternatives();
         _flowAnalysis!.switchStatement_beginAlternative();
+        _flowAnalysis!.constantPattern_end(node.expression, scrutineeType,
+            patternsEnabled: false);
         _flowAnalysis!.switchStatement_endAlternative(null, {});
         _flowAnalysis!
             .switchStatement_endAlternatives(node, hasLabels: hasLabel);

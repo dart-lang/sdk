@@ -1,22 +1,10 @@
 main = main::main;
 library from "package:js/js.dart" as js {
+additionalExports = (_js::staticInterop,
+  _js::JS)
 
-  class JS extends dart.core::Object /*hasConstConstructor*/  {
-    final field dart.core::String? name;
-    const constructor •([dart.core::String? name = #C1]) → js::JS
-      : js::JS::name = name, super dart.core::Object::•()
-      ;
-    static method _#new#tearOff([dart.core::String? name = #C1]) → js::JS
-      return new js::JS::•(name);
-  }
-  class _StaticInterop extends dart.core::Object /*hasConstConstructor*/  {
-    const constructor •() → js::_StaticInterop
-      : super dart.core::Object::•()
-      ;
-    static method _#new#tearOff() → js::_StaticInterop
-      return new js::_StaticInterop::•();
-  }
-  static const field js::_StaticInterop staticInterop = #C2;
+  export "dart:_js_annotations" show JS, staticInterop;
+
 }
 library from "org-dartlang-test:///lib1.dart" as lib1 {
 
@@ -45,13 +33,13 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     return sta::StaticJSClass::•();
   static set topLevelSetter((sta::StaticJSClass) → void f) → void {}
 }
-@#C3
+@#C2
 library static_interop from "org-dartlang-test:///lib2.dart" as sta {
 
   import "package:js/js.dart";
 
+  @#C4
   @#C5
-  @#C2
   class StaticJSClass extends dart.core::Object {
     static factory •() → sta::StaticJSClass
       return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
@@ -63,7 +51,7 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
     static method _#factory#tearOff() → sta::StaticJSClass
       return sta::StaticJSClass::factory();
   }
-  @#C3
+  @#C2
   external static method eval(dart.core::String code) → void;
   static method setUp() → void {
     sta::eval("function JSClass() {}");
@@ -105,10 +93,10 @@ library from "org-dartlang-test:///main.dart" as main {
 }
 constants  {
   #C1 = null
-  #C2 = js::_StaticInterop {}
-  #C3 = js::JS {name:#C1}
-  #C4 = "JSClass"
-  #C5 = js::JS {name:#C4}
+  #C2 = _js_annotations::JS {name:#C1}
+  #C3 = "JSClass"
+  #C4 = _js_annotations::JS {name:#C3}
+  #C5 = _js_annotations::_StaticInterop {}
   #C6 = static-tearoff lib1::topLevelMethod
   #C7 = static-tearoff lib1::Class::staticMethod
 }
@@ -116,10 +104,6 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-test:///lib2.dart:
-- JS. (from org-dartlang-test:///js/lib/js.dart:3:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
-
-org-dartlang-test:///js/lib/js.dart:
-- _StaticInterop. (from org-dartlang-test:///js/lib/js.dart:6:9)
+- JS. (from org-dartlang-sdk:///lib/js/_js_annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 

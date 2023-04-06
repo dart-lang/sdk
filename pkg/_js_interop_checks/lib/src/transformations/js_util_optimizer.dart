@@ -11,7 +11,7 @@ import '../js_interop.dart'
     show
         getJSName,
         hasAnonymousAnnotation,
-        hasInternalJSInteropAnnotation,
+        hasDartJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
         hasObjectLiteralAnnotation,
@@ -68,11 +68,6 @@ class JsUtilOptimizer extends Transformer {
   final StatefulStaticTypeContext _staticTypeContext;
 
   late InlineExtensionIndex _inlineExtensionIndex;
-
-  static const Set<String> _existingJsAnnotationsUsers = {
-    'dart:_engine',
-    'dart:ui'
-  };
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _callMethodTarget =
@@ -233,17 +228,8 @@ class JsUtilOptimizer extends Transformer {
 
     if (!node.isInlineClassMember &&
         node.enclosingClass == null &&
-        ((hasInternalJSInteropAnnotation(node) ||
-                hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
-            !_existingJsAnnotationsUsers
-                .contains(node.enclosingLibrary.importUri.toString()))) {
-      // Top-level external member. We only lower top-levels if we're using the
-      // `dart:_js_annotations`' `@JS` annotation to avoid a breaking change for
-      // `package:js` users. There are some internal libraries that already use
-      // this library, so we exclude them here.
-      // TODO(srujzs): When they're ready to migrate to sound semantics, we
-      // should remove this exception.
-
+        (hasDartJSInteropAnnotation(node) ||
+            hasDartJSInteropAnnotation(node.enclosingLibrary))) {
       // If the `@JS` value of the node has any '.'s, we take the entries
       // before the last '.' to determine the dotted prefix name.
       var jsName = getJSName(node);
@@ -892,24 +878,24 @@ class InlineExtensionIndex {
   }
 
   bool isJSInteropMember(Procedure node) {
-    if (hasInternalJSInteropAnnotation(node) ||
-        hasInternalJSInteropAnnotation(node.enclosingLibrary) ||
+    if (hasDartJSInteropAnnotation(node) ||
+        hasDartJSInteropAnnotation(node.enclosingLibrary) ||
         (node.enclosingClass != null &&
-            hasInternalJSInteropAnnotation(node.enclosingClass!))) {
+            hasDartJSInteropAnnotation(node.enclosingClass!))) {
       return true;
     }
 
     if (node.isExtensionMember) {
       final annotatable = getExtensionAnnotatable(node.reference);
       if (annotatable != null) {
-        return hasInternalJSInteropAnnotation(annotatable);
+        return hasDartJSInteropAnnotation(annotatable);
       }
     }
 
     if (node.isInlineClassMember) {
       final cls = getInlineClass(node.reference);
       if (cls != null) {
-        return hasInternalJSInteropAnnotation(cls);
+        return hasDartJSInteropAnnotation(cls);
       }
     }
 

@@ -12,7 +12,7 @@ static method main() → void {
 @#C2
 library static_interop /*isNonNullableByDefault*/;
 import self as sta;
-import "package:js/js.dart" as js;
+import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 import "dart:js_util" as js_;
 
@@ -39,14 +39,14 @@ static method setUp() → void {
 
 constants  {
   #C1 = null
-  #C2 = js::JS {name:#C1}
+  #C2 = _js::JS {name:#C1}
   #C3 = "JSClass"
-  #C4 = js::JS {name:#C3}
-  #C5 = js::_StaticInterop {}
+  #C4 = _js::JS {name:#C3}
+  #C5 = _js::_StaticInterop {}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///main_lib.dart:
-- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
+- JS. (from org-dartlang-sdk:///lib/js/_js_annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)

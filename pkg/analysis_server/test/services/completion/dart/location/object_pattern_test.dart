@@ -28,6 +28,176 @@ class ObjectPatternTest2 extends AbstractCompletionDriverTest
 }
 
 mixin ObjectPatternTestCases on AbstractCompletionDriverTest {
+  Future<void>
+      test_declarationContext_pattern_first_withoutGetter_afterColon() async {
+    await computeSuggestions('''
+void f1(A1 x0) {
+  var A1(: ^) = x0; 
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
+  m01
+    kind: methodInvocation
+  m11
+    kind: methodInvocation
+''');
+  }
+
+  Future<void>
+      test_declarationContext_pattern_first_withoutGetter_afterColon_partial() async {
+    await computeSuggestions('''
+void f1(A1 x0) {
+  var A1(: g^) = x0; 
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
+  m01
+    kind: methodInvocation
+  m11
+    kind: methodInvocation
+''');
+    }
+  }
+
+  Future<void>
+      test_matchingContext_pattern_first_withoutGetter_afterColon() async {
+    await computeSuggestions('''
+void f1(Object x0) {
+  switch (x0) {
+    case A1(: ^)
+  }
+}
+class A1 {
+  int f01 = 0;
+  int get g01 => 0;
+}
+''');
+    assertResponse(r'''
+suggestions
+  final
+    kind: keyword
+  var
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_matchingContext_pattern_first_withoutGetter_afterVar() async {
+    await computeSuggestions('''
+void f1(Object x0) {
+  switch (x0) {
+    case A1(: var ^)
+  }
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  f11
+    kind: field
+  g01
+    kind: getter
+  g11
+    kind: getter
+  m01
+    kind: methodInvocation
+  m11
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_pattern_first() async {
     await computeSuggestions('''
 void f1(Object x0) {

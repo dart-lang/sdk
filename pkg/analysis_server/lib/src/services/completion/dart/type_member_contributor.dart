@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:collection/collection.dart';
 
@@ -25,6 +26,25 @@ class TypeMemberContributor extends DartCompletionContributor {
   Future<void> computeSuggestions({
     required OperationPerformanceImpl performance,
   }) async {
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWithoutName) {
+      if (patternLocation.kind ==
+          NamedPatternFieldWithoutNameKind.wantsVariableName) {
+        final objectPattern = patternLocation.objectPattern;
+        var excludedGetters = objectPattern.fields
+            .map((field) => field.name?.name?.lexeme)
+            .whereNotNull()
+            .toSet();
+        _suggestFromType(
+          expression: null,
+          expressionType: objectPattern.type.type,
+          excludedGetters: excludedGetters,
+          includeSetters: false,
+        );
+      }
+      return;
+    }
+
     // Recompute the target because resolution might have changed it.
     var expression = request.target.dotTarget;
     if (expression == null ||

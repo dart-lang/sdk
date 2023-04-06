@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -15,6 +16,23 @@ import 'package:analyzer_plugin/src/utilities/extensions/token.dart';
 import 'package:collection/collection.dart';
 
 typedef SuggestionsFilter = int? Function(DartType dartType, int relevance);
+
+class NamedPatternFieldWithoutName {
+  final ObjectPattern objectPattern;
+  final PatternField field;
+  final NamedPatternFieldWithoutNameKind kind;
+
+  NamedPatternFieldWithoutName({
+    required this.objectPattern,
+    required this.field,
+    required this.kind,
+  });
+}
+
+enum NamedPatternFieldWithoutNameKind {
+  wantsFinalOrVar,
+  wantsVariableName,
+}
 
 /// An [AstVisitor] for determining whether top level suggestions or invocation
 /// suggestions should be made based upon the type of node in which the
@@ -50,6 +68,8 @@ class OpType {
 
   /// Indicates whether variable names should be suggested.
   bool includeVarNameSuggestions = false;
+
+  Object? patternLocation;
 
   /// Indicates whether the completion location is in a field declaration.
   bool inFieldDeclaration = false;
@@ -1157,8 +1177,33 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitPatternField(PatternField node) {
+  void visitPatternField(covariant PatternFieldImpl node) {
     optype.completionLocation = 'PatternField_pattern';
+
+    final parent = node.parent;
+    if (parent is ObjectPattern) {
+      final nameNode = node.name;
+      if (nameNode != null && nameNode.name == null) {
+        final pattern = node.pattern;
+        final patternContext = pattern.patternContext;
+        if (pattern is DeclaredVariablePatternImpl ||
+            patternContext is PatternVariableDeclaration) {
+          optype.patternLocation = NamedPatternFieldWithoutName(
+            objectPattern: parent,
+            field: node,
+            kind: NamedPatternFieldWithoutNameKind.wantsVariableName,
+          );
+        } else {
+          optype.patternLocation = NamedPatternFieldWithoutName(
+            objectPattern: parent,
+            field: node,
+            kind: NamedPatternFieldWithoutNameKind.wantsFinalOrVar,
+          );
+        }
+        return;
+      }
+    }
+
     optype.includeTypeNameSuggestions = true;
     optype.includeReturnValueSuggestions = true;
   }

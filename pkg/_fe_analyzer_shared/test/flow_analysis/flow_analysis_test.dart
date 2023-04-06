@@ -9131,6 +9131,106 @@ main() {
           ]);
         });
       });
+
+      group('Trivial exhaustiveness:', () {
+        // Although flow analysis doesn't attempt to do full exhaustiveness
+        // checking on switch statements, it understands that if any single case
+        // fully covers the matched value type, the switch statement is
+        // exhaustive.  (Such a switch is called "trivially exhaustive").
+        //
+        // Note that we don't test all possible patterns, because the flow
+        // analysis logic for detecting trivial exhaustiveness builds on the
+        // logic for tracking the "unmatched" state, which is tested elsewhere.
+        test('exhaustive', () {
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('exhaustive but a reachable switch case completes', () {
+          // In this case, even though the switch is trivially exhaustive, the
+          // code after the switch is reachable because one of the reachable
+          // switch cases completes normally.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(true),
+              ]),
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+
+        test('exhaustive but an unreachable switch case completes', () {
+          // In this case, even though the `int` case completes normally, that
+          // case is unreachable, so the code after the switch is unreachable.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(false),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('exhaustive but a reachable switch case breaks', () {
+          // In this case, even though the switch is trivially exhaustive, the
+          // code after the switch is reachable because one of the reachable
+          // switch cases ends in a break.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(true),
+                break_(),
+              ]),
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+
+        test('exhaustive but an unreachable switch case breaks', () {
+          // In this case, even though the `int` case breaks, that case is
+          // unreachable, so the code after the switch is unreachable.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(false),
+                break_(),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('not exhaustive', () {
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+      });
     });
 
     group('Variable pattern:', () {

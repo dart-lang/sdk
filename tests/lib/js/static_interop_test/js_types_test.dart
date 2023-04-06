@@ -9,7 +9,7 @@ import 'dart:js_util';
 import 'dart:typed_data';
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
+import 'package:js/js.dart' as js;
 
 @JS()
 external void eval(String code);
@@ -20,8 +20,8 @@ external JSAny any;
 @JS()
 external JSObject obj;
 
-@JS()
-@staticInterop
+@js.JS()
+@js.staticInterop
 class SimpleObject {}
 
 extension SimpleObjectExtension on SimpleObject {

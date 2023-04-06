@@ -834,7 +834,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    _addSuggestions(patternKeywords);
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWithoutName) {
+      if (patternLocation.kind ==
+          NamedPatternFieldWithoutNameKind.wantsFinalOrVar) {
+        _addSuggestions([
+          Keyword.FINAL,
+          Keyword.VAR,
+        ]);
+      }
+    } else {
+      _addSuggestions(patternKeywords);
+    }
     super.visitPatternField(node);
   }
 

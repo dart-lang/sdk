@@ -12,7 +12,7 @@ import 'dart:_interceptors' show JavaScriptObject;
 
 import 'package:js/js.dart';
 
-import '../native_testing.dart';
+import '../native_testing.dart' hide JS;
 import '../native_testing.dart' as native_testing;
 import 'factory_stub_lib.dart';
 
