@@ -79,7 +79,14 @@ worlds:
           eval('''function JSClass() {}''');
         }
       js/lib/js.dart: |
-        export 'dart:_js_annotations' show JS, staticInterop;
+        class JS {
+          final String? name;
+          const JS([this.name]);
+        }
+        class _StaticInterop {
+          const _StaticInterop();
+        }
+        const _StaticInterop staticInterop = _StaticInterop();
       .dart_tool/package_config.json: |
         {
           "configVersion": 2,

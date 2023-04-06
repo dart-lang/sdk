@@ -87,8 +87,7 @@ class WasmTarget extends Target {
 
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('tests/web/wasm') ||
-      importer.isScheme('package') && importer.path == 'js/js.dart';
+      importer.path.contains('tests/web/wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -155,9 +154,9 @@ class WasmTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     Set<Library> transitiveImportingJSInterop = {
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:_js_annotations")),
+          component, Uri.parse("package:js/js.dart")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:js_interop")),
+          component, Uri.parse("dart:_js_annotations"))
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");

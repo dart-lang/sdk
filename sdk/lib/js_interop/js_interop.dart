@@ -21,30 +21,11 @@ library dart.js_interop;
 import 'dart:_js_types' as js_types;
 import 'dart:typed_data';
 
-/// The annotation for JS interop members.
-///
-/// This is meant to signify that a given library, top-level external member, or
-/// inline class is a JS interop declaration.
-///
-/// Specifying [name] customizes the JavaScript name to use. This can be used in
-/// the following scenarios:
-///
-/// - Namespacing all the external top-level members, static members, and
-/// constructors of a library by annotating the library with a custom name.
-/// - Namespacing all the external static members and constructors of an inline
-/// class by annotating the inline class with a custom name.
-/// - Renaming external members by annotating the member with a custom name.
-///
-/// In the case where [name] is not specified, we default to the Dart name for
-/// inline classes and external members.
-///
-/// Note: `package:js` has a `@JS` annotation as well. Unlike that annotation,
-/// this is meant for inline classes, and will result in more type-checking for
-/// external top-level members.
-class JS {
-  final String? name;
-  const JS([this.name]);
-}
+/// Export the `dart:_js_annotations` version of the `@JS` annotation. This is
+/// mostly identical to the `package:js` version, except this is meant to be used
+/// for sound top-level external members and inline classes instead of the
+/// `package:js` classes.
+export 'dart:_js_annotations' show JS;
 
 /// The annotation for object literal constructors.
 ///

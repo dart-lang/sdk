@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' as foreign_helper;
+import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
 import 'dart:js_util';
@@ -15,8 +15,7 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   bool get isUndefined => this == null || typeofEquals(this, 'undefined');
 
   @patch
-  bool get isNull =>
-      this == null || foreign_helper.JS('bool', '# === null', this);
+  bool get isNull => this == null || JS('bool', '# === null', this);
 }
 
 /// [JSExportedDartFunction] <-> [Function]
