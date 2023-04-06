@@ -10,11 +10,6 @@ import 'package:kernel/util/graph.dart' as kernel_graph;
 bool hasJSInteropAnnotation(Annotatable a) =>
     a.annotations.any(_isJSInteropAnnotation);
 
-/// Returns true iff the node has an `@JS(...)` annotation from the internal
-/// `dart:_js_annotations`.
-bool hasJSAnnotationsJSAnnotation(Annotatable a) =>
-    a.annotations.any(_isJSAnnotationsJSAnnotation);
-
 /// Returns true iff the node has an `@JS(...)` annotation from
 /// `dart:js_interop`.
 bool hasDartJSInteropAnnotation(Annotatable a) =>
@@ -112,27 +107,24 @@ final _jsHelper = Uri.parse('dart:_js_helper');
 final _jsInterop = Uri.parse('dart:js_interop');
 
 /// Returns true if [value] is the interop annotation whose class is
-/// [annotationClassName] from [interopLibraries].
+/// [annotationClassName] from `dart:_js_annotations` or `dart:js_interop`.
 ///
-/// If [interopLibraries] is null, we check `dart:_js_annotations` and
+/// If [dartJsInteropOnly] is true, we only check if it's the annotation from
 /// `dart:js_interop`.
 bool _isInteropAnnotation(Expression value, String annotationClassName,
-    {Set<Uri>? interopLibraries}) {
-  interopLibraries ??= {_internalJs, _jsInterop};
+    {bool dartJsInteropOnly = false}) {
   var c = annotationClass(value);
   if (c == null || c.name != annotationClassName) return false;
   var importUri = c.enclosingLibrary.importUri;
-  return interopLibraries.contains(importUri);
+  if (dartJsInteropOnly) return importUri == _jsInterop;
+  return importUri == _internalJs || importUri == _jsInterop;
 }
 
 bool _isJSInteropAnnotation(Expression value) =>
     _isInteropAnnotation(value, 'JS');
 
-bool _isJSAnnotationsJSAnnotation(Expression value) =>
-    _isInteropAnnotation(value, 'JS', interopLibraries: {_internalJs});
-
 bool _isDartJSInteropAnnotation(Expression value) =>
-    _isInteropAnnotation(value, 'JS', interopLibraries: {_jsInterop});
+    _isInteropAnnotation(value, 'JS', dartJsInteropOnly: true);
 
 bool _isAnonymousAnnotation(Expression value) =>
     _isInteropAnnotation(value, '_Anonymous');

@@ -1,16 +1,16 @@
-@dart.js_interop::JS::•()
+@_js_annotations::JS::•()
 library static_interop /*isNonNullableByDefault*/;
 import self as self;
-import "dart:js_interop" as js_;
+import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 
-import "dart:js_interop";
+import "package:js/js.dart";
 
 abstract class A extends core::Object {
   synthetic constructor •() → self::A
     ;
 }
-@js_::JS::•()
+@_js::JS::•()
 inline class B /* declaredRepresentationType = self::A */ {
   get field = self::B|get#field;
   set field = self::B|set#field;
