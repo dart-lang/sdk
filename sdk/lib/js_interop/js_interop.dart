@@ -21,6 +21,10 @@ library dart.js_interop;
 import 'dart:_js_types' as js_types;
 import 'dart:typed_data';
 
+// Allow use of `@staticInterop` classes with JS types as well as export
+// functionality.
+export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
+
 /// The annotation for JS interop members.
 ///
 /// This is meant to signify that a given library, top-level external member, or

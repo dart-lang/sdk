@@ -7649,6 +7649,18 @@ Message _withArgumentsJsInteropDartClassExtendsJSClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    messageJsInteropDartJsInteropAnnotationForStaticInteropOnly;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    const MessageCode("JsInteropDartJsInteropAnnotationForStaticInteropOnly",
+        problemMessage:
+            r"""`dart:js_interop`'s `@JS` annotation can only be used for static interop, either through inline classes or `@staticInterop`.""",
+        correctionMessage:
+            r"""Try making this class an inline class or marking it as `@staticInterop`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
@@ -7841,6 +7853,18 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
     problemMessage: r"""Only JS interop members may be 'external'.""",
     correctionMessage:
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
+    messageJsInteropInlineClassUsedWithWrongJsAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropInlineClassUsedWithWrongJsAnnotation =
+    const MessageCode("JsInteropInlineClassUsedWithWrongJsAnnotation",
+        problemMessage:
+            r"""Inline classes should use `dart:js_interop`'s `@JS` annotation, not `package:js`' `@JS` annotation.""",
+        correctionMessage:
+            r"""Try using `dart:js_interop`'s `@JS` annotation on this inline class instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =
