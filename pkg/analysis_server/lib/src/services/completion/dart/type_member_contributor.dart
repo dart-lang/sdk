@@ -27,21 +27,19 @@ class TypeMemberContributor extends DartCompletionContributor {
     required OperationPerformanceImpl performance,
   }) async {
     final patternLocation = request.opType.patternLocation;
-    if (patternLocation is NamedPatternFieldWithoutName) {
-      if (patternLocation.kind ==
-          NamedPatternFieldWithoutNameKind.wantsVariableName) {
-        final objectPattern = patternLocation.objectPattern;
-        var excludedGetters = objectPattern.fields
-            .map((field) => field.name?.name?.lexeme)
-            .whereNotNull()
-            .toSet();
-        _suggestFromType(
-          expression: null,
-          expressionType: objectPattern.type.type,
-          excludedGetters: excludedGetters,
-          includeSetters: false,
-        );
-      }
+    if (patternLocation is NamedPatternFieldWantsFinalOrVar) {
+      return;
+    } else if (patternLocation is NamedPatternFieldWantsName) {
+      var excludedGetters = patternLocation.existingFields
+          .map((field) => field.name?.name?.lexeme)
+          .whereNotNull()
+          .toSet();
+      _suggestFromType(
+        expression: null,
+        expressionType: patternLocation.matchedType,
+        excludedGetters: excludedGetters,
+        includeSetters: false,
+      );
       return;
     }
 
@@ -99,7 +97,10 @@ class TypeMemberContributor extends DartCompletionContributor {
         includeSetters: includeSetters);
   }
 
-  void _suggestFromRecordType(RecordType type) {
+  void _suggestFromRecordType({
+    required RecordType type,
+    required Set<String> excludedFields,
+  }) {
     type.positionalFields.forEachIndexed((index, field) {
       builder.suggestRecordField(
         field: field,
@@ -108,10 +109,12 @@ class TypeMemberContributor extends DartCompletionContributor {
     });
 
     for (final field in type.namedFields) {
-      builder.suggestRecordField(
-        field: field,
-        name: field.name,
-      );
+      if (!excludedFields.contains(field.name)) {
+        builder.suggestRecordField(
+          field: field,
+          name: field.name,
+        );
+      }
     }
   }
 
@@ -165,7 +168,10 @@ class TypeMemberContributor extends DartCompletionContributor {
             excludedGetters: excludedGetters, includeSetters: includeSetters);
       }
     } else if (type is RecordType) {
-      _suggestFromRecordType(type);
+      _suggestFromRecordType(
+        type: type,
+        excludedFields: excludedGetters,
+      );
       _suggestFromDartCoreObject();
     } else {
       _suggestFromDartCoreObject();
