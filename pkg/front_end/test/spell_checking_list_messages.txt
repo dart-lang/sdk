@@ -36,7 +36,6 @@ dart2js_server
 dart:_internal
 dart:ffi
 dart:js_interop
-dart:js_interop`'s
 dart_runner
 dartbug.com
 dname
@@ -81,7 +80,6 @@ o
 opt
 opts
 outdated
-package:js
 part(s)
 patch(es)
 patterns

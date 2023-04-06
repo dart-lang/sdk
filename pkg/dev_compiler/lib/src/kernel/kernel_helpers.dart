@@ -101,9 +101,8 @@ bool isBuiltinAnnotation(
 ///
 /// For example:
 ///
-/// - `@JS()` would return the "JS" class in "dart:_js_annotations".
-/// - `@anonymous` would return the "_Anonymous" class in
-/// "dart:_js_annotations".
+/// - `@JS()` would return the "JS" class in "package:js".
+/// - `@anonymous` would return the "_Anonymous" class in "package:js".
 ///
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).

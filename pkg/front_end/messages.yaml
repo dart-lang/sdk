@@ -5436,10 +5436,6 @@ JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
-JsInteropDartJsInteropAnnotationForStaticInteropOnly:
-  problemMessage: "`dart:js_interop`'s `@JS` annotation can only be used for static interop, either through inline classes or `@staticInterop`."
-  correctionMessage: "Try making this class an inline class or marking it as `@staticInterop`."
-
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
   correctionMessage: "Try adding the annotation to the enclosing class."
@@ -5485,13 +5481,6 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
-JsInteropInlineClassUsedWithWrongJsAnnotation:
-  problemMessage: "Inline classes should use `dart:js_interop`'s `@JS` annotation, not `package:js`' `@JS` annotation."
-  correctionMessage: "Try using `dart:js_interop`'s `@JS` annotation on this inline class instead."
-
-JsInteropInvalidStaticClassMemberName:
-  problemMessage: "JS interop static class members cannot have '.' in their JS name."
-
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -5515,6 +5504,9 @@ JsInteropNonExternalMember:
 JsInteropOperatorsNotSupported:
   problemMessage: "JS interop classes do not support operator methods."
   correctionMessage: "Try replacing this with a normal method."
+
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."

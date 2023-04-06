@@ -9,12 +9,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         LocatedMessage,
         messageJsInteropAnonymousFactoryPositionalParameters,
-        messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
-        messageJsInteropInlineClassUsedWithWrongJsAnnotation,
         messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
@@ -167,18 +165,6 @@ class JsInteropChecks extends RecursiveVisitor {
   }
 
   @override
-  void visitInlineClass(InlineClass node) {
-    if (hasJSAnnotationsJSAnnotation(node)) {
-      _diagnosticsReporter.report(
-          messageJsInteropInlineClassUsedWithWrongJsAnnotation,
-          node.fileOffset,
-          node.name.length,
-          node.fileUri);
-    }
-    super.visitInlineClass(node);
-  }
-
-  @override
   void visitClass(Class node) {
     _classHasJSAnnotation = hasJSInteropAnnotation(node);
     _classHasAnonymousAnnotation = hasAnonymousAnnotation(node);
@@ -270,14 +256,6 @@ class JsInteropChecks extends RecursiveVisitor {
               node.name.length,
               node.fileUri);
         }
-      }
-      // Can only use `dart:js_interop`'s `@JS` for static interop.
-      if (hasDartJSInteropAnnotation(node)) {
-        _diagnosticsReporter.report(
-            messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
-            node.fileOffset,
-            node.name.length,
-            node.fileUri);
       }
     }
     // Since this is a breaking check, it is language-versioned.

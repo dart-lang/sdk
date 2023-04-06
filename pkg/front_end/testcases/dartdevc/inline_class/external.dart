@@ -6,7 +6,7 @@
 @JS()
 library static_interop;
 
-import 'dart:js_interop';
+import 'package:js/js.dart';
 
 abstract class A {}
 
