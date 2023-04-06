@@ -255,12 +255,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
-  void assertImplicitCallReference(ImplicitCallReference node,
-      Element? expectedElement, String expectedType) {
-    assertElement(node, expectedElement);
-    assertType(node, expectedType);
-  }
-
   /// In valid code [element] must be a [PrefixElement], but for invalid code
   /// like `int.double v;` we want to resolve `int` somehow. Still not type.
   void assertImportPrefix(Expression? identifier, Element? element) {
