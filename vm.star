@@ -349,6 +349,7 @@ _nightly_builder(
     "vm-aot-linux-debug-x64c",
     category = "vm|misc|compressed|al",
     channels = ["try"],
+    properties = slow_shards,
 )
 _nightly_builder(
     "vm-win-debug-x64c",
@@ -361,6 +362,7 @@ _nightly_builder(
     category = "vm|misc|compressed|aw",
     channels = ["try"],
     dimensions = windows,
+    properties = slow_shards,
 )
 _low_priority_builder("vm-fuchsia-release-arm64", category = "vm|misc|f")
 _low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
