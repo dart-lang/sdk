@@ -816,7 +816,6 @@ import 'undefined_referenced_parameter_test.dart'
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'undefined_super_getter_test.dart' as undefined_super_getter;
-import 'undefined_super_method_test.dart' as undefined_super_method;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
 import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
@@ -1411,7 +1410,6 @@ main() {
     undefined_setter.main();
     undefined_shown_name.main();
     undefined_super_getter.main();
-    undefined_super_method.main();
     undefined_super_operator.main();
     undefined_super_setter.main();
     unignorable_ignore.main();

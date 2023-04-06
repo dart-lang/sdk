@@ -282,16 +282,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(typeString(actual!), expected);
   }
 
-  void assertInvokeTypeDynamic(InvocationExpression node) {
-    var actual = node.staticInvokeType;
-    expect(actual, isDynamicType);
-  }
-
-  void assertInvokeTypeNull(BinaryExpression node) {
-    var actual = node.staticInvokeType;
-    expect(actual, isNull);
-  }
-
   void assertMember(
     Object? elementOrNode,
     Element expectedBase,

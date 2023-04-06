@@ -2886,24 +2886,6 @@ main() {
     assertType(aRef, 'int');
   }
 
-  test_invalid_methodInvocation_simpleIdentifier() async {
-    addTestFile(r'''
-int foo = 0;
-main() {
-  foo(1);
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var invocation = findNode.functionExpressionInvocation('foo(1)');
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    assertElement(invocation.function, findElement.topGet('foo'));
-    assertType(invocation.function, 'int');
-  }
-
   @failingTest
   test_invalid_nonTypeAsType_class_constructor() async {
     addTestFile(r'''
@@ -4685,46 +4667,6 @@ void foo(int a, {bool b, double c}) {}
     _assertArgumentToParameter(arguments[2], fooElement.parameters[2]);
   }
 
-  test_methodInvocation_notFunction_field_dynamic() async {
-    addTestFile(r'''
-class C {
-  dynamic f;
-  foo() {
-    f(1);
-  }
-}
-''');
-    await resolveTestFile();
-
-    var invocation = findNode.functionExpressionInvocation('f(1)');
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-    assertElement(invocation.function, findElement.getter('f'));
-
-    List<Expression> arguments = invocation.argumentList.arguments;
-    expect(arguments[0].staticParameterElement, isNull);
-  }
-
-  test_methodInvocation_notFunction_getter_dynamic() async {
-    addTestFile(r'''
-class C {
-  get f => null;
-  foo() {
-    f(1);
-  }
-}
-''');
-    await resolveTestFile();
-
-    var invocation = findNode.functionExpressionInvocation('f(1)');
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-    assertElement(invocation.function, findElement.getter('f'));
-
-    List<Expression> arguments = invocation.argumentList.arguments;
-    expect(arguments[0].staticParameterElement, isNull);
-  }
-
   test_methodInvocation_notFunction_getter_typedef() async {
     addTestFile(r'''
 typedef String Fun(int a, {int b});
@@ -4747,25 +4689,6 @@ class C {
     _assertArgumentToParameter2(arguments[1], 'int');
   }
 
-  test_methodInvocation_notFunction_local_dynamic() async {
-    addTestFile(r'''
-main(f) {
-  f(1);
-}
-''');
-    await resolveTestFile();
-
-    var invocation = findNode.functionExpressionInvocation('f(1)');
-    assertElement(invocation.function, findElement.parameter('f'));
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    List<Expression> arguments = invocation.argumentList.arguments;
-
-    Expression argument = arguments[0];
-    expect(argument.staticParameterElement, isNull);
-  }
-
   test_methodInvocation_notFunction_local_functionTyped() async {
     addTestFile(r'''
 main(String f(int a)) {
@@ -4783,26 +4706,6 @@ main(String f(int a)) {
     List<Expression> arguments = invocation.argumentList.arguments;
     _assertArgumentToParameter(
         arguments[0], (fElement.type as FunctionType).parameters[0]);
-  }
-
-  test_methodInvocation_notFunction_topLevelVariable_dynamic() async {
-    addTestFile(r'''
-dynamic f;
-main() {
-  f(1);
-}
-''');
-    await resolveTestFile();
-
-    var invocation = findNode.functionExpressionInvocation('f(1)');
-    assertElement(invocation.function, findElement.topGet('f'));
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    List<Expression> arguments = invocation.argumentList.arguments;
-
-    Expression argument = arguments[0];
-    expect(argument.staticParameterElement, isNull);
   }
 
   test_methodInvocation_staticMethod() async {

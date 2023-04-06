@@ -35,10 +35,32 @@ f() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 40, 1),
     ]);
-    var binaryExpression = findNode.binary('+ 1');
-    assertElementNull(binaryExpression);
-    assertInvokeTypeNull(binaryExpression);
-    assertTypeDynamic(binaryExpression);
+
+    final node = findNode.binary('+ 1');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    extendedType: String
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: dynamic
+''');
   }
 
   test_index_get_hasGetter() async {
