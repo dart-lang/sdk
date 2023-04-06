@@ -1055,6 +1055,58 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_identifier_topLevelFunction_arguments_duplicateNamed() async {
+    await assertErrorsInCode('''
+final a = 0;
+
+void foo({int? p}) {}
+
+void f() {
+  foo(p: 0, p: a);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1),
+    ]);
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function({int? p})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: p
+            staticElement: self::@function::foo::@parameter::p
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        parameter: self::@function::foo::@parameter::p
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: p
+            staticElement: self::@function::foo::@parameter::p
+            staticType: null
+          colon: :
+        expression: SimpleIdentifier
+          token: a
+          staticElement: self::@getter::a
+          staticType: int
+        parameter: self::@function::foo::@parameter::p
+    rightParenthesis: )
+  staticInvokeType: void Function({int? p})
+  staticType: void
+''');
+  }
+
   test_identifier_topLevelVariable() async {
     await assertErrorsInCode(r'''
 final foo = 0;
@@ -5108,7 +5160,6 @@ MethodInvocation
   staticType: dynamic
 ''');
     }
-    assertTopGetRef('x)', 'x');
   }
 
   test_error_undefinedMethod_hasTarget_class_inSuperclass() async {

@@ -239,22 +239,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(result.errors, isNotEmpty);
   }
 
-  void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
-    var getter = findElement.topGet(name);
-    assertElement(ref, getter);
-
-    var type = typeString(getter.returnType);
-    assertType(ref, type);
-  }
-
-  void assertIdentifierTopSetRef(SimpleIdentifier ref, String name) {
-    var setter = findElement.topSet(name);
-    assertElement(ref, setter);
-
-    var type = typeString(setter.parameters[0].type);
-    assertType(ref, type);
-  }
-
   /// In valid code [element] must be a [PrefixElement], but for invalid code
   /// like `int.double v;` we want to resolve `int` somehow. Still not type.
   void assertImportPrefix(Expression? identifier, Element? element) {
@@ -428,11 +412,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       }),
     );
     expect(actualMapString, expected);
-  }
-
-  void assertTopGetRef(String search, String name) {
-    var ref = findNode.simple(search);
-    assertIdentifierTopGetRef(ref, name);
   }
 
   void assertType(Object? typeOrNode, String? expected) {

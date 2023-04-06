@@ -1346,17 +1346,6 @@ void main(f) {
     _assertNamedTypeSimple(typeArguments[0], typeProvider.stringType);
   }
 
-  test_functionExpressionInvocation_namedArgument() async {
-    addTestFile(r'''
-int a;
-main(f) {
-  (f)(p: a);
-}
-''');
-    await resolveTestFile();
-    assertTopGetRef('a);', 'a');
-  }
-
   test_generic_function_type() async {
     addTestFile('''
 main() {
@@ -2288,32 +2277,6 @@ class A {
     assertType(aRef, 'int');
   }
 
-  test_invalid_constructor_return_blockBody() async {
-    addTestFile(r'''
-int a = 0;
-class C {
-  C() {
-    return a;
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    assertTopGetRef('a;', 'a');
-  }
-
-  test_invalid_constructor_return_expressionBody() async {
-    addTestFile(r'''
-int a = 0;
-class C {
-  C() => a;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    assertTopGetRef('a;', 'a');
-  }
-
   test_invalid_deferred_type_localVariable() async {
     addTestFile(r'''
 import 'dart:async' deferred as a;
@@ -2695,77 +2658,6 @@ main(C c) {
     var aRef = invocation.argumentList.arguments[0];
     assertElement(aRef, findElement.topGet('a'));
     assertType(aRef, 'int');
-  }
-
-  test_invalid_invocation_arguments_named_duplicate2() async {
-    addTestFile(r'''
-void f({p}) {}
-int a, b;
-main() {
-  f(p: a, p: b);
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var f = findElement.function('f');
-
-    var invocation = findNode.methodInvocation('f(p: a');
-    assertElement(invocation.methodName, f);
-    assertType(invocation.methodName, 'void Function({dynamic p})');
-    assertType(invocation, 'void');
-
-    var arg0 = invocation.argumentList.arguments[0] as NamedExpression;
-    assertElement(arg0.name.label, f.parameters[0]);
-    assertIdentifierTopGetRef(arg0.expression as SimpleIdentifier, 'a');
-
-    var arg1 = invocation.argumentList.arguments[1] as NamedExpression;
-    assertElement(arg1.name.label, f.parameters[0]);
-    assertIdentifierTopGetRef(arg1.expression as SimpleIdentifier, 'b');
-  }
-
-  test_invalid_invocation_arguments_named_duplicate3() async {
-    addTestFile(r'''
-void f({p}) {}
-int a, b, c;
-main() {
-  f(p: a, p: b, p: c);
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var f = findElement.function('f');
-
-    var invocation = findNode.methodInvocation('f(p: a');
-    assertElement(invocation.methodName, f);
-    assertType(invocation.methodName, 'void Function({dynamic p})');
-    assertType(invocation, 'void');
-
-    var arg0 = invocation.argumentList.arguments[0] as NamedExpression;
-    assertElement(arg0.name.label, f.parameters[0]);
-    assertIdentifierTopGetRef(arg0.expression as SimpleIdentifier, 'a');
-
-    var arg1 = invocation.argumentList.arguments[1] as NamedExpression;
-    assertElement(arg1.name.label, f.parameters[0]);
-    assertIdentifierTopGetRef(arg1.expression as SimpleIdentifier, 'b');
-
-    var arg2 = invocation.argumentList.arguments[2] as NamedExpression;
-    assertElement(arg2.name.label, f.parameters[0]);
-    assertIdentifierTopGetRef(arg2.expression as SimpleIdentifier, 'c');
-  }
-
-  test_invalid_invocation_arguments_requiredAfterNamed() async {
-    addTestFile(r'''
-var a = 0;
-var b = 0;
-main() {
-  f(p: a, b);
-}
-void f({p}) {}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    assertTopGetRef('a, ', 'a');
-    assertTopGetRef('b);', 'b');
   }
 
   test_invalid_invocation_arguments_static_method() async {

@@ -2280,7 +2280,6 @@ void bar() {
 }
 ''');
 
-    assertIdentifierTopGetRef(findNode.simple('a.'), 'a');
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
