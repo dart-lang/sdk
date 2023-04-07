@@ -42,7 +42,7 @@ class C extends A {
 
 @pragma('vm:never-inline')
 @pragma('vm:testing:print-flow-graph')
-void test(int x, bool z, String foo, int bar, A obj1, A obj2) {
+void testSimple(int x, bool z, String foo, int bar, A obj1, A obj2) {
   final r1 = getRecord1(x, z);
   print(r1.$1);
   print(r1.$2);
@@ -112,7 +112,7 @@ void matchIL$record4(FlowGraph graph) {
   ]);
 }
 
-void matchIL$test(FlowGraph graph) {
+void matchIL$testSimple(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -162,12 +162,60 @@ void matchIL$test(FlowGraph graph) {
   ]);
 }
 
+@pragma('vm:never-inline')
+(int, double) getRecord5() => (1 + int.parse('1'), 2.0 + double.parse('2.0'));
+
+@pragma('vm:never-inline')
+@pragma('vm:testing:print-flow-graph')
+void testUnboxedRecordInTryCatch() {
+  try {
+    final (a, _) = getRecord5();
+    print(a);
+  } catch (e) {
+    print(e);
+  }
+}
+
+void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
+  graph.match([
+    match.block('Graph'),
+    match.block('Function', [
+      match.CheckStackOverflow(),
+      match.Goto('B1'),
+    ]),
+    'B1' <<
+        match.block('Join', [
+          'v1' << match.StaticCall(),
+          'v1_a' << match.ExtractNthOutput('v1', index: 0),
+          'v1_b' << match.ExtractNthOutput('v1', index: 1),
+          'v1_boxed' << match.AllocateSmallRecord('v1_a', 'v1_b'),
+          match.MoveArgument('v1_a'),
+          match.StaticCall(),
+          match.Goto('B3'),
+        ]),
+    'B2' <<
+        match.block('CatchBlock', [
+          'e' << match.SpecialParameter(),
+          'st' << match.SpecialParameter(),
+          match.MoveArgument('e'),
+          match.StaticCall(),
+          match.Goto('B3'),
+        ]),
+    'B3' <<
+        match.block('Join', [
+          match.Return(),
+        ]),
+  ]);
+}
+
 void main(List<String> args) {
   // Make sure all parameters are non-constant
   // and obj1 has a known type for devirtualization.
   final intValue = args.length > 50 ? 1 << 53 : 42;
   final doubleValue = args.length > 50 ? 42.5 : 24.5;
 
-  test(intValue, intValue == 4, 'foo' + intValue.toString(), intValue,
+  testSimple(intValue, intValue == 4, 'foo' + intValue.toString(), intValue,
       B(intValue, doubleValue), intValue == 42 ? B(1, 2) : C());
+
+  testUnboxedRecordInTryCatch();
 }

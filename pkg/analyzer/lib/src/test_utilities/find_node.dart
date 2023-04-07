@@ -24,6 +24,8 @@ class FindNode {
     return result;
   }
 
+  Annotation get singleAnnotation => _single();
+
   Block get singleBlock => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
