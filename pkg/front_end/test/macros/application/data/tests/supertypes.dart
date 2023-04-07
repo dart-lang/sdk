@@ -21,7 +21,7 @@ augment prefix0.String getSuperClass() {
     return "A";
   }
 }
-augment class M {
+augment abstract class M {
 augment prefix0.String getSuperClass() {
     return "null";
   }

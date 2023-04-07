@@ -68,7 +68,7 @@ class Class5a extends core::Object {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-7 */ method() → dynamic {}
 }
 @#C2
-class Class6d extends core::Object implements self::Class6c, self::Class6b {
+abstract class Class6d extends core::Object implements self::Class6c, self::Class6b {
   synthetic constructor •() → self::Class6d
     : super core::Object::•()
     ;
@@ -82,7 +82,7 @@ class Class6c extends core::Object {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-10 */ method() → dynamic {}
 }
 @#C2
-class Class6b extends core::Object implements self::Class6a {
+abstract class Class6b extends core::Object implements self::Class6a {
   synthetic constructor •() → self::Class6b
     : super core::Object::•()
     ;
@@ -110,7 +110,7 @@ class Class7d extends self::_Class7d&Class7b&Class7c {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-17 */ method2() → dynamic {}
 }
 @#C2
-class Class7c extends core::Object /*isMixinDeclaration*/  {
+abstract class Class7c extends core::Object /*isMixinDeclaration*/  {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-16 */ method() → dynamic {}
 }
 abstract class _Class7b&Object&Class7a = core::Object with self::Class7a /*isAnonymousMixin,hasConstConstructor*/  {
@@ -128,7 +128,7 @@ class Class7b extends self::_Class7b&Object&Class7a {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-15 */ method1() → dynamic {}
 }
 @#C2
-class Class7a extends core::Object /*isMixinDeclaration*/  {
+abstract class Class7a extends core::Object /*isMixinDeclaration*/  {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-14 */ method() → dynamic {}
 }
 

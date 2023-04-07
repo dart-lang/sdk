@@ -130,7 +130,7 @@ class Class5a {}
 /*class: Class6d:
 declarations:
 
-augment class Class6d {
+augment abstract class Class6d {
   method2() {}
 }
 */
@@ -150,7 +150,7 @@ class Class6c {}
 /*class: Class6b:
 declarations:
 
-augment class Class6b {
+augment abstract class Class6b {
   method1() {}
 }
 */
@@ -176,11 +176,12 @@ augment class Class7d {
 @SequenceMacro(0)
 class Class7d extends Class7b with Class7c {}
 
+// TODO: we should produce a mixin declaration
 @SequenceMacro(0)
 /*class: Class7c:
 declarations:
 
-augment class Class7c {
+augment abstract class Class7c {
   method() {}
 }
 */
@@ -196,11 +197,12 @@ augment class Class7b {
 */
 class Class7b with Class7a {}
 
+// TODO: we should produce a mixin declaration
 @SequenceMacro(0)
 /*class: Class7a:
 declarations:
 
-augment class Class7a {
+augment abstract class Class7a {
   method() {}
 }
 */

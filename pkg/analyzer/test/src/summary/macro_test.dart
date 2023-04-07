@@ -872,7 +872,7 @@ macro class MyMacro implements ClassDeclarationsMacro {
   const MyMacro();
 
   buildDeclarationsForClass(clazz, builder) async {
-    builder.declareInClass(
+    builder.declareInType(
       DeclarationCode.fromString('A.named(int a);'),
     );
   }
@@ -924,7 +924,7 @@ macro class MyMacro implements ClassDeclarationsMacro {
   const MyMacro();
 
   buildDeclarationsForClass(clazz, builder) async {
-    builder.declareInClass(
+    builder.declareInType(
       DeclarationCode.fromString('int foo = 0;'),
     );
   }
@@ -984,7 +984,7 @@ macro class MyMacro implements ClassDeclarationsMacro {
   const MyMacro();
 
   buildDeclarationsForClass(clazz, builder) async {
-    builder.declareInClass(
+    builder.declareInType(
       DeclarationCode.fromString('int get foo => 0;'),
     );
   }
@@ -1038,7 +1038,7 @@ macro class MyMacro implements ClassDeclarationsMacro {
   const MyMacro();
 
   buildDeclarationsForClass(clazz, builder) async {
-    builder.declareInClass(
+    builder.declareInType(
       DeclarationCode.fromString('int foo(double a) => 0;'),
     );
   }
@@ -1092,7 +1092,7 @@ macro class MyMacro implements ClassDeclarationsMacro {
   const MyMacro();
 
   buildDeclarationsForClass(clazz, builder) async {
-    builder.declareInClass(
+    builder.declareInType(
       DeclarationCode.fromString('set foo(int a) {}'),
     );
   }

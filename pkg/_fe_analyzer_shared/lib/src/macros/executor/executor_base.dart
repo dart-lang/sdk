@@ -249,6 +249,24 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               response.serialize(serializer);
               sendResult(serializer);
               break;
+            case MessageType.valuesOfRequest:
+              InterfaceIntrospectionRequest request =
+                  new InterfaceIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              TypeIntrospector typeIntrospector =
+                  request.typeIntrospector.instance as TypeIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.declarationList,
+                  response: new DeclarationList((await typeIntrospector
+                          .valuesOf(request.type as IntrospectableEnum))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      .cast<EnumValueDeclarationImpl>()),
+                  serializationZoneId: zoneId);
+              Serializer serializer = serializerFactory();
+              response.serialize(serializer);
+              sendResult(serializer);
+              break;
             default:
               throw new StateError('Unexpected message type $messageType');
           }
@@ -261,6 +279,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   @override
   String buildAugmentationLibrary(
           Iterable<MacroExecutionResult> macroResults,
+          TypeDeclaration Function(Identifier) resolveDeclaration,
           ResolvedIdentifier Function(Identifier) resolveIdentifier,
           TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
           {Map<OmittedTypeAnnotation, String>? omittedTypes}) =>

@@ -129,7 +129,7 @@ class DeclarationBuilderFromElement {
       isFinal: element.isFinal,
       isLate: element.isLate,
       type: _dartType(element.type),
-      definingClass: identifier(enclosingClass),
+      definingType: identifier(enclosingClass),
       isStatic: element.isStatic,
     );
   }
@@ -329,7 +329,7 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
     required super.isFinal,
     required super.isLate,
     required super.type,
-    required super.definingClass,
+    required super.definingType,
     required super.isStatic,
   });
 }
