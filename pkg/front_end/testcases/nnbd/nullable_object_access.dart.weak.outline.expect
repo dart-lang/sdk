@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-abstract class CustomType extends core::Type {
+abstract class CustomType extends core::Object implements core::Type {
   synthetic constructor •() → self::CustomType
     ;
   method call() → void

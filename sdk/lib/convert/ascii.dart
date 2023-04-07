@@ -112,7 +112,7 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 /// final asciiValues = asciiEncoder.convert(sample);
 /// print(asciiValues); // [68, 97, 114, 116]
 /// ```
-class AsciiEncoder extends _UnicodeSubsetEncoder {
+final class AsciiEncoder extends _UnicodeSubsetEncoder {
   const AsciiEncoder() : super(_asciiMask);
 }
 
@@ -226,7 +226,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// print(result); // Dart �
 /// print(result.codeUnits.last.toRadixString(16)); // fffd
 /// ```
-class AsciiDecoder extends _UnicodeSubsetDecoder {
+final class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid = false})
       : super(allowInvalid, _asciiMask);
 

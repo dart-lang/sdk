@@ -7,7 +7,7 @@ abstract class Class {
 
 abstract class CustomInvocation implements Invocation {}
 
-abstract class CustomType extends Type {
+abstract class CustomType implements Type {
   void call() {}
 }
 

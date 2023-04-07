@@ -762,7 +762,7 @@ abstract final class String implements Comparable<String>, Pattern {
 /// https://dart.dev/guides/language/language-tour#runes-and-grapheme-clusters)
 /// in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
-class Runes extends Iterable<int> {
+final class Runes extends Iterable<int> {
   /// The string that this is the runes of.
   final String string;
 
@@ -799,7 +799,7 @@ int _combineSurrogatePair(int start, int end) {
 }
 
 /// [Iterator] for reading runes (integer Unicode code points) of a Dart string.
-class RuneIterator implements Iterator<int> {
+final class RuneIterator implements Iterator<int> {
   /// String being iterated.
   final String string;
 
