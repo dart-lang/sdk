@@ -46,6 +46,8 @@ class FindNode {
 
   MethodDeclaration get singleMethodDeclaration => _single();
 
+  MethodInvocation get singleMethodInvocation => _single();
+
   PatternAssignment get singlePatternAssignment => _single();
 
   PatternVariableDeclaration get singlePatternVariableDeclaration => _single();

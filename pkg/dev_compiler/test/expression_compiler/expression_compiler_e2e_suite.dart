@@ -4,7 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Directory, File, Platform;
+import 'dart:io' show Directory, File, Platform, FileSystemException;
+import 'dart:math';
 
 import 'package:browser_launcher/browser_launcher.dart' as browser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
@@ -455,9 +456,20 @@ class TestDriver {
 
   Future<void> finish() async {
     await chrome.close();
-    // Chrome takes a while to free its claim on chromeDir, so wait a bit.
-    await Future.delayed(Duration(milliseconds: 500));
-    chromeDir.deleteSync(recursive: true);
+    // Attempt to clean up the temporary directory.
+    // On windows sometimes the process has not released the directory yet so
+    // retry with an exponential backoff.
+    var deleteAttempts = 0;
+    while (await chromeDir.exists()) {
+      deleteAttempts++;
+      try {
+        await chromeDir.delete(recursive: true);
+      } on FileSystemException {
+        if (deleteAttempts > 3) rethrow;
+        var delayMs = pow(10, deleteAttempts).floor();
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+    }
   }
 
   Future<void> cleanupTest() async {

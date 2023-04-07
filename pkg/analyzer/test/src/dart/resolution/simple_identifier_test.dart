@@ -35,6 +35,89 @@ enum E<T> {
     );
   }
 
+  test_expression_topLevelVariable() async {
+    await assertNoErrorsInCode('''
+final a = 0;
+
+void f() {
+  a;
+}
+''');
+
+    final node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
+  test_expression_topLevelVariable_constructor_returnBody() async {
+    await assertErrorsInCode('''
+final a = 0;
+
+class C {
+  C() {
+    return a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1),
+    ]);
+
+    final node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
+  test_expression_topLevelVariable_constructor_returnExpression() async {
+    await assertErrorsInCode('''
+final a = 0;
+
+class C {
+  C() => a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
+      error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
+    ]);
+
+    final node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
+  test_expression_topLevelVariable_invocationArgument_afterNamed() async {
+    await assertNoErrorsInCode('''
+final a = 0;
+
+void foo(int a, {int? b}) {}
+
+void f() {
+  foo(b: 0, a);
+}
+''');
+
+    final node = findNode.simple('a);');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  parameter: self::@function::foo::@parameter::a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
   test_functionReference() async {
     noSoundNullSafety = false;
     await assertErrorsInCode('''

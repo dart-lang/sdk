@@ -929,6 +929,246 @@ MethodInvocation
 ''');
   }
 
+  test_identifier_class_field() async {
+    await assertErrorsInCode(r'''
+class A {
+  final foo = 0;
+
+  void f() {
+    foo(0);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 45, 3),
+    ]);
+
+    final node = findNode.functionExpressionInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_identifier_class_field_dynamic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  dynamic foo;
+
+  void f() {
+    foo(0);
+  }
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_identifier_class_getter_dynamic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  dynamic get foo => null;
+
+  void f() {
+    foo(0);
+  }
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_identifier_formalParameter_dynamic() async {
+    await assertNoErrorsInCode(r'''
+void f(foo) {
+  foo(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::f::@parameter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_identifier_topLevelFunction_arguments_duplicateNamed() async {
+    await assertErrorsInCode('''
+final a = 0;
+
+void foo({int? p}) {}
+
+void f() {
+  foo(p: 0, p: a);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1),
+    ]);
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@function::foo
+    staticType: void Function({int? p})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: p
+            staticElement: self::@function::foo::@parameter::p
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        parameter: self::@function::foo::@parameter::p
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: p
+            staticElement: self::@function::foo::@parameter::p
+            staticType: null
+          colon: :
+        expression: SimpleIdentifier
+          token: a
+          staticElement: self::@getter::a
+          staticType: int
+        parameter: self::@function::foo::@parameter::p
+    rightParenthesis: )
+  staticInvokeType: void Function({int? p})
+  staticType: void
+''');
+  }
+
+  test_identifier_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+final foo = 0;
+
+void f() {
+  foo(0);
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 29, 3),
+    ]);
+
+    final node = findNode.functionExpressionInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_identifier_topLevelVariable_dynamic() async {
+    await assertNoErrorsInCode(r'''
+dynamic foo;
+
+void f() {
+  foo(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_namedArgument_anywhere() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -1185,6 +1425,75 @@ void f() {
 
     var element = findNode.simple('a:').staticElement!;
     expect(element.source, isNull);
+  }
+
+  test_superQualifier_identifier_methodOfMixin_inEnum() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  void f() {
+    super.foo();
+  }
+}
+''');
+
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: E
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@mixin::M::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_superQualifier_identifier_unresolved_inEnum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void f() {
+    super.foo(0);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3),
+    ]);
+
+    var node = findNode.methodInvocation('foo(0);');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: E
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_dynamic() async {
@@ -4851,7 +5160,6 @@ MethodInvocation
   staticType: dynamic
 ''');
     }
-    assertTopGetRef('x)', 'x');
   }
 
   test_error_undefinedMethod_hasTarget_class_inSuperclass() async {
@@ -5358,67 +5666,6 @@ main() {
         error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
       ]),
     );
-  }
-
-  test_error_undefinedSuperMethod() async {
-    await assertErrorsInCode(r'''
-class A {}
-
-class B extends A {
-  void foo(int _) {
-    super.foo(0);
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3),
-    ]);
-
-    var node = findNode.methodInvocation('foo(0);');
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
-MethodInvocation
-  target: SuperExpression
-    superKeyword: super
-    staticType: B
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    staticElement: <null>
-    staticType: dynamic
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        parameter: <null>
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
-MethodInvocation
-  target: SuperExpression
-    superKeyword: super
-    staticType: B*
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    staticElement: <null>
-    staticType: dynamic
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        parameter: <null>
-        staticType: int*
-    rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
-''');
-    }
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {
@@ -9207,6 +9454,128 @@ MethodInvocation
   staticType: num*
   typeArgumentTypes
     num*
+''');
+    }
+  }
+
+  test_superQualifier_identifier_unresolved_inClass() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B extends A {
+  void foo(int _) {
+    super.foo(0);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3),
+    ]);
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    }
+  }
+
+  test_superQualifier_identifier_unresolved_inMixin() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+mixin M on A {
+  void bar() {
+    super.foo(0);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3),
+    ]);
+
+    var node = findNode.methodInvocation('foo(0);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
 ''');
     }
   }

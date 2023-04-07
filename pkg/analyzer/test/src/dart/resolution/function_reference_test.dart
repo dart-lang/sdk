@@ -1156,8 +1156,37 @@ foo() {
 }
 ''');
 
-    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
-        findElement.method('call'), 'int Function(int)');
+    final node = findNode.implicitCallReference('C()<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+      staticElement: self::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_implicitCallTearoff_class_staticGetter() async {
@@ -1217,10 +1246,35 @@ void foo() {
 
 ''');
 
-    assertImplicitCallReference(
-        findNode.implicitCallReference('v<int, String>;'),
-        findElement.method('call'),
-        'void Function(int, String)');
+    final node = findNode.implicitCallReference('v<int, String>;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: v
+    staticElement: self::@getter::v
+    staticType: Object?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+      NamedType
+        name: SimpleIdentifier
+          token: String
+          staticElement: dart:core::@class::String
+          staticType: null
+        type: String
+    rightBracket: >
+  staticElement: self::@extension::E::@method::call
+  staticType: void Function(int, String)
+  typeArgumentTypes
+    int
+    String
+''');
   }
 
   test_implicitCallTearoff_prefix_class_staticGetter() async {
@@ -1294,12 +1348,36 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertImplicitCallReference(
-        findNode.implicitCallReference('c<int>;'),
-        findElement.importFind('package:test/a.dart').method('call'),
-        'int Function(int)');
+    final node = findNode.implicitCallReference('c<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: c
+      staticElement: package:test/a.dart::@getter::c
+      staticType: C
+    staticElement: package:test/a.dart::@getter::c
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticElement: package:test/a.dart::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_implicitCallTearoff_tooFewTypeArguments() async {
@@ -1316,8 +1394,38 @@ foo() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 57, 5),
     ]);
 
-    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
-        findElement.method('call'), 'void Function(dynamic, dynamic)');
+    final node = findNode.implicitCallReference('C()<int>;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+      staticElement: self::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(dynamic, dynamic)
+  typeArgumentTypes
+    dynamic
+    dynamic
+''');
   }
 
   test_implicitCallTearoff_tooManyTypeArguments() async {
@@ -1334,8 +1442,35 @@ foo() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 50, 5),
     ]);
 
-    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
-        findElement.method('call'), 'int Function(int)');
+    final node = findNode.implicitCallReference('C()<int>;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+      staticElement: self::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: int Function(int)
+''');
   }
 
   test_instanceGetter_explicitReceiver() async {
@@ -2145,7 +2280,6 @@ void bar() {
 }
 ''');
 
-    assertIdentifierTopGetRef(findNode.simple('a.'), 'a');
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -4236,8 +4370,18 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(findNode.implicitCallReference('c;'),
-        findElement.method('call'), 'void Function(int)');
+    final node = findNode.implicitCallReference('c;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_indexExpression() async {

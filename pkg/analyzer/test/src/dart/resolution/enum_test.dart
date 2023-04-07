@@ -406,27 +406,48 @@ enum E<T> {
 }
 ''');
 
-    assertNamedType(
-      findNode.namedType('T t'),
-      findElement.typeParameter('T'),
-      'T',
-    );
-
-    assertNamedType(
-      findNode.namedType('U u'),
-      findElement.typeParameter('U'),
-      'U',
-    );
-
-    assertSimpleFormalParameter(
-      findNode.simpleFormalParameter('T t'),
-      element: findElement.parameter('t'),
-    );
-
-    assertSimpleFormalParameter(
-      findNode.simpleFormalParameter('U u'),
-      element: findElement.parameter('u'),
-    );
+    final node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+          staticElement: T@7
+          staticType: null
+        type: T
+      name: t
+      declaredElement: self::@enum::E::@method::foo::@parameter::t
+        type: T
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: U
+          staticElement: U@27
+          staticType: null
+        type: U
+      name: u
+      declaredElement: self::@enum::E::@method::foo::@parameter::u
+        type: U
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredElement: self::@enum::E::@method::foo
+    type: int Function<U>(T, U)
+''');
   }
 
   test_method_toString() async {
