@@ -161,7 +161,6 @@ InstanceCreationExpression
     rightParenthesis: )
   staticType: A<int>
 ''');
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_generic_unnamed_inferTypeArguments() async {
@@ -241,7 +240,6 @@ InstanceCreationExpression
     rightParenthesis: )
   staticType: A<int>
 ''');
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_notGeneric() async {

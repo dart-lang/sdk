@@ -415,6 +415,66 @@ BinaryExpression
   staticType: int
 ''');
   }
+
+  test_superQualifier_plus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator +(int other) => 0;
+}
+
+class B extends A {
+  int operator +(int other) => 0;
+
+  void f() {
+    super + 0;
+  }
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_thisExpression_plus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator +(int other) => 0;
+
+  void f() {
+    this + 0;
+  }
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
 }
 
 mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {

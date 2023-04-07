@@ -206,6 +206,48 @@ SimpleIdentifier
 ''');
   }
 
+  test_importPrefix_deferred_topLevelVariable_simple() async {
+    newFile('$testPackageLibPath/a.dart', '''
+var v = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' deferred as prefix;
+
+void f() {
+  prefix.v = 0;
+}
+''');
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: v
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: package:test/a.dart::@setter::v::@parameter::_v
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/a.dart::@setter::v
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_indexExpression_cascade_compound() async {
     await assertNoErrorsInCode(r'''
 class A {
