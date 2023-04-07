@@ -297,6 +297,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    _addParametersForArguments(node.argumentList);
+    super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
