@@ -39,6 +39,178 @@ int Function() foo() {
     assertType(identifier, 'A?');
   }
 
+  test_inClass_superQualifier_identifier_getter() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  int get foo => 0;
+
+  void f() {
+    super.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inClass_superQualifier_identifier_method() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo(int _) {}
+}
+
+class B extends A {
+  void foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  staticType: void Function(int)
+''');
+  }
+
+  test_inClass_superQualifier_identifier_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3),
+    ]);
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_inClass_thisExpression_identifier_getter() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inClass_thisExpression_identifier_method() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo(int _) {}
+
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  staticType: void Function(int)
+''');
+  }
+
+  test_inClass_thisExpression_identifier_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3),
+    ]);
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_nullShorting_cascade() async {
     await assertNoErrorsInCode(r'''
 class A {

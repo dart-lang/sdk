@@ -453,29 +453,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  /// TODO(scheglov) Remove [disableElementCheck]
-  void assertUnresolvedPropertyAccess(
-    PropertyAccess node, {
-    bool disableElementCheck = false,
-  }) {
-    if (!disableElementCheck) {
-      assertElementNull(node);
-    }
-    assertTypeNull(node);
-    assertUnresolvedSimpleIdentifier(node.propertyName);
-  }
-
-  /// TODO(scheglov) Remove [disableElementCheck]
-  void assertUnresolvedSimpleIdentifier(
-    SimpleIdentifier node, {
-    bool disableElementCheck = false,
-  }) {
-    if (!disableElementCheck) {
-      assertElementNull(node);
-    }
-    assertTypeNull(node);
-  }
-
   /// TODO(scheglov) Remove `?` from [declaration].
   Matcher elementMatcher(
     Element? declaration, {

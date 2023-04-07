@@ -176,6 +176,188 @@ int Function() foo() {
     assertType(identifier, 'A?');
   }
 
+  test_importPrefix_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.A;
+}
+''');
+
+    final node = findNode.prefixed('prefix.');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@class::A
+    staticType: Type
+  staticElement: package:test/a.dart::@class::A
+  staticType: Type
+''');
+  }
+
+  test_importPrefix_functionTypeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef void F();
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.F;
+}
+''');
+
+    final node = findNode.prefixed('prefix.');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: Type
+  staticElement: package:test/a.dart::@typeAlias::F
+  staticType: Type
+''');
+  }
+
+  test_importPrefix_topLevelFunction() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.foo;
+}
+''');
+
+    final node = findNode.prefixed('prefix.');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@function::foo
+    staticType: void Function()
+  staticElement: package:test/a.dart::@function::foo
+  staticType: void Function()
+''');
+  }
+
+  test_importPrefix_topLevelGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.foo;
+}
+''');
+
+    final node = findNode.prefixed('prefix.');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@getter::foo
+    staticType: int
+  staticElement: package:test/a.dart::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_importPrefix_topLevelSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int _) {}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 48, 3),
+    ]);
+
+    final node = findNode.prefixed('prefix.');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_importPrefix_topLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final foo = 0;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.foo;
+}
+''');
+
+    final node = findNode.prefixed('prefix.');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: prefix
+    staticElement: self::@prefix::prefix
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: package:test/a.dart::@getter::foo
+    staticType: int
+  staticElement: package:test/a.dart::@getter::foo
+  staticType: int
+''');
+  }
+
   test_read_typedef_interfaceType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef A = List<int>;
