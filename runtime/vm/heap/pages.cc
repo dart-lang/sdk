@@ -17,6 +17,7 @@
 #include "vm/object.h"
 #include "vm/object_set.h"
 #include "vm/os_thread.h"
+#include "vm/unwinding_records.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -198,15 +199,20 @@ Page* PageSpace::AllocatePage(Page::PageType type, bool link) {
   }
 
   page->set_object_end(page->memory_->end());
-  if ((type != Page::kExecutable) && (heap_ != nullptr) &&
-      (!heap_->is_vm_isolate())) {
+  if (!is_exec && (heap_ != nullptr) && !heap_->is_vm_isolate()) {
     page->AllocateForwardingPage();
+  }
+
+  if (is_exec && !page->is_image_page()) {
+    UnwindingRecords::RegisterExecutablePage(page);
   }
   return page;
 }
 
 Page* PageSpace::AllocateLargePage(intptr_t size, Page::PageType type) {
-  const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  const bool is_exec = (type == Page::kExecutable);
+  const intptr_t page_size_in_words = LargePageSizeInWordsFor(
+      size + (is_exec ? UnwindingRecords::SizeInBytes() : 0));
   {
     MutexLocker ml(&pages_lock_);
     if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {
@@ -214,7 +220,6 @@ Page* PageSpace::AllocateLargePage(intptr_t size, Page::PageType type) {
     }
     IncreaseCapacityInWordsLocked(page_size_in_words);
   }
-  const bool is_exec = (type == Page::kExecutable);
   Page* page = Page::Allocate(page_size_in_words << kWordSizeLog2, type,
                               /*can_use_cache*/ false);
 
@@ -234,6 +239,10 @@ Page* PageSpace::AllocateLargePage(intptr_t size, Page::PageType type) {
     AddLargePageLocked(page);
   }
 
+  if (is_exec) {
+    UnwindingRecords::RegisterExecutablePage(page);
+  }
+
   // Only one object in this page (at least until Array::MakeFixedLength
   // is called).
   page->set_object_end(page->object_start() + size);
@@ -245,6 +254,7 @@ void PageSpace::TruncateLargePage(Page* page,
   const intptr_t old_object_size_in_bytes =
       page->object_end() - page->object_start();
   ASSERT(new_object_size_in_bytes <= old_object_size_in_bytes);
+  ASSERT(page->type() != Page::kExecutable);
   const intptr_t new_page_size_in_words =
       LargePageSizeInWordsFor(new_object_size_in_bytes);
   VirtualMemory* memory = page->memory_;
@@ -267,6 +277,9 @@ void PageSpace::FreePage(Page* page, Page* previous_page) {
       RemovePageLocked(page, previous_page);
     }
   }
+  if (is_exec && !page->is_image_page()) {
+    UnwindingRecords::UnregisterExecutablePage(page);
+  }
   page->Deallocate(/*can_use_cache*/ !is_exec);
 }
 
@@ -282,6 +295,9 @@ void PageSpace::FreePages(Page* pages, bool can_use_cache) {
   Page* page = pages;
   while (page != nullptr) {
     Page* next = page->next();
+    if (page->type() == Page::kExecutable && !page->is_image_page()) {
+      UnwindingRecords::UnregisterExecutablePage(page);
+    }
     page->Deallocate(can_use_cache);
     page = next;
   }
