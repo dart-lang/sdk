@@ -16,6 +16,7 @@
 #include "bin/builtin.h"
 #include "bin/reference_counting.h"
 #include "bin/thread.h"
+#include "bin/socket_base.h"
 
 namespace dart {
 namespace bin {
@@ -387,6 +388,7 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
   explicit ListenSocket(intptr_t s)
       : DescriptorInfoMultipleMixin(s, true),
         AcceptEx_(NULL),
+        GetAcceptExSockaddrs_(NULL),
         pending_accept_count_(0),
         accepted_head_(NULL),
         accepted_tail_(NULL),
@@ -419,7 +421,11 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  private:
   bool LoadAcceptEx();
 
+  bool LoadGetAcceptExSockaddrs();
+
   LPFN_ACCEPTEX AcceptEx_;
+
+  LPFN_GETACCEPTEXSOCKADDRS GetAcceptExSockaddrs_;
 
   // The number of asynchronous `IssueAccept` operations which haven't completed
   // yet.
@@ -440,12 +446,13 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(intptr_t s)
+  explicit ClientSocket(intptr_t s, RawAddr* premote_addr = NULL)
       : DescriptorInfoSingleMixin(s, true),
         DisconnectEx_(NULL),
         next_(NULL),
         connected_(false),
-        closed_(false) {
+        closed_(false),
+        premote_addr_(premote_addr) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -456,6 +463,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
     ASSERT(closed_ == true);
+    delete premote_addr_;
   }
 
   void Shutdown(int how);
@@ -480,6 +488,8 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
 
   void mark_closed() { closed_ = true; }
 
+  RawAddr* const get_remote_addr() const { return premote_addr_;}
+
 #if defined(DEBUG)
   static intptr_t disconnecting() { return disconnecting_; }
 #endif
@@ -491,6 +501,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   ClientSocket* next_;
   bool connected_;
   bool closed_;
+  RawAddr* premote_addr_;
 
 #if defined(DEBUG)
   static intptr_t disconnecting_;

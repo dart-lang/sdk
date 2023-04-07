@@ -455,6 +455,16 @@ bool ListenSocket::LoadAcceptEx() {
   return (status != SOCKET_ERROR);
 }
 
+bool ListenSocket::LoadGetAcceptExSockaddrs() {
+  // Load the LoadGetAcceptExSockaddrs function into memory using WSAIoctl.
+  GUID guid_load_accept_ex_sockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
+  DWORD bytes;
+  int status = WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+                        &guid_load_accept_ex_sockaddrs, sizeof(guid_load_accept_ex_sockaddrs), &GetAcceptExSockaddrs_,
+                        sizeof(GetAcceptExSockaddrs_), &bytes, NULL, NULL);
+  return (status != SOCKET_ERROR);
+}
+
 bool ListenSocket::IssueAccept() {
   MonitorLocker ml(&monitor_);
 
@@ -498,8 +508,21 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
     int rc = setsockopt(buffer->client(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
+      LPSOCKADDR local_addr = 0;
+      int local_addr_length = 0;
+      LPSOCKADDR remote_addr = 0;
+      int remote_addr_length = 0;
+      static const int kAcceptExAddressAdditionalBytes = 16;
+      static const int kAcceptExAddressStorageSize =
+          sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
+      GetAcceptExSockaddrs_(buffer->GetBufferStart(), 0, kAcceptExAddressStorageSize,
+          kAcceptExAddressStorageSize, &local_addr, &local_addr_length,
+          &remote_addr, &remote_addr_length);
+      RawAddr* remote_addr_ = new RawAddr;
+      memcpy(remote_addr_, remote_addr, remote_addr_length);
+
       // Insert the accepted socket into the list.
-      ClientSocket* client_socket = new ClientSocket(buffer->client());
+      ClientSocket* client_socket = new ClientSocket(buffer->client(), remote_addr_);
       client_socket->mark_connected();
       client_socket->CreateCompletionPort(completion_port);
       if (accepted_head_ == NULL) {
@@ -559,6 +582,7 @@ void ListenSocket::DoClose() {
   // before EnsureInitialized was called, we have to reset the AcceptEx_
   // function pointer.
   AcceptEx_ = NULL;
+  GetAcceptExSockaddrs_ = NULL;
 }
 
 bool ListenSocket::CanAccept() {
@@ -602,6 +626,9 @@ void ListenSocket::EnsureInitialized(
     event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
     LoadAcceptEx();
+  }
+  if (GetAcceptExSockaddrs_ == NULL) {
+    LoadGetAcceptExSockaddrs();
   }
 }
 

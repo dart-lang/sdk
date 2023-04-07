@@ -181,10 +181,16 @@ intptr_t SocketBase::GetPort(intptr_t fd) {
 SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
-  RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
-    return NULL;
+  RawAddr raw{};
+  RawAddr* praw;
+  if(socket_handle->is_client_socket() &&
+     (praw = reinterpret_cast<ClientSocket*>(fd)->get_remote_addr())) {
+    memcpy(&raw, praw, SocketAddress::GetAddrLength(*praw));    
+  } else {
+    socklen_t size = sizeof(raw);
+    if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
+      return NULL;
+    }
   }
   *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString
