@@ -19,16 +19,21 @@ class MixinDeclarationResolutionTest extends PubPackageResolutionTest {
   test_classDeclaration_with() async {
     await assertNoErrorsInCode(r'''
 mixin M {}
-class A extends Object with M {} // A
+class A extends Object with M {}
 ''');
 
-    var mElement = findElement.mixin('M');
-
-    var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, ['M']);
-
-    var mRef = findNode.namedType('M {} // A');
-    assertNamedType(mRef, mElement, 'M');
+    final node = findNode.singleWithClause;
+    assertResolvedNodeText(node, r'''
+WithClause
+  withKeyword: with
+  mixinTypes
+    NamedType
+      name: SimpleIdentifier
+        token: M
+        staticElement: self::@mixin::M
+        staticType: null
+      type: M
+''');
   }
 
   test_classTypeAlias_with() async {
@@ -37,13 +42,18 @@ mixin M {}
 class A = Object with M;
 ''');
 
-    var mElement = findElement.mixin('M');
-
-    var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, ['M']);
-
-    var mRef = findNode.namedType('M;');
-    assertNamedType(mRef, mElement, 'M');
+    final node = findNode.singleWithClause;
+    assertResolvedNodeText(node, r'''
+WithClause
+  withKeyword: with
+  mixinTypes
+    NamedType
+      name: SimpleIdentifier
+        token: M
+        staticElement: self::@mixin::M
+        staticType: null
+      type: M
+''');
   }
 
   test_commentReference() async {
@@ -180,17 +190,27 @@ MethodDeclaration
 class A {}
 class B {}
 
-mixin M implements A, B {} // M
+mixin M implements A, B {}
 ''');
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, ['A', 'B']);
-
-    var aRef = findNode.namedType('A, ');
-    assertNamedType(aRef, findElement.class_('A'), 'A');
-
-    var bRef = findNode.namedType('B {} // M');
-    assertNamedType(bRef, findElement.class_('B'), 'B');
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@class::B
+        staticType: null
+      type: B
+''');
   }
 
   test_invalid_unresolved_before_mixin() async {
@@ -297,17 +317,27 @@ mixin M<T> on C<T> {}
 class A {}
 class B {}
 
-mixin M on A, B {} // M
+mixin M on A, B {}
 ''');
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['A', 'B']);
-
-    var aRef = findNode.namedType('A, ');
-    assertNamedType(aRef, findElement.class_('A'), 'A');
-
-    var bRef = findNode.namedType('B {} // M');
-    assertNamedType(bRef, findElement.class_('B'), 'B');
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@class::B
+        staticType: null
+      type: B
+''');
   }
 
   test_recursiveInterfaceInheritance_implements() async {

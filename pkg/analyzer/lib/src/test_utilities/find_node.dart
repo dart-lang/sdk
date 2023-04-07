@@ -28,6 +28,8 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  ExtendsClause get singleExtendsClause => _single();
+
   FieldDeclaration get singleFieldDeclaration => _single();
 
   ForElement get singleForElement => _single();
@@ -42,11 +44,15 @@ class FindNode {
 
   IfStatement get singleIfStatement => _single();
 
+  ImplementsClause get singleImplementsClause => _single();
+
   LibraryDirective get singleLibraryDirective => _single();
 
   MethodDeclaration get singleMethodDeclaration => _single();
 
   MethodInvocation get singleMethodInvocation => _single();
+
+  OnClause get singleOnClause => _single();
 
   PatternAssignment get singlePatternAssignment => _single();
 
@@ -58,6 +64,8 @@ class FindNode {
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
+
+  WithClause get singleWithClause => _single();
 
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);

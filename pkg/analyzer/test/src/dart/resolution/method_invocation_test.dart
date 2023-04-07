@@ -6238,7 +6238,6 @@ MethodInvocation
   staticType: void
 ''');
     }
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
@@ -6306,7 +6305,6 @@ MethodInvocation
     dynamic
 ''');
     }
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_hasReceiver_class_staticGetter() async {

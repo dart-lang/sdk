@@ -25,11 +25,18 @@ mixin M on dynamic {}
           7),
     ]);
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['Object']);
-
-    var typeRef = findNode.namedType('dynamic {}');
-    assertNamedType(typeRef, dynamicElement, 'dynamic');
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: dynamic
+        staticElement: dynamic@-1
+        staticType: null
+      type: dynamic
+''');
   }
 
   test_enum() async {
@@ -41,11 +48,18 @@ mixin M on E {}
           1),
     ]);
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['Object']);
-
-    var typeRef = findNode.namedType('E {}');
-    assertNamedType(typeRef, findElement.enum_('E'), 'E');
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: E
+        staticElement: self::@enum::E
+        staticType: null
+      type: E
+''');
   }
 
   test_Never() async {
@@ -55,6 +69,19 @@ mixin M on Never {}
       error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
           5),
     ]);
+
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: Never
+        staticElement: Never@-1
+        staticType: null
+      type: Never
+''');
   }
 
   test_void() async {
@@ -66,10 +93,17 @@ mixin M on void {}
           4),
     ]);
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['Object']);
-
-    var typeRef = findNode.namedType('void {}');
-    assertNamedType(typeRef, null, 'void');
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: void
+        staticElement: <null>
+        staticType: null
+      type: void
+''');
   }
 }

@@ -7159,6 +7159,61 @@ library
 ''');
   }
 
+  test_class_mixins_genericMixin_tooManyArguments() async {
+    var library = await buildLibrary('''
+mixin M<T> {}
+class A extends Object with M<int, String> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @20
+        supertype: Object
+        mixins
+          M<dynamic>
+        constructors
+          synthetic @-1
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_class_mixins_typeParameter() async {
+    var library = await buildLibrary('''
+mixin M1 {}
+mixin M2 {}
+class A<T> extends Object with M1, T<int>, M2 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          M1
+          M2
+        constructors
+          synthetic @-1
+    mixins
+      mixin M1 @6
+        superclassConstraints
+          Object
+      mixin M2 @18
+        superclassConstraints
+          Object
+''');
+  }
+
   test_class_mixins_unresolved() async {
     var library = await buildLibrary(
         'class C extends Object with X, Y, Z {} class X {} class Z {}',
@@ -8444,25 +8499,35 @@ library
 
   test_class_supertype() async {
     var library = await buildLibrary('''
-class C extends D {}
-class D {}
+class A {}
+class B extends A {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class B @17
+        supertype: A
+''');
+  }
+
+  test_class_supertype_dynamic() async {
+    var library = await buildLibrary('''
+class A extends dynamic {}
 ''');
     checkElementText(library, r'''
 library
   definingUnit
     classes
-      class C @6
-        supertype: D
-        constructors
-          synthetic @-1
-            superConstructor: self::@class::D::@constructor::new
-      class D @27
+      class A @6
         constructors
           synthetic @-1
 ''');
   }
 
-  test_class_supertype_typeArguments() async {
+  test_class_supertype_genericClass() async {
     var library = await buildLibrary('''
 class C extends D<int, double> {}
 class D<T1, T2> {}
@@ -8489,6 +8554,25 @@ library
 ''');
   }
 
+  test_class_supertype_genericClass_tooManyArguments() async {
+    var library = await buildLibrary('''
+class A<T> {}
+class B extends A<int, String> {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+      class B @20
+        supertype: A<dynamic>
+''');
+  }
+
   test_class_supertype_typeArguments_self() async {
     var library = await buildLibrary('''
 class A<T> {}
@@ -8511,6 +8595,23 @@ library
             superConstructor: ConstructorMember
               base: self::@class::A::@constructor::new
               substitution: {T: B}
+''');
+  }
+
+  test_class_supertype_typeParameter() async {
+    var library = await buildLibrary('''
+class A<T> extends T<int> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 

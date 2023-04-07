@@ -27,6 +27,25 @@ void<int> f() {}
 ''', [
       error(ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS, 4, 1),
     ]);
-    assertNamedType(findNode.namedType('int>'), intElement, 'int');
+
+    final node = findNode.namedType('void<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: void
+    staticElement: <null>
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  type: void
+''');
   }
 }
