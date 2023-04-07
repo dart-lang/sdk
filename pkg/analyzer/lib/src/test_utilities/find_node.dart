@@ -26,6 +26,12 @@ class FindNode {
 
   Annotation get singleAnnotation => _single();
 
+  AssertInitializer get singleAssertInitializer => _single();
+
+  AssertStatement get singleAssertStatement => _single();
+
+  BinaryExpression get singleBinaryExpression => _single();
+
   Block get singleBlock => _single();
 
   ExtendsClause get singleExtendsClause => _single();
@@ -37,6 +43,14 @@ class FindNode {
   ForStatement get singleForStatement => _single();
 
   FunctionBody get singleFunctionBody => _single();
+
+  FunctionDeclarationStatement get singleFunctionDeclarationStatement =>
+      _single();
+
+  FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
+      _single();
+
+  FunctionReference get singleFunctionReference => _single();
 
   GuardedPattern get singleGuardedPattern => _single();
 

@@ -11,10 +11,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullOptOutTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -603,12 +605,25 @@ main(A a) {
   a + null;
 }
 ''');
-    var binaryExpression = findNode.binary('a +');
-    assertInvokeType(binaryExpression, 'int* Function(int*)*');
-    assertType(binaryExpression, 'int*');
 
-    var element = binaryExpression.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('+'));
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::main::@parameter::a
+    staticType: A*
+  operator: +
+  rightOperand: NullLiteral
+    literal: null
+    parameter: root::@parameter::a
+    staticType: Null*
+  staticElement: MethodMember
+    base: package:test/a.dart::@class::A::@method::+
+    isLegacy: true
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_functionExpressionInvocation() async {
@@ -624,15 +639,32 @@ main() {
   foo(null, null);
 }
 ''');
-    var invocation = findNode.functionExpressionInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as PropertyAccessorElement;
-    _assertLegacyMember(element, _import_a.topGet('foo'));
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@getter::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::
+        staticType: Null*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_functionExpressionInvocation_call() async {
@@ -650,15 +682,32 @@ main(A a) {
   a(null, null);
 }
 ''');
-    var invocation = findNode.functionExpressionInvocation('a(null');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = invocation.function;
-    assertType(identifier, 'A*');
-
-    var element = invocation.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('call'));
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::main::@parameter::a
+    staticType: A*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticElement: MethodMember
+    base: package:test/a.dart::@class::A::@method::call
+    isLegacy: true
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_functionExpressionInvocation_extension_staticTarget() async {
@@ -676,15 +725,35 @@ main() {
   E.foo(null);
 }
 ''');
-    var invocation = findNode.functionExpressionInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*)*');
-
-    var element = identifier.staticElement as PropertyAccessorElement;
-    _assertLegacyMember(element, _import_a.getter('foo'));
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: E
+      staticElement: package:test/a.dart::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: package:test/a.dart::@extension::E::@getter::foo
+        isLegacy: true
+      staticType: int* Function(int*)*
+    staticType: int* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::
+        staticType: Null*
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_instanceCreation() async {
@@ -767,15 +836,32 @@ main(void Function() a) {
   a.foo(null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::main::@parameter::a
+    staticType: void Function()*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@extension::E::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_extension_interfaceTarget() async {
@@ -793,15 +879,31 @@ main() {
   0.foo(null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@extension::E::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_extension_nullTarget() async {
@@ -822,15 +924,27 @@ class B extends A {
   }
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@extension::E::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_extension_staticTarget() async {
@@ -848,15 +962,32 @@ main() {
   E.foo(null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: E
+    staticElement: package:test/a.dart::@extension::E
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@extension::E::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_extensionOverride() async {
@@ -874,15 +1005,43 @@ main() {
   E(0).foo(null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    _assertLegacyMember(element, _import_a.method('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: package:test/a.dart::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          parameter: <null>
+          staticType: int*
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@extension::E::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_function() async {
@@ -898,15 +1057,31 @@ main() {
   foo(null, null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as FunctionElement;
-    _assertLegacyMember(element, _import_a.topFunction('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: FunctionMember
+      base: package:test/a.dart::@function::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_function_prefixed() async {
@@ -922,15 +1097,36 @@ main() {
   p.foo(null, null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as FunctionElement;
-    _assertLegacyMember(element, _import_a.topFunction('foo'));
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: FunctionMember
+      base: package:test/a.dart::@function::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_method_cascade() async {
@@ -948,15 +1144,32 @@ main(A a) {
   a..foo(null, null);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo(');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    assertType(element.type, 'int* Function(int*, int*)*');
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@class::A::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_method_interfaceTarget() async {
@@ -974,15 +1187,36 @@ main(A a) {
   a.foo(null, null);
 }
 ''');
-    var invocation = findNode.methodInvocation('a.foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    assertType(element.type, 'int* Function(int*, int*)*');
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::main::@parameter::a
+    staticType: A*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@class::A::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_method_nullTarget() async {
@@ -1002,15 +1236,31 @@ class B extends A {
   }
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    assertType(element.type, 'int* Function(int*, int*)*');
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@class::A::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_method_staticTarget() async {
@@ -1028,15 +1278,36 @@ main() {
   A.foo(null, null);
 }
 ''');
-    var invocation = findNode.methodInvocation('A.foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    assertType(element.type, 'int* Function(int*, int*)*');
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@class::A::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_methodInvocation_method_superTarget() async {
@@ -1056,15 +1327,35 @@ class B extends A {
   }
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
-    assertInvokeType(invocation, 'int* Function(int*, int*)*');
-    assertType(invocation, 'int*');
 
-    var identifier = findNode.simple('foo');
-    assertType(identifier, 'int* Function(int*, int*)*');
-
-    var element = identifier.staticElement as MethodElement;
-    assertType(element.type, 'int* Function(int*, int*)*');
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: package:test/a.dart::@class::A::@method::foo
+      isLegacy: true
+    staticType: int* Function(int*, int*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::a
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: root::@parameter::b
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int*, int*)*
+  staticType: int*
+''');
   }
 
   test_nnbd_optOut_invalidSyntax() async {

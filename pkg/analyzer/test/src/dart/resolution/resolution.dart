@@ -254,18 +254,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertHasTestErrors();
   }
 
-  void assertInvokeType(Expression node, String expected) {
-    DartType? actual;
-    if (node is BinaryExpression) {
-      actual = node.staticInvokeType;
-    } else if (node is InvocationExpression) {
-      actual = node.staticInvokeType;
-    } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
-    }
-    expect(typeString(actual!), expected);
-  }
-
   void assertMember(
     Object? elementOrNode,
     Element expectedBase,

@@ -148,15 +148,29 @@ void test() {
   f(0);
 }
 ''');
-    _assertTearOff(
-      'f(0);',
-      findElement.topFunction('f'),
-      'T Function<T>(T)',
-    );
-    assertInvokeType(
-      findNode.methodInvocation('f(0)'),
-      'int Function(int)',
-    );
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   void _assertGenericFunctionInstantiation(
