@@ -24,6 +24,213 @@ class UseBuildContextSynchronouslyTest extends LintRuleTest {
   @override
   String get testPackageRootPath => '$workspaceRootPath/lib';
 
+  test_awaitBeforeIfStatement_beforeReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  var b = await condition;
+  if (b) {
+    Navigator.of(context);
+  }
+}
+''', [
+      lint(145, 21),
+    ]);
+  }
+
+  test_awaitBeforeReferenceToContext_inClosure() async {
+    // todo (pq): what about closures?
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  await condition;
+  f1(() {
+    f2(context);
+  });
+}
+
+void f1(Function f) {}
+void f2(BuildContext c) {}
+''');
+  }
+
+  // https://github.com/dart-lang/linter/issues/3457
+  test_awaitInIfCondition_aboveReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  if (await condition) {
+    Navigator.of(context);
+  }
+}
+
+''', [
+      lint(132, 21),
+    ]);
+  }
+
+  test_awaitInIfCondition_beforeReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  if (await condition) return;
+  Navigator.of(context);
+}
+''', [
+      lint(136, 21),
+    ]);
+  }
+
+  test_awaitInIfReferencesContext_beforeReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(
+    BuildContext context, Future<bool> Function(BuildContext) condition) async {
+  if (await condition(context)) {
+    Navigator.of(context);
+  }
+}
+''', [
+      lint(169, 21),
+    ]);
+  }
+
+  test_awaitInIfThen_afterReferenceToContext() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  Navigator.of(context);
+  if (1 == 2) {
+    await condition;
+    return;
+  }
+}
+''');
+  }
+
+  test_awaitInIfThen_beforeReferenceToContext() async {
+    // TODO(srawlins): I think this should report a lint, since an `await` is
+    // encountered in the if-body.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  if (1 == 2) {
+    await condition;
+    return;
+  }
+  Navigator.of(context);
+}
+''');
+  }
+
+  test_awaitInIfThenAndExitInElse_afterReferenceToContext() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  Navigator.of(context);
+  if (1 == 2) {
+    await condition;
+  } else {
+    await condition;
+    return;
+  }
+}
+''');
+  }
+
+  test_awaitInIfThenAndExitInElse_beforeReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  if (1 == 2) {
+    await condition;
+  } else {
+    await condition;
+    return;
+  }
+  Navigator.of(context);
+}
+''', [
+      lint(190, 21),
+    ]);
+  }
+
+  test_awaitInWhileBody_afterReferenceToContext() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<void> condition) async {
+  Navigator.of(context);
+  while (true) {
+    await condition;
+    break;
+  }
+}
+''');
+  }
+
+  test_awaitInWhileBody_beforeReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<void> condition) async {
+  while (true) {
+    await condition;
+    break;
+  }
+  Navigator.of(context);
+}
+''', [
+      lint(158, 21),
+    ]);
+  }
+
+  test_awaitThenExitInIfThenAndElse_afterReferenceToContext() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  Navigator.of(context);
+  if (1 == 2) {
+    await condition;
+    return;
+  } else {
+    await condition;
+    return;
+  }
+}
+''');
+  }
+
+  test_awaitThenExitInIfThenAndElse_beforeReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context, Future<bool> condition) async {
+  if (1 == 2) {
+    await condition;
+    return;
+  } else {
+    await condition;
+    return;
+  }
+  Navigator.of(context);
+}
+''', [
+      // No lint.
+      error(WarningCode.DEAD_CODE, 202, 22),
+    ]);
+  }
+
   /// https://github.com/dart-lang/linter/issues/3818
   test_context_propertyAccess() async {
     await assertDiagnostics(r'''

@@ -458,8 +458,14 @@ abstract class BuildContext {
   Widget get widget;
 }
 
-class Widget {
+class Navigator {
+  static NavigatorState of(
+      BuildContext context, {bool rootNavigator = false}) => NavigatorState();
 }
+
+class NavigatorState {}
+
+class Widget {}
 ''');
   }
 }
