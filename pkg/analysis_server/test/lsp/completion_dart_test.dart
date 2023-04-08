@@ -1005,6 +1005,48 @@ final a = Stri^
     await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
   }
 
+  Future<void> test_completionTrigger_colon_argument() async {
+    // Colons should trigger completion after argument names.
+    final content = r'''
+void f({int? a}) {
+  f(a:^
+}
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r':'], isNotEmpty);
+  }
+
+  Future<void> test_completionTrigger_colon_case() async {
+    // Colons should not trigger completion in a switch case.
+    final content = r'''
+void f(int a) {
+  switch (a) {
+    case:^
+  }
+}
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r':'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_colon_default() async {
+    // Colons should not trigger completion in a switch case.
+    final content = r'''
+void f(int a) {
+  switch (a) {
+    default:^
+  }
+}
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r':'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_colon_import() async {
+    // Colons should trigger completion after argument names.
+    final content = r'''
+import 'package:^';
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r':'], isNotEmpty);
+  }
+
   Future<void> test_completionTrigger_quotes_endingString() async {
     // Completion triggered by a quote ending a string should not return results.
     final content = "foo(''^);";
