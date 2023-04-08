@@ -11,10 +11,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/context_collection_resolution.dart';
+import '../../dart/resolution/node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(Dart2InferenceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -23,86 +25,119 @@ void main() {
 /// https://github.com/dart-lang/sdk/issues/31638
 @reflectiveTest
 class Dart2InferenceTest extends PubPackageResolutionTest {
-  test_bool_assert() async {
-    var code = r'''
-T f<T>(int _) => null;
-
-main() {
-  assert(f(1));
-  assert(f(2), f(3));
-}
+  test_assertInitializer() async {
+    await assertNoErrorsInCode(r'''
+T foo<T>(int _) => throw 0;
 
 class C {
-  C() : assert(f(4)),
-        assert(f(5), f(6));
+  C() : assert(foo(0), foo(1));
 }
-''';
-    await resolveTestCode(code);
-    MethodInvocation invocation(String search) {
-      return findNode.methodInvocation(search);
-    }
+''');
 
-    assertInvokeType(invocation('f(1));'), 'bool Function(int)');
-
-    assertInvokeType(invocation('f(2)'), 'bool Function(int)');
-    assertInvokeType(invocation('f(3)'), 'dynamic Function(int)');
-
-    assertInvokeType(invocation('f(4)'), 'bool Function(int)');
-
-    assertInvokeType(invocation('f(5)'), 'bool Function(int)');
-    assertInvokeType(invocation('f(6)'), 'dynamic Function(int)');
+    final node = findNode.singleAssertInitializer;
+    assertResolvedNodeText(node, r'''
+AssertInitializer
+  assertKeyword: assert
+  leftParenthesis: (
+  condition: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>(int)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          parameter: ParameterMember
+            base: root::@parameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    staticInvokeType: bool Function(int)
+    staticType: bool
+    typeArgumentTypes
+      bool
+  comma: ,
+  message: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>(int)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+          parameter: ParameterMember
+            base: root::@parameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    staticInvokeType: dynamic Function(int)
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  rightParenthesis: )
+''');
   }
 
-  test_bool_logical() async {
-    var code = r'''
-T f<T>() => null;
+  test_assertStatement_message() async {
+    await assertNoErrorsInCode(r'''
+T foo<T>(int _) => throw 0;
 
-var v1 = f() || f(); // 1
-var v2 = f() && f(); // 2
-
-main() {
-  var v1 = f() || f(); // 3
-  var v2 = f() && f(); // 4
+void f() {
+  assert(foo(0), foo(1));
 }
-''';
-    await resolveTestCode(code);
-    void assertType(String prefix) {
-      var invocation = findNode.methodInvocation(prefix);
-      assertInvokeType(invocation, 'bool Function()');
-    }
+''');
 
-    assertType('f() || f(); // 1');
-    assertType('f(); // 1');
-    assertType('f() && f(); // 2');
-    assertType('f(); // 2');
-
-    assertType('f() || f(); // 3');
-    assertType('f(); // 3');
-    assertType('f() && f(); // 4');
-    assertType('f(); // 4');
-  }
-
-  test_bool_statement() async {
-    var code = r'''
-T f<T>() => null;
-
-main() {
-  while (f()) {} // 1
-  do {} while (f()); // 2
-  if (f()) {} // 3
-  for (; f(); ) {} // 4
-}
-''';
-    await resolveTestCode(code);
-    void assertType(String prefix) {
-      var invocation = findNode.methodInvocation(prefix);
-      assertInvokeType(invocation, 'bool Function()');
-    }
-
-    assertType('f()) {} // 1');
-    assertType('f());');
-    assertType('f()) {} // 3');
-    assertType('f(); ) {} // 4');
+    final node = findNode.singleAssertStatement;
+    assertResolvedNodeText(node, r'''
+AssertStatement
+  assertKeyword: assert
+  leftParenthesis: (
+  condition: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>(int)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          parameter: ParameterMember
+            base: root::@parameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    staticInvokeType: bool Function(int)
+    staticType: bool
+    typeArgumentTypes
+      bool
+  comma: ,
+  message: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>(int)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+          parameter: ParameterMember
+            base: root::@parameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    staticInvokeType: dynamic Function(int)
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  rightParenthesis: )
+  semicolon: ;
+''');
   }
 
   test_closure_downwardReturnType_arrow() async {
@@ -287,6 +322,94 @@ var y = {null: null};
     var yNode = findNode.variableDeclaration('y = ');
     var yElement = yNode.declaredElement!;
     assertType(yElement.type, 'Map<Null, Null>');
+  }
+
+  test_logicalAnd() async {
+    await assertNoErrorsInCode(r'''
+T foo<T>() => throw 0;
+
+void f() {
+  foo() && foo();
+}
+''');
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: <null>
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
+  }
+
+  test_logicalOr() async {
+    await assertNoErrorsInCode(r'''
+T foo<T>() => throw 0;
+
+void f() {
+  foo() || foo();
+}
+''');
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: <null>
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
   }
 
   test_switchExpression_asContext_forCases() async {

@@ -13500,6 +13500,41 @@ const int x = 0;
 ''');
   }
 
+  test_const_invalid_methodInvocation() async {
+    var library = await buildLibrary(r'''
+const a = 'abc'.codeUnitAt(0);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          MethodInvocation
+            target: SimpleStringLiteral
+              literal: 'abc' @10
+            operator: . @15
+            methodName: SimpleIdentifier
+              token: codeUnitAt @16
+              staticElement: dart:core::@class::String::@method::codeUnitAt
+              staticType: int Function(int)
+            argumentList: ArgumentList
+              leftParenthesis: ( @26
+              arguments
+                IntegerLiteral
+                  literal: 0 @27
+                  staticType: int
+              rightParenthesis: ) @28
+            staticInvokeType: int Function(int)
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
   test_const_invalid_topLevel() async {
     var library = await buildLibrary(r'''
 const v = 1 + foo();

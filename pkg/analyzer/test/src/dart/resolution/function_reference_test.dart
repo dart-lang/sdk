@@ -2708,6 +2708,38 @@ FunctionReference
 ''');
   }
 
+  test_loadLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as prefix;
+
+void f() {
+  prefix.loadLibrary;
+}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
+    ]);
+
+    final node = findNode.expressionStatement('prefix.loadLibrary');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: loadLibrary
+      staticElement: loadLibrary@-1
+      staticType: Future<dynamic> Function()
+    staticElement: loadLibrary@-1
+    staticType: Future<dynamic> Function()
+  semicolon: ;
+''');
+  }
+
   test_localFunction() async {
     await assertNoErrorsInCode('''
 void bar() {

@@ -18,16 +18,30 @@ main() {
 @reflectiveTest
 class ConditionalExpressionResolutionTest extends PubPackageResolutionTest
     with ConditionalExpressionTestCases {
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f(int b, int c) {
-  var d = a() ? b : c;
-  print(d);
+  a() ? b : c;
 }
+
 T a<T>() => throw '';
 ''');
-    assertInvokeType(findNode.methodInvocation('d)'), 'bool Function()');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    staticElement: self::@function::a
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: bool Function()
+  staticType: bool
+  typeArgumentTypes
+    bool
+''');
   }
 
   test_issue49692() async {

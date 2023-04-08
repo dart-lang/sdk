@@ -308,8 +308,23 @@ mixin M<T> on C<T> {}
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
-    var fInvocation = findNode.functionExpressionInvocation('f()');
-    assertInvokeType(fInvocation, 'M<int> Function()');
+
+    final node = findNode.functionExpressionInvocation('f()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: f
+    staticElement: self::@function::g::@parameter::f
+    staticType: M<T> Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: M<int> Function()
+  staticType: M<int>
+  typeArgumentTypes
+    int
+''');
   }
 
   test_onClause() async {
@@ -441,10 +456,28 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var invocation = findNode.methodInvocation('foo(42)');
-    assertElement(invocation, findElement.method('foo'));
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
+    final node = findNode.methodInvocation('foo(42)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: self::@class::A::@method::foo::@parameter::x
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_superInvocation_setter() async {
