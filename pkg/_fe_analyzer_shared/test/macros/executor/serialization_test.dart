@@ -248,7 +248,7 @@ void main() {
               positionalParameters: [barPositionalParam],
               returnType: fooType,
               typeParameters: [zapTypeParam],
-              definingClass: fooType.identifier,
+              definingType: fooType.identifier,
               isStatic: false);
           expectSerializationEquality(method, mode);
         });
@@ -267,7 +267,7 @@ void main() {
             positionalParameters: [barPositionalParam],
             returnType: fooType,
             typeParameters: [zapTypeParam],
-            definingClass: fooType.identifier,
+            definingType: fooType.identifier,
             isFactory: true,
           );
           expectSerializationEquality(constructor, mode);
@@ -295,7 +295,7 @@ void main() {
             isFinal: true,
             isLate: false,
             type: barType,
-            definingClass: fooType.identifier,
+            definingType: fooType.identifier,
             isStatic: false,
           );
           expectSerializationEquality(bar, mode);
@@ -336,6 +336,28 @@ void main() {
             );
             expectSerializationEquality(fooClass, mode);
           }
+        });
+
+        test('EnumDeclaration', () {
+          var fooEnum = EnumDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+            interfaces: [barType],
+            mixins: [serializableType],
+            typeParameters: [zapTypeParam],
+          );
+          expectSerializationEquality(fooEnum, mode);
+        });
+
+        test('EnumValueDeclaration', () {
+          var entry = EnumValueDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
+            definingEnum:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+          );
+          expectSerializationEquality(entry, mode);
         });
 
         test('TypeAliasDeclaration', () {

@@ -24,6 +24,12 @@ class IdentifierImpl extends RemoteInstance implements Identifier {
 
     serializer.addString(name);
   }
+
+  @override
+  bool operator ==(Object other) => other is IdentifierImpl && other.id == id;
+
+  @override
+  int get hashCode => id;
 }
 
 abstract class TypeAnnotationImpl extends RemoteInstance
@@ -472,7 +478,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
 class MethodDeclarationImpl extends FunctionDeclarationImpl
     implements MethodDeclaration {
   @override
-  final IdentifierImpl definingClass;
+  final IdentifierImpl definingType;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.methodDeclaration;
@@ -495,7 +501,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.returnType,
     required super.typeParameters,
     // Method fields
-    required this.definingClass,
+    required this.definingType,
     required this.isStatic,
   });
 
@@ -505,7 +511,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     // Client side we don't encode anything but the ID.
     if (serializationMode.isClient) return;
 
-    definingClass.serialize(serializer);
+    definingType.serialize(serializer);
     serializer.addBool(isStatic);
   }
 }
@@ -533,7 +539,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.returnType,
     required super.typeParameters,
     // Method fields
-    required super.definingClass,
+    required super.definingType,
     // Constructor fields
     required this.isFactory,
   }) : super(
@@ -593,7 +599,7 @@ class VariableDeclarationImpl extends DeclarationImpl
 class FieldDeclarationImpl extends VariableDeclarationImpl
     implements FieldDeclaration {
   @override
-  final IdentifierImpl definingClass;
+  final IdentifierImpl definingType;
 
   @override
   final bool isStatic;
@@ -608,7 +614,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.isLate,
     required super.type,
     // Field fields
-    required this.definingClass,
+    required this.definingType,
     required this.isStatic,
   });
 
@@ -621,7 +627,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     // Client side we don't encode anything but the ID.
     if (serializationMode.isClient) return;
 
-    definingClass.serialize(serializer);
+    definingType.serialize(serializer);
     serializer.addBool(isStatic);
   }
 }
@@ -736,6 +742,78 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     }
     serializer..endList();
     superclass.serializeNullable(serializer);
+  }
+}
+
+class IntrospectableEnumDeclarationImpl = EnumDeclarationImpl
+    with IntrospectableEnum
+    implements IntrospectableEnumDeclaration;
+
+class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
+    implements EnumDeclaration {
+  @override
+  final List<NamedTypeAnnotationImpl> interfaces;
+
+  @override
+  final List<NamedTypeAnnotationImpl> mixins;
+
+  @override
+  RemoteInstanceKind get kind => this is IntrospectableEnumDeclaration
+      ? RemoteInstanceKind.introspectableEnumDeclaration
+      : RemoteInstanceKind.enumDeclaration;
+
+  EnumDeclarationImpl({
+    // Declaration fields
+    required super.id,
+    required super.identifier,
+    // TypeDeclaration fields
+    required super.typeParameters,
+    // EnumDeclaration fields
+    required this.interfaces,
+    required this.mixins,
+  });
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode.isClient) return;
+
+    serializer.startList();
+    for (NamedTypeAnnotationImpl interface in interfaces) {
+      interface.serialize(serializer);
+    }
+    serializer
+      ..endList()
+      ..startList();
+    for (NamedTypeAnnotationImpl mixin in mixins) {
+      mixin.serialize(serializer);
+    }
+    serializer..endList();
+  }
+}
+
+class EnumValueDeclarationImpl extends DeclarationImpl
+    implements EnumValueDeclaration {
+  @override
+  final IdentifierImpl definingEnum;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.enumValueDeclaration;
+
+  EnumValueDeclarationImpl({
+    required super.id,
+    required super.identifier,
+    required this.definingEnum,
+  });
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode.isClient) return;
+
+    definingEnum.serialize(serializer);
   }
 }
 

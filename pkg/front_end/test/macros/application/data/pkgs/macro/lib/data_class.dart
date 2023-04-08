@@ -12,7 +12,7 @@ class DataClass implements ClassDeclarationsMacro, ClassDefinitionMacro {
   const DataClass();
 
   FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) async {
+      MemberDeclarationBuilder builder) async {
     Uri dartCore = Uri.parse('dart:core');
     Identifier objectIdentifier =
     await builder.resolveIdentifier(dartCore, 'Object');
@@ -31,23 +31,23 @@ class DataClass implements ClassDeclarationsMacro, ClassDefinitionMacro {
       comma = ', ';
     }
     constructorParts.add('});');
-    builder.declareInClass(new DeclarationCode.fromParts(constructorParts));
+    builder.declareInType(new DeclarationCode.fromParts(constructorParts));
 
-    builder.declareInClass(new DeclarationCode.fromParts([
+    builder.declareInType(new DeclarationCode.fromParts([
       'external ', intIdentifier, ' get hashCode;']));
-    builder.declareInClass(new DeclarationCode.fromParts([
+    builder.declareInType(new DeclarationCode.fromParts([
       'external ',
       boolIdentifier,
       ' operator ==(',
       objectIdentifier,
       ' other);'
     ]));
-    builder.declareInClass(new DeclarationCode.fromParts([
+    builder.declareInType(new DeclarationCode.fromParts([
       'external ', stringIdentifier, ' toString();']));
   }
 
   FutureOr<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
-      ClassDefinitionBuilder builder) async {
+      TypeDefinitionBuilder builder) async {
     Uri dartCore = Uri.parse('dart:core');
     Identifier identicalIdentifier =
     await builder.resolveIdentifier(dartCore, 'identical');

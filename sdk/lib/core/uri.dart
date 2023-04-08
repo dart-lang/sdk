@@ -105,7 +105,7 @@ const String _hexDigits = "0123456789ABCDEF";
 ///
 /// [uris]: https://dart.dev/guides/libraries/library-tour#uris
 /// [libtour]: https://dart.dev/guides/libraries/library-tour
-abstract class Uri {
+abstract interface class Uri {
   /// The natural base URI for the current platform.
   ///
   /// When running in a browser, this is the current URL of the current page
@@ -3337,7 +3337,7 @@ class _Uri implements Uri {
 ///
 /// This class allows parsing the URI text, extracting individual parts of the
 /// URI, as well as building the URI text from structured parts.
-class UriData {
+final class UriData {
   static const int _noScheme = -1;
 
   /// Contains the text content of a `data:` URI, with or without a

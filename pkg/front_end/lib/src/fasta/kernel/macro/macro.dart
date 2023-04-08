@@ -313,6 +313,23 @@ class MacroApplications {
     }
   }
 
+  macro.TypeDeclaration _resolveDeclaration(macro.Identifier identifier) {
+    if (identifier is MemberBuilderIdentifier) {
+      return getClassDeclaration(identifier.memberBuilder.classBuilder!);
+    } else if (identifier is TypeDeclarationBuilderIdentifier) {
+      final TypeDeclarationBuilder typeDeclarationBuilder =
+          identifier.typeDeclarationBuilder;
+      if (typeDeclarationBuilder is ClassBuilder) {
+        return getClassDeclaration(typeDeclarationBuilder);
+      }
+      throw new UnimplementedError(
+          'Resolving declarations is only supported for classes');
+    } else {
+      throw new UnimplementedError(
+          'Resolving declarations not supported for $identifier');
+    }
+  }
+
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
     if (identifier is IdentifierImpl) {
       return identifier.resolveIdentifier();
@@ -432,8 +449,8 @@ class MacroApplications {
       if (executionResults.isNotEmpty) {
         Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
         String result = _macroExecutor
-            .buildAugmentationLibrary(
-                executionResults, _resolveIdentifier, _inferOmittedType,
+            .buildAugmentationLibrary(executionResults, _resolveDeclaration,
+                _resolveIdentifier, _inferOmittedType,
                 omittedTypes: omittedTypes)
             .trim();
         assert(
@@ -486,8 +503,8 @@ class MacroApplications {
                 typeIntrospector);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
-          String source = _macroExecutor.buildAugmentationLibrary(
-              [result], _resolveIdentifier, _inferOmittedType,
+          String source = _macroExecutor.buildAugmentationLibrary([result],
+              _resolveDeclaration, _resolveIdentifier, _inferOmittedType,
               omittedTypes: omittedTypes);
           if (retainDataForTesting) {
             dataForTesting?.registerDeclarationsResult(
@@ -629,8 +646,8 @@ class MacroApplications {
       }
       if (executionResults.isNotEmpty) {
         String result = _macroExecutor
-            .buildAugmentationLibrary(
-                executionResults, _resolveIdentifier, _inferOmittedType)
+            .buildAugmentationLibrary(executionResults, _resolveDeclaration,
+                _resolveIdentifier, _inferOmittedType)
             .trim();
         assert(
             result.trim().isNotEmpty,
@@ -790,7 +807,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
-      definingClass: definingClass.identifier as macro.IdentifierImpl,
+      definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
       isExternal: builder.isExternal,
@@ -819,7 +836,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
-      definingClass: definingClass.identifier as macro.IdentifierImpl,
+      definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
       isExternal: builder.isExternal,
@@ -854,7 +871,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
-          definingClass: definingClass.identifier as macro.IdentifierImpl,
+          definingType: definingClass.identifier as macro.IdentifierImpl,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
           isGetter: builder.isGetter,
@@ -904,7 +921,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
-          definingClass: definingClass.identifier as macro.IdentifierImpl,
+          definingType: definingClass.identifier as macro.IdentifierImpl,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
@@ -1121,6 +1138,13 @@ class _TypeIntrospector implements macro.TypeIntrospector {
   }
 
   @override
+  Future<List<macro.EnumValueDeclaration>> valuesOf(
+      covariant macro.IntrospectableEnum enumType) {
+    // TODO: implement valuesOf
+    throw new UnimplementedError();
+  }
+
+  @override
   Future<List<macro.FieldDeclaration>> fieldsOf(macro.IntrospectableType type) {
     if (type is! macro.IntrospectableClassDeclaration) {
       throw new UnsupportedError('Only introspection on classes is supported');
@@ -1211,7 +1235,9 @@ class ApplicationData {
 
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
-      libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
+      enumValueAugmentations.isNotEmpty ||
+      libraryAugmentations.isNotEmpty ||
+      typeAugmentations.isNotEmpty;
 }
 
 class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {
