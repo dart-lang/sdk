@@ -7,19 +7,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-void mountedBinOpAnd(BuildContext context, bool condition) async {
-  await Future<void>.delayed(Duration());
-  if (condition && context.mounted) {
-    await Navigator.of(context).pushNamed('routeName'); // OK
-  }
-}
-
-void mountedBinOpAOr(BuildContext context, bool condition) async {
-  await Future<void>.delayed(Duration());
-  if (condition || !mounted) return;
-  await Navigator.of(context).pushNamed('routeName'); // OK
-}
-
 void awaitInSwitchCase(BuildContext context) async {
   await Future<void>.delayed(Duration());
   switch (1) {
@@ -306,13 +293,6 @@ class _MyState extends State<MyWidget> {
   Widget build(BuildContext context) => Placeholder();
 }
 
-void topLevel(BuildContext context) async {
-  Navigator.of(context).pushNamed('routeName'); // OK
-
-  await Future<void>.delayed(Duration());
-  Navigator.of(context).pushNamed('routeName'); // LINT
-}
-
 void topLevel2(BuildContext context) async {
   Navigator.of(context).pushNamed('routeName'); // OK
 
@@ -320,36 +300,5 @@ void topLevel2(BuildContext context) async {
   // todo (pq): consider other conditionals (for, while, do, ...)
   if (true) {
     Navigator.of(context).pushNamed('routeName'); // LINT
-  }
-}
-
-void topLevel3(BuildContext context) async {
-  while (true) {
-    // OK the first time only!
-    Navigator.of(context).pushNamed('routeName'); // TODO: LINT
-    await Future<void>.delayed(Duration());
-  }
-}
-
-void topLevel4(BuildContext context) async {
-  Navigator.of(context).pushNamed('routeName');
-  await Future<void>.delayed(Duration());
-  if (mounted) {
-    Navigator.of(context).pushNamed('routeName'); // OK
-  }
-}
-
-void topLevel5(BuildContext context) async {
-  Navigator.of(context).pushNamed('routeName');
-  await Future<void>.delayed(Duration());
-
-  switch ('') {
-    case 'a':
-      if (!mounted) {
-        break;
-      }
-      Navigator.of(context).pushNamed('routeName222'); // OK
-      break;
-    default: //nothing.
   }
 }

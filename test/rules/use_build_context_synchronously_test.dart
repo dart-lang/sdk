@@ -24,18 +24,96 @@ class UseBuildContextSynchronouslyTest extends LintRuleTest {
   @override
   String get testPackageRootPath => '$workspaceRootPath/lib';
 
+  test_await_afterReferenceToContextInBody() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  Navigator.of(context);
+  await f();
+}
+
+Future<void> f() async {}
+''');
+  }
+
+  test_await_beforeReferenceToContextInBody() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  Navigator.of(context);
+}
+
+Future<void> f() async {}
+''', [
+      lint(94, 21),
+    ]);
+  }
+
+  test_awaitBeforeIf_mountedExitGuardInIfConditionWithOr_beforeReferenceToContext() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (c || !mounted) return;
+  Navigator.of(context);
+}
+
+bool mounted = false;
+Future<void> f() async {}
+bool get c => true;
+''');
+  }
+
+  test_awaitBeforeIf_mountedGuardInIfCondition_referenceToContextInIfBody() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (mounted) {
+    Navigator.of(context);
+  }
+}
+
+bool mounted = false;
+Future<void> f() async {}
+''');
+  }
+
+  test_awaitBeforeIf_mountedGuardInIfConditionWithAnd_referenceToContextInIfBody() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (c && mounted) {
+    Navigator.of(context);
+  }
+}
+
+bool mounted = false;
+Future<void> f() async {}
+bool get c => true;
+''');
+  }
+
   test_awaitBeforeIfStatement_beforeReferenceToContext() async {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
-  var b = await condition;
+void foo(BuildContext context) async {
+  var b = await c();
   if (b) {
     Navigator.of(context);
   }
 }
+Future<bool> c() async => true;
 ''', [
-      lint(145, 21),
+      lint(115, 21),
     ]);
   }
 
@@ -44,8 +122,8 @@ void foo(BuildContext context, Future<bool> condition) async {
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
-  await condition;
+void foo(BuildContext context) async {
+  await c();
   f1(() {
     f2(context);
   });
@@ -53,6 +131,27 @@ void foo(BuildContext context, Future<bool> condition) async {
 
 void f1(Function f) {}
 void f2(BuildContext c) {}
+Future<bool> c() async => true;
+''');
+  }
+
+  test_awaitBeforeSwitch_mountedExitGuardInCase_beforeReferenceToContext() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+
+  switch ('') {
+    case 'a':
+      if (!mounted) {
+        break;
+      }
+      Navigator.of(context);
+  }
+}
+bool mounted = false;
+Future<void> f() async {}
 ''');
   }
 
@@ -61,14 +160,14 @@ void f2(BuildContext c) {}
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
-  if (await condition) {
+void foo(BuildContext context) async {
+  if (await c()) {
     Navigator.of(context);
   }
 }
-
+Future<bool> c() async => true;
 ''', [
-      lint(132, 21),
+      lint(102, 21),
     ]);
   }
 
@@ -76,12 +175,13 @@ void foo(BuildContext context, Future<bool> condition) async {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
-  if (await condition) return;
+void foo(BuildContext context) async {
+  if (await c()) return;
   Navigator.of(context);
 }
+Future<bool> c() async => true;
 ''', [
-      lint(136, 21),
+      lint(106, 21),
     ]);
   }
 
@@ -104,13 +204,14 @@ void foo(
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
+void foo(BuildContext context) async {
   Navigator.of(context);
   if (1 == 2) {
-    await condition;
+    await c();
     return;
   }
 }
+Future<bool> c() async => true;
 ''');
   }
 
@@ -120,13 +221,14 @@ void foo(BuildContext context, Future<bool> condition) async {
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
+void foo(BuildContext context) async {
   if (1 == 2) {
-    await condition;
+    await c();
     return;
   }
   Navigator.of(context);
 }
+Future<bool> c() async => true;
 ''');
   }
 
@@ -134,15 +236,16 @@ void foo(BuildContext context, Future<bool> condition) async {
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
+void foo(BuildContext context) async {
   Navigator.of(context);
   if (1 == 2) {
-    await condition;
+    await c();
   } else {
-    await condition;
+    await c();
     return;
   }
 }
+Future<bool> c() async => true;
 ''');
   }
 
@@ -150,31 +253,53 @@ void foo(BuildContext context, Future<bool> condition) async {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
+void foo(BuildContext context) async {
   if (1 == 2) {
-    await condition;
+    await c();
   } else {
-    await condition;
+    await c();
     return;
   }
   Navigator.of(context);
 }
+Future<bool> c() async => true;
 ''', [
-      lint(190, 21),
+      lint(154, 21),
     ]);
   }
 
+  @FailingTest(reason: 'Logic not implemented yet.')
   test_awaitInWhileBody_afterReferenceToContext() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  while (true) {
+    // OK the first time only!
+    Navigator.of(context);
+    await f();
+  }
+}
+
+bool mounted = false;
+Future<void> f() async {}
+''', [
+      lint(149, 21),
+    ]);
+  }
+
+  test_awaitInWhileBody_afterReferenceToContextOutsideWait() async {
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<void> condition) async {
+void foo(BuildContext context) async {
   Navigator.of(context);
   while (true) {
-    await condition;
+    await f();
     break;
   }
 }
+Future<void> f() async {}
 ''');
   }
 
@@ -182,15 +307,16 @@ void foo(BuildContext context, Future<void> condition) async {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<void> condition) async {
+void foo(BuildContext context) async {
   while (true) {
-    await condition;
+    await f();
     break;
   }
   Navigator.of(context);
 }
+Future<void> f() async {}
 ''', [
-      lint(158, 21),
+      lint(128, 21),
     ]);
   }
 
@@ -198,16 +324,17 @@ void foo(BuildContext context, Future<void> condition) async {
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
+void foo(BuildContext context) async {
   Navigator.of(context);
   if (1 == 2) {
-    await condition;
+    await c();
     return;
   } else {
-    await condition;
+    await c();
     return;
   }
 }
+Future<bool> c() async => true;
 ''');
   }
 
@@ -215,19 +342,20 @@ void foo(BuildContext context, Future<bool> condition) async {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-void foo(BuildContext context, Future<bool> condition) async {
+void foo(BuildContext context) async {
   if (1 == 2) {
-    await condition;
+    await c();
     return;
   } else {
-    await condition;
+    await c();
     return;
   }
   Navigator.of(context);
 }
+Future<bool> c() async => true;
 ''', [
       // No lint.
-      error(WarningCode.DEAD_CODE, 202, 22),
+      error(WarningCode.DEAD_CODE, 166, 22),
     ]);
   }
 
