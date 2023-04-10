@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This file defines the module loader for the dart runtime.
-var dart_library;
-if (!dart_library) {
-  dart_library = typeof module != 'undefined' && module.exports || {};
+if (!self.dart_library) {
+  self.dart_library = typeof module != 'undefined' && module.exports || {};
 
   (function(dart_library) {
     'use strict';
@@ -25,7 +24,7 @@ if (!dart_library) {
     }
 
     const libraryImports = Symbol('libraryImports');
-    dart_library.libraryImports = libraryImports;
+    self.dart_library.libraryImports = libraryImports;
 
     const _metrics = Symbol('metrics');
 
@@ -39,7 +38,7 @@ if (!dart_library) {
       }
       return map;
     }
-    dart_library.moduleMetrics = moduleMetrics;
+    self.dart_library.moduleMetrics = moduleMetrics;
 
     // Returns an application level overview of the module metrics.
     function appMetrics() {
@@ -72,7 +71,7 @@ if (!dart_library) {
         'loadTimeMs': lastLoadEnd - firstLoadStart
       };
     }
-    dart_library.appMetrics = appMetrics;
+    self.dart_library.appMetrics = appMetrics;
 
     function _sortFn(key1, key2) {
       const t1 = _libraries.get(key1).firstLibraryValue[_metrics].loadStart;
@@ -100,7 +99,7 @@ if (!dart_library) {
       }
       return buffer;
     }
-    dart_library.metricsCsv = metricsCsv;
+    self.dart_library.metricsCsv = metricsCsv;
 
     // Module support.  This is a simplified module system for Dart.
     // Longer term, we can easily migrate to an existing JS module system:
@@ -109,7 +108,7 @@ if (!dart_library) {
     // Returns a proxy that delegates to the underlying loader.
     // This defers loading of a module until a library is actually used.
     const loadedModule = Symbol('loadedModule');
-    dart_library.defer = function(module, name, patch) {
+    self.dart_library.defer = function(module, name, patch) {
       let done = false;
       function loadDeferred() {
         done = true;
@@ -139,7 +138,7 @@ if (!dart_library) {
     // App name to set of libraries that were not only loaded on the page but
     // also executed.
     const _executedLibraries = new Map();
-    dart_library.executedLibraryCount = function() {
+    self.dart_library.executedLibraryCount = function() {
       let count = 0;
       _executedLibraries.forEach(function(executedLibraries, _) {
         count += executedLibraries.size;
@@ -296,10 +295,10 @@ if (!dart_library) {
 
     // Map from name to LibraryLoader
     let _libraries = new Map();
-    dart_library.libraries = function() {
+    self.dart_library.libraries = function() {
       return _libraries.keys();
     };
-    dart_library.debuggerLibraries = function() {
+    self.dart_library.debuggerLibraries = function() {
       let debuggerLibraries = [];
       _libraries.forEach(function(value, key, map) {
         debuggerLibraries.push(value.load(_firstStartedAppName));
@@ -332,7 +331,7 @@ if (!dart_library) {
       _libraries.set(name, result);
       return result;
     }
-    dart_library.library = library;
+    self.dart_library.library = library;
 
     // Store executed modules upon reload.
     if (!!self.addEventListener && !!self.localStorage) {
@@ -408,7 +407,7 @@ if (!dart_library) {
       _proxyLibs.get(name).set(appName, proxyLib);
       return proxyLib;
     }
-    dart_library.import = import_;
+    self.dart_library.import = import_;
 
     // Removes the corresponding library and invalidates all things that
     // depend on it.
@@ -418,7 +417,7 @@ if (!dart_library) {
       _invalidateLibrary(name);
       _libraries.delete(name);
     }
-    dart_library.invalidateImport = _invalidateImport;
+    self.dart_library.invalidateImport = _invalidateImport;
 
     let _debuggerInitialized = false;
 
@@ -522,6 +521,12 @@ if (!dart_library) {
         sdk.libraryValueInApp(appName).dart.hotRestart();
       }
 
+      // Invoke `hotRestart` for the deferred loader to clear load ids and
+      // other temporary state.
+      if (self.deferred_loader) {
+        self.deferred_loader.hotRestart();
+      }
+
       // Starts the subapps in their starting order.
       for (const subapp of dirtySubapps) {
         // Call the module loader to reload the necessary modules.
@@ -533,7 +538,31 @@ if (!dart_library) {
         });
       }
     }
-    dart_library.reload = hotRestart;
+    self.dart_library.reload = hotRestart;
+
+    // Creates a script with the proper nonce value for strict CSP or noops on
+    // invalid platforms.
+    self.dart_library.createScript = (function() {
+      // Exit early if we aren't modifying an HtmlElement (such as in D8).
+      if (self.document.createElement == void 0) return;
+      // Find the nonce value. (Note, this is only computed once.)
+      let scripts = Array.from(document.getElementsByTagName('script'));
+      let nonce;
+      scripts.some(
+          script => (nonce = script.nonce || script.getAttribute('nonce')));
+      // If present, return a closure that automatically appends the nonce.
+      if (nonce) {
+        return function() {
+          let script = document.createElement('script');
+          script.nonce = nonce;
+          return script;
+        };
+      } else {
+        return function() {
+          return document.createElement('script');
+        };
+      }
+    })();
 
     /// An App contains one or multiple Subapps, all of the subapps share the
     /// same memory copy of library instances, and as a result they share state
@@ -637,3 +666,171 @@ if (!dart_library) {
     dart_library.start = start;
   })(dart_library);
 }
+
+if (!self.deferred_loader) {
+  self.deferred_loader = {
+    // Module IDs already loaded on the page (e.g., during bootstrap or after
+    // loadLibrary is called).
+    loadedModules: new Set(),
+    // An import graph of all direct imports (not deferred).
+    moduleGraph: new Map(),
+    // Maps module IDs to their resolved urls.
+    moduleToUrl: new Map(),
+    // Module IDs mapped to their resolved or resolving promises.
+    moduleToPromise: new Map(),
+    // Deferred libraries on which 'loadLibrary' have already been called.
+    // Load Ids are a composite of the URI of originating load's library and
+    // the target library name.
+    loadIds: new Set(),
+  };
+
+  /**
+   * Must be called before 'main' to initialize the deferred loader.
+   * @param {!Map<string, string>} moduleToUrlMapping
+   * @param {!Map<string, !Array<string>>} moduleGraph non-deferred import graph
+   * @param {!Array<string>} loadedModules moduled loaded during bootstrap
+   */
+  self.deferred_loader.initDeferredLoader = function(
+      moduleToUrlMapping, moduleGraph, loadedModules) {
+    self.deferred_loader.moduleToUrl = moduleToUrlMapping;
+    self.deferred_loader.moduleGraph = moduleGraph;
+    for (let i = 0; i < loadedModules.length; i++) {
+      let module = loadedModules[i];
+      self.deferred_loader.loadedModules.add(module);
+      self.deferred_loader.moduleToPromise.set(module, Promise.resolve());
+    }
+  };
+
+  /**
+   * Returns all modules downstream of [moduleId] that are visible
+   * (i.e., not deferred) and have not already been loaded.
+   * @param {string} moduleId
+   * @return {!Array<string>} module IDs that must be loaded with [moduleId]
+   */
+  let dependenciesToLoad = function(moduleId) {
+    let stack = [moduleId];
+    let seen = new Set();
+    while (stack.length > 0) {
+      let module = stack.pop();
+      if (seen.has(module)) continue;
+      seen.add(module);
+      stack = stack.concat(self.deferred_loader.moduleGraph.get(moduleId));
+    }
+    let dependencies = [];
+    seen.forEach(module => {
+      if (self.deferred_loader.loadedModules.has(module)) return;
+      dependencies.push(module);
+    });
+    return dependencies;
+  };
+
+  /**
+   * Loads [moduleUrl] onto this instance's DDC app's page, then invokes
+   * [onLoad].
+   * @param {string} moduleUrl
+   * @param {function()} onLoad Callback after a successful load
+   */
+  let loadScript = function(moduleUrl, onLoad) {
+    // A head element won't be created for D8, so just load synchronously.
+    if (self.document.head == void 0) {
+      self.load(moduleUrl);
+      onLoad();
+    }
+    let script = dart_library.createScript();
+    let policy = {
+      createScriptURL: function(src) {
+        return src;
+      }
+    };
+    if (self.trustedTypes && self.trustedTypes.createPolicy) {
+      policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
+    }
+    script.setAttribute('src', policy.createScriptURL(moduleUrl));
+    script.async = false;
+    script.defer = true;
+    script.onload = onLoad;
+    self.document.head.appendChild(script);
+  };
+
+  /**
+   * Performs a deferred load, calling [onSuccess] or [onError] callbacks when
+   * the deferred load completes or fails, respectively.
+   * @param {string} loadId {library URI}:{resource name being loaded}
+   * @param {string} targetModule moduleId of the resource requested by [loadId]
+   * @param {function(function())} onSuccess callback after a successful load
+   * @param {function(!Error)} onError callback after a failed load
+   */
+  self.deferred_loader.loadDeferred = function(
+      loadId, targetModule, onSuccess, onError) {
+    // loadLibrary had already been called, and its module has already been
+    // loaded, so just complete the future.
+    if (self.deferred_loader.loadIds.has(loadId)) {
+      onSuccess();
+      return;
+    }
+
+    // The module's been loaded, so mark this import as loaded and finish.
+    if (self.deferred_loader.loadedModules.has(targetModule)) {
+      self.deferred_loader.loadIds.add(loadId);
+      onSuccess();
+      return;
+    }
+
+    // The import's module has not been loaded, so load it and its dependencies
+    // before completing the callback.
+    let modulesToLoad = dependenciesToLoad(targetModule);
+    Promise
+        .all(modulesToLoad.map(module => {
+          let url = self.deferred_loader.moduleToUrl.get(module);
+          if (url === void 0) {
+            console.log('Unable to find URL for module: ' + module);
+            return;
+          }
+          let promise = self.deferred_loader.moduleToPromise.get(module);
+          if (promise !== void 0) return promise;
+          self.deferred_loader.moduleToPromise.set(
+              module,
+              new Promise((resolve) => loadScript(url, () => {
+                            self.deferred_loader.loadedModules.add(module);
+                            resolve();
+                          })));
+          return self.deferred_loader.moduleToPromise.get(module);
+        }))
+        .then(() => {
+          onSuccess(() => self.deferred_loader.loadIds.add(loadId));
+        })
+        .catch((error) => {
+          onError(error.message);
+        });
+  };
+
+  /**
+   * Returns whether or not the module containing [loadId] has finished loading.
+   * @param {string} loadId library URI concatenated with the resource being
+   *     loaded
+   * @return {boolean}
+   */
+  self.deferred_loader.isLoaded = function(loadId) {
+    return self.deferred_loader.loadIds.has(loadId);
+  };
+
+  /**
+   * Removes references to [moduleId] in the deferred loader.
+   * @param {string} moduleId
+   *
+   * TODO(markzipan): Determine how deep we should clear moduleId's references.
+   */
+  self.deferred_loader.clearModule = function(moduleId) {
+    self.deferred_loader.loadedModules.delete(moduleId);
+    self.deferred_loader.moduleToUrl.delete(moduleId);
+    self.deferred_loader.moduleToPromise.delete(moduleId);
+  };
+
+  /**
+   * Clears state required for hot restart.
+   */
+  self.deferred_loader.hotRestart = function() {
+    self.deferred_loader.loadIds = new Set();
+  };
+}
+
