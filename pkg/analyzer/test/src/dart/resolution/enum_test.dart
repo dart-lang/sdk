@@ -617,10 +617,27 @@ void f() {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('index'),
-      element: typeProvider.enumElement!.getGetter('index')!,
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@enum::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: _
+      staticElement: self::@enum::E::@getter::_
+      staticType: E
+    staticElement: self::@enum::E::@getter::_
+    staticType: E
+  operator: .
+  propertyName: SimpleIdentifier
+    token: index
+    staticElement: dart:core::@class::Enum::@getter::index
+    staticType: int
+  staticType: int
+''');
   }
 }

@@ -4324,8 +4324,35 @@ extension E on C {
   int m() => this.a;
 }
 ''');
-    var access = findNode.propertyAccess('this.a');
-    assertPropertyAccess(access, findElement.getter('a', of: 'E'), 'int');
+
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E::@getter::a
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E::@getter::a
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_instance_method_fromInstance() async {

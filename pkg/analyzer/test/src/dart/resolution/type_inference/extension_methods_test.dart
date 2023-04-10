@@ -406,24 +406,47 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    if (result.libraryElement.isNonNullableByDefault) {
-      assertPropertyAccess2(
-        findNode.propertyAccess('.test'),
-        element: elementMatcher(
-          findElement.getter('test'),
-          substitution: {'T': 'S'},
-        ),
-        type: 'S Function(S)',
-      );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: S
+    rightParenthesis: )
+    staticType: S
+  operator: .
+  propertyName: SimpleIdentifier
+    token: test
+    staticElement: PropertyAccessorMember
+      base: self::@extension::Test::@getter::test
+      substitution: {T: S}
+    staticType: S Function(S)
+  staticType: S Function(S)
+''');
     } else {
-      assertPropertyAccess2(
-        findNode.propertyAccess('.test'),
-        element: elementMatcher(
-          findElement.getter('test'),
-          substitution: {'T': 'num'},
-        ),
-        type: 'num Function(num)',
-      );
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: S*
+    rightParenthesis: )
+    staticType: S*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: test
+    staticElement: PropertyAccessorMember
+      base: self::@extension::Test::@getter::test
+      substitution: {T: num*}
+    staticType: num* Function(num*)*
+  staticType: num* Function(num*)*
+''');
     }
   }
 

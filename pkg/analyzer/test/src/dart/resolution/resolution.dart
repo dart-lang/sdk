@@ -303,33 +303,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertPrefixedIdentifier(
-    PrefixedIdentifier node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-  }
-
-  void assertPropertyAccess(
-    PropertyAccess access,
-    Element expectedElement,
-    String expectedType,
-  ) {
-    assertElement(access.propertyName, expectedElement);
-    assertType(access, expectedType);
-  }
-
-  void assertPropertyAccess2(
-    PropertyAccess node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.propertyName.staticElement, element);
-    assertType(node.staticType, type);
-  }
-
   void assertResolvedNodeText(
     AstNode node,
     String expected, {

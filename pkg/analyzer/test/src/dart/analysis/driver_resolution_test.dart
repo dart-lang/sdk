@@ -5308,57 +5308,6 @@ main() {
     expect(property.staticType, isDynamicType);
   }
 
-  test_unresolved_propertyAccess_3() async {
-    addTestFile(r'''
-Object foo;
-main() {
-  foo.hashCode.baz;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    PropertyAccessorElement objectHashCode =
-        objectElement.getGetter('hashCode')!;
-    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
-
-    List<Statement> statements = _getMainStatements(result);
-    var statement = statements[0] as ExpressionStatement;
-
-    var propertyAccess = statement.expression as PropertyAccess;
-    expect(propertyAccess.staticType, isDynamicType);
-
-    {
-      var prefixed = propertyAccess.target as PrefixedIdentifier;
-      assertPrefixedIdentifier(
-        prefixed,
-        element: elementMatcher(
-          objectHashCode,
-          isLegacy: isLegacyLibrary,
-        ),
-        type: 'int',
-      );
-
-      SimpleIdentifier prefix = prefixed.prefix;
-      expect(prefix.staticElement, same(foo.getter));
-      expect(prefix.staticType, typeProvider.objectType);
-
-      SimpleIdentifier identifier = prefixed.identifier;
-      assertSimpleIdentifier(
-        identifier,
-        element: elementMatcher(
-          objectHashCode,
-          isLegacy: isLegacyLibrary,
-        ),
-        type: 'int',
-      );
-    }
-
-    SimpleIdentifier property = propertyAccess.propertyName;
-    expect(property.staticElement, isNull);
-    expect(property.staticType, isDynamicType);
-  }
-
   test_unresolved_redirectingFactory_1() async {
     addTestFile(r'''
 class A {

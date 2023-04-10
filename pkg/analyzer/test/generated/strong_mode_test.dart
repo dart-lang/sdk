@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
-import '../src/dart/resolution/node_text_expectations.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -24,7 +23,6 @@ main() {
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2WithoutNullSafetyTest);
     defineReflectiveTests(StrongModeTypePropagationTest);
-    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 

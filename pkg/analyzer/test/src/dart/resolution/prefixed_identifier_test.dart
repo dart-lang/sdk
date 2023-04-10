@@ -35,16 +35,25 @@ main() {
       error(WarningCode.UNUSED_IMPORT, 22, 8),
     ]);
 
-    var import = findElement.importFind('package:test/a.dart');
-
-    assertPrefixedIdentifier(
-      findNode.prefixed('a.loadLibrary'),
-      element: elementMatcher(
-        import.importedLibrary.loadLibraryFunction,
-        isLegacy: true,
-      ),
-      type: 'Future<dynamic>* Function()*',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@prefix::a
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: loadLibrary
+    staticElement: FunctionMember
+      base: loadLibrary@-1
+      isLegacy: true
+    staticType: Future<dynamic>* Function()*
+  staticElement: FunctionMember
+    base: loadLibrary@-1
+    isLegacy: true
+  staticType: Future<dynamic>* Function()*
+''');
   }
 
   test_enum_read() async {
@@ -59,24 +68,21 @@ void f(E e) {
 }
 ''');
 
-    var prefixed = findNode.prefixed('e.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('e'),
-      type: 'E',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: e
+    staticElement: self::@function::f::@parameter::e
+    staticType: E
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@enum::E::@getter::foo
+    staticType: int
+  staticElement: self::@enum::E::@getter::foo
+  staticType: int
+''');
   }
 
   test_enum_write() async {
@@ -371,23 +377,21 @@ void f() {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-    var A = importFind.typeAlias('A');
-
-    var prefixed = findNode.prefixed('p.A');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: A,
-      type: 'Type',
-    );
-
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: A,
-      type: 'Type',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@typeAlias::A
+    staticType: Type
+  staticElement: package:test/a.dart::@typeAlias::A
+  staticType: Type
+''');
   }
 }
 
@@ -408,24 +412,38 @@ void f(A a) {
 }
 ''');
 
-    var prefixed = findNode.prefixed('a.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@class::A::@getter::foo
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A*
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int*
+  staticElement: self::@class::A::@getter::foo
+  staticType: int*
+''');
+    }
   }
 
   test_class_read_staticMethod_generic() async {
@@ -439,24 +457,38 @@ void f() {
 }
 ''');
 
-    var prefixed = findNode.prefixed('A.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.method('foo'),
-      type: 'void Function<U>(int, U)',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.class_('A'),
-      type: null,
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.method('foo'),
-      type: 'void Function<U>(int, U)',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function<U>(int, U)
+  staticElement: self::@class::A::@method::foo
+  staticType: void Function<U>(int, U)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function<U>(int*, U*)*
+  staticElement: self::@class::A::@method::foo
+  staticType: void Function<U>(int*, U*)*
+''');
+    }
   }
 
   test_class_read_staticMethod_ofGenericClass() async {
@@ -470,24 +502,38 @@ void f() {
 }
 ''');
 
-    var prefixed = findNode.prefixed('A.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.method('foo'),
-      type: 'void Function(int)',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.class_('A'),
-      type: null,
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.method('foo'),
-      type: 'void Function(int)',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  staticElement: self::@class::A::@method::foo
+  staticType: void Function(int)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int*)*
+  staticElement: self::@class::A::@method::foo
+  staticType: void Function(int*)*
+''');
+    }
   }
 
   test_class_read_typedef_functionType() async {
@@ -503,23 +549,38 @@ void f() {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-    var A = importFind.typeAlias('A');
-
-    var prefixed = findNode.prefixed('p.A');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: A,
-      type: 'Type',
-    );
-
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: A,
-      type: 'Type',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@typeAlias::A
+    staticType: Type
+  staticElement: package:test/a.dart::@typeAlias::A
+  staticType: Type
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: p
+    staticElement: self::@prefix::p
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@typeAlias::A
+    staticType: Type*
+  staticElement: package:test/a.dart::@typeAlias::A
+  staticType: Type*
+''');
+    }
   }
 
   test_class_readWrite_assignment() async {
@@ -673,11 +734,38 @@ main() {
 }
 ''');
 
-    assertPrefixedIdentifier(
-      findNode.prefixed('mycore.dynamic'),
-      element: dynamicElement,
-      type: 'Type',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: mycore
+    staticElement: self::@prefix::mycore
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: dynamic
+    staticElement: dynamic@-1
+    staticType: Type
+  staticElement: dynamic@-1
+  staticType: Type
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: mycore
+    staticElement: self::@prefix::mycore
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: dynamic
+    staticElement: dynamic@-1
+    staticType: Type*
+  staticElement: dynamic@-1
+  staticType: Type*
+''');
+    }
   }
 
   test_functionType_call_read() async {
@@ -687,11 +775,38 @@ void f(int Function(String) a) {
 }
 ''');
 
-    assertPrefixedIdentifier(
-      findNode.prefixed('.call;'),
-      element: null,
-      type: 'int Function(String)',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int Function(String)
+  period: .
+  identifier: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: int Function(String)
+  staticElement: <null>
+  staticType: int Function(String)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int* Function(String*)*
+  period: .
+  identifier: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: int* Function(String*)*
+  staticElement: <null>
+  staticType: int* Function(String*)*
+''');
+    }
   }
 
   test_implicitCall_tearOff() async {
