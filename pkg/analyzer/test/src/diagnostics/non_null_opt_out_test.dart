@@ -11,12 +11,10 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
-import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullOptOutTest);
-    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 

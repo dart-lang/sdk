@@ -34,6 +34,8 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  CascadeExpression get singleCascadeExpression => _single();
+
   ExtendsClause get singleExtendsClause => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
@@ -74,6 +76,10 @@ class FindNode {
 
   PatternVariableDeclarationStatement
       get singlePatternVariableDeclarationStatement => _single();
+
+  PrefixedIdentifier get singlePrefixedIdentifier => _single();
+
+  PropertyAccess get singlePropertyAccess => _single();
 
   SwitchExpression get singleSwitchExpression => _single();
 

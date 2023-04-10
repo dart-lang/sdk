@@ -163,11 +163,32 @@ void f(int? a) {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('?.foo'),
-      element: findElement.getter('foo'),
-      type: 'int?',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: int?
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int
+  staticType: int?
+''');
   }
 
   test_propertyAccess_setter_nullAware() async {

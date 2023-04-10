@@ -299,11 +299,19 @@ class B extends A {
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 69, 5),
     ]);
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('super.a'),
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_topLevelFunction() async {
