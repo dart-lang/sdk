@@ -92,7 +92,7 @@ class SocketAddress {
   // unix(7) require sun_path to be 108 bytes on Linux and Android, 104 bytes on
   // Mac OS.
   static const intptr_t kMaxUnixPathLength =
-      sizeof(((struct sockaddr_un*)0)->sun_path);
+      sizeof(((struct sockaddr_un*)nullptr)->sun_path);
   char as_string_[kMaxUnixPathLength];
 #else
   char as_string_[INET6_ADDRSTRLEN];

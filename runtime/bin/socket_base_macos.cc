@@ -60,8 +60,8 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = 0;
   hints.ai_protocol = IPPROTO_TCP;
-  struct addrinfo* info = NULL;
-  int status = getaddrinfo(host, 0, &hints, &info);
+  struct addrinfo* info = nullptr;
+  int status = getaddrinfo(host, nullptr, &hints, &info);
   if (status != 0) {
     ASSERT(*os_error == NULL);
     *os_error =

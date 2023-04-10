@@ -337,8 +337,8 @@ void InitializeExternalTypedDataWithSafepointChecks(
 
 void InitializeTypedDataView(TypedDataViewPtr obj) {
   obj.untag()->typed_data_ = TypedDataBase::null();
-  obj.untag()->offset_in_bytes_ = 0;
-  obj.untag()->length_ = 0;
+  obj.untag()->offset_in_bytes_ = Smi::New(0);
+  obj.untag()->length_ = Smi::New(0);
 }
 
 void FreeExternalTypedData(void* isolate_callback_data, void* buffer) {
@@ -1848,8 +1848,8 @@ class ObjectCopy : public Base {
       Base::StoreCompressedPointerNoBarrier(
           Types::GetTypedDataViewPtr(to),
           OFFSET_OF(UntaggedTypedDataView, typed_data_), Object::null());
-      raw_to->length_ = 0;
-      raw_to->offset_in_bytes_ = 0;
+      raw_to->length_ = Smi::New(0);
+      raw_to->offset_in_bytes_ = Smi::New(0);
       ASSERT(Base::exception_msg_ != nullptr);
       return;
     }
@@ -2109,7 +2109,8 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
     // uses the information from the header and therefore might visit one slot
     // more than the actual size of the instance).
     *reinterpret_cast<ObjectPtr*>(UntaggedObject::ToAddr(to) +
-                                  from.untag()->HeapSize() - kWordSize) = 0;
+                                  from.untag()->HeapSize() - kWordSize) =
+        nullptr;
     SetNewSpaceTaggingWord(to, cid, size);
 
     // Fall back to virtual variant for predefined classes

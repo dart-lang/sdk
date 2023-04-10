@@ -36,7 +36,7 @@ void Decompress(const uint8_t* input,
   strm.zfree = Z_NULL;
   strm.opaque = Z_NULL;
   strm.avail_in = 0;
-  strm.next_in = 0;
+  strm.next_in = Z_NULL;
   int ret = inflateInit2(&strm, 32 + MAX_WBITS);
   ASSERT(ret == Z_OK);
 

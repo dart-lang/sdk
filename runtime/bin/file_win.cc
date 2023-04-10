@@ -141,7 +141,7 @@ MappedMemory* File::Map(File::MapType type,
 void MappedMemory::Unmap() {
   BOOL result = VirtualFree(address_, 0, MEM_RELEASE);
   ASSERT(result);
-  address_ = 0;
+  address_ = nullptr;
   size_ = 0;
 }
 

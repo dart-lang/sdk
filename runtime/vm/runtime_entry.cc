@@ -3607,7 +3607,8 @@ void OnEveryRuntimeEntryCall(Thread* thread,
   if (IsolateGroup::IsSystemIsolateGroup(thread->isolate_group())) {
     return;
   }
-  const bool is_deopt_related = strstr(runtime_call_name, "Deoptimize") != 0;
+  const bool is_deopt_related =
+      strstr(runtime_call_name, "Deoptimize") != nullptr;
   if (is_deopt_related) {
     return;
   }
@@ -3618,7 +3619,7 @@ void OnEveryRuntimeEntryCall(Thread* thread,
         (strlen(runtime_call_name) !=
              strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
          strstr(runtime_call_name,
-                FLAG_deoptimize_on_runtime_call_name_filter) == 0)) {
+                FLAG_deoptimize_on_runtime_call_name_filter) == nullptr)) {
       return;
     }
     const uint32_t count = thread->IncrementAndGetRuntimeCallCount();

@@ -112,7 +112,7 @@ MappedMemory* File::Map(MapType type,
 void MappedMemory::Unmap() {
   int result = munmap(address_, size_);
   ASSERT(result == 0);
-  address_ = 0;
+  address_ = nullptr;
   size_ = 0;
 }
 

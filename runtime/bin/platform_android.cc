@@ -43,7 +43,7 @@ bool Platform::Initialize() {
   // handler error EPIPE is set instead.
   struct sigaction act = {};
   act.sa_handler = SIG_IGN;
-  if (sigaction(SIGPIPE, &act, 0) != 0) {
+  if (sigaction(SIGPIPE, &act, nullptr) != 0) {
     perror("Setting signal handler failed");
     return false;
   }

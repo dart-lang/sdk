@@ -18,7 +18,7 @@
 namespace dart {
 
 CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
-const char* CpuInfo::fields_[kCpuInfoMax] = {0};
+const char* CpuInfo::fields_[kCpuInfoMax] = {};
 
 void CpuInfo::Init() {
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
