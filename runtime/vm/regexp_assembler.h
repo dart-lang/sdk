@@ -149,7 +149,7 @@ class RegExpMacroAssembler : public ZoneAllocated {
                                                BlockLabel* on_no_match) = 0;
   // Check the current character for a match with a literal character.  If we
   // fail to match then goto the on_failure label.  End of input always
-  // matches.  If the label is NULL then we should pop a backtrack address off
+  // matches.  If the label is null then we should pop a backtrack address off
   // the stack and go to that.
   virtual void CheckNotCharacter(unsigned c, BlockLabel* on_not_equal) = 0;
   virtual void CheckNotCharacterAfterAnd(unsigned c,
@@ -191,12 +191,12 @@ class RegExpMacroAssembler : public ZoneAllocated {
   }
   virtual void Fail() = 0;
   // Check whether a register is >= a given constant and go to a label if it
-  // is.  Backtracks instead if the label is NULL.
+  // is.  Backtracks instead if the label is nullptr.
   virtual void IfRegisterGE(intptr_t reg,
                             intptr_t comparand,
                             BlockLabel* if_ge) = 0;
   // Check whether a register is < a given constant and go to a label if it is.
-  // Backtracks instead if the label is NULL.
+  // Backtracks instead if the label is nullptr.
   virtual void IfRegisterLT(intptr_t reg,
                             intptr_t comparand,
                             BlockLabel* if_lt) = 0;

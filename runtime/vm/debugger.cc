@@ -71,8 +71,8 @@ BreakpointLocation::BreakpointLocation(
       line_number_(-1),  // lazily computed
       token_pos_(token_pos),
       end_token_pos_(end_token_pos),
-      next_(NULL),
-      conditions_(NULL),
+      next_(nullptr),
+      conditions_(nullptr),
       requested_line_number_(requested_line_number),
       requested_column_number_(requested_column_number),
       code_token_pos_(TokenPosition::kNoSource) {
@@ -95,8 +95,8 @@ BreakpointLocation::BreakpointLocation(Debugger* debugger,
       line_number_(-1),  // lazily computed
       token_pos_(TokenPosition::kNoSource),
       end_token_pos_(TokenPosition::kNoSource),
-      next_(NULL),
-      conditions_(NULL),
+      next_(nullptr),
+      conditions_(nullptr),
       requested_line_number_(requested_line_number),
       requested_column_number_(requested_column_number),
       code_token_pos_(TokenPosition::kNoSource) {
@@ -105,7 +105,7 @@ BreakpointLocation::BreakpointLocation(Debugger* debugger,
 
 BreakpointLocation::~BreakpointLocation() {
   Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     Breakpoint* temp = bpt;
     bpt = bpt->next();
     delete temp;
@@ -167,7 +167,7 @@ intptr_t BreakpointLocation::line_number() {
 
 void Breakpoint::set_bpt_location(BreakpointLocation* new_bpt_location) {
   // Only latent breakpoints can be moved.
-  ASSERT((new_bpt_location == NULL) || bpt_location_->IsLatent());
+  ASSERT((new_bpt_location == nullptr) || bpt_location_->IsLatent());
   bpt_location_ = new_bpt_location;
 }
 
@@ -182,7 +182,7 @@ void BreakpointLocation::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&url_));
 
   Breakpoint* bpt = conditions_;
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     bpt->VisitObjectPointers(visitor);
     bpt = bpt->next();
   }
@@ -401,11 +401,11 @@ void BreakpointLocation::AddBreakpoint(Breakpoint* bpt, Debugger* dbg) {
 
 Breakpoint* BreakpointLocation::AddRepeated(Debugger* dbg) {
   Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     if (bpt->IsRepeated()) break;
     bpt = bpt->next();
   }
-  if (bpt == NULL) {
+  if (bpt == nullptr) {
     bpt = new Breakpoint(dbg->nextId(), this);
     bpt->SetIsRepeated();
     AddBreakpoint(bpt, dbg);
@@ -415,11 +415,11 @@ Breakpoint* BreakpointLocation::AddRepeated(Debugger* dbg) {
 
 Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
   Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     if (bpt->IsSingleShot()) break;
     bpt = bpt->next();
   }
-  if (bpt == NULL) {
+  if (bpt == nullptr) {
     bpt = new Breakpoint(dbg->nextId(), this);
     bpt->SetIsSingleShot();
     AddBreakpoint(bpt, dbg);
@@ -430,18 +430,18 @@ Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
 Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
                                               const Instance& closure,
                                               bool for_over_await) {
-  Breakpoint* bpt = NULL;
+  Breakpoint* bpt = nullptr;
   // Do not reuse existing breakpoints for stepping over await clauses.
   // A second async step-over command will set a new breakpoint before
   // the existing one gets deleted when first async step-over resumes.
   if (!for_over_await) {
     bpt = breakpoints();
-    while (bpt != NULL) {
+    while (bpt != nullptr) {
       if (bpt->IsPerClosure() && (bpt->closure() == closure.ptr())) break;
       bpt = bpt->next();
     }
   }
-  if (bpt == NULL) {
+  if (bpt == nullptr) {
     bpt = new Breakpoint(dbg->nextId(), this);
     bpt->SetIsPerClosure(closure);
     bpt->set_is_synthetic_async(for_over_await);
@@ -502,7 +502,7 @@ bool GroupDebugger::HasCodeBreakpointInFunction(const Function& func) {
   auto thread = Thread::Current();
   return RunUnderReadLockIfNeeded(thread, code_breakpoints_lock(), [&]() {
     CodeBreakpoint* cbpt = code_breakpoints_;
-    while (cbpt != NULL) {
+    while (cbpt != nullptr) {
       if (func.ptr() == cbpt->function()) {
         return true;
       }
@@ -516,7 +516,7 @@ bool GroupDebugger::HasBreakpointInCode(const Code& code) {
   auto thread = Thread::Current();
   return RunUnderReadLockIfNeeded(thread, code_breakpoints_lock(), [&]() {
     CodeBreakpoint* cbpt = code_breakpoints_;
-    while (cbpt != NULL) {
+    while (cbpt != nullptr) {
       if (code.ptr() == cbpt->code_) {
         return true;
       }
@@ -533,9 +533,9 @@ void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
 
 void Debugger::PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
                                                JSONArray* jsarr) const {
-  while (sbpt != NULL) {
+  while (sbpt != nullptr) {
     Breakpoint* bpt = sbpt->breakpoints();
-    while (bpt != NULL) {
+    while (bpt != nullptr) {
       jsarr->AddValue(bpt);
       bpt = bpt->next();
     }
@@ -687,7 +687,7 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  while (frame != NULL) {
+  while (frame != nullptr) {
     OS::PrintErr("%s\n", frame->ToCString());
     frame = frames.NextFrame();
   }
@@ -862,7 +862,7 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
       return frame;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void ActivationFrame::GetDescIndices() {
@@ -1062,7 +1062,7 @@ void ActivationFrame::PrintContextMismatchError(intptr_t ctx_slot,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   intptr_t num = 0;
-  while ((frame != NULL)) {
+  while ((frame != nullptr)) {
     OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
     frame = iterator.NextFrame();
   }
@@ -1077,19 +1077,19 @@ void ActivationFrame::VariableAt(intptr_t i,
   GetDescIndices();
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
 
   *name = var_descriptors_.GetName(desc_index);
 
   UntaggedLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
-  ASSERT(declaration_token_pos != NULL);
+  ASSERT(declaration_token_pos != nullptr);
   *declaration_token_pos = var_info.declaration_pos;
-  ASSERT(visible_start_token_pos != NULL);
+  ASSERT(visible_start_token_pos != nullptr);
   *visible_start_token_pos = var_info.begin_pos;
-  ASSERT(visible_end_token_pos != NULL);
+  ASSERT(visible_end_token_pos != nullptr);
   *visible_end_token_pos = var_info.end_pos;
-  ASSERT(value != NULL);
+  ASSERT(value != nullptr);
   const int8_t kind = var_info.kind();
   const auto variable_index = VariableIndex(var_info.index());
   if (kind == UntaggedLocalVarDescriptors::kStackVar) {
@@ -1426,7 +1426,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
     : code_(code.ptr()),
       pc_(pc),
       enabled_count_(0),
-      next_(NULL),
+      next_(nullptr),
       breakpoint_kind_(kind),
       saved_value_(Code::null()) {
   ASSERT(!code.IsNull());
@@ -1443,7 +1443,7 @@ CodeBreakpoint::~CodeBreakpoint() {
 #ifdef DEBUG
   code_ = Code::null();
   pc_ = 0ul;
-  next_ = NULL;
+  next_ = nullptr;
   breakpoint_kind_ = UntaggedPcDescriptors::kOther;
 #endif
 }
@@ -1513,30 +1513,30 @@ GroupDebugger::~GroupDebugger() {
 Debugger::Debugger(Isolate* isolate)
     : isolate_(isolate),
       next_id_(1),
-      latent_locations_(NULL),
-      breakpoint_locations_(NULL),
+      latent_locations_(nullptr),
+      breakpoint_locations_(nullptr),
       resume_action_(kContinue),
       resume_frame_index_(-1),
       post_deopt_frame_index_(-1),
       ignore_breakpoints_(false),
-      pause_event_(NULL),
-      stack_trace_(NULL),
-      async_causal_stack_trace_(NULL),
-      awaiter_stack_trace_(NULL),
+      pause_event_(nullptr),
+      stack_trace_(nullptr),
+      async_causal_stack_trace_(nullptr),
+      awaiter_stack_trace_(nullptr),
       stepping_fp_(0),
       last_stepping_fp_(0),
       last_stepping_pos_(TokenPosition::kNoSource),
       skip_next_step_(false),
-      synthetic_async_breakpoint_(NULL),
+      synthetic_async_breakpoint_(nullptr),
       exc_pause_info_(kNoPauseOnExceptions) {}
 
 Debugger::~Debugger() {
   ASSERT(!IsPaused());
-  ASSERT(latent_locations_ == NULL);
-  ASSERT(breakpoint_locations_ == NULL);
-  ASSERT(stack_trace_ == NULL);
-  ASSERT(async_causal_stack_trace_ == NULL);
-  ASSERT(synthetic_async_breakpoint_ == NULL);
+  ASSERT(latent_locations_ == nullptr);
+  ASSERT(breakpoint_locations_ == nullptr);
+  ASSERT(stack_trace_ == nullptr);
+  ASSERT(async_causal_stack_trace_ == nullptr);
+  ASSERT(synthetic_async_breakpoint_ == nullptr);
 }
 
 void Debugger::Shutdown() {
@@ -1595,7 +1595,7 @@ bool Debugger::SetResumeAction(ResumeAction action,
                                intptr_t frame_index,
                                const char** error) {
   if (error != nullptr) {
-    *error = NULL;
+    *error = nullptr;
   }
   resume_frame_index_ = -1;
   switch (action) {
@@ -1741,8 +1741,8 @@ static ArrayPtr DeoptimizeToArray(Thread* thread,
   Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
   DeoptContext* deopt_context =
-      new DeoptContext(frame, code, DeoptContext::kDestIsAllocated, NULL, NULL,
-                       true, false /* deoptimizing_code */);
+      new DeoptContext(frame, code, DeoptContext::kDestIsAllocated, nullptr,
+                       nullptr, true, false /* deoptimizing_code */);
   isolate->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();
@@ -1750,7 +1750,7 @@ static ArrayPtr DeoptimizeToArray(Thread* thread,
   const Array& dest_frame =
       Array::Handle(thread->zone(), deopt_context->DestFrameAsArray());
 
-  isolate->set_deopt_context(NULL);
+  isolate->set_deopt_context(nullptr);
   delete deopt_context;
 
   return dest_frame.ptr();
@@ -1769,7 +1769,7 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
   Code& inlined_code = Code::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
 
-  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
+  for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (FLAG_trace_debugger_stacktrace) {
@@ -2000,7 +2000,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
         ActivationFrame* activation = CollectDartFrame(
             isolate, it.pc(), frame, inlined_code, deopt_frame,
             deopt_frame_offset, ActivationFrame::kAsyncActivation);
-        ASSERT(activation != NULL);
+        ASSERT(activation != nullptr);
         stack_trace->AddActivation(activation);
         stack_has_async_function = true;
         // Grab the awaiter.
@@ -2062,17 +2062,18 @@ static ActivationFrame* TopDartFrame() {
 }
 
 DebuggerStackTrace* Debugger::StackTrace() {
-  return (stack_trace_ != NULL) ? stack_trace_ : DebuggerStackTrace::Collect();
+  return (stack_trace_ != nullptr) ? stack_trace_
+                                   : DebuggerStackTrace::Collect();
 }
 
 DebuggerStackTrace* Debugger::AsyncCausalStackTrace() {
-  return (async_causal_stack_trace_ != NULL)
+  return (async_causal_stack_trace_ != nullptr)
              ? async_causal_stack_trace_
              : DebuggerStackTrace::CollectAsyncCausal();
 }
 
 DebuggerStackTrace* Debugger::AwaiterStackTrace() {
-  return (awaiter_stack_trace_ != NULL)
+  return (awaiter_stack_trace_ != nullptr)
              ? awaiter_stack_trace_
              : DebuggerStackTrace::CollectAwaiterReturn();
 }
@@ -2192,7 +2193,7 @@ void Debugger::PauseException(const Instance& exc) {
   DebuggerStackTrace* awaiter_stack_trace =
       DebuggerStackTrace::CollectAwaiterReturn();
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
-  if (awaiter_stack_trace != NULL) {
+  if (awaiter_stack_trace != nullptr) {
     if (!ShouldPauseOnException(awaiter_stack_trace, exc)) {
       return;
     }
@@ -2465,7 +2466,7 @@ bool BreakpointLocation::EnsureIsResolved(const Function& target_function,
 void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
                                          BreakpointLocation* loc) {
   ASSERT(loc->token_pos().IsReal());
-  ASSERT((loc != NULL) && loc->IsResolved());
+  ASSERT((loc != nullptr) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   ASSERT(func.HasCode());
   Code& code = Code::Handle(func.unoptimized_code());
@@ -2834,13 +2835,13 @@ BreakpointLocation* Debugger::SetBreakpoint(
   const Script& script = scripts.At(0);
   if (function.IsNull()) {
     if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
-      return NULL;
+      return nullptr;
     }
     // If func was not set (still Null), the best fit is a field.
   } else {
     func = function.ptr();
     if (!func.token_pos().IsReal()) {
-      return NULL;  // Missing source positions?
+      return nullptr;  // Missing source positions?
     }
   }
   if (!func.IsNull()) {
@@ -2870,7 +2871,7 @@ BreakpointLocation* Debugger::SetBreakpoint(
       BreakpointLocation* loc =
           SetCodeBreakpoints(scripts, token_pos, last_token_pos, requested_line,
                              requested_column, exact_token_pos, code_functions);
-      if (loc != NULL) {
+      if (loc != nullptr) {
         return loc;
       }
     }
@@ -2897,7 +2898,7 @@ BreakpointLocation* Debugger::SetBreakpoint(
   const String& script_url = String::Handle(script.url());
   BreakpointLocation* loc =
       GetBreakpointLocation(script_url, token_pos, -1, requested_column);
-  if (loc == NULL) {
+  if (loc == nullptr) {
     loc = new BreakpointLocation(this, scripts, token_pos, last_token_pos,
                                  requested_line, requested_column);
     RegisterBreakpointLocation(loc);
@@ -2911,7 +2912,7 @@ void GroupDebugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   bool any_enabled = loc->AnyEnabled();
   SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* cbpt = code_breakpoints_;
-  while (cbpt != NULL) {
+  while (cbpt != nullptr) {
     if (cbpt->HasBreakpointLocation(loc)) {
       if (any_enabled) {
         cbpt->Enable();
@@ -2927,14 +2928,14 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
                                            bool single_shot) {
   ASSERT(!target_function.IsNull());
   if (!target_function.is_debuggable()) {
-    return NULL;
+    return nullptr;
   }
   const Script& script = Script::Handle(target_function.script());
   BreakpointLocation* bpt_location = SetBreakpoint(
       script, target_function.token_pos(), target_function.end_token_pos(), -1,
       -1 /* no requested line/col */, target_function);
-  if (bpt_location == NULL) {
-    return NULL;
+  if (bpt_location == nullptr) {
+    return nullptr;
   }
 
   if (single_shot) {
@@ -2947,7 +2948,7 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
 Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
                                                 bool for_over_await) {
   if (!closure.IsClosure()) {
-    return NULL;
+    return nullptr;
   }
   const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
@@ -2959,13 +2960,13 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
 
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
-    return NULL;
+    return nullptr;
   }
 
   BreakpointLocation* loc = breakpoint_locations_;
-  while (loc != NULL) {
+  while (loc != nullptr) {
     Breakpoint* bpt = loc->breakpoints();
-    while (bpt != NULL) {
+    while (bpt != nullptr) {
       if (bpt->IsPerClosure()) {
         if (closure.ptr() == bpt->closure()) {
           return bpt;
@@ -2976,7 +2977,7 @@ Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
     loc = loc->next();
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void Debugger::SetBreakpointAtResumption(const Object& function_data) {
@@ -3021,10 +3022,10 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
 
   BreakpointLocation* loc =
       BreakpointLocationAtLineCol(script_url, line_number, -1 /* no column */);
-  if (loc != NULL) {
+  if (loc != nullptr) {
     return loc->AddRepeated(this);
   }
-  return NULL;
+  return nullptr;
 }
 
 Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
@@ -3037,10 +3038,10 @@ Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
 
   BreakpointLocation* loc =
       BreakpointLocationAtLineCol(script_url, line_number, column_number);
-  if (loc != NULL) {
+  if (loc != nullptr) {
     return loc->AddRepeated(this);
   }
-  return NULL;
+  return nullptr;
 }
 
 BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
@@ -3091,24 +3092,24 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
       OS::PrintErr("Script '%s' does not contain line number %" Pd "\n",
                    script_url.ToCString(), line_number);
     }
-    return NULL;
+    return nullptr;
   } else if (!last_token_idx.IsReal()) {
     // Line does not contain any tokens.
     if (FLAG_verbose_debug) {
       OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
                    script_url.ToCString());
     }
-    return NULL;
+    return nullptr;
   }
 
-  BreakpointLocation* loc = NULL;
+  BreakpointLocation* loc = nullptr;
   ASSERT(first_token_idx <= last_token_idx);
-  while ((loc == NULL) && (first_token_idx <= last_token_idx)) {
+  while ((loc == nullptr) && (first_token_idx <= last_token_idx)) {
     loc = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
                         column_number, Function::Handle());
     first_token_idx = first_token_idx.Next();
   }
-  if ((loc == NULL) && FLAG_verbose_debug) {
+  if ((loc == nullptr) && FLAG_verbose_debug) {
     OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
                  script_url.ToCString());
   }
@@ -3210,7 +3211,7 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
       location->EnsureIsResolved(function, location->token_pos());
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = location->breakpoints();
-        while (bpt != NULL) {
+        while (bpt != nullptr) {
           OS::PrintErr("Setting breakpoint %" Pd " for %s '%s'\n", bpt->id(),
                        function.IsClosureFunction() ? "closure" : "function",
                        function.ToFullyQualifiedCString());
@@ -3232,14 +3233,14 @@ void GroupDebugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 // static
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   BreakpointLocation* loc = breakpoint_locations_;
-  while (loc != NULL) {
+  while (loc != nullptr) {
     loc->VisitObjectPointers(visitor);
     loc = loc->next();
   }
   loc = latent_locations_;
-  while (loc != NULL) {
+  while (loc != nullptr) {
     loc->VisitObjectPointers(visitor);
     loc = loc->next();
   }
@@ -3307,13 +3308,13 @@ void Debugger::ResetSteppingFramePointer() {
 }
 
 bool Debugger::SteppedForSyntheticAsyncBreakpoint() const {
-  return synthetic_async_breakpoint_ != NULL;
+  return synthetic_async_breakpoint_ != nullptr;
 }
 
 void Debugger::CleanupSyntheticAsyncBreakpoint() {
-  if (synthetic_async_breakpoint_ != NULL) {
+  if (synthetic_async_breakpoint_ != nullptr) {
     RemoveBreakpoint(synthetic_async_breakpoint_->id());
-    synthetic_async_breakpoint_ = NULL;
+    synthetic_async_breakpoint_ = nullptr;
   }
 }
 
@@ -3394,7 +3395,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                                   StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
       intptr_t num = 0;
-      while ((frame != NULL)) {
+      while ((frame != nullptr)) {
         OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
         frame = iterator.NextFrame();
       }
@@ -3407,18 +3408,18 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
 void Debugger::CacheStackTraces(DebuggerStackTrace* stack_trace,
                                 DebuggerStackTrace* async_causal_stack_trace,
                                 DebuggerStackTrace* awaiter_stack_trace) {
-  ASSERT(stack_trace_ == NULL);
+  ASSERT(stack_trace_ == nullptr);
   stack_trace_ = stack_trace;
-  ASSERT(async_causal_stack_trace_ == NULL);
+  ASSERT(async_causal_stack_trace_ == nullptr);
   async_causal_stack_trace_ = async_causal_stack_trace;
-  ASSERT(awaiter_stack_trace_ == NULL);
+  ASSERT(awaiter_stack_trace_ == nullptr);
   awaiter_stack_trace_ = awaiter_stack_trace;
 }
 
 void Debugger::ClearCachedStackTraces() {
-  stack_trace_ = NULL;
-  async_causal_stack_trace_ = NULL;
-  awaiter_stack_trace_ = NULL;
+  stack_trace_ = nullptr;
+  async_causal_stack_trace_ = nullptr;
+  awaiter_stack_trace_ = nullptr;
 }
 
 static intptr_t FindNextRewindFrameIndex(DebuggerStackTrace* stack,
@@ -3512,7 +3513,7 @@ void Debugger::RewindToFrame(intptr_t frame_index) {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   intptr_t current_frame = 0;
-  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
+  for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (frame->IsDartFrame()) {
@@ -3614,7 +3615,7 @@ void Debugger::RewindPostDeopt() {
                                 StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     intptr_t num = 0;
-    while ((frame != NULL)) {
+    while ((frame != nullptr)) {
       OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
       frame = iterator.NextFrame();
     }
@@ -3628,7 +3629,7 @@ void Debugger::RewindPostDeopt() {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   intptr_t current_frame = 0;
-  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
+  for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (frame->IsDartFrame()) {
@@ -3730,9 +3731,9 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   ResetSteppingFramePointer();
   NotifySingleStepping(false);
   ASSERT(!IsPaused());
-  if ((bpt != NULL) && bpt->IsSingleShot()) {
+  if ((bpt != nullptr) && bpt->IsSingleShot()) {
     RemoveBreakpoint(bpt->id());
-    bpt = NULL;
+    bpt = nullptr;
   }
 
   ServiceEvent event(isolate_, ServiceEvent::kPauseBreakpoint);
@@ -3781,7 +3782,7 @@ ErrorPtr Debugger::PauseStepping() {
   // in a callee of that frame. Note that we assume that the stack
   // grows towards lower addresses.
   ActivationFrame* frame = TopDartFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
 
   if (stepping_fp_ != 0) {
     // There is an "interesting frame" set. Only pause at appropriate
@@ -3846,7 +3847,7 @@ ErrorPtr Debugger::PauseStepping() {
   if (SteppedForSyntheticAsyncBreakpoint()) {
     CleanupSyntheticAsyncBreakpoint();
   }
-  SignalPausedEvent(frame, NULL);
+  SignalPausedEvent(frame, nullptr);
   HandleSteppingRequest(stack_trace_);
   ClearCachedStackTraces();
 
@@ -3952,7 +3953,7 @@ Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
 
   // First check for a single-shot breakpoint.
   Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     if (bpt->IsSingleShot()) {
       return bpt;
     }
@@ -3961,7 +3962,7 @@ Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
 
   // Now check for a closure-specific breakpoint.
   bpt = breakpoints();
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     if (bpt->IsPerClosure()) {
       Closure& closure = Closure::Handle(top_frame->GetClosure());
       if (closure.ptr() == bpt->closure()) {
@@ -3973,14 +3974,14 @@ Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
 
   // Finally, check for a general breakpoint.
   bpt = breakpoints();
-  while (bpt != NULL) {
+  while (bpt != nullptr) {
     if (bpt->IsRepeated()) {
       return bpt;
     }
     bpt = bpt->next();
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void Debugger::PauseDeveloper(const String& msg) {
@@ -4029,7 +4030,7 @@ static TokenPosition FindExactTokenPosition(const Script& script,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Debugger::NotifyDoneLoading() {
-  if (latent_locations_ == NULL) {
+  if (latent_locations_ == nullptr) {
     // Common, fast path.
     return;
   }
@@ -4040,12 +4041,12 @@ void Debugger::NotifyDoneLoading() {
   Script& script = Script::Handle(zone);
   String& url = String::Handle(zone);
   BreakpointLocation* loc = latent_locations_;
-  BreakpointLocation* prev_loc = NULL;
+  BreakpointLocation* prev_loc = nullptr;
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_group->object_store()->libraries());
 
   GrowableHandlePtrArray<const Script> scripts(zone, 1);
-  while (loc != NULL) {
+  while (loc != nullptr) {
     url = loc->url();
     bool found_match = false;
     bool is_package = url.StartsWith(Symbols::PackageScheme());
@@ -4062,7 +4063,7 @@ void Debugger::NotifyDoneLoading() {
       found_match = true;
       BreakpointLocation* matched_loc = loc;
       loc = loc->next();
-      if (prev_loc == NULL) {
+      if (prev_loc == nullptr) {
         latent_locations_ = loc;
       } else {
         prev_loc->set_next(loc);
@@ -4080,7 +4081,7 @@ void Debugger::NotifyDoneLoading() {
         // Script does not contain the given line number or there are no
         // tokens on the line. Drop the breakpoint silently.
         Breakpoint* bpt = matched_loc->breakpoints();
-        while (bpt != NULL) {
+        while (bpt != nullptr) {
           if (FLAG_verbose_debug) {
             OS::PrintErr("No code found at line %" Pd
                          ": "
@@ -4098,8 +4099,8 @@ void Debugger::NotifyDoneLoading() {
         // the latent breakpoint in release build.
         BreakpointLocation* existing_loc =
             GetBreakpointLocation(url, first_token_pos, -1, column_number);
-        ASSERT(existing_loc == NULL);
-        if (existing_loc == NULL) {
+        ASSERT(existing_loc == nullptr);
+        if (existing_loc == nullptr) {
           // Create and register a new source breakpoint for the
           // latent breakpoint.
           BreakpointLocation* unresolved_loc = new BreakpointLocation(
@@ -4110,8 +4111,8 @@ void Debugger::NotifyDoneLoading() {
           // Move breakpoints over.
           Breakpoint* bpt = matched_loc->breakpoints();
           unresolved_loc->set_breakpoints(bpt);
-          matched_loc->set_breakpoints(NULL);
-          while (bpt != NULL) {
+          matched_loc->set_breakpoints(nullptr);
+          while (bpt != nullptr) {
             bpt->set_bpt_location(unresolved_loc);
             if (FLAG_verbose_debug) {
               OS::PrintErr(
@@ -4140,7 +4141,7 @@ void Debugger::NotifyDoneLoading() {
       // No matching url found in any of the libraries.
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
-        while (bpt != NULL) {
+        while (bpt != nullptr) {
           OS::PrintErr(
               "No match found for latent breakpoint id "
               "%" Pd " with url '%s'\n",
@@ -4163,7 +4164,7 @@ bool GroupDebugger::HasActiveBreakpoint(uword pc) {
 
 CodeBreakpoint* GroupDebugger::GetCodeBreakpoint(uword breakpoint_address) {
   CodeBreakpoint* cbpt = code_breakpoints_;
-  while (cbpt != NULL) {
+  while (cbpt != nullptr) {
     if (cbpt->pc() == breakpoint_address) {
       return cbpt;
     }
@@ -4189,7 +4190,7 @@ BreakpointLocation* GroupDebugger::GetBreakpointLocationFor(
 }
 
 void GroupDebugger::RegisterCodeBreakpoint(CodeBreakpoint* cbpt) {
-  ASSERT(cbpt->next() == NULL);
+  ASSERT(cbpt->next() == nullptr);
   DEBUG_ASSERT(code_breakpoints_lock()->IsCurrentThreadWriter());
   cbpt->set_next(code_breakpoints_);
   code_breakpoints_ = cbpt;
@@ -4198,7 +4199,7 @@ void GroupDebugger::RegisterCodeBreakpoint(CodeBreakpoint* cbpt) {
 CodePtr GroupDebugger::GetPatchedStubAddress(uword breakpoint_address) {
   SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* cbpt = GetCodeBreakpoint(breakpoint_address);
-  if (cbpt != NULL) {
+  if (cbpt != nullptr) {
     return cbpt->OrigStubAddress();
   }
   UNREACHABLE();
@@ -4236,14 +4237,14 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 // returns false, if breakpoint was not found.
 bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
                                            BreakpointLocation** list) {
-  BreakpointLocation* prev_loc = NULL;
+  BreakpointLocation* prev_loc = nullptr;
   BreakpointLocation* curr_loc = *list;
-  while (curr_loc != NULL) {
-    Breakpoint* prev_bpt = NULL;
+  while (curr_loc != nullptr) {
+    Breakpoint* prev_bpt = nullptr;
     Breakpoint* curr_bpt = curr_loc->breakpoints();
-    while (curr_bpt != NULL) {
+    while (curr_bpt != nullptr) {
       if (curr_bpt->id() == bp_id) {
-        if (prev_bpt == NULL) {
+        if (prev_bpt == nullptr) {
           curr_loc->set_breakpoints(curr_bpt->next());
         } else {
           prev_bpt->set_next(curr_bpt->next());
@@ -4253,22 +4254,22 @@ bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
         // poisoned and deleted.
         SendBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
 
-        curr_bpt->set_next(NULL);
-        curr_bpt->set_bpt_location(NULL);
+        curr_bpt->set_next(nullptr);
+        curr_bpt->set_bpt_location(nullptr);
         // Remove possible references to the breakpoint.
-        if (pause_event_ != NULL && pause_event_->breakpoint() == curr_bpt) {
-          pause_event_->set_breakpoint(NULL);
+        if (pause_event_ != nullptr && pause_event_->breakpoint() == curr_bpt) {
+          pause_event_->set_breakpoint(nullptr);
         }
         if (synthetic_async_breakpoint_ == curr_bpt) {
-          synthetic_async_breakpoint_ = NULL;
+          synthetic_async_breakpoint_ = nullptr;
         }
         delete curr_bpt;
-        curr_bpt = NULL;
+        curr_bpt = nullptr;
 
         // Delete the breakpoint location object if there are no more
         // breakpoints at that location.
-        if (curr_loc->breakpoints() == NULL) {
-          if (prev_loc == NULL) {
+        if (curr_loc->breakpoints() == nullptr) {
+          if (prev_loc == nullptr) {
             *list = curr_loc->next();
           } else {
             prev_loc->set_next(curr_loc->next());
@@ -4380,7 +4381,7 @@ BreakpointLocation* Debugger::GetBreakpointLocation(
     TokenPosition code_token_pos) {
   BreakpointLocation* loc = breakpoint_locations_;
   String& loc_url = String::Handle();
-  while (loc != NULL) {
+  while (loc != nullptr) {
     loc_url = loc->url();
     if (script_url.Equals(loc_url) &&
         (!token_pos.IsReal() || (loc->token_pos() == token_pos)) &&
@@ -4394,12 +4395,12 @@ BreakpointLocation* Debugger::GetBreakpointLocation(
     }
     loc = loc->next();
   }
-  return NULL;
+  return nullptr;
 }
 
 Breakpoint* Debugger::GetBreakpointById(intptr_t id) {
   Breakpoint* bpt = GetBreakpointByIdInTheList(id, breakpoint_locations_);
-  if (bpt != NULL) {
+  if (bpt != nullptr) {
     return bpt;
   }
   return GetBreakpointByIdInTheList(id, latent_locations_);
@@ -4408,9 +4409,9 @@ Breakpoint* Debugger::GetBreakpointById(intptr_t id) {
 Breakpoint* Debugger::GetBreakpointByIdInTheList(intptr_t id,
                                                  BreakpointLocation* list) {
   BreakpointLocation* loc = list;
-  while (loc != NULL) {
+  while (loc != nullptr) {
     Breakpoint* bpt = loc->breakpoints();
-    while (bpt != NULL) {
+    while (bpt != nullptr) {
       if (bpt->id() == id) {
         return bpt;
       }
@@ -4418,7 +4419,7 @@ Breakpoint* Debugger::GetBreakpointByIdInTheList(intptr_t id,
     }
     loc = loc->next();
   }
-  return NULL;
+  return nullptr;
 }
 
 void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
@@ -4456,7 +4457,7 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
                                                   intptr_t column) {
   BreakpointLocation* loc = latent_locations_;
   String& bpt_url = String::Handle();
-  while (loc != NULL) {
+  while (loc != nullptr) {
     bpt_url = loc->url();
     if (bpt_url.Equals(url) && (loc->requested_line_number() == line) &&
         (loc->requested_column_number() == column)) {
@@ -4474,7 +4475,7 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
 void Debugger::RegisterBreakpointLocation(BreakpointLocation* loc) {
   SafepointWriteRwLocker sl(Thread::Current(),
                             group_debugger()->breakpoint_locations_lock());
-  ASSERT(loc->next() == NULL);
+  ASSERT(loc->next() == nullptr);
   loc->set_next(breakpoint_locations_);
   breakpoint_locations_ = loc;
   group_debugger()->RegisterBreakpointLocation(loc);

@@ -60,7 +60,7 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
   // and none events for this purpose. The resume event represents a running
   // isolate and the none event is returned for an isolate that has not yet
   // been marked as runnable (see "pauseEvent" in Isolate::PrintJSON).
-  ASSERT(isolate == NULL || !Isolate::IsVMInternalIsolate(isolate) ||
+  ASSERT(isolate == nullptr || !Isolate::IsVMInternalIsolate(isolate) ||
          (Isolate::IsVMInternalIsolate(isolate) &&
           (event_kind == ServiceEvent::kResume ||
            event_kind == ServiceEvent::kNone ||
@@ -210,7 +210,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
 
 const char* ServiceEvent::stream_id() const {
   const StreamInfo* stream = stream_info();
-  if (stream == NULL) {
+  if (stream == nullptr) {
     ASSERT(kind() == kEmbedder);
     return embedder_stream_id_;
   } else {
@@ -231,7 +231,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     jsobj.AddProperty("updatedTag", updated_tag());
   }
   if (kind() == kIsolateReload) {
-    if (reload_error_ == NULL) {
+    if (reload_error_ == nullptr) {
       jsobj.AddProperty("status", "success");
     } else {
       jsobj.AddProperty("status", "failure");
@@ -239,18 +239,18 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     }
   }
   if (kind() == kServiceExtensionAdded) {
-    ASSERT(extension_rpc_ != NULL);
+    ASSERT(extension_rpc_ != nullptr);
     jsobj.AddProperty("extensionRPC", extension_rpc_->ToCString());
   }
   if (kind() == kPauseBreakpoint) {
     JSONArray jsarr(&jsobj, "pauseBreakpoints");
     // TODO(rmacnak): If we are paused at more than one breakpoint,
     // provide it here.
-    if (breakpoint() != NULL) {
+    if (breakpoint() != nullptr) {
       jsarr.AddValue(breakpoint());
     }
   } else {
-    if (breakpoint() != NULL) {
+    if (breakpoint() != nullptr) {
       jsobj.AddProperty("breakpoint", breakpoint());
     }
   }
@@ -273,22 +273,22 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     jsFrame.AddProperty("index", index);
   }
 #endif
-  if (exception() != NULL) {
+  if (exception() != nullptr) {
     jsobj.AddProperty("exception", *(exception()));
   }
   if (at_async_jump()) {
     jsobj.AddProperty("atAsyncSuspension", true);
   }
-  if (inspectee() != NULL) {
+  if (inspectee() != nullptr) {
     jsobj.AddProperty("inspectee", *(inspectee()));
   }
-  if (gc_stats() != NULL) {
+  if (gc_stats() != nullptr) {
     jsobj.AddProperty("reason", Heap::GCReasonToString(gc_stats()->reason_));
     jsobj.AddProperty("gcType", Heap::GCTypeToString(gc_stats()->type_));
     isolate_group()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
     isolate_group()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
   }
-  if (bytes() != NULL) {
+  if (bytes() != nullptr) {
     jsobj.AddPropertyBase64("bytes", bytes(), bytes_length());
   }
   if (kind() == kLogging) {
@@ -316,15 +316,15 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
 }
 
 void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
-  ASSERT(jsobj != NULL);
+  ASSERT(jsobj != nullptr);
   jsobj->AddProperty("type", "Event");
   jsobj->AddProperty("kind", KindAsCString());
   if (kind() == kExtension) {
-    ASSERT(extension_event_.event_kind != NULL);
+    ASSERT(extension_event_.event_kind != nullptr);
     jsobj->AddProperty("extensionKind",
                        extension_event_.event_kind->ToCString());
   }
-  if (isolate() == NULL) {
+  if (isolate() == nullptr) {
     jsobj->AddPropertyVM("vm");
   } else {
     jsobj->AddProperty("isolate", isolate());

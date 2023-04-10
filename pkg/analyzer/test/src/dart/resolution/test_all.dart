@@ -29,6 +29,8 @@ import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
 import 'function_body_test.dart' as function_body;
+import 'function_declaration_statement_test.dart'
+    as function_declaration_statement;
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
@@ -85,6 +87,7 @@ import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
 import 'record_type_annotation_test.dart' as record_type_annotation;
 import 'relational_pattern_test.dart' as relational_pattern;
+import 'scope_test.dart' as scope;
 import 'simple_identifier_test.dart' as simple_identifier;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
@@ -126,6 +129,7 @@ main() {
     for_element.main();
     for_in.main();
     function_body.main();
+    function_declaration_statement.main();
     function_declaration.main();
     function_expression_invocation.main();
     function_reference.main();
@@ -177,6 +181,7 @@ main() {
     record_pattern.main();
     record_type_annotation.main();
     relational_pattern.main();
+    scope.main();
     simple_identifier.main();
     super_formal_parameter.main();
     switch_expression.main();

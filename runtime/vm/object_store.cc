@@ -17,7 +17,7 @@
 namespace dart {
 
 void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("isolate_object store");
   visitor->VisitPointers(from(), to());
   visitor->clear_gc_root_type();
@@ -73,7 +73,7 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  ASSERT(isolate != NULL && isolate->isolate_object_store() == this);
+  ASSERT(isolate != nullptr && isolate->isolate_object_store() == this);
   ASSERT(preallocated_stack_trace() == StackTrace::null());
   resume_capabilities_ = GrowableObjectArray::New();
   exit_listeners_ = GrowableObjectArray::New();
@@ -120,7 +120,7 @@ ObjectStore::ObjectStore()
 ObjectStore::~ObjectStore() {}
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("object store");
   visitor->VisitPointers(from(), to());
   visitor->clear_gc_root_type();

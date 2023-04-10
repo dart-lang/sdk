@@ -34,9 +34,9 @@ TEST_CASE(Mixin_PrivateSuperResolution) {
 
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
-      /* resolver= */ NULL, /* finalize= */ true, /* incrementally= */ true);
+      /* resolver= */ nullptr, /* finalize= */ true, /* incrementally= */ true);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
@@ -83,7 +83,7 @@ TEST_CASE(Mixin_PrivateSuperResolutionCrossLibraryShouldFail) {
 
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
-      /* resolver= */ NULL, /* finalize= */ true, /* incrementally= */ true);
+      /* resolver= */ nullptr, /* finalize= */ true, /* incrementally= */ true);
   EXPECT_ERROR(lib, "Error: Superclass has no method named '_bar'.");
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

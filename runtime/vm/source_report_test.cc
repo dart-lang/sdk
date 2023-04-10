@@ -15,12 +15,12 @@ static ObjectPtr ExecuteScript(const char* script, bool allow_errors = false) {
   {
     TransitionVMToNative transition(Thread::Current());
     if (allow_errors) {
-      lib = TestCase::LoadTestScriptWithErrors(script, NULL);
+      lib = TestCase::LoadTestScriptWithErrors(script, nullptr);
     } else {
-      lib = TestCase::LoadTestScript(script, NULL);
+      lib = TestCase::LoadTestScript(script, nullptr);
     }
     EXPECT_VALID(lib);
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
   return Api::UnwrapHandle(lib);

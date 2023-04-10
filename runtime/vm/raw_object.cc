@@ -417,7 +417,7 @@ void UntaggedObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
 }
 
 bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   return visitor->FindObject(static_cast<ObjectPtr>(this));
 }
 

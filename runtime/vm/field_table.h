@@ -114,7 +114,7 @@ class FieldTable {
   // so it will get freed when its are no longer in use.
   MallocGrowableArray<ObjectPtr*>* old_tables_;
 
-  // If non-NULL, it will specify the isolate this field table belongs to.
+  // If non-null, it will specify the isolate this field table belongs to.
   // Growing the field table will keep the cached field table on the isolate's
   // mutator thread up-to-date.
   Isolate* isolate_;

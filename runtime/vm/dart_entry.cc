@@ -42,7 +42,7 @@ class ScopedIsolateStackLimits : public ValueObject {
   NO_SANITIZE_SAFE_STACK
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
       : thread_(thread) {
-    ASSERT(thread != NULL);
+    ASSERT(thread != nullptr);
     // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
@@ -84,11 +84,11 @@ class SuspendLongJumpScope : public ThreadStackResource {
   explicit SuspendLongJumpScope(Thread* thread)
       : ThreadStackResource(thread),
         saved_long_jump_base_(thread->long_jump_base()) {
-    thread->set_long_jump_base(NULL);
+    thread->set_long_jump_base(nullptr);
   }
 
   ~SuspendLongJumpScope() {
-    ASSERT(thread()->long_jump_base() == NULL);
+    ASSERT(thread()->long_jump_base() == nullptr);
     thread()->set_long_jump_base(saved_long_jump_base_);
   }
 
@@ -591,7 +591,7 @@ void ArgumentsDescriptor::Init() {
 void ArgumentsDescriptor::Cleanup() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     // Don't free pointers to RawArray objects managed by the VM.
-    cached_args_descriptors_[i] = NULL;
+    cached_args_descriptors_[i] = nullptr;
   }
 }
 

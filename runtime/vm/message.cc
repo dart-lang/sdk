@@ -80,19 +80,19 @@ const char* Message::PriorityAsString(Priority priority) {
       break;
     default:
       UNIMPLEMENTED();
-      return NULL;
+      return nullptr;
   }
 }
 
 MessageQueue::MessageQueue() {
-  head_ = NULL;
-  tail_ = NULL;
+  head_ = nullptr;
+  tail_ = nullptr;
 }
 
 MessageQueue::~MessageQueue() {
   // Ensure that all pending messages have been released.
   Clear();
-  ASSERT(head_ == NULL);
+  ASSERT(head_ == nullptr);
 }
 
 void MessageQueue::Enqueue(std::unique_ptr<Message> msg0, bool before_events) {
@@ -100,14 +100,14 @@ void MessageQueue::Enqueue(std::unique_ptr<Message> msg0, bool before_events) {
   Message* msg = msg0.release();
 
   // Make sure messages are not reused.
-  ASSERT(msg->next_ == NULL);
-  if (head_ == NULL) {
+  ASSERT(msg->next_ == nullptr);
+  if (head_ == nullptr) {
     // Only element in the queue.
-    ASSERT(tail_ == NULL);
+    ASSERT(tail_ == nullptr);
     head_ = msg;
     tail_ = msg;
   } else {
-    ASSERT(tail_ != NULL);
+    ASSERT(tail_ != nullptr);
     if (!before_events) {
       // Append at the tail.
       tail_->next_ = msg;
@@ -119,7 +119,7 @@ void MessageQueue::Enqueue(std::unique_ptr<Message> msg0, bool before_events) {
         head_ = msg;
       } else {
         Message* cur = head_;
-        while (cur->next_ != NULL) {
+        while (cur->next_ != nullptr) {
           if (cur->next_->dest_port() != Message::kIllegalPort) {
             // Splice in the new message at the break.
             msg->next_ = cur->next_;
@@ -165,20 +165,20 @@ void MessageQueue::Clear() {
   }
 }
 
-MessageQueue::Iterator::Iterator(const MessageQueue* queue) : next_(NULL) {
+MessageQueue::Iterator::Iterator(const MessageQueue* queue) : next_(nullptr) {
   Reset(queue);
 }
 
 MessageQueue::Iterator::~Iterator() {}
 
 void MessageQueue::Iterator::Reset(const MessageQueue* queue) {
-  ASSERT(queue != NULL);
+  ASSERT(queue != nullptr);
   next_ = queue->head_;
 }
 
 // returns false when there are no more messages left.
 bool MessageQueue::Iterator::HasNext() {
-  return next_ != NULL;
+  return next_ != nullptr;
 }
 
 // Returns the current message and moves forward.
@@ -202,12 +202,12 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
   MessageQueue::Iterator it(this);
   while (it.HasNext()) {
     Message* current = it.Next();
-    ASSERT(current != NULL);
+    ASSERT(current != nullptr);
     if (current->Id() == id) {
       return current;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void MessageQueue::PrintJSON(JSONStream* stream) {

@@ -22,7 +22,8 @@ class Zone;
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  explicit StackResource(ThreadState* thread) : thread_(NULL), previous_(NULL) {
+  explicit StackResource(ThreadState* thread)
+      : thread_(nullptr), previous_(nullptr) {
     Init(thread);
   }
 
@@ -32,7 +33,7 @@ class StackResource {
   ThreadState* thread() const { return thread_; }
 
   // Destroy stack resources of thread until top exit frame.
-  static void Unwind(ThreadState* thread) { UnwindAbove(thread, NULL); }
+  static void Unwind(ThreadState* thread) { UnwindAbove(thread, nullptr); }
   // Destroy stack resources of thread above new_top, exclusive.
   static void UnwindAbove(ThreadState* thread, StackResource* new_top);
 

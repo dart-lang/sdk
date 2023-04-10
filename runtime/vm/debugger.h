@@ -48,7 +48,7 @@ class Breakpoint {
   Breakpoint(intptr_t id, BreakpointLocation* bpt_location)
       : id_(id),
         kind_(Breakpoint::kNone),
-        next_(NULL),
+        next_(nullptr),
         closure_(Instance::null()),
         bpt_location_(bpt_location),
         is_synthetic_async_(false) {}
@@ -539,7 +539,7 @@ class DebuggerKeyValueTrait : public AllStatic {
   struct Pair {
     Key key;
     Value value;
-    Pair() : key(NULL), value(false) {}
+    Pair() : key(nullptr), value(false) {}
     Pair(const Key key, const Value& value) : key(key), value(value) {}
     Pair(const Pair& other) : key(other.key), value(other.value) {}
     Pair& operator=(const Pair&) = default;
@@ -738,13 +738,13 @@ class Debugger {
 
   bool SetResumeAction(ResumeAction action,
                        intptr_t frame_index = 1,
-                       const char** error = NULL);
+                       const char** error = nullptr);
 
   bool IsStepping() const { return resume_action_ != kContinue; }
 
   bool IsSingleStepping() const { return resume_action_ == kStepInto; }
 
-  bool IsPaused() const { return pause_event_ != NULL; }
+  bool IsPaused() const { return pause_event_ != nullptr; }
 
   bool ignore_breakpoints() const { return ignore_breakpoints_; }
   void set_ignore_breakpoints(bool ignore_breakpoints) {
@@ -758,7 +758,7 @@ class Debugger {
   void EnterSingleStepMode();
 
   // Indicates why the debugger is currently paused.  If the debugger
-  // is not paused, this returns NULL.  Note that the debugger can be
+  // is not paused, this returns nullptr.  Note that the debugger can be
   // paused for breakpoints, isolate interruption, and (sometimes)
   // exceptions.
   const ServiceEvent* PauseEvent() const { return pause_event_; }
@@ -928,7 +928,7 @@ class Debugger {
   bool ignore_breakpoints_;
 
   // Indicates why the debugger is currently paused.  If the debugger
-  // is not paused, this is NULL.  Note that the debugger can be
+  // is not paused, this is nullptr.  Note that the debugger can be
   // paused for breakpoints, isolate interruption, and (sometimes)
   // exceptions.
   ServiceEvent* pause_event_;
@@ -973,7 +973,7 @@ class DisableBreakpointsScope : public ValueObject {
  public:
   DisableBreakpointsScope(Debugger* debugger, bool disable)
       : debugger_(debugger) {
-    ASSERT(debugger_ != NULL);
+    ASSERT(debugger_ != nullptr);
     initial_state_ = debugger_->ignore_breakpoints();
     debugger_->set_ignore_breakpoints(disable);
   }

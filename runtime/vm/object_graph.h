@@ -62,7 +62,7 @@ class ObjectGraph : public ThreadStackResource {
 
     virtual bool visit_weak_persistent_handles() const { return false; }
 
-    const char* gc_root_type = NULL;
+    const char* gc_root_type = nullptr;
     bool is_traversing = false;
   };
 

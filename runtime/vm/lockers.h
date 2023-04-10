@@ -129,11 +129,11 @@ class MonitorLocker : public ValueObject {
  public:
   explicit MonitorLocker(Monitor* monitor, bool no_safepoint_scope = true)
       : monitor_(monitor), no_safepoint_scope_(no_safepoint_scope) {
-    ASSERT(monitor != NULL);
+    ASSERT(monitor != nullptr);
 #if defined(DEBUG)
     if (no_safepoint_scope_) {
       Thread* thread = Thread::Current();
-      if (thread != NULL) {
+      if (thread != nullptr) {
         thread->IncrementNoSafepointScopeDepth();
       } else {
         no_safepoint_scope_ = false;

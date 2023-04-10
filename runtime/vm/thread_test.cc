@@ -628,9 +628,9 @@ TEST_CASE(SafepointTestDart) {
                  "  }\n"
                  "}\n",
                  kLoopCount);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   // Ensure we looped long enough to allow all helpers to succeed and exit.
   {
@@ -693,7 +693,7 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
     OSThreadIterator ti;
     while (ti.HasNext()) {
       OSThread* thread = ti.Next();
-      EXPECT(thread != NULL);
+      EXPECT(thread != nullptr);
       thread_count_0++;
     }
   }
@@ -702,7 +702,7 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
     OSThreadIterator ti;
     while (ti.HasNext()) {
       OSThread* thread = ti.Next();
-      EXPECT(thread != NULL);
+      EXPECT(thread != nullptr);
       thread_count_1++;
     }
   }
@@ -727,7 +727,7 @@ void ThreadIteratorTestMain(uword parameter) {
   ThreadIteratorTestParams* params =
       reinterpret_cast<ThreadIteratorTestParams*>(parameter);
   OSThread* thread = OSThread::Current();
-  EXPECT(thread != NULL);
+  EXPECT(thread != nullptr);
 
   MonitorLocker ml(params->monitor);
   params->spawned_thread_id = thread->id();

@@ -11,11 +11,11 @@ namespace dart {
 
 UNIT_TEST_CASE(FixedCacheEmpty) {
   FixedCache<int, int, 2> cache;
-  EXPECT(cache.Lookup(0) == NULL);
-  EXPECT(cache.Lookup(1) == NULL);
+  EXPECT(cache.Lookup(0) == nullptr);
+  EXPECT(cache.Lookup(1) == nullptr);
   cache.Insert(1, 2);
   EXPECT(*cache.Lookup(1) == 2);
-  EXPECT(cache.Lookup(0) == NULL);
+  EXPECT(cache.Lookup(0) == nullptr);
 }
 
 UNIT_TEST_CASE(FixedCacheHalfFull) {
@@ -36,9 +36,9 @@ UNIT_TEST_CASE(FixedCacheHalfFull) {
   EXPECT(strcmp(*cache.Lookup(40), "c") == 0);
   EXPECT(strcmp(*cache.Lookup(25), "bc") == 0);
   // Nonexistent - front, middle, end.
-  EXPECT(cache.Lookup(1) == NULL);
-  EXPECT(cache.Lookup(35) == NULL);
-  EXPECT(cache.Lookup(50) == NULL);
+  EXPECT(cache.Lookup(1) == nullptr);
+  EXPECT(cache.Lookup(35) == nullptr);
+  EXPECT(cache.Lookup(50) == nullptr);
 }
 
 struct Resource {
@@ -71,14 +71,14 @@ UNIT_TEST_CASE(FixedCacheFullResource) {
     cache.Insert(40, Resource(16));
     cache.Insert(30, Resource(8));
     EXPECT(cache.Lookup(40)->id == 16);
-    EXPECT(cache.Lookup(5) == NULL);
-    EXPECT(cache.Lookup(0) == NULL);
+    EXPECT(cache.Lookup(5) == nullptr);
+    EXPECT(cache.Lookup(0) == nullptr);
     // Insert in the front, middle.
     cache.Insert(5, Resource(1));
     cache.Insert(15, Resource(3));
     cache.Insert(25, Resource(6));
     // 40 got removed by shifting.
-    EXPECT(cache.Lookup(40) == NULL);
+    EXPECT(cache.Lookup(40) == nullptr);
     EXPECT(cache.Lookup(5)->id == 1);
     EXPECT(cache.Lookup(15)->id == 3);
     EXPECT(cache.Lookup(25)->id == 6);
@@ -86,7 +86,7 @@ UNIT_TEST_CASE(FixedCacheFullResource) {
     // Insert at end top - 30 gets replaced by 40.
     cache.Insert(40, Resource(16));
     EXPECT(cache.Lookup(40)->id == 16);
-    EXPECT(cache.Lookup(30) == NULL);
+    EXPECT(cache.Lookup(30) == nullptr);
   }
   EXPECT(Resource::copies == 0);
 }

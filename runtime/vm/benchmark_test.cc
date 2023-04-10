@@ -26,14 +26,14 @@ using dart::bin::File;
 
 namespace dart {
 
-Benchmark* Benchmark::first_ = NULL;
-Benchmark* Benchmark::tail_ = NULL;
-const char* Benchmark::executable_ = NULL;
+Benchmark* Benchmark::first_ = nullptr;
+Benchmark* Benchmark::tail_ = nullptr;
+const char* Benchmark::executable_ = nullptr;
 
 void Benchmark::RunAll(const char* executable) {
   SetExecutable(executable);
   Benchmark* benchmark = first_;
-  while (benchmark != NULL) {
+  while (benchmark != nullptr) {
     benchmark->RunBenchmark();
     benchmark = benchmark->next_;
   }
@@ -65,24 +65,25 @@ BENCHMARK(CorelibCompileAll) {
 // which is depended on by run_vm_tests.
 static char* ComputeKernelServicePath(const char* arg) {
   char buffer[2048];
-  char* kernel_service_path = Utils::StrDup(File::GetCanonicalPath(NULL, arg));
-  EXPECT(kernel_service_path != NULL);
+  char* kernel_service_path =
+      Utils::StrDup(File::GetCanonicalPath(nullptr, arg));
+  EXPECT(kernel_service_path != nullptr);
   const char* compiler_path = "%s%sgen%skernel_service.dill";
   const char* path_separator = File::PathSeparator();
-  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
+  ASSERT(path_separator != nullptr && strlen(path_separator) == 1);
   char* ptr = strrchr(kernel_service_path, *path_separator);
-  while (ptr != NULL) {
+  while (ptr != nullptr) {
     *ptr = '\0';
     Utils::SNPrint(buffer, ARRAY_SIZE(buffer), compiler_path,
                    kernel_service_path, path_separator, path_separator);
-    if (File::Exists(NULL, buffer)) {
+    if (File::Exists(nullptr, buffer)) {
       break;
     }
     ptr = strrchr(kernel_service_path, *path_separator);
   }
   free(kernel_service_path);
-  if (ptr == NULL) {
-    return NULL;
+  if (ptr == nullptr) {
+    return nullptr;
   }
   return Utils::StrDup(buffer);
 }
@@ -151,9 +152,9 @@ static void UseDartApi(Dart_NativeArguments args) {
 static Dart_NativeFunction bm_uda_lookup(Dart_Handle name,
                                          int argument_count,
                                          bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = true;
-  const char* cstr = NULL;
+  const char* cstr = nullptr;
   Dart_Handle result = Dart_StringToCString(name, &cstr);
   EXPECT_VALID(result);
   if (strcmp(cstr, "init") == 0) {
@@ -231,7 +232,7 @@ BENCHMARK(DartStringAccess) {
     EXPECT(!Dart_IsExternalString(internal_string));
     EXPECT_VALID(external_string);
     EXPECT(Dart_IsExternalString(external_string));
-    void* external_peer = NULL;
+    void* external_peer = nullptr;
     EXPECT_VALID(Dart_StringGetProperties(external_string, &char_size, &str_len,
                                           &external_peer));
     EXPECT_EQ(1, char_size);
@@ -250,7 +251,7 @@ static void vmservice_resolver(Dart_NativeArguments args) {}
 static Dart_NativeFunction NativeResolver(Dart_Handle name,
                                           int arg_count,
                                           bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = false;
   return &vmservice_resolver;
 }
@@ -267,8 +268,8 @@ BENCHMARK(KernelServiceCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   char* dill_path = ComputeKernelServicePath(Benchmark::Executable());
-  File* file = File::Open(NULL, dill_path, File::kRead);
-  EXPECT(file != NULL);
+  File* file = File::Open(nullptr, dill_path, File::kRead);
+  EXPECT(file != nullptr);
   bin::RefCntReleaseScope<File> rs(file);
   intptr_t kernel_buffer_size = file->Length();
   uint8_t* kernel_buffer =
@@ -280,7 +281,7 @@ BENCHMARK(KernelServiceCompileAll) {
   EXPECT_VALID(result);
   Dart_Handle service_lib = Dart_LookupLibrary(NewString("dart:vmservice_io"));
   ASSERT(!Dart_IsError(service_lib));
-  Dart_SetNativeResolver(service_lib, NativeResolver, NULL);
+  Dart_SetNativeResolver(service_lib, NativeResolver, nullptr);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
@@ -317,7 +318,7 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
       StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                                 StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* frame = frames.NextFrame();
-      while (frame != NULL) {
+      while (frame != nullptr) {
         if (frame->IsStubFrame()) {
           code = frame->LookupDartCode();
           EXPECT(code.function() == Function::null());
@@ -337,7 +338,7 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
 static Dart_NativeFunction StackFrameNativeResolver(Dart_Handle name,
                                                     int arg_count,
                                                     bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = false;
   return &StackFrame_accessFrame;
 }
@@ -388,7 +389,7 @@ BENCHMARK(FrameLookup) {
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, StackFrameNativeResolver);
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
-  Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, nullptr);
   EXPECT_VALID(result);
   int64_t elapsed_time = 0;
   result = Dart_IntegerToInt64(result, &elapsed_time);
@@ -411,7 +412,7 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Start an Isolate, load a script and create a full snapshot.
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
-  TestCase::LoadCoreTestScript(kScriptChars, NULL);
+  TestCase::LoadCoreTestScript(kScriptChars, nullptr);
 
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
@@ -448,7 +449,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Start an Isolate, load a script and create a full snapshot.
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
-  TestCase::LoadCoreTestScript(kScriptChars, NULL);
+  TestCase::LoadCoreTestScript(kScriptChars, nullptr);
 
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
@@ -476,11 +477,11 @@ BENCHMARK(CreateMirrorSystem) {
       "  currentMirrorSystem();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   Timer timer;
   timer.Start();
-  Dart_Handle result = Dart_Invoke(lib, NewString("benchmark"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("benchmark"), 0, nullptr);
   EXPECT_VALID(result);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -492,7 +493,7 @@ BENCHMARK(EnterExitIsolate) {
       "import 'dart:core';\n"
       "\n";
   const intptr_t kLoopCount = 1000000;
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  TestCase::LoadTestScript(kScriptChars, nullptr);
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
@@ -582,9 +583,9 @@ BENCHMARK(LargeMap) {
       "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"
       "  return m;\n"
       "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, nullptr);
   EXPECT_VALID(h_result);
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);

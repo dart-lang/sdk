@@ -279,7 +279,7 @@ void Function::AddFunctionServiceId(const JSONObject& jsobj) const {
   Class& cls = Class::Handle(Owner());
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
-  const char* selector = NULL;
+  const char* selector = nullptr;
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(this->name());
 
@@ -307,7 +307,7 @@ void Function::AddFunctionServiceId(const JSONObject& jsobj) const {
     return;
   }
   if (id != -1) {
-    ASSERT(selector != NULL);
+    ASSERT(selector != nullptr);
     if (cls.IsTopLevel()) {
       const auto& library = Library::Handle(cls.library());
       const auto& private_key = String::Handle(library.private_key());

@@ -351,7 +351,7 @@ class DartFrameIterator {
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
-    while (frame != NULL && !frame->IsDartFrame(frames_.validate())) {
+    while (frame != nullptr && !frame->IsDartFrame(frames_.validate())) {
       frame = frames_.NextFrame();
     }
     return frame;

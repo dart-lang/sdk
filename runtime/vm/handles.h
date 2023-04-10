@@ -54,8 +54,8 @@ template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 class Handles {
  public:
   Handles()
-      : zone_blocks_(NULL),
-        first_scoped_block_(NULL),
+      : zone_blocks_(nullptr),
+        first_scoped_block_(nullptr),
         scoped_blocks_(&first_scoped_block_) {}
   ~Handles() { DeleteAll(); }
 
@@ -209,7 +209,7 @@ class Handles {
 
   // Allocates space for a zone handle.
   uword AllocateHandleInZone() {
-    if (zone_blocks_ == NULL || zone_blocks_->IsFull()) {
+    if (zone_blocks_ == nullptr || zone_blocks_->IsFull()) {
       SetupNextZoneBlock();
     }
     return zone_blocks_->AllocateHandle();

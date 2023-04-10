@@ -68,7 +68,7 @@ const char* CPU::Id() {
       "arm64";
 }
 
-const char* HostCPUFeatures::hardware_ = NULL;
+const char* HostCPUFeatures::hardware_ = nullptr;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
@@ -87,9 +87,9 @@ void HostCPUFeatures::Cleanup() {
 #if defined(DEBUG)
   initialized_ = false;
 #endif
-  ASSERT(hardware_ != NULL);
+  ASSERT(hardware_ != nullptr);
   free(const_cast<char*>(hardware_));
-  hardware_ = NULL;
+  hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
 
@@ -108,9 +108,9 @@ void HostCPUFeatures::Cleanup() {
 #if defined(DEBUG)
   initialized_ = false;
 #endif
-  ASSERT(hardware_ != NULL);
+  ASSERT(hardware_ != nullptr);
   free(const_cast<char*>(hardware_));
-  hardware_ = NULL;
+  hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
 #endif  // !defined(USING_SIMULATOR)

@@ -96,7 +96,7 @@ class TimelineStream {
 
   void set_enabled(bool enabled) { enabled_ = enabled ? 1 : 0; }
 
-  // Records an event. Will return |NULL| if not enabled. The returned
+  // Records an event. Will return |nullptr| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
   // NOTE: It is not allowed to call StartEvent again without completing
   // the first event.
@@ -258,7 +258,7 @@ struct TimelineEventArgument {
 
 class TimelineEventArguments {
  public:
-  TimelineEventArguments() : buffer_(NULL), length_(0) {}
+  TimelineEventArguments() : buffer_(nullptr), length_(0) {}
   ~TimelineEventArguments() { Free(); }
   // Get/Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
@@ -766,7 +766,7 @@ class TimelineEventFilter : public ValueObject {
   virtual ~TimelineEventFilter();
 
   virtual bool IncludeBlock(TimelineEventBlock* block) {
-    if (block == NULL) {
+    if (block == nullptr) {
       return false;
     }
     // Not empty and not in use.
@@ -774,7 +774,7 @@ class TimelineEventFilter : public ValueObject {
   }
 
   virtual bool IncludeEvent(TimelineEvent* event) {
-    if (event == NULL) {
+    if (event == nullptr) {
       return false;
     }
     return event->IsValid();
@@ -796,7 +796,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
                                       int64_t time_extent_micros = -1);
 
   bool IncludeBlock(TimelineEventBlock* block) {
-    if (block == NULL) {
+    if (block == nullptr) {
       return false;
     }
     // Not empty, not in use, and isolate match.
@@ -955,8 +955,8 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   }
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked() { return NULL; }
-  TimelineEventBlock* GetHeadBlockLocked() { return NULL; }
+  TimelineEventBlock* GetNewBlockLocked() { return nullptr; }
+  TimelineEventBlock* GetHeadBlockLocked() { return nullptr; }
   void Clear() {}
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
@@ -1036,8 +1036,8 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   virtual const char* name() const = 0;
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked() { return NULL; }
-  TimelineEventBlock* GetHeadBlockLocked() { return NULL; }
+  TimelineEventBlock* GetNewBlockLocked() { return nullptr; }
+  TimelineEventBlock* GetHeadBlockLocked() { return nullptr; }
   void Clear() {}
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);

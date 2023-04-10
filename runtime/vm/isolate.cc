@@ -1215,7 +1215,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
 
 #if !defined(PRODUCT)
       // If we are already paused, don't pause again.
-      if (I->debugger()->PauseEvent() == NULL) {
+      if (I->debugger()->PauseEvent() == nullptr) {
         return I->debugger()->PauseInterrupted();
       }
 #endif
@@ -1757,7 +1757,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 Isolate::~Isolate() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(32796): Re-enable assertion.
-  // RELEASE_ASSERT(program_reload_context_ == NULL);
+  // RELEASE_ASSERT(program_reload_context_ == nullptr);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(PRODUCT)
@@ -1824,7 +1824,8 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #if !defined(PRODUCT)
 // Initialize metrics.
 #define ISOLATE_METRIC_INIT(type, variable, name, unit)                        \
-  result->metric_##variable##_.InitInstance(result, name, NULL, Metric::unit);
+  result->metric_##variable##_.InitInstance(result, name, nullptr,             \
+                                            Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)
@@ -2346,7 +2347,7 @@ bool Isolate::NotifyErrorListeners(const char* message,
   msg.value.as_string = const_cast<char*>(message);
   arr_values[0] = &msg;
   Dart_CObject stack;
-  if (stacktrace == NULL) {
+  if (stacktrace == nullptr) {
     stack.type = Dart_CObject_kNull;
   } else {
     stack.type = Dart_CObject_kString;
@@ -3644,7 +3645,7 @@ void Isolate::DecrementSpawnCount() {
 
 void Isolate::WaitForOutstandingSpawns() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   MonitorLocker ml(&spawn_count_monitor_);
   while (spawn_count_ > 0) {
     ml.WaitWithSafepointCheck(thread);

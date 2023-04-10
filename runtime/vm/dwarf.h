@@ -41,7 +41,7 @@ struct ScriptIndexPair {
     DEBUG_ASSERT(s->IsNotTemporaryScopedHandle());
   }
 
-  ScriptIndexPair() : script_(NULL), index_(-1) {}
+  ScriptIndexPair() : script_(nullptr), index_(-1) {}
 
   void Print() const;
 
@@ -73,7 +73,7 @@ struct FunctionIndexPair {
     DEBUG_ASSERT(f->IsNotTemporaryScopedHandle());
   }
 
-  FunctionIndexPair() : function_(NULL), index_(-1) {}
+  FunctionIndexPair() : function_(nullptr), index_(-1) {}
 
   void Print() const;
 

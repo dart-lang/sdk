@@ -48,7 +48,7 @@ void BytecodeRegExpMacroAssembler::BindBlock(BlockLabel* l) {
 }
 
 void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
-  if (l == NULL) l = &backtrack_;
+  if (l == nullptr) l = &backtrack_;
   if (l->is_bound()) {
     Emit32(l->pos());
   } else {
@@ -455,7 +455,7 @@ static intptr_t Prepare(const RegExp& regexp,
     if (result.error_message != nullptr) {
       Exceptions::ThrowUnsupportedError(result.error_message);
     }
-    ASSERT(result.bytecode != NULL);
+    ASSERT(result.bytecode != nullptr);
     ASSERT(regexp.num_registers(is_one_byte) == -1 ||
            regexp.num_registers(is_one_byte) == result.num_registers);
     regexp.set_num_registers(is_one_byte, result.num_registers);

@@ -245,7 +245,7 @@ class Thread;
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
   V(StringPtr*, predefined_symbols_address_, Symbols::PredefinedAddress(),     \
-    NULL)                                                                      \
+    nullptr)                                                                   \
   V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
     0)                                                                         \
   V(uword, double_negate_address_,                                             \
@@ -349,7 +349,7 @@ class Thread : public ThreadState {
 
   ~Thread();
 
-  // The currently executing thread, or NULL if not yet initialized.
+  // The currently executing thread, or nullptr if not yet initialized.
   static Thread* Current() {
     return static_cast<Thread*>(OSThread::CurrentVMThread());
   }
@@ -499,7 +499,7 @@ class Thread : public ThreadState {
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
   void set_api_reusable_scope(ApiLocalScope* value) {
-    ASSERT(value == NULL || api_reusable_scope_ == NULL);
+    ASSERT(value == nullptr || api_reusable_scope_ == nullptr);
     api_reusable_scope_ = value;
   }
 
@@ -651,7 +651,7 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
-  bool is_marking() const { return marking_stack_block_ != NULL; }
+  bool is_marking() const { return marking_stack_block_ != nullptr; }
   void MarkingStackAddObject(ObjectPtr obj);
   void DeferredMarkingStackAddObject(ObjectPtr obj);
   void MarkingStackBlockProcess();

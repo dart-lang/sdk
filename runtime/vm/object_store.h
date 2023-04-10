@@ -614,7 +614,7 @@ class ObjectStore {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   uword unused_field_;
 

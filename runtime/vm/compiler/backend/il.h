@@ -10686,7 +10686,7 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
 
 class Environment : public ZoneAllocated {
  public:
-  // Iterate the non-nullptr values in the innermost level of an environment.
+  // Iterate the non-null values in the innermost level of an environment.
   class ShallowIterator : public ValueObject {
    public:
     explicit ShallowIterator(Environment* environment)
@@ -10741,7 +10741,7 @@ class Environment : public ZoneAllocated {
     intptr_t index_;
   };
 
-  // Iterate all non-nullptr values in an environment, including outer
+  // Iterate all non-null values in an environment, including outer
   // environments.  Note that the iterator skips empty environments.
   class DeepIterator : public ValueObject {
    public:
