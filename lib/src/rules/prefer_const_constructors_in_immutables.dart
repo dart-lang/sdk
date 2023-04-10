@@ -82,19 +82,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement;
-    if (element == null) {
-      return;
-    }
+    if (element == null) return;
+    if (element.isConst) return;
+    if (node.body is! EmptyFunctionBody) return;
+    if (element.enclosingElement.mixins.isNotEmpty) return;
+    if (!_hasImmutableAnnotation(element.enclosingElement)) return;
     var isRedirected =
         element.isFactory && element.redirectedConstructor != null;
-    if (node.body is EmptyFunctionBody &&
-        !element.isConst &&
-        !_hasMixin(element.enclosingElement) &&
-        _hasImmutableAnnotation(element.enclosingElement) &&
-        (isRedirected && (element.redirectedConstructor?.isConst ?? false) ||
-            (!isRedirected &&
-                _hasConstConstructorInvocation(node) &&
-                context.canBeConstConstructor(node)))) {
+    if (isRedirected && (element.redirectedConstructor?.isConst ?? false)) {
+      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+    }
+    if (!isRedirected &&
+        _hasConstConstructorInvocation(node) &&
+        context.canBeConstConstructor(node)) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
   }
@@ -105,26 +105,27 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
     var clazz = declaredElement.enclosingElement;
-    // construct with super
-    var superInvocation = node.initializers
-            .firstWhereOrNull((e) => e is SuperConstructorInvocation)
-        as SuperConstructorInvocation?;
+    // Constructor with super-initializer.
+    var superInvocation =
+        node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
     if (superInvocation != null) {
       return superInvocation.staticElement?.isConst ?? false;
     }
-    // construct with this
+    // Constructor with 'this' redirecting initializer.
     var redirectInvocation = node.initializers
-            .firstWhereOrNull((e) => e is RedirectingConstructorInvocation)
-        as RedirectingConstructorInvocation?;
+        .whereType<RedirectingConstructorInvocation>()
+        .firstOrNull;
     if (redirectInvocation != null) {
       return redirectInvocation.staticElement?.isConst ?? false;
     }
-    // construct with implicit super()
+    // Constructor with implicit `super()` call.
     var supertype = clazz.supertype;
     return supertype != null &&
         supertype.constructors.firstWhere((e) => e.name.isEmpty).isConst;
   }
 
+  /// Whether [clazz] or any of it's super-types are annotated with
+  /// `@immutable`.
   bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
     for (var cls in selfAndInheritedClasses) {
@@ -132,8 +133,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     return false;
   }
-
-  bool _hasMixin(InterfaceElement clazz) => clazz.mixins.isNotEmpty;
 
   static List<InterfaceElement> _getSelfAndSuperClasses(InterfaceElement self) {
     InterfaceElement? current = self;
