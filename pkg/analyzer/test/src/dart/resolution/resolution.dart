@@ -239,14 +239,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(result.errors, isNotEmpty);
   }
 
-  /// In valid code [element] must be a [PrefixElement], but for invalid code
-  /// like `int.double v;` we want to resolve `int` somehow. Still not type.
-  void assertImportPrefix(Expression? identifier, Element? element) {
-    identifier as SimpleIdentifier;
-    assertElement(identifier, element);
-    assertTypeNull(identifier);
-  }
-
   /// Resolve the [code], and ensure that it can be resolved without a crash,
   /// and is invalid, i.e. produces a diagnostic.
   Future<void> assertInvalidTestCode(String code) async {
