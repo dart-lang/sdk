@@ -2,53 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(StrictModeTest);
     defineReflectiveTests(StrictModeWithoutNullSafetyTest);
     defineReflectiveTests(TypePropagationTest);
   });
-}
-
-@reflectiveTest
-class PrefixedNamespaceTest extends PubPackageResolutionTest {
-  void test_lookup_missing() {
-    ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
-    expect(namespace.get('p.B'), isNull);
-  }
-
-  void test_lookup_missing_matchesPrefix() {
-    ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
-    expect(namespace.get('p'), isNull);
-  }
-
-  void test_lookup_valid() {
-    ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
-    expect(namespace.get('p.A'), same(element));
-  }
-
-  Map<String, Element> _toMap(List<Element> elements) {
-    Map<String, Element> map = HashMap<String, Element>();
-    for (Element element in elements) {
-      map[element.name!] = element;
-    }
-    return map;
-  }
 }
 
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
