@@ -281,7 +281,7 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 
 Updates the Linter to `1.35.0`, which includes changes that
 
-- add new lints: 
+- add new lints:
   - `explicit_reopen`
   - `unnecessary_breaks`
   - `type_literal_in_constant_pattern`
@@ -350,6 +350,22 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
 - `dart pub get` and related commands will now by default also update the
   dependencies in the `example` folder (if it exists). Use `--no-example` to
   avoid this.
+
+## 2.19.6 - 2023-03-29
+
+This is a patch release that:
+
+- Fixes an `Out of Memory` exception due to a VM bug. (issue [#50537]).
+
+[#50537]: https://github.com/dart-lang/sdk/issues/50537
+
+## 2.19.5 - 2023-03-22
+
+This is a patch release that:
+
+- Fixes fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
+
+[#51459]: https://github.com/dart-lang/sdk/issues/51459
 
 ## 2.19.4 - 2023-03-08
 
