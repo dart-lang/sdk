@@ -45,16 +45,16 @@ bool ThreadInterrupter::thread_running_ = false;
 bool ThreadInterrupter::woken_up_ = false;
 ThreadJoinId ThreadInterrupter::interrupter_thread_id_ =
     OSThread::kInvalidThreadJoinId;
-Monitor* ThreadInterrupter::monitor_ = NULL;
+Monitor* ThreadInterrupter::monitor_ = nullptr;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
 void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
-  if (monitor_ == NULL) {
+  if (monitor_ == nullptr) {
     monitor_ = new Monitor();
   }
-  ASSERT(monitor_ != NULL);
+  ASSERT(monitor_ != nullptr);
   initialized_ = true;
   shutdown_ = false;
 }
@@ -121,7 +121,7 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
 }
 
 void ThreadInterrupter::WakeUp() {
-  if (monitor_ == NULL) {
+  if (monitor_ == nullptr) {
     // Early call.
     return;
   }
@@ -155,7 +155,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
     OSThread* os_thread = OSThread::Current();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     interrupter_thread_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
     thread_running_ = true;
     startup_ml.Notify();

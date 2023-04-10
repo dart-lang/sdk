@@ -139,7 +139,7 @@ static FunctionPtr ResolveDynamicForReceiverClassWithCustomLookup(
   }
 #endif
 
-  if (function.IsNull() || !function.AreValidArguments(args_desc, NULL)) {
+  if (function.IsNull() || !function.AreValidArguments(args_desc, nullptr)) {
     // Return a null function to signal to the upper levels to dispatch to
     // "noSuchMethod" function.
     if (FLAG_trace_resolving) {
@@ -228,7 +228,7 @@ FunctionPtr Resolver::ResolveStatic(const Library& library,
     if (!object.IsNull() && object.IsFunction()) {
       function ^= object.ptr();
       if (!function.AreValidArguments(type_args_len, num_arguments,
-                                      argument_names, NULL)) {
+                                      argument_names, nullptr)) {
         if (FLAG_trace_resolving) {
           String& error_message = String::Handle();
           // Obtain more detailed error message.
@@ -248,7 +248,7 @@ FunctionPtr Resolver::ResolveStatic(const Library& library,
   } else {
     // Lookup class_name in the library's class dictionary to get at
     // the dart class object. If class_name is not found in the dictionary
-    // ResolveStatic will return a NULL function object.
+    // ResolveStatic will return a nullptr function object.
     const Class& cls = Class::Handle(library.LookupClass(class_name));
     if (!cls.IsNull()) {
       function = ResolveStatic(cls, function_name, type_args_len, num_arguments,
@@ -275,7 +275,7 @@ FunctionPtr Resolver::ResolveStatic(const Class& cls,
       Function::Handle(cls.LookupStaticFunction(function_name));
   if (function.IsNull() ||
       !function.AreValidArguments(type_args_len, num_arguments, argument_names,
-                                  NULL)) {
+                                  nullptr)) {
     // Return a null function to signal to the upper levels to throw a
     // resolution error or maybe throw the error right here.
     if (FLAG_trace_resolving) {

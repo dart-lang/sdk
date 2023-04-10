@@ -76,7 +76,7 @@ class ObjectLocator : public ObjectVisitor {
   void VisitObject(ObjectPtr obj) {
     InstanceMorpher* morpher =
         context_->instance_morpher_by_cid_.LookupValue(obj->GetClassId());
-    if (morpher != NULL) {
+    if (morpher != nullptr) {
       morpher->AddObject(obj);
       count_++;
     }
@@ -522,7 +522,7 @@ ErrorPtr ReasonForCancelling::ToError() {
 
 StringPtr ReasonForCancelling::ToString() {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void ReasonForCancelling::AppendTo(JSONArray* array) {
@@ -673,7 +673,7 @@ ProgramReloadContext::ProgramReloadContext(
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The ProgramReloadContext is not
   // associated with the isolate yet and if a GC is triggered here the raw
   // objects will not be properly accounted for.
-  ASSERT(zone_ != NULL);
+  ASSERT(zone_ != nullptr);
 }
 
 ProgramReloadContext::~ProgramReloadContext() {
@@ -813,7 +813,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // ReadKernelFromFile checks to see if the file at
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
-    // compiled, so ReadKernelFromFile returns NULL.
+    // compiled, so ReadKernelFromFile returns nullptr.
     kernel_program = kernel::Program::ReadFromFile(root_script_url);
     if (kernel_program != nullptr) {
       num_received_libs_ = kernel_program->library_count();
@@ -821,7 +821,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
-      if (kernel_buffer == NULL || kernel_buffer_size == 0) {
+      if (kernel_buffer == nullptr || kernel_buffer_size == 0) {
         char* error = CompileToKernel(force_reload, packages_url,
                                       &kernel_buffer, &kernel_buffer_size);
         did_kernel_compilation = true;
@@ -1532,7 +1532,7 @@ Dart_FileModifiedCallback IsolateGroupReloadContext::file_modified_callback_ =
 
 bool IsolateGroupReloadContext::ScriptModifiedSince(const Script& script,
                                                     int64_t since) {
-  if (IsolateGroupReloadContext::file_modified_callback_ == NULL) {
+  if (IsolateGroupReloadContext::file_modified_callback_ == nullptr) {
     return true;
   }
   // We use the resolved url to determine if the script has been modified.
@@ -1600,8 +1600,8 @@ void IsolateGroupReloadContext::FindModifiedSources(
 
   // In addition to all sources, we need to check if the .packages file
   // contents have been modified.
-  if (packages_url != NULL) {
-    if (IsolateGroupReloadContext::file_modified_callback_ == NULL ||
+  if (packages_url != nullptr) {
+    if (IsolateGroupReloadContext::file_modified_callback_ == nullptr ||
         (*IsolateGroupReloadContext::file_modified_callback_)(packages_url,
                                                               last_reload)) {
       modified_sources_uris.Add(packages_url);
@@ -1616,7 +1616,7 @@ void IsolateGroupReloadContext::FindModifiedSources(
   *modified_sources = Z->Alloc<Dart_SourceFile>(*count);
   for (intptr_t i = 0; i < *count; ++i) {
     (*modified_sources)[i].uri = modified_sources_uris[i];
-    (*modified_sources)[i].source = NULL;
+    (*modified_sources)[i].source = nullptr;
   }
 }
 

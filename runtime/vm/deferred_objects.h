@@ -187,7 +187,7 @@ class DeferredObject {
   DeferredObject(intptr_t field_count, intptr_t* args)
       : field_count_(field_count),
         args_(reinterpret_cast<ObjectPtr*>(args)),
-        object_(NULL) {}
+        object_(nullptr) {}
 
   intptr_t ArgumentCount() const {
     return kFieldsStartIndex + kFieldEntrySize * field_count_;

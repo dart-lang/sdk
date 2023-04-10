@@ -99,13 +99,14 @@ static ArrayPtr MakeServerControlMessage(const SendPort& sp,
 }
 
 const char* ServiceIsolate::kName = DART_VM_SERVICE_ISOLATE_NAME;
-Dart_IsolateGroupCreateCallback ServiceIsolate::create_group_callback_ = NULL;
+Dart_IsolateGroupCreateCallback ServiceIsolate::create_group_callback_ =
+    nullptr;
 Monitor* ServiceIsolate::monitor_ = new Monitor();
 ServiceIsolate::State ServiceIsolate::state_ = ServiceIsolate::kStopped;
-Isolate* ServiceIsolate::isolate_ = NULL;
+Isolate* ServiceIsolate::isolate_ = nullptr;
 Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
-char* ServiceIsolate::server_address_ = NULL;
+char* ServiceIsolate::server_address_ = nullptr;
 char* ServiceIsolate::startup_failure_reason_ = nullptr;
 
 void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
@@ -128,29 +129,29 @@ void ServiceIsolate::ControlWebServer(const SendPort& sp,
 }
 
 void ServiceIsolate::SetServerAddress(const char* address) {
-  if (server_address_ != NULL) {
+  if (server_address_ != nullptr) {
     free(server_address_);
-    server_address_ = NULL;
+    server_address_ = nullptr;
   }
-  if (address == NULL) {
+  if (address == nullptr) {
     return;
   }
   server_address_ = Utils::StrDup(address);
 }
 
 bool ServiceIsolate::NameEquals(const char* name) {
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   return strcmp(name, kName) == 0;
 }
 
 bool ServiceIsolate::Exists() {
   MonitorLocker ml(monitor_);
-  return isolate_ != NULL;
+  return isolate_ != nullptr;
 }
 
 bool ServiceIsolate::IsRunning() {
   MonitorLocker ml(monitor_);
-  return (port_ != ILLEGAL_PORT) && (isolate_ != NULL);
+  return (port_ != ILLEGAL_PORT) && (isolate_ != nullptr);
 }
 
 bool ServiceIsolate::IsServiceIsolate(const Isolate* isolate) {
@@ -304,7 +305,7 @@ void ServiceIsolate::SetServicePort(Dart_Port port) {
 void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   isolate_ = isolate;
-  if (isolate_ != NULL) {
+  if (isolate_ != nullptr) {
     isolate_->set_is_service_isolate(true);
     origin_ = isolate_->origin_id();
   }
@@ -313,8 +314,8 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
 void ServiceIsolate::MaybeMakeServiceIsolate(Isolate* I) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
-  ASSERT(I != NULL);
-  ASSERT(I->name() != NULL);
+  ASSERT(I != nullptr);
+  ASSERT(I->name() != nullptr);
   if (!ServiceIsolate::NameEquals(I->name())) {
     // Not service isolate.
     return;
@@ -354,24 +355,24 @@ void ServiceIsolate::InitializingFailed(char* error) {
 class RunServiceTask : public ThreadPool::Task {
  public:
   virtual void Run() {
-    ASSERT(Isolate::Current() == NULL);
+    ASSERT(Isolate::Current() == nullptr);
 #if defined(SUPPORT_TIMELINE)
     TimelineBeginEndScope tbes(Timeline::GetVMStream(),
                                "ServiceIsolateStartup");
 #endif  // SUPPORT_TIMELINE
-    char* error = NULL;
-    Isolate* isolate = NULL;
+    char* error = nullptr;
+    Isolate* isolate = nullptr;
 
     const auto create_group_callback = ServiceIsolate::create_group_callback();
-    ASSERT(create_group_callback != NULL);
+    ASSERT(create_group_callback != nullptr);
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     api_flags.is_system_isolate = true;
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(ServiceIsolate::kName, ServiceIsolate::kName,
-                              NULL, NULL, &api_flags, NULL, &error));
-    if (isolate == NULL) {
+                              nullptr, nullptr, &api_flags, nullptr, &error));
+    if (isolate == nullptr) {
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME
                      ": Isolate creation error: %s\n",
@@ -390,7 +391,7 @@ class RunServiceTask : public ThreadPool::Task {
 
     bool got_unwind;
     {
-      ASSERT(Isolate::Current() == NULL);
+      ASSERT(Isolate::Current() == nullptr);
       StartIsolateScope start_scope(isolate);
       got_unwind = RunMain(isolate);
     }
@@ -405,7 +406,7 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    isolate->message_handler()->Run(isolate->group()->thread_pool(), NULL,
+    isolate->message_handler()->Run(isolate->group()->thread_pool(), nullptr,
                                     ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));
   }
@@ -504,7 +505,7 @@ void ServiceIsolate::Run() {
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_group_callback_ = Isolate::CreateGroupCallback();
-  if (create_group_callback_ == NULL) {
+  if (create_group_callback_ == nullptr) {
     ServiceIsolate::InitializingFailed(
         Utils::StrDup("The 'create_group' callback was not provided"));
     return;
@@ -557,7 +558,7 @@ void ServiceIsolate::Shutdown() {
       ASSERT(state_ == kStopped);
     }
   } else {
-    if (isolate_ != NULL) {
+    if (isolate_ != nullptr) {
       // TODO(johnmccutchan,turnidge) When it is possible to properly create
       // the VMService object and set up its shutdown handler in the service
       // isolate's main() function, this case will no longer be possible and
@@ -565,9 +566,9 @@ void ServiceIsolate::Shutdown() {
       KillServiceIsolate();
     }
   }
-  if (server_address_ != NULL) {
+  if (server_address_ != nullptr) {
     free(server_address_);
-    server_address_ = NULL;
+    server_address_ = nullptr;
   }
 
   if (startup_failure_reason_ != nullptr) {

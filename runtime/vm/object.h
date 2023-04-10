@@ -798,7 +798,7 @@ class Object {
   }                                                                            \
   type##Ptr* UnsafeMutableNonPointer(type##Ptr const* addr) const {            \
     UnimplementedMethod();                                                     \
-    return NULL;                                                               \
+    return nullptr;                                                            \
   }
 
   CLASS_LIST(STORE_NON_POINTER_ILLEGAL_TYPE);
@@ -3397,7 +3397,8 @@ class Function : public Object {
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
-  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  // Otherwise, it returns false and the reason (if error_message is not
+  // nullptr).
   bool AreValidArgumentCounts(intptr_t num_type_arguments,
                               intptr_t num_arguments,
                               intptr_t num_named_arguments,
@@ -3452,7 +3453,8 @@ class Function : public Object {
 
   // Returns true if the type argument count, total argument count and the names
   // of optional arguments are valid for calling this function.
-  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  // Otherwise, it returns false and the reason (if error_message is not
+  // nullptr).
   bool AreValidArguments(intptr_t num_type_arguments,
                          intptr_t num_arguments,
                          const Array& argument_names,
@@ -4887,8 +4889,9 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  ObjectPtr LookupReExport(const String& name,
-                           ZoneGrowableArray<intptr_t>* visited = NULL) const;
+  ObjectPtr LookupReExport(
+      const String& name,
+      ZoneGrowableArray<intptr_t>* visited = nullptr) const;
   ObjectPtr LookupObjectAllowPrivate(const String& name) const;
   ObjectPtr LookupLocalOrReExportObject(const String& name) const;
   ObjectPtr LookupImportedObject(const String& name) const;
@@ -6477,7 +6480,7 @@ class Code : public Object {
   InstructionsPtr active_instructions() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->active_instructions();
 #endif
@@ -6656,7 +6659,7 @@ class Code : public Object {
   ArrayPtr deopt_info_array() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->deopt_info_array();
 #endif
@@ -6712,7 +6715,7 @@ class Code : public Object {
   ArrayPtr static_calls_target_table() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->static_calls_target_table();
 #endif
@@ -6728,7 +6731,7 @@ class Code : public Object {
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
   void SetStubCallTargetCodeAt(uword pc, const Code& code) const;
 
-  void Disassemble(DisassemblyFormatter* formatter = NULL) const;
+  void Disassemble(DisassemblyFormatter* formatter = nullptr) const;
 
 #if defined(INCLUDE_IL_PRINTER)
   class Comments : public ZoneAllocated, public CodeComments {
@@ -6766,7 +6769,7 @@ class Code : public Object {
   ObjectPtr return_address_metadata() const {
 #if defined(PRODUCT)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->return_address_metadata();
 #endif
@@ -6807,7 +6810,7 @@ class Code : public Object {
   LocalVarDescriptorsPtr var_descriptors() const {
 #if defined(PRODUCT)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->var_descriptors();
 #endif
@@ -7791,7 +7794,7 @@ class Instance : public Object {
 
   // If the instance is a callable object, i.e. a closure or the instance of a
   // class implementing a 'call' method, return true and set the function
-  // (if not NULL) to call.
+  // (if not nullptr) to call.
   bool IsCallable(Function* function) const;
 
   ObjectPtr Invoke(const String& selector,
@@ -13074,7 +13077,7 @@ void Instance::GetNativeFields(uint16_t num_fields,
                                intptr_t* field_values) const {
   NoSafepointScope no_safepoint;
   ASSERT(num_fields == NumNativeFields());
-  ASSERT(field_values != NULL);
+  ASSERT(field_values != nullptr);
   TypedDataPtr native_fields = static_cast<TypedDataPtr>(
       NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields == TypedData::null()) {

@@ -48,7 +48,7 @@ class Zone {
   // allocated area.
   char* MakeCopyOfStringN(const char* str, intptr_t len);
 
-  // Concatenate strings |a| and |b|. |a| may be NULL. If |a| is not NULL,
+  // Concatenate strings |a| and |b|. |a| may be nullptr. If |a| is not nullptr,
   // |join| will be inserted between |a| and |b|.
   char* ConcatStrings(const char* a, const char* b, char join = ',');
 
@@ -77,7 +77,7 @@ class Zone {
   Zone* previous() const { return previous_; }
 
   bool ContainsNestedZone(Zone* other) const {
-    while (other != NULL) {
+    while (other != nullptr) {
       if (this == other) return true;
       other = other->previous_;
     }
@@ -158,7 +158,7 @@ class Zone {
   // Total size of all segments in [head_].
   intptr_t small_segment_capacity_ = 0;
 
-  // List of all segments allocated in this zone; may be NULL.
+  // List of all segments allocated in this zone; may be nullptr.
   Segment* segments_;
 
   // Used for chaining zones in order to allow unwinding of stacks.

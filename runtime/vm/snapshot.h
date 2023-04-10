@@ -81,7 +81,7 @@ class Snapshot {
 
   const uint8_t* DataImage() const {
     if (!IncludesCode(kind())) {
-      return NULL;
+      return nullptr;
     }
     uword offset = Utils::RoundUp(length(), kObjectStartAlignment);
     return Addr() + offset;

@@ -171,7 +171,7 @@ class RegExpParser : public ValueObject {
           capture_name_(capture_name) {}
     // Parser state of containing expression, if any.
     RegExpParserState* previous_state() { return previous_state_; }
-    bool IsSubexpression() { return previous_state_ != NULL; }
+    bool IsSubexpression() { return previous_state_ != nullptr; }
     // RegExpBuilder building this regexp's AST.
     RegExpBuilder* builder() { return builder_; }
     // Type of regexp being parsed (parenthesized group or entire regexp).

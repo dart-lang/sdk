@@ -285,7 +285,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 
-ObjectPtr* const ObjectGraph::Stack::kSentinel = NULL;
+ObjectPtr* const ObjectGraph::Stack::kSentinel = nullptr;
 
 ObjectPtr ObjectGraph::StackIterator::Get() const {
   return stack_->data_[index_].obj;
@@ -818,7 +818,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
   intptr_t next_offset = 0;
   Page* image_page =
       Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
-  while (image_page != NULL) {
+  while (image_page != nullptr) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
     image_page_ranges_[next_offset].size =
@@ -827,7 +827,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
     next_offset++;
   }
   image_page = isolate_group()->heap()->old_space()->image_pages_;
-  while (image_page != NULL) {
+  while (image_page != nullptr) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
     image_page_ranges_[next_offset].size =
@@ -837,11 +837,11 @@ void HeapSnapshotWriter::SetupCountingPages() {
   }
 
   Page* page = isolate_group()->heap()->old_space()->pages_;
-  while (page != NULL) {
+  while (page != nullptr) {
     page->forwarding_page();
     CountingPage* counting_page =
         reinterpret_cast<CountingPage*>(page->forwarding_page());
-    ASSERT(counting_page != NULL);
+    ASSERT(counting_page != nullptr);
     counting_page->Clear();
     page = page->next();
   }

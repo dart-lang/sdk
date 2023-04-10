@@ -50,23 +50,23 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
     : thread_(thread),
       function_(function),
       code_(Code::Handle(zone(), function.unoptimized_code())),
-      scope_(NULL),
-      regexp_compile_data_(NULL),
-      function_type_arguments_(NULL),
-      parent_type_arguments_(NULL),
-      current_context_var_(NULL),
-      arg_desc_var_(NULL),
-      expression_temp_var_(NULL),
-      entry_points_temp_var_(NULL),
-      finally_return_temp_var_(NULL),
+      scope_(nullptr),
+      regexp_compile_data_(nullptr),
+      function_type_arguments_(nullptr),
+      parent_type_arguments_(nullptr),
+      current_context_var_(nullptr),
+      arg_desc_var_(nullptr),
+      expression_temp_var_(nullptr),
+      entry_points_temp_var_(nullptr),
+      finally_return_temp_var_(nullptr),
       dynamic_closure_call_vars_(nullptr),
       guarded_fields_(),
-      default_parameter_values_(NULL),
-      raw_type_arguments_var_(NULL),
+      default_parameter_values_(nullptr),
+      raw_type_arguments_var_(nullptr),
       first_parameter_index_(),
       num_stack_locals_(0),
       have_seen_await_expr_(false),
-      kernel_scopes_(NULL) {
+      kernel_scopes_(nullptr) {
   DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   // Every function has a local variable for the current context.
   LocalVariable* temp = new (zone())
@@ -126,7 +126,7 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
 }
 
 kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
-  if (kernel_scopes_ == NULL) {
+  if (kernel_scopes_ == nullptr) {
     kernel::ScopeBuilder builder(this);
     kernel_scopes_ = builder.BuildScopes();
   }
@@ -138,7 +138,7 @@ LocalVariable* ParsedFunction::EnsureExpressionTemp() {
     LocalVariable* temp =
         new (Z) LocalVariable(function_.token_pos(), function_.token_pos(),
                               Symbols::ExprTemp(), Object::dynamic_type());
-    ASSERT(temp != NULL);
+    ASSERT(temp != nullptr);
     set_expression_temp_var(temp);
   }
   ASSERT(has_expression_temp_var());
@@ -150,7 +150,7 @@ LocalVariable* ParsedFunction::EnsureEntryPointsTemp() {
     LocalVariable* temp = new (Z)
         LocalVariable(function_.token_pos(), function_.token_pos(),
                       Symbols::EntryPointsTemp(), Object::dynamic_type());
-    ASSERT(temp != NULL);
+    ASSERT(temp != nullptr);
     set_entry_points_temp_var(temp);
   }
   ASSERT(has_entry_points_temp_var());
@@ -162,7 +162,7 @@ void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
     LocalVariable* temp =
         new (Z) LocalVariable(function_.token_pos(), function_.token_pos(),
                               Symbols::FinallyRetVal(), Object::dynamic_type());
-    ASSERT(temp != NULL);
+    ASSERT(temp != nullptr);
     temp->set_is_final();
     if (is_async) {
       temp->set_is_captured();
@@ -174,8 +174,8 @@ void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
 
 void ParsedFunction::SetRegExpCompileData(
     RegExpCompileData* regexp_compile_data) {
-  ASSERT(regexp_compile_data_ == NULL);
-  ASSERT(regexp_compile_data != NULL);
+  ASSERT(regexp_compile_data_ == nullptr);
+  ASSERT(regexp_compile_data != nullptr);
   regexp_compile_data_ = regexp_compile_data;
 }
 
@@ -241,7 +241,7 @@ void ParsedFunction::AllocateVariables() {
     }
     raw_parameters_->Add(raw_parameter);
   }
-  if (function_type_arguments_ != NULL) {
+  if (function_type_arguments_ != nullptr) {
     LocalVariable* raw_type_args_parameter = function_type_arguments_;
     if (function_type_arguments_->is_captured()) {
       String& tmp = String::ZoneHandle(Z);
@@ -286,8 +286,8 @@ void ParsedFunction::AllocateVariables() {
   // in the context(s).
   bool found_captured_variables = false;
   VariableIndex next_free_index = scope->AllocateVariables(
-      function(), first_parameter_index_, num_params, first_local_index, NULL,
-      &found_captured_variables);
+      function(), first_parameter_index_, num_params, first_local_index,
+      nullptr, &found_captured_variables);
 
   num_stack_locals_ = -next_free_index.value();
 }

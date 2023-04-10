@@ -88,7 +88,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     data.outer_try_index = -1;
     data.pc_offset = ExceptionHandlers::kInvalidPcOffset;
     data.is_generated = true;
-    data.handler_types = NULL;
+    data.handler_types = nullptr;
     data.needs_stacktrace = false;
     list_.Add(data);
   }

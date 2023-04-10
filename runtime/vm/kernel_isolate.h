@@ -49,12 +49,12 @@ class KernelIsolate : public AllStatic {
       const uint8_t* platform_kernel,
       intptr_t platform_kernel_size,
       int source_files_count = 0,
-      Dart_SourceFile source_files[] = NULL,
+      Dart_SourceFile source_files[] = nullptr,
       bool incremental_compile = true,
       bool snapshot_compile = false,
-      const char* package_config = NULL,
-      const char* multiroot_filepaths = NULL,
-      const char* multiroot_scheme = NULL,
+      const char* package_config = nullptr,
+      const char* multiroot_filepaths = nullptr,
+      const char* multiroot_scheme = nullptr,
       Dart_KernelCompilationVerbosityLevel verbosity =
           Dart_KernelCompilationVerbosityLevel_All);
 

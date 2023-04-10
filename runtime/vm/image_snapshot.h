@@ -169,7 +169,7 @@ class ImageReader : public ZoneAllocated {
 
 struct ObjectOffsetPair {
  public:
-  ObjectOffsetPair() : ObjectOffsetPair(NULL, 0) {}
+  ObjectOffsetPair() : ObjectOffsetPair(nullptr, 0) {}
   ObjectOffsetPair(ObjectPtr obj, int32_t off) : object(obj), offset(off) {}
 
   ObjectPtr object;

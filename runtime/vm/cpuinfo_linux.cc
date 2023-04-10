@@ -67,8 +67,8 @@ void CpuInfo::Cleanup() {
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   if (method_ == kCpuInfoCpuId) {
     const char* field = CpuId::field(idx);
-    if (field == NULL) return false;
-    bool contains = (strstr(field, search_string) != NULL);
+    if (field == nullptr) return false;
+    bool contains = (strstr(field, search_string) != nullptr);
     free(const_cast<char*>(field));
     return contains;
   } else if (method_ == kCpuInfoSystem) {

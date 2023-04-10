@@ -43,7 +43,7 @@ class InstructionPattern : public ValueObject {
   // array of integers 'data'. 'data' elements are either a byte or -1, which
   // represents any byte.
   bool TestBytesWith(const int* data, int num_bytes) const {
-    ASSERT(data != NULL);
+    ASSERT(data != nullptr);
     const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(start_);
     for (int i = 0; i < num_bytes; i++) {
       // Skip comparison for data[i] < 0.

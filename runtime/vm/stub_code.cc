@@ -201,8 +201,8 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     Precompiler* precompiler = Precompiler::Instance();
 
     compiler::ObjectPoolBuilder* wrapper =
-        precompiler != NULL ? precompiler->global_object_pool_builder()
-                            : &object_pool_builder;
+        precompiler != nullptr ? precompiler->global_object_pool_builder()
+                               : &object_pool_builder;
 
     const auto pool_attachment = FLAG_precompiled_mode
                                      ? Code::PoolAttachment::kNotAttachPool

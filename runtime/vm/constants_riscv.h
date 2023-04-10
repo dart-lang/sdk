@@ -69,7 +69,7 @@ enum Register {
   S7 = 23,   // CALLEE_SAVED_TEMP2
   S8 = 24,   // CALLEE_SAVED_TEMP / FAR_TMP
   S9 = 25,   // DISPATCH_TABLE_REG
-  S10 = 26,  // NULL
+  S10 = 26,  // nullptr
   S11 = 27,  // WRITE_BARRIER_STATE
   T3 = 28,
   T4 = 29,

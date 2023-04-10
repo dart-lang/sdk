@@ -47,7 +47,7 @@ class Dart : public AllStatic {
                                 IsolateGroup* isolate_group);
 
   // Initialize an isolate, either from a snapshot, from a Kernel binary, or
-  // from SDK library sources.  If the snapshot_buffer is non-NULL,
+  // from SDK library sources.  If the snapshot_buffer is non-null,
   // initialize from a snapshot or a Kernel binary depending on the value of
   // from_kernel.  Otherwise, initialize from sources.
   static ErrorPtr InitializeIsolate(const uint8_t* snapshot_data,

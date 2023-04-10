@@ -257,7 +257,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   HierarchyInfo* hi = thread->hierarchy_info();
-  ASSERT(hi != NULL);
+  ASSERT(hi != nullptr);
 
   if (!hi->CanUseSubtypeRangeCheckFor(type) &&
       !hi->CanUseGenericSubtypeRangeCheckFor(type) &&
@@ -1465,7 +1465,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     return to->ptr();
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 TypeUsageInfo::TypeUsageInfo(Thread* thread)
@@ -1481,7 +1481,7 @@ TypeUsageInfo::TypeUsageInfo(Thread* thread)
 }
 
 TypeUsageInfo::~TypeUsageInfo() {
-  thread()->set_type_usage_info(NULL);
+  thread()->set_type_usage_info(nullptr);
   delete[] instance_creation_arguments_;
 }
 

@@ -68,7 +68,7 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
-  if (thread != NULL) {
+  if (thread != nullptr) {
     OSThread::SetCurrent(thread);
     thread->SetName(name);
 
@@ -84,7 +84,7 @@ int OSThread::Start(const char* name,
                     uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(name, function, parameter);
   uint32_t tid;
-  uintptr_t thread = _beginthreadex(NULL, OSThread::GetMaxStackSize(),
+  uintptr_t thread = _beginthreadex(nullptr, OSThread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
   if (thread == -1L || thread == 0) {
 #ifdef DEBUG
@@ -100,7 +100,7 @@ int OSThread::Start(const char* name,
 }
 
 const ThreadId OSThread::kInvalidThreadId = 0;
-const ThreadJoinId OSThread::kInvalidThreadJoinId = NULL;
+const ThreadJoinId OSThread::kInvalidThreadJoinId = nullptr;
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
@@ -142,14 +142,14 @@ char* OSThread::GetCurrentThreadName() {
 }
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   // Make sure we're filling in the join id for the current thread.
   ThreadId id = GetCurrentThreadId();
   ASSERT(thread->id() == id);
   // Make sure the join_id_ hasn't been set, yet.
   DEBUG_ASSERT(thread->join_id_ == kInvalidThreadJoinId);
   HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
-  ASSERT(handle != NULL);
+  ASSERT(handle != nullptr);
 #if defined(DEBUG)
   thread->join_id_ = handle;
 #endif
@@ -158,7 +158,7 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
 
 void OSThread::Join(ThreadJoinId id) {
   HANDLE handle = static_cast<HANDLE>(id);
-  ASSERT(handle != NULL);
+  ASSERT(handle != nullptr);
   DWORD res = WaitForSingleObject(handle, INFINITE);
   CloseHandle(handle);
   ASSERT(res == WAIT_OBJECT_0);
@@ -386,8 +386,8 @@ void Monitor::NotifyAll() {
 
 void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
                                      ThreadDestructor destructor) {
-  ASSERT(thread_locals_ != NULL);
-  if (destructor == NULL) {
+  ASSERT(thread_locals_ != nullptr);
+  if (destructor == nullptr) {
     // We only care about thread locals with destructors.
     return;
   }
@@ -404,7 +404,7 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
 }
 
 void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
-  ASSERT(thread_locals_ != NULL);
+  ASSERT(thread_locals_ != nullptr);
   MutexLocker ml(mutex_);
   intptr_t i = 0;
   for (; i < thread_locals_->length(); i++) {
@@ -426,10 +426,10 @@ void ThreadLocalData::RunDestructors() {
   // If an OS thread is created but ThreadLocalData::Init has not yet been
   // called, this method still runs. If this happens, there's nothing to clean
   // up here. See issue 33826.
-  if (thread_locals_ == NULL) {
+  if (thread_locals_ == nullptr) {
     return;
   }
-  ASSERT(mutex_ != NULL);
+  ASSERT(mutex_ != nullptr);
   MutexLocker ml(mutex_);
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
@@ -440,8 +440,9 @@ void ThreadLocalData::RunDestructors() {
   }
 }
 
-Mutex* ThreadLocalData::mutex_ = NULL;
-MallocGrowableArray<ThreadLocalEntry>* ThreadLocalData::thread_locals_ = NULL;
+Mutex* ThreadLocalData::mutex_ = nullptr;
+MallocGrowableArray<ThreadLocalEntry>* ThreadLocalData::thread_locals_ =
+    nullptr;
 
 void ThreadLocalData::Init() {
   mutex_ = new Mutex();
@@ -449,13 +450,13 @@ void ThreadLocalData::Init() {
 }
 
 void ThreadLocalData::Cleanup() {
-  if (mutex_ != NULL) {
+  if (mutex_ != nullptr) {
     delete mutex_;
-    mutex_ = NULL;
+    mutex_ = nullptr;
   }
-  if (thread_locals_ != NULL) {
+  if (thread_locals_ != nullptr) {
     delete thread_locals_;
-    thread_locals_ = NULL;
+    thread_locals_ = nullptr;
   }
 }
 

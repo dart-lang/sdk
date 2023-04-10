@@ -84,7 +84,7 @@ TEST_CASE(CheckHandleValidity) {
 #if defined(DEBUG)
   FLAG_trace_handles = true;
 #endif
-  Dart_Handle handle = NULL;
+  Dart_Handle handle = nullptr;
   // Check validity using zone handles.
   {
     TransitionNativeToVM transition(thread);
@@ -128,7 +128,7 @@ TEST_CASE(CheckHandleValidity) {
 
   // Check validity using weak persistent handle.
   handle = reinterpret_cast<Dart_Handle>(Dart_NewWeakPersistentHandle(
-      Dart_NewStringFromCString("foo"), NULL, 0, NoopCallback));
+      Dart_NewStringFromCString("foo"), nullptr, 0, NoopCallback));
 
   EXPECT_NOTNULL(handle);
   EXPECT_VALID(handle);

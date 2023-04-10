@@ -11,9 +11,9 @@ namespace dart {
 
 #ifndef PRODUCT
 
-Mutex* CodeObservers::mutex_ = NULL;
+Mutex* CodeObservers::mutex_ = nullptr;
 intptr_t CodeObservers::observers_length_ = 0;
-CodeObserver** CodeObservers::observers_ = NULL;
+CodeObserver** CodeObservers::observers_ = nullptr;
 
 class ExternalCodeObserverAdapter : public CodeObserver {
  public:
@@ -74,14 +74,14 @@ void CodeObservers::Cleanup() {
   }
   free(observers_);
   observers_length_ = 0;
-  observers_ = NULL;
+  observers_ = nullptr;
 }
 
 void CodeObservers::Init() {
-  if (mutex_ == NULL) {
+  if (mutex_ == nullptr) {
     mutex_ = new Mutex();
   }
-  ASSERT(mutex_ != NULL);
+  ASSERT(mutex_ != nullptr);
   OS::RegisterCodeObservers();
 }
 

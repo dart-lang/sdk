@@ -13,9 +13,9 @@ namespace dart {
 #ifndef PRODUCT
 
 ObjectIdRing::~ObjectIdRing() {
-  ASSERT(table_ != NULL);
+  ASSERT(table_ != nullptr);
   free(table_);
-  table_ = NULL;
+  table_ = nullptr;
 }
 
 int32_t ObjectIdRing::GetIdForObject(ObjectPtr object, IdPolicy policy) {
@@ -61,14 +61,14 @@ ObjectPtr ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
 }
 
 void ObjectIdRing::VisitPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(table_ != NULL);
+  ASSERT(table_ != nullptr);
   visitor->VisitPointers(table_, capacity_);
 }
 
 void ObjectIdRing::PrintJSON(JSONStream* js) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(zone != NULL);
+  ASSERT(zone != nullptr);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "_IdZone");
   jsobj.AddProperty("name", "default");
@@ -89,7 +89,7 @@ void ObjectIdRing::PrintJSON(JSONStream* js) {
 ObjectIdRing::ObjectIdRing() {
   serial_num_ = 0;
   wrapped_ = false;
-  table_ = NULL;
+  table_ = nullptr;
   SetCapacityAndMaxSerial(kDefaultCapacity, kMaxId);
 }
 
@@ -98,7 +98,7 @@ void ObjectIdRing::SetCapacityAndMaxSerial(int32_t capacity,
   ASSERT(capacity > 0);
   ASSERT(max_serial <= kMaxId);
   capacity_ = capacity;
-  if (table_ != NULL) {
+  if (table_ != nullptr) {
     free(table_);
   }
   table_ = reinterpret_cast<ObjectPtr*>(calloc(capacity_, kWordSize));
