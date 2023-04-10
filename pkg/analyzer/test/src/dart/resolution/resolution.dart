@@ -282,11 +282,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResult(const []);
   }
 
-  void assertParameterElementType(FormalParameter node, String expected) {
-    var parameterElement = node.declaredElement!;
-    assertType(parameterElement.type, expected);
-  }
-
   void assertParsedNodeText(
     AstNode node,
     String expected, {

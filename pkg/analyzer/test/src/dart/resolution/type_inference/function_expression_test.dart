@@ -708,13 +708,46 @@ main() {
 }
 ''');
 
-    assertParameterElementType(
-      findNode.simpleParameter('x) {}'),
-      typeStringByNullability(
-        nullable: 'Object?',
-        legacy: 'Object',
-      ),
-    );
+    final node = findNode.functionExpression('(x) {}');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+      declaredElement: @52::@parameter::x
+        type: Object?
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: @52
+    type: void Function(Object?)
+  parameter: self::@function::foo::@parameter::a
+  staticType: void Function(Object?)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+      declaredElement: @52::@parameter::x
+        type: Object*
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: @52
+    type: Null* Function(Object*)*
+  parameter: self::@function::foo::@parameter::a
+  staticType: Null* Function(Object*)*
+''');
+    }
   }
 
   test_downward_argumentType_Null() async {
@@ -726,13 +759,46 @@ main() {
 }
 ''');
 
-    assertParameterElementType(
-      findNode.simpleParameter('x) {}'),
-      typeStringByNullability(
-        nullable: 'Object?',
-        legacy: 'Object',
-      ),
-    );
+    final node = findNode.functionExpression('(x) {}');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+      declaredElement: @51::@parameter::x
+        type: Object?
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: @51
+    type: void Function(Object?)
+  parameter: self::@function::foo::@parameter::a
+  staticType: void Function(Object?)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+      declaredElement: @51::@parameter::x
+        type: Object*
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: @51
+    type: Null* Function(Object*)*
+  parameter: self::@function::foo::@parameter::a
+  staticType: Null* Function(Object*)*
+''');
+    }
   }
 
   test_noContext_returnType_async_blockBody() async {

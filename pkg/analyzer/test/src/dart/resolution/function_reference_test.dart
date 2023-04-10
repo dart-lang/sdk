@@ -448,7 +448,6 @@ void foo() {
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 38, 3),
     ]);
 
-    assertImportPrefix(findNode.simple('a.E'), findElement.prefix('a'));
     var reference = findNode.functionReference('E<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -2326,8 +2325,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -2381,9 +2378,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3),
     ]);
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -3318,8 +3314,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3373,8 +3367,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3581,7 +3573,6 @@ void bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3628,7 +3619,6 @@ void bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3776,9 +3766,8 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3822,9 +3811,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
     ]);
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
