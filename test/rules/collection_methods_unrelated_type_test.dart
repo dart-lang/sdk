@@ -71,6 +71,10 @@ var x = <M>[].contains(C());
     await assertNoDiagnostics('var x = <num>[].contains(Object());');
   }
 
+  test_contains_related_records() async {
+    await assertNoDiagnostics('var x = <(num, num)>[].contains((1, 2));');
+  }
+
   test_contains_related_subclassOfList() async {
     await assertNoDiagnostics('''
 abstract class C implements List<num> {}
@@ -116,6 +120,18 @@ abstract class C implements List<num> {
   }
 }
 ''', [lint(66, 3)]);
+  }
+
+  test_contains_unrelated_records() async {
+    await assertDiagnostics("var x = <(int, int)>[].contains(('hi', 'hey'));", [
+      lint(32, 13),
+    ]);
+  }
+
+  test_contains_unrelated_recordAndNonRecord() async {
+    await assertDiagnostics("var x = <(int, int)>[].contains('hi');", [
+      lint(32, 4),
+    ]);
   }
 
   test_contains_unrelated_subclassOfList() async {

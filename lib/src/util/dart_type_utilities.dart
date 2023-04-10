@@ -11,8 +11,6 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
 
-typedef AstNodePredicate = bool Function(AstNode node);
-
 bool argumentsMatchParameters(
     NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
   var namedParameters = <String, Element?>{};
@@ -145,7 +143,9 @@ bool canonicalElementsFromIdentifiersAreEqual(
 ///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
 ///     `Set<dynamic>`.
 /// * Two type variables are related if their bounds are related.
-/// * Otherwise, the types are related.
+/// * A record type is unrelated to any other type except a record type of
+///   the same shape.
+/// * Otherwise, any two types are related.
 // TODO(srawlins): typedefs and functions in general.
 bool typesAreUnrelated(
     TypeSystem typeSystem, DartType? leftType, DartType? rightType) {
@@ -167,35 +167,8 @@ bool typesAreUnrelated(
     return false;
   }
   if (promotedLeftType is InterfaceType && promotedRightType is InterfaceType) {
-    // In this case, [leftElement] and [rightElement] each represent
-    // the same class, like `int`, or `Iterable<String>`.
-    var leftElement = promotedLeftType.element;
-    var rightElement = promotedRightType.element;
-    if (leftElement == rightElement) {
-      // In this case, [leftElement] and [rightElement] represent the same
-      // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
-      // need to check type arguments.
-      var leftTypeArguments = promotedLeftType.typeArguments;
-      var rightTypeArguments = promotedRightType.typeArguments;
-      if (leftTypeArguments.length != rightTypeArguments.length) {
-        // I cannot think of how we would enter this block, but it guards
-        // against RangeError below.
-        return false;
-      }
-      for (var i = 0; i < leftTypeArguments.length; i++) {
-        // If any of the pair-wise type arguments are unrelated, then
-        // [leftType] and [rightType] are unrelated.
-        if (typesAreUnrelated(
-            typeSystem, leftTypeArguments[i], rightTypeArguments[i])) {
-          return true;
-        }
-      }
-      // Otherwise, they might be related.
-      return false;
-    } else {
-      return (leftElement.supertype?.isDartCoreObject ?? false) ||
-          leftElement.supertype != rightElement.supertype;
-    }
+    return typeSystem.interfaceTypesAreUnrelated(
+        promotedLeftType, promotedRightType);
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
     return typesAreUnrelated(typeSystem, promotedLeftType.element.bound,
@@ -208,6 +181,10 @@ bool typesAreUnrelated(
     if (_isFunctionTypeUnrelatedToType(promotedRightType, promotedLeftType)) {
       return true;
     }
+  } else if (promotedLeftType is RecordType ||
+      promotedRightType is RecordType) {
+    return !typeSystem.isAssignableTo(promotedLeftType, promotedRightType) &&
+        !typeSystem.isAssignableTo(promotedRightType, promotedLeftType);
   }
   return false;
 }
@@ -225,6 +202,8 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
   }
   return true;
 }
+
+typedef AstNodePredicate = bool Function(AstNode node);
 
 class DartTypeUtilities {
   @Deprecated('Replace with `type.extendsClass`')
@@ -279,6 +258,39 @@ class InterfaceTypeDefinition {
     return other is InterfaceTypeDefinition &&
         name == other.name &&
         library == other.library;
+  }
+}
+
+extension on TypeSystem {
+  bool interfaceTypesAreUnrelated(
+      InterfaceType leftType, InterfaceType rightType) {
+    var leftElement = leftType.element;
+    var rightElement = rightType.element;
+    if (leftElement == rightElement) {
+      // In this case, [leftElement] and [rightElement] represent the same
+      // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
+      // need to check type arguments.
+      var leftTypeArguments = leftType.typeArguments;
+      var rightTypeArguments = rightType.typeArguments;
+      if (leftTypeArguments.length != rightTypeArguments.length) {
+        // I cannot think of how we would enter this block, but it guards
+        // against RangeError below.
+        return false;
+      }
+      for (var i = 0; i < leftTypeArguments.length; i++) {
+        // If any of the pair-wise type arguments are unrelated, then
+        // [leftType] and [rightType] are unrelated.
+        if (typesAreUnrelated(
+            this, leftTypeArguments[i], rightTypeArguments[i])) {
+          return true;
+        }
+      }
+      // Otherwise, they might be related.
+      return false;
+    } else {
+      return (leftElement.supertype?.isDartCoreObject ?? false) ||
+          leftElement.supertype != rightElement.supertype;
+    }
   }
 }
 
