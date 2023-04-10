@@ -21,6 +21,52 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest
     with MethodInvocationResolutionTestCases {
+  test_cascadeExpression() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+
+void f(A a) {
+  a..foo()..bar();
+}
+''');
+
+    final node = findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: foo
+        staticElement: self::@class::A::@method::foo
+        staticType: void Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: void Function()
+      staticType: void
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: bar
+        staticElement: self::@class::A::@method::bar
+        staticType: void Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: void Function()
+      staticType: void
+  staticType: A
+''');
+  }
+
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''

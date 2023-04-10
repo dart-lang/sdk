@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class ConditionalExpressionResolutionTest extends PubPackageResolutionTest
     with ConditionalExpressionTestCases {
-  test_downward() async {
+  test_downward_condition() async {
     await resolveTestCode('''
 void f(int b, int c) {
   a() ? b : c;
@@ -134,13 +134,56 @@ ConditionalExpression
 ''');
   }
 
-  test_type() async {
+  test_type_int_double() async {
+    await assertNoErrorsInCode('''
+void f(bool b) {
+  b ? 0 : 1.2;
+}
+''');
+
+    final node = findNode.singleConditionalExpression;
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  question: ?
+  thenExpression: IntegerLiteral
+    literal: 0
+    staticType: int
+  colon: :
+  elseExpression: DoubleLiteral
+    literal: 1.2
+    staticType: double
+  staticType: num
+''');
+  }
+
+  test_type_int_null() async {
     await assertNoErrorsInCode('''
 void f(bool b) {
   b ? 42 : null;
 }
 ''');
-    assertType(findNode.conditionalExpression('b ?'), 'int?');
+
+    final node = findNode.singleConditionalExpression;
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  question: ?
+  thenExpression: IntegerLiteral
+    literal: 42
+    staticType: int
+  colon: :
+  elseExpression: NullLiteral
+    literal: null
+    staticType: Null
+  staticType: int?
+''');
   }
 }
 

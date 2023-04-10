@@ -164,6 +164,111 @@ FunctionExpression
 ''');
   }
 
+  test_generic() async {
+    await assertErrorsInCode('''
+void f() {
+  final v = <T>(T a) => <T>[a];
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
+
+    final node = findNode.functionExpression('<T>(');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@24
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+          staticElement: T@24
+          staticType: null
+        type: T
+      name: a
+      declaredElement: @23::@parameter::a
+        type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: T
+              staticElement: T@24
+              staticType: null
+            type: T
+        rightBracket: >
+      leftBracket: [
+      elements
+        SimpleIdentifier
+          token: a
+          staticElement: @23::@parameter::a
+          staticType: T
+      rightBracket: ]
+      staticType: List<T>
+  declaredElement: @23
+    type: List<T> Function<T>(T)
+  staticType: List<T> Function<T>(T)
+''');
+  }
+
+  test_location_field() async {
+    await assertNoErrorsInCode('''
+class A {
+  final v = () => 42;
+}
+''');
+
+    final node = findNode.functionExpression('() =>');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 42
+      staticType: int
+  declaredElement: @22
+    type: int Function()
+  staticType: int Function()
+''');
+  }
+
+  test_location_topLevelVariable() async {
+    await assertNoErrorsInCode('''
+final v = () => 42;
+''');
+
+    final node = findNode.functionExpression('() =>');
+    assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 42
+      staticType: int
+  declaredElement: @10
+    type: int Function()
+  staticType: int Function()
+''');
+  }
+
   test_optOut_downward_returnType_expressionBody_Null() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void foo(Map<String, String> Function() f) {}
@@ -695,6 +800,71 @@ FunctionExpression
   declaredElement: @53
     type: Iterable<int*>* Function()*
   staticType: Iterable<int*>* Function()*
+''');
+    }
+  }
+
+  test_downward_argumentType() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> items) {
+  items.forEach((item) {
+    item;
+  });
+}
+''');
+
+    final node = findNode.functionExpression('(item)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: item
+      declaredElement: @42::@parameter::item
+        type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: item
+            staticElement: @42::@parameter::item
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredElement: @42
+    type: void Function(int)
+  parameter: root::@parameter::f
+  staticType: void Function(int)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+FunctionExpression
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: item
+      declaredElement: @42::@parameter::item
+        type: int*
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: item
+            staticElement: @42::@parameter::item
+            staticType: int*
+          semicolon: ;
+      rightBracket: }
+  declaredElement: @42
+    type: Null* Function(int*)*
+  parameter: root::@parameter::f
+  staticType: Null* Function(int*)*
 ''');
     }
   }

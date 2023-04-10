@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'adjacent_strings_test.dart' as adjacent_strings;
 import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
@@ -17,6 +18,8 @@ import 'comment_test.dart' as comment;
 import 'conditional_expression_test.dart' as conditional_expression;
 import 'constant_pattern_test.dart' as constant_pattern;
 import 'constant_test.dart' as constant;
+import 'constructor_field_initializer_test.dart'
+    as constructor_field_initializer;
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
@@ -86,9 +89,12 @@ import 'property_access_test.dart' as property_access;
 import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
 import 'record_type_annotation_test.dart' as record_type_annotation;
+import 'redirecting_constructor_invocation_test.dart'
+    as redirecting_constructor_invocation;
 import 'relational_pattern_test.dart' as relational_pattern;
 import 'scope_test.dart' as scope;
 import 'simple_identifier_test.dart' as simple_identifier;
+import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
 import 'switch_statement_test.dart' as switch_statement;
@@ -104,6 +110,7 @@ import 'yield_statement_test.dart' as yield_statement;
 
 main() {
   defineReflectiveSuite(() {
+    adjacent_strings.main();
     as_expression.main();
     assignment.main();
     ast_rewrite.main();
@@ -117,6 +124,7 @@ main() {
     constant_pattern.main();
     comment.main();
     constant.main();
+    constructor_field_initializer.main();
     constructor_reference.main();
     constructor.main();
     declared_variable_pattern.main();
@@ -180,9 +188,11 @@ main() {
     record_literal.main();
     record_pattern.main();
     record_type_annotation.main();
+    redirecting_constructor_invocation.main();
     relational_pattern.main();
     scope.main();
     simple_identifier.main();
+    super_constructor_invocation.main();
     super_formal_parameter.main();
     switch_expression.main();
     switch_statement.main();

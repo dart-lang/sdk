@@ -41,7 +41,33 @@ AsExpression
 ''');
   }
 
-  test_expression_switchExpression() async {
+  test_localVariable() async {
+    await assertNoErrorsInCode('''
+void f() {
+  num v = 42;
+  v as int;
+}
+''');
+
+    var node = findNode.singleAsExpression;
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression: SimpleIdentifier
+    token: v
+    staticElement: v@17
+    staticType: num
+  asOperator: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: int
+''');
+  }
+
+  test_switchExpression_expression() async {
     await assertNoErrorsInCode('''
 void f(Object? x) {
   (switch (x) {
