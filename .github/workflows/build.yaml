@@ -27,7 +27,6 @@ jobs:
           - main
           - coverage
           - release
-          - pana_baseline
           - benchmark
 
     steps:

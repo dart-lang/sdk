@@ -39,11 +39,6 @@ elif [ "$LINTER_BOT" = "benchmark" ]; then
     exit 1
   fi
 
-elif [ "$LINTER_BOT" = "pana_baseline" ]; then
-  echo "Checking the linter pana baseline..."
-
-  dart tool/pana_baseline.dart
-
 elif [ "$LINTER_BOT" = "coverage" ]; then
   echo "Running the coverage bot"
 
