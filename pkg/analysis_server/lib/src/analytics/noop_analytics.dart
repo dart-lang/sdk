@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:http/src/response.dart';
-import 'package:unified_analytics/src/config_handler.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// An implementation of [Analytics] that's appropriate to use when analytics
