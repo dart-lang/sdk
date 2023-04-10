@@ -102,8 +102,8 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
           /*FunctionTable=*/record->runtime_function,
           /*EntryCount=*/record->runtime_function_count,
           /*MaximumEntryCount=*/record->runtime_function_count,
-          /*RangeBase=*/reinterpret_cast<DWORD64>(page->memory_->start()),
-          /*RangeEnd=*/reinterpret_cast<DWORD64>(page->memory_->end())) != 0) {
+          /*RangeBase=*/page->memory_->start(),
+          /*RangeEnd=*/page->memory_->end()) != 0) {
     FATAL("Failed to add growable function table: %d\n", GetLastError());
   }
 }
