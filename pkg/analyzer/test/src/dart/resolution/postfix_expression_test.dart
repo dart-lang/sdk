@@ -968,8 +968,6 @@ void f() {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-
     var node = findNode.postfix('x++');
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
@@ -1020,9 +1018,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    var prefixed = node.operand as PrefixedIdentifier;
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
   }
 
   test_inc_propertyAccess_instance() async {
