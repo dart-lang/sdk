@@ -768,6 +768,12 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+MixinWithClause:
+  index: 154
+  problemMessage: "A mixin can't have a with clause."
+  analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
+  script: "mixin M {} mixin N with M {}"
+
 ExtendsFutureOr:
   problemMessage: "The type 'FutureOr' can't be used in an 'extends' clause."
 

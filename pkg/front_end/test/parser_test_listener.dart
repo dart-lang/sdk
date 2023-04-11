@@ -1088,6 +1088,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    seen(withKeyword);
+    doPrint('handleMixinWithClause(' '$withKeyword)');
+  }
+
+  @override
   void beginNamedMixinApplication(
       Token begin,
       Token? abstractToken,

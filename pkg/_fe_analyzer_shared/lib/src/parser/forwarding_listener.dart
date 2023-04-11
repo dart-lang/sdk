@@ -1411,6 +1411,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    listener?.handleMixinWithClause(withKeyword);
+  }
+
+  @override
   void handleCommentReference(
       Token? newKeyword,
       Token? firstToken,

@@ -4786,6 +4786,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    assert(optional('with', withKeyword));
+    // This is an error case. An error has been issued already.
+    // Possibly the data could be used for help though.
+    _popNamedTypeList(
+      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+    );
+  }
+
+  @override
   void handleNamedArgument(Token colon) {
     assert(optional(':', colon));
     debugEvent("NamedArgument");

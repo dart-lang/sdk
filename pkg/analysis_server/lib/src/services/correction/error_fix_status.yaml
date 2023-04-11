@@ -3036,6 +3036,8 @@ ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the constructor.
+ParserErrorCode.MIXIN_WITH_CLAUSE:
+  status: needsEvaluation
 ParserErrorCode.MODIFIER_OUT_OF_ORDER:
   status: noFix
   notes: |-

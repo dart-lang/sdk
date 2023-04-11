@@ -9153,6 +9153,13 @@ Message _withArgumentsMixinInheritsFromNotObject(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinWithClause = messageMixinWithClause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinWithClause = const MessageCode("MixinWithClause",
+    index: 154, problemMessage: r"""A mixin can't have a with clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

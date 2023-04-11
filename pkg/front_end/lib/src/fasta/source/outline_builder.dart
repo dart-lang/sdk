@@ -3723,6 +3723,21 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    debugEvent("MixinWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
+
+    // This is an error case where the parser has already given an error.
+    // We just discard the data.
+    pop();
+  }
+
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     debugEvent("ClassHeader");
     nativeMethodName = null;

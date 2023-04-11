@@ -220,6 +220,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    debugEvent("MixinWithClause");
+  }
+
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
   }
