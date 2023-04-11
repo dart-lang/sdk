@@ -621,7 +621,7 @@ class FlowGraphCompiler : public ValueObject {
   // We test up to 4 different cid ranges, if we would need to test more in
   // order to get a definite answer we fall back to the old mechanism (namely
   // of going into the subtyping cache)
-  static const intptr_t kMaxNumberOfCidRangesToTest = 4;
+  static constexpr intptr_t kMaxNumberOfCidRangesToTest = 4;
 
   // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
   // supplied, since it will be jumped to in the last case if the cid is outside

@@ -1076,7 +1076,7 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  static const int32_t kInvalidSelectorId = 0;
+  static constexpr int32_t kInvalidSelectorId = 0;
 
   bool method_or_setter_called_dynamically = true;
   bool getter_called_dynamically = true;
@@ -1185,8 +1185,8 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
 
  private:
-  static const uint8_t kCalledOnNullBit = 1 << 0;
-  static const uint8_t kTornOffBit = 1 << 1;
+  static constexpr uint8_t kCalledOnNullBit = 1 << 0;
+  static constexpr uint8_t kTornOffBit = 1 << 1;
 
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 

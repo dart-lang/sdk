@@ -313,9 +313,9 @@ class Label : public ZoneAllocated {
 
  private:
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  static const int kMaxUnresolvedBranches = 20;
+  static constexpr int kMaxUnresolvedBranches = 20;
 #else
-  static const int kMaxUnresolvedBranches = 1;  // Unused on non-Intel.
+  static constexpr int kMaxUnresolvedBranches = 1;  // Unused on non-Intel.
 #endif
   // Zero position_ means unused (neither bound nor linked to).
   // Thus we offset actual positions by the given bias to prevent zero
@@ -565,7 +565,7 @@ class AssemblerBuffer : public ValueObject {
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows
   // for a single, fast space check per instruction.
-  static const intptr_t kMinimumGap = 32;
+  static constexpr intptr_t kMinimumGap = 32;
 
   uword contents_;
   uword cursor_;

@@ -30,15 +30,15 @@ struct RelocatorTestHelper {
   // The callers on arm/arm64 have to save LR before calling, so the call
   // instruction will be 4 byte sinto the instruction stream.
 #if defined(TARGET_ARCH_ARM64)
-  static const intptr_t kOffsetOfCall = 4;
+  static constexpr intptr_t kOffsetOfCall = 4;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kOffsetOfCall = 4;
+  static constexpr intptr_t kOffsetOfCall = 4;
 #elif defined(TARGET_ARCH_RISCV32)
-  static const intptr_t kOffsetOfCall = 4;
+  static constexpr intptr_t kOffsetOfCall = 4;
 #elif defined(TARGET_ARCH_RISCV64)
-  static const intptr_t kOffsetOfCall = 4;
+  static constexpr intptr_t kOffsetOfCall = 4;
 #else
-  static const intptr_t kOffsetOfCall = 0;
+  static constexpr intptr_t kOffsetOfCall = 0;
 #endif
 
   explicit RelocatorTestHelper(Thread* thread)

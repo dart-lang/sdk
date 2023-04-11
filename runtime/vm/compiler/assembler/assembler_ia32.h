@@ -249,7 +249,7 @@ class Assembler : public AssemblerBase {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 5;
+  static constexpr intptr_t kCallExternalLabelSize = 5;
 
   void pushl(Register reg);
   void pushl(const Address& address);
@@ -1155,7 +1155,7 @@ class Assembler : public AssemblerBase {
   //   .....
   void EnterStubFrame();
   void LeaveStubFrame();
-  static const intptr_t kEnterStubFramePushedWords = 2;
+  static constexpr intptr_t kEnterStubFramePushedWords = 2;
 
   // Set up a frame for calling a C function.
   // Automatically save the pinned registers in Dart which are not callee-
@@ -1172,7 +1172,7 @@ class Assembler : public AssemblerBase {
   //   movl ebp, esp      (size is 2 bytes)
   //   call L             (size is 5 bytes)
   //   L:
-  static const intptr_t kEntryPointToPcMarkerOffset = 8;
+  static constexpr intptr_t kEntryPointToPcMarkerOffset = 8;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }

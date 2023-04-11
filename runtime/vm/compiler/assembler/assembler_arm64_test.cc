@@ -2447,7 +2447,7 @@ ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
       "ret\n");
 }
 
-static const int64_t kBits5And35 = (1 << 5) | (1ll << 35);
+static constexpr int64_t kBits5And35 = (1 << 5) | (1ll << 35);
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfZero, assembler) {
   Label l, l2;

@@ -36,7 +36,7 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              intptr_t human_size,
                                              Object* object,
                                              uword pc) {
-  static const int kHexColumnWidth = 23;
+  const int kHexColumnWidth = 23;
 #if defined(TARGET_ARCH_IS_32_BIT)
   THR_Print("0x%" Px32 "    %s", static_cast<uint32_t>(pc), hex_buffer);
 #else

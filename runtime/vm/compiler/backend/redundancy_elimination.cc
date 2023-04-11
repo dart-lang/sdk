@@ -2279,7 +2279,7 @@ class LoadOptimizer : public ValueObject {
           // given expression id and it is not killed on the path from
           // the block entry.
           if (exposed_values == nullptr) {
-            static const intptr_t kMaxExposedValuesInitialSize = 5;
+            const intptr_t kMaxExposedValuesInitialSize = 5;
             exposed_values = new (Z) ZoneGrowableArray<Definition*>(
                 Utils::Minimum(kMaxExposedValuesInitialSize,
                                aliased_set_->max_place_id()));

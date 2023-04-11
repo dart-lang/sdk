@@ -278,7 +278,7 @@ class HierarchyInfo : public ThreadStackResource {
 
   // Returned from FindBestTAVOffset and SplitOnConsistentTypeArguments
   // to denote a failure to find a compatible concrete, finalized class.
-  static const intptr_t kNoCompatibleTAVOffset = 0;
+  static constexpr intptr_t kNoCompatibleTAVOffset = 0;
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
                                               bool include_abstract,
@@ -1428,11 +1428,11 @@ class PureInstruction : public Instruction {
 
 // Types to be used as ThrowsTrait for TemplateInstruction/TemplateDefinition.
 struct Throws {
-  static const bool kCanThrow = true;
+  static constexpr bool kCanThrow = true;
 };
 
 struct NoThrow {
-  static const bool kCanThrow = false;
+  static constexpr bool kCanThrow = false;
 };
 
 // Types to be used as CSETrait for TemplateInstruction/TemplateDefinition.
@@ -2558,7 +2558,7 @@ class Definition : public Instruction {
   // returning Definition (return type is covariant).
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  static const intptr_t kReplacementMarker = -2;
+  static constexpr intptr_t kReplacementMarker = -2;
 
   Definition* Replacement() {
     if (ssa_temp_index_ == kReplacementMarker) {
@@ -4252,7 +4252,8 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
   // Defined as a static intptr_t instead of inside the enum since some
   // switch statements depend on the exhaustibility checking.
 #define KIND_INC(name) +1
-  static const intptr_t kNumKinds = 0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
+  static constexpr intptr_t kNumKinds =
+      0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
 #undef KIND_INC
 
   static const char* KindToCString(SpecialParameterKind k);
@@ -8987,7 +8988,7 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 #undef FIELD_LIST
 
  protected:
-  static const intptr_t kShiftCountLimit = 63;
+  static constexpr intptr_t kShiftCountLimit = 63;
 
   // Returns true if the shift amount is guaranteed to be in
   // [0..max] range.
@@ -9095,7 +9096,7 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
   DECLARE_EMPTY_SERIALIZATION(ShiftUint32OpInstr, ShiftIntegerOpInstr)
 
  private:
-  static const intptr_t kUint32ShiftCountLimit = 31;
+  static constexpr intptr_t kUint32ShiftCountLimit = 31;
 
   DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
 };
@@ -9128,7 +9129,7 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
                               ShiftIntegerOpInstr)
 
  private:
-  static const intptr_t kUint32ShiftCountLimit = 31;
+  static constexpr intptr_t kUint32ShiftCountLimit = 31;
 
   DISALLOW_COPY_AND_ASSIGN(SpeculativeShiftUint32OpInstr);
 };
@@ -9615,9 +9616,9 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
 
   virtual bool MayThrow() const { return false; }
 
-  static const intptr_t kSavedSpTempIndex = 0;
-  static const intptr_t kObjectTempIndex = 1;
-  static const intptr_t kDoubleTempIndex = 2;
+  static constexpr intptr_t kSavedSpTempIndex = 0;
+  static constexpr intptr_t kObjectTempIndex = 1;
+  static constexpr intptr_t kDoubleTempIndex = 2;
 
   PRINT_OPERANDS_TO_SUPPORT
 
