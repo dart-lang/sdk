@@ -214,7 +214,7 @@ void BaseTextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
       buffer_[length_++] = 't';
       break;
     default:
-      static constexpr int kMask = ~(1 << 6);
+      constexpr int kMask = ~(1 << 6);
       if (codeunit < 0x20) {
         ASSERT(remaining > 6);
         buffer_[length_++] = '\\';
