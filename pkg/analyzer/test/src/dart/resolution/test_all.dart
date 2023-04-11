@@ -39,6 +39,8 @@ import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
 import 'function_reference_test.dart' as function_reference;
 import 'function_type_alias_test.dart' as function_type_alias;
+import 'function_typed_formal_parameter_test.dart'
+    as function_typed_formal_parameter;
 import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'if_element_test.dart' as if_element;
@@ -142,6 +144,7 @@ main() {
     function_expression_invocation.main();
     function_reference.main();
     function_type_alias.main();
+    function_typed_formal_parameter.main();
     generic_function_type.main();
     generic_type_alias.main();
     if_element.main();

@@ -5119,6 +5119,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('period', period)
     ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters);
 
   @override
