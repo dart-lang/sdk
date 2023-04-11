@@ -263,6 +263,120 @@ ImportDirective
 ''');
   }
 
+  test_inLibrary_combinators_hide() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' hide Random;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+    ]);
+
+    final node = findNode.singleImportDirective;
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'dart:math'
+  combinators
+    HideCombinator
+      keyword: hide
+      hiddenNames
+        SimpleIdentifier
+          token: Random
+          staticElement: dart:math::@class::Random
+          staticType: null
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: dart:math
+''');
+  }
+
+  test_inLibrary_combinators_hide_unresolved() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' hide Unresolved;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10),
+    ]);
+
+    final node = findNode.singleImportDirective;
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'dart:math'
+  combinators
+    HideCombinator
+      keyword: hide
+      hiddenNames
+        SimpleIdentifier
+          token: Unresolved
+          staticElement: <null>
+          staticType: null
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: dart:math
+''');
+  }
+
+  test_inLibrary_combinators_show() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' show Random;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+    ]);
+
+    final node = findNode.singleImportDirective;
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'dart:math'
+  combinators
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: Random
+          staticElement: dart:math::@class::Random
+          staticType: null
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: dart:math
+''');
+  }
+
+  test_inLibrary_combinators_show_unresolved() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' show Unresolved;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10),
+    ]);
+
+    final node = findNode.singleImportDirective;
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'dart:math'
+  combinators
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: Unresolved
+          staticElement: <null>
+          staticType: null
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: dart:math
+''');
+  }
+
   test_inLibrary_configurations_default() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/a_html.dart', 'class A {}');

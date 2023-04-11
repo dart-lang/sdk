@@ -666,7 +666,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
         current_(Thread::Current()),
         op_(op) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
       // Stores into new-space objects don't need a write barrier.
@@ -712,11 +712,13 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     UNREACHABLE();  // Stack slots are not compressed.
   }
+#endif
 
  private:
   Thread* const thread_;

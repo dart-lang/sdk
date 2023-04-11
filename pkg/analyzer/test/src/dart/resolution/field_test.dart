@@ -89,4 +89,40 @@ class A {
 ''');
     assertType(findElement.field('f').type, 'dynamic');
   }
+
+  test_type_scope() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  var f = <T>[];
+}
+''');
+
+    final node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: ListLiteral
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: SimpleIdentifier
+                  token: T
+                  staticElement: T@8
+                  staticType: null
+                type: T
+            rightBracket: >
+          leftBracket: [
+          rightBracket: ]
+          staticType: List<T>
+        declaredElement: self::@class::A::@field::f
+  semicolon: ;
+  declaredElement: <null>
+''');
+  }
 }

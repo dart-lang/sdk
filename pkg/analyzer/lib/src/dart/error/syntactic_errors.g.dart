@@ -168,6 +168,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION,
   ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION,
+  ParserErrorCode.MIXIN_WITH_CLAUSE,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1365,6 +1366,11 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode MIXIN_DECLARES_CONSTRUCTOR = ParserErrorCode(
     'MIXIN_DECLARES_CONSTRUCTOR',
     "Mixins can't declare constructors.",
+  );
+
+  static const ParserErrorCode MIXIN_WITH_CLAUSE = ParserErrorCode(
+    'MIXIN_WITH_CLAUSE',
+    "A mixin can't have a with clause.",
   );
 
   static const ParserErrorCode MODIFIER_OUT_OF_ORDER = ParserErrorCode(

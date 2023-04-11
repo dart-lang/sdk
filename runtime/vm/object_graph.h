@@ -282,8 +282,8 @@ class CountObjectsVisitor : public ObjectVisitor, public HandleVisitor {
   CountObjectsVisitor(Thread* thread, intptr_t class_count);
   ~CountObjectsVisitor() {}
 
-  void VisitObject(ObjectPtr obj);
-  void VisitHandle(uword addr);
+  void VisitObject(ObjectPtr obj) override;
+  void VisitHandle(uword addr) override;
 
   std::unique_ptr<intptr_t[]> new_count_;
   std::unique_ptr<intptr_t[]> new_size_;

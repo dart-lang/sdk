@@ -4797,7 +4797,7 @@ class PersistentHandleVisitor : public HandleVisitor {
   }
 
  protected:
-  virtual void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     T* handle = reinterpret_cast<T*>(addr);
     Append(handle);
   }

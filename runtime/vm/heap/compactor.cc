@@ -744,6 +744,7 @@ void GCCompactor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void GCCompactor::VisitCompressedPointers(uword heap_base,
                                           CompressedObjectPtr* first,
                                           CompressedObjectPtr* last) {
@@ -751,6 +752,7 @@ void GCCompactor::VisitCompressedPointers(uword heap_base,
     ForwardCompressedPointer(heap_base, ptr);
   }
 }
+#endif
 
 bool GCCompactor::CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) {
   if ((suspend_state->untag()->pc() != 0) && !can_visit_stack_frames_) {

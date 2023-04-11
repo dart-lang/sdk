@@ -915,6 +915,7 @@ class RetainingPath {
       }
     }
 
+#if defined(DART_COMPRESSED_POINTERS)
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* from,
                                  CompressedObjectPtr* to) override {
@@ -922,6 +923,7 @@ class RetainingPath {
         VisitObject(ptr->Decompress(heap_base));
       }
     }
+#endif
 
     RetainingPath* retaining_path_;
     MallocGrowableArray<ObjectPtr>* const working_list_;

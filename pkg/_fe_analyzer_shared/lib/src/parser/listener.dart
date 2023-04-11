@@ -225,10 +225,12 @@ class Listener implements UnescapeErrorListener {
   /// Handle recovery associated with a mixin header.
   /// This may be called multiple times after [handleMixinHeader]
   /// to recover information about the previous mixin header.
-  /// The substructures are a subset of
+  /// For otherwise legal input the substructures are a subset of
   /// and in the same order as [handleMixinHeader]
   /// - on types
   /// - implemented types
+  /// but also covers the illegal
+  /// - with clause
   void handleRecoverMixinHeader() {
     logEvent("RecoverMixinHeader");
   }
@@ -775,6 +777,16 @@ class Listener implements UnescapeErrorListener {
   /// Handle the absence of an enum with clause.
   void handleEnumNoWithClause() {
     logEvent("EnumNoWithClause");
+  }
+
+  /// Handle the end of a mixin with clause (e.g. "with B, C").
+  /// Substructures:
+  /// - mixin types (TypeList)
+  ///
+  /// This method is separated from [handleClassWithClause] and
+  /// [handleEnumWithClause] as it is an error state.
+  void handleMixinWithClause(Token withKeyword) {
+    logEvent("MixinWithClause");
   }
 
   /// Handle the beginning of a named mixin application.

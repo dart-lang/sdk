@@ -21,6 +21,44 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest
     with MethodInvocationResolutionTestCases {
+  test_arguments_synthetics() async {
+    await assertErrorsInCode(r'''
+void f() {
+  g(,,);
+}
+
+void g(int a, int b) {}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
+    ]);
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: self::@function::g
+    staticType: void Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: <empty> <synthetic>
+        parameter: self::@function::g::@parameter::a
+        staticElement: <null>
+        staticType: dynamic
+      SimpleIdentifier
+        token: <empty> <synthetic>
+        parameter: self::@function::g::@parameter::b
+        staticElement: <null>
+        staticType: dynamic
+    rightParenthesis: )
+  staticInvokeType: void Function(int, int)
+  staticType: void
+''');
+  }
+
   test_cascadeExpression() async {
     await assertNoErrorsInCode(r'''
 class A {

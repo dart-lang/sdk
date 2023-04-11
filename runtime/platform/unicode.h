@@ -15,10 +15,10 @@ class String;
 
 class Utf : AllStatic {
  public:
-  static const int32_t kMaxCodePoint = 0x10FFFF;
-  static const int32_t kInvalidChar = 0xFFFFFFFF;
+  static constexpr int32_t kMaxCodePoint = 0x10FFFF;
+  static constexpr int32_t kInvalidChar = 0xFFFFFFFF;
 
-  static const int32_t kReplacementChar = 0xFFFD;
+  static constexpr int32_t kReplacementChar = 0xFFFD;
 
   static bool IsLatin1(int32_t code_point) {
     return (code_point >= 0) && (code_point <= 0xFF);
@@ -83,10 +83,10 @@ class Utf8 : AllStatic {
                                     intptr_t len);
   static bool DecodeCStringToUTF32(const char* str, int32_t* dst, intptr_t len);
 
-  static const int32_t kMaxOneByteChar = 0x7F;
-  static const int32_t kMaxTwoByteChar = 0x7FF;
-  static const int32_t kMaxThreeByteChar = 0xFFFF;
-  static const int32_t kMaxFourByteChar = Utf::kMaxCodePoint;
+  static constexpr int32_t kMaxOneByteChar = 0x7F;
+  static constexpr int32_t kMaxTwoByteChar = 0x7FF;
+  static constexpr int32_t kMaxThreeByteChar = 0xFFFF;
+  static constexpr int32_t kMaxFourByteChar = Utf::kMaxCodePoint;
 
  private:
   static bool IsTrailByte(uint8_t code_unit) {
@@ -155,16 +155,17 @@ class Utf16 : AllStatic {
   // Encodes a single code point.
   static void Encode(int32_t codepoint, uint16_t* dst);
 
-  static const int32_t kMaxCodeUnit = 0xFFFF;
-  static const int32_t kLeadSurrogateStart = 0xD800;
-  static const int32_t kLeadSurrogateEnd = 0xDBFF;
-  static const int32_t kTrailSurrogateStart = 0xDC00;
-  static const int32_t kTrailSurrogateEnd = 0xDFFF;
+  static constexpr int32_t kMaxCodeUnit = 0xFFFF;
+  static constexpr int32_t kLeadSurrogateStart = 0xD800;
+  static constexpr int32_t kLeadSurrogateEnd = 0xDBFF;
+  static constexpr int32_t kTrailSurrogateStart = 0xDC00;
+  static constexpr int32_t kTrailSurrogateEnd = 0xDFFF;
 
  private:
-  static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
+  static constexpr int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
 
-  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
+  static constexpr int32_t kSurrogateOffset =
+      (0x10000 - (0xD800 << 10) - 0xDC00);
 };
 
 class CaseMapping : AllStatic {
@@ -181,25 +182,25 @@ class CaseMapping : AllStatic {
 
  private:
   // Property is a delta to the uppercase mapping.
-  static const int32_t kUppercase = 1;
+  static constexpr int32_t kUppercase = 1;
 
   // Property is a delta to the uppercase mapping.
-  static const int32_t kLowercase = 2;
+  static constexpr int32_t kLowercase = 2;
 
   // Property is an index into the exception table.
-  static const int32_t kException = 3;
+  static constexpr int32_t kException = 3;
 
   // Type bit-field parameters
-  static const int32_t kTypeShift = 2;
-  static const int32_t kTypeMask = 3;
+  static constexpr int32_t kTypeShift = 2;
+  static constexpr int32_t kTypeMask = 3;
 
   // The size of the stage 1 index.
   // TODO(cshapiro): improve indexing so this value is unnecessary.
-  static const intptr_t kStage1Size = 261;
+  static constexpr intptr_t kStage1Size = 261;
 
   // The size of a stage 2 block in bytes.
-  static const intptr_t kBlockSizeLog2 = 8;
-  static const intptr_t kBlockSize = 1 << kBlockSizeLog2;
+  static constexpr intptr_t kBlockSizeLog2 = 8;
+  static constexpr intptr_t kBlockSize = 1 << kBlockSizeLog2;
 
   static int32_t Convert(int32_t ch, int32_t mapping) {
     if (Utf::IsLatin1(ch)) {
@@ -232,7 +233,7 @@ class CaseMapping : AllStatic {
 
 class Latin1 {
  public:
-  static const int32_t kMaxChar = 0xff;
+  static constexpr int32_t kMaxChar = 0xff;
   // Convert the character to Latin-1 case equivalent if possible.
   static inline uint16_t TryConvertToLatin1(uint16_t c) {
     switch (c) {

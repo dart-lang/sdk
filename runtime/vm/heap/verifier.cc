@@ -59,6 +59,7 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* from, ObjectPtr* to) {
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
                                                     CompressedObjectPtr* from,
                                                     CompressedObjectPtr* to) {
@@ -76,6 +77,7 @@ void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
     }
   }
 }
+#endif
 
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =

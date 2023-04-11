@@ -73,7 +73,7 @@ class ObjectLocator : public ObjectVisitor {
   explicit ObjectLocator(IsolateGroupReloadContext* context)
       : context_(context), count_(0) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     InstanceMorpher* morpher =
         context_->instance_morpher_by_cid_.LookupValue(obj->GetClassId());
     if (morpher != nullptr) {
@@ -2045,7 +2045,7 @@ class InvalidationCollector : public ObjectVisitor {
         instances_(instances) {}
   virtual ~InvalidationCollector() {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     intptr_t cid = obj->GetClassId();
     if (cid == kFunctionCid) {
       const Function& func =

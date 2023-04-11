@@ -1,0 +1,7 @@
+mixin M {}
+mixin N with M {}
+
+
+mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] N[StringToken] with[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

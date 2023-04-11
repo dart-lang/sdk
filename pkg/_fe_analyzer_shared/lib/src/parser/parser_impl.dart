@@ -2928,6 +2928,13 @@ class Parser {
         }
       }
 
+      if (optional("with", token.next!)) {
+        Token withKeyword = token.next!;
+        reportRecoverableError(token.next!, codes.messageMixinWithClause);
+        token = parseTypeList(withKeyword);
+        listener.handleMixinWithClause(withKeyword);
+      }
+
       listener.handleRecoverMixinHeader();
 
       // Exit if a mixin body is detected, or if no progress has been made

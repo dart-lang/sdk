@@ -45,9 +45,13 @@ class FindNode {
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
+  ExportDirective get singleExportDirective => _single();
+
   ExtendsClause get singleExtendsClause => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
+
+  FieldFormalParameter get singleFieldFormalParameter => _single();
 
   ForElement get singleForElement => _single();
 
@@ -63,6 +67,9 @@ class FindNode {
 
   FunctionReference get singleFunctionReference => _single();
 
+  FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
+      _single();
+
   GuardedPattern get singleGuardedPattern => _single();
 
   IfElement get singleIfElement => _single();
@@ -70,6 +77,10 @@ class FindNode {
   IfStatement get singleIfStatement => _single();
 
   ImplementsClause get singleImplementsClause => _single();
+
+  ImportDirective get singleImportDirective => _single();
+
+  InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
   LibraryDirective get singleLibraryDirective => _single();
 

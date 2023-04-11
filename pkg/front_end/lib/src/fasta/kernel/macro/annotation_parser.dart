@@ -1656,6 +1656,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    _unexpected();
+  }
+
+  @override
   void handleCommentReference(
       Token? newKeyword,
       Token? firstToken,
