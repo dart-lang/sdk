@@ -53,7 +53,7 @@ class InlineExitCollector : public ZoneAllocated {
   };
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
-    ASSERT(exits_[i].exit_block != NULL);
+    ASSERT(exits_[i].exit_block != nullptr);
     return exits_[i].exit_block;
   }
 

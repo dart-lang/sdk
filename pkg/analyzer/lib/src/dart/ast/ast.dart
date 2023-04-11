@@ -1553,11 +1553,19 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
     SharedMatchContext context,
   ) {
     type.accept(resolverVisitor);
+    final requiredType = type.typeOrThrow;
+
     resolverVisitor.analyzeCastPattern(
       context: context,
       pattern: this,
       innerPattern: pattern,
-      requiredType: type.typeOrThrow,
+      requiredType: requiredType,
+    );
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: this,
+      requiredType: requiredType,
     );
   }
 
@@ -2860,7 +2868,7 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   }
 
   @override
-  Token get beginToken => expression.beginToken;
+  Token get beginToken => constKeyword ?? expression.beginToken;
 
   @override
   Token get endToken => expression.endToken;
@@ -3440,9 +3448,10 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///      | [LogicalAndPattern]
 ///      | [LogicalOrPattern]
 ///      | [MapPattern]
+///      | [NullAssertPattern]
+///      | [NullCheckPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
-///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
 @experimental
@@ -3450,6 +3459,36 @@ abstract class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
   @override
   DartType? matchedValueType;
+
+  /// Returns the context for this pattern.
+  /// * Declaration context: [PatternVariableDeclarationImpl]
+  /// * Assignment context: [PatternAssignmentImpl]
+  /// * Matching context: [GuardedPatternImpl]
+  AstNodeImpl? get patternContext {
+    for (DartPatternImpl current = this;;) {
+      var parent = current.parent;
+      if (parent is MapPatternEntry) {
+        parent = parent.parent;
+      } else if (parent is PatternFieldImpl) {
+        parent = parent.parent;
+      } else if (parent is RestPatternElementImpl) {
+        parent = parent.parent;
+      }
+      if (parent is ForEachPartsWithPatternImpl) {
+        return parent;
+      } else if (parent is PatternVariableDeclarationImpl) {
+        return parent;
+      } else if (parent is PatternAssignmentImpl) {
+        return parent;
+      } else if (parent is GuardedPatternImpl) {
+        return parent;
+      } else if (parent is DartPatternImpl) {
+        current = parent;
+      } else {
+        return null;
+      }
+    }
+  }
 
   @override
   DartPattern get unParenthesized => this;
@@ -3609,36 +3648,6 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
     return null;
   }
 
-  /// Returns the context for this pattern.
-  /// * Declaration context: [PatternVariableDeclarationImpl]
-  /// * Assignment context: [PatternAssignmentImpl]
-  /// * Matching context: [GuardedPatternImpl]
-  AstNodeImpl? get patternContext {
-    for (DartPatternImpl current = this;;) {
-      var parent = current.parent;
-      if (parent is MapPatternEntry) {
-        parent = parent.parent;
-      } else if (parent is PatternFieldImpl) {
-        parent = parent.parent;
-      } else if (parent is RestPatternElementImpl) {
-        parent = parent.parent;
-      }
-      if (parent is ForEachPartsWithPatternImpl) {
-        return parent;
-      } else if (parent is PatternVariableDeclarationImpl) {
-        return parent;
-      } else if (parent is PatternAssignmentImpl) {
-        return parent;
-      } else if (parent is GuardedPatternImpl) {
-        return parent;
-      } else if (parent is DartPatternImpl) {
-        current = parent;
-      } else {
-        return null;
-      }
-    }
-  }
-
   @override
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
@@ -3663,12 +3672,15 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    declaredElement!.type = resolverVisitor.analyzeDeclaredVariablePattern(
-        context,
-        this,
-        declaredElement!,
-        declaredElement!.name,
-        type?.typeOrThrow);
+    final result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
+        declaredElement!, declaredElement!.name, type?.typeOrThrow);
+    declaredElement!.type = result.staticType;
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: this,
+      requiredType: result.staticType,
+    );
   }
 
   @override
@@ -4483,7 +4495,7 @@ abstract class ExpressionImpl extends AstNodeImpl
       if (parent is ConstantContextForExpressionImpl) {
         return true;
       } else if (parent is ConstantPatternImpl) {
-        return true;
+        return parent.constKeyword != null;
       } else if (parent is EnumConstantArguments) {
         return true;
       } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {
@@ -5848,6 +5860,7 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @override
   Token? get star => null;
 
+  @Deprecated('Not used by clients')
   @override
   bool isPotentiallyMutatedInClosure(VariableElement variable) {
     if (localVariableInfo == null) {
@@ -8391,6 +8404,7 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within a local function other than the function in which they are
   /// declared.
+  @Deprecated('Not used by clients')
   final Set<VariableElement> potentiallyMutatedInClosure = <VariableElement>{};
 
   /// The set of local variables and parameters that are potentially mutated
@@ -9082,31 +9096,17 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        metadata? mixinModifiers? 'mixin' [SimpleIdentifier]
+///        metadata? 'base'? 'mixin' [SimpleIdentifier]
 ///        [TypeParameterList]? [RequiresClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
-///
-///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
 
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? sealedKeyword;
-
   /// Return the 'base' keyword, or `null` if the keyword was absent.
   @override
   final Token? baseKeyword;
-
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? interfaceKeyword;
-
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? finalKeyword;
 
   @override
   final Token mixinKeyword;
@@ -9148,10 +9148,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
-    required this.sealedKeyword,
     required this.baseKeyword,
-    required this.interfaceKeyword,
-    required this.finalKeyword,
     required this.mixinKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -9178,11 +9175,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return sealedKeyword ??
-        baseKeyword ??
-        interfaceKeyword ??
-        finalKeyword ??
-        mixinKeyword;
+    return baseKeyword ?? mixinKeyword;
   }
 
   @override
@@ -9211,10 +9204,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -10027,10 +10017,19 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeObjectPattern(
+    final result = resolverVisitor.analyzeObjectPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(
+        fields,
+        mustBeNamed: true,
+      ),
+    );
+
+    resolverVisitor.checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: this,
+      requiredType: result.requiredType,
     );
   }
 
@@ -11127,7 +11126,10 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeRecordPatternSchema(
-      fields: resolverVisitor.buildSharedPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(
+        fields,
+        mustBeNamed: false,
+      ),
     );
   }
 
@@ -11139,7 +11141,10 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     resolverVisitor.analyzeRecordPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(
+        fields,
+        mustBeNamed: false,
+      ),
     );
   }
 
@@ -14059,6 +14064,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   // TODO(paulberry): include commas.
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('lateKeyword', lateKeyword)
     ..addToken('keyword', keyword)
     ..addNode('type', type)
     ..addNodeList('variables', variables);
@@ -14320,11 +14326,20 @@ class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    final declaredType = type?.typeOrThrow;
     resolverVisitor.analyzeWildcardPattern(
       context: context,
       node: this,
-      declaredType: type?.typeOrThrow,
+      declaredType: declaredType,
     );
+
+    if (declaredType != null) {
+      resolverVisitor.checkPatternNeverMatchesValueType(
+        context: context,
+        pattern: this,
+        requiredType: declaredType,
+      );
+    }
   }
 
   @override

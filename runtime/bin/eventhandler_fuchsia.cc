@@ -398,7 +398,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (status != ZX_OK) {
     // This is a FATAL because the VM won't work at all if we can't create this
     // port.
-    FATAL1("zx_port_create failed: %s\n", zx_status_get_string(status));
+    FATAL("zx_port_create failed: %s\n", zx_status_get_string(status));
   }
   ASSERT(port_handle_ != ZX_HANDLE_INVALID);
 }
@@ -468,7 +468,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   if (status != ZX_OK) {
     // This is a FATAL because the VM won't work at all if we can't send any
     // messages to the EventHandler thread.
-    FATAL1("zx_port_queue failed: %s\n", zx_status_get_string(status));
+    FATAL("zx_port_queue failed: %s\n", zx_status_get_string(status));
   }
 }
 
@@ -653,7 +653,7 @@ void EventHandlerImplementation::Poll(uword args) {
     if (status == ZX_ERR_TIMED_OUT) {
       handler_impl->HandleTimeout();
     } else if (status != ZX_OK) {
-      FATAL1("zx_port_wait failed: %s\n", zx_status_get_string(status));
+      FATAL("zx_port_wait failed: %s\n", zx_status_get_string(status));
     } else {
       handler_impl->HandleTimeout();
       handler_impl->HandlePacket(&pkt);
@@ -668,7 +668,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
       Thread::Start("dart:io EventHandler", &EventHandlerImplementation::Poll,
                     reinterpret_cast<uword>(handler));
   if (result != 0) {
-    FATAL1("Failed to start event handler thread %d", result);
+    FATAL("Failed to start event handler thread %d", result);
   }
 }
 

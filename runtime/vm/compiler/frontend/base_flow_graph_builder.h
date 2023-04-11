@@ -112,7 +112,7 @@ class TestFragment {
 //
 // kNone:
 //
-//   There is no unchecked entrypoint: the unchecked entry is set to NULL in
+//   There is no unchecked entrypoint: the unchecked entry is set to nullptr in
 //   the 'GraphEntryInstr'.
 //
 // kSeparate:
@@ -153,7 +153,7 @@ class BaseFlowGraphBuilder {
         last_used_block_id_(last_used_block_id),
         current_try_index_(kInvalidTryIndex),
         next_used_try_index_(0),
-        stack_(NULL),
+        stack_(nullptr),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry),
         saved_args_desc_array_(
@@ -315,7 +315,7 @@ class BaseFlowGraphBuilder {
 
   intptr_t GetNextDeoptId() {
     intptr_t deopt_id = thread_->compiler_state().GetNextDeoptId();
-    if (context_level_array_ != NULL) {
+    if (context_level_array_ != nullptr) {
       intptr_t level = context_depth_;
       context_level_array_->Add(deopt_id);
       context_level_array_->Add(level);

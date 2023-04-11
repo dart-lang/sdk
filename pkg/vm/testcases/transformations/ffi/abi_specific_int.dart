@@ -9,8 +9,9 @@ import 'dart:ffi';
   Abi.androidArm64: Uint32(),
   Abi.androidIA32: Uint32(),
   Abi.androidX64: Uint32(),
-  Abi.fuchsiaArm64: Uint64(),
+  Abi.fuchsiaArm64: Uint32(),
   Abi.fuchsiaX64: Uint32(),
+  Abi.fuchsiaRiscv64: Uint32(),
   Abi.iosArm: Uint32(),
   Abi.iosArm64: Uint32(),
   Abi.iosX64: Uint32(),
@@ -26,7 +27,7 @@ import 'dart:ffi';
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
 })
-class WChar extends AbiSpecificInteger {
+final class WChar extends AbiSpecificInteger {
   const WChar();
 }
 
@@ -59,7 +60,7 @@ void testStoreLoadIndexed() {
   noAlloc.free(p);
 }
 
-class WCharStruct extends Struct {
+final class WCharStruct extends Struct {
   @WChar()
   external int a0;
 
@@ -76,7 +77,7 @@ void testStruct() {
   noAlloc.free(p);
 }
 
-class WCharArrayStruct extends Struct {
+final class WCharArrayStruct extends Struct {
   @Array(100)
   external Array<WChar> a0;
 }

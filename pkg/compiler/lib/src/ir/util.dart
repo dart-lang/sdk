@@ -4,8 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-// TODO(48820): revert to '../common.dart':
-import '../diagnostics/source_span.dart';
+import '../common.dart';
 import '../elements/entities.dart' show AsyncMarker, MemberEntity, Variance;
 import '../universe/record_shape.dart';
 
@@ -56,13 +55,13 @@ RecordShape recordShapeOfRecordType(ir.RecordType node) {
           : node.named.map((n) => n.name).toList(growable: false));
 }
 
-/// Computes `recordShapeOfRecordType(node).indexOfName(name)` without creating
-/// an intermediate shape.
+/// Computes `recordShapeOfRecordType(node).indexOfFieldName(name)` without
+/// creating an intermediate shape.
 int indexOfNameInRecordShapeOfRecordType(ir.RecordType node, String name) {
   final nameIndex = node.named.indexWhere((n) => n.name == name);
   if (nameIndex < 0) throw ArgumentError.value(name, 'name');
   final index = node.positional.length + nameIndex;
-  assert(index == recordShapeOfRecordType(node).indexOfName(name));
+  assert(index == recordShapeOfRecordType(node).indexOfFieldName(name));
   return index;
 }
 
@@ -192,7 +191,6 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   const _FreeVariableVisitor();
 
   bool visit(ir.DartType type) {
-    assert(type as dynamic != null); // TODO(48820): Remove.
     return type.accept(this);
   }
 
@@ -307,7 +305,6 @@ bool nodeIsInWebLibrary(ir.TreeNode? node) {
 
 bool memberEntityIsInWebLibrary(MemberEntity entity) {
   var importUri = entity.library.canonicalUri;
-  assert(importUri as dynamic != null); // TODO(48820): Remove.
   return _isWebLibrary(importUri);
 }
 

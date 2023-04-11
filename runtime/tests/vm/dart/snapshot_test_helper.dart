@@ -9,6 +9,9 @@ import 'dart:math';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as p;
 
+import 'use_flag_test_helper.dart';
+export 'use_flag_test_helper.dart';
+
 class Result {
   final String cmdline;
   final ProcessResult processResult;
@@ -46,18 +49,6 @@ void expectOutput(String what, Result result) {
   }
 }
 
-final String scriptSuffix = Platform.isWindows ? ".bat" : "";
-final String executableSuffix = Platform.isWindows ? ".exe" : "";
-final String buildDir = p.dirname(Platform.executable);
-final String platformDill = p.join(buildDir, "vm_platform_strong.dill");
-final String genSnapshot = p.join(buildDir, "gen_snapshot${executableSuffix}");
-final String dart = p.join(buildDir, "dart${executableSuffix}");
-final String dartPrecompiledRuntime =
-    p.join(buildDir, "dart_precompiled_runtime${executableSuffix}");
-final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");
-final String checkedInDartVM =
-    p.join("tools", "sdks", "dart-sdk", "bin", "dart${executableSuffix}");
-
 Future<Result> runDart(String prefix, List<String> arguments,
     {bool printOut = true}) {
   final augmentedArguments = <String>[]
@@ -83,7 +74,7 @@ Future<Result> runGenKernel(String prefix, List<String> arguments) {
 
 Future<Result> runGenKernelWithoutStandardOptions(
     String prefix, List<String> arguments) {
-  return runBinary(prefix, checkedInDartVM, [genKernel, ...arguments]);
+  return runBinary(prefix, checkedInDartVM, [genKernelDart, ...arguments]);
 }
 
 Future<Result> runGenSnapshot(String prefix, List<String> arguments) {

@@ -8,16 +8,17 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 /// A refactoring that will move one or more top-level declarations to a
 /// different file. The destination file can either be a new file or an existing
@@ -35,6 +36,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// Initialize a newly created refactoring producer to use the given
   /// [context].
   MoveTopLevelToFile(super.context);
+
+  @override
+  bool get isExperimental => true;
 
   @override
   CodeActionKind get kind => DartCodeActionKind.RefactorMove;
@@ -72,8 +76,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
     if (destinationImportUri == null) {
       return;
     }
-    var destinationExists =
-        unitResult.session.resourceProvider.getFile(destinationFilePath).exists;
+    var destinationFile =
+        unitResult.session.resourceProvider.getFile(destinationFilePath);
+    var destinationExists = destinationFile.exists;
+    var insertOffset = 0;
+    var insertLeadingNewline = false;
     String? fileHeader;
     if (!destinationExists) {
       var headerTokens = unitResult.unit.fileHeader;
@@ -82,6 +89,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
         var end = headerTokens.last.end;
         fileHeader = utils.getText(offset, end - offset);
       }
+    } else {
+      // If the file exists, insert at the end because there may be directives
+      // at the start.
+      insertOffset = destinationFile.lengthSync;
+      insertLeadingNewline = true;
     }
 
     var lineInfo = unitResult.lineInfo;
@@ -97,7 +109,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
       if (fileHeader != null) {
         builder.fileHeader = fileHeader + utils.endOfLine;
       }
-      builder.addInsertion(0, (builder) {
+      builder.addInsertion(insertOffset, (builder) {
+        if (insertLeadingNewline) {
+          builder.writeln();
+        }
         for (var i = 0; i < members.groups.length; i++) {
           var group = members.groups[i];
           var sourceRange =
@@ -120,11 +135,6 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.addDeletion(sourceRange);
       }
     });
-    // TODO(brianwilkerson) This doesn't correctly handle prefixes. In order to
-    //  use the correct prefix when adding the import we need to enhance
-    //  `SearchMatch` to know the prefix used for a reference match. The index
-    //  already has the required information, it just isn't available yet in the
-    //  result object.
     var libraries = <LibraryElement, Set<Element>>{};
     for (var element in analyzer.movingDeclarations) {
       var matches = await searchEngine.searchReferences(element);
@@ -148,11 +158,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       }
       await builder.addDartFileEdit(library.source.fullName, (builder) {
         for (var prefix in prefixes) {
-          if (prefix.isEmpty) {
-            builder.importLibrary(destinationImportUri);
-          } else {
-            builder.importLibrary(destinationImportUri, prefix: prefix);
-          }
+          builder.importLibrary(destinationImportUri, prefix: prefix);
         }
       });
     }
@@ -208,12 +214,12 @@ class MoveTopLevelToFile extends RefactoringProducer {
       return multipleSelected || selectionIsInToken(token);
     }
 
-    var candidateMembers = <_Member>[];
+    var candidateMembers = <CompilationUnitMember, String?>{};
     var sealedDeclarations = <CompilationUnitMember>[];
     for (var node in selectedNodes) {
       String? name;
       if (node is ClassDeclaration && validSelection(node.name)) {
-        if ((node as ClassDeclarationImpl).sealedKeyword != null) {
+        if (node.sealedKeyword != null) {
           sealedDeclarations.add(node);
         }
         name = node.name.lexeme;
@@ -226,9 +232,6 @@ class MoveTopLevelToFile extends RefactoringProducer {
           validSelection(node.name)) {
         name = node.name.lexeme;
       } else if (node is MixinDeclaration && validSelection(node.name)) {
-        if ((node as MixinDeclarationImpl).sealedKeyword != null) {
-          sealedDeclarations.add(node);
-        }
         name = node.name.lexeme;
       } else if (node is TopLevelVariableDeclaration) {
         var variables = node.variables.variables;
@@ -240,14 +243,59 @@ class MoveTopLevelToFile extends RefactoringProducer {
       } else {
         return null;
       }
-      candidateMembers.add(_Member(node, name));
+      candidateMembers[node] = name;
     }
-    if (sealedDeclarations.isNotEmpty) {
-      // TODO(brianwilkerson) Handle sealed classes by adding all of their
-      //  subclasses to `members`.
+
+    var index = _SealedSubclassIndex(
+      unitResult.unit,
+      candidateElements: candidateMembers.keys
+          .map((member) => member.declaredElement)
+          .whereNotNull()
+          .toSet(),
+    );
+
+    if (index.hasInvalidCandidateSet) {
       return null;
     }
-    return _MembersToMove(unitPath, [_MemberGroup(candidateMembers)]);
+
+    // Include any direct subclasses of any sealed candidate.
+    for (var sub in index
+        .findSubclassesOfSealedRecursively(candidateMembers.keys.toSet())) {
+      candidateMembers[sub] ??=
+          sub is NamedCompilationUnitMember ? sub.name.lexeme : null;
+    }
+
+    // Ensure there aren't any subclasses of sealed items in other parts of this
+    // library that could result in invalid code.
+    //
+    // Technically we could allow this is moving to another part of the same
+    // library but at this point we don't know the destination.
+    if (_otherPartsContainDirectSubclassesOfSealedCandidates(
+        candidateMembers.keys)) {
+      return null;
+    }
+
+    return _MembersToMove(unitPath, [
+      _MemberGroup(candidateMembers.entries
+          .map((entry) => _Member(entry.key, entry.value))
+          .toList())
+    ]);
+  }
+
+  /// Checks whether any part files in [libraryResult] that aren't the source
+  /// file contain direct subclasses of any sealed [candidates].
+  bool _otherPartsContainDirectSubclassesOfSealedCandidates(
+    Iterable<CompilationUnitMember> candidates,
+  ) {
+    return libraryResult.units
+        // Exclude the source file.
+        .where((unit) => unit != unitResult)
+        // All sealed superclasses.
+        .expand((unit) => unit.unit.declarations)
+        .expand((declaration) => declaration.sealedSuperclassElements)
+        // Check if any of them are in the source file.
+        .map((element) => element.enclosingElement)
+        .contains(unitResult.unit.declaredElement);
   }
 
   /// Return a list containing the top-level declarations that are selected, or
@@ -366,7 +414,7 @@ class _MembersToMove {
     if (name == null) {
       return 'newFile.dart';
     }
-    return _fileNameForClassName(name);
+    return name.toFileName;
   }
 
   /// Return `true` if there are no members to be moved.
@@ -390,18 +438,103 @@ class _MembersToMove {
     }
     return 'Move $count declarations to file';
   }
+}
 
-  /// Computes a filename for a given class name (convert from PascalCase to
-  /// snake_case).
-  String _fileNameForClassName(String className) {
-    // TODO(brianwilkerson) Copied from handler_rename.dart. Move this code to a
-    //  common location, preferably as an extension on `String` and make the
-    //  name more general (because it can be used for any top-level declaration,
-    //  not just classes).
-    final fileName = className
-        .replaceAllMapped(RegExp('[A-Z]'),
-            (match) => match.start == 0 ? match[0]! : '_${match[0]}')
-        .toLowerCase();
-    return '$fileName.dart';
+/// A helper to for matching sealed classes to their subclasses.
+class _SealedSubclassIndex {
+  final CompilationUnit unit;
+
+  /// The set of initial candidate elements.
+  final Set<Element> candidateElements;
+
+  /// A map of sealed named classes/mixin elements to a set of their subclasses.
+  final Map<Element, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
+
+  /// Whether or not the candidate set is invalid.
+  ///
+  /// It's valid to select a sealed class/mixin with or without it's subclasses
+  /// because they will be moved automatically.
+  ///
+  /// It's not valid to select subclasses of sealed class/mixins as we won't
+  /// expand the candidate set upwards.
+  ///
+  /// When the candidate set is invalid, other results produced by this class
+  /// may be incomplete.
+  bool hasInvalidCandidateSet = false;
+
+  _SealedSubclassIndex(
+    this.unit, {
+    required this.candidateElements,
+  }) {
+    final isCandidate = candidateElements.contains;
+
+    // Index the declaration against each of its direct superclasses.
+    for (var declaration in unit.declarations) {
+      for (var superElement in declaration.sealedSuperclassElements) {
+        sealedTypeSubclasses
+            .putIfAbsent(superElement, () => {})
+            .add(declaration);
+
+        // If this declaration is a candidate but it's sealed super is not,
+        // we have an invalid selection.
+        if (isCandidate(declaration.declaredElement) &&
+            !isCandidate(superElement)) {
+          hasInvalidCandidateSet = true;
+          return;
+        }
+      }
+    }
+  }
+
+  /// Returns a set of that includes [members] and for each member that is
+  /// sealed, it's direct subclasses.
+  ///
+  /// If any subclass is itself sealed, recursively includes it's direct
+  /// subclasses.
+  Set<CompilationUnitMember> findSubclassesOfSealedRecursively(
+      Set<CompilationUnitMember> members) {
+    return {
+      ...members,
+      ...members.whereType<NamedCompilationUnitMember>().expand((member) =>
+          findSubclassesOfSealedRecursively(
+              sealedTypeSubclasses[member.declaredElement] ?? const {})),
+    };
+  }
+}
+
+extension on CompilationUnitMember {
+  /// Gets all sealed [ClassElement]s that are superclasses of this member.
+  Iterable<ClassElement> get sealedSuperclassElements {
+    return superclasses
+        .map((type) => type?.name.staticElement)
+        .whereType<ClassElement>()
+        .where((element) => element.isSealed);
+  }
+
+  /// Gets all [NamedType]s that are superclasses of this member.
+  List<NamedType?> get superclasses {
+    final declaration = this;
+
+    if (declaration is ClassDeclaration) {
+      final extendsType = declaration.extendsClause?.superclass;
+      final implementsTypes = declaration.implementsClause?.interfaces;
+      final mixesInTypes = declaration.withClause?.mixinTypes;
+
+      return [
+        if (extendsType != null) extendsType,
+        ...?implementsTypes,
+        ...?mixesInTypes,
+      ];
+    } else if (declaration is MixinDeclaration) {
+      final interfaceTypes = declaration.implementsClause?.interfaces;
+      final constraintTypes = declaration.onClause?.superclassConstraints;
+
+      return [
+        ...?interfaceTypes,
+        ...?constraintTypes,
+      ];
+    }
+
+    return const [];
   }
 }

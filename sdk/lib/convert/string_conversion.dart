@@ -4,19 +4,18 @@
 
 part of dart.convert;
 
-/// This class provides an interface for converters to
-/// efficiently transmit String data.
+/// A sink for converters to efficiently transmit String data.
 ///
-/// Instead of limiting the interface to one non-chunked String it accepts
+/// Instead of limiting the interface to one non-chunked [String] it accepts
 /// partial strings or can be transformed into a byte sink that
 /// accepts UTF-8 code units.
 ///
-/// This abstract class will likely get more methods over time. Implementers are
-/// urged to extend [StringConversionSinkBase] or to mix in
-/// [StringConversionSinkMixin], to ensure that their class covers the newly
-/// added methods.
-abstract class StringConversionSink extends ChunkedConversionSink<String> {
-  StringConversionSink();
+/// The [StringConversionSink] class provides a default implementation of
+/// [add], [asUtf8Sink] and [asStringSink].
+abstract mixin class StringConversionSink
+    implements ChunkedConversionSink<String> {
+  const StringConversionSink();
+
   factory StringConversionSink.withCallback(void callback(String accumulated)) =
       _StringCallbackSink;
   factory StringConversionSink.from(Sink<String> sink) = _StringAdapterSink;
@@ -36,24 +35,30 @@ abstract class StringConversionSink extends ChunkedConversionSink<String> {
   /// If [isLast] is `true` closes `this`.
   void addSlice(String chunk, int start, int end, bool isLast);
 
+  void add(String str) {
+    addSlice(str, 0, str.length, false);
+  }
+
   /// Returns `this` as a sink that accepts UTF-8 input.
   ///
   /// If used, this method must be the first and only call to `this`. It
   /// invalidates `this`. All further operations must be performed on the result.
-  ByteConversionSink asUtf8Sink(bool allowMalformed);
-  // - asRuneSink
-  // - asCodeUnitsSink
+  ByteConversionSink asUtf8Sink(bool allowMalformed) {
+    return _Utf8ConversionSink(this, allowMalformed);
+  }
 
   /// Returns `this` as a [ClosableStringSink].
   ///
   /// If used, this method must be the first and only call to `this`. It
   /// invalidates `this`. All further operations must be performed on the result.
-  ClosableStringSink asStringSink();
+  ClosableStringSink asStringSink() {
+    return _StringConversionSinkAsStringSinkAdapter(this);
+  }
 }
 
 /// A [ClosableStringSink] extends the [StringSink] interface by adding a
 /// `close` method.
-abstract class ClosableStringSink extends StringSink {
+abstract interface class ClosableStringSink implements StringSink {
   /// Creates a new instance combining a [StringSink] [sink] and a callback
   /// [onClose] which is invoked when the returned instance is closed.
   factory ClosableStringSink.fromStringSink(StringSink sink, void onClose()) =
@@ -151,30 +156,15 @@ class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
 
 /// This class provides a base-class for converters that need to accept String
 /// inputs.
-abstract class StringConversionSinkBase extends StringConversionSinkMixin {}
+typedef StringConversionSinkBase = StringConversionSink;
 
 /// This class provides a mixin for converters that need to accept String
 /// inputs.
-abstract class StringConversionSinkMixin implements StringConversionSink {
-  void addSlice(String str, int start, int end, bool isLast);
-  void close();
-
-  void add(String str) {
-    addSlice(str, 0, str.length, false);
-  }
-
-  ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    return _Utf8ConversionSink(this, allowMalformed);
-  }
-
-  ClosableStringSink asStringSink() {
-    return _StringConversionSinkAsStringSinkAdapter(this);
-  }
-}
+typedef StringConversionSinkMixin = StringConversionSink;
 
 /// This class is a [StringConversionSink] that wraps a [StringSink].
 class _StringSinkConversionSink<TStringSink extends StringSink>
-    extends StringConversionSinkBase {
+    extends StringConversionSink {
   final TStringSink _stringSink;
   _StringSinkConversionSink(this._stringSink);
 
@@ -229,7 +219,7 @@ class _StringCallbackSink extends _StringSinkConversionSink<StringBuffer> {
 ///
 /// All additional methods of the [StringConversionSink] (compared to the
 /// ChunkedConversionSink) are redirected to the `add` method.
-class _StringAdapterSink extends StringConversionSinkBase {
+class _StringAdapterSink extends StringConversionSink {
   final Sink<String> _sink;
 
   _StringAdapterSink(this._sink);

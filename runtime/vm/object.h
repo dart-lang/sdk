@@ -150,8 +150,8 @@ class BaseTextBuffer;
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -160,8 +160,8 @@ class BaseTextBuffer;
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
     initializeHandle(obj, ptr);                                                \
     if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
+      FATAL("Handle check failed: saw %s expected %s", obj->ToCString(),       \
+            #object);                                                          \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -1679,9 +1679,12 @@ class Class : public Object {
   static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
     return clazz->untag()->num_native_fields_;
   }
-  static bool ImplementsFinalizable(ClassPtr clazz) {
-    ASSERT(Class::Handle(clazz).is_type_finalized());
-    return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
+  static bool IsIsolateUnsendable(ClassPtr clazz) {
+    return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
+  }
+  static bool IsIsolateUnsendableDueToPragma(ClassPtr clazz) {
+    return IsIsolateUnsendableDueToPragmaBit::decode(
+        clazz->untag()->state_bits_);
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1814,8 +1817,6 @@ class Class : public Object {
   bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(ProgramReloadContext* reload_context,
-                   const Class& old_enum) const;
   void CopyStaticFieldValues(ProgramReloadContext* reload_context,
                              const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
@@ -1871,9 +1872,9 @@ class Class : public Object {
   void MarkFieldBoxedDuringReload(ClassTable* class_table,
                                   const Field& field) const;
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   void SetUserVisibleNameInClassTable();
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
  private:
   TypePtr declaration_type() const {
@@ -1920,12 +1921,21 @@ class Class : public Object {
     kIsAllocatedBit,
     kIsLoadedBit,
     kHasPragmaBit,
-    kImplementsFinalizableBit,
     kSealedBit,
     kMixinClassBit,
     kBaseClassBit,
     kInterfaceClassBit,
     kFinalBit,
+    // Whether instances of the class cannot be sent across ports.
+    //
+    // Will be true iff
+    //    - class is marked with `@pramga('vm:isolate-unsendable')
+    //    - super class / super interface classes are marked as unsendable.
+    //    - class has native fields.
+    kIsIsolateUnsendableBit,
+    // True if this class has `@pramga('vm:isolate-unsendable') annotation or
+    // base class or implemented interfaces has this bit.
+    kIsIsolateUnsendableDueToPragmaBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1948,14 +1958,17 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
   class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
-  class ImplementsFinalizableBit
-      : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
   class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
   class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
   class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
   class InterfaceClassBit
       : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
   class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
+  class IsIsolateUnsendableBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableBit, 1> {};
+  class IsIsolateUnsendableDueToPragmaBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
+  };
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1995,13 +2008,18 @@ class Class : public Object {
   void set_num_type_arguments_unsafe(intptr_t value) const;
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
-  void set_has_pragma(bool has_pragma) const;
+  void set_has_pragma(bool value) const;
 
-  bool implements_finalizable() const {
-    ASSERT(is_type_finalized());
-    return ImplementsFinalizable(ptr());
+  void set_is_isolate_unsendable(bool value) const;
+  bool is_isolate_unsendable() const {
+    ASSERT(is_finalized());  // This bit is initialized in class finalizer.
+    return IsIsolateUnsendableBit::decode(state_bits());
   }
-  void set_implements_finalizable(bool value) const;
+
+  void set_is_isolate_unsendable_due_to_pragma(bool value) const;
+  bool is_isolate_unsendable_due_to_pragma() const {
+    return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
+  }
 
  private:
   void set_functions(const Array& value) const;
@@ -4007,6 +4025,11 @@ class Function : public Object {
 #undef DEFINE_BIT
 
  private:
+  enum NativeFunctionData {
+    kNativeName,
+    kTearOff,
+    kLength,
+  };
   // Given the provided defaults type arguments, determines which
   // DefaultTypeArgumentsKind applies.
   DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
@@ -5261,22 +5284,6 @@ class KernelProgramInfo : public Object {
 
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
-
-  // If we load a kernel blob with evaluated constants, then we delay setting
-  // the native names of [Function] objects until we've read the constant table
-  // (since native names are encoded as constants).
-  //
-  // This array will hold the functions which might need their native name set.
-  GrowableObjectArrayPtr potential_natives() const {
-    return untag()->potential_natives();
-  }
-  void set_potential_natives(const GrowableObjectArray& candidates) const;
-
-  GrowableObjectArrayPtr potential_pragma_functions() const {
-    return untag()->potential_pragma_functions();
-  }
-  void set_potential_pragma_functions(
-      const GrowableObjectArray& candidates) const;
 
   ScriptPtr ScriptAt(intptr_t index) const;
 
@@ -7226,6 +7233,9 @@ class ContextScope : public Object {
   bool IsConstAt(intptr_t scope_index) const;
   void SetIsConstAt(intptr_t scope_index, bool is_const) const;
 
+  bool IsInvisibleAt(intptr_t scope_index) const;
+  void SetIsInvisibleAt(intptr_t scope_index, bool is_invisible) const;
+
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 
@@ -7904,10 +7914,6 @@ class Instance : public Object {
   void RawSetUnboxedFieldAtOffset(intptr_t offset, const T& value) const {
     *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
   }
-
-  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
-                                       classid_t cid,
-                                       Heap::Space heap = Heap::kNew);
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);

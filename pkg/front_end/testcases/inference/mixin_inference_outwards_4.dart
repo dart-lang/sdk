@@ -4,7 +4,7 @@
 
 class I<X> {}
 
-class M0<T> extends Object implements I<T> {}
+mixin class M0<T> extends Object implements I<T> {}
 
 mixin M1<T> on I<T> {}
 

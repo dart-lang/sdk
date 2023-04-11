@@ -260,7 +260,7 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
   ASSERT(size >= 0);
   // Round up the requested size to fit the alignment.
   if (size > (kIntptrMax - kAlignment)) {
-    FATAL1("Zone::Alloc: 'size' is too large: size=%" Pd "", size);
+    FATAL("Zone::Alloc: 'size' is too large: size=%" Pd "", size);
   }
   size = Utils::RoundUp(size, kAlignment);
 
@@ -284,8 +284,8 @@ template <class ElementType>
 inline void Zone::CheckLength(intptr_t len) {
   const intptr_t kElementSize = sizeof(ElementType);
   if (len > (kIntptrMax / kElementSize)) {
-    FATAL2("Zone::Alloc: 'len' is too large: len=%" Pd ", kElementSize=%" Pd,
-           len, kElementSize);
+    FATAL("Zone::Alloc: 'len' is too large: len=%" Pd ", kElementSize=%" Pd,
+          len, kElementSize);
   }
 }
 

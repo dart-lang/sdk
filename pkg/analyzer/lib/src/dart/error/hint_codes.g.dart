@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -13,75 +13,26 @@
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
+import "package:analyzer/src/error/codes.g.dart";
 
 class HintCode extends AnalyzerErrorCode {
-  ///  Users should not assign values marked `@doNotStore`.
-  ///
-  ///  Parameters:
-  ///  0: the name of the field or variable
-  static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
-    'ASSIGNMENT_OF_DO_NOT_STORE',
-    "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
-        "top-level variable.",
-    correctionMessage: "Try removing the assignment.",
-    hasPublishedDocs: true,
-  );
-
   ///  When the target expression uses '?.' operator, it can be `null`, so all the
   ///  subsequent invocations should also use '?.' operator.
   ///
   ///  Note: This diagnostic is only generated in pre-null safe code.
+  ///
+  ///  Note: Since this diagnostic is only produced in pre-null safe code, we do
+  ///  not plan to go through the exercise of converting it to a Warning.
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
     'CAN_BE_NULL_AFTER_NULL_AWARE',
     "The receiver uses '?.', so its value can be null.",
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
   );
 
-  ///  Dead code is code that is never reached, this can happen for instance if a
-  ///  statement follows a return statement.
-  ///
   ///  No parameters.
-  static const HintCode DEAD_CODE = HintCode(
-    'DEAD_CODE',
-    "Dead code.",
-    correctionMessage:
-        "Try removing the code, or fixing the code before it so that it can be "
-        "reached.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Dead code is code that is never reached. This case covers cases where the
-  ///  user has catch clauses after `catch (e)` or `on Object catch (e)`.
   ///
-  ///  No parameters.
-  static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = HintCode(
-    'DEAD_CODE_CATCH_FOLLOWING_CATCH',
-    "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
-        "are never reached.",
-    correctionMessage:
-        "Try reordering the catch clauses so that they can be reached, or "
-        "removing the unreachable catch clauses.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Dead code is code that is never reached. This case covers cases where the
-  ///  user has an on-catch clause such as `on A catch (e)`, where a supertype of
-  ///  `A` was already caught.
-  ///
-  ///  Parameters:
-  ///  0: name of the subtype
-  ///  1: name of the supertype
-  static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = HintCode(
-    'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won't be executed because '{0}' is a "
-        "subtype of '{1}' and hence will have been caught already.",
-    correctionMessage:
-        "Try reordering the catch clauses so that this block can be reached, "
-        "or removing the unreachable catch clause.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
+  ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not
+  ///  plan to go through the exercise of converting it to a Warning.
   static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     "Using a colon as a separator before a default value is deprecated and "
@@ -111,6 +62,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the member
+  ///
+  ///  This code is deprecated in favor of the
+  ///  'deprecated_member_from_same_package' lint rule, and will be removed.
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used.",
@@ -122,6 +76,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the member
   ///  1: message details
+  ///
+  ///  This code is deprecated in favor of the
+  ///  'deprecated_member_from_same_package' lint rule, and will be removed.
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
       HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
@@ -153,34 +110,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  It is a bad practice for a source file in a package "lib" directory
-  ///  hierarchy to traverse outside that directory hierarchy. For example, a
-  ///  source file in the "lib" directory should not contain a directive such as
-  ///  `import '../web/some.dart'` which references a file outside the lib
-  ///  directory.
-  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE =
-      HintCode(
-    'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
-    "A file in the 'lib' directory shouldn't import a file outside the 'lib' "
-        "directory.",
-    correctionMessage:
-        "Try removing the import, or moving the imported file inside the 'lib' "
-        "directory.",
-  );
-
-  ///  It is a bad practice for a source file outside a package "lib" directory
-  ///  hierarchy to traverse into that directory hierarchy. For example, a source
-  ///  file in the "web" directory should not contain a directive such as
-  ///  `import '../lib/some.dart'` which references a file inside the lib
-  ///  directory.
-  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE =
-      HintCode(
-    'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
-    "A file outside the 'lib' directory shouldn't reference a file inside the "
-        "'lib' directory using a relative path.",
-    correctionMessage: "Try using a 'package:' URI instead.",
-  );
-
   ///  No parameters.
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
@@ -202,71 +131,6 @@ class HintCode extends AnalyzerErrorCode {
         "library.",
     correctionMessage: "Try migrating the imported library.",
     hasPublishedDocs: true,
-  );
-
-  ///  This hint is generated anywhere where a `@sealed` class is used as a
-  ///  a superclass constraint of a mixin.
-  ///
-  ///  Parameters:
-  ///  0: the name of the sealed class
-  static const HintCode MIXIN_ON_SEALED_CLASS = HintCode(
-    'MIXIN_ON_SEALED_CLASS',
-    "The class '{0}' shouldn't be used as a mixin constraint because it is "
-        "sealed, and any class mixing in this mixin must have '{0}' as a "
-        "superclass.",
-    correctionMessage:
-        "Try composing with this class, or refer to its documentation for more "
-        "information.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Generate a hint for non-const instance creation using a constructor
-  ///  annotated with `@literal`.
-  ///
-  ///  Parameters:
-  ///  0: the name of the class defining the annotated constructor
-  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = HintCode(
-    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    "This instance creation must be 'const', because the {0} constructor is "
-        "marked as '@literal'.",
-    correctionMessage: "Try adding a 'const' keyword.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Generate a hint for non-const instance creation (with the `new` keyword)
-  ///  using a constructor annotated with `@literal`.
-  ///
-  ///  Parameters:
-  ///  0: the name of the class defining the annotated constructor
-  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
-      HintCode(
-    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    "This instance creation must be 'const', because the {0} constructor is "
-        "marked as '@literal'.",
-    correctionMessage: "Try replacing the 'new' keyword with 'const'.",
-    hasPublishedDocs: true,
-    uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
-  );
-
-  ///  No parameters.
-  static const HintCode NULL_CHECK_ALWAYS_FAILS = HintCode(
-    'NULL_CHECK_ALWAYS_FAILS',
-    "This null-check will always throw an exception because the expression "
-        "will always evaluate to 'null'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
-  ///
-  ///  A "raw type" is a type name that does not use inference to fill in missing
-  ///  type arguments; instead, each type argument is instantiated to its bound.
-  ///
-  ///  Parameters:
-  ///  0: the name of the generic type
-  static const HintCode STRICT_RAW_TYPE = HintCode(
-    'STRICT_RAW_TYPE',
-    "The generic type '{0}' should have explicit type arguments but doesn't.",
-    correctionMessage: "Use explicit type arguments for '{0}'.",
   );
 
   ///  Parameters:
@@ -319,64 +183,13 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE = HintCode(
-    'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'false'.",
-    correctionMessage:
-        "Try removing the condition, an enclosing condition, or the whole "
-        "conditional statement.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE = HintCode(
-    'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'true'.",
-    correctionMessage: "Remove the condition.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the type
-  static const HintCode UNNECESSARY_QUESTION_MARK = HintCode(
-    'UNNECESSARY_QUESTION_MARK',
-    "The '?' is unnecessary because '{0}' is nullable without it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_SET_LITERAL = HintCode(
-    'UNNECESSARY_SET_LITERAL',
-    "Braces unnecessarily wrap this expression in a set literal.",
-    correctionMessage: "Try removing the set literal around the expression.",
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
-    'UNNECESSARY_TYPE_CHECK',
-    "Unnecessary type check; the result is always 'false'.",
-    correctionMessage:
-        "Try correcting the type check, or removing the type check.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCode(
-    'UNNECESSARY_TYPE_CHECK',
-    "Unnecessary type check; the result is always 'true'.",
-    correctionMessage:
-        "Try correcting the type check, or removing the type check.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
-  );
-
-  ///  No parameters.
   static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
     'UNREACHABLE_SWITCH_CASE',
     "This case is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the case clause, or restructuring the preceding "
+        "patterns.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -398,41 +211,9 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   );
 
-  ///  Parameters:
-  ///  0: the name of the unused field
-  static const HintCode UNUSED_FIELD = HintCode(
-    'UNUSED_FIELD',
-    "The value of the field '{0}' isn't used.",
-    correctionMessage: "Try removing the field, or using it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the content of the unused import's URI
-  static const HintCode UNUSED_IMPORT = HintCode(
-    'UNUSED_IMPORT',
-    "Unused import: '{0}'.",
-    correctionMessage: "Try removing the import directive.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the unused variable
-  static const HintCode UNUSED_LOCAL_VARIABLE = HintCode(
-    'UNUSED_LOCAL_VARIABLE',
-    "The value of the local variable '{0}' isn't used.",
-    correctionMessage: "Try removing the variable or using it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name that is shown but not used
-  static const HintCode UNUSED_SHOWN_NAME = HintCode(
-    'UNUSED_SHOWN_NAME',
-    "The name {0} is shown, but isn't used.",
-    correctionMessage: "Try removing the name from the list of shown members.",
-    hasPublishedDocs: true,
-  );
+  ///  This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
+  static const WarningCode UNUSED_LOCAL_VARIABLE =
+      WarningCode.UNUSED_LOCAL_VARIABLE;
 
   /// Initialize a newly created error code to have the given [name].
   const HintCode(

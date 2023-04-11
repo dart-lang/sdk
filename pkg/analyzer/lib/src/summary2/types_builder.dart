@@ -20,7 +20,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element is MixinElement) {
+  if (type.element is! ClassElement) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -147,7 +147,7 @@ class TypesBuilder {
     var element = node.declaredElement as ClassElementImpl;
 
     var superType = node.superclass.type;
-    if (superType is InterfaceType && _isInterfaceTypeInterface(superType)) {
+    if (superType is InterfaceType && _isInterfaceTypeClass(superType)) {
       element.supertype = superType;
     } else {
       element.supertype = _objectType(element);

@@ -57,15 +57,21 @@ abstract class NativeTypeCfe {
         // Unsupported mapping.
         return AbiSpecificNativeTypeCfe({}, clazz);
       }
-      final mapping =
-          Map.fromEntries(mappingConstant.entries.map((e) => MapEntry(
-              transformer.constantAbis[e.key]!,
-              NativeTypeCfe(
-                transformer,
-                (e.value as InstanceConstant).classNode.getThisType(
-                    transformer.coreTypes, Nullability.nonNullable),
-                alreadyInAbiSpecificType: true,
-              ))));
+      final mapping = Map.fromEntries(mappingConstant.entries.map((e) {
+        var type = transformer.constantAbis[e.key];
+        if (type == null) {
+          throw "Type ${clazz.name} has no mapping for ABI ${e.key}";
+        }
+        return MapEntry(
+            type,
+            NativeTypeCfe(
+              transformer,
+              (e.value as InstanceConstant)
+                  .classNode
+                  .getThisType(transformer.coreTypes, Nullability.nonNullable),
+              alreadyInAbiSpecificType: true,
+            ));
+      }));
       for (final value in mapping.values) {
         if (value is! PrimitiveNativeTypeCfe ||
             !nativeIntTypesFixedSize.contains(value.nativeType)) {
@@ -75,7 +81,7 @@ abstract class NativeTypeCfe {
       }
       return AbiSpecificNativeTypeCfe(mapping, clazz);
     }
-    throw "Invalid type $dartType";
+    return InvalidNativeTypeCfe("Invalid type $dartType");
   }
 
   /// The size in bytes per [Abi].

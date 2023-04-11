@@ -31,7 +31,7 @@ void command() {
   // For each command description, assert that the values are not empty, don't
   // have trailing white space and end with a period.
   test('description formatting', () {
-    DartdevRunner(['--no-analytics'])
+    DartdevRunner(['--suppress-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
@@ -43,7 +43,7 @@ void command() {
 
   // Assert that all found usageLineLengths are the same and null
   test('argParser usageLineLength', () {
-    DartdevRunner(['--no-analytics'])
+    DartdevRunner(['--suppress-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       if (command.name != 'help' &&
@@ -66,8 +66,6 @@ void command() {
 
 void help() {
   late TestProject p;
-
-  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -147,8 +145,6 @@ void help() {
 
 void invalidFlags() {
   late TestProject p;
-
-  tearDown(() async => await p.dispose());
 
   test('Regress #49437', () async {
     // Regression test for https://github.com/dart-lang/sdk/issues/49437

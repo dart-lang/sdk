@@ -345,7 +345,7 @@ class PathMapEntry {
   }
 }
 
-class _InputSink extends ChunkedConversionSink<String> {
+class _InputSink implements ChunkedConversionSink<String> {
   final Converter<String, Operation?> converter;
   final Sink<Operation?> outSink;
 

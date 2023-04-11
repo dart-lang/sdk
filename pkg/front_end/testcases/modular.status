@@ -84,6 +84,4 @@ nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError
-patterns/pattern_types: TypeCheckError
-patterns/shared_errors: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

@@ -87,9 +87,9 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   request.{core::Object::hashCode}{core::int};
 }
 static method main() → void {
-  self::expect(false, #C1);
-  self::expect(true, #C2);
-  self::expect(false, #C1);
+  self::expect(false, #C2);
+  self::expect(true, #C4);
+  self::expect(false, #C6);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
@@ -97,6 +97,16 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = false
-  #C2 = true
+  #C1 = "dart.library.io"
+  #C2 = eval const core::bool::fromEnvironment(#C1)
+  #C3 = "dart.library.html"
+  #C4 = eval const core::bool::fromEnvironment(#C3)
+  #C5 = "dart.library.foo"
+  #C6 = eval const core::bool::fromEnvironment(#C5)
 }
+
+Extra constant evaluation status:
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///conditional_import.dart:41:23 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///conditional_import.dart:42:22 -> BoolConstant(true)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///conditional_import.dart:43:23 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 29, effectively constant: 3

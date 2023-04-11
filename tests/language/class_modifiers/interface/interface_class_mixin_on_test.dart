@@ -17,20 +17,6 @@ class ConcreteA extends A with MA, MB {
   int foo = 0;
 }
 
-mixin MC on InterfaceClass, InterfaceMixin {}
-
-class ConcreteC extends C with MC {
-  int foo = 0;
-}
-
-mixin MCSingular on InterfaceMixin {}
-
-class ConcreteD extends D with MCSingular {
-  int foo = 0;
-}
-
 main() {
   Expect.equals(0, ConcreteA().foo);
-  Expect.equals(0, ConcreteC().foo);
-  Expect.equals(0, ConcreteD().foo);
 }

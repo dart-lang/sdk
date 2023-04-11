@@ -49,7 +49,7 @@ class _AsyncDirectoryListerOps {
       new _AsyncDirectoryListerOpsImpl(pointer);
 }
 
-class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
+base class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
     implements _AsyncDirectoryListerOps {
   _AsyncDirectoryListerOpsImpl._();
 

@@ -47,9 +47,7 @@ mixin ElementsTypesMixin {
     return interfaceTypeStar(element);
   }
 
-  DartType get dynamicNone => DynamicTypeImpl.instance;
-
-  DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
+  DartType get dynamicType => DynamicTypeImpl.instance;
 
   InterfaceType get functionNone {
     var element = typeProvider.functionType.element;
@@ -473,13 +471,11 @@ mixin ElementsTypesMixin {
 
   MixinElementImpl mixin_({
     required String name,
-    bool isSealed = false,
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
-    element.isSealed = isSealed;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];

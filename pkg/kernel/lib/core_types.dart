@@ -259,6 +259,9 @@ class CoreTypes {
   late final Procedure boolFromEnvironment =
       index.getProcedure('dart:core', 'bool', 'fromEnvironment');
 
+  late final Procedure intUnaryMinus =
+      index.getProcedure('dart:core', 'int', 'unary-');
+
   late final Procedure createSentinelMethod =
       index.getTopLevelProcedure('dart:_internal', 'createSentinel');
 
@@ -287,6 +290,9 @@ class CoreTypes {
 
   late final Constructor reachabilityErrorConstructor =
       index.getConstructor('dart:_internal', 'ReachabilityError', '');
+
+  late final Constructor stateErrorConstructor =
+      index.getConstructor('dart:core', 'StateError', '');
 
   late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
 

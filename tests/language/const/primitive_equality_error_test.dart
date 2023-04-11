@@ -30,58 +30,100 @@ class C {
   bool operator ==(Object other) => super == other;
 }
 
-const aSet = <Object?>{
+const aSet1 = <Object?>{
+//                     ^
+// [cfe] Constant evaluation error:
   0.5,
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  Duration(days: 2),
-//^^^^^^^^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  A(),
-//^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  B(),
-//^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  C(),
-//^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  (A(), false, 1),
-//^^^^^^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY
 };
 
-const aMap = <Object?, Null>{
+const aSet2 = <Object?>{
+//                     ^
+// [cfe] Constant evaluation error:
+  Duration(days: 2),
+//^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY
+};
+
+const aSet3 = <Object?>{
+//                     ^
+// [cfe] Constant evaluation error:
+  A(),
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY
+};
+
+const aSet4 = <Object?>{
+//                     ^
+// [cfe] Constant evaluation error:
+  B(),
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY
+};
+
+const aSet5 = <Object?>{
+//                     ^
+// [cfe] Constant evaluation error:
+  C(),
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY
+};
+
+const aSet6 = <Object?>{
+//                     ^
+// [cfe] Constant evaluation error:
+  (A(), false, 1),
+//^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY
+};
+
+const aMap1 = <Object?, Null>{
+//                           ^
+// [cfe] Constant evaluation error:
   0.5: null,
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
+};
+
+const aMap2 = <Object?, Null>{
+//                           ^
+// [cfe] Constant evaluation error:
   Duration(days: 2): null,
 //^^^^^^^^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
+};
+
+const aMap3 = <Object?, Null>{
+//                           ^
+// [cfe] Constant evaluation error:
   A(): null,
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
+};
+
+const aMap4 = <Object?, Null>{
+//                           ^
+// [cfe] Constant evaluation error:
   B(): null,
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
+};
+
+const aMap5 = <Object?, Null>{
+//                           ^
+// [cfe] Constant evaluation error:
   C(): null,
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
+};
+
+const aMap6 = <Object?, Null>{
+//                           ^
+// [cfe] Constant evaluation error:
   (A(), false, 1): null,
 //^^^^^^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY
 };
 
 void main() {}

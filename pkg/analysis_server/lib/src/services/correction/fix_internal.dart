@@ -73,6 +73,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_wildcard_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
@@ -136,6 +137,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_if_null_oper
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
@@ -161,6 +163,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_wildcard_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -176,6 +179,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_sized_box.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_empty_map_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
@@ -186,6 +190,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_return_type
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_iterable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_stream.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_var_with_dynamic.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_arrow.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_decorated_box.dart';
@@ -204,6 +209,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
+import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
@@ -361,6 +367,16 @@ class FixInFileProcessor {
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
+  static final Map<String, List<MultiProducerGenerator>> lintMultiProducerMap =
+      {
+    LintNames.deprecated_member_use_from_same_package: [
+      DataDriven.new,
+    ],
+    LintNames.deprecated_member_use_from_same_package_with_message: [
+      DataDriven.new,
+    ],
+  };
+
   /// A map from the names of lint rules to a list of the generators that are
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics
@@ -664,6 +680,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.type_init_formals: [
       RemoveTypeAnnotation.new,
+    ],
+    LintNames.type_literal_in_constant_pattern: [
+      ConvertToWildcardPattern.new,
     ],
     LintNames.unawaited_futures: [
       AddAwait.unawaited,
@@ -984,6 +1003,10 @@ class FixProcessor extends BaseProcessor {
       RemoveDefaultValue.new,
       RemoveRequired.new,
     ],
+    CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
+      ReplaceEmptyMapPattern.any,
+      ReplaceEmptyMapPattern.empty,
+    ],
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
       ConvertIntoBlockBody.new,
     ],
@@ -1007,6 +1030,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
       CreateConstructor.new,
       ConvertToNamedArguments.new,
+    ],
+    CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
       AddLate.new,
@@ -1324,7 +1353,7 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
       CreateFile.new,
     ],
-    CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
+    ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
       RemoveVar.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
@@ -1333,15 +1362,6 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
       MakeReturnTypeNullable.new,
-    ],
-    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH: [
-      RemoveNameFromDeclarationClause.new,
     ],
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS: [
       RemoveNameFromDeclarationClause.new,
@@ -1352,22 +1372,8 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
-
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
-    ],
-    HintCode.DEAD_CODE: [
-      RemoveDeadCode.new,
-    ],
-    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-      RemoveDeadCode.new,
-    ],
-    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-      RemoveDeadCode.new,
     ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
@@ -1375,8 +1381,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
     ],
-    // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
-//    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
@@ -1385,24 +1389,6 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
-    ],
-    HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
-      RemoveComparison.new,
-    ],
-    HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
-      RemoveComparison.new,
-    ],
-    HintCode.UNNECESSARY_QUESTION_MARK: [
-      RemoveQuestionMark.new,
-    ],
-    HintCode.UNNECESSARY_SET_LITERAL: [
-      RemoveSetLiteral.new,
-    ],
-    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
-      RemoveComparison.typeCheck,
-    ],
-    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
-      RemoveComparison.typeCheck,
     ],
     HintCode.UNREACHABLE_SWITCH_CASE: [
       RemoveDeadCode.new,
@@ -1413,24 +1399,12 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_ELEMENT_PARAMETER: [
       RemoveUnusedParameter.new,
     ],
-    HintCode.UNUSED_FIELD: [
-      RemoveUnusedField.new,
-    ],
-    HintCode.UNUSED_IMPORT: [
-      RemoveUnusedImport.new,
-    ],
-    HintCode.UNUSED_LOCAL_VARIABLE: [
-      RemoveUnusedLocalVariable.new,
-    ],
-    HintCode.UNUSED_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
-
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,
+      ReplaceWithArrow.new,
     ],
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
       RemoveParametersInGetterDeclaration.new,
@@ -1438,8 +1412,17 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
       AddConst.new,
     ],
+    ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC: [
+      AddConst.new,
+    ],
     ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [
       AddConst.new,
+    ],
+    ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN: [
+      SurroundWithParentheses.new,
+    ],
+    ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [
+      RemoveLate.new,
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.new,
@@ -1459,7 +1442,6 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.VAR_RETURN_TYPE: [
       RemoveVar.new,
     ],
-
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,
     ],
@@ -1481,9 +1463,21 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN: [
       RemoveNonNullAssertion.new,
     ],
-
     WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,
+    ],
+    WarningCode.DEAD_CODE: [
+      RemoveDeadCode.new,
+    ],
+    WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.new,
+    ],
+    WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.new,
     ],
     WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
       RemoveNameFromDeclarationClause.new,
@@ -1630,14 +1624,47 @@ class FixProcessor extends BaseProcessor {
       RemoveComparison.new,
       ReplaceWithIsNan.new,
     ],
+    WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
+      RemoveComparison.new,
+    ],
+    WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
+      RemoveComparison.new,
+    ],
+    WarningCode.UNNECESSARY_QUESTION_MARK: [
+      RemoveQuestionMark.new,
+    ],
+    WarningCode.UNNECESSARY_SET_LITERAL: [
+      RemoveSetLiteral.new,
+    ],
+    WarningCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+      RemoveComparison.typeCheck,
+    ],
+    WarningCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+      RemoveComparison.typeCheck,
+    ],
+    WarningCode.UNNECESSARY_WILDCARD_PATTERN: [
+      RemoveUnnecessaryWildcardPattern.new,
+    ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,
     ],
     WarningCode.UNUSED_CATCH_STACK: [
       RemoveUnusedCatchStack.new,
     ],
+    WarningCode.UNUSED_FIELD: [
+      RemoveUnusedField.new,
+    ],
+    WarningCode.UNUSED_IMPORT: [
+      RemoveUnusedImport.new,
+    ],
     WarningCode.UNUSED_LABEL: [
       RemoveUnusedLabel.new,
+    ],
+    WarningCode.UNUSED_LOCAL_VARIABLE: [
+      RemoveUnusedLocalVariable.new,
+    ],
+    WarningCode.UNUSED_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
     ],
   };
 
@@ -1729,7 +1756,9 @@ class FixProcessor extends BaseProcessor {
       }
     }
 
-    if (errorCode is LintCode || errorCode is HintCode) {
+    if (errorCode is LintCode ||
+        errorCode is HintCode ||
+        errorCode is WarningCode) {
       var generators = [
         IgnoreDiagnosticOnLine.new,
         IgnoreDiagnosticInFile.new,

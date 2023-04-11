@@ -1,0 +1,16 @@
+import 'dart:collection';
+class NegativeLengthList<E> with ListMixin<E> {
+  E operator [](int index) => _list[index];
+  NegativeLengthList(this._list);
+  final List<E> _list;
+  int get length => _list.length <= 0 ? -1 : _list.length;
+  void operator []=(int index, E value) {}
+  void set length(int value) {}
+}
+int switchList(List<int> list) => 
+switch (list) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -26,13 +27,21 @@ class ReplaceNullCheckWithCast extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (node is! PostfixExpression) {
-      return;
+    Token? operator;
+    DartType? operandType;
+    if (node is NullAssertPattern) {
+      operator = node.operator;
+      operandType = node.matchedValueType;
     }
-    var operand = node.operand;
-    var operator = node.operator;
-    var operandType = operand.staticType;
-    if (operandType is! TypeParameterType) {
+    if (node is PostfixExpression) {
+      var operand = node.operand;
+      operator = node.operator;
+      if (operand.staticType is! TypeParameterType) {
+        return;
+      }
+      operandType = operand.staticType;
+    }
+    if (operator == null || operandType == null) {
       return;
     }
     // It is possible that there are cases of precedence and syntax which would
@@ -42,8 +51,8 @@ class ReplaceNullCheckWithCast extends CorrectionProducer {
     // TODO(srawlins): Follow up on
     // https://github.com/dart-lang/linter/issues/3256.
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.token(operator),
-          ' as ${operandType.getDisplayString(withNullability: false)}');
+      builder.addSimpleReplacement(range.token(operator!),
+          ' as ${operandType!.getDisplayString(withNullability: false)}');
     });
   }
 }

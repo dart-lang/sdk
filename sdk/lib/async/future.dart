@@ -13,7 +13,8 @@ part of dart.async;
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
 ///
-/// # Examples
+/// ### Examples
+///
 /// ```dart
 /// // The `Future<T>.then` function takes a callback [f] that returns either
 /// // an `S` or a `Future<S>`.
@@ -23,7 +24,8 @@ part of dart.async;
 /// void complete(FutureOr<T> value);
 /// ```
 ///
-/// # Advanced
+/// ### Advanced
+///
 /// The `FutureOr<int>` type is actually the "type union" of the types `int` and
 /// `Future<int>`. This type union is defined in such a way that
 /// `FutureOr<Object>` is both a super- and sub-type of `Object` (sub-type
@@ -36,10 +38,10 @@ part of dart.async;
 /// `Future<Object>`.
 @pragma("vm:entry-point")
 abstract class FutureOr<T> {
-  // Private generative constructor, so that it is not subclassable, mixable, or
-  // instantiable.
+  // Private generative constructor, so that it is not subclassable, mixable,
+  // or instantiable.
   FutureOr._() {
-    throw new UnsupportedError("FutureOr can't be instantiated");
+    throw new UnsupportedError("FutureOr cannot be instantiated");
   }
 }
 
@@ -222,7 +224,8 @@ abstract class FutureOr<T> {
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
 @pragma("wasm:entry-point")
-abstract class Future<T> {
+@vmIsolateUnsendable
+abstract interface class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///
   /// Currently shared with `dart:internal`.
@@ -639,7 +642,8 @@ abstract class Future<T> {
   ///
   /// Any error from [action], synchronous or asynchronous,
   /// will stop the iteration and be reported in the returned [Future].
-  static Future forEach<T>(Iterable<T> elements, FutureOr action(T element)) {
+  static Future<void> forEach<T>(
+      Iterable<T> elements, FutureOr action(T element)) {
     var iterator = elements.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -689,7 +693,7 @@ abstract class Future<T> {
   /// }
   /// // Outputs: 'Finished with 3'
   /// ```
-  static Future doWhile(FutureOr<bool> action()) {
+  static Future<void> doWhile(FutureOr<bool> action()) {
     _Future<void> doneSignal = new _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
@@ -1160,7 +1164,8 @@ class TimeoutException implements Exception {
 ///   }
 /// }
 /// ```
-abstract class Completer<T> {
+@vmIsolateUnsendable
+abstract interface class Completer<T> {
   /// Creates a new completer.
   ///
   /// The general workflow for creating a new future is to 1) create a
@@ -1261,7 +1266,7 @@ abstract class Completer<T> {
   /// Completing a future with an error indicates that an exception was thrown
   /// while trying to produce a value.
   ///
-  /// If `error` is a `Future`, the future itself is used as the error value.
+  /// If [error] is a [Future], the future itself is used as the error value.
   /// If you want to complete with the result of the future, you can use:
   /// ```dart
   /// thisCompleter.complete(theFuture)
@@ -1269,6 +1274,35 @@ abstract class Completer<T> {
   /// or if you only want to handle an error from the future:
   /// ```dart
   /// theFuture.catchError(thisCompleter.completeError);
+  /// ```
+  ///
+  /// The [future] must have an error handler installed before the call to
+  /// [completeError]) or [error] will be considered an uncaught error.
+  ///
+  /// ```dart
+  /// void doStuff() {
+  ///   // Outputs a message like:
+  ///   // Uncaught Error: Assertion failed: "future not consumed"
+  ///   Completer().completeError(AssertionError('future not consumed'));
+  /// }
+  /// ```
+  ///
+  /// You can install an error handler through [Future.catchError],
+  /// [Future.then] or the `await` operation.
+  ///
+  /// ```dart
+  /// void doStuff() {
+  ///   final c = Completer();
+  ///   c.future.catchError((e) {
+  ///     // Handle the error.
+  ///   });
+  ///   c.completeError(AssertionError('future not consumed'));
+  /// }
+  /// ```
+  ///
+  /// See the
+  /// [Zones article](https://dart.dev/articles/archive/zones#handling-uncaught-errors)
+  /// for details on uncaught errors.
   /// ```
   void completeError(Object error, [StackTrace? stackTrace]);
 

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.3
+# Dart VM Service Protocol 4.4
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.3_ of the Dart VM Service Protocol. This
+This document describes of _version 4.4_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2852,6 +2852,12 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   ReceivePort
   string debugName [optional];
+
+  // The label associated with a UserTag.
+  //
+  // Provided for instance kinds:
+  //   UserTag
+  string label [optional];
 }
 ```
 
@@ -3143,6 +3149,12 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   ReceivePort
   string debugName [optional];
+
+  // The label associated with a UserTag.
+  //
+  // Provided for instance kinds:
+  //   UserTag
+  string label [optional];
 }
 ```
 
@@ -3246,6 +3258,9 @@ enum InstanceKind {
 
   // An instance of the Dart class ReceivePort.
   ReceivePort,
+
+  // An instance of the Dart class UserTag.
+  UserTag,
 }
 ```
 
@@ -4507,5 +4522,6 @@ version | comments
 4.1 | Added optional `includeSubclasses` and `includeImplementers` parameters to `getInstances`.
 4.2 | Added `getInstancesAsList` RPC.
 4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
+4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

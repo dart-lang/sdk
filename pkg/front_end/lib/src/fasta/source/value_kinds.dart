@@ -34,7 +34,6 @@ import '../kernel/body_builder.dart' as type
         JumpTarget,
         Label;
 import '../kernel/expression_generator.dart' as type;
-import '../kernel/internal_ast.dart' as type;
 
 import '../modifier.dart' as type;
 

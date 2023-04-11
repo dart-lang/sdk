@@ -33,8 +33,8 @@ DEFINE_FLAG(int,
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_buf[kBufferSize];                                               \
-    FATAL2("pthread error: %d (%s)", result,                                   \
-           Utils::StrError(result, error_buf, kBufferSize));                   \
+    FATAL("pthread error: %d (%s)", result,                                    \
+          Utils::StrError(result, error_buf, kBufferSize));                    \
   }
 
 // Variation of VALIDATE_PTHREAD_RESULT for named objects.
@@ -45,8 +45,8 @@ DEFINE_FLAG(int,
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_buf[kBufferSize];                                               \
-    FATAL3("[%s] pthread error: %d (%s)", name_, result,                       \
-           Utils::StrError(result, error_buf, kBufferSize));                   \
+    FATAL("[%s] pthread error: %d (%s)", name_, result,                        \
+          Utils::StrError(result, error_buf, kBufferSize));                    \
   }
 #endif
 
@@ -126,8 +126,8 @@ static void* ThreadStart(void* data_ptr) {
   if (FLAG_worker_thread_priority != kMinInt) {
     if (setpriority(PRIO_PROCESS, syscall(__NR_gettid),
                     FLAG_worker_thread_priority) == -1) {
-      FATAL2("Setting thread priority to %d failed: errno = %d\n",
-             FLAG_worker_thread_priority, errno);
+      FATAL("Setting thread priority to %d failed: errno = %d\n",
+            FLAG_worker_thread_priority, errno);
     }
   }
 
@@ -244,7 +244,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 

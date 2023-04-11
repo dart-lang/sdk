@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method staticTypeOf<T extends core::Object? = dynamic>(self::staticTypeOf::T% x) → dynamic
+  ;
+static method main() → dynamic
+  ;

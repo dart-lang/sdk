@@ -23,12 +23,10 @@ import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 abstract class RecipeEncoder {
   /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
-  RecipeEncoding encodeRecipe(covariant ModularEmitter emitter,
+  RecipeEncoding encodeRecipe(ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
 
-  // TODO(48820): Remove covariant when ModularEmitter is migrated.
-  jsAst.Literal encodeGroundRecipe(
-      covariant ModularEmitter emitter, TypeRecipe recipe);
+  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
 
   /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
   /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any
@@ -632,9 +630,7 @@ int? indexTypeVariable(
   }
 
   TypeVariableEntity element = type.element;
-  // TODO(48820): remove `!`. Added to increase coverage of null assertions
-  // while the compiler runs in unsound null safety.
-  ClassEntity cls = element.typeDeclaration! as ClassEntity;
+  ClassEntity cls = element.typeDeclaration as ClassEntity;
 
   if (metadata) {
     if (identical(environment.classType!.element, cls)) {

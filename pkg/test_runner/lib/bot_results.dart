@@ -73,8 +73,7 @@ final gsutilPool = Pool(math.max(1, Platform.numberOfProcessors ~/ 2));
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
   return gsutilPool.withResource(() async {
-    var processResult = await Process.run(
-        "python3", [gsutilPy]..addAll(arguments),
+    var processResult = await Process.run("python3", [gsutilPy, ...arguments],
         runInShell: Platform.isWindows);
     if (processResult.exitCode != 0) {
       var stderr = processResult.stderr as String;
@@ -127,7 +126,7 @@ Future cpRecursiveGsutil(String source, String destination) =>
     runGsutil(["-m", "cp", "-r", "-Z", source, destination]);
 
 /// Lists the bots in cloud storage.
-Future<Iterable<String>> listBots() => lsGsutil("$testResultsStoragePath");
+Future<Iterable<String>> listBots() => lsGsutil(testResultsStoragePath);
 
 /// Returns the cloud storage path for the [bot].
 String botCloudPath(String bot) => "$testResultsStoragePath/$bot";

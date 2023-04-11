@@ -236,7 +236,7 @@ mixin PositionalArgCommandHandler {
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
-  final Map<Method, MessageHandler> _messageHandlers = {};
+  final Map<Method, MessageHandler<Object?, Object?>> _messageHandlers = {};
   final CancelRequestHandler _cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
@@ -286,7 +286,7 @@ abstract class ServerStateMessageHandler {
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
-  void registerHandler(MessageHandler handler) {
+  void registerHandler(MessageHandler<Object?, Object?> handler) {
     _messageHandlers[handler.handlesMessage] = handler;
   }
 

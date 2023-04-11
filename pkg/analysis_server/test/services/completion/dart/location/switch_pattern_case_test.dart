@@ -38,7 +38,7 @@ void f(Object o) {
 
 class A01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -66,7 +66,7 @@ void f(Object x) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -74,7 +74,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -104,25 +104,15 @@ void f(Object o) {
 }
 class A01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  break
-    kind: keyword
-  return
-    kind: keyword
-  if
-    kind: keyword
   A01
     kind: class
-  final
-    kind: keyword
-  for
-    kind: keyword
-  throw
-    kind: keyword
   A01
     kind: constructorInvocation
   assert
+    kind: keyword
+  break
     kind: keyword
   const
     kind: keyword
@@ -130,9 +120,19 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
   late
     kind: keyword
+  return
+    kind: keyword
   switch
+    kind: keyword
+  throw
     kind: keyword
   try
     kind: keyword
@@ -156,7 +156,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -178,7 +178,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -195,7 +195,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -221,7 +221,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -243,7 +243,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -261,7 +261,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -279,7 +279,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -297,7 +297,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -315,7 +315,7 @@ void f(int o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -333,7 +333,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -351,7 +351,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -369,7 +369,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -384,7 +384,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -398,7 +398,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword
@@ -415,7 +415,7 @@ void f(Object o) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   as
     kind: keyword

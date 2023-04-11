@@ -593,20 +593,30 @@ void GCMarker::ProcessWeakHandles(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
   MarkingWeakVisitor visitor(thread);
   ApiState* state = isolate_group_->api_state();
-  ASSERT(state != NULL);
+  ASSERT(state != nullptr);
   isolate_group_->VisitWeakPersistentHandles(&visitor);
 }
 
 void GCMarker::ProcessWeakTables(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakTables");
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    Dart_HeapSamplingDeleteCallback cleanup = nullptr;
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+    if (sel == Heap::kHeapSamplingData) {
+      cleanup = HeapProfileSampler::delete_callback();
+    }
+#endif
     WeakTable* table =
         heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
+        // The object has been collected.
         ObjectPtr raw_obj = table->ObjectAtExclusive(i);
         if (raw_obj->IsHeapObject() && !raw_obj->untag()->IsMarked()) {
+          if (cleanup != nullptr) {
+            cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+          }
           table->InvalidateAtExclusive(i);
         }
       }
@@ -620,7 +630,7 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
   StoreBuffer* store_buffer = isolate_group_->store_buffer();
   StoreBufferBlock* reading = store_buffer->TakeBlocks();
   StoreBufferBlock* writing = store_buffer->PopNonFullBlock();
-  while (reading != NULL) {
+  while (reading != nullptr) {
     StoreBufferBlock* next = reading->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(reading, sizeof(*reading));
@@ -876,14 +886,14 @@ GCMarker::GCMarker(IsolateGroup* isolate_group, Heap* heap)
       marked_micros_(0) {
   visitors_ = new SyncMarkingVisitor*[FLAG_marker_tasks];
   for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
-    visitors_[i] = NULL;
+    visitors_[i] = nullptr;
   }
 }
 
 GCMarker::~GCMarker() {
   // Cleanup in case isolate shutdown happens after starting the concurrent
   // marker and before finalizing.
-  if (isolate_group_->marking_stack() != NULL) {
+  if (isolate_group_->marking_stack() != nullptr) {
     isolate_group_->DisableIncrementalBarrier();
     for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
       visitors_[i]->AbandonWork();
@@ -913,7 +923,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
 
   ResetSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
-    ASSERT(visitors_[i] == NULL);
+    ASSERT(visitors_[i] == nullptr);
     SyncMarkingVisitor* visitor = new SyncMarkingVisitor(
         isolate_group_, page_space, &marking_stack_, &deferred_marking_stack_);
     visitors_[i] = visitor;
@@ -1044,7 +1054,7 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
 };
 
 void GCMarker::MarkObjects(PageSpace* page_space) {
-  if (isolate_group_->marking_stack() != NULL) {
+  if (isolate_group_->marking_stack() != nullptr) {
     isolate_group_->DisableIncrementalBarrier();
   }
 

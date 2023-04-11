@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// A visitor for building suggestions based upon the elements defined by
 /// a source file contained in the same library but not the same as
 /// the source in which the completions are being requested.
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
+class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -80,7 +80,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
-      builder.suggestExtension(element, kind: kind, prefix: prefix);
+      if (element.name != null) {
+        builder.suggestExtension(element, kind: kind, prefix: prefix);
+      }
     }
   }
 
@@ -94,7 +96,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       return;
     }
     var returnType = element.returnType;
-    if (returnType.isVoid) {
+    if (returnType is VoidType) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
@@ -117,9 +119,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
         !element.isImplementableIn(request.libraryElement)) {
-      return;
-    } else if (node is WithClause &&
-        !element.isMixableIn(request.libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);

@@ -7,6 +7,16 @@ LibTest/io/ProcessResult/exitCode_A01_t02: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t01: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t02: Skip # Issue 32138
 
+[ $simulator ]
+LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListBase/ListBase_class_A01_t06: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow on sim* architectures.
+
 [ $mode == debug && $runtime == dart_precompiled ]
 LibTest/collection/ListBase/ListBase_class_A01_t03: SkipSlow # Very slow compilation in debug mode.
 LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow compilation in debug mode.
@@ -17,18 +27,8 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow compi
 LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow compilation in debug mode.
 LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow compilation in debug mode.
 
-[ $runtime == dart_precompiled && ($arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled && $simulator ]
 LibTest/async/Stream/Stream.periodic_all_t02: Skip # Issue 42898
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListBase/ListBase_class_A01_t06: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow on sim* architectures.
-LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow on sim* architectures.
 
 [ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
 Language/Expressions/Numbers/syntax_t34: SkipByDesign # expects integer literal error that only occurs in JS

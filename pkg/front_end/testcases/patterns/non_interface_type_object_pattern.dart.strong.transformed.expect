@@ -9,64 +9,64 @@ typedef FunctionType = () → void;
 typedef GenericFunctionType<invariant T extends core::Object? = dynamic> = (T%) → T%;
 static method test<T extends core::Object? = dynamic>(dynamic o) → dynamic {
   {
-    core::int hashCode;
-    final dynamic #0#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #0#0 = o;
     if(#0#0 is{ForNonNullableByDefault} () → void && (let final core::int #t1 = hashCode = #0#0{() → void}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 1;
     }
   }
   {
-    core::int hashCode;
-    final dynamic #1#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #1#0 = o;
     if(#1#0 is{ForNonNullableByDefault} (core::int) → core::int && (let final core::int #t2 = hashCode = #1#0{(core::int) → core::int}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 2;
     }
   }
   {
-    core::int hashCode;
-    final dynamic #2#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #2#0 = o;
     if(#2#0 is{ForNonNullableByDefault} (core::String) → core::String && (let final core::int #t3 = hashCode = #2#0{(core::String) → core::String}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 3;
     }
   }
   {
-    core::int hashCode;
-    final dynamic #3#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #3#0 = o;
     if(#3#0 is{ForNonNullableByDefault} (self::test::T%) → self::test::T% && (let final core::int #t4 = hashCode = #3#0{(self::test::T%) → self::test::T%}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 4;
     }
   }
   {
-    core::int hashCode;
-    final dynamic #4#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #4#0 = o;
     if(#4#0 is{ForNonNullableByDefault} (dynamic) → dynamic && (let final core::int #t5 = hashCode = #4#0{(dynamic) → dynamic}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 5;
     }
   }
   {
-    core::int hashCode;
-    final dynamic #5#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #5#0 = o;
     if(#5#0 is{ForNonNullableByDefault} Null && (let final core::int #t6 = hashCode = #5#0{Null}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 6;
     }
   }
   {
-    core::int hashCode;
-    final dynamic #6#0 = o;
+    hoisted core::int hashCode;
+    final synthesized dynamic #6#0 = o;
     if(#6#0 is{ForNonNullableByDefault} FutureOr<core::int> && (let final core::int #t7 = hashCode = #6#0{FutureOr<core::int>}.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 7;
     }
   }
   {
-    dynamic hashCode;
-    final dynamic #7#0 = o;
+    hoisted dynamic hashCode;
+    final synthesized dynamic #7#0 = o;
     if(#7#0 is{ForNonNullableByDefault} dynamic && (let final core::int #t8 = hashCode = #7#0.{core::Object::hashCode}{core::int} in true)) {
       core::print(hashCode);
       return 0;

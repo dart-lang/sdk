@@ -31,8 +31,8 @@ git clone --single-branch -vv https://github.com/flutter/packages
 cd packages
 
 # validate the tool's source
-(cd script/tool; dart pub get)
-(cd script/tool; dart analyze --fatal-infos)
+(cd script/tool; dart pub --suppress-analytics get)
+(cd script/tool; dart analyze --suppress-analytics --fatal-infos)
 
 # Invoke the repo's analysis script.
 dart run script/tool/bin/flutter_plugin_tools.dart analyze \

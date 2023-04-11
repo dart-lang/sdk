@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Square extends core::Object {
+  synthetic constructor •() → self::Square
+    ;
+  abstract get size() → self::Unit;
+}
+class Unit extends core::Object /*hasConstConstructor*/  {
+  final field core::double value;
+  const constructor •(core::double value) → self::Unit
+    : self::Unit::value = value, super core::Object::•()
+    ;
+}
+static method test(core::Map<dynamic, dynamic> map) → core::String
+  ;

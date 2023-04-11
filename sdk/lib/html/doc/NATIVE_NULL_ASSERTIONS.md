@@ -37,6 +37,15 @@ Native null assertions will be turned on by default across different build
 systems. If it is enabled, here's how you can disable it in the following build
 systems:
 
+### dart2js
+
+Pass the `--no-native-null-assertions` flag to dart2js. Note that in dart2js,
+we turn off native null assertions when `-O3` or higher is specified.
+
+### DDC
+
+Set `nativeNonNullAsserts` to false.
+
 ### build_web_compilers
 
 https://github.com/dart-lang/build/tree/master/docs/native_null_assertions.md

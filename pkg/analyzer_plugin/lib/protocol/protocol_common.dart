@@ -1935,6 +1935,7 @@ class HighlightRegion implements HasToJson {
 ///   METHOD_DECLARATION
 ///   METHOD_DECLARATION_STATIC
 ///   METHOD_STATIC
+///   MIXIN
 ///   PARAMETER
 ///   SETTER_DECLARATION
 ///   TOP_LEVEL_VARIABLE
@@ -2133,6 +2134,8 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType METHOD_STATIC =
       HighlightRegionType._('METHOD_STATIC');
 
+  static const HighlightRegionType MIXIN = HighlightRegionType._('MIXIN');
+
   /// Deprecated - no longer sent.
   static const HighlightRegionType PARAMETER =
       HighlightRegionType._('PARAMETER');
@@ -2271,6 +2274,7 @@ class HighlightRegionType implements Enum {
     METHOD_DECLARATION,
     METHOD_DECLARATION_STATIC,
     METHOD_STATIC,
+    MIXIN,
     PARAMETER,
     SETTER_DECLARATION,
     TOP_LEVEL_VARIABLE,
@@ -2416,6 +2420,8 @@ class HighlightRegionType implements Enum {
         return METHOD_DECLARATION_STATIC;
       case 'METHOD_STATIC':
         return METHOD_STATIC;
+      case 'MIXIN':
+        return MIXIN;
       case 'PARAMETER':
         return PARAMETER;
       case 'SETTER_DECLARATION':

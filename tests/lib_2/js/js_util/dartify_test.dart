@@ -19,7 +19,7 @@ external void eval(String code);
 
 main() {
   eval(r"""
-    globalThis.arrayData = [1, 2, false, 4, 'hello', 6, [1, 2], {'foo': 'bar'}];
+    globalThis.arrayData = [1, 2, false, 4, 'hello', 6, [1, 2], {'foo': 'bar'}, null];
     globalThis.recArrayData = [];
     globalThis.recArrayData = [globalThis.recArrayData];
     globalThis.objectData = {
@@ -28,6 +28,7 @@ main() {
       'c': {
         'a': true,
         'b': 'foo',
+        'c': null,
       },
     };
     globalThis.recObjectData = {};
@@ -54,7 +55,8 @@ main() {
       'hello',
       6,
       [1, 2],
-      {'foo': 'bar'}
+      {'foo': 'bar'},
+      null
     ];
     Expect.deepEquals(expectedValues, dartArray);
   });
@@ -72,10 +74,7 @@ main() {
     Map<Object, Object> expectedValues = {
       'a': 1,
       'b': [1, 2, 3],
-      'c': {
-        'a': true,
-        'b': 'foo',
-      },
+      'c': {'a': true, 'b': 'foo', 'c': null},
     };
     Expect.deepEquals(expectedValues, dartObject);
   });

@@ -373,6 +373,11 @@ class DateTime {
       : isUtc = false,
         _value = Primitives.dateNow();
 
+  @patch
+  DateTime._nowUtc()
+      : isUtc = true,
+        _value = Primitives.dateNow();
+
   /// Rounds the given [microsecond] to the nearest milliseconds value.
   ///
   /// For example, invoked with argument `2600` returns `3`.
@@ -701,6 +706,16 @@ class bool {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'bool.hasEnvironment can only be used as a const constructor');
+  }
+
+  @patch
+  static bool parse(String source, {bool caseSensitive = true}) =>
+      Primitives.parseBool(source, caseSensitive) ??
+      (throw FormatException("Invalid boolean", source));
+
+  @patch
+  static bool? tryParse(String source, {bool caseSensitive = true}) {
+    return Primitives.parseBool(source, caseSensitive);
   }
 
   @patch

@@ -12992,6 +12992,126 @@ class LibraryPathSet implements HasToJson {
       );
 }
 
+/// MessageAction
+///
+/// {
+///   "label": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class MessageAction implements HasToJson {
+  /// The label of the button to be displayed, and the value to be returned to
+  /// the server if the button is clicked.
+  String label;
+
+  MessageAction(this.label);
+
+  factory MessageAction.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String label;
+      if (json.containsKey('label')) {
+        label = jsonDecoder.decodeString('$jsonPath.label', json['label']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'label');
+      }
+      return MessageAction(label);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'MessageAction', json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['label'] = label;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is MessageAction) {
+      return label == other.label;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => label.hashCode;
+}
+
+/// MessageType
+///
+/// enum {
+///   ERROR
+///   WARNING
+///   INFO
+///   LOG
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class MessageType implements Enum {
+  /// The message is an error message.
+  static const MessageType ERROR = MessageType._('ERROR');
+
+  /// The message is a warning message.
+  static const MessageType WARNING = MessageType._('WARNING');
+
+  /// The message is an informational message.
+  static const MessageType INFO = MessageType._('INFO');
+
+  /// The message is a log message.
+  static const MessageType LOG = MessageType._('LOG');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<MessageType> VALUES = <MessageType>[
+    ERROR,
+    WARNING,
+    INFO,
+    LOG
+  ];
+
+  @override
+  final String name;
+
+  const MessageType._(this.name);
+
+  factory MessageType(String name) {
+    switch (name) {
+      case 'ERROR':
+        return ERROR;
+      case 'WARNING':
+        return WARNING;
+      case 'INFO':
+        return INFO;
+      case 'LOG':
+        return LOG;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory MessageType.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return MessageType(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'MessageType', json);
+  }
+
+  @override
+  String toString() => 'MessageType.$name';
+
+  String toJson() => name;
+}
+
 /// moveFile feedback
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -13379,7 +13499,7 @@ class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
   static RefactoringFeedback? fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object? json, Map responseJson) {
+      Object? json, Map<Object?, Object?> responseJson) {
     return refactoringFeedbackFromJson(
         jsonDecoder, jsonPath, json, responseJson);
   }
@@ -16184,6 +16304,87 @@ class ServerLogParams implements HasToJson {
   int get hashCode => entry.hashCode;
 }
 
+/// server.openUrlRequest params
+///
+/// {
+///   "url": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerOpenUrlRequestParams implements RequestParams {
+  /// The URL to be opened.
+  String url;
+
+  ServerOpenUrlRequestParams(this.url);
+
+  factory ServerOpenUrlRequestParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String url;
+      if (json.containsKey('url')) {
+        url = jsonDecoder.decodeString('$jsonPath.url', json['url']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'url');
+      }
+      return ServerOpenUrlRequestParams(url);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'server.openUrlRequest params', json);
+    }
+  }
+
+  factory ServerOpenUrlRequestParams.fromRequest(Request request) {
+    return ServerOpenUrlRequestParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['url'] = url;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'server.openUrlRequest', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerOpenUrlRequestParams) {
+      return url == other.url;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => url.hashCode;
+}
+
+/// server.openUrlRequest result
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerOpenUrlRequestResult implements ResponseResult {
+  @override
+  Map<String, Object> toJson() => {};
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) => other is ServerOpenUrlRequestResult;
+
+  @override
+  int get hashCode => 561630021;
+}
+
 /// ServerService
 ///
 /// enum {
@@ -16231,6 +16432,101 @@ class ServerService implements Enum {
   String toString() => 'ServerService.$name';
 
   String toJson() => name;
+}
+
+/// server.setClientCapabilities params
+///
+/// {
+///   "requests": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerSetClientCapabilitiesParams implements RequestParams {
+  /// The names of the requests that the server can safely send to the client.
+  /// Only requests whose name is in the list will be sent.
+  ///
+  /// A request should only be included in the list if the client will
+  /// unconditionally honor the request.
+  ///
+  /// The default, used before this request is received, is an empty list.
+  ///
+  /// The following is a list of the names of the requests that can be
+  /// specified:
+  ///
+  /// - openUrlRequest
+  /// - showMessageRequest
+  List<String> requests;
+
+  ServerSetClientCapabilitiesParams(this.requests);
+
+  factory ServerSetClientCapabilitiesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      List<String> requests;
+      if (json.containsKey('requests')) {
+        requests = jsonDecoder.decodeList(
+            '$jsonPath.requests', json['requests'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'requests');
+      }
+      return ServerSetClientCapabilitiesParams(requests);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'server.setClientCapabilities params', json);
+    }
+  }
+
+  factory ServerSetClientCapabilitiesParams.fromRequest(Request request) {
+    return ServerSetClientCapabilitiesParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['requests'] = requests;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'server.setClientCapabilities', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerSetClientCapabilitiesParams) {
+      return listEqual(
+          requests, other.requests, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(requests);
+}
+
+/// server.setClientCapabilities result
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerSetClientCapabilitiesResult implements ResponseResult {
+  @override
+  Map<String, Object> toJson() => {};
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) => other is ServerSetClientCapabilitiesResult;
+
+  @override
+  int get hashCode => 806805916;
 }
 
 /// server.setSubscriptions params
@@ -16318,6 +16614,171 @@ class ServerSetSubscriptionsResult implements ResponseResult {
 
   @override
   int get hashCode => 748820900;
+}
+
+/// server.showMessageRequest params
+///
+/// {
+///   "type": MessageType
+///   "message": String
+///   "actions": List<MessageAction>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerShowMessageRequestParams implements RequestParams {
+  /// The type of the message.
+  MessageType type;
+
+  /// The message to be displayed.
+  String message;
+
+  /// The labels of the buttons by which the user can dismiss the message.
+  List<MessageAction> actions;
+
+  ServerShowMessageRequestParams(this.type, this.message, this.actions);
+
+  factory ServerShowMessageRequestParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      MessageType type;
+      if (json.containsKey('type')) {
+        type =
+            MessageType.fromJson(jsonDecoder, '$jsonPath.type', json['type']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'type');
+      }
+      String message;
+      if (json.containsKey('message')) {
+        message =
+            jsonDecoder.decodeString('$jsonPath.message', json['message']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'message');
+      }
+      List<MessageAction> actions;
+      if (json.containsKey('actions')) {
+        actions = jsonDecoder.decodeList(
+            '$jsonPath.actions',
+            json['actions'],
+            (String jsonPath, Object? json) =>
+                MessageAction.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'actions');
+      }
+      return ServerShowMessageRequestParams(type, message, actions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'server.showMessageRequest params', json);
+    }
+  }
+
+  factory ServerShowMessageRequestParams.fromRequest(Request request) {
+    return ServerShowMessageRequestParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['type'] = type.toJson();
+    result['message'] = message;
+    result['actions'] =
+        actions.map((MessageAction value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'server.showMessageRequest', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerShowMessageRequestParams) {
+      return type == other.type &&
+          message == other.message &&
+          listEqual(actions, other.actions,
+              (MessageAction a, MessageAction b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        type,
+        message,
+        Object.hashAll(actions),
+      );
+}
+
+/// server.showMessageRequest result
+///
+/// {
+///   "action": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerShowMessageRequestResult implements ResponseResult {
+  /// The label of the action that was selected by the user. May be omitted or
+  /// `null` if the user dismissed the message without clicking an action
+  /// button.
+  String? action;
+
+  ServerShowMessageRequestResult({this.action});
+
+  factory ServerShowMessageRequestResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String? action;
+      if (json.containsKey('action')) {
+        action = jsonDecoder.decodeString('$jsonPath.action', json['action']);
+      }
+      return ServerShowMessageRequestResult(action: action);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'server.showMessageRequest result', json);
+    }
+  }
+
+  factory ServerShowMessageRequestResult.fromResponse(Response response) {
+    return ServerShowMessageRequestResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var action = this.action;
+    if (action != null) {
+      result['action'] = action;
+    }
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerShowMessageRequestResult) {
+      return action == other.action;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => action.hashCode;
 }
 
 /// server.shutdown params

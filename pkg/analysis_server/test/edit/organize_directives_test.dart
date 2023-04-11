@@ -26,7 +26,7 @@ class OrganizeDirectivesTest extends PubPackageAnalysisServerTest {
   }
 
   @failingTest
-  Future test_BAD_doesNotExist() async {
+  Future<void> test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     var request =
         EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
@@ -39,7 +39,7 @@ class OrganizeDirectivesTest extends PubPackageAnalysisServerTest {
     );
   }
 
-  Future test_BAD_hasParseError() async {
+  Future<void> test_BAD_hasParseError() async {
     addTestFile('''
 import 'dart:async'
 
@@ -54,7 +54,7 @@ void f() {}
     );
   }
 
-  Future test_BAD_notDartFile() async {
+  Future<void> test_BAD_notDartFile() async {
     var request = EditOrganizeDirectivesParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
@@ -88,7 +88,7 @@ void f() {}
     );
   }
 
-  Future test_keep_unresolvedDirectives() {
+  Future<void> test_keep_unresolvedDirectives() {
     var code = r'''
 import 'dart:noSuchImportSdkLibrary';
 
@@ -104,7 +104,7 @@ part 'no_such_part.dart';
     return _assertOrganized(code);
   }
 
-  Future test_OK_remove_duplicateImports_withSamePrefix() {
+  Future<void> test_OK_remove_duplicateImports_withSamePrefix() {
     addTestFile('''
 library lib;
 
@@ -126,7 +126,7 @@ void f() {
 ''');
   }
 
-  Future test_OK_remove_unusedImports() {
+  Future<void> test_OK_remove_unusedImports() {
     addTestFile('''
 library lib;
 
@@ -153,13 +153,13 @@ void f() {
 ''');
   }
 
-  Future _assertOrganized(String expectedCode) async {
+  Future<void> _assertOrganized(String expectedCode) async {
     await _requestOrganize();
     var resultCode = SourceEdit.applySequence(testFileContent, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
-  Future _requestOrganize() async {
+  Future<void> _requestOrganize() async {
     var request = EditOrganizeDirectivesParams(testFile.path).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     var result = EditOrganizeDirectivesResult.fromResponse(response);

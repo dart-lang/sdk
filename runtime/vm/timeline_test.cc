@@ -205,7 +205,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
 
   // Test a duration event. This event kind is not supported so we should
   // serialize it to an empty string.
-  event.Duration("DUR", 0, 1, 2, 3);
+  event.Duration("DUR", 0, 1);
   TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
                                                kBufferLength);
   EXPECT_STREQ("", buffer);
@@ -382,10 +382,12 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 
 TEST_CASE(TimelineTrackMetadataRace) {
   struct ReportMetadataArguments {
-    TimelineEventRingRecorder* recorder;
+    Monitor& synchronization_monitor;
+    TimelineEventRingRecorder& recorder;
     ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
   };
 
+  Monitor synchronization_monitor;
   TimelineEventRingRecorder recorder;
 
   // Try concurrently reading from / writing to the metadata map. I don't think
@@ -394,17 +396,21 @@ TEST_CASE(TimelineTrackMetadataRace) {
   // map code.
   JSONStream js;
   TimelineEventFilter filter;
-  const ReportMetadataArguments report_metadata_1_arguments{&recorder};
-  const ReportMetadataArguments report_metadata_2_arguments{&recorder};
+  ReportMetadataArguments report_metadata_1_arguments{synchronization_monitor,
+                                                      recorder};
+  ReportMetadataArguments report_metadata_2_arguments{synchronization_monitor,
+                                                      recorder};
   OSThread::Start(
       "ReportMetadata1",
       [](uword arguments_ptr) {
         ReportMetadataArguments& arguments =
             *reinterpret_cast<ReportMetadataArguments*>(arguments_ptr);
-        arguments.recorder->AddTrackMetadataBasedOnThread(
+        arguments.recorder.AddTrackMetadataBasedOnThread(
             FAKE_PROCESS_ID, FAKE_TRACE_ID, "Thread 1");
+        MonitorLocker ml(&arguments.synchronization_monitor);
         arguments.join_id =
             OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
       },
       reinterpret_cast<uword>(&report_metadata_1_arguments));
   OSThread::Start(
@@ -412,17 +418,20 @@ TEST_CASE(TimelineTrackMetadataRace) {
       [](uword arguments_ptr) {
         ReportMetadataArguments& arguments =
             *reinterpret_cast<ReportMetadataArguments*>(arguments_ptr);
-        arguments.recorder->AddTrackMetadataBasedOnThread(
+        arguments.recorder.AddTrackMetadataBasedOnThread(
             FAKE_PROCESS_ID, FAKE_TRACE_ID, "Incorrect Name");
+        MonitorLocker ml(&arguments.synchronization_monitor);
         arguments.join_id =
             OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
       },
       reinterpret_cast<uword>(&report_metadata_2_arguments));
   recorder.PrintJSON(&js, &filter);
+  MonitorLocker ml(&synchronization_monitor);
   while (
       report_metadata_1_arguments.join_id == OSThread::kInvalidThreadJoinId ||
       report_metadata_2_arguments.join_id == OSThread::kInvalidThreadJoinId) {
-    // Spin until the join IDs have been set.
+    ml.Wait();
   }
   OSThread::Join(report_metadata_1_arguments.join_id);
   OSThread::Join(report_metadata_2_arguments.join_id);

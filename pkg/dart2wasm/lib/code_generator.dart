@@ -315,12 +315,21 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.Local stubArguments = stub.locals[0];
     w.Local stubStack = stub.locals[1];
 
-    // Set up the type parameter to local mapping, in case a type parameter is
-    // used in the return type.
+    // Set up the parameter to local mapping, for type checks and in case a
+    // type parameter is used in the return type.
     int paramIndex = parameterOffset;
     for (TypeParameter typeParam in functionNode.typeParameters) {
       typeLocals[typeParam] = paramLocals[paramIndex++];
     }
+    for (VariableDeclaration param in functionNode.positionalParameters) {
+      locals[param] = paramLocals[paramIndex++];
+    }
+    for (VariableDeclaration param in functionNode.namedParameters) {
+      locals[param] = paramLocals[paramIndex++];
+    }
+
+    generateTypeChecks(functionNode.typeParameters, functionNode,
+        ParameterInfo.fromLocalFunction(functionNode));
 
     // Push the type argument to the async helper, specifying the type argument
     // of the returned `Future`.
@@ -470,14 +479,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
-  void generateTypeChecks(Member member) {
+  void generateTypeChecks(List<TypeParameter> typeParameters,
+      FunctionNode function, ParameterInfo paramInfo) {
     if (translator.options.omitTypeChecks) {
       return;
     }
-
-    final List<TypeParameter> typeParameters = member is Constructor
-        ? member.enclosingClass.typeParameters
-        : member.function!.typeParameters;
 
     for (TypeParameter typeParameter in typeParameters) {
       if (typeParameter.isCovariantByClass &&
@@ -490,7 +496,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Local for the parameter type if any of the parameters need type checks
     w.Local? parameterExpectedTypeLocal;
 
-    final ParameterInfo paramInfo = translator.paramInfoFor(reference);
     final int parameterOffset = thisLocal == null ? 0 : 1;
     final int implicitParams = parameterOffset + paramInfo.typeParamCount;
     void generateValueParameterCheck(VariableDeclaration variable, int index) {
@@ -509,13 +514,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       );
     }
 
-    final List<VariableDeclaration> positional =
-        member.function!.positionalParameters;
+    final List<VariableDeclaration> positional = function.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
       generateValueParameterCheck(positional[i], i);
     }
 
-    final List<VariableDeclaration> named = member.function!.namedParameters;
+    final List<VariableDeclaration> named = function.namedParameters;
     for (var param in named) {
       generateValueParameterCheck(param, paramInfo.nameIndex[param.name]!);
     }
@@ -526,7 +530,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (member is Constructor) {
       generateInitializerList(member);
     }
-    generateTypeChecks(member);
+    // Async function type checks are generated in the wrapper functions, in
+    // [generateAsyncWrapper].
+    if (member.function!.asyncMarker != AsyncMarker.Async) {
+      final List<TypeParameter> typeParameters = member is Constructor
+          ? member.enclosingClass.typeParameters
+          : member.function!.typeParameters;
+      generateTypeChecks(
+          typeParameters, member.function!, translator.paramInfoFor(reference));
+    }
     Statement? body = member.function!.body;
     if (body != null) {
       visitStatement(body);
@@ -960,7 +972,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       if (emitGuard) {
         b.local_get(thrownException);
         types.emitTypeTest(
-            this, guard, translator.coreTypes.objectNonNullableRawType, node);
+            this, guard, translator.coreTypes.objectNonNullableRawType);
         b.i32_eqz();
         b.br_if(catchBlock);
       }
@@ -1354,12 +1366,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return;
     }
 
+    final switchExprClass =
+        translator.classForType(dartTypeOf(node.expression));
+
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
             e is NullLiteral ||
             (e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant)));
+                (e.constant is C || e.constant is NullConstant) &&
+                (translator.hierarchy.isSubtypeOf(
+                    translator.classForType(dartTypeOf(e)), switchExprClass))));
 
     // Identify kind of switch. One of `nullableType` or `nonNullableType` will
     // be the type for Wasm local that holds the switch value.
@@ -1395,7 +1412,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
-      assert(check<InvalidExpression, Constant>());
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
       compare = () => b.ref_eq();
@@ -2144,7 +2160,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b.i64_const(2011);
           break;
         case "runtimeType":
-        case "_runtimeType":
           wrap(ConstantExpression(TypeLiteralConstant(NullType())), resultType);
           break;
         default:
@@ -2850,7 +2865,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitIsExpression(IsExpression node, w.ValueType expectedType) {
     wrap(node.operand, translator.topInfo.nullableType);
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand), node);
+    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
     return w.NumType.i32;
   }
 
@@ -2867,7 +2882,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // We lower an `as` expression to a type test, throwing a [TypeError] if
     // the type test fails.
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand), node);
+    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
     b.br_if(asCheckBlock);
     b.local_get(operand);
     types.makeType(this, node.type);
@@ -3282,6 +3297,27 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void _emitString(String str) => wrap(StringLiteral(str),
       translator.translateType(translator.coreTypes.stringNonNullableRawType));
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw new UnsupportedError("CodeGenerator.visitPatternSwitchStatement");
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw new UnsupportedError("CodeGenerator.visitPatternVariableDeclaration");
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw new UnsupportedError("CodeGenerator.visitIfCaseStatement");
+  }
 }
 
 class TryBlockFinalizer {

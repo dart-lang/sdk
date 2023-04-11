@@ -23,6 +23,7 @@ class RemoveDuplicateCaseBulkTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
+// @dart = 2.19
 void switchInt() {
   switch (2) {
     case 1:
@@ -38,6 +39,7 @@ void switchInt() {
 }
 ''');
     await assertHasFix('''
+// @dart = 2.19
 void switchInt() {
   switch (2) {
     case 1:

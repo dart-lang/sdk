@@ -6,13 +6,7 @@ import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';
 
-import 'dart:developer';
-
-void script() {
-  var counter = new Counter('a.b.c', 'description');
-  Metrics.register(counter);
-  counter.value = 1234.5;
-}
+void script() {}
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {

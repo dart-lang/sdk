@@ -5,19 +5,21 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'extensions/test_all.dart' as extensions;
-import 'flutter_test.dart' as flutter_test;
+import 'flutter_test.dart' as flutter;
 import 'import_analyzer_test.dart' as import_analyzer;
-import 'profiling_test.dart' as profiling_test;
-import 'selection_test.dart' as selection_test;
-import 'strings_test.dart' as strings_test;
+import 'profiling_test.dart' as profiling;
+import 'selection_coverage_test.dart' as selection_coverage;
+import 'selection_test.dart' as selection;
+import 'strings_test.dart' as strings;
 
 void main() {
   defineReflectiveSuite(() {
     extensions.main();
-    flutter_test.main();
+    flutter.main();
     import_analyzer.main();
-    profiling_test.main();
-    selection_test.main();
-    strings_test.main();
+    profiling.main();
+    selection_coverage.main();
+    selection.main();
+    strings.main();
   });
 }

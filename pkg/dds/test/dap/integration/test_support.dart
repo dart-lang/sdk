@@ -232,6 +232,7 @@ environment:
   }
 
   Future<void> tearDown() async {
+    await client.terminate();
     await client.stop();
     await server.stop();
 

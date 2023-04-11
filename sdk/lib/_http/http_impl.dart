@@ -4,7 +4,7 @@
 
 part of dart._http;
 
-abstract class HttpProfiler {
+final class HttpProfiler {
   static const _kType = 'HttpProfile';
 
   static final Map<String, _HttpProfileData> _profile = {};
@@ -289,7 +289,7 @@ class _HttpProfileData {
 int _nextServiceId = 1;
 
 // TODO(ajohnsen): Use other way of getting a unique id.
-abstract class _ServiceObject {
+mixin _ServiceObject {
   int __serviceId = 0;
   int get _serviceId {
     if (__serviceId == 0) __serviceId = _nextServiceId++;
@@ -2077,13 +2077,19 @@ class _HttpClientConnection {
             message = error.message;
           } else if (error is SocketException) {
             message = error.message;
+          } else if (error is TlsException) {
+            message = error.message;
           } else {
             throw error;
           }
           _nextResponseCompleter!.completeError(
               HttpException(message, uri: _currentUri), stackTrace);
           _nextResponseCompleter = null;
-        }, test: (error) => error is HttpException || error is SocketException);
+        },
+            test: (error) =>
+                error is HttpException ||
+                error is SocketException ||
+                error is TlsException);
       } else {
         _nextResponseCompleter!.complete(incoming);
         _nextResponseCompleter = null;
@@ -2093,6 +2099,8 @@ class _HttpClientConnection {
       if (error is HttpException) {
         message = error.message;
       } else if (error is SocketException) {
+        message = error.message;
+      } else if (error is TlsException) {
         message = error.message;
       } else {
         throw error;
@@ -3030,7 +3038,7 @@ class _HttpClient implements HttpClient {
       Platform.environment;
 }
 
-class _HttpConnection extends LinkedListEntry<_HttpConnection>
+final class _HttpConnection extends LinkedListEntry<_HttpConnection>
     with _ServiceObject {
   static const _ACTIVE = 0;
   static const _IDLE = 1;
@@ -3148,7 +3156,8 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
 
 // Common interface of [ServerSocket] and [SecureServerSocket] used by
 // [_HttpServer].
-abstract class ServerSocketBase<T extends Socket> implements Stream<T> {
+abstract interface class ServerSocketBase<T extends Socket>
+    implements Stream<T> {
   int get port;
   InternetAddress get address;
   Future<void> close();
@@ -3663,7 +3672,7 @@ abstract class _HttpClientCredentials implements HttpClientCredentials {
   void authorizeProxy(_ProxyCredentials credentials, HttpClientRequest request);
 }
 
-class _HttpClientBasicCredentials extends _HttpClientCredentials
+final class _HttpClientBasicCredentials extends _HttpClientCredentials
     implements HttpClientBasicCredentials {
   String username;
   String password;
@@ -3692,7 +3701,7 @@ class _HttpClientBasicCredentials extends _HttpClientCredentials
   }
 }
 
-class _HttpClientDigestCredentials extends _HttpClientCredentials
+final class _HttpClientDigestCredentials extends _HttpClientCredentials
     implements HttpClientDigestCredentials {
   String username;
   String password;

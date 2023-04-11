@@ -20,19 +20,12 @@ void main() {
 }
 
 void defineCreateTests() {
-  TestProject? proj;
-
-  setUp(() => proj = null);
-
-  tearDown(() async => await proj?.dispose());
-
   // Create tests for each template.
   for (String templateId
       in CreateCommand.legalTemplateIds(includeDeprecated: true)) {
     test(templateId, () async {
       const projectName = 'template_project';
-      proj = project();
-      final p = proj!;
+      final p = project();
       final templateGenerator = getGenerator(templateId)!;
 
       print('$templateId: creating template');
@@ -47,8 +40,8 @@ void defineCreateTests() {
 
       // Validate that the project analyzes cleanly.
       print('$templateId: analyzing generated project');
-      ProcessResult analyzeResult = await p.run(
-        ['analyze', '--fatal-infos', projectName],
+      ProcessResult analyzeResult = await p.runAnalyze(
+        ['--fatal-infos', projectName],
         workingDir: p.dir.path,
       );
       expect(analyzeResult.exitCode, 0, reason: analyzeResult.stdout);

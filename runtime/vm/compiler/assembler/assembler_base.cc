@@ -161,7 +161,7 @@ AssemblerBuffer::AssemblerBuffer()
   contents_ = NewContents(kInitialBufferCapacity);
   cursor_ = contents_;
   limit_ = ComputeLimit(contents_, kInitialBufferCapacity);
-  fixup_ = NULL;
+  fixup_ = nullptr;
 #if defined(DEBUG)
   has_ensured_capacity_ = false;
   fixups_processed_ = false;
@@ -176,7 +176,7 @@ AssemblerBuffer::~AssemblerBuffer() {}
 
 void AssemblerBuffer::ProcessFixups(const MemoryRegion& region) {
   AssemblerFixup* fixup = fixup_;
-  while (fixup != NULL) {
+  while (fixup != nullptr) {
     fixup->Process(region, fixup->position());
     fixup = fixup->previous();
   }
@@ -245,7 +245,7 @@ class PatchCodeWithHandle : public AssemblerFixup {
 intptr_t AssemblerBuffer::CountPointerOffsets() const {
   intptr_t count = 0;
   AssemblerFixup* current = fixup_;
-  while (current != NULL) {
+  while (current != nullptr) {
     if (current->IsPointerOffset()) ++count;
     current = current->previous_;
   }
@@ -266,7 +266,7 @@ void AssemblerBuffer::EmitObject(const Object& object) {
 // Shared macros are implemented here.
 void AssemblerBase::Unimplemented(const char* message) {
   const char* format = "Unimplemented: %s";
-  const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
+  const intptr_t len = Utils::SNPrint(nullptr, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   Utils::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
@@ -274,7 +274,7 @@ void AssemblerBase::Unimplemented(const char* message) {
 
 void AssemblerBase::Untested(const char* message) {
   const char* format = "Untested: %s";
-  const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
+  const intptr_t len = Utils::SNPrint(nullptr, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   Utils::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
@@ -282,7 +282,7 @@ void AssemblerBase::Untested(const char* message) {
 
 void AssemblerBase::Unreachable(const char* message) {
   const char* format = "Unreachable: %s";
-  const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
+  const intptr_t len = Utils::SNPrint(nullptr, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   Utils::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
@@ -379,15 +379,15 @@ intptr_t ObjectPoolBuilder::AddImmediate128(simd128_value_t imm) {
 intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
   DEBUG_ASSERT((entry.type() != ObjectPoolBuilderEntry::kTaggedObject) ||
                (IsNotTemporaryScopedHandle(*entry.obj_) &&
-                (entry.equivalence_ == NULL ||
+                (entry.equivalence_ == nullptr ||
                  IsNotTemporaryScopedHandle(*entry.equivalence_))));
 
   if (entry.type() == ObjectPoolBuilderEntry::kTaggedObject) {
     // If the owner of the object pool wrapper specified a specific zone we
     // should use we'll do so.
-    if (zone_ != NULL) {
+    if (zone_ != nullptr) {
       entry.obj_ = &NewZoneHandle(zone_, *entry.obj_);
-      if (entry.equivalence_ != NULL) {
+      if (entry.equivalence_ != nullptr) {
         entry.equivalence_ = &NewZoneHandle(zone_, *entry.equivalence_);
       }
     }

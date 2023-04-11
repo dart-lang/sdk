@@ -58,7 +58,7 @@ class ExpectationSet {
     for (var part in entry.path.split('/')) {
       if (part.contains("*")) {
         var regExp = _globCache.putIfAbsent(part, () {
-          return RegExp("^" + part.replaceAll("*", ".*") + r"$");
+          return RegExp("^${part.replaceAll("*", ".*")}" r"$");
         });
         tree = tree.regExpChildren.putIfAbsent(regExp, () => _PathNode());
       } else {

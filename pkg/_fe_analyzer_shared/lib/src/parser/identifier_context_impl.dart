@@ -1298,8 +1298,20 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       return next;
     }
     parser.reportRecoverableErrorWithToken(next, codes.templateExpectedType);
-    if (!isOneOfOrEof(
-        next, const ['<', '>', ')', '[', ']', '[]', '{', '}', ',', ';'])) {
+    if (!isOneOfOrEof(next, const [
+      '<',
+      '>',
+      '>>',
+      '>>>',
+      ')',
+      '[',
+      ']',
+      '[]',
+      '{',
+      '}',
+      ',',
+      ';'
+    ])) {
       // When in doubt, consume the token to ensure we make progress
       token = next;
       next = token.next!;

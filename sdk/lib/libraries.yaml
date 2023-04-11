@@ -126,6 +126,8 @@ wasm:
       uri: _internal/wasm/lib/js_helper.dart
     _js_types:
       uri: _internal/wasm/lib/js_types.dart
+    _wasm:
+      uri: _wasm/wasm_types.dart
     async:
       uri: async/async.dart
       patches:
@@ -197,8 +199,6 @@ wasm:
         - _internal/vm/lib/typed_data_patch.dart
         - _internal/wasm/lib/typed_data_patch.dart
         - _internal/wasm/lib/simd_patch.dart
-    wasm:
-      uri: wasm/wasm_types.dart
 
 dart2js:
   include:

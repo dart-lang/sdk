@@ -26,6 +26,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show codeSuperclassHasNoMethod;
 
 const String testSource = '''
+//@dart=2.19
 abstract class A {
   void foo(String value);
 }

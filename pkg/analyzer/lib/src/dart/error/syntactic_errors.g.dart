@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -159,6 +159,15 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.FINAL_MIXIN_CLASS,
   ParserErrorCode.INTERFACE_MIXIN_CLASS,
   ParserErrorCode.SEALED_MIXIN_CLASS,
+  ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE,
+  ParserErrorCode.FINAL_MIXIN,
+  ParserErrorCode.INTERFACE_MIXIN,
+  ParserErrorCode.SEALED_MIXIN,
+  ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+  ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN,
+  ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION,
+  ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
+  ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -192,6 +201,7 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_SEALED_CLASS',
     "A class can't be declared both 'sealed' and 'abstract'.",
     correctionMessage: "Try removing the 'abstract' or 'sealed' keyword.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode ABSTRACT_STATIC_FIELD = ParserErrorCode(
@@ -407,6 +417,13 @@ class ParserErrorCode extends ErrorCode {
   );
 
   ///  No parameters.
+  static const ParserErrorCode DEFAULT_IN_SWITCH_EXPRESSION = ParserErrorCode(
+    'DEFAULT_IN_SWITCH_EXPRESSION',
+    "A switch expression may not use the `default` keyword.",
+    correctionMessage: "Try replacing `default` with `_`.",
+  );
+
+  ///  No parameters.
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE = ParserErrorCode(
     'DEFAULT_VALUE_IN_FUNCTION_TYPE',
     "Parameters in a function type can't have default values.",
@@ -465,21 +482,24 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EMPTY_RECORD_LITERAL_WITH_COMMA =
       ParserErrorCode(
     'EMPTY_RECORD_LITERAL_WITH_COMMA',
-    "Record literal without fields can't have a trailing comma.",
+    "A record literal without fields can't have a trailing comma.",
     correctionMessage: "Try removing the trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST =
       ParserErrorCode(
     'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
-    "Record type named fields list can't be empty.",
-    correctionMessage: "Try adding a record type named field to the list.",
+    "The list of named fields in a record type can't be empty.",
+    correctionMessage: "Try adding a named field to the list.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode EMPTY_RECORD_TYPE_WITH_COMMA = ParserErrorCode(
     'EMPTY_RECORD_TYPE_WITH_COMMA',
-    "Record type without fields can't have a trailing comma.",
+    "A record type without fields can't have a trailing comma.",
     correctionMessage: "Try removing the trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
@@ -823,6 +843,12 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the keyword 'final'.",
   );
 
+  static const ParserErrorCode FINAL_MIXIN = ParserErrorCode(
+    'FINAL_MIXIN',
+    "A mixin can't be declared 'final'.",
+    correctionMessage: "Try removing the 'final' keyword.",
+  );
+
   static const ParserErrorCode FINAL_MIXIN_CLASS = ParserErrorCode(
     'FINAL_MIXIN_CLASS',
     "A mixin class can't be declared 'final'.",
@@ -904,6 +930,12 @@ class ParserErrorCode extends ErrorCode {
     "The loop variable in a for-each loop can't be initialized.",
     correctionMessage:
         "Try removing the initializer, or using a different kind of loop.",
+  );
+
+  static const ParserErrorCode INTERFACE_MIXIN = ParserErrorCode(
+    'INTERFACE_MIXIN',
+    "A mixin can't be declared 'interface'.",
+    correctionMessage: "Try removing the 'interface' keyword.",
   );
 
   static const ParserErrorCode INTERFACE_MIXIN_CLASS = ParserErrorCode(
@@ -1003,6 +1035,16 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "To initialize a field, use the syntax 'name = value'.",
   );
 
+  ///  No parameters.
+  static const ParserErrorCode INVALID_INSIDE_UNARY_PATTERN = ParserErrorCode(
+    'INVALID_INSIDE_UNARY_PATTERN',
+    "This pattern cannot appear inside a unary pattern (cast pattern, null "
+        "check pattern, or null assert pattern) without parentheses.",
+    correctionMessage:
+        "Try combining into a single pattern if possible, or enclose the inner "
+        "pattern in parentheses.",
+  );
+
   static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
       ParserErrorCode(
     'INVALID_LITERAL_IN_CONFIGURATION',
@@ -1094,6 +1136,14 @@ class ParserErrorCode extends ErrorCode {
     "Can't have modifier '{0}' in an extension.",
     correctionMessage: "Try removing '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode LATE_PATTERN_VARIABLE_DECLARATION =
+      ParserErrorCode(
+    'LATE_PATTERN_VARIABLE_DECLARATION',
+    "A pattern variable declaration may not use the `late` keyword.",
+    correctionMessage: "Try removing the keyword `late`.",
   );
 
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
@@ -1506,6 +1556,26 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
   );
 
+  static const ParserErrorCode PATTERN_ASSIGNMENT_DECLARES_VARIABLE =
+      ParserErrorCode(
+    'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
+    "Variable '{0}' can't be declared in a pattern assignment.",
+    correctionMessage:
+        "Try using a preexisting variable or changing the assignment to a "
+        "pattern variable declaration.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode
+      PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD = ParserErrorCode(
+    'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
+    "A pattern variable declaration may not appear outside a function or "
+        "method.",
+    correctionMessage:
+        "Try declaring ordinary variables and assigning from within a function "
+        "or method.",
+  );
+
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       ParserErrorCode(
     'POSITIONAL_AFTER_NAMED_ARGUMENT',
@@ -1532,15 +1602,19 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
       ParserErrorCode(
     'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "Record literal with one field requires a trailing comma.",
+    "A record literal with exactly one positional field requires a trailing "
+        "comma.",
     correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA =
       ParserErrorCode(
     'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "Record type with one entry requires a trailing comma.",
+    "A record type with exactly one positional field requires a trailing "
+        "comma.",
     correctionMessage: "Try adding a trailing comma.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
@@ -1557,6 +1631,12 @@ class ParserErrorCode extends ErrorCode {
     "Only factory constructor can specify '=' redirection.",
     correctionMessage:
         "Try making this a factory constructor, or remove the redirection.",
+  );
+
+  static const ParserErrorCode SEALED_MIXIN = ParserErrorCode(
+    'SEALED_MIXIN',
+    "A mixin can't be declared 'sealed'.",
+    correctionMessage: "Try removing the 'sealed' keyword.",
   );
 
   static const ParserErrorCode SEALED_MIXIN_CLASS = ParserErrorCode(
@@ -1691,6 +1771,16 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode UNEXPECTED_TOKENS = ParserErrorCode(
     'UNEXPECTED_TOKENS',
     "Unexpected tokens.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT =
+      ParserErrorCode(
+    'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+    "Variable patterns in declaration context can't specify 'var' or 'final' "
+        "keyword.",
+    correctionMessage: "Try removing the keyword.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode VAR_AND_TYPE = ParserErrorCode(

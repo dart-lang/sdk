@@ -7,9 +7,7 @@ part of 'core_patch.dart';
 @patch
 class Error {
   @patch
-  static String _objectToString(Object object) {
-    return "Instance of '${object._runtimeType}'";
-  }
+  static String _objectToString(Object object) => Object._toString(object);
 
   @patch
   static String _stringToSafeString(String string) {

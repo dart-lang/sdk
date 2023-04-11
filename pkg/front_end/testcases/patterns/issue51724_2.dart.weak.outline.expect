@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field core::int value;
+  field core::String log;
+  constructor •(core::int value) → self::C
+    ;
+  method clearLog() → void
+    ;
+  operator >(core::num other) → dynamic
+    ;
+}
+static method test1(self::C c) → core::String
+  ;
+static method main() → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

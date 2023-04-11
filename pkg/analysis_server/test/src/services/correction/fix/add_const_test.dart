@@ -252,7 +252,7 @@ void f() {
     await assertHasFix('''
 class A {
   final int a;
-  A(this.a);
+  const A(this.a);
 }
 void f() {
   var m = 5;
@@ -263,26 +263,43 @@ void f() {
 ''');
   }
 
-  @FailingTest(
-      issue: "https://github.com/dart-lang/sdk/issues/50947",
-      reason: "Waiting on issue to be resolved")
   Future<void> test_caseListExpression() async {
     await resolveTestCode('''
 class A {}
-void f() {
-  var m = 5;
+void f(Object m) {
   switch(m) {
     case List<A>: break;
   }
+}
 ''');
 
     await assertHasFix('''
 class A {}
-void f() {
-  var m = 5;
+void f(Object m) {
   switch(m) {
-    case const List<A>: break;
+    case const (List<A>): break;
   }
+}
+''');
+  }
+
+  Future<void> test_caseListExpression_with_parens() async {
+    await resolveTestCode('''
+class A {}
+void f(Object m) {
+  switch(m) {
+    case (List<A>): break;
+  }
+}
+''');
+
+    await assertHasFix('''
+class A {}
+void f(Object m) {
+  switch(m) {
+    case const (List<A>): break;
+  }
+}
 ''');
   }
 

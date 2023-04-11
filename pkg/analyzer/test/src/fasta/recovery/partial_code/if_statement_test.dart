@@ -32,7 +32,8 @@ class IfStatementTest extends PartialCodeTest {
             'labeled',
             'localFunctionNonVoid',
             'localFunctionVoid',
-            'return'
+            'return',
+            'switch',
           ],
         ),
         TestDescriptor(

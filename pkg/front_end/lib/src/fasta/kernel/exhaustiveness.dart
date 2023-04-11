@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_types.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -14,7 +17,6 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'internal_ast.dart';
 
 /// AST printer strategy used by default in `CfeTypeOperations.typeToString`.
 const AstTextStrategy textStrategy = const AstTextStrategy(
@@ -23,6 +25,10 @@ const AstTextStrategy textStrategy = const AstTextStrategy(
 /// Data gathered by the exhaustiveness computation, retained for testing
 /// purposes.
 class ExhaustivenessDataForTesting {
+  /// Access to interface for looking up `Object` members on non-interface
+  /// types.
+  ObjectPropertyLookup? objectFieldLookup;
+
   /// Map from switch statement/expression nodes to the results of the
   /// exhaustiveness test.
   Map<Node, ExhaustivenessResult> switchResults = {};
@@ -32,11 +38,10 @@ class ExhaustivenessResult {
   final StaticType scrutineeType;
   final List<Space> caseSpaces;
   final List<int> caseOffsets;
-  final List<Space> remainingSpaces;
   final List<ExhaustivenessError> errors;
 
-  ExhaustivenessResult(this.scrutineeType, this.caseSpaces, this.caseOffsets,
-      this.remainingSpaces, this.errors);
+  ExhaustivenessResult(
+      this.scrutineeType, this.caseSpaces, this.caseOffsets, this.errors);
 }
 
 class CfeTypeOperations implements TypeOperations<DartType> {
@@ -96,6 +101,10 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  DartType get nonNullableObjectType =>
+      _typeEnvironment.objectNonNullableRawType;
+
+  @override
   DartType get nullableObjectType => _typeEnvironment.objectNullableRawType;
 
   @override
@@ -107,9 +116,9 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  Map<String, DartType> getFieldTypes(DartType type) {
+  Map<Key, DartType> getFieldTypes(DartType type) {
     if (type is InterfaceType) {
-      Map<String, DartType> fieldTypes = {};
+      Map<Key, DartType> fieldTypes = {};
       Map<Class, Substitution> substitutions = {};
       for (Member member
           in _classHierarchy.getInterfaceMembers(type.classNode)) {
@@ -119,7 +128,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         DartType? fieldType;
         if (member is Field) {
           fieldType = member.getterType;
-        } else if (member is Procedure && member.isGetter) {
+        } else if (member is Procedure && !member.isSetter) {
           fieldType = member.getterType;
         }
         if (fieldType != null) {
@@ -131,17 +140,19 @@ class CfeTypeOperations implements TypeOperations<DartType> {
                         isNonNullableByDefault: true)!);
             fieldType = substitution.substituteType(fieldType);
           }
-          fieldTypes[member.name.text] = fieldType;
+          fieldTypes[new NameKey(member.name.text)] = fieldType;
         }
       }
       return fieldTypes;
     } else if (type is RecordType) {
-      Map<String, DartType> fieldTypes = {};
+      Map<Key, DartType> fieldTypes = {};
+      fieldTypes.addAll(
+          getFieldTypes(_typeEnvironment.coreTypes.objectNonNullableRawType));
       for (int index = 0; index < type.positional.length; index++) {
-        fieldTypes['\$${index + 1}'] = type.positional[index];
+        fieldTypes[new RecordIndexKey(index)] = type.positional[index];
       }
       for (NamedType field in type.named) {
-        fieldTypes[field.name] = field.type;
+        fieldTypes[new RecordNameKey(field.name)] = field.type;
       }
       return fieldTypes;
     } else {
@@ -170,6 +181,67 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getFutureOrTypeArgument(DartType type) {
     return type is FutureOrType ? type.typeArgument : null;
+  }
+
+  @override
+  DartType? getListElementType(DartType type) {
+    type = type.resolveTypeParameterType;
+    if (type is InterfaceType) {
+      InterfaceType? listType = _classHierarchy.getTypeAsInstanceOf(
+          type, _typeEnvironment.coreTypes.listClass,
+          isNonNullableByDefault: true);
+      if (listType != null) {
+        return listType.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType? getListType(DartType type) {
+    type = type.resolveTypeParameterType;
+    if (type is InterfaceType) {
+      return _classHierarchy.getTypeAsInstanceOf(
+          type, _typeEnvironment.coreTypes.listClass,
+          isNonNullableByDefault: true);
+    }
+    return null;
+  }
+
+  @override
+  DartType? getMapValueType(DartType type) {
+    type = type.resolveTypeParameterType;
+    if (type is InterfaceType) {
+      InterfaceType? mapType = _classHierarchy.getTypeAsInstanceOf(
+          type, _typeEnvironment.coreTypes.mapClass,
+          isNonNullableByDefault: true);
+      if (mapType != null) {
+        return mapType.typeArguments[1];
+      }
+    }
+    return null;
+  }
+
+  @override
+  bool hasSimpleName(DartType type) {
+    return type is InterfaceType ||
+        type is DynamicType ||
+        type is VoidType ||
+        type is NeverType ||
+        type is NullType ||
+        type is InlineType ||
+        // TODO(johnniwinther): What about intersection types?
+        type is TypeParameterType;
+  }
+
+  @override
+  DartType? getTypeVariableBound(DartType type) {
+    if (type is TypeParameterType) {
+      return type.bound;
+    } else if (type is IntersectionType) {
+      return type.right;
+    }
+    return null;
   }
 }
 
@@ -322,209 +394,201 @@ class CfeSealedClassOperations
 
 class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, Constant> {
+  final TypeEnvironment typeEnvironment;
+
   CfeExhaustivenessCache(ConstantEvaluator constantEvaluator)
-      : super(
+      : typeEnvironment = constantEvaluator.typeEnvironment,
+        super(
             new CfeTypeOperations(constantEvaluator.typeEnvironment),
             new CfeEnumOperations(constantEvaluator),
             new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
 }
 
-abstract class SwitchCaseInfo {
-  int get fileOffset;
+class PatternConverter with SpaceCreator<Pattern, DartType> {
+  final CfeExhaustivenessCache cache;
+  final StaticTypeContext context;
+  final bool Function(Constant) hasPrimitiveEquality;
 
-  Space createSpace(CfeExhaustivenessCache cache,
-      Map<Node, Constant?> constants, StaticTypeContext context);
-}
-
-class ExpressionCaseInfo extends SwitchCaseInfo {
-  final Expression expression;
+  PatternConverter(this.cache, this.context,
+      {required this.hasPrimitiveEquality});
 
   @override
-  final int fileOffset;
-
-  ExpressionCaseInfo(this.expression, {required this.fileOffset});
-
-  @override
-  Space createSpace(CfeExhaustivenessCache cache,
-      Map<Node, Constant?> constants, StaticTypeContext context) {
-    return convertExpressionToSpace(cache, expression, constants, context);
-  }
-}
-
-class PatternCaseInfo extends SwitchCaseInfo {
-  final Pattern pattern;
-
-  final bool hasGuard;
-
-  @override
-  final int fileOffset;
-
-  PatternCaseInfo(this.pattern,
-      {required this.hasGuard, required this.fileOffset});
-
-  @override
-  Space createSpace(CfeExhaustivenessCache cache,
-      Map<Node, Constant?> constants, StaticTypeContext context) {
-    if (hasGuard) return new Space(cache.getUnknownStaticType());
-    return convertPatternToSpace(cache, pattern, constants, context,
-        nonNull: false);
-  }
-}
-
-class SwitchInfo {
-  final TreeNode node;
-  final DartType expressionType;
-  final List<SwitchCaseInfo> cases;
-  final bool mustBeExhaustive;
-  final int fileOffset;
-
-  SwitchInfo(this.node, this.expressionType, this.cases,
-      {required this.mustBeExhaustive, required this.fileOffset});
-}
-
-class ExhaustivenessInfo {
-  Map<TreeNode, SwitchInfo> _switchInfo = {};
-
-  void registerSwitchInfo(SwitchInfo info) {
-    _switchInfo[info.node] = info;
-  }
-
-  SwitchInfo? getSwitchInfo(TreeNode node) => _switchInfo.remove(node);
-
-  bool get isEmpty => _switchInfo.isEmpty;
-
-  Iterable<TreeNode> get nodes => _switchInfo.keys;
-}
-
-Space convertExpressionToSpace(
-    CfeExhaustivenessCache cache,
-    Expression expression,
-    Map<Node, Constant?> constants,
-    StaticTypeContext context) {
-  Constant? constant = constants[expression];
-  return convertConstantToSpace(cache, constant, constants, context);
-}
-
-Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
-    Map<Node, Constant?> constants, StaticTypeContext context,
-    {required bool nonNull}) {
-  if (pattern is ObjectPattern) {
-    DartType type = pattern.objectType;
-    Map<String, Space> fields = {};
-    for (NamedPattern field in pattern.fields) {
-      fields[field.name] = convertPatternToSpace(
-          cache, field.pattern, constants, context,
-          nonNull: false);
-    }
-    StaticType staticType = cache.getStaticType(type);
-    if (nonNull) {
-      staticType = staticType.nonNullable;
-    }
-    return new Space(staticType, fields);
-  } else if (pattern is VariablePattern) {
-    StaticType staticType = cache.getStaticType(pattern.variable.type);
-    if (nonNull) {
-      staticType = staticType.nonNullable;
-    }
-    return new Space(staticType);
-  } else if (pattern is ConstantPattern) {
-    return convertExpressionToSpace(
-        cache, pattern.expression, constants, context);
-  } else if (pattern is RecordPattern) {
-    int index = 1;
-    Map<String, Space> fields = {};
-    for (Pattern field in pattern.patterns) {
-      String name;
-      Pattern subpattern;
-      if (field is NamedPattern) {
-        name = field.name;
-        subpattern = field.pattern;
-      } else {
-        name = '\$${index++}';
-        subpattern = field;
+  Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
+      {required bool nonNull}) {
+    if (pattern is ObjectPattern) {
+      Map<String, Pattern> properties = {};
+      Map<String, DartType> extensionPropertyTypes = {};
+      for (NamedPattern field in pattern.fields) {
+        properties[field.name] = field.pattern;
+        if (field.accessKind == ObjectAccessKind.Static) {
+          extensionPropertyTypes[field.name] = field.resultType!;
+        }
       }
-      fields[name] = convertPatternToSpace(
-          cache, subpattern, constants, context,
-          nonNull: false);
+      return createObjectSpace(path, contextType, pattern.requiredType,
+          properties, extensionPropertyTypes,
+          nonNull: nonNull);
+    } else if (pattern is VariablePattern) {
+      return createVariableSpace(path, contextType, pattern.variable.type,
+          nonNull: nonNull);
+    } else if (pattern is ConstantPattern) {
+      return convertConstantToSpace(pattern.value!, path: path);
+    } else if (pattern is RecordPattern) {
+      List<Pattern> positional = [];
+      Map<String, Pattern> named = {};
+      for (Pattern field in pattern.patterns) {
+        if (field is NamedPattern) {
+          named[field.name] = field.pattern;
+        } else {
+          positional.add(field);
+        }
+      }
+      return createRecordSpace(
+          path, contextType, pattern.requiredType!, positional, named);
+    } else if (pattern is WildcardPattern) {
+      return createWildcardSpace(path, contextType, pattern.type,
+          nonNull: nonNull);
+    } else if (pattern is OrPattern) {
+      return createLogicalOrSpace(
+          path, contextType, pattern.left, pattern.right,
+          nonNull: nonNull);
+    } else if (pattern is NullCheckPattern) {
+      return createNullCheckSpace(path, contextType, pattern.pattern);
+    } else if (pattern is NullAssertPattern) {
+      return createNullAssertSpace(path, contextType, pattern.pattern);
+    } else if (pattern is CastPattern) {
+      return createCastSpace(path, contextType, pattern.type, pattern.pattern,
+          nonNull: nonNull);
+    } else if (pattern is AndPattern) {
+      return createLogicalAndSpace(
+          path, contextType, pattern.left, pattern.right,
+          nonNull: nonNull);
+    } else if (pattern is InvalidPattern) {
+      // These pattern do not add to the exhaustiveness coverage.
+      return createUnknownSpace(path);
+    } else if (pattern is RelationalPattern) {
+      return createRelationalSpace(path);
+    } else if (pattern is ListPattern) {
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.classNode == cache.typeEnvironment.coreTypes.listClass &&
+          type.typeArguments.length == 1);
+      DartType elementType = type.typeArguments[0];
+      bool hasRest = false;
+      List<Pattern> headPatterns = [];
+      Pattern? restPattern;
+      List<Pattern> tailPatterns = [];
+      for (Pattern element in pattern.patterns) {
+        if (element is RestPattern) {
+          hasRest = true;
+          restPattern = element.subPattern;
+        } else if (hasRest) {
+          tailPatterns.add(element);
+        } else {
+          headPatterns.add(element);
+        }
+      }
+      return createListSpace(path,
+          type: pattern.requiredType!,
+          elementType: elementType,
+          headElements: headPatterns,
+          restElement: restPattern,
+          tailElements: tailPatterns,
+          hasRest: hasRest,
+          hasExplicitTypeArgument: pattern.typeArgument != null);
+    } else if (pattern is MapPattern) {
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.classNode == cache.typeEnvironment.coreTypes.mapClass &&
+          type.typeArguments.length == 2);
+      DartType keyType = type.typeArguments[0];
+      DartType valueType = type.typeArguments[1];
+      Map<MapKey, Pattern> entries = {};
+      for (MapPatternEntry entry in pattern.entries) {
+        if (entry is MapPatternRestEntry) {
+          // Rest patterns are illegal in map patterns, so just skip over it.
+        } else {
+          Constant constant = entry.keyValue!;
+          MapKey key = new MapKey(constant, constant.toText(textStrategy));
+          entries[key] = entry.value;
+        }
+      }
+      return createMapSpace(path,
+          type: pattern.lookupType!,
+          keyType: keyType,
+          valueType: valueType,
+          entries: entries,
+          hasExplicitTypeArguments:
+              pattern.keyType != null && pattern.valueType != null);
     }
-    return new Space(cache.getStaticType(pattern.type), fields);
-  } else if (pattern is WildcardPattern) {
-    final DartType? type = pattern.type;
-    if (type == null) {
-      if (nonNull) {
-        return new Space(StaticType.nonNullableObject);
+    assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
+    return createUnknownSpace(path);
+  }
+
+  Space convertConstantToSpace(Constant? constant, {required Path path}) {
+    if (constant != null) {
+      if (constant is NullConstant) {
+        return new Space(path, StaticType.nullType);
+      } else if (constant is BoolConstant) {
+        return new Space(path, cache.getBoolValueStaticType(constant.value));
+      } else if (constant is InstanceConstant && constant.classNode.isEnum) {
+        return new Space(
+            path, cache.getEnumElementStaticType(constant.classNode, constant));
+      } else if (constant is RecordConstant) {
+        Map<Key, Space> properties = {};
+        for (int index = 0; index < constant.positional.length; index++) {
+          Key key = new RecordIndexKey(index);
+          properties[key] = convertConstantToSpace(constant.positional[index],
+              path: path.add(key));
+        }
+        for (MapEntry<String, Constant> entry in constant.named.entries) {
+          Key key = new RecordNameKey(entry.key);
+          properties[key] =
+              convertConstantToSpace(entry.value, path: path.add(key));
+        }
+        return new Space(path, cache.getStaticType(constant.recordType),
+            properties: properties);
+      } else if (hasPrimitiveEquality(constant)) {
+        // Only if [constant] has primitive equality can we tell if it is equal
+        // to itself.
+        return new Space(
+            path,
+            cache.getUniqueStaticType<Constant>(constant.getType(context),
+                constant, constant.toText(textStrategy)));
       } else {
-        return Space.top;
+        return new Space(path, cache.getUnknownStaticType());
       }
     } else {
-      StaticType staticType = cache.getStaticType(type);
-      if (nonNull) {
-        staticType = staticType.nonNullable;
-      }
-      return new Space(staticType);
+      // TODO(johnniwinther): Assert that constant value is available when the
+      // exhaustiveness checking is complete.
+      return new Space(path, cache.getUnknownStaticType());
     }
-  } else if (pattern is OrPattern) {
-    return new Space.union([
-      convertPatternToSpace(cache, pattern.left, constants, context,
-          nonNull: nonNull),
-      convertPatternToSpace(cache, pattern.right, constants, context,
-          nonNull: nonNull)
-    ]);
-  } else if (pattern is NullCheckPattern) {
-    return convertPatternToSpace(cache, pattern.pattern, constants, context,
-        nonNull: true);
-  } else if (pattern is NullAssertPattern ||
-      pattern is CastPattern ||
-      pattern is InvalidPattern ||
-      pattern is RelationalPattern ||
-      pattern is AndPattern) {
-    // These pattern do not add to the exhaustiveness coverage.
-    // TODO(johnniwinther): Handle `Null` aspect implicitly covered by
-    // [NullAssertPattern] and `as Null`.
-    // TODO(johnniwinther): Handle top in [AndPattern] branches.
-    return new Space(cache.getUnknownStaticType());
-  } else if (pattern is ListPattern || pattern is MapPattern) {
-    // TODO(johnniwinther): Support list and map patterns. This not only
-    //  requires a new interpretation of [Space] fields that handles the
-    //  relation between concrete lengths, rest patterns with/without
-    //  subpattern, and list/map of arbitrary size and content, but also for the
-    //  runtime to check for lengths < 0.
-    return new Space(cache.getUnknownStaticType());
   }
-  assert(false, "Unexpected pattern $pattern (${pattern.runtimeType}).");
-  return new Space(cache.getUnknownStaticType());
-}
 
-Space convertConstantToSpace(CfeExhaustivenessCache cache, Constant? constant,
-    Map<Node, Constant?> constants, StaticTypeContext context) {
-  if (constant != null) {
-    if (constant is NullConstant) {
-      return Space.nullSpace;
-    } else if (constant is BoolConstant) {
-      return new Space(cache.getBoolValueStaticType(constant.value));
-    } else if (constant is InstanceConstant && constant.classNode.isEnum) {
-      return new Space(
-          cache.getEnumElementStaticType(constant.classNode, constant));
-    } else if (constant is RecordConstant) {
-      Map<String, Space> fields = {};
-      for (int index = 0; index < constant.positional.length; index++) {
-        fields['\$${index + 1}'] = convertConstantToSpace(
-            cache, constant.positional[index], constants, context);
-      }
-      for (MapEntry<String, Constant> entry in constant.named.entries) {
-        fields[entry.key] =
-            convertConstantToSpace(cache, entry.value, constants, context);
-      }
-      return new Space(cache.getStaticType(constant.recordType), fields);
-    } else {
-      return new Space(cache.getUniqueStaticType(
-          constant.getType(context), constant, '${constant}'));
-    }
-  } else {
-    // TODO(johnniwinther): Assert that constant value is available when the
-    // exhaustiveness checking is complete.
-    return new Space(cache.getUnknownStaticType());
+  @override
+  StaticType createUnknownStaticType() {
+    return cache.getUnknownStaticType();
   }
+
+  @override
+  StaticType createStaticType(DartType type) {
+    return cache.getStaticType(type);
+  }
+
+  @override
+  StaticType createListType(
+      DartType type, ListTypeRestriction<DartType> restriction) {
+    return cache.getListStaticType(type, restriction);
+  }
+
+  @override
+  StaticType createMapType(
+      DartType type, MapTypeRestriction<DartType> restriction) {
+    return cache.getMapStaticType(type, restriction);
+  }
+
+  @override
+  TypeOperations<DartType> get typeOperations => cache.typeOperations;
+
+  @override
+  ObjectPropertyLookup get objectFieldLookup => cache;
 }
 
 bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {
@@ -556,7 +620,6 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitFutureOrType(FutureOrType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why? This doesn't work if the value is a Future.
     return type.typeArgument.accept1(this, coreTypes);
   }
 
@@ -580,8 +643,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitIntersectionType(IntersectionType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why don't we use the bound?
-    return false;
+    return type.right.accept1(this, coreTypes);
   }
 
   @override
@@ -616,8 +678,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitTypeParameterType(TypeParameterType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why don't we use the bound?
-    return false;
+    return type.bound.accept1(this, coreTypes);
   }
 
   @override

@@ -48,9 +48,9 @@ VM_UNIT_TEST_CASE(Fail0) {
 }
 
 VM_UNIT_TEST_CASE(Fail1) {
-  FAIL1("This test fails with one argument: %d", 4);
+  FAIL("This test fails with one argument: %d", 4);
 }
 
 VM_UNIT_TEST_CASE(Fail2) {
-  FAIL2("This test fails with two arguments: %d, %d", -100, 42);
+  FAIL("This test fails with two arguments: %d, %d", -100, 42);
 }

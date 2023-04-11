@@ -1,11 +1,3 @@
-abstract class B implements Interface {
-  String method(num i);
-}
-
-abstract class D implements Interface, Interface2 {}
-
-abstract class F implements Interface {}
-
 abstract class Interface {
   String method(num i);
 }
@@ -24,3 +16,8 @@ main() {}
 mixin A implements Interface {
   String method(num i, {String s = "hello"}) => s;
 }
+mixin B implements Interface {
+  String method(num i);
+}
+mixin D implements Interface, Interface2 {}
+mixin F implements Interface {}

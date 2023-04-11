@@ -49,7 +49,7 @@ class TypeHierarchyComputer {
     return null;
   }
 
-  Future _createSubclasses(
+  Future<void> _createSubclasses(
       TypeHierarchyItem item,
       int itemId,
       InterfaceElement classElement,

@@ -438,11 +438,6 @@ class ProfilerService : public AllStatic {
                                   int64_t time_origin_micros,
                                   int64_t time_extent_micros);
 
-  static void PrintNativeAllocationJSON(JSONStream* stream,
-                                        int64_t time_origin_micros,
-                                        int64_t time_extent_micros,
-                                        bool include_code_samples);
-
   static void ClearSamples();
 
  private:

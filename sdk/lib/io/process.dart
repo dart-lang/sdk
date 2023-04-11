@@ -107,7 +107,7 @@ void sleep(Duration duration) {
 int get pid => _ProcessUtils._pid(null);
 
 /// Methods for retrieving information about the current process.
-class ProcessInfo {
+abstract final class ProcessInfo {
   /// The current resident set size of memory for the process.
   ///
   /// Note that the meaning of this field is platform dependent. For example,
@@ -127,7 +127,7 @@ class ProcessInfo {
 }
 
 /// Modes for running a new process.
-class ProcessStartMode {
+final class ProcessStartMode {
   /// Normal child process.
   static const normal = const ProcessStartMode._internal(0);
 
@@ -254,7 +254,7 @@ class ProcessStartMode {
 ///   print('exit code: $exitCode');
 /// }
 /// ```
-abstract class Process {
+abstract interface class Process {
   /// A `Future` which completes with the exit code of the process
   /// when the process completes.
   ///
@@ -511,7 +511,7 @@ abstract class Process {
 
 /// The result of running a non-interactive
 /// process started with [Process.run] or [Process.runSync].
-class ProcessResult {
+final class ProcessResult {
   /// Exit code for the process.
   ///
   /// See [Process.exitCode] for more information in the exit code
@@ -542,7 +542,7 @@ class ProcessResult {
 /// Some [ProcessSignal]s can also be watched, as a way to intercept the default
 /// signal handler and implement another. See [ProcessSignal.watch] for more
 /// information.
-class ProcessSignal {
+interface class ProcessSignal {
   static const ProcessSignal sighup = const ProcessSignal._(1, "SIGHUP");
   static const ProcessSignal sigint = const ProcessSignal._(2, "SIGINT");
   static const ProcessSignal sigquit = const ProcessSignal._(3, "SIGQUIT");
@@ -573,12 +573,17 @@ class ProcessSignal {
   static const ProcessSignal sigpoll = const ProcessSignal._(29, "SIGPOLL");
   static const ProcessSignal sigsys = const ProcessSignal._(31, "SIGSYS");
 
-  final int _signalNumber;
-  final String _name;
+  /// The numeric constant for the signal e.g. [ProcessSignal.signalNumber]
+  /// will be 1 for [ProcessSignal.sighup] on most platforms.
+  final int signalNumber;
 
-  const ProcessSignal._(this._signalNumber, this._name);
+  /// The POSIX-standardized name of the signal e.g. [ProcessSignal.name] will
+  /// be "SIGHUP" for [ProcessSignal.sighup].
+  final String name;
 
-  String toString() => _name;
+  const ProcessSignal._(this.signalNumber, this.name);
+
+  String toString() => name;
 
   /// Watch for process signals.
   ///

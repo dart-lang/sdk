@@ -30,8 +30,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -80,27 +80,29 @@ main(List<String> args) async {
 
     // Run the resulting Dwarf-AOT compiled script.
 
-    final output1 = await runTestProgram(aotRuntime,
+    final output1 = await runTestProgram(dartPrecompiledRuntime,
         <String>['--dwarf-stack-traces-mode', scriptDwarfSnapshot, scriptDill]);
-    final output2 = await runTestProgram(aotRuntime, <String>[
+    final output2 = await runTestProgram(dartPrecompiledRuntime, <String>[
       '--no-dwarf-stack-traces-mode',
       scriptDwarfSnapshot,
       scriptDill
     ]);
 
     // Run the resulting non-Dwarf-AOT compiled script.
-    final nonDwarfTrace1 = (await runTestProgram(aotRuntime, <String>[
+    final nonDwarfTrace1 =
+        (await runTestProgram(dartPrecompiledRuntime, <String>[
       '--dwarf-stack-traces-mode',
       scriptNonDwarfSnapshot,
       scriptDill,
     ]))
-        .trace;
-    final nonDwarfTrace2 = (await runTestProgram(aotRuntime, <String>[
+            .trace;
+    final nonDwarfTrace2 =
+        (await runTestProgram(dartPrecompiledRuntime, <String>[
       '--no-dwarf-stack-traces-mode',
       scriptNonDwarfSnapshot,
       scriptDill,
     ]))
-        .trace;
+            .trace;
 
     // Ensure the result is based off the flag passed to gen_snapshot, not
     // the one passed to the runtime.
@@ -148,12 +150,12 @@ Future<void> testAssembly(
       debug: true);
 
   // Run the resulting Dwarf-AOT compiled script.
-  final assemblyOutput1 = await runTestProgram(aotRuntime, <String>[
+  final assemblyOutput1 = await runTestProgram(dartPrecompiledRuntime, <String>[
     '--dwarf-stack-traces-mode',
     scriptDwarfAssemblySnapshot,
     scriptDill,
   ]);
-  final assemblyOutput2 = await runTestProgram(aotRuntime, <String>[
+  final assemblyOutput2 = await runTestProgram(dartPrecompiledRuntime, <String>[
     '--no-dwarf-stack-traces-mode',
     scriptDwarfAssemblySnapshot,
     scriptDill,

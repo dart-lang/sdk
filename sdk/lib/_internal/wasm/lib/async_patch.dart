@@ -51,7 +51,7 @@
 import 'dart:_internal' show patch, scheduleCallback, unsafeCastOpaque;
 import 'dart:_js_helper' show JS;
 
-import 'dart:wasm';
+import 'dart:_wasm';
 
 part 'timer_patch.dart';
 
@@ -95,7 +95,9 @@ Object? _awaitHelper(Object? operand, WasmExternRef? stack) {
   // ensure that the zone will be restored in the event of an exception by
   // restoring the original zone before we throw the exception.
   _Zone current = Zone._current;
-  if (operand is! Future) return operand;
+  if (operand is! Future) {
+    operand = Future.value(operand);
+  }
   Object? result = _futurePromise(stack, operand);
   Zone._leave(current);
   if (result is _FutureError) {

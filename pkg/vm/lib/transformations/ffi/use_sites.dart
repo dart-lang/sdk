@@ -249,7 +249,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node,
+            allowCompounds: true, allowVoid: true);
 
         if (nativeType is InterfaceType) {
           Expression? inlineSizeOf = _inlineSizeOf(nativeType);
@@ -271,8 +272,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
-        final InterfaceType nativeType = InterfaceType(
-            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+        final InterfaceType nativeType = InterfaceType(nativeFunctionClass,
+            Nullability.nonNullable, [node.arguments.types[0]]);
 
         ensureNativeTypeValid(nativeType, node);
         ensureNativeTypeToDartType(nativeType, dartType, node);
@@ -386,7 +387,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node,
+            allowCompounds: true, allowVoid: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
@@ -646,15 +648,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     final arrayVar = VariableDeclaration("#array",
         initializer: NullCheck(node.arguments.positional[0]),
-        type: InterfaceType(arrayClass, Nullability.nonNullable))
+        type: InterfaceType(arrayClass, Nullability.nonNullable),
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final indexVar = VariableDeclaration("#index",
         initializer: NullCheck(node.arguments.positional[1]),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final singleElementSizeVar = VariableDeclaration("#singleElementSize",
         initializer: _inlineSizeOf(elementType as InterfaceType),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final elementSizeVar = VariableDeclaration("#elementSize",
         initializer: multiply(
@@ -663,12 +668,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 arrayNestedDimensionsFlattened.name,
                 interfaceTarget: arrayNestedDimensionsFlattened,
                 resultType: arrayNestedDimensionsFlattened.getterType)),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final offsetVar = VariableDeclaration("#offset",
         initializer:
             multiply(VariableGet(elementSizeVar), VariableGet(indexVar)),
-        type: coreTypes.intNonNullableRawType)
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = node.fileOffset;
 
     final checkIndexAndLocalVars = Block([
@@ -777,12 +784,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         } else {
           return superClass;
         }
-      }
-    }
-
-    for (final parent in nativeTypesClasses.values) {
-      if (hierarchy.isSubtypeOf(klass, parent)) {
-        return parent;
       }
     }
 

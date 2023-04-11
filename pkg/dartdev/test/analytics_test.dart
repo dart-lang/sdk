@@ -19,7 +19,8 @@ List<Map> extractAnalytics(ProcessResult result) {
       .toList();
 }
 
-Future<void> main() async {
+void main() {
+  final experiments = experimentsWithValidation();
   group('DisabledAnalytics', disabledAnalyticsObject);
 
   group('VM -> CLI --analytics flag smoke test:', () {
@@ -31,6 +32,17 @@ Future<void> main() async {
 
     test('--no-analytics', () {
       command.runCommand(command.parse(['--no-analytics']));
+      expect(command.analytics is DisabledAnalytics, true);
+    });
+
+    test('--suppress-analytics', () {
+      command.runCommand(command.parse(['--suppress-analytics']));
+      expect(command.analytics is DisabledAnalytics, true);
+    });
+
+    test('--suppress-analytics and --analytics', () {
+      command
+          .runCommand(command.parse(['--analytics', '--suppress-analytics']));
       expect(command.analytics is DisabledAnalytics, true);
     });
 
@@ -67,7 +79,6 @@ Future<void> main() async {
 '''));
   });
 
-  final experiments = await experimentsWithValidation();
   group('Sending analytics', () {
     test('help', () async {
       final p = project(logAnalytics: true);
@@ -130,9 +141,7 @@ Future<void> main() async {
     });
 
     test('pub get dry run', () async {
-      final p = project(logAnalytics: true, pubspec: {
-        'name': 'foo',
-        'environment': {'sdk': '>=2.12.0 <3.0.0'},
+      final p = project(logAnalytics: true, pubspecExtras: {
         'dependencies': {'lints': '2.0.1'}
       });
       final result = await p.run(['pub', 'get', '--dry-run']);
@@ -165,9 +174,7 @@ Future<void> main() async {
     });
 
     test('pub get', () async {
-      final p = project(logAnalytics: true, pubspec: {
-        'name': 'foo',
-        'environment': {'sdk': '>=2.12.0 <3.0.0'},
+      final p = project(logAnalytics: true, pubspecExtras: {
         'dependencies': {'lints': '2.0.1'}
       });
       final result = await p.run(['pub', 'get']);

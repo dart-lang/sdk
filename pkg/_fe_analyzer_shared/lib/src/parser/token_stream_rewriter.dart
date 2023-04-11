@@ -18,6 +18,11 @@ import '../scanner/token.dart'
         TokenType;
 
 abstract class TokenStreamRewriter {
+  /// Drops any tokens after [before] and before [after].
+  void dropRange(Token before, Token after) {
+    _setNext(before, after);
+  }
+
   /// Insert a synthetic open and close parenthesis and return the new synthetic
   /// open parenthesis. If [insertIdentifier] is true, then a synthetic
   /// identifier is included between the open and close parenthesis.

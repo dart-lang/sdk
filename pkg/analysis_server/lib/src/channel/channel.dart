@@ -8,12 +8,12 @@ import 'package:analysis_server/protocol/protocol.dart';
 
 /// Instances of the class [ChannelChunkSink] uses a [Converter] to translate
 /// chunks.
-class ChannelChunkSink<S, T> extends ChunkedConversionSink<S> {
+class ChannelChunkSink<S, T> implements ChunkedConversionSink<S> {
   /// The converter used to translate chunks.
   final Converter<S, T> converter;
 
   /// The sink to which the converted chunks are added.
-  final Sink sink;
+  final Sink<T> sink;
 
   /// A flag indicating whether the sink has been closed.
   bool closed = false;
@@ -51,7 +51,7 @@ abstract class ClientCommunicationChannel {
 
   /// Close the channel to the server. Once called, all future communication
   /// with the server via [sendRequest] will silently be ignored.
-  Future close();
+  Future<void> close();
 
   /// Send the given [request] to the server
   /// and return a future with the associated [Response].
@@ -73,7 +73,8 @@ class JsonStreamDecoder extends Converter<String, Object?> {
 class NotificationConverter
     extends Converter<Map<String, Object?>, Notification> {
   @override
-  Notification convert(Map input) => Notification.fromJson(input);
+  Notification convert(Map<Object?, Object?> input) =>
+      Notification.fromJson(input);
 
   @override
   ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(
@@ -98,14 +99,17 @@ class ResponseConverter extends Converter<Map<String, Object?>, Response?> {
 /// objects that allow an [AnalysisServer] to receive [Request]s and to return
 /// both [Response]s and [Notification]s.
 abstract class ServerCommunicationChannel {
-  /// The single-subscription stream of requests.
-  Stream<Request> get requests;
+  /// The single-subscription stream of requests and responses.
+  Stream<RequestOrResponse> get requests;
 
   /// Close the communication channel.
   void close();
 
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification);
+
+  /// Send the given [request] to the client.
+  void sendRequest(Request request);
 
   /// Send the given [response] to the client.
   void sendResponse(Response response);

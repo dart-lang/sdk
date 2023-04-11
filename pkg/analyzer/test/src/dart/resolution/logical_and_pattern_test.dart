@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -16,11 +16,13 @@ main() {
 @reflectiveTest
 class LogicalAndPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   if (x case int _ && double _) {}
 }
-''');
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 8),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
@@ -48,14 +50,16 @@ LogicalAndPattern
   }
 
   test_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case int _ && double _:
       break;
   }
 }
-''');
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 8),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern

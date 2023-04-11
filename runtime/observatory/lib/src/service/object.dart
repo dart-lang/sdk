@@ -674,9 +674,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int architectureBits = 0;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
-  int mallocUsed = 0;
-  int mallocCapacity = 0;
-  String mallocImplementation = 'unknown';
   int currentMemory = 0;
   int maxRSS = 0;
   int currentRSS = 0;
@@ -1035,9 +1032,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    mallocUsed = map['_mallocUsed'] ?? -1;
-    mallocCapacity = map['_mallocCapacity'] ?? -1;
-    mallocImplementation = map['_mallocImplementation'] ?? 'unknown';
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
@@ -2788,9 +2782,9 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
-    case '_RecordType':
+    case 'RecordType':
       return M.InstanceKind.recordType;
-    case '_Record':
+    case 'Record':
       return M.InstanceKind.record;
     case 'Finalizer':
       return M.InstanceKind.finalizer;

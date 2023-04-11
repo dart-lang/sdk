@@ -36,12 +36,12 @@ void f(Map<String, int> m1) {
   final {c1 : 1, ^, c1 : 3} = m1;
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   m1
@@ -50,8 +50,8 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  const
-    kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -63,12 +63,12 @@ void f(Map<String, int> m1) {
   final {^} = m1;
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   m1
@@ -77,8 +77,8 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  const
-    kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -92,22 +92,22 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -121,22 +121,22 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -150,22 +150,22 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -180,7 +180,7 @@ void f(Object o1) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -190,24 +190,24 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
     }
   }
@@ -222,22 +222,22 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
   }
 
@@ -252,7 +252,7 @@ void f(Object o1) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -262,24 +262,24 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   c1
     kind: localVariable
-  v1
-    kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
-    kind: keyword
   o1
     kind: parameter
-  const
+  true
     kind: keyword
+  v1
+    kind: localVariable
 ''');
     }
   }
@@ -294,26 +294,26 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c1
     kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
+  final
+    kind: keyword
   null
+    kind: keyword
+  o1
+    kind: parameter
+  switch
     kind: keyword
   true
     kind: keyword
   v1
     kind: localVariable
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
-  switch
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -330,7 +330,7 @@ void f(Object o1) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -340,28 +340,28 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   c1
     kind: localVariable
+  const
+    kind: keyword
   false
     kind: keyword
+  final
+    kind: keyword
   null
+    kind: keyword
+  o1
+    kind: parameter
+  switch
     kind: keyword
   true
     kind: keyword
   v1
     kind: localVariable
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
-  switch
-    kind: keyword
   var
     kind: keyword
 ''');

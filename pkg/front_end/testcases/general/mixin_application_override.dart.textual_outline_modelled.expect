@@ -17,18 +17,14 @@ class B2 extends S with M1, M2, M {}
 
 class B2X extends S with M1, M2, M, MX {}
 
-class M {
-  foo() {}
-}
-
-class M1 {}
-
-class M2 {}
-
-class MX {}
-
 class S {
   foo([x]) {}
 }
 
 main() {}
+mixin M {
+  foo() {}
+}
+mixin M1 {}
+mixin M2 {}
+mixin MX {}

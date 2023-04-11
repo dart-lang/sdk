@@ -1,0 +1,163 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+import "dart:collection";
+
+class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends col::MapBase<self::MyMap::K%, self::MyMap::V%> {
+  covariant-by-class field core::Map<self::MyMap::K%, self::MyMap::V%> _inner;
+  field core::String log = "";
+  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _inner) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+    : self::MyMap::_inner = _inner, super col::MapBase::•()
+    ;
+  @#C1
+  operator [](core::Object? key) → self::MyMap::V? {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("[${key}];"){(core::String) → core::String};
+    return this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::[]}(key){(core::Object?) → self::MyMap::V?};
+  }
+  @#C1
+  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("[${key}]=${value};"){(core::String) → core::String};
+    this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::[]=}(key, value){(self::MyMap::K%, self::MyMap::V%) → void};
+  }
+  @#C1
+  method clear() → void {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("clear();"){(core::String) → core::String};
+    this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::clear}(){() → void};
+  }
+  @#C1
+  get keys() → core::Iterable<self::MyMap::K%> {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("keys;"){(core::String) → core::String};
+    return this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::keys}{core::Iterable<self::MyMap::K%>};
+  }
+  @#C1
+  method remove(core::Object? key) → self::MyMap::V? {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("remove(${key});"){(core::String) → core::String};
+    return this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::MyMap::V?};
+  }
+  @#C1
+  get length() → core::int {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("length;"){(core::String) → core::String};
+    return this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::length}{core::int};
+  }
+  @#C1
+  method containsKey(core::Object? key) → core::bool {
+    this.{self::MyMap::log} = this.{self::MyMap::log}{core::String}.{core::String::+}("containsKey(${key});"){(core::String) → core::String};
+    return this.{self::MyMap::_inner}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::containsKey}(key){(core::Object?) → core::bool};
+  }
+  method clearLog() → void {
+    this.{self::MyMap::log} = "";
+  }
+}
+static field core::String unsoundResult = "containsKey(key1);[key1];containsKey(key2);[key2];";
+static field core::String soundResult = "[key1];[key2];";
+static get hasUnsoundNullSafety() → core::bool
+  return #C2 is{ForNonNullableByDefault} core::List<core::Object>;
+static method test1(core::Object o) → core::String {
+  #L1:
+  {
+    final synthesized core::Object #0#0 = o;
+    late final synthesized core::int? #0#4 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
+    late final synthesized core::bool #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#6 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int};
+    late final synthesized core::int? #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
+    late final synthesized core::bool #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C6 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+        {
+          return "match-2";
+        }
+      }
+    }
+    {
+      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C7 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+        {
+          return "match-3";
+        }
+      }
+    }
+    {
+      {
+        {
+          return "no match";
+        }
+      }
+    }
+  }
+}
+static method test2(core::Object o) → core::String
+  return block {
+    core::String #t1;
+    final synthesized core::Object #0#0 = o;
+    late final synthesized core::int? #0#4 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?};
+    late final synthesized core::bool #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    late final synthesized core::bool #0#6 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int};
+    late final synthesized core::int? #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?};
+    late final synthesized core::bool #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+    #L2:
+    {
+      {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C6 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+          #t1 = "match-2";
+          break #L2;
+        }
+      }
+      {
+        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C7 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+          #t1 = "match-3";
+          break #L2;
+        }
+      }
+      {
+        if(true) {
+          #t1 = "no match";
+          break #L2;
+        }
+      }
+    }
+  } =>#t1;
+static method main() → dynamic {
+  final self::MyMap<core::String, core::int> map = new self::MyMap::•<core::String, core::int>(<core::String, core::int>{"key1": 1, "key2": 2});
+  self::expect("match-3", self::test1(map));
+  self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
+  map.{self::MyMap::clearLog}(){() → void};
+  self::expect("match-3", self::test2(map));
+  self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
+  map.{self::MyMap::clearLog}(){() → void};
+  hoisted has-declared-initializer core::int x1;
+  hoisted has-declared-initializer core::int x2;
+  {
+    final synthesized dynamic #0#0 = map;
+    late final synthesized core::int? #0#3 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?};
+    late final synthesized core::int? #0#6 = #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C5){(core::Object?) → core::int?};
+    if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool}) && (let final dynamic #t2 = x1 = #0#3{core::int} in true) && (!(#0#6 == null) || null is{ForNonNullableByDefault} core::int && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool}) && (let final dynamic #t3 = x2 = #0#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
+  map.{self::MyMap::clearLog}(){() → void};
+  final hoisted has-declared-initializer core::int y1;
+  final hoisted has-declared-initializer core::int y2;
+  {
+    final synthesized dynamic #1#0 = map;
+    late final synthesized core::int? #1#3 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C3){(core::Object?) → core::int?};
+    late final synthesized core::int? #1#6 = #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::[]}(#C5){(core::Object?) → core::int?};
+    if(!((!(#1#3 == null) || null is{ForNonNullableByDefault} core::int && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C3){(core::Object?) → core::bool}) && (let final dynamic #t4 = y1 = #1#3{core::int} in true) && (!(#1#6 == null) || null is{ForNonNullableByDefault} core::int && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool}) && (let final dynamic #t5 = y2 = #1#6{core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = <Null>[]
+  #C3 = "key1"
+  #C4 = 1
+  #C5 = "key2"
+  #C6 = 3
+  #C7 = 2
+}

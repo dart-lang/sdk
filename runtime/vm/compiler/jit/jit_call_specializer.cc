@@ -163,7 +163,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 // Replace generic context allocation or cloning with a sequence of inlined
 // allocation and explicit initializing stores.
-// If context_value is not NULL then newly allocated context is a populated
+// If context_value is not nullptr then newly allocated context is a populated
 // with values copied from it, otherwise it is initialized with null.
 void JitCallSpecializer::LowerContextAllocation(
     Definition* alloc,
@@ -179,11 +179,11 @@ void JitCallSpecializer::LowerContextAllocation(
   Instruction* cursor = replacement;
 
   Value* initial_value;
-  if (context_value != NULL) {
+  if (context_value != nullptr) {
     LoadFieldInstr* load =
         new (Z) LoadFieldInstr(context_value->CopyWithType(Z),
                                Slot::Context_parent(), alloc->source());
-    flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
+    flow_graph()->InsertAfter(cursor, load, nullptr, FlowGraph::kValue);
     cursor = load;
     initial_value = new (Z) Value(load);
   } else {

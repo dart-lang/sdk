@@ -14,6 +14,7 @@
 #include "vm/message.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/service.h"
 #include "vm/service_isolate.h"
@@ -176,6 +177,29 @@ DEFINE_NATIVE_ENTRY(Developer_reachability_barrier, 0, 0) {
   ASSERT(heap != nullptr);
   return Integer::New(heap->ReachabilityBarrier());
 #endif
+}
+
+DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_writeHeapSnapshotToFile, 0, 1) {
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+  const String& filename =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  bool successful = false;
+  {
+    FileHeapSnapshotWriter file_writer(thread, filename.ToCString(),
+                                       &successful);
+    HeapSnapshotWriter writer(thread, &file_writer);
+    writer.Write();
+  }
+  if (!successful) {
+    Exceptions::ThrowUnsupportedError(
+        "Could not create & write heapsnapshot to disc. Possibly due to "
+        "missing embedder functionality.");
+  }
+#else
+  Exceptions::ThrowUnsupportedError(
+      "Heap snapshots are only supported in non-product mode.");
+#endif  // !defined(PRODUCT)
+  return Object::null();
 }
 
 }  // namespace dart

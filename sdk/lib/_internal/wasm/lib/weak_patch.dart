@@ -4,8 +4,8 @@
 
 import 'dart:_internal' show patch, unsafeCast;
 import 'dart:_js_helper' show isJSUndefined, JS;
+import 'dart:_wasm';
 import 'dart:ffi' show Pointer, Struct, Union;
-import 'dart:wasm';
 
 void _checkValidWeakTarget(Object object) {
   if ((object is bool) ||

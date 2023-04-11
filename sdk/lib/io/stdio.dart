@@ -365,7 +365,7 @@ class _StdSink implements IOSink {
 }
 
 /// The type of object a standard IO stream can be attached to.
-class StdioType {
+final class StdioType {
   static const StdioType terminal = const StdioType._("terminal");
   static const StdioType pipe = const StdioType._("pipe");
   static const StdioType file = const StdioType._("file");

@@ -833,7 +833,7 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: globalFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -958,13 +958,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     push(mixinKeyword);
   }
@@ -1097,7 +1091,7 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(bodyBuilder,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: globalFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         bodyBuilder.pop(); // Annotations.
@@ -1133,7 +1127,7 @@ class DietListener extends StackListenerImpl {
     Token token = startToken;
     Parser parser = new Parser(bodyBuilder,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: globalFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
@@ -1260,7 +1254,7 @@ class DietListener extends StackListenerImpl {
           isDeclarationInstanceMember: false);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: globalFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method bar<T extends asy::Future<core::num>, S extends core::Object? = dynamic, U extends core::num, V extends FutureOr<core::num>>(self::bar::T t, self::bar::S% s, self::bar::U u, self::bar::V v) → asy::Future<void> async /* futureValueType= void */ {
+  core::num x = await t;
+  if(s is{ForNonNullableByDefault} asy::Future<core::num>) {
+    core::num y = await s{self::bar::S% & asy::Future<core::num> /* '%' & '!' = '!' */};
+  }
+  self::bar::U z = await u /* runtimeCheckType= asy::Future<self::bar::U> */ ;
+  core::num w = await v /* runtimeCheckType= asy::Future<core::num> */ ;
+}

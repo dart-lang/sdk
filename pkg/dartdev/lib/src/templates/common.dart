@@ -4,7 +4,7 @@
 
 import '../sdk.dart';
 
-String get sdkConstraint => "sdk: '>=${sdk.version} <4.0.0'";
+String get sdkConstraint => 'sdk: ^${sdk.version}';
 
 const String gitignore = '''
 # https://dart.dev/guides/libraries/private-files

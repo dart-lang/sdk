@@ -5,14 +5,14 @@
 [ $builder_tag == asan ]
 ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
 
+[ $simulator ]
+ffi/*: SkipByDesign # FFI skips, see ffi.status
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-ffi/*: SkipByDesign # FFI skips, see ffi.status
 
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
 ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.

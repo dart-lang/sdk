@@ -29,7 +29,7 @@ f() {
   s.length;
 }
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 24, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 24, 1),
     ]);
   }
 
@@ -141,7 +141,7 @@ class B {}
 import 'lib1.dart' show A, B;
 A a = A();
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 27, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 27, 1),
     ]);
   }
 
@@ -165,7 +165,7 @@ class B {}
 import 'lib1.dart' as p show A, B;
 p.A a = p.A();
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 32, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 32, 1),
     ]);
   }
 
@@ -182,8 +182,8 @@ import 'lib1.dart' show C, D;
 A a = A();
 C c = C();
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 27, 1),
-      error(HintCode.UNUSED_SHOWN_NAME, 57, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 27, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 57, 1),
     ]);
   }
 
@@ -201,7 +201,7 @@ int a = var1;
 int b = var2;
 int c = var3;
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 66, 4),
+      error(WarningCode.UNUSED_SHOWN_NAME, 66, 4),
     ]);
   }
 }

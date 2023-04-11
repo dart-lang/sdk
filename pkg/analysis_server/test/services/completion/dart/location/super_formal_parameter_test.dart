@@ -46,7 +46,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -65,7 +65,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -88,7 +88,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -108,7 +108,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -127,7 +127,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -149,7 +149,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -168,7 +168,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -187,7 +187,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -206,7 +206,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -228,7 +228,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -247,7 +247,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -269,7 +269,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -288,7 +288,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -309,7 +309,7 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -328,7 +328,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -347,7 +347,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter
@@ -366,7 +366,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -387,7 +387,7 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   second
     kind: parameter
@@ -407,7 +407,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   first
     kind: parameter

@@ -9,13 +9,14 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConditionalExpressionTest);
-    defineReflectiveTests(ConditionalExpressionWithoutNullSafetyTest);
+    defineReflectiveTests(ConditionalExpressionResolutionTest);
+    defineReflectiveTests(
+        ConditionalExpressionResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class ConditionalExpressionTest extends PubPackageResolutionTest
+class ConditionalExpressionResolutionTest extends PubPackageResolutionTest
     with ConditionalExpressionTestCases {
   @failingTest
   test_downward() async {
@@ -129,6 +130,11 @@ void f(bool b) {
   }
 }
 
+@reflectiveTest
+class ConditionalExpressionResolutionTest_WithoutNullSafety
+    extends PubPackageResolutionTest
+    with ConditionalExpressionTestCases, WithoutNullSafetyMixin {}
+
 mixin ConditionalExpressionTestCases on PubPackageResolutionTest {
   test_upward() async {
     await resolveTestCode('''
@@ -140,8 +146,3 @@ void f(bool a, int b, int c) {
     assertType(findNode.simple('d)'), 'int');
   }
 }
-
-@reflectiveTest
-class ConditionalExpressionWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with ConditionalExpressionTestCases, WithoutNullSafetyMixin {}

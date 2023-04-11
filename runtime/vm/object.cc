@@ -2785,10 +2785,6 @@ void Object::CheckHandle() const {
 #endif
 }
 
-#if !defined(PRODUCT)
-static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
-#endif
-
 ObjectPtr Object::Allocate(intptr_t cls_id,
                            intptr_t size,
                            Heap::Space space,
@@ -2835,31 +2831,18 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     heap->old_space()->AllocateBlack(size);
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler& heap_sampler = thread->heap_sampler();
-  auto class_table = thread->isolate_group()->class_table();
   if (heap_sampler.HasOutstandingSample()) {
-    IsolateGroup* isolate_group = thread->isolate_group();
-    Api::Scope api_scope(thread);
-    const char* type_name = class_table->UserVisibleNameFor(cls_id);
-    if (type_name == nullptr) {
-      // Try the vm-isolate's class table for core types.
-      type_name =
-          Dart::vm_isolate_group()->class_table()->UserVisibleNameFor(cls_id);
-    }
-    // If type_name is still null, then we haven't finished initializing yet and
-    // should drop the sample.
-    if (type_name != nullptr) {
-      thread->IncrementNoCallbackScopeDepth();
-      Object& obj = Object::Handle(raw_obj);
-      auto weak_obj = FinalizablePersistentHandle::New(
-          isolate_group, obj, nullptr, NoopFinalizer, 0, /*auto_delete=*/false);
-      heap_sampler.InvokeCallbackForLastSample(
-          type_name, weak_obj->ApiWeakPersistentHandle());
-      thread->DecrementNoCallbackScopeDepth();
-    }
+    thread->IncrementNoCallbackScopeDepth();
+    void* data = heap_sampler.InvokeCallbackForLastSample();
+    heap->SetHeapSamplingData(raw_obj, data);
+    thread->DecrementNoCallbackScopeDepth();
   }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
+#if !defined(PRODUCT)
+  auto class_table = thread->isolate_group()->class_table();
   if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
         HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
@@ -3166,9 +3149,15 @@ void Class::set_has_pragma(bool value) const {
   set_state_bits(HasPragmaBit::update(value, state_bits()));
 }
 
-void Class::set_implements_finalizable(bool value) const {
+void Class::set_is_isolate_unsendable(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_state_bits(ImplementsFinalizableBit::update(value, state_bits()));
+  set_state_bits(IsIsolateUnsendableBit::update(value, state_bits()));
+}
+
+void Class::set_is_isolate_unsendable_due_to_pragma(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(
+      IsIsolateUnsendableDueToPragmaBit::update(value, state_bits()));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -3669,7 +3658,11 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     // We should never call CalculateFieldOffsets for native wrapper
     // classes, assert this.
     ASSERT(num_native_fields() == 0);
-    set_num_native_fields(super.num_native_fields());
+    const intptr_t num_native_fields = super.num_native_fields();
+    set_num_native_fields(num_native_fields);
+    if (num_native_fields > 0 || is_isolate_unsendable_due_to_pragma()) {
+      set_is_isolate_unsendable(true);
+    }
 
     host_bitmap = IsolateGroup::Current()->class_table()->GetUnboxedFieldsMapAt(
         super.id());
@@ -4699,7 +4692,7 @@ void Class::EnsureDeclarationLoaded() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    FATAL1("Unable to use class %s which is not loaded yet.", ToCString());
+    FATAL("Unable to use class %s which is not loaded yet.", ToCString());
 #endif
   }
 }
@@ -5009,6 +5002,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
+    cls.set_is_isolate_unsendable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
     library.AddClass(cls);
     return cls.ptr();
@@ -5171,7 +5165,9 @@ void Class::set_name(const String& value) const {
 void Class::set_user_name(const String& value) const {
   untag()->set_user_name(value.ptr());
 }
+#endif  // !defined(PRODUCT)
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 void Class::SetUserVisibleNameInClassTable() {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   auto class_table = isolate_group->class_table();
@@ -5180,7 +5176,7 @@ void Class::SetUserVisibleNameInClassTable() {
     class_table->SetUserVisibleNameFor(id(), name.ToMallocCString());
   }
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 const char* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {
@@ -5189,6 +5185,8 @@ const char* Class::GenerateUserVisibleName() const {
   switch (id()) {
     case kFloat32x4Cid:
       return Symbols::Float32x4().ToCString();
+    case kFloat64x2Cid:
+      return Symbols::Float64x2().ToCString();
     case kInt32x4Cid:
       return Symbols::Int32x4().ToCString();
     case kTypedDataInt8ArrayCid:
@@ -5233,13 +5231,10 @@ const char* Class::GenerateUserVisibleName() const {
     case kTypedDataFloat64ArrayCid:
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().ToCString();
-
     case kPointerCid:
       return Symbols::FfiPointer().ToCString();
     case kDynamicLibraryCid:
       return Symbols::FfiDynamicLibrary().ToCString();
-
-#if !defined(PRODUCT)
     case kNullCid:
       return Symbols::Null().ToCString();
     case kDynamicCid:
@@ -5337,7 +5332,6 @@ const char* Class::GenerateUserVisibleName() const {
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
       return Symbols::List().ToCString();
-#endif  // !defined(PRODUCT)
   }
   String& name = String::Handle(Name());
   name = Symbols::New(Thread::Current(), String::ScrubName(name));
@@ -7475,7 +7469,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
 TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TypeArguments::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in TypeArguments::New: invalid len %" Pd "\n", len);
   }
   TypeArguments& result = TypeArguments::Handle();
   {
@@ -8033,19 +8027,13 @@ void Function::set_implicit_closure_function(const Function& value) const {
   const Object& old_data = Object::Handle(data());
   if (is_native()) {
     ASSERT(old_data.IsArray());
-    ASSERT((Array::Cast(old_data).AtAcquire(1) == Object::null()) ||
+    const auto& pair = Array::Cast(old_data);
+    ASSERT(pair.AtAcquire(NativeFunctionData::kTearOff) == Object::null() ||
            value.IsNull());
-    Array::Cast(old_data).SetAtRelease(1, value);
+    pair.SetAtRelease(NativeFunctionData::kTearOff, value);
   } else {
-    // Maybe this function will turn into a native later on :-/
-    if (old_data.IsArray()) {
-      ASSERT((Array::Cast(old_data).AtAcquire(1) == Object::null()) ||
-             value.IsNull());
-      Array::Cast(old_data).SetAtRelease(1, value);
-    } else {
-      ASSERT(old_data.IsNull() || value.IsNull());
-      set_data(value);
-    }
+    ASSERT(old_data.IsNull() || value.IsNull());
+    set_data(value);
   }
 }
 
@@ -8268,27 +8256,10 @@ StringPtr Function::native_name() const {
 }
 
 void Function::set_native_name(const String& value) const {
-  Zone* zone = Thread::Current()->zone();
   ASSERT(is_native());
-
-  // Due to the fact that kernel needs to read in the constant table before the
-  // annotation data is available, we don't know at function creation time
-  // whether the function is a native or not.
-  //
-  // Reading the constant table can cause a static function to get an implicit
-  // closure function.
-  //
-  // We therefore handle both cases.
-  const Object& old_data = Object::Handle(zone, data());
-  ASSERT(old_data.IsNull() ||
-         (old_data.IsFunction() &&
-          Function::Handle(zone, Function::RawCast(old_data.ptr()))
-              .IsImplicitClosureFunction()));
-
-  const Array& pair = Array::Handle(zone, Array::New(2, Heap::kOld));
-  pair.SetAt(0, value);
-  pair.SetAt(1, old_data);  // will be the implicit closure function if needed.
-  set_data(pair);
+  const auto& pair = Array::Cast(Object::Handle(data()));
+  ASSERT(pair.At(0) == Object::null());
+  pair.SetAt(NativeFunctionData::kNativeName, value);
 }
 
 void Function::SetSignature(const FunctionType& value) const {
@@ -9806,6 +9777,8 @@ FunctionPtr Function::New(const FunctionType& signature,
   result.set_is_inlinable(true);
   result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());
+
+  // See Function::set_data() for more information.
   if (kind == UntaggedFunction::kClosureFunction ||
       kind == UntaggedFunction::kImplicitClosureFunction) {
     ASSERT(space == Heap::kOld);
@@ -9814,6 +9787,10 @@ FunctionPtr Function::New(const FunctionType& signature,
   } else if (kind == UntaggedFunction::kFfiTrampoline) {
     const FfiTrampolineData& data =
         FfiTrampolineData::Handle(FfiTrampolineData::New());
+    result.set_data(data);
+  } else if (is_native) {
+    const auto& data =
+        Array::Handle(Array::New(NativeFunctionData::kLength, Heap::kOld));
     result.set_data(data);
   } else {
     // Functions other than signature functions have no reason to be allocated
@@ -14029,6 +14006,10 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
   result.set_is_nnbd(false);
+  // This logic is also in the DAP debug adapter in DDS to avoid needing
+  // to call setLibraryDebuggable for every library for every isolate.
+  // If these defaults change, the same should be done there in
+  // dap/IsolateManager._getIsLibraryDebuggableByDefault.
   if (dart_scheme) {
     // Only debug dart: libraries if we have been requested to show invisible
     // frames.
@@ -14933,16 +14914,6 @@ void KernelProgramInfo::set_constants_table(
   untag()->set_constants_table(value.ptr());
 }
 
-void KernelProgramInfo::set_potential_natives(
-    const GrowableObjectArray& candidates) const {
-  untag()->set_potential_natives(candidates.ptr());
-}
-
-void KernelProgramInfo::set_potential_pragma_functions(
-    const GrowableObjectArray& candidates) const {
-  untag()->set_potential_pragma_functions(candidates.ptr());
-}
-
 void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
   untag()->set_libraries_cache(cache.ptr());
 }
@@ -15270,7 +15241,7 @@ InstructionsPtr Instructions::New(intptr_t size, bool has_monomorphic_entry) {
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Instructions::New: invalid size %" Pd "\n", size);
+    FATAL("Fatal error in Instructions::New: invalid size %" Pd "\n", size);
   }
   Instructions& result = Instructions::Handle();
   {
@@ -15477,7 +15448,7 @@ ObjectPoolPtr ObjectPool::New(intptr_t len) {
   ASSERT(Object::object_pool_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
+    FATAL("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
   }
   ObjectPool& result = ObjectPool::Handle();
   {
@@ -15823,7 +15794,7 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
   ASSERT(size != 0);
 
   if (!UntaggedCompressedStackMaps::SizeField::is_valid(size)) {
-    FATAL1(
+    FATAL(
         "Fatal error in CompressedStackMaps::New: "
         "invalid payload size %" Pu "\n",
         size);
@@ -15973,7 +15944,7 @@ LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL2(
+    FATAL(
         "Fatal error in LocalVarDescriptors::New: "
         "invalid num_variables %" Pd ". Maximum is: %d\n",
         num_variables, UntaggedLocalVarDescriptors::kMaxIndex);
@@ -16086,7 +16057,7 @@ void ExceptionHandlers::set_handled_types_data(const Array& value) const {
 ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
   if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
-    FATAL1(
+    FATAL(
         "Fatal error in ExceptionHandlers::New(): "
         "invalid num_handlers %" Pd "\n",
         num_handlers);
@@ -16114,7 +16085,7 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
   ASSERT(Object::exception_handlers_class() != Class::null());
   const intptr_t num_handlers = handled_types_data.Length();
   if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
-    FATAL1(
+    FATAL(
         "Fatal error in ExceptionHandlers::New(): "
         "invalid num_handlers %" Pd "\n",
         num_handlers);
@@ -17479,8 +17450,7 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::Comments::New: invalid count %" Pd "\n",
-           count);
+    FATAL("Fatal error in Code::Comments::New: invalid count %" Pd "\n", count);
   }
   if (count == 0) {
     comments = new Comments(Object::empty_array());
@@ -17891,8 +17861,8 @@ void Code::set_inlined_id_to_function(const Array& value) const {
 CodePtr Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %" Pd "\n",
-           pointer_offsets_length);
+    FATAL("Fatal error in Code::New: invalid pointer_offsets_length %" Pd "\n",
+          pointer_offsets_length);
   }
   ASSERT(Object::code_class() != Class::null());
   Code& result = Code::Handle();
@@ -18451,8 +18421,8 @@ ContextPtr Context::New(intptr_t num_variables, Heap::Space space) {
 
   if (!IsValidLength(num_variables)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Context::New: invalid num_variables %" Pd "\n",
-           num_variables);
+    FATAL("Fatal error in Context::New: invalid num_variables %" Pd "\n",
+          num_variables);
   }
   Context& result = Context::Handle();
   {
@@ -18521,8 +18491,8 @@ ContextScopePtr ContextScope::New(intptr_t num_variables, bool is_implicit) {
   ASSERT(Object::context_scope_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ContextScope::New: invalid num_variables %" Pd "\n",
-           num_variables);
+    FATAL("Fatal error in ContextScope::New: invalid num_variables %" Pd "\n",
+          num_variables);
   }
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
@@ -18609,6 +18579,17 @@ bool ContextScope::IsConstAt(intptr_t scope_index) const {
 void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
   SetFlagAt(scope_index, UntaggedContextScope::VariableDesc::kIsConst,
             is_const);
+}
+
+bool ContextScope::IsInvisibleAt(intptr_t scope_index) const {
+  return GetFlagAt(scope_index,
+                   UntaggedContextScope::VariableDesc::kIsInvisible);
+}
+
+void ContextScope::SetIsInvisibleAt(intptr_t scope_index,
+                                    bool is_invisible) const {
+  SetFlagAt(scope_index, UntaggedContextScope::VariableDesc::kIsInvisible,
+            is_invisible);
 }
 
 intptr_t ContextScope::LateInitOffsetAt(intptr_t scope_index) const {
@@ -20584,16 +20565,6 @@ InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
   intptr_t instance_size = cls.host_instance_size();
   ASSERT(instance_size > 0);
   ObjectPtr raw = Object::Allocate(cls.id(), instance_size, space,
-                                   Instance::ContainsCompressedPointers());
-  return static_cast<InstancePtr>(raw);
-}
-
-InstancePtr Instance::NewFromCidAndSize(ClassTable* class_table,
-                                        classid_t cid,
-                                        Heap::Space heap) {
-  const intptr_t instance_size = class_table->SizeAt(cid);
-  ASSERT(instance_size > 0);
-  ObjectPtr raw = Object::Allocate(cid, instance_size, heap,
                                    Instance::ContainsCompressedPointers());
   return static_cast<InstancePtr>(raw);
 }
@@ -24844,7 +24815,7 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
            Class::null())));
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
   }
   {
     ObjectPtr raw = Object::Allocate(
@@ -25053,7 +25024,7 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
          nullptr);
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TwoByteString::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in TwoByteString::New: invalid len %" Pd "\n", len);
   }
   String& result = String::Handle();
   {
@@ -25212,8 +25183,8 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
              ->external_one_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
-           len);
+    FATAL("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
+          len);
   }
   String& result = String::Handle();
   {
@@ -25244,8 +25215,8 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
              ->external_two_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
-           len);
+    FATAL("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
+          len);
   }
   String& result = String::Handle();
   {
@@ -25346,7 +25317,7 @@ ArrayPtr Array::NewUninitialized(intptr_t class_id,
                                  Heap::Space space) {
   if (!IsValidLength(len)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
   {
     ArrayPtr raw = static_cast<ArrayPtr>(
@@ -26193,7 +26164,7 @@ TypedDataPtr TypedData::New(intptr_t class_id,
                             intptr_t len,
                             Heap::Space space) {
   if (len < 0 || len > TypedData::MaxElements(class_id)) {
-    FATAL1("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
   }
   TypedData& result = TypedData::Handle();
   {
@@ -26241,7 +26212,7 @@ ExternalTypedDataPtr ExternalTypedData::New(
     Heap::Space space,
     bool perform_eager_msan_initialization_check) {
   if (len < 0 || len > ExternalTypedData::MaxElements(class_id)) {
-    FATAL1("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
+    FATAL("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
   }
 
   if (perform_eager_msan_initialization_check) {
@@ -26530,24 +26501,26 @@ uword Closure::ComputeHash() const {
   Zone* zone = thread->zone();
   const Function& func = Function::Handle(zone, function());
   uint32_t result = 0;
-  if (func.IsImplicitInstanceClosureFunction()) {
-    // Implicit instance closures are not unique, so combine function's hash
-    // code, delayed type arguments hash code (if generic), and identityHashCode
-    // of cached receiver.
+  if (func.IsImplicitClosureFunction() || func.IsGeneric()) {
+    // Combine function's hash code, delayed type arguments hash code
+    // (if generic), and identityHashCode of cached receiver (if implicit
+    // instance closure).
     result = static_cast<uint32_t>(func.Hash());
     if (func.IsGeneric()) {
       const TypeArguments& delayed_type_args =
           TypeArguments::Handle(zone, delayed_type_arguments());
       result = CombineHashes(result, delayed_type_args.Hash());
     }
-    const Context& context = Context::Handle(zone, this->context());
-    const Instance& receiver =
-        Instance::Handle(zone, Instance::RawCast(context.At(0)));
-    const Integer& receiverHash =
-        Integer::Handle(zone, receiver.IdentityHashCode(thread));
-    result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
+    if (func.IsImplicitInstanceClosureFunction()) {
+      const Context& context = Context::Handle(zone, this->context());
+      const Instance& receiver =
+          Instance::Handle(zone, Instance::RawCast(context.At(0)));
+      const Integer& receiverHash =
+          Integer::Handle(zone, receiver.IdentityHashCode(thread));
+      result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
+    }
   } else {
-    // Explicit closures and implicit static closures are unique,
+    // Non-implicit closures of non-generic functions are unique,
     // so identityHashCode of closure object is good enough.
     const Integer& identityHash =
         Integer::Handle(zone, this->IdentityHashCode(thread));

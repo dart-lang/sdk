@@ -18,7 +18,7 @@ test2(dynamic x) {
 
 test3(Map<bool, double> x) {
   if (x case {true: 3.14}) {}
-  if (x case {}) {}
+  if (x case {false: 2.71}) {}
 }
 
 test4(MyMap x) {

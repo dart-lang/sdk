@@ -125,7 +125,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
   }
 
-  Future _updateElementReferences(Element element) async {
+  Future<void> _updateElementReferences(Element element) async {
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {

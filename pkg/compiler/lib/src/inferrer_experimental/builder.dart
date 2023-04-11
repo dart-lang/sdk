@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 
 import '../closure.dart';
 import '../common.dart';
@@ -24,6 +26,8 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/js_world.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../universe/member_hierarchy.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../util/util.dart';
@@ -48,6 +52,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   final ir.Node? _analyzedNode;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData _memberData;
+  final MemberHierarchyBuilder _memberHierarchyBuilder;
   final bool _inGenerativeConstructor;
 
   DartTypes get _dartTypes => _closedWorld.dartTypes;
@@ -129,6 +134,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       this._analyzedNode,
       this._localsMap,
       this._staticTypeProvider,
+      this._memberHierarchyBuilder,
       [LocalState? previousState,
       Map<Local, FieldEntity>? capturedAndBoxed])
       : this._types = _inferrer.types,
@@ -743,9 +749,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   TypeInformation createRecordTypeInformation(
       ir.TreeNode node, RecordType recordType, List<TypeInformation> fieldTypes,
       {required bool isConst}) {
-    return _inferrer.concreteTypes.putIfAbsent(node, () {
-      return _types.allocateRecord(node, recordType, fieldTypes, isConst);
-    });
+    return _types.allocateRecord(node, recordType, fieldTypes, isConst);
   }
 
   @override
@@ -1562,6 +1566,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
   @override
   TypeInformation visitStaticInvocation(ir.StaticInvocation node) {
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      final weakTarget = ir.StaticWeakReferences.getWeakReferenceTarget(node);
+      if (_elementMap.containsMethod(weakTarget)) {
+        return visit(ir.StaticWeakReferences.getWeakReferenceArgument(node))!;
+      }
+      return _types.nullType;
+    }
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
@@ -1702,28 +1713,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 
   TypeInformation _handleRecordFieldGet(
-      ir.Expression node, ir.Expression receiver, int indexInShape) {
-    visit(receiver)!;
-    _typeOfReceiver(node, receiver);
-    // TODO(49718): Add a new TypeInformation node for a direct Record field
-    // access.
-    // For now, use the static type.
-    // TODO(50081): Use `_types.getConcreteTypeFor(<something>)`.
-    TypeInformation type = _types.dynamicType;
-    type = _types.narrowType(type, _getStaticType(node));
-    return type;
+      ir.Expression node, ir.Expression receiver, String fieldName) {
+    final receiverType = visit(receiver)!;
+    (_memberData as KernelGlobalTypeInferenceElementData)
+        .setReceiverTypeMask(node, receiverType.type);
+    return _types.allocateRecordFieldGet(node, fieldName, receiverType);
   }
 
   @override
   TypeInformation visitRecordIndexGet(ir.RecordIndexGet node) {
-    return _handleRecordFieldGet(node, node.receiver, node.index);
+    return _handleRecordFieldGet(node, node.receiver,
+        RecordShape.positionalFieldIndexToGetterName(node.index));
   }
 
   @override
   TypeInformation visitRecordNameGet(ir.RecordNameGet node) {
-    int index =
-        indexOfNameInRecordShapeOfRecordType(node.receiverType, node.name);
-    return _handleRecordFieldGet(node, node.receiver, index);
+    return _handleRecordFieldGet(node, node.receiver, node.name);
   }
 
   @override
@@ -1745,13 +1750,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     if (_inGenerativeConstructor && receiver is ir.ThisExpression) {
       final typedMask = _types.newTypedSelector(receiverType, mask);
       if (!_closedWorld.includesClosureCall(selector, typedMask)) {
-        Iterable<MemberEntity> targets =
-            _closedWorld.locateMembers(selector, typedMask);
+        Iterable<DynamicCallTarget> targets =
+            _memberHierarchyBuilder.rootsForCall(typedMask, selector);
         // We just recognized a field initialization of the form:
-        // `this.foo = 42`. If there is only one target, we can update
-        // its type.
-        if (targets.length == 1) {
-          MemberEntity single = targets.first;
+        // `this.foo = 42`. If there is only one non-virtual target, we can
+        // update its type. If the target is virtual then technically overrides
+        // of the target are also valid targets and we cannot make this update.
+        if (targets.length == 1 && !targets.single.isVirtual) {
+          MemberEntity single = targets.single.member;
           if (single is FieldEntity) {
             final field = single;
             _state.updateField(field, rhsType);
@@ -1994,6 +2000,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
         functionNode,
         _localsMap,
         _staticTypeProvider,
+        _memberHierarchyBuilder,
         closureState,
         _capturedAndBoxed);
     visitor.run();

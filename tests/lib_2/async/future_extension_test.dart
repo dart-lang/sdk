@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async' show Completer, runZonedGuarded;
-import '../../language/static_type_helper.dart';
+import '../../language_2/static_type_helper.dart';
 
 void main() {
   testIgnore();

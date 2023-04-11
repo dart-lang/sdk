@@ -260,7 +260,10 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int handled = 0;
     server.listen((request) {
-      Expect.isTrue(server.connectionsInfo().total <= connectionCap);
+      Expect.isTrue(
+          server.connectionsInfo().total <= connectionCap,
+          '${server.connectionsInfo().total} <= $connectionCap ' +
+              '(connections: $connections)');
       request.response.close();
       handled++;
       if (handled == connections) {

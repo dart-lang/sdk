@@ -780,7 +780,7 @@ transforms:
 
   /// Assuming that the [transform] has a single list of changes associated with
   /// it, return the list of changes.
-  List<Change> _changes(Transform transform) =>
+  List<Change<Object>> _changes(Transform transform) =>
       (transform.changesSelector as UnconditionalChangesSelector).changes;
 
   ElementMatcher _matcher(String name) =>

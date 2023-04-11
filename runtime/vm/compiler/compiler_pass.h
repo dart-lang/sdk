@@ -71,7 +71,7 @@ struct CompilerPassState {
   CompilerPassState(Thread* thread,
                     FlowGraph* flow_graph,
                     SpeculativeInliningPolicy* speculative_policy,
-                    Precompiler* precompiler = NULL);
+                    Precompiler* precompiler = nullptr);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
@@ -117,7 +117,7 @@ class CompilerPass {
 #undef ADD_ONE
 
   CompilerPass(Id id, const char* name) : id_(id), name_(name) {
-    ASSERT(passes_[id] == NULL);
+    ASSERT(passes_[id] == nullptr);
     passes_[id] = this;
 
     // By default print the final flow-graph after the register allocation.
@@ -192,11 +192,11 @@ class CompilerPass {
  private:
   static CompilerPass* FindPassByName(const char* name) {
     for (intptr_t i = 0; i < kNumPasses; i++) {
-      if ((passes_[i] != NULL) && (strcmp(passes_[i]->name_, name) == 0)) {
+      if ((passes_[i] != nullptr) && (strcmp(passes_[i]->name_, name) == 0)) {
         return passes_[i];
       }
     }
-    return NULL;
+    return nullptr;
   }
 
   void PrintGraph(CompilerPassState* state, Flag mask, intptr_t round) const;

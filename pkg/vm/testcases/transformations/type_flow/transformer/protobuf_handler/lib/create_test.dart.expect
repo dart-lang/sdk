@@ -3,7 +3,7 @@ import self as self;
 import "generated/foo.pb.dart" as pb;
 import "dart:core" as core;
 import "package:test_core/scaffolding.dart" as sca;
-import "package:test_api/src/expect/expect.dart" as exp;
+import "package:matcher/src/expect/expect.dart" as exp;
 
 import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";

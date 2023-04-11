@@ -129,7 +129,7 @@ library /*isNonNullableByDefault*/;
 import self as in_2;
 import "dart:core" as core;
 
-class Super extends core::Object {
+mixin class Super extends core::Object {
   synthetic constructor •() → in_2::Super
     ;
   method nullabilityMethod(core::int i) → core::int
@@ -147,7 +147,7 @@ abstract class SuperExtra extends core::Object {
   method optionalArgumentsMethod(core::int i, [core::int? j = null]) → core::int
     ;
 }
-abstract class SuperQ extends core::Object {
+abstract mixin class SuperQ extends core::Object {
   synthetic constructor •() → in_2::SuperQ
     ;
   method nullabilityMethod(core::int? i) → core::int?

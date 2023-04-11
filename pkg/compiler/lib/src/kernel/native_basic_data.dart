@@ -86,7 +86,9 @@ class KernelAnnotationProcessor {
             /*reporter.reportErrorMessage(
                 function, MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER);*/
           } else {
-            _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName);
+            _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName,
+                isJsInteropObjectLiteral:
+                    annotationData.isJsInteropObjectLiteral(memberNode));
             // TODO(johnniwinther): It is unclear whether library can be
             // implicitly js-interop. For now we allow it.
             isJsLibrary = true;
@@ -100,10 +102,13 @@ class KernelAnnotationProcessor {
       String? className = annotationData.getJsInteropClassName(classNode);
       if (className != null) {
         bool isAnonymous = annotationData.isAnonymousJsInteropClass(classNode);
+        bool isStaticInterop = annotationData.isStaticInteropClass(classNode);
         // TODO(johnniwinther): Report an error if the class is anonymous but
         // has a non-empty name.
         _nativeBasicDataBuilder.markAsJsInteropClass(cls,
-            name: className, isAnonymous: isAnonymous);
+            name: className,
+            isAnonymous: isAnonymous,
+            isStaticInterop: isStaticInterop);
         // TODO(johnniwinther): It is unclear whether library can be implicitly
         // js-interop. For now we allow it.
         isJsLibrary = true;
@@ -128,7 +133,8 @@ class KernelAnnotationProcessor {
               // TODO(johnniwinther): The documentation states that explicit
               // member name annotations are not allowed on instance members.
               _nativeBasicDataBuilder.markAsJsInteropMember(
-                  function, memberName);
+                  function, memberName,
+                  isJsInteropObjectLiteral: false);
             }
           }
         });
@@ -145,7 +151,8 @@ class KernelAnnotationProcessor {
             // TODO(johnniwinther): The documentation states that explicit
             // member name annotations are not allowed on instance members.
             _nativeBasicDataBuilder.markAsJsInteropMember(
-                constructor, memberName);
+                constructor, memberName,
+                isJsInteropObjectLiteral: false);
           }
         });
       }

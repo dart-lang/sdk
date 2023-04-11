@@ -5528,8 +5528,9 @@ void CreateSpecializedFunction(Thread* thread,
 
   const FunctionType& signature =
       FunctionType::Handle(zone, FunctionType::New());
+  const String& pattern = String::Handle(zone, regexp.pattern());
   Function& fn =
-      Function::Handle(zone, Function::New(signature, Symbols::ColonMatcher(),
+      Function::Handle(zone, Function::New(signature, pattern,
                                            UntaggedFunction::kIrregexpFunction,
                                            true,   // Static.
                                            false,  // Not const.

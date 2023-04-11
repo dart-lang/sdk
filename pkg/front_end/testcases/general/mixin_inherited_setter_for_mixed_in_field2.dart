@@ -4,7 +4,7 @@
 
 class A {}
 
-class C<T extends A> {
+mixin class C<T extends A> {
   late T _field;
 
   foo(T x) {

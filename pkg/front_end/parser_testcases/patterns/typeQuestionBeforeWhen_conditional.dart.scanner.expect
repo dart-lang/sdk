@@ -1,0 +1,5 @@
+void f(condition, when, otherwise) => condition as bool ? when : otherwise;
+
+
+void[KeywordToken] f[StringToken]([BeginToken]condition[StringToken],[SimpleToken] when[KeywordToken],[SimpleToken] otherwise[StringToken])[SimpleToken] =>[SimpleToken] condition[StringToken] as[KeywordToken] bool[StringToken] ?[SimpleToken] when[KeywordToken] :[SimpleToken] otherwise[StringToken];[SimpleToken]
+[SimpleToken]

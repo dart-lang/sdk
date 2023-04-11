@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
 
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp
+    show MessageType;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -13,6 +16,8 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
+import 'package:analysis_server/src/protocol_server.dart' as legacy
+    show MessageType;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
@@ -24,6 +29,8 @@ import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -45,6 +52,7 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -141,6 +149,9 @@ abstract class AnalysisServer {
 
   PerformanceLog? analysisPerformanceLogger;
 
+  /// Manages prompts telling the user about "dart fix".
+  late final DartFixPromptManager _dartFixPrompt;
+
   /// The set of the files that are currently priority.
   final Set<String> priorityFiles = <String>{};
 
@@ -155,6 +166,14 @@ abstract class AnalysisServer {
   /// used as a cache key.
   int overlayModificationStamp = DateTime.now().millisecondsSinceEpoch;
 
+  /// Indicates whether the next time the server completes analysis is the first
+  /// one since analysis contexts were built.
+  ///
+  /// This is useful for triggering things like [_dartFixPrompt] only when
+  /// it may be useful to do so (after initial analysis and
+  /// "pub get"/"pub upgrades").
+  bool isFirstAnalysisSinceContextsBuilt = true;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -168,6 +187,7 @@ abstract class AnalysisServer {
     this.notificationManager, {
     this.requestStatistics,
     bool enableBlazeWatcher = false,
+    DartFixPromptManager? dartFixPromptManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
@@ -245,6 +265,14 @@ abstract class AnalysisServer {
       enableBlazeWatcher: enableBlazeWatcher,
     );
     searchEngine = SearchEngineImpl(driverMap.values);
+
+    if (dartFixPromptManager != null) {
+      _dartFixPrompt = dartFixPromptManager;
+    } else {
+      final promptPreferences =
+          UserPromptPreferences(resourceProvider, instrumentationService);
+      _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
+    }
   }
 
   /// The list of current analysis sessions in all contexts.
@@ -261,6 +289,13 @@ abstract class AnalysisServer {
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
 
+  /// Whether or not the client supports openUri requests/notifications.
+  bool get supportsOpenUriNotification;
+
+  /// Whether or not the client supports showMessageRequest to show the user
+  /// a message and allow them to respond by clicking buttons.
+  bool get supportsShowMessageRequest;
+
   /// Return the total time the server's been alive.
   Duration get uptime {
     var start =
@@ -273,6 +308,11 @@ abstract class AnalysisServer {
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
     }
+  }
+
+  void afterContextsCreated() {
+    isFirstAnalysisSinceContextsBuilt = true;
+    addContextsToDeclarationsTracker();
   }
 
   /// Broadcast a request built from the given [params] to all of the plugins
@@ -490,6 +530,14 @@ abstract class AnalysisServer {
     });
   }
 
+  @mustCallSuper
+  FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
+    if (isFirstAnalysisSinceContextsBuilt && !status.isAnalyzing) {
+      isFirstAnalysisSinceContextsBuilt = false;
+      _dartFixPrompt.triggerCheck();
+    }
+  }
+
   /// Return `true` if the file or directory with the given [path] will be
   /// analyzed in one of the analysis contexts.
   bool isAnalyzed(String path) {
@@ -530,6 +578,81 @@ abstract class AnalysisServer {
     await contextManager.refresh();
   }
 
+  /// Report analytics data related to the number and size of files that were
+  /// analyzed.
+  void reportAnalysisAnalytics() {
+    var packagesFileMap = <String, File?>{};
+    var optionsFileMap = <String, File?>{};
+    var immediateFileCount = 0;
+    var immediateFileLineCount = 0;
+    var transitiveFileCount = 0;
+    var transitiveFileLineCount = 0;
+    var transitiveFilePaths = <String>{};
+    var transitiveFileUniqueLineCount = 0;
+    var driverMap = contextManager.driverMap;
+    for (var entry in driverMap.entries) {
+      var rootPath = entry.key.path;
+      var driver = entry.value;
+      var contextRoot = driver.analysisContext?.contextRoot;
+      if (contextRoot != null) {
+        packagesFileMap[rootPath] = contextRoot.packagesFile;
+        optionsFileMap[rootPath] = contextRoot.optionsFile;
+      }
+      var fileSystemState = driver.fsState;
+      for (var fileState in fileSystemState.knownFiles) {
+        var isImmediate = fileState.path.startsWith(rootPath);
+        if (isImmediate) {
+          immediateFileCount++;
+          immediateFileLineCount += fileState.lineInfo.lineCount;
+        } else {
+          var lineCount = fileState.lineInfo.lineCount;
+          transitiveFileCount++;
+          transitiveFileLineCount += lineCount;
+          if (transitiveFilePaths.add(fileState.path)) {
+            transitiveFileUniqueLineCount += lineCount;
+          }
+        }
+      }
+    }
+    var transitiveFileUniqueCount = transitiveFilePaths.length;
+
+    var rootPaths = packagesFileMap.keys.toList();
+    rootPaths.sort((first, second) => first.length.compareTo(second.length));
+    var styleCounts = [
+      0, // neither
+      0, // only packages
+      0, // only options
+      0, // both
+    ];
+    var packagesFiles = <File>{};
+    var optionsFiles = <File>{};
+    for (var rootPath in rootPaths) {
+      var packagesFile = packagesFileMap[rootPath];
+      var hasUniquePackageFile =
+          packagesFile != null && packagesFiles.add(packagesFile);
+      var optionsFile = optionsFileMap[rootPath];
+      var hasUniqueOptionsFile =
+          optionsFile != null && optionsFiles.add(optionsFile);
+      var style =
+          (hasUniquePackageFile ? 1 : 0) + (hasUniqueOptionsFile ? 2 : 0);
+      styleCounts[style]++;
+    }
+
+    analyticsManager.analysisComplete(
+      numberOfContexts: driverMap.length,
+      contextsWithoutFiles: styleCounts[0],
+      contextsFromPackagesFiles: styleCounts[1],
+      contextsFromOptionsFiles: styleCounts[2],
+      contextsFromBothFiles: styleCounts[3],
+      immediateFileCount: immediateFileCount,
+      immediateFileLineCount: immediateFileLineCount,
+      transitiveFileCount: transitiveFileCount,
+      transitiveFileLineCount: transitiveFileLineCount,
+      transitiveFileUniqueCount: transitiveFileUniqueCount,
+      transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+    );
+  }
+
   Future<ResolvedForCompletionResultImpl?> resolveForCompletion({
     required String path,
     required int offset,
@@ -557,6 +680,9 @@ abstract class AnalysisServer {
     return null;
   }
 
+  /// Sends a notification/request to the client asking it to open [uri].
+  FutureOr<void> sendOpenUriNotification(Uri uri);
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
@@ -565,8 +691,14 @@ abstract class AnalysisServer {
     bool fatal = false,
   });
 
+  Future<String?> showUserPrompt(
+    MessageType type,
+    String message,
+    List<String> actionLabels,
+  );
+
   @mustCallSuper
-  void shutdown() {
+  Future<void> shutdown() async {
     // For now we record plugins only on shutdown. We might want to record them
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
@@ -578,7 +710,7 @@ abstract class AnalysisServer {
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
 
     pubPackageService.shutdown();
-    analyticsManager.shutdown();
+    await analyticsManager.shutdown();
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if
@@ -596,6 +728,19 @@ abstract class AnalysisServer {
     }
     return null;
   }
+}
+
+/// A server-agnostic type for messages sent to the client.
+enum MessageType {
+  error(lsp.MessageType.Error, legacy.MessageType.ERROR),
+  warning(lsp.MessageType.Warning, legacy.MessageType.WARNING),
+  info(lsp.MessageType.Info, legacy.MessageType.INFO),
+  log(lsp.MessageType.Log, legacy.MessageType.LOG);
+
+  final lsp.MessageType forLsp;
+  final legacy.MessageType forLegacy;
+
+  const MessageType(this.forLsp, this.forLegacy);
 }
 
 class ServerRecentPerformance {

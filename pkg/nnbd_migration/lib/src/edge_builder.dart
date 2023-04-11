@@ -1960,6 +1960,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var hasLabel = member.labels.isNotEmpty;
         _flowAnalysis!.switchStatement_beginAlternatives();
         _flowAnalysis!.switchStatement_beginAlternative();
+        _flowAnalysis!.constantPattern_end(node.expression, scrutineeType,
+            patternsEnabled: false);
         _flowAnalysis!.switchStatement_endAlternative(null, {});
         _flowAnalysis!
             .switchStatement_endAlternatives(node, hasLabels: hasLabel);
@@ -2273,7 +2275,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         ? NullabilityNode.forLUB(left.node, right.node)
         : _nullabilityNodeForGLB(astNode, left.node, right.node);
 
-    if (type!.isDynamic || type.isVoid) {
+    if (type!.isDynamic || type is VoidType) {
       return DecoratedType(type, node);
     } else if (leftType!.isBottom) {
       return right.withNode(node);
@@ -2690,7 +2692,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Be over conservative with public methods' arguments:
     // Unless we have reasons for non-nullability, assume they are nullable.
     // Soft edge to `always` node does exactly this.
-    if (declaredElement.isPublic &&
+    bool isOverride = false;
+    final thisClass = declaredElement.enclosingElement;
+    if (thisClass is InterfaceElement) {
+      final name = Name(thisClass.library.source.uri, declaredElement.name);
+      isOverride = _inheritanceManager.getOverridden2(thisClass, name) != null;
+    }
+    if (!isOverride &&
+        declaredElement.isPublic &&
         declaredElement is! PropertyAccessorElement &&
         // operator == treats `null` specially.
         !(declaredElement.isOperator && declaredElement.name == '==')) {
@@ -3905,7 +3914,7 @@ mixin _AssignmentChecker {
         return;
       }
     } else if (destinationType.isDynamic ||
-        destinationType.isVoid ||
+        destinationType is VoidType ||
         destinationType.isDartCoreObject) {
       // No further edges need to be created, since all types are trivially
       // subtypes of dynamic, Object, and void, since all are treated as
@@ -3979,7 +3988,7 @@ mixin _AssignmentChecker {
 
     if (sourceType.isDynamic ||
         sourceType.isDartCoreObject ||
-        sourceType.isVoid) {
+        sourceType is VoidType) {
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,

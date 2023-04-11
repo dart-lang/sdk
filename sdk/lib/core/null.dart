@@ -21,7 +21,7 @@ part of dart.core;
 /// [...? e6] // spreads e6 into the list literal, unless e6 is null.
 /// ```
 @pragma("vm:entry-point")
-class Null {
+final class Null {
   factory Null._uninstantiable() {
     throw UnsupportedError('class Null cannot be instantiated');
   }

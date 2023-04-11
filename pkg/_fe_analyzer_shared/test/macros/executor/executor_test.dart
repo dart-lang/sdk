@@ -241,7 +241,8 @@ void main() {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace(
-                        'String delegateMemberMyMethod() => myMethod();'));
+                        '(String, bool? hello, {String world}) '
+                        'delegateMemberMyMethod() => myMethod();'));
               });
 
               test('on constructors', () async {
@@ -566,17 +567,17 @@ final fieldDefinitionMatchers = [
 
 final methodDefinitionMatchers = [
   equalsIgnoringWhitespace('''
-    augment String myMethod() {
+    augment (String, bool? hello, {String world}) myMethod() {
       print('definingClass: MyClass');
       print('isAbstract: false');
       print('isExternal: false');
       print('isGetter: false');
       print('isSetter: false');
-      print('returnType: String');
+      print('returnType: (String, bool? hello, {String world})');
       return augment super();
     }'''),
   equalsIgnoringWhitespace('''
-    augment String myMethod() {
+    augment (String, bool? hello, {String world}) myMethod() {
       print('myBool: true');
       print('myDouble: 1.0');
       print('myInt: 1');

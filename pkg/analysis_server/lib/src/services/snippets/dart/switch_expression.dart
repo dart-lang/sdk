@@ -34,7 +34,7 @@ class SwitchExpression extends DartSnippetProducer {
         builder.write(',');
         builder.selectHere();
         builder.writeln();
-        writeIndented('};');
+        writeIndented('}');
       });
     });
 

@@ -119,6 +119,7 @@ class TestConfiguration {
   bool get isHostChecked => configuration.isHostChecked;
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
+  bool get isSimulator => architecture.isSimulator;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useElf => configuration.useElf;
@@ -195,8 +196,6 @@ class TestConfiguration {
   bool get usesFasta {
     var fastaCompilers = const [
       Compiler.appJitk,
-      Compiler.dartdevc,
-      Compiler.dartdevk,
       Compiler.ddc,
       Compiler.dartk,
       Compiler.dartkp,
@@ -486,5 +485,6 @@ class Progress {
 
   const Progress._(this.name);
 
+  @override
   String toString() => "Progress($name)";
 }

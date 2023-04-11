@@ -10,6 +10,9 @@
 // considered exhaustive if either (a) it is recognized as exhaustive by flow
 // analysis, or (b) it is recognized as exhaustive by the old (pre-patterns)
 // exhaustiveness algorithm for enums.
+//
+// With the enabling of the real exhaustiveness algorithm, these switches should
+// still not cause errors.
 
 // SharedOptions=--enable-experiment=patterns --enable-experiment=records
 
@@ -25,6 +28,8 @@ void ignore(Object? value) {}
 void hasDefault(bool b) {
   // Flow analysis recognizes that the presence of a `default` clause makes a
   // switch statement exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true:
       break;
@@ -36,6 +41,8 @@ void hasDefault(bool b) {
 void untypedWildcard(bool b) {
   // Flow analysis recognizes that the presence of an untyped wildcard pattern
   // (`_`) makes a switch exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true:
       break;
@@ -51,6 +58,8 @@ void untypedWildcard(bool b) {
 void untypedVariable(bool b) {
   // Flow analysis recognizes that the presence of an untyped variable pattern
   // makes a switch exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true:
       break;
@@ -67,6 +76,8 @@ void typedWildcard(bool b) {
   // Flow analysis recognizes that the presence of a typed wildcard pattern
   // (where the type is a supertype of the scrutinee type) makes a switch
   // exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true:
       break;
@@ -93,6 +104,8 @@ void typedVariable(bool b) {
   // Flow analysis recognizes that the presence of a typed variable pattern
   // (where the type is a supertype of the scrutinee type) makes a switch
   // exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true:
       break;
@@ -119,6 +132,8 @@ void objectPattern(bool b) {
   // Flow analysis recognizes that the presence of an object pattern with no
   // fields (where the type is a supertype of the scrutinee type) makes a switch
   // exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true:
       break;
@@ -145,6 +160,8 @@ void logicalOrPattern(bool b) {
   // Flow analysis recognizes that the presence of a logical-or pattern (where
   // one of the arms of the logical-or fully covers the scrutinee type) makes a
   // switch exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case true || bool():
       break;
@@ -165,6 +182,8 @@ void logicalAndPattern(bool b) {
   // Flow analysis recognizes that the presence of a logical-and pattern (where
   // both of the arms of the logical-and fully cover the scrutinee type) makes a
   // switch exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case bool() && Object():
       break;
@@ -177,6 +196,8 @@ void logicalAndPattern(bool b) {
 void castPattern(bool? b) {
   // Flow analysis recognizes that the presence of a cast pattern (where the
   // inner pattern fully covers the cast type) makes a switch exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case bool() as bool:
       break;
@@ -190,6 +211,8 @@ void nullAssertPattern(bool? b1, bool? b2) {
   // Flow analysis recognizes that the presence of a null assert pattern (where
   // the inner pattern fully covers the promoted type) makes a switch
   // exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (b1) {
     case bool()!:
       break;
@@ -202,6 +225,8 @@ void nullAssertPattern(bool? b1, bool? b2) {
 void nullPattern(Null n) {
   // Flow analysis recognizes that the constant `null` fully covers the type
   // `Null`.
+  //
+  // The real exhaustiveness handles this.
   switch (n) {
     case null:
       break;
@@ -214,6 +239,8 @@ void nullPattern(Null n) {
 void parenthesizedPattern(bool b, E e) {
   // Flow analysis recognizes that a parenthesized pattern is equivalent to its
   // inner pattern.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case (bool()):
       break;
@@ -243,6 +270,8 @@ void parenthesizedPattern(bool b, E e) {
 void recordPattern((bool, E) r) {
   // Flow analysis recognizes that a record pattern (where the subpatterns fully
   // cover the respective field types) make a switch exhaustive.
+  //
+  // The real exhaustiveness handles this.
   switch (r) {
     case (bool(), E()):
       break;
@@ -254,6 +283,8 @@ void recordPattern((bool, E) r) {
 
 void factorNullable(bool? b) {
   // Flow analysis recognizes that the type `T?` factors into `T` and `Null`.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
     case null:
       break;
@@ -269,6 +300,8 @@ void factorNullable(bool? b) {
 void factorFutureOr(FutureOr<bool> x) {
   // Flow analysis recognizes that a FutureOr<T> type factors into `T` and
   // `Future<T>`.
+  //
+  // The real exhaustiveness handles this.
   switch (x) {
     case Future<bool>():
       break;
@@ -284,6 +317,8 @@ void factorFutureOr(FutureOr<bool> x) {
 void exhaustedEnum(E e) {
   // The old exhaustiveness algorithm recognizes that all enum values exhaust an
   // enum type.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
     case E.e1:
       break;
@@ -299,6 +334,8 @@ void exhaustedEnum(E e) {
 void exhaustedNullableEnum(E? e) {
   // The old exhaustiveness algorithm recognizes that all enum values, plus
   // `null`, exhaust a nullable enum type.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
     case E.e1:
       break;

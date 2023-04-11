@@ -30,7 +30,7 @@ namespace dart {
 class ObjectPointerVisitor;
 class LocalVariable;
 
-extern UntaggedFrame runtime_frame_layout;
+extern FrameLayout runtime_frame_layout;
 
 // Generic stack frame.
 class StackFrame : public ValueObject {

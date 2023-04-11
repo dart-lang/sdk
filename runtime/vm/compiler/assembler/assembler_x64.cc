@@ -2285,7 +2285,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_size != 0);
   ASSERT(Utils::IsAligned(instance_size,
                           target::ObjectAlignment::kObjectAlignment));
@@ -2320,7 +2320,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register instance,
                                  Register end_address,
                                  Register temp) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path

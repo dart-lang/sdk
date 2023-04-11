@@ -1,18 +1,16 @@
-/**
- * HTML elements and other resources for web-based applications that need to
- * interact with the browser and the DOM (Document Object Model).
- *
- * This library includes DOM element types, CSS styling, local storage,
- * media, speech, events, and more.
- * To get started,
- * check out the [Element] class, the base class for many of the HTML
- * DOM types.
- *
- * For information on writing web apps with Dart, see https://dart.dev/web.
- *
- * {@category Web}
- * {@canonicalFor dart:_internal.HttpStatus}
- */
+/// HTML elements and other resources for web-based applications that need to
+/// interact with the browser and the DOM (Document Object Model).
+///
+/// This library includes DOM element types, CSS styling, local storage,
+/// media, speech, events, and more.
+/// To get started,
+/// check out the [Element] class, the base class for many of the HTML
+/// DOM types.
+///
+/// For information on writing web apps with Dart, see https://dart.dev/web.
+///
+/// {@category Web}
+/// {@canonicalFor dart:_internal.HttpStatus}
 library dart.dom.html;
 
 import 'dart:async';
@@ -5908,12 +5906,12 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
-  // sense in terms of having a resonable value to return when you're
+  // sense in terms of having a reasonable value to return when you're
   // considering a list of Elements. You will need to manually add any of the
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
+abstract mixin class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String? value, [String? priority]);
 
@@ -13049,7 +13047,7 @@ class Element extends Node
   }
 
   /**
-   * Finds all descendant elements of this element that match the specified
+   * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *
    * [selectors] should be a string using CSS selector syntax.
@@ -23491,7 +23489,7 @@ class Node extends EventTarget {
   /**
    * Returns a copy of this node.
    *
-   * If [deep] is `true`, then all of this node's children and descendents are
+   * If [deep] is `true`, then all of this node's children and descendants are
    * copied as well. If [deep] is `false`, then only this node is copied.
    *
    * ## Other resources
@@ -28546,7 +28544,7 @@ class SpeechGrammarList extends JavaScriptObject
 // BSD-style license that can be found in the LICENSE file.
 
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Native("SpeechRecognition")
+@Native("SpeechRecognition,webkitSpeechRecognition")
 class SpeechRecognition extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognition._() {
@@ -36870,7 +36868,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   // A collection of static methods for DomTokenList. These methods are a
-  // work-around for the lack of annotations to express the full behaviour of
+  // workaround for the lack of annotations to express the full behaviour of
   // the DomTokenList methods.
 
   static DomTokenList _classListOf(Element e) => JS(
@@ -37220,7 +37218,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   bool get isBroadcast => true;
 }
 
-class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+class _EventStreamSubscription<T extends Event>
+    implements StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget? _target;
   final String _eventType;
@@ -37899,7 +37898,7 @@ class _Html5NodeValidator implements NodeValidator {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class ImmutableListMixin<E> implements List<E> {
+abstract mixin class ImmutableListMixin<E> implements List<E> {
   // From Iterable<$E>:
   Iterator<E> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
@@ -38068,7 +38067,7 @@ abstract class KeyCode {
   static const int Y = 89;
   static const int Z = 90;
   static const int META = 91;
-  static const int WIN_KEY_LEFT = 91;
+  static const int WIN_KEY_LEFT = 91; // Note that it's the same value as META.
   static const int WIN_KEY_RIGHT = 92;
   static const int CONTEXT_MENU = 93;
   static const int NUM_ZERO = 96;
@@ -38293,7 +38292,8 @@ abstract class KeyCode {
         return _KeyName.UP;
       case KeyCode.WIN_IME:
       case KeyCode.WIN_KEY:
-      case KeyCode.WIN_KEY_LEFT:
+      // Covered by `KeyCode.META` above.
+      // case KeyCode.WIN_KEY_LEFT:
       case KeyCode.WIN_KEY_RIGHT:
         return _KeyName.WIN;
       default:

@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
 // If a parameter is directly or indirectly a covariant override, its type in
@@ -21,11 +17,11 @@ typedef void TakeOptionalObjectsAndInts([Object? a, int b, Object? c, int d]);
 typedef void TakeNamedInts({int a, int b, int c, int d});
 typedef void TakeNamedObjectsAndInts({Object? a, int b, Object? c, int d});
 
-class M1 {
+mixin M1 {
   method(covariant int a, int b) {}
 }
 
-class M2 {
+mixin M2 {
   method(int a, covariant int b) {}
 }
 
@@ -87,11 +83,11 @@ class Interface2 {
   void method(int a, covariant int b, int c, int d, int e) {}
 }
 
-class Mixin1 {
+mixin Mixin1 {
   void method(int a, int b, covariant int c, int d, int e) {}
 }
 
-class Mixin2 {
+mixin Mixin2 {
   void method(int a, int b, int c, covariant int d, int e) {}
 }
 

@@ -5,13 +5,12 @@
 #ifndef RUNTIME_VM_HEAP_SAMPLER_H_
 #define RUNTIME_VM_HEAP_SAMPLER_H_
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 #include <atomic>
 
 #include "include/dart_api.h"
 
-#include "vm/globals.h"
 
 namespace dart {
 
@@ -47,7 +46,13 @@ class HeapProfileSampler {
   static void SetSamplingInterval(intptr_t bytes_interval);
 
   // Updates the callback that's invoked when a sample is collected.
-  static void SetSamplingCallback(Dart_HeapSamplingCallback callback);
+  static void SetSamplingCallback(
+      Dart_HeapSamplingCreateCallback create_callback,
+      Dart_HeapSamplingDeleteCallback delete_callback);
+
+  static Dart_HeapSamplingDeleteCallback delete_callback() {
+    return delete_callback_;
+  }
 
   void Initialize();
   void Cleanup() {
@@ -113,8 +118,7 @@ class HeapProfileSampler {
   // allocations.
   void HandleNewTLAB(intptr_t old_tlab_remaining_space, bool is_first_tlab);
 
-  void InvokeCallbackForLastSample(const char* type_name,
-                                   Dart_WeakPersistentHandle obj);
+  void* InvokeCallbackForLastSample();
 
   bool HasOutstandingSample() const {
     return last_sample_size_ != kUninitialized;
@@ -150,7 +154,8 @@ class HeapProfileSampler {
   // state from instances of HeapProfileSampler.
   static RwLock* lock_;
   static bool enabled_;
-  static Dart_HeapSamplingCallback callback_;
+  static Dart_HeapSamplingCreateCallback create_callback_;
+  static Dart_HeapSamplingDeleteCallback delete_callback_;
   static intptr_t sampling_interval_;
 
   static const intptr_t kUninitialized = -1;
@@ -168,5 +173,5 @@ class HeapProfileSampler {
 
 }  // namespace dart
 
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 #endif  // RUNTIME_VM_HEAP_SAMPLER_H_

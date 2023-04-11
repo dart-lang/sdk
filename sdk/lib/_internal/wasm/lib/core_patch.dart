@@ -35,7 +35,6 @@ import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 import "dart:collection"
     show
         HashMap,
-        IterableBase,
         LinkedHashMap,
         LinkedList,
         LinkedListEntry,
@@ -51,7 +50,7 @@ import 'dart:math' show Random;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
-import 'dart:wasm';
+import 'dart:_wasm';
 
 part "bool.dart";
 part "closure.dart";

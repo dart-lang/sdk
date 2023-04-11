@@ -15,14 +15,12 @@ void main() {
 void help() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   /// Commands not tested by the following loop.
   List<String> commandsNotTested = <String>[
     'help', // `dart help help` is redundant
     'test', // `dart help test` does not call `test:test --help`.
   ];
-  DartdevRunner(['--no-analytics'])
+  DartdevRunner(['--suppress-analytics'])
       .commands
       .forEach((String commandKey, Command command) {
     if (!commandsNotTested.contains(commandKey)) {
@@ -57,7 +55,7 @@ void help() {
   });
 
   test('(--help flags also have -h abbr)', () {
-    DartdevRunner(['--no-analytics'])
+    DartdevRunner(['--suppress-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       var helpOption = command.argParser.options['help'];

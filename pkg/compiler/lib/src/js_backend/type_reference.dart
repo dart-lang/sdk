@@ -134,9 +134,6 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
 
   set value(js.Expression value) {
     assert(!isFinalized, 'TypeReference already finalized: $typeRecipe');
-    // TODO(48820): Remove after migration.
-    assert((value as dynamic) != null,
-        'TypeReference must not be finalized to `null`: $typeRecipe');
     _value = value;
   }
 
@@ -189,8 +186,7 @@ class TypeReferenceResource extends js.DeferredStatement
   TypeReferenceResource._(this._statement, this.sourceInformation);
 
   set statement(js.Statement statement) {
-    // TODO(48820): Remove after migration.
-    assert(!isFinalized && (statement as dynamic) != null);
+    assert(!isFinalized);
     _statement = statement;
   }
 

@@ -38,7 +38,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -63,7 +63,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }

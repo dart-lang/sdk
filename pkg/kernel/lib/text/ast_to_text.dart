@@ -2606,6 +2606,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
+    writeModifier(node.isSynthesized && node.name != null, 'synthesized');
+    writeModifier(node.isHoisted, 'hoisted');
     bool hasImplicitInitializer = node.initializer is NullLiteral ||
         (node.initializer is ConstantExpression &&
             (node.initializer as ConstantExpression).constant is NullConstant);
@@ -3394,6 +3396,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitSetConcatenation(SetConcatenation node) => EXPRESSION;
+
+  @override
+  int visitSwitchExpression(SwitchExpression node) => PRIMARY;
+
+  @override
+  int visitPatternAssignment(PatternAssignment node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

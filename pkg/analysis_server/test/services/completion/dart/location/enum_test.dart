@@ -33,7 +33,7 @@ enum E w^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -47,7 +47,7 @@ mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-    allowedIdentifiers = const {'Object', 'foo01', 'foo02', 'new'};
+    allowedIdentifiers = const {'Object', 'foo01', 'foo02', 'new', 'A01'};
   }
 
   Future<void> test_afterConstants_noSemicolon() async {
@@ -57,7 +57,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -69,7 +69,7 @@ enum E implements ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   Object
     kind: class
@@ -83,7 +83,7 @@ enum E implements A ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   with
     kind: keyword
@@ -97,7 +97,7 @@ enum E ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   implements
     kind: keyword
@@ -113,7 +113,7 @@ enum E^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -127,7 +127,7 @@ enum E ^{
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   implements
     kind: keyword
@@ -143,7 +143,7 @@ enum E ^ implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   with
     kind: keyword
@@ -157,7 +157,7 @@ enum E ^ with M implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -170,23 +170,35 @@ enum E ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
 
   Future<void> test_afterWith() async {
     await computeSuggestions('''
+mixin class A01 {}
+
 enum E with ^ {
   v
 }
 ''');
 
-    assertResponse('''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
+  A01
+    kind: class
+''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A01
+    kind: class
   Object
     kind: class
 ''');
+    }
   }
 
   Future<void> test_afterWithClause() async {
@@ -196,7 +208,7 @@ enum E with M ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   implements
     kind: keyword
@@ -210,7 +222,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -222,7 +234,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -238,7 +250,7 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -261,7 +273,7 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -282,7 +294,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: constructorInvocation
@@ -300,7 +312,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: constructorInvocation
@@ -317,7 +329,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   new
     kind: constructorInvocation
@@ -331,7 +343,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   new
     kind: constructorInvocation
@@ -346,7 +358,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -360,7 +372,7 @@ enum E<T> {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: constructorInvocation

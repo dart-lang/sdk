@@ -28,7 +28,7 @@ class TypeMemberContributorTest extends DartCompletionContributorTest {
   /// shadows a declaration of the form [shadowee] in a base class, for the
   /// purposes of what is shown during completion.  [shouldBeShadowed] indicates
   /// whether shadowing is expected.
-  Future check_shadowing(
+  Future<void> check_shadowing(
       String shadower, String shadowee, bool shouldBeShadowed) async {
     addTestSource('''
 class Base {

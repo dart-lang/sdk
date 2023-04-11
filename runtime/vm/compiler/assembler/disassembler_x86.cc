@@ -202,7 +202,7 @@ void InstructionTable::AddJumpConditionalShort() {
   for (uint8_t b = 0x70; b <= 0x7F; b++) {
     InstructionDesc* id = &instructions_[b];
     ASSERT(NO_INSTR == id->type);  // Information not already entered
-    id->mnem = NULL;               // Computed depending on condition code.
+    id->mnem = nullptr;            // Computed depending on condition code.
     id->type = JUMP_CONDITIONAL_SHORT_INSTR;
   }
 }
@@ -592,7 +592,7 @@ void DisassemblerX64::PrintDisp(int disp, const char* after) {
   } else {
     Print("+%#x", disp);
   }
-  if (after != NULL) Print("%s", after);
+  if (after != nullptr) Print("%s", after);
 }
 
 // Returns number of bytes used by machine instruction, including *data byte.
@@ -646,8 +646,8 @@ int DisassemblerX64::F6F7Instruction(uint8_t* data) {
   uint8_t modrm = *(data + 1);
   int mod, regop, rm;
   get_modrm(modrm, &mod, &regop, &rm);
-  static const char* const mnemonics[] = {"test", NULL,   "not", "neg",
-                                          "mul",  "imul", "div", "idiv"};
+  static const char* const mnemonics[] = {"test", nullptr, "not", "neg",
+                                          "mul",  "imul",  "div", "idiv"};
   const char* mnem = mnemonics[regop];
   if (mod == 3 && regop != 0) {
     if (regop > 3) {
@@ -689,7 +689,7 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
   get_modrm(*modrm, &mod, &regop, &rm);
   regop &= 0x7;  // The REX.R bit does not affect the operation.
   int num_bytes = 1;
-  const char* mnem = NULL;
+  const char* mnem = nullptr;
   switch (regop) {
     case 0:
       mnem = "rol";
@@ -716,7 +716,7 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
       UnimplementedInstruction();
       return num_bytes;
   }
-  ASSERT(NULL != mnem);
+  ASSERT(nullptr != mnem);
   Print("%s%s ", mnem, operand_size_code());
   if (byte_size_operand_) {
     num_bytes += PrintRightByteOperand(modrm);
@@ -801,7 +801,7 @@ void DisassemblerX64::PrintAddress(uint8_t* addr_byte_ptr) {
   // Try to print as stub name.
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
   const char* name_of_stub = StubCode::NameOfStub(addr);
-  if (name_of_stub != NULL) {
+  if (name_of_stub != nullptr) {
     Print("  [stub: %s]", name_of_stub);
   }
 }
@@ -1534,10 +1534,11 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     current += PrintOperands(idesc.mnem, idesc.op_order_, current);
   } else if (0x10 <= opcode && opcode <= 0x16) {
     // ...ps xmm, xmm/m128
-    static const char* const mnemonics[] = {
-        "movups", NULL, "movhlps", NULL, "unpcklps", "unpckhps", "movlhps"};
+    static const char* const mnemonics[] = {"movups", nullptr,    "movhlps",
+                                            nullptr,  "unpcklps", "unpckhps",
+                                            "movlhps"};
     const char* mnemonic = mnemonics[opcode - 0x10];
-    if (mnemonic == NULL) {
+    if (mnemonic == nullptr) {
       UnimplementedInstruction();
       mnemonic = "???";
     }
@@ -1610,7 +1611,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
 
 // Mnemonics for two-byte opcode instructions starting with 0x0F.
 // The argument is the second byte of the two-byte opcode.
-// Returns NULL if the instruction is not handled here.
+// Returns nullptr if the instruction is not handled here.
 const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
   if (opcode == 0x5A) {
     return "cvtps2pd";
@@ -1619,11 +1620,11 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
   }
   if (0xA2 <= opcode && opcode <= 0xBF) {
     static const char* const mnemonics[] = {
-        "cpuid", "bt",   "shld",    "shld",    NULL,     NULL,
-        NULL,    NULL,   NULL,      "bts",     "shrd",   "shrd",
-        NULL,    "imul", "cmpxchg", "cmpxchg", NULL,     NULL,
-        NULL,    NULL,   "movzxb",  "movzxw",  "popcnt", NULL,
-        NULL,    NULL,   "bsf",     "bsr",     "movsxb", "movsxw"};
+        "cpuid", "bt",    "shld",    "shld",    nullptr,  nullptr,
+        nullptr, nullptr, nullptr,   "bts",     "shrd",   "shrd",
+        nullptr, "imul",  "cmpxchg", "cmpxchg", nullptr,  nullptr,
+        nullptr, nullptr, "movzxb",  "movzxw",  "popcnt", nullptr,
+        nullptr, nullptr, "bsf",     "bsr",     "movsxb", "movsxw"};
     return mnemonics[opcode - 0xA2];
   }
   switch (opcode) {
@@ -1638,7 +1639,7 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
     case 0x31:
       return "rdtsc";
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1699,7 +1700,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         data++;
         int mod, regop, rm;
         get_modrm(*data, &mod, &regop, &rm);
-        const char* mnem = NULL;
+        const char* mnem = nullptr;
         switch (regop) {
           case 0:
             mnem = "inc";
@@ -2013,12 +2014,12 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     *out_instr_len = instruction_length;
   }
 
-  *object = NULL;
+  *object = nullptr;
 #if defined(TARGET_ARCH_X64)
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
-      *object = NULL;
+      *object = nullptr;
     }
   }
 #else

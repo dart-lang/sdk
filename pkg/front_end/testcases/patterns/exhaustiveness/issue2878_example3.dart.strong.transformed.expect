@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::int> list = core::_GrowableList::_literal3<core::int>(1, 2, 3);
+  core::print(self::subs<core::int>(list));
+}
+static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%> list) → core::List<core::List<self::subs::A%>>
+  return block {
+    core::List<core::List<self::subs::A%>> #t1;
+    final synthesized core::List<self::subs::A%> #0#0 = list;
+    function ##0#1#initializer() → core::int
+      return #0#0.{core::List::length}{core::int};
+    late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
+    #L1:
+    {
+      {
+        if(#0#1.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t1 = core::_GrowableList::•<core::List<self::subs::A%>>(0);
+          break #L1;
+        }
+      }
+      {
+        hoisted self::subs::A% x;
+        hoisted core::List<self::subs::A%> xs;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final self::subs::A% #t2 = x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%} in true) && (let final core::List<self::subs::A%> #t3 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>} in true)) {
+          #t1 = block {
+            final core::List<core::List<self::subs::A%>> #t4 = core::_GrowableList::•<core::List<self::subs::A%>>(0);
+            {
+              synthesized core::Iterator<core::List<self::subs::A%>> :sync-for-iterator = self::subs<self::subs::A%>(xs).{core::Iterable::iterator}{core::Iterator<core::List<self::subs::A%>>};
+              for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+                core::List<self::subs::A%> ys = :sync-for-iterator.{core::Iterator::current}{core::List<self::subs::A%>};
+                #t4.{core::List::addAll}{Invariant}(core::_GrowableList::_literal2<core::List<self::subs::A%>>(core::_GrowableList::_literal1<self::subs::A%>(x).{core::List::+}(ys){(core::List<self::subs::A%>) → core::List<self::subs::A%>}, ys)){(core::Iterable<core::List<self::subs::A%>>) → void};
+              }
+            }
+            #t4.{core::List::add}{Invariant}(core::_GrowableList::_literal1<self::subs::A%>(x)){(core::List<self::subs::A%>) → void};
+          } =>#t4;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

@@ -8,7 +8,7 @@ class A {
   A(bool this.v1, num this.v2);
 }
 
-class M1 {
+mixin M1 {
   num v2 = 0;
 }
 

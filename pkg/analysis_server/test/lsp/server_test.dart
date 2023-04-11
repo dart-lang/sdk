@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,7 +16,51 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ServerTest);
+    defineReflectiveTests(ServerDartFixPromptTest);
   });
+}
+
+/// Checks server interacts with [DartFixPromptManager] correctly.
+///
+/// Tests for [DartFixPromptManager]'s behaviour are in
+/// test/services/user_prompts/dart_fix_prompt_manager_test.dart.
+@reflectiveTest
+class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
+  late TestDartFixPromptManager promptManager;
+
+  @override
+  DartFixPromptManager? get dartFixPromptManager => promptManager;
+
+  @override
+  void setUp() {
+    promptManager = TestDartFixPromptManager();
+    super.setUp();
+  }
+
+  Future<void> test_trigger_afterInitialAnalysis() async {
+    await Future.wait([
+      waitForAnalysisComplete(),
+      initialize(),
+    ]);
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 1);
+  }
+
+  Future<void> test_trigger_afterPackageConfigChange() async {
+    // Set up and let initial analysis complete.
+    await Future.wait([
+      waitForAnalysisComplete(),
+      initialize(),
+    ]);
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 1);
+
+    // Expect that writing package config attempts to trigger another check.
+    writePackageConfig(projectFolderPath);
+    await waitForAnalysisComplete();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 2);
+  }
 }
 
 @reflectiveTest
@@ -28,7 +73,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   /// rebuild loop.
   /// https://github.com/Dart-Code/Dart-Code/issues/4280
   Future<void> test_analysisRoot_doesNotExist() async {
-    const notExistingPath = '/does/not/exist';
+    final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
     await initialize(workspaceFolders: [Uri.file(notExistingPath)]);
 
@@ -47,7 +92,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_analysisRoot_existsAndDoesNotExist() async {
-    const notExistingPath = '/does/not/exist';
+    final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
     // Track diagnostics for the file to ensure we're analyzing the existing
@@ -262,5 +307,17 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(response.error!.code, equals(ErrorCodes.MethodNotFound));
     expect(response.result, isNull);
+  }
+}
+
+class TestDartFixPromptManager implements DartFixPromptManager {
+  var checksTriggered = 0;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void triggerCheck() {
+    checksTriggered++;
   }
 }

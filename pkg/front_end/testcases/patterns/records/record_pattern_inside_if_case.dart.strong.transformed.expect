@@ -12,35 +12,35 @@ import "dart:core" as core;
 
 static method test1(core::Record x) → dynamic {
   {
-    final core::Record #0#0 = x;
+    final synthesized core::Record #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
     }
   }
   {
-    final core::Record #1#0 = x;
+    final synthesized core::Record #1#0 = x;
     if(#1#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.a{core::Object?}) {
     }
   }
   {
-    final core::Record #2#0 = x;
+    final synthesized core::Record #2#0 = x;
     if(#2#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.$1{core::Object?}) {
     }
   }
   {
-    final core::Record #3#0 = x;
+    final synthesized core::Record #3#0 = x;
     if(#3#0 is{ForNonNullableByDefault} ({a: core::Object?, b: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #3#0{({a: core::Object?, b: core::Object?})}.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #3#0{({a: core::Object?, b: core::Object?})}.b{core::Object?}) {
     }
   }
   {
-    core::double y;
-    final core::Record #4#0 = x;
+    hoisted core::double y;
+    final synthesized core::Record #4#0 = x;
     function ##4#3#initializer() → core::Object?
       return #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$2{core::Object?};
-    late final core::Object? #4#3 = ##4#3#initializer(){() → core::Object?};
+    late final synthesized core::Object? #4#3 = ##4#3#initializer(){() → core::Object?};
     function ##4#4#initializer() → core::Object?
       return #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.foo{core::Object?};
-    late final core::Object? #4#4 = ##4#4#initializer(){() → core::Object?};
-    if(#4#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?}) && #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#4#3 is{ForNonNullableByDefault} core::double && (let final core::double #t1 = y = #4#3{core::double} in true)) && (let final core::Object? #t2 = #4#4! in #4#4! is{ForNonNullableByDefault} core::String) && true) {
+    late final synthesized core::Object? #4#4 = ##4#4#initializer(){() → core::Object?};
+    if(#4#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?}) && #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#4#3 is{ForNonNullableByDefault} core::double && (let final core::double #t1 = y = #4#3{core::double} in true)) && (let final core::Object? #t2 = #4#4! in #4#4! is{ForNonNullableByDefault} core::String)) {
       return 0;
     }
     else {
@@ -50,41 +50,41 @@ static method test1(core::Record x) → dynamic {
 }
 static method test2((core::int, core::int) x) → dynamic {
   {
-    final(core::int, core::int) #0#0 = x;
+    final synthesized(core::int, core::int) #0#0 = x;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.$2{core::int}) {
     }
   }
 }
 static method test3((core::int, {required a: core::int}) x) → dynamic {
   {
-    final(core::int, {required a: core::int}) #0#0 = x;
+    final synthesized(core::int, {required a: core::int}) #0#0 = x;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.a{core::int}) {
     }
   }
   {
-    final(core::int, {required a: core::int}) #1#0 = x;
+    final synthesized(core::int, {required a: core::int}) #1#0 = x;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0.a{core::int} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0.$1{core::int}) {
     }
   }
 }
 static method test4(({required a: core::int, required b: core::int}) x) → dynamic {
   {
-    final({required a: core::int, required b: core::int}) #0#0 = x;
+    final synthesized({required a: core::int, required b: core::int}) #0#0 = x;
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.a{core::int} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.b{core::int}) {
     }
   }
 }
 static method test5((core::int, core::double, {required bar: dynamic, required foo: core::String}) x) → dynamic {
   {
-    core::double y;
-    final(core::int, core::double, {required bar: dynamic, required foo: core::String}) #0#0 = x;
+    hoisted core::double y;
+    final synthesized(core::int, core::double, {required bar: dynamic, required foo: core::String}) #0#0 = x;
     function ##0#2#initializer() → core::double
       return #0#0.$2{core::double};
-    late final core::double #0#2 = ##0#2#initializer(){() → core::double};
+    late final synthesized core::double #0#2 = ##0#2#initializer(){() → core::double};
     function ##0#3#initializer() → core::String
       return #0#0.foo{core::String};
-    late final core::String #0#3 = ##0#3#initializer(){() → core::String};
-    if(#0#0.$1{core::int} is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = y = #0#2 in true)) && (let final core::String #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
+    late final synthesized core::String #0#3 = ##0#3#initializer(){() → core::String};
+    if(#0#0.$1{core::int} is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = y = #0#2 in true)) && (let final core::String #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String)) {
       return 0;
     }
     else {

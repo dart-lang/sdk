@@ -311,9 +311,12 @@ void _testPatternSwitchStatement() {
   Block returnBlock2 = new Block([new ReturnStatement()]);
 
   testStatement(
-      new PatternSwitchStatement(TreeNode.noOffset, expression, [
-        new PatternSwitchCase(TreeNode.noOffset, [0], [case0], emptyBlock,
-            isDefault: false, hasLabel: false, jointVariables: [])
+      new PatternSwitchStatement(expression, [
+        new PatternSwitchCase([0], [case0], emptyBlock,
+            isDefault: false,
+            hasLabel: false,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null)
       ]),
       '''
 switch (null) {
@@ -323,9 +326,12 @@ switch (null) {
 switch (null) { case 0: }''');
 
   testStatement(
-      new PatternSwitchStatement(TreeNode.noOffset, expression, [
-        new PatternSwitchCase(TreeNode.noOffset, [], [], emptyBlock,
-            hasLabel: false, isDefault: true, jointVariables: [])
+      new PatternSwitchStatement(expression, [
+        new PatternSwitchCase([], [], emptyBlock,
+            hasLabel: false,
+            isDefault: true,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null)
       ]),
       '''
 switch (null) {
@@ -335,12 +341,17 @@ switch (null) {
 switch (null) { default: }''');
 
   testStatement(
-      new PatternSwitchStatement(TreeNode.noOffset, expression, [
-        new PatternSwitchCase(
-            TreeNode.noOffset, [0, 1], [case0, case1], returnBlock1,
-            hasLabel: false, isDefault: false, jointVariables: []),
-        new PatternSwitchCase(TreeNode.noOffset, [2], [case2], returnBlock2,
-            hasLabel: true, isDefault: true, jointVariables: [])
+      new PatternSwitchStatement(expression, [
+        new PatternSwitchCase([0, 1], [case0, case1], returnBlock1,
+            hasLabel: false,
+            isDefault: false,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null),
+        new PatternSwitchCase([2], [case2], returnBlock2,
+            hasLabel: true,
+            isDefault: true,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null)
       ]),
       '''
 switch (null) {
@@ -366,17 +377,17 @@ void _testSwitchExpression() {
   Expression body2 = new IntLiteral(6);
 
   testExpression(
-      new SwitchExpression(TreeNode.noOffset, expression,
-          [new SwitchExpressionCase(TreeNode.noOffset, case0, body0)]),
+      new SwitchExpression(
+          expression, [new SwitchExpressionCase(case0, body0)]),
       '''
 switch (null) { case 0 => 4 }''',
       limited: '''
 switch (null) { case 0 => 4 }''');
 
   testExpression(
-      new SwitchExpression(TreeNode.noOffset, expression, [
-        new SwitchExpressionCase(TreeNode.noOffset, case0, body0),
-        new SwitchExpressionCase(TreeNode.noOffset, case1, body1),
+      new SwitchExpression(expression, [
+        new SwitchExpressionCase(case0, body0),
+        new SwitchExpressionCase(case1, body1),
       ]),
       '''
 switch (null) { case 0 => 4, case 1 => 5 }''',
@@ -384,10 +395,10 @@ switch (null) { case 0 => 4, case 1 => 5 }''',
 switch (null) { case 0 => 4, case 1 => 5 }''');
 
   testExpression(
-      new SwitchExpression(TreeNode.noOffset, expression, [
-        new SwitchExpressionCase(TreeNode.noOffset, case0, body0),
-        new SwitchExpressionCase(TreeNode.noOffset, case1, body1),
-        new SwitchExpressionCase(TreeNode.noOffset, case2, body2),
+      new SwitchExpression(expression, [
+        new SwitchExpressionCase(case0, body0),
+        new SwitchExpressionCase(case1, body1),
+        new SwitchExpressionCase(case2, body2),
       ]),
       '''
 switch (null) { case 0 => 4, case 1 => 5, case 2 when 3 => 6 }''',
@@ -1166,13 +1177,13 @@ true''');
 void _testBinaryMatcher() {
   testMatcher(
       new AndPattern(new ConstantPattern(new IntLiteral(0)),
-          new ConstantPattern(new IntLiteral(1)), TreeNode.noOffset),
+          new ConstantPattern(new IntLiteral(1))),
       '''
 0 && 1''');
 
   testMatcher(
       new OrPattern(new ConstantPattern(new IntLiteral(0)),
-          new ConstantPattern(new IntLiteral(1)), TreeNode.noOffset,
+          new ConstantPattern(new IntLiteral(1)),
           orPatternJointVariables: []),
       '''
 0 || 1''');
@@ -1180,89 +1191,66 @@ void _testBinaryMatcher() {
 
 void _testCastMatcher() {
   testMatcher(
-      new CastPattern(new ConstantPattern(new IntLiteral(0)),
-          const DynamicType(), TreeNode.noOffset),
+      new CastPattern(
+          new ConstantPattern(new IntLiteral(0)), const DynamicType()),
       '''
 0 as dynamic''');
 }
 
 void _testNullAssertMatcher() {
-  testMatcher(
-      new NullAssertPattern(
-          new ConstantPattern(new IntLiteral(0)), TreeNode.noOffset),
-      '''
+  testMatcher(new NullAssertPattern(new ConstantPattern(new IntLiteral(0))), '''
 0!''');
 }
 
 void _testNullCheckMatcher() {
-  testMatcher(
-      new NullCheckPattern(
-          new ConstantPattern(new IntLiteral(0)), TreeNode.noOffset),
-      '''
+  testMatcher(new NullCheckPattern(new ConstantPattern(new IntLiteral(0))), '''
 0?''');
 }
 
 void _testListMatcher() {
   testMatcher(
-      new ListPattern(
-          const DynamicType(),
-          [
-            new ConstantPattern(new IntLiteral(0)),
-            new ConstantPattern(new IntLiteral(1)),
-          ],
-          TreeNode.noOffset),
+      new ListPattern(const DynamicType(), [
+        new ConstantPattern(new IntLiteral(0)),
+        new ConstantPattern(new IntLiteral(1)),
+      ]),
       '''
 <dynamic>[0, 1]''');
 }
 
 void _testRelationalMatcher() {
   testMatcher(
-      new RelationalPattern(
-          RelationalPatternKind.equals, new IntLiteral(0), TreeNode.noOffset),
+      new RelationalPattern(RelationalPatternKind.equals, new IntLiteral(0)),
       '''
 == 0''');
   testMatcher(
-      new RelationalPattern(RelationalPatternKind.notEquals, new IntLiteral(1),
-          TreeNode.noOffset),
+      new RelationalPattern(RelationalPatternKind.notEquals, new IntLiteral(1)),
       '''
 != 1''');
   testMatcher(
-      new RelationalPattern(
-          RelationalPatternKind.lessThan, new IntLiteral(2), TreeNode.noOffset),
+      new RelationalPattern(RelationalPatternKind.lessThan, new IntLiteral(2)),
       '''
 < 2''');
 }
 
 void _testMapMatcher() {
-  testMatcher(new MapPattern(null, null, [], TreeNode.noOffset), '''
+  testMatcher(new MapPattern(null, null, []), '''
 {}''');
-  testMatcher(
-      new MapPattern(
-          const DynamicType(), const DynamicType(), [], TreeNode.noOffset),
-      '''
+  testMatcher(new MapPattern(const DynamicType(), const DynamicType(), []), '''
 <dynamic, dynamic>{}''');
   testMatcher(
-      new MapPattern(
-          null,
-          null,
-          [
-            new MapPatternEntry(new ConstantPattern(new IntLiteral(0)),
-                new ConstantPattern(new IntLiteral(1)), TreeNode.noOffset),
-          ],
-          TreeNode.noOffset),
+      new MapPattern(null, null, [
+        new MapPatternEntry(
+            new IntLiteral(0), new ConstantPattern(new IntLiteral(1))),
+      ]),
       '''
 {0: 1}''');
   testMatcher(
-      new MapPattern(
-          null,
-          null,
-          [
-            new MapPatternEntry(new ConstantPattern(new IntLiteral(0)),
-                new ConstantPattern(new IntLiteral(1)), TreeNode.noOffset),
-            new MapPatternEntry(new ConstantPattern(new IntLiteral(2)),
-                new ConstantPattern(new IntLiteral(3)), TreeNode.noOffset),
-          ],
-          TreeNode.noOffset),
+      new MapPattern(null, null, [
+        new MapPatternEntry(
+            new IntLiteral(0), new ConstantPattern(new IntLiteral(1))),
+        new MapPatternEntry(
+            new IntLiteral(2), new ConstantPattern(new IntLiteral(3))),
+      ]),
       '''
 {0: 1, 2: 3}''');
 }
@@ -1272,9 +1260,7 @@ void _testIfCaseStatement() {
       new IfCaseStatement(
           new IntLiteral(0),
           new PatternGuard(new ConstantPattern(new IntLiteral(1))),
-          new ReturnStatement(),
-          null,
-          TreeNode.noOffset),
+          new ReturnStatement()),
       '''
 if (0 case 1) return;''');
 
@@ -1283,8 +1269,7 @@ if (0 case 1) return;''');
           new IntLiteral(0),
           new PatternGuard(new ConstantPattern(new IntLiteral(1))),
           new ReturnStatement(new IntLiteral(2)),
-          new ReturnStatement(new IntLiteral(3)),
-          TreeNode.noOffset),
+          new ReturnStatement(new IntLiteral(3))),
       '''
 if (0 case 1) return 2; else return 3;''');
 
@@ -1293,9 +1278,7 @@ if (0 case 1) return 2; else return 3;''');
           new IntLiteral(0),
           new PatternGuard(
               new ConstantPattern(new IntLiteral(1)), new IntLiteral(2)),
-          new ReturnStatement(),
-          null,
-          TreeNode.noOffset),
+          new ReturnStatement()),
       '''
 if (0 case 1 when 2) return;''');
 
@@ -1305,8 +1288,7 @@ if (0 case 1 when 2) return;''');
           new PatternGuard(
               new ConstantPattern(new IntLiteral(1)), new IntLiteral(2)),
           new ReturnStatement(new IntLiteral(3)),
-          new ReturnStatement(new IntLiteral(4)),
-          TreeNode.noOffset),
+          new ReturnStatement(new IntLiteral(4))),
       '''
 if (0 case 1 when 2) return 3; else return 4;''');
 }
@@ -1315,14 +1297,14 @@ void _testPatternVariableDeclaration() {
   testStatement(
       new PatternVariableDeclaration(
           new ConstantPattern(new IntLiteral(0)), new IntLiteral(1),
-          isFinal: false, fileOffset: TreeNode.noOffset),
+          isFinal: false),
       '''
 var 0 = 1;''');
 
   testStatement(
       new PatternVariableDeclaration(
           new ConstantPattern(new IntLiteral(0)), new IntLiteral(1),
-          isFinal: true, fileOffset: TreeNode.noOffset),
+          isFinal: true),
       '''
 final 0 = 1;''');
 }

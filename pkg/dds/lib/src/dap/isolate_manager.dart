@@ -586,8 +586,12 @@ class IsolateManager {
       column: resolvedLocation?.column ?? unresolvedLocation?.column,
       verified: breakpoint.resolved ?? false,
     );
-    _adapter.sendEvent(
-      BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+    // Ensure we don't send the breakpoint event until the client has been
+    // given the breakpoint ID.
+    existingBreakpoint.queueAction(
+      () => _adapter.sendEvent(
+        BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+      ),
     );
   }
 
@@ -777,12 +781,18 @@ class IsolateManager {
 
     await Future.wait(libraries.map((library) async {
       final libraryUri = library.uri;
-      final isDebuggable = libraryUri != null
+      final isDebuggableNew = libraryUri != null
           ? await _adapter.libraryIsDebuggable(thread, Uri.parse(libraryUri))
           : false;
+      final isDebuggableCurrent =
+          thread.getIsLibraryCurrentlyDebuggable(library);
+      thread.setIsLibraryCurrentlyDebuggable(library, isDebuggableNew);
+      if (isDebuggableNew == isDebuggableCurrent) {
+        return;
+      }
       try {
         await service.setLibraryDebuggable(
-            isolateId, library.id!, isDebuggable);
+            isolateId, library.id!, isDebuggableNew);
       } on vm.RPCError catch (e) {
         // DWDS does not currently support `setLibraryDebuggable` so instead of
         // failing (because this code runs in a VM event handler where there's
@@ -999,6 +1009,46 @@ class ThreadInfo {
     return Future.wait(futures);
   }
 
+  /// Returns whether [library] is currently debuggable according to the VM
+  /// (or there is a request in-flight to set it).
+  bool getIsLibraryCurrentlyDebuggable(vm.LibraryRef library) {
+    return _libraryIsDebuggableById[library.id!] ??
+        _getIsLibraryDebuggableByDefault(library);
+  }
+
+  /// Records whether [library] is currently debuggable for this isolate.
+  ///
+  /// This should be called whenever a `setLibraryDebuggable` request is made
+  /// to the VM.
+  void setIsLibraryCurrentlyDebuggable(
+    vm.LibraryRef library,
+    bool isDebuggable,
+  ) {
+    if (isDebuggable == _getIsLibraryDebuggableByDefault(library)) {
+      _libraryIsDebuggableById.remove(library.id!);
+    } else {
+      _libraryIsDebuggableById[library.id!] = isDebuggable;
+    }
+  }
+
+  /// Returns whether [library] is debuggable by default.
+  ///
+  /// This value is _assumed_ to avoid having to fetch each library for each
+  /// isolate.
+  bool _getIsLibraryDebuggableByDefault(vm.LibraryRef library) {
+    final isSdkLibrary = library.uri?.startsWith('dart:') ?? false;
+    return !isSdkLibrary;
+  }
+
+  /// Tracks whether libraries are currently marked as debuggable in the VM.
+  ///
+  /// If a library ID is not in the map, it is set to the default (which is
+  /// debuggable for non-SDK sources, and not-debuggable for SDK sources).
+  ///
+  /// This can be used to avoid calling setLibraryDebuggable where the value
+  /// would not be changed.
+  final _libraryIsDebuggableById = <String, bool>{};
+
   /// Resolves a source URI to a file path for the lib folder of its package.
   ///
   /// package:foo/a/b/c/d.dart -> /code/packages/foo/lib
@@ -1110,7 +1160,22 @@ class ClientBreakpoint {
   final SourceBreakpoint breakpoint;
   final int id;
 
-  ClientBreakpoint(this.breakpoint) : id = _nextId++;
+  /// A [Future] that completes with the last action that sends breakpoint
+  /// information to the client, to ensure breakpoint events are always sent
+  /// in-order and after the initial response sending the IDs to the client.
+  Future<void> _lastActionFuture;
+
+  ClientBreakpoint(this.breakpoint, Future<void> setBreakpointResponse)
+      : id = _nextId++,
+        _lastActionFuture = setBreakpointResponse;
+
+  /// Queues an action to run after all previous actions that sent breakpoint
+  /// information to the client.
+  FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
+    final actionFuture = _lastActionFuture.then((_) => action());
+    _lastActionFuture = actionFuture;
+    return actionFuture;
+  }
 }
 
 class StoredData {

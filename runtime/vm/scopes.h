@@ -104,6 +104,9 @@ class LocalVariable : public ZoneAllocated {
     DEBUG_ASSERT(type.IsNotTemporaryScopedHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
+    if (IsFilteredIdentifier(name)) {
+      set_invisible(true);
+    }
   }
 
   TokenPosition token_pos() const { return token_pos_; }
@@ -190,14 +193,13 @@ class LocalVariable : public ZoneAllocated {
     index_ = index;
   }
 
+  // Invisible variables are not included into LocalVarDescriptors
+  // and not displayed in the debugger.
   void set_invisible(bool value) { is_invisible_ = value; }
   bool is_invisible() const { return is_invisible_; }
 
   bool is_captured_parameter() const { return is_captured_parameter_; }
   void set_is_captured_parameter(bool value) { is_captured_parameter_ = value; }
-
-  // By convention, internal variables start with a colon.
-  bool IsInternal() const { return name_.CharAt(0) == ':'; }
 
   bool IsConst() const { return const_value_ != NULL; }
 
@@ -221,6 +223,8 @@ class LocalVariable : public ZoneAllocated {
   };
 
   static const int kUninitializedIndex = INT_MIN;
+
+  static bool IsFilteredIdentifier(const String& name);
 
   const TokenPosition declaration_pos_;
   const TokenPosition token_pos_;

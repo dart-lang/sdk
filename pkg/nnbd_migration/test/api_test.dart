@@ -556,6 +556,27 @@ class MyClass {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_injectable_function() async {
+    addAngularPackage();
+    var content = '''
+import 'package:angular/angular.dart';
+
+class C {}
+
+@Injectable()
+C createC(int n, @Optional() int x) => C();
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class C {}
+
+@Injectable()
+C createC(int n, @Optional() int? x) => C();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_optional_constructor_param() async {
     addAngularPackage();
     var content = '''
@@ -1819,6 +1840,18 @@ main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_conditional_expression_futureOr() async {
+    var content = '''
+import 'dart:async';
+FutureOr<int> f(bool b, FutureOr<int>/*!*/ n) => b ? n : 0;
+''';
+    var expected = '''
+import 'dart:async';
+FutureOr<int> f(bool b, FutureOr<int> n) => b ? n : 0;
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_conditional_expression_guard_subexpression() async {
@@ -8488,6 +8521,30 @@ class Derived extends Base {
 }
 void _g(int i, Base base) {
   base.f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_override_parameter_type_unknown() async {
+    var content = '''
+abstract class Base {
+  void f(int/*!*/ i, int/*!*/ j);
+}
+class Derived extends Base {
+  void f(int i, int j) {
+    i + 1;
+  }
+}
+''';
+    var expected = '''
+abstract class Base {
+  void f(int i, int j);
+}
+class Derived extends Base {
+  void f(int i, int j) {
+    i + 1;
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);

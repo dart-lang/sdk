@@ -9,7 +9,7 @@ import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 // Test that type checks and casts work for subclasses of native classes and
 // mixins on native classes.
 
-class M {}
+mixin M {}
 
 @Native("N")
 class N {}

@@ -58,6 +58,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   LibraryFeatures get libraryFeatures;
 
+  bool isDeclaredInEnclosingCase(VariableDeclaration variable);
+
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
       {bool isQualified = false, PrefixBuilder? prefix});

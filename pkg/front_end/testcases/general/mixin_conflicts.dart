@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This class has no problems.
-class M {
+// This mixin has no problems.
+mixin M {
   foo() {}
 }
 
-// This class has no problems.
-class N = Object with M;
+// This mixin class has no problems.
+mixin class N = Object with M;
 
 // This class has no problems.
 class C extends Object with N {}
 
 // This class has no problems.
-abstract class M2 implements M {
+mixin M2 implements M {
   bar() {}
 }
 

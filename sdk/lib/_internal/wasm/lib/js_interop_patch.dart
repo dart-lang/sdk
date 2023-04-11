@@ -4,16 +4,15 @@
 
 import 'dart:_internal' show patch;
 import 'dart:_js_helper';
+import 'dart:_wasm';
 import 'dart:async' show Completer;
 import 'dart:js_interop';
 import 'dart:js_util' show NullRejectionException;
 import 'dart:typed_data';
-import 'dart:wasm';
 
 /// Some helpers for working with JS types internally. If we implement the JS
 /// types as inline classes then these should go away.
 /// TODO(joshualitt): Find a way to get rid of the explicit casts.
-WasmExternRef? _ref<T>(T o) => (o as JSValue).toExternRef();
 T _box<T>(WasmExternRef? ref) => JSValue(ref) as T;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
@@ -22,17 +21,16 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   // reified `JSUndefined` and `JSNull`, we have to handle the case where
   // `this == null`. However, after migration we can remove these checks.
   @patch
-  bool get isUndefined => this == null || isJSUndefined(_ref<JSAny>(this!));
+  bool get isUndefined => this == null || isJSUndefined(this?.toExternRef);
 
   @patch
-  bool get isNull => this == null || _ref<JSAny>(this!).isNull;
+  bool get isNull => this == null || this!.toExternRef.isNull;
 }
 
 /// [JSExportedDartFunction] <-> [Function]
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  Function get toDart =>
-      unwrapJSWrappedDartFunction(_ref<JSExportedDartFunction>(this));
+  Function get toDart => unwrapJSWrappedDartFunction(toExternRef);
 }
 
 extension FunctionToJSExportedDartFunction on Function {
@@ -43,7 +41,7 @@ extension FunctionToJSExportedDartFunction on Function {
 /// [JSExportedDartObject], [JSOpaqueDartObject] <-> [Object]
 extension JSExportedDartObjectToObject on JSExportedDartObject {
   @patch
-  Object get toDart => jsObjectToDartObject(_ref<JSExportedDartObject>(this));
+  Object get toDart => jsObjectToDartObject(toExternRef);
 }
 
 extension ObjectToJSExportedDartObject on Object {
@@ -71,7 +69,7 @@ extension JSPromiseToFuture on JSPromise {
       }
       return completer.completeError(e);
     }.toJS;
-    promiseThen(_ref(this), _ref(success), _ref(error));
+    promiseThen(toExternRef, success.toExternRef, error.toExternRef);
     return completer.future;
   }
 }
@@ -79,7 +77,7 @@ extension JSPromiseToFuture on JSPromise {
 /// [JSArrayBuffer] <-> [ByteBuffer]
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   @patch
-  ByteBuffer get toDart => toDartByteBuffer(_ref<JSArrayBuffer>(this));
+  ByteBuffer get toDart => toDartByteBuffer(toExternRef);
 }
 
 extension ByteBufferToJSArrayBuffer on ByteBuffer {
@@ -91,7 +89,7 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
 /// [JSDataView] <-> [ByteData]
 extension JSDataViewToByteData on JSDataView {
   @patch
-  ByteData get toDart => toDartByteData(_ref<JSDataView>(this));
+  ByteData get toDart => toDartByteData(toExternRef);
 }
 
 extension ByteDataToJSDataView on ByteData {
@@ -103,7 +101,7 @@ extension ByteDataToJSDataView on ByteData {
 /// [JSInt8Array] <-> [Int8List]
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
-  Int8List get toDart => toDartInt8List(_ref<JSInt8Array>(this));
+  Int8List get toDart => toDartInt8List(toExternRef);
 }
 
 extension Int8ListToJSInt8Array on Int8List {
@@ -114,7 +112,7 @@ extension Int8ListToJSInt8Array on Int8List {
 /// [JSUint8Array] <-> [Uint8List]
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
-  Uint8List get toDart => toDartUint8List(_ref<JSUint8Array>(this));
+  Uint8List get toDart => toDartUint8List(toExternRef);
 }
 
 extension Uint8ListToJSUint8Array on Uint8List {
@@ -126,8 +124,7 @@ extension Uint8ListToJSUint8Array on Uint8List {
 /// [JSUint8ClampedArray] <-> [Uint8ClampedList]
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
-  Uint8ClampedList get toDart =>
-      toDartUint8ClampedList(_ref<JSUint8ClampedArray>(this));
+  Uint8ClampedList get toDart => toDartUint8ClampedList(toExternRef);
 }
 
 extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
@@ -139,7 +136,7 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
 /// [JSInt16Array] <-> [Int16List]
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
-  Int16List get toDart => toDartInt16List(_ref<JSInt16Array>(this));
+  Int16List get toDart => toDartInt16List(toExternRef);
 }
 
 extension Int16ListToJSInt16Array on Int16List {
@@ -151,7 +148,7 @@ extension Int16ListToJSInt16Array on Int16List {
 /// [JSUint16Array] <-> [Uint16List]
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
-  Uint16List get toDart => toDartUint16List(_ref<JSUint16Array>(this));
+  Uint16List get toDart => toDartUint16List(toExternRef);
 }
 
 extension Uint16ListToJSInt16Array on Uint16List {
@@ -163,7 +160,7 @@ extension Uint16ListToJSInt16Array on Uint16List {
 /// [JSInt32Array] <-> [Int32List]
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
-  Int32List get toDart => toDartInt32List(_ref<JSInt32Array>(this));
+  Int32List get toDart => toDartInt32List(toExternRef);
 }
 
 extension Int32ListToJSInt32Array on Int32List {
@@ -175,7 +172,7 @@ extension Int32ListToJSInt32Array on Int32List {
 /// [JSUint32Array] <-> [Uint32List]
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
-  Uint32List get toDart => toDartUint32List(_ref<JSUint32Array>(this));
+  Uint32List get toDart => toDartUint32List(toExternRef);
 }
 
 extension Uint32ListToJSUint32Array on Uint32List {
@@ -187,7 +184,7 @@ extension Uint32ListToJSUint32Array on Uint32List {
 /// [JSFloat32Array] <-> [Float32List]
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
-  Float32List get toDart => toDartFloat32List(_ref<JSFloat32Array>(this));
+  Float32List get toDart => toDartFloat32List(toExternRef);
 }
 
 extension Float32ListToJSFloat32Array on Float32List {
@@ -199,7 +196,7 @@ extension Float32ListToJSFloat32Array on Float32List {
 /// [JSFloat64Array] <-> [Float64List]
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
-  Float64List get toDart => toDartFloat64List(_ref<JSFloat64Array>(this));
+  Float64List get toDart => toDartFloat64List(toExternRef);
 }
 
 extension Float64ListToJSFloat64Array on Float64List {
@@ -211,7 +208,7 @@ extension Float64ListToJSFloat64Array on Float64List {
 /// [JSArray] <-> [List]
 extension JSArrayToList on JSArray {
   @patch
-  List<JSAny?> get toDart => toDartListJSAny(_ref<JSArray>(this));
+  List<JSAny?> get toDart => toDartListJSAny(toExternRef);
 }
 
 extension ListToJSArray on List<JSAny?> {
@@ -222,7 +219,7 @@ extension ListToJSArray on List<JSAny?> {
 /// [JSNumber] <-> [double]
 extension JSNumberToDouble on JSNumber {
   @patch
-  double get toDart => toDartNumber(_ref<JSNumber>(this));
+  double get toDart => toDartNumber(toExternRef);
 }
 
 extension DoubleToJSNumber on double {
@@ -233,7 +230,7 @@ extension DoubleToJSNumber on double {
 /// [JSBoolean] <-> [bool]
 extension JSBooleanToBool on JSBoolean {
   @patch
-  bool get toDart => toDartBool(_ref<JSBoolean>(this));
+  bool get toDart => toDartBool(toExternRef);
 }
 
 extension BoolToJSBoolean on bool {
@@ -244,7 +241,7 @@ extension BoolToJSBoolean on bool {
 /// [JSString] <-> [String]
 extension JSStringToString on JSString {
   @patch
-  String get toDart => jsStringToDartString(_ref<JSString>(this));
+  String get toDart => jsStringToDartString(toExternRef);
 }
 
 extension StringToJSString on String {

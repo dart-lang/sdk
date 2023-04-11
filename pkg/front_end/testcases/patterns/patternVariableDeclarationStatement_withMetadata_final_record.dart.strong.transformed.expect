@@ -1,15 +1,14 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static const field core::int annotation = #C1;
 static method f(dynamic x) → dynamic {
-  final dynamic a;
+  final hoisted has-declared-initializer dynamic a;
   {
-    final dynamic #0#0 = x;
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} (dynamic);
     if(!(#0#0 is{ForNonNullableByDefault} (core::Object?) && (let final core::Object? #t1 = a = #0#0{(core::Object?)}.$1{core::Object?} in true)))
-      throw new _in::ReachabilityError::•();
+      throw new core::StateError::•("Pattern matching error");
   }
 }
 

@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _checkFalse(dynamicNone);
+    _checkFalse(dynamicType);
   }
 
   test_functionType() {

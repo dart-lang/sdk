@@ -47,8 +47,10 @@ class Path {
     return Platform.operatingSystem == 'windows' && source.startsWith('\\\\');
   }
 
+  @override
   bool operator ==(other) => other is Path && _path == other._path;
 
+  @override
   int get hashCode => _path.hashCode;
   bool get isEmpty => _path.isEmpty;
   bool get isAbsolute => _path.startsWith('/');
@@ -61,6 +63,7 @@ class Path {
     return Path.workingDirectory.join(this);
   }
 
+  @override
   String toString() => _path;
 
   Path relativeTo(Path base) {
@@ -140,7 +143,7 @@ class Path {
       segments.add('..');
     }
     for (var i = common; i < pathSegments.length; i++) {
-      segments.add('${pathSegments[i]}');
+      segments.add(pathSegments[i]);
     }
     if (segments.isEmpty) {
       segments.add('.');
@@ -246,7 +249,7 @@ class Path {
 
   String toNativePath() {
     if (isEmpty) return '.';
-    if (Platform.operatingSystem == 'windows') {
+    if (Platform.isWindows) {
       var nativePath = _path;
       // Drop '/' before a drive letter.
       if (nativePath.length >= 3 &&

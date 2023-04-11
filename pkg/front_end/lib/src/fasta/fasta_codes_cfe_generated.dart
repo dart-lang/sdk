@@ -468,6 +468,72 @@ Message _withArgumentsConstEvalElementImplementsEqual(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>
+    templateConstEvalElementNotPrimitiveEquality = const Template<
+            Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The element '#constant' does not have a primitive equality.""",
+        withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
+    codeConstEvalElementNotPrimitiveEquality = const Code<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>(
+  "ConstEvalElementNotPrimitiveEquality",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalElementNotPrimitiveEquality(
+    Constant _constant, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalElementNotPrimitiveEquality,
+      problemMessage:
+          """The element '${constant}' does not have a primitive equality.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            Constant _constant, DartType _type, bool isNonNullableByDefault)>
+    templateConstEvalEqualsOperandNotPrimitiveEquality = const Template<
+            Message Function(Constant _constant, DartType _type,
+                bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
+        withArguments:
+            _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            Constant _constant, DartType _type, bool isNonNullableByDefault)>
+    codeConstEvalEqualsOperandNotPrimitiveEquality = const Code<
+        Message Function(
+            Constant _constant, DartType _type, bool isNonNullableByDefault)>(
+  "ConstEvalEqualsOperandNotPrimitiveEquality",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
+    Constant _constant, DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  List<Object> typeParts = labeler.labelType(_type);
+  String constant = constantParts.join();
+  String type = typeParts.join();
+  return new Message(codeConstEvalEqualsOperandNotPrimitiveEquality,
+      problemMessage:
+          """Binary operator '==' requires receiver constant '${constant}' of a type with primitive equality or type 'double', but was of type '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateConstEvalFreeTypeParameter = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -861,6 +927,35 @@ Message _withArgumentsConstEvalKeyImplementsEqual(
   return new Message(codeConstEvalKeyImplementsEqual,
       problemMessage:
           """The key '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>
+    templateConstEvalKeyNotPrimitiveEquality = const Template<
+            Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The key '#constant' does not have a primitive equality.""",
+        withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
+    codeConstEvalKeyNotPrimitiveEquality = const Code<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>(
+  "ConstEvalKeyNotPrimitiveEquality",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalKeyNotPrimitiveEquality(
+    Constant _constant, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalKeyNotPrimitiveEquality,
+      problemMessage:
+          """The key '${constant}' does not have a primitive equality.""" +
               labeler.originMessages,
       arguments: {'constant': _constant});
 }
@@ -3754,6 +3849,36 @@ Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStrictModeViolation = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`.""",
+        correctionMessageTemplate: r"""Use a JS type instead.""",
+        withArguments: _withArgumentsJsInteropStrictModeViolation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStrictModeViolation =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStrictModeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStrictModeViolation(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStrictModeViolation,
+      problemMessage:
+          """JS interop requires JS types when strict mode is enabled, but Type '${type}' is not a type or subtype of a type from `dart:js_interop`.""" +
+              labeler.originMessages,
+      correctionMessage: """Use a JS type instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
@@ -3937,42 +4062,78 @@ Message _withArgumentsNameNotFoundInRecordNameGet(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-    Message Function(
-        DartType _type,
-        String string,
-        bool
-            isNonNullableByDefault)> templateNonExhaustiveSwitch = const Template<
-        Message Function(
-            DartType _type, String string, bool isNonNullableByDefault)>(
-    problemMessageTemplate:
-        r"""The type '#type' is not exhaustively matched by the switch cases.""",
-    correctionMessageTemplate:
-        r"""Try adding a default case or cases that match #string.""",
-    withArguments: _withArgumentsNonExhaustiveSwitch);
+        Message Function(DartType _type, String string, String string2,
+            bool isNonNullableByDefault)>
+    templateNonExhaustiveSwitchExpression = const Template<
+            Message Function(DartType _type, String string, String string2,
+                bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
+        correctionMessageTemplate:
+            r"""Try adding a wildcard pattern or cases that match '#string2'.""",
+        withArguments: _withArgumentsNonExhaustiveSwitchExpression);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            DartType _type, String string, bool isNonNullableByDefault)>
-    codeNonExhaustiveSwitch = const Code<
-            Message Function(
-                DartType _type, String string, bool isNonNullableByDefault)>(
-        "NonExhaustiveSwitch",
-        analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH"]);
+        Message Function(DartType _type, String string, String string2,
+            bool isNonNullableByDefault)> codeNonExhaustiveSwitchExpression =
+    const Code<
+            Message Function(DartType _type, String string, String string2,
+                bool isNonNullableByDefault)>("NonExhaustiveSwitchExpression",
+        analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_EXPRESSION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonExhaustiveSwitch(
-    DartType _type, String string, bool isNonNullableByDefault) {
+Message _withArgumentsNonExhaustiveSwitchExpression(DartType _type,
+    String string, String string2, bool isNonNullableByDefault) {
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> typeParts = labeler.labelType(_type);
   if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   String type = typeParts.join();
-  return new Message(codeNonExhaustiveSwitch,
+  return new Message(codeNonExhaustiveSwitchExpression,
       problemMessage:
-          """The type '${type}' is not exhaustively matched by the switch cases.""" +
+          """The type '${type}' is not exhaustively matched by the switch cases since it doesn't match '${string}'.""" +
               labeler.originMessages,
-      correctionMessage: """Try adding a default case or cases that match ${string}.""",
-      arguments: {'type': _type, 'string': string});
+      correctionMessage: """Try adding a wildcard pattern or cases that match '${string2}'.""",
+      arguments: {'type': _type, 'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String string, String string2,
+            bool isNonNullableByDefault)> templateNonExhaustiveSwitchStatement =
+    const Template<
+            Message Function(DartType _type, String string, String string2,
+                bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
+        correctionMessageTemplate:
+            r"""Try adding a default case or cases that match '#string2'.""",
+        withArguments: _withArgumentsNonExhaustiveSwitchStatement);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String string, String string2,
+            bool isNonNullableByDefault)> codeNonExhaustiveSwitchStatement =
+    const Code<
+            Message Function(DartType _type, String string, String string2,
+                bool isNonNullableByDefault)>("NonExhaustiveSwitchStatement",
+        analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_STATEMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonExhaustiveSwitchStatement(DartType _type,
+    String string, String string2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  String type = typeParts.join();
+  return new Message(codeNonExhaustiveSwitchStatement,
+      problemMessage:
+          """The type '${type}' is not exhaustively matched by the switch cases since it doesn't match '${string}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try adding a default case or cases that match '${string2}'.""",
+      arguments: {'type': _type, 'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

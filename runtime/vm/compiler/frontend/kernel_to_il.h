@@ -214,7 +214,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
-                      const InferredTypeMetadata* result_type = NULL,
+                      const InferredTypeMetadata* result_type = nullptr,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
   Fragment StringInterpolateSingle(TokenPosition position);
@@ -223,8 +223,15 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // [incompatible_arguments] should be true if the NSM is due to a mismatch
   // between the provided arguments and the function signature.
-  Fragment ThrowNoSuchMethodError(const Function& target,
-                                  bool incompatible_arguments);
+  Fragment ThrowNoSuchMethodError(TokenPosition position,
+                                  const Function& target,
+                                  bool incompatible_arguments,
+                                  bool receiver_pushed = false);
+  Fragment ThrowNoSuchMethodError(TokenPosition position,
+                                  const String& selector,
+                                  InvocationMirror::Level level,
+                                  InvocationMirror::Kind kind,
+                                  bool receiver_pushed = false);
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const char* throw_method_name,
                                         const String& name);
@@ -720,7 +727,7 @@ class SwitchBlock {
         context_depth_(builder->context_depth_),
         try_index_(builder->CurrentTryIndex()) {
     builder_->switch_block_ = this;
-    if (outer_ != NULL) {
+    if (outer_ != nullptr) {
       depth_ = outer_->depth_ + outer_->case_count_;
     } else {
       depth_ = 0;
@@ -729,14 +736,14 @@ class SwitchBlock {
   ~SwitchBlock() { builder_->switch_block_ = outer_; }
 
   bool HadJumper(intptr_t case_num) {
-    return destinations_.Lookup(case_num) != NULL;
+    return destinations_.Lookup(case_num) != nullptr;
   }
 
   // Get destination via absolute target number (i.e. the correct destination
   // is not necessarily in this block).
   JoinEntryInstr* Destination(intptr_t target_index,
-                              TryFinallyBlock** outer_finally = NULL,
-                              intptr_t* context_depth = NULL) {
+                              TryFinallyBlock** outer_finally = nullptr,
+                              intptr_t* context_depth = nullptr) {
     // Verify consistency of program state.
     ASSERT(builder_->switch_block_ == this);
     // Find corresponding destination.
@@ -747,7 +754,7 @@ class SwitchBlock {
     }
 
     // Set the outer finally block.
-    if (outer_finally != NULL) {
+    if (outer_finally != nullptr) {
       *outer_finally = block->outer_finally_;
       *context_depth = block->context_depth_;
     }
@@ -759,10 +766,10 @@ class SwitchBlock {
   // Get destination via relative target number (i.e. relative to this block,
   // 0 is first case in this block etc).
   JoinEntryInstr* DestinationDirect(intptr_t case_num,
-                                    TryFinallyBlock** outer_finally = NULL,
-                                    intptr_t* context_depth = NULL) {
+                                    TryFinallyBlock** outer_finally = nullptr,
+                                    intptr_t* context_depth = nullptr) {
     // Set the outer finally block.
-    if (outer_finally != NULL) {
+    if (outer_finally != nullptr) {
       *outer_finally = outer_finally_;
       *context_depth = context_depth_;
     }
@@ -774,7 +781,7 @@ class SwitchBlock {
  private:
   JoinEntryInstr* EnsureDestination(intptr_t case_num) {
     JoinEntryInstr* cached_inst = destinations_.Lookup(case_num);
-    if (cached_inst == NULL) {
+    if (cached_inst == nullptr) {
       JoinEntryInstr* inst = builder_->BuildJoinEntry(try_index_);
       destinations_.Insert(case_num, inst);
       return inst;
@@ -862,11 +869,11 @@ class BreakableBlock {
   explicit BreakableBlock(FlowGraphBuilder* builder)
       : builder_(builder),
         outer_(builder->breakable_block_),
-        destination_(NULL),
+        destination_(nullptr),
         outer_finally_(builder->try_finally_block_),
         context_depth_(builder->context_depth_),
         try_index_(builder->CurrentTryIndex()) {
-    if (builder_->breakable_block_ == NULL) {
+    if (builder_->breakable_block_ == nullptr) {
       index_ = 0;
     } else {
       index_ = builder_->breakable_block_->index_ + 1;
@@ -875,7 +882,7 @@ class BreakableBlock {
   }
   ~BreakableBlock() { builder_->breakable_block_ = outer_; }
 
-  bool HadJumper() { return destination_ != NULL; }
+  bool HadJumper() { return destination_ != nullptr; }
 
   JoinEntryInstr* destination() { return destination_; }
 
@@ -897,7 +904,7 @@ class BreakableBlock {
 
  private:
   JoinEntryInstr* EnsureDestination() {
-    if (destination_ == NULL) {
+    if (destination_ == nullptr) {
       destination_ = builder_->BuildJoinEntry(try_index_);
     }
     return destination_;

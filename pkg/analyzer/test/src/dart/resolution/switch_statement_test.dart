@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../fallback_exhaustiveness.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -582,7 +581,8 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode
+              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           101,
           1),
     ]);
@@ -682,7 +682,8 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode
+              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           101,
           1),
     ]);
@@ -782,7 +783,8 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode
+              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           95,
           1),
     ]);
@@ -881,7 +883,7 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           80,
           1),
     ]);
@@ -959,7 +961,7 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           80,
           1),
     ]);
@@ -1036,10 +1038,8 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
-          81,
-          1),
+      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          81, 1),
     ]);
 
     final node = findNode.switchStatement('switch');
@@ -1099,7 +1099,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault2() async {
-    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case var a:
@@ -1109,15 +1109,12 @@ void f(Object? x) {
   }
 }
 ''', [
-          error(HintCode.DEAD_CODE, 55, 4),
-          error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
-          error(HintCode.DEAD_CODE, 71, 7),
-          error(
-              CompileTimeErrorCode
-                  .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
-              86,
-              1),
-        ]));
+      error(WarningCode.DEAD_CODE, 55, 4),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
+      error(WarningCode.DEAD_CODE, 71, 7),
+      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          86, 1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1176,10 +1173,8 @@ void f(Object? x) {
 }
 ''', [
       error(WarningCode.UNUSED_LABEL, 39, 8),
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
-          81,
-          1),
+      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          81, 1),
     ]);
 
     final node = findNode.switchStatement('switch');
@@ -1256,15 +1251,15 @@ void f(Object? x) {
 }
 ''', [
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           95,
           1),
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           104,
           1),
       error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           113,
           1),
     ]);
@@ -1358,7 +1353,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 56, 8),
+      error(WarningCode.DEAD_CODE, 56, 8),
     ]);
 
     final node = findNode.switchStatement('switch');

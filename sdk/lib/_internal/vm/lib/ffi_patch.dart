@@ -29,6 +29,7 @@ int get _intPtrSize => (const [
       8, // androidX64,
       8, // fuchsiaArm64,
       8, // fuchsiaX64,
+      8, // fuchsiaRiscv64,
       4, // iosArm,
       8, // iosArm64,
       8, // iosX64,
@@ -154,7 +155,7 @@ external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
 
 @patch
 @pragma("vm:entry-point")
-class Pointer<T extends NativeType> {
+final class Pointer<T extends NativeType> {
   @patch
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
@@ -186,7 +187,7 @@ class Pointer<T extends NativeType> {
 
 @patch
 @pragma("vm:entry-point")
-class Array<T extends NativeType> {
+final class Array<T extends NativeType> {
   @pragma("vm:entry-point")
   final Object _typedDataBase;
 
@@ -228,14 +229,14 @@ external int _abi();
 
 @patch
 @pragma("vm:entry-point")
-class Abi {
+final class Abi {
   @patch
   @pragma("vm:prefer-inline")
   factory Abi.current() => values[_abi()];
 }
 
 @pragma("vm:entry-point")
-class _FfiAbiSpecificMapping {
+final class _FfiAbiSpecificMapping {
   /// A more concise representation of `AbiSpecificIntegerMapping`.
   ///
   /// `AbiSpecificIntegerMapping` contain a mapping from Abi to DartType.
@@ -1030,7 +1031,7 @@ external int _dartApiMajorVersion();
 external int _dartApiMinorVersion();
 
 @patch
-abstract class NativeApi {
+abstract final class NativeApi {
   @patch
   static Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
       get postCObject =>
@@ -1064,7 +1065,7 @@ abstract class NativeApi {
 // patch class of [Array].
 
 @patch
-class _ArraySize<T extends NativeType> implements Array<T> {
+final class _ArraySize<T extends NativeType> implements Array<T> {
   _checkIndex(int index) => throw UnsupportedError('_ArraySize._checkIndex');
 
   List<int> get _nestedDimensions =>

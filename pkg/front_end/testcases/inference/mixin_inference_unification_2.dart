@@ -4,9 +4,9 @@
 
 class I<X, Y> {}
 
-class M0<T> implements I<T, List<T>> {}
+mixin M0<T> implements I<T, List<T>> {}
 
-class M1<T> implements I<List<T>, T> {}
+mixin M1<T> implements I<List<T>, T> {}
 
 // No solution, even with unification, since solution
 // requires that I<List<U0>, U0> == I<U1, List<U1>>

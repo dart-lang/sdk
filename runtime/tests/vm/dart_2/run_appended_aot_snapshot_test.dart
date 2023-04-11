@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
     final String exePath = path.join(tmp, exeName);
 
     {
-      final result = await generateAotKernel(checkedInDartVM, genKernel,
+      final result = await generateAotKernel(checkedInDartVM, genKernelDart,
           platformDill, sourcePath, dillPath, null, [],
           extraGenKernelOptions: ['--no-sound-null-safety']);
       Expect.equals(result.stderr, '');

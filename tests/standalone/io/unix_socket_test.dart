@@ -748,6 +748,7 @@ Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
   if (caller) {
     final process = await Process.start(Platform.resolvedExecutable, <String>[
       ...Platform.executableArguments,
+      '--verbosity=warning', // CFE info/hints pollute the stderr we are trying to test
       Platform.script.toFilePath(),
       '--start-stdio-message-test'
     ]);

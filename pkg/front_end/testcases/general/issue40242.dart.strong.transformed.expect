@@ -20,7 +20,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class C extends core::Object {
   synthetic constructor •() → self::C
@@ -48,9 +47,11 @@ static method errors() → dynamic {
   ^";
   self::C c2;
   block {
-    final dynamic #0#0 = new self::C::•();
-    if(!(let final self::C #t1 = c2 = #0#0{self::C} in true))
-      throw new _in::ReachabilityError::•();
+    self::C #t1;
+    final synthesized dynamic #0#0 = new self::C::•();
+    if(!(let final self::C #t2 = #t1 = #0#0{self::C} in true))
+      throw new core::StateError::•("Pattern matching error");
+    c2 = #t1;
   } =>#0#0;
   invalid-expression "pkg/front_end/testcases/general/issue40242.dart:20:3: Error: Can't assign to the const variable 'c3'.
   c3 = null;

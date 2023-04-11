@@ -429,7 +429,7 @@ class Instructions with SerializerMixin {
   /// Emit a `catch` instruction.
   void catch_(Tag tag) {
     assert(_topOfLabelStack is Try ||
-        _reportError("Unexpected 'catch' (not in 'try' block"));
+        _reportError("Unexpected 'catch' (not in 'try' block)"));
     final Try try_ = _topOfLabelStack as Try;
     assert(_verifyEndOfBlock(tag.type.inputs,
         trace: ['catch', tag], reachableAfter: try_.reachable, reindent: true));
@@ -441,7 +441,7 @@ class Instructions with SerializerMixin {
 
   void catch_all() {
     assert(_topOfLabelStack is Try ||
-        _reportError("Unexpected 'catch_all' (not in 'try' block"));
+        _reportError("Unexpected 'catch_all' (not in 'try' block)"));
     final Try try_ = _topOfLabelStack as Try;
     assert(_verifyEndOfBlock([],
         trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));

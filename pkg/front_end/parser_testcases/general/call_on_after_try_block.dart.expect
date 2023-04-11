@@ -8,7 +8,7 @@ parser/general/call_on_after_try_block:12:6: Expected ')' before this.
   on(42);
      ^^
 
-parser/general/call_on_after_try_block:12:8: Record type with one entry requires a trailing comma.
+parser/general/call_on_after_try_block:12:8: A record type with exactly one positional field requires a trailing comma.
   on(42);
        ^
 

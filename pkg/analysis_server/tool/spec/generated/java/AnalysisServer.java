@@ -1008,6 +1008,38 @@ public interface AnalysisServer {
   public void server_getVersion(GetVersionConsumer consumer);
 
   /**
+   * {@code server.openUrlRequest}
+   *
+   * Note: This is a request from the server to the client.
+   *
+   * Request that a URL be opened.
+   *
+   * The client is expected to open the URL, either within the client's UI or in the default browser.
+   *
+   * The request will only be sent from the server to the client if the client has indicated that it
+   * supports this request by using the setClientCapabilities request.
+   *
+   * @param url The URL to be opened.
+   */
+  public void server_openUrlRequest(String url);
+
+  /**
+   * {@code server.setClientCapabilities}
+   *
+   * Record the capabilities supported by the client. The default values, documented below, will be
+   * assumed until this request is received.
+   *
+   * @param requests The names of the requests that the server can safely send to the client. Only
+   *        requests whose name is in the list will be sent. A request should only be included in the
+   *        list if the client will unconditionally honor the request. The default, used before this
+   *        request is received, is an empty list. The following is a list of the names of the
+   *        requests that can be specified:
+   *        - openUrlRequest
+   *        - showMessageRequest
+   */
+  public void server_setClientCapabilities(List<String> requests);
+
+  /**
    * {@code server.setSubscriptions}
    *
    * Subscribe for services. All previous subscriptions are replaced by the given set of services.
@@ -1018,6 +1050,28 @@ public interface AnalysisServer {
    * @param subscriptions A list of the services being subscribed to.
    */
   public void server_setSubscriptions(List<String> subscriptions);
+
+  /**
+   * {@code server.showMessageRequest}
+   *
+   * Note: This is a request from the server to the client.
+   *
+   * Request that a message be displayed to the user.
+   *
+   * The client is expected to display the message to the user with one or more buttons with the
+   * specified labels, and to return a response consisting of the label of the button that was
+   * clicked.
+   *
+   * The request will only be sent from the server to the client if the client has indicated that it
+   * supports this request by using the setClientCapabilities request.
+   *
+   * This request is modeled after the same request from the LSP specification.
+   *
+   * @param type The type of the message.
+   * @param message The message to be displayed.
+   * @param actions The labels of the buttons by which the user can dismiss the message.
+   */
+  public void server_showMessageRequest(String type, String message, List<MessageAction> actions, ShowMessageRequestConsumer consumer);
 
   /**
    * {@code server.shutdown}

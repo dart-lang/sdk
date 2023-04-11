@@ -27,7 +27,6 @@
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
@@ -530,18 +529,6 @@ static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     js->PrintError(kFeatureDisabled, "Profiler is disabled.");
-    return true;
-  }
-  return false;
-}
-
-static bool CheckNativeAllocationProfilerDisabled(Thread* thread,
-                                                  JSONStream* js) {
-  if (CheckProfilerDisabled(thread, js)) {
-    return true;
-  }
-  if (!FLAG_profiler_native_memory) {
-    js->PrintError(kFeatureDisabled, "Native memory profiling is disabled.");
     return true;
   }
   return false;
@@ -4013,18 +4000,6 @@ static void RemoveBreakpoint(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 }
 
-static ClassPtr GetMetricsClass(Thread* thread) {
-  Zone* zone = thread->zone();
-  const Library& prof_lib = Library::Handle(zone, Library::DeveloperLibrary());
-  ASSERT(!prof_lib.IsNull());
-  const String& metrics_cls_name = String::Handle(zone, String::New("Metrics"));
-  ASSERT(!metrics_cls_name.IsNull());
-  const Class& metrics_cls =
-      Class::Handle(zone, prof_lib.LookupClass(metrics_cls_name));
-  ASSERT(!metrics_cls.IsNull());
-  return metrics_cls.ptr();
-}
-
 static void HandleNativeMetricsList(Thread* thread, JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "MetricList");
@@ -4067,63 +4042,14 @@ static void HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
   PrintInvalidParamError(js, "metricId");
 }
 
-static void HandleDartMetricsList(Thread* thread, JSONStream* js) {
-  Zone* zone = thread->zone();
-  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
-  const auto& error = metrics_cls.EnsureIsFinalized(Thread::Current());
-  ASSERT(error == Error::null());
-  const String& print_metrics_name =
-      String::Handle(String::New("_printMetrics"));
-  ASSERT(!print_metrics_name.IsNull());
-  const Function& print_metrics = Function::Handle(
-      zone, metrics_cls.LookupStaticFunctionAllowPrivate(print_metrics_name));
-  ASSERT(!print_metrics.IsNull());
-  const Array& args = Object::empty_array();
-  const Object& result =
-      Object::Handle(zone, DartEntry::InvokeFunction(print_metrics, args));
-  ASSERT(!result.IsNull());
-  ASSERT(result.IsString());
-  TextBuffer* buffer = js->buffer();
-  buffer->AddString(String::Cast(result).ToCString());
-}
-
-static void HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
-  Zone* zone = thread->zone();
-  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
-  const String& print_metric_name = String::Handle(String::New("_printMetric"));
-  ASSERT(!print_metric_name.IsNull());
-  const Function& print_metric = Function::Handle(
-      zone, metrics_cls.LookupStaticFunctionAllowPrivate(print_metric_name));
-  ASSERT(!print_metric.IsNull());
-  const String& arg0 = String::Handle(String::New(id));
-  ASSERT(!arg0.IsNull());
-  const Array& args = Array::Handle(Array::New(1));
-  ASSERT(!args.IsNull());
-  args.SetAt(0, arg0);
-  const Object& result =
-      Object::Handle(zone, DartEntry::InvokeFunction(print_metric, args));
-  if (!result.IsNull()) {
-    ASSERT(result.IsString());
-    TextBuffer* buffer = js->buffer();
-    buffer->AddString(String::Cast(result).ToCString());
-    return;
-  }
-  PrintInvalidParamError(js, "metricId");
-}
-
 static const MethodParameter* const get_isolate_metric_list_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
 };
 
 static void GetIsolateMetricList(Thread* thread, JSONStream* js) {
-  bool native_metrics = false;
   if (js->HasParam("type")) {
-    if (js->ParamIs("type", "Native")) {
-      native_metrics = true;
-    } else if (js->ParamIs("type", "Dart")) {
-      native_metrics = false;
-    } else {
+    if (!js->ParamIs("type", "Native")) {
       PrintInvalidParamError(js, "type");
       return;
     }
@@ -4131,11 +4057,7 @@ static void GetIsolateMetricList(Thread* thread, JSONStream* js) {
     PrintMissingParamError(js, "type");
     return;
   }
-  if (native_metrics) {
-    HandleNativeMetricsList(thread, js);
-  } else {
-    HandleDartMetricsList(thread, js);
-  }
+  HandleNativeMetricsList(thread, js);
 }
 
 static const MethodParameter* const get_isolate_metric_params[] = {
@@ -4149,25 +4071,16 @@ static void GetIsolateMetric(Thread* thread, JSONStream* js) {
     PrintMissingParamError(js, "metricId");
     return;
   }
-  // Verify id begins with "metrics/".
-  static const char* const kMetricIdPrefix = "metrics/";
-  static intptr_t kMetricIdPrefixLen = strlen(kMetricIdPrefix);
-  if (strncmp(metric_id, kMetricIdPrefix, kMetricIdPrefixLen) != 0) {
+  // Verify id begins with "metrics/native/".
+  static const char* const kNativeMetricIdPrefix = "metrics/native/";
+  static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
+  if (strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) !=
+      0) {
     PrintInvalidParamError(js, "metricId");
     return;
   }
-  // Check if id begins with "metrics/native/".
-  static const char* const kNativeMetricIdPrefix = "metrics/native/";
-  static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
-  const bool native_metric =
-      strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) == 0;
-  const char* id = metric_id + (native_metric ? kNativeMetricIdPrefixLen
-                                              : kMetricIdPrefixLen);
-  if (native_metric) {
-    HandleNativeMetric(thread, js, id);
-  } else {
-    HandleDartMetric(thread, js, id);
-  }
+  const char* id = metric_id + kNativeMetricIdPrefixLen;
+  HandleNativeMetric(thread, js, id);
 }
 
 static void SetVMTimelineFlags(Thread* thread, JSONStream* js) {
@@ -4476,30 +4389,6 @@ static void GetAllocationTraces(Thread* thread, JSONStream* js) {
   }
 }
 
-static const MethodParameter* const get_native_allocation_samples_params[] = {
-    NO_ISOLATE_PARAMETER,
-    new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false),
-    NULL,
-};
-
-static void GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
-  int64_t time_origin_micros =
-      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
-  int64_t time_extent_micros =
-      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  bool include_code_samples =
-      BoolParameter::Parse(js->LookupParam("_code"), false);
-#if defined(DEBUG)
-  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
-#endif
-  if (CheckNativeAllocationProfilerDisabled(thread, js)) {
-    return;
-  }
-  ProfilerService::PrintNativeAllocationJSON(
-      js, time_origin_micros, time_extent_micros, include_code_samples);
-}
-
 static const MethodParameter* const clear_cpu_samples_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -4775,35 +4664,6 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
     vm.AddProperty("description", "");
     vm.AddProperty64("size", vm_size);
   }
-
-  // On Android, malloc is better labeled by /proc/self/smaps.
-#if !defined(DART_HOST_OS_ANDROID)
-  intptr_t used, capacity;
-  const char* implementation;
-  if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
-    JSONObject malloc(&rss_children);
-    malloc.AddPropertyF("name", "Malloc (%s)", implementation);
-    malloc.AddProperty("description", "");
-    malloc.AddProperty64("size", capacity);
-    JSONArray malloc_children(&malloc, "children");
-
-    {
-      JSONObject malloc_used(&malloc_children);
-      malloc_used.AddProperty("name", "Used");
-      malloc_used.AddProperty("description", "");
-      malloc_used.AddProperty64("size", used);
-      JSONArray(&malloc_used, "children");
-    }
-
-    {
-      JSONObject malloc_free(&malloc_children);
-      malloc_free.AddProperty("name", "Free");
-      malloc_free.AddProperty("description", "");
-      malloc_free.AddProperty64("size", capacity - used);
-      JSONArray(&malloc_free, "children");
-    }
-  }
-#endif
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   AddVMMappings(&rss_children);
@@ -5292,15 +5152,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
-  {
-    intptr_t used, capacity;
-    const char* implementation;
-    if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
-      jsobj.AddProperty("_mallocUsed", used);
-      jsobj.AddProperty("_mallocCapacity", capacity);
-      jsobj.AddProperty("_mallocImplementation", implementation);
-    }
-  }
   PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate and isolate_groups list.
   {
@@ -5379,7 +5230,9 @@ static void PopulateUriMappings(Thread* thread) {
   Array& scripts = Array::Handle(zone);
   String& uri = String::Handle(zone);
   String& resolved_uri = String::Handle(zone);
-
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
+  String& tmp = thread->StringHandle();
+#endif
   for (intptr_t i = 0; i < num_libs; ++i) {
     lib ^= libs.At(i);
     scripts ^= lib.LoadedScripts();
@@ -5390,6 +5243,15 @@ static void PopulateUriMappings(Thread* thread) {
       resolved_uri ^= script.resolved_url();
       uri_to_resolved_uri.UpdateOrInsert(uri, resolved_uri);
       resolved_uri_to_uri.UpdateOrInsert(resolved_uri, uri);
+
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
+      // Allow for case insensitive matching on platforms that might allow for
+      // case insensitive paths.
+      tmp = String::ToLowerCase(uri);
+      uri_to_resolved_uri.UpdateOrInsert(tmp, resolved_uri);
+      tmp = String::ToLowerCase(resolved_uri);
+      resolved_uri_to_uri.UpdateOrInsert(tmp, uri);
+#endif
     }
   }
 
@@ -5440,6 +5302,15 @@ static void LookupScriptUrisImpl(Thread* thread,
     for (intptr_t i = 0; i < uris.Length(); ++i) {
       uri ^= uris.At(i);
       res ^= map.GetOrNull(uri);
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
+      // Windows and MacOS paths can be case insensitive, so we should allow for
+      // case insensitive URI mappings on Windows and MacOS.
+      if (res.IsNull()) {
+        String& lower_case_uri = thread->StringHandle();
+        lower_case_uri = String::ToLowerCase(uri);
+        res ^= map.GetOrNull(lower_case_uri);
+      }
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_MACOS)
       if (res.IsNull()) {
         uris_array.AddValueNull();
       } else {
@@ -5872,8 +5743,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "getAllocationTraces", GetAllocationTraces,
       get_allocation_traces_params },
-  { "_getNativeAllocationSamples", GetNativeAllocationSamples,
-      get_native_allocation_samples_params },
   { "getClassList", GetClassList,
     get_class_list_params },
   { "getCpuSamples", GetCpuSamples,

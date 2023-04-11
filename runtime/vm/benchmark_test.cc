@@ -168,7 +168,7 @@ BENCHMARK(UseDartApi) {
   const char* kScriptChars = R"(
 import 'dart:nativewrappers';
 
-class Class extends NativeFieldWrapperClass1 {
+base class Class extends NativeFieldWrapperClass1 {
   @pragma("vm:external-name", "init")
   external void init();
   @pragma("vm:external-name", "method")

@@ -245,26 +245,17 @@ class MethodElementFlags {
 
 class MixinElementFlags {
   static const int _isBase = 1 << 0;
-  static const int _isFinal = 1 << 1;
-  static const int _isInterface = 1 << 2;
-  static const int _isSealed = 1 << 3;
-  static const int _isSimplyBounded = 1 << 4;
+  static const int _isSimplyBounded = 1 << 1;
 
   static void read(SummaryDataReader reader, MixinElementImpl element) {
     var byte = reader.readByte();
     element.isBase = (byte & _isBase) != 0;
-    element.isFinal = (byte & _isFinal) != 0;
-    element.isInterface = (byte & _isInterface) != 0;
-    element.isSealed = (byte & _isSealed) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
   static void write(BufferedSink sink, MixinElementImpl element) {
     var result = 0;
     result |= element.isBase ? _isBase : 0;
-    result |= element.isFinal ? _isFinal : 0;
-    result |= element.isInterface ? _isInterface : 0;
-    result |= element.isSealed ? _isSealed : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }

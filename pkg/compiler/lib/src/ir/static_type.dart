@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show operatorFromString;
+import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+    show StaticWeakReferences;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
@@ -14,7 +16,20 @@ import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
 import 'static_type_cache.dart';
-import 'class_relation.dart';
+
+/// Enum values for how the target of a static type should be interpreted.
+enum ClassRelation {
+  /// The target is any subtype of the static type.
+  subtype,
+
+  /// The target is a subclass or mixin application of the static type.
+  ///
+  /// This corresponds to accessing a member through a this expression.
+  thisExpression,
+
+  /// The target is an exact instance of the static type.
+  exact,
+}
 
 ClassRelation computeClassRelationFromType(ir.DartType type) {
   if (type is ThisInterfaceType) {
@@ -994,19 +1009,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitVariableGet(ir.VariableGet node) {
-    typeMapsForTesting?[node] = typeMap;
-    ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
-    assert(
-        node.promotedType == null ||
-            promotedType is ir.NullType ||
-            promotedType is ir.FutureOrType ||
-            typeEnvironment.isSubtypeOf(promotedType, node.promotedType!,
-                ir.SubtypeCheckMode.ignoringNullabilities),
-        "Unexpected promotion of ${node.variable} in ${node.parent}. "
-        "Expected ${node.promotedType}, found $promotedType");
-    _staticTypeCache._expressionTypes[node] = promotedType;
-    handleVariableGet(node, promotedType);
-    return promotedType;
+    ir.DartType frontendType = node.getStaticType(staticTypeContext);
+    ir.DartType staticType;
+    if (currentLibrary.isNonNullableByDefault) {
+      staticType = frontendType;
+    } else {
+      typeMapsForTesting?[node] = typeMap;
+      staticType = typeMap.typeOf(node, typeEnvironment);
+      assert(
+          typeEnvironment.isSubtypeOf(staticType, frontendType,
+              ir.SubtypeCheckMode.ignoringNullabilities),
+          "Unexpected promotion of ${node.variable} in ${node.parent}. "
+          "Expected $frontendType, found $staticType");
+    }
+    _staticTypeCache._expressionTypes[node] = staticType;
+    handleVariableGet(node, staticType);
+    return staticType;
   }
 
   void handleVariableSet(ir.VariableSet node, ir.DartType resultType) {}
@@ -1063,14 +1081,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void handleStaticInvocation(ir.StaticInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {}
 
+  void handleWeakStaticTearOff(ir.Expression node, ir.Procedure target) {}
+
   @override
   ir.DartType visitStaticInvocation(ir.StaticInvocation node) {
-    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType returnType = ir.Substitution.fromPairs(
             node.target.function.typeParameters, node.arguments.types)
         .substituteType(node.target.function.returnType);
     _staticTypeCache._expressionTypes[node] = returnType;
-    handleStaticInvocation(node, argumentTypes, returnType);
+    if (ir.StaticWeakReferences.isWeakReference(node)) {
+      handleWeakStaticTearOff(
+          ir.StaticWeakReferences.getWeakReferenceArgument(node),
+          ir.StaticWeakReferences.getWeakReferenceTarget(node));
+    } else {
+      ArgumentTypes argumentTypes = _visitArguments(node.arguments);
+      handleStaticInvocation(node, argumentTypes, returnType);
+    }
     return returnType;
   }
 

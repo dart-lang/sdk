@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' deferred as normal;
+import 'dart:collection' deferred as normal show HashSet;
 
 @pragma('dart2js:load-priority:high')
 import 'dart:math' deferred as high;

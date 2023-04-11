@@ -5,18 +5,24 @@
 /*library: nnbd=true*/
 
 /*class: A:A,Object*/
-class A implements Function {}
+class A
+    implements /*analyzer.error: CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY*/
+        /*cfe|cfe:builder.error: FinalClassImplementedOutsideOfLibrary*/ Function {}
 
 /*class: B:B,Object*/
-class B extends Function {}
+class B
+    extends /*analyzer.error: CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY*/ /*cfe|cfe:builder.error: FinalClassExtendedOutsideOfLibrary*/ Function {}
 
 /*cfe|cfe:builder.class: C:C,Object,_C&Object&Function*/
 /*analyzer.class: C:C,Object*/
-class C extends Object with Function {}
+/*cfe|cfe:builder.class: _C&Object&Function:Object,_C&Object&Function*/
+class C extends Object
+    with /*analyzer.error: CompileTimeErrorCode.CLASS_USED_AS_MIXIN*/
+        /*cfe|cfe:builder.error: CantUseClassAsMixin*/ Function {}
 
 // CFE hides that this is a mixin declaration since its mixed in type has been
 // removed.
-/*cfe|cfe:builder.class: _C&Object&Function:Object,_C&Object&Function*/
-
 /*cfe|cfe:builder.class: D:D,Object*/
-class D = Object with Function;
+class D = Object
+    with /*analyzer.error: CompileTimeErrorCode.CLASS_USED_AS_MIXIN*/ /*cfe|cfe:builder.error: CantUseClassAsMixin*/
+        Function;

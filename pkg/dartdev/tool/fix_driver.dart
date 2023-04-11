@@ -98,10 +98,7 @@ class FixRunner<T extends Logger> extends CommandRunner<int> {
   T logger;
 
   @override
-  final ArgParser argParser = ArgParser(
-    usageLineLength: dartdevUsageLineLength,
-    allowTrailingOptions: false,
-  );
+  final ArgParser argParser = globalDartdevOptionsParser();
 
   FixRunner({required this.logger})
       : super('fix_runner',

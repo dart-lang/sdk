@@ -133,15 +133,9 @@ typedef void _TimerCallback();
 /// A broadcast stream inheriting from [Stream] must override [isBroadcast]
 /// to return `true` if it wants to signal that it behaves like a broadcast
 /// stream.
-abstract class Stream<T> {
-  Stream();
-
-  /// Internal use only. We do not want to promise that Stream stays const.
-  ///
-  /// If mixins become compatible with const constructors, we may use a
-  /// stream mixin instead of extending Stream from a const class.
-  /// (They now are compatible. We still consider, but it's not urgent.)
-  const Stream._internal();
+@vmIsolateUnsendable
+abstract mixin class Stream<T> {
+  const Stream();
 
   /// Creates an empty broadcast stream.
   ///
@@ -1189,7 +1183,7 @@ abstract class Stream<T> {
   /// If this stream emits an error, or if the call to [action] throws,
   /// the returned future completes with that error,
   /// and processing stops.
-  Future forEach(void action(T element)) {
+  Future<void> forEach(void action(T element)) {
     _Future future = new _Future();
     StreamSubscription<T> subscription =
         this.listen(null, onError: future._completeError, onDone: () {
@@ -2029,7 +2023,7 @@ abstract class Stream<T> {
 /// // Do some work.
 /// subscription.cancel();
 /// ```
-abstract class StreamSubscription<T> {
+abstract interface class StreamSubscription<T> {
   /// Cancels this subscription.
   ///
   /// After this call, the subscription no longer receives events.
@@ -2163,7 +2157,7 @@ abstract class StreamSubscription<T> {
 /// The [EventSink] has been designed to handle asynchronous events from
 /// [Stream]s. See, for example, [Stream.eventTransformed] which uses
 /// `EventSink`s to transform events.
-abstract class EventSink<T> implements Sink<T> {
+abstract interface class EventSink<T> implements Sink<T> {
   /// Adds a data [event] to the sink.
   ///
   /// Must not be called on a closed sink.
@@ -2183,12 +2177,10 @@ abstract class EventSink<T> implements Sink<T> {
 }
 
 /// [Stream] wrapper that only exposes the [Stream] interface.
-class StreamView<T> extends Stream<T> {
+base class StreamView<T> extends Stream<T> {
   final Stream<T> _stream;
 
-  const StreamView(Stream<T> stream)
-      : _stream = stream,
-        super._internal();
+  const StreamView(Stream<T> stream) : _stream = stream;
 
   bool get isBroadcast => _stream.isBroadcast;
 

@@ -135,7 +135,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.DEAD_CODE, 45, 8),
+      error(WarningCode.DEAD_CODE, 45, 8),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -967,6 +967,86 @@ IfStatement
           token: a
           staticElement: a@51
           staticType: int
+        semicolon: ;
+    rightBracket: }
+  elseKeyword: else
+  elseStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: self::@getter::a
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_caseClause_variables_scope_logicalOr() async {
+    await assertErrorsInCode(r'''
+const a = 0;
+void f(Object? x) {
+  if (x case bool a || a when a) {
+    a;
+  } else {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          56, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
+    ]);
+
+    final node = findNode.singleIfStatement;
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: LogicalOrPattern
+        leftOperand: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: bool
+              staticElement: dart:core::@class::bool
+              staticType: null
+            type: bool
+          name: a
+          declaredElement: a@51
+            type: bool
+          matchedValueType: Object?
+        operator: ||
+        rightOperand: ConstantPattern
+          expression: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@51]
+            staticType: dynamic
+          matchedValueType: Object?
+        matchedValueType: Object?
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@51]
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@51]
+          staticType: bool
         semicolon: ;
     rightBracket: }
   elseKeyword: else

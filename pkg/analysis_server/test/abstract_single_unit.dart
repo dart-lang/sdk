@@ -71,13 +71,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
-        return error.errorCode != HintCode.DEAD_CODE &&
+        return error.errorCode != WarningCode.DEAD_CODE &&
             error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
             error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
             error.errorCode != HintCode.UNUSED_ELEMENT &&
-            error.errorCode != HintCode.UNUSED_FIELD &&
-            error.errorCode != HintCode.UNUSED_IMPORT &&
-            error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
+            error.errorCode != WarningCode.UNUSED_FIELD &&
+            error.errorCode != WarningCode.UNUSED_IMPORT &&
+            error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
     testUnitElement = testUnit.declaredElement!;

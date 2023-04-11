@@ -6,17 +6,17 @@ part of dart._interceptors;
 
 /// Only used as an interceptor by dart:_rti library for number values that look
 /// like an integer.
-class JSInt extends JSNumber implements int {}
+final class JSInt extends JSNumber implements int {}
 
 /// Only used as an interceptor by dart:_rti library for number values that look
 /// like a double.
-class JSNumNotInt extends JSNumber implements double {}
+final class JSNumNotInt extends JSNumber implements double {}
 
 /// The implementation of Dart's int & double methods.
 ///
 /// These are made available as extension methods on `Number` in JS.
 @JsPeerInterface(name: 'Number')
-class JSNumber extends Interceptor implements double {
+final class JSNumber extends Interceptor implements double {
   const JSNumber();
 
   @notNull

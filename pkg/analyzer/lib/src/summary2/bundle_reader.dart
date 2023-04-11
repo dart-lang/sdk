@@ -1651,6 +1651,10 @@ class ResolutionReader {
     return type is FunctionType ? type : null;
   }
 
+  T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
+    return _reader.readOptionalObject(read);
+  }
+
   List<DartType>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();
@@ -1847,7 +1851,7 @@ class ResolutionReader {
     required CompilationUnitElementImpl unitElement,
   }) {
     return readTypedList(() {
-      var ast = _readRequiredNode() as Annotation;
+      var ast = _readRequiredNode() as AnnotationImpl;
       return ElementAnnotationImpl(unitElement)
         ..annotationAst = ast
         ..element = ast.element;

@@ -93,7 +93,7 @@ void main() {
   // Methods and tear-offs.
   expect(ExternalStatic.method(), 'method');
   expect((ExternalStatic.method)(), 'method');
-  expect(ExternalStatic.differentArgsMethod('method'), 'method');
+  expect(ExternalStatic.differentArgsMethod('method'), 'methodundefined');
   expect((ExternalStatic.differentArgsMethod)('optional', 'method'),
       'optionalmethod');
   expect(ExternalStatic.renamedMethod(), 'method');

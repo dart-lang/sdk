@@ -24,7 +24,7 @@ class DirectiveUriTest extends AbstractCompletionDriverTest {
       uriContent: 'foo0^',
       validator: () {
         // We have both `foo0x`, but no `bar`.
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -42,7 +42,7 @@ suggestions
       uriContent: 'foo0^xyz',
       validator: () {
         // We ignore 'xyz' after the caret.
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
   right: 3

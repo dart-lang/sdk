@@ -7,7 +7,7 @@ abstract class A1 {
   void extendedInterfaceMember();
 }
 
-abstract class A2 {
+mixin A2 {
   void mixedInClassMember() {}
   void mixedInInterfaceMember();
 }
@@ -42,7 +42,7 @@ class B5 extends B4 {}
 
 class B6 extends B3 implements B1, B2 {}
 
-abstract class C1 {
+mixin C1 {
   void mixedInAndImplementedClassMember() {}
   void mixedInAndImplementedInterfaceMember();
 }

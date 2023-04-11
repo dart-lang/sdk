@@ -623,6 +623,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreType {
+    return element.name == "Type" && element.library.isDartCore;
+  }
+
+  @override
   List<MethodElement> get methods {
     if (_methods == null) {
       List<MethodElement> methods = element.methods;
@@ -1233,6 +1238,9 @@ abstract class TypeImpl implements DartType {
   bool get isDartCoreSymbol => false;
 
   @override
+  bool get isDartCoreType => false;
+
+  @override
   bool get isDynamic => false;
 
   @override
@@ -1462,6 +1470,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   int get hashCode => 2;
 
+  @Deprecated('Use `is VoidType` instead')
   @override
   bool get isVoid => true;
 

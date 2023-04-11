@@ -7,6 +7,7 @@ inline class Class {
   static void staticMethod() {}
   static S genericStaticMethod<S>(S s) => s;
 }
+
 inline class GenericClass<T> {
   final T it;
   void instanceMethod() {}

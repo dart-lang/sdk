@@ -46,8 +46,11 @@ class _ColorFormatter extends Formatter {
 
   const _ColorFormatter() : super._();
 
+  @override
   String passed(String message) => _color(message, _green);
+  @override
   String failed(String message) => _color(message, _red);
+  @override
   String section(String message) => _color(message, _gray);
 
   static String _color(String message, String color) =>
@@ -62,6 +65,7 @@ class EventListener {
 }
 
 class ExitCodeSetter extends EventListener {
+  @override
   void done(TestCase test) {
     if (test.unexpectedOutput) {
       exitCode = 1;
@@ -88,12 +92,16 @@ class TimedProgressPrinter extends EventListener {
         "Tests running for ${(interval * timer.tick).inMinutes} minutes");
   }
 
+  @override
   void testAdded() => _numTests++;
 
+  @override
   void done(TestCase test) => _numCompleted++;
 
+  @override
   void allTestsKnown() => _allKnown = true;
 
+  @override
   void allDone() => _timer.cancel();
 }
 
@@ -102,6 +110,7 @@ class IgnoredTestMonitor extends EventListener {
 
   int countIgnored = 0;
 
+  @override
   void done(TestCase test) {
     if (test.lastCommandOutput.result(test) == Expectation.ignore) {
       countIgnored++;
@@ -116,6 +125,7 @@ class IgnoredTestMonitor extends EventListener {
     }
   }
 
+  @override
   void allDone() {
     if (countIgnored > 0) {
       Terminal.print("Ignored $countIgnored tests due to flaky infrastructure");
@@ -126,6 +136,7 @@ class IgnoredTestMonitor extends EventListener {
 class UnexpectedCrashLogger extends EventListener {
   final archivedBinaries = <String, String>{};
 
+  @override
   void done(TestCase test) {
     if (test.unexpectedOutput &&
         test.result == Expectation.crash &&
@@ -207,6 +218,7 @@ class SummaryPrinter extends EventListener {
 
   SummaryPrinter({this.jsonOnly = false});
 
+  @override
   void allTestsKnown() {
     if (jsonOnly) {
       Terminal.print("JSON:");
@@ -224,6 +236,7 @@ class TimingPrinter extends EventListener {
 
   TimingPrinter(this._startTime);
 
+  @override
   void done(TestCase test) {
     for (var commandOutput in test.commandOutputs.values) {
       var command = commandOutput.command;
@@ -232,6 +245,7 @@ class TimingPrinter extends EventListener {
     }
   }
 
+  @override
   void allDone() {
     var d = DateTime.now().difference(_startTime);
     Terminal.print('\n--- Total time: ${_timeString(d)} ---');
@@ -257,12 +271,14 @@ class TimingPrinter extends EventListener {
 class SkippedCompilationsPrinter extends EventListener {
   int _skippedCompilations = 0;
 
+  @override
   void done(TestCase test) {
     for (var commandOutput in test.commandOutputs.values) {
       if (commandOutput.compilationSkipped) _skippedCompilations++;
     }
   }
 
+  @override
   void allDone() {
     if (_skippedCompilations > 0) {
       Terminal.print(
@@ -277,6 +293,7 @@ class TestFailurePrinter extends EventListener {
 
   TestFailurePrinter([this._formatter = Formatter.normal]);
 
+  @override
   void done(TestCase test) {
     if (!test.unexpectedOutput) return;
     for (var line in _buildFailureOutput(test, _formatter)) {
@@ -293,6 +310,7 @@ class ResultCountPrinter extends EventListener {
 
   ResultCountPrinter(this._formatter);
 
+  @override
   void done(TestCase test) {
     if (test.unexpectedOutput) {
       _failedTests++;
@@ -301,6 +319,7 @@ class ResultCountPrinter extends EventListener {
     }
   }
 
+  @override
   void allDone() {
     var suffix = _passedTests != 1 ? 's' : '';
     var passed =
@@ -324,12 +343,14 @@ class FailedTestsPrinter extends EventListener {
 
   FailedTestsPrinter();
 
+  @override
   void done(TestCase test) {
     if (test.unexpectedOutput) {
       _failedTests.add(test);
     }
   }
 
+  @override
   void allDone() {
     if (_failedTests.isEmpty) return;
 
@@ -351,6 +372,7 @@ class PassingStdoutPrinter extends EventListener {
 
   PassingStdoutPrinter([this._formatter = Formatter.normal]);
 
+  @override
   void done(TestCase test) {
     if (!test.unexpectedOutput) {
       var lines = <String>[];
@@ -367,6 +389,7 @@ class PassingStdoutPrinter extends EventListener {
     }
   }
 
+  @override
   void allDone() {}
 }
 
@@ -396,10 +419,12 @@ abstract class ProgressIndicator extends EventListener {
     throw "unreachable";
   }
 
+  @override
   void testAdded() {
     _foundTests++;
   }
 
+  @override
   void done(TestCase test) {
     if (test.unexpectedOutput) {
       _failedTests++;
@@ -409,6 +434,7 @@ abstract class ProgressIndicator extends EventListener {
     _printDoneProgress(test);
   }
 
+  @override
   void allTestsKnown() {
     _allTestsKnown = true;
   }
@@ -428,6 +454,7 @@ class CompactProgressIndicator extends CompactIndicator {
   CompactProgressIndicator(DateTime startTime, this._formatter)
       : super(startTime);
 
+  @override
   void _printDoneProgress(TestCase test) {
     var percent = ((_completedTests / _foundTests) * 100).toInt().toString();
     var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
@@ -440,6 +467,7 @@ class CompactProgressIndicator extends CompactIndicator {
     Terminal.writeLine(progressLine);
   }
 
+  @override
   void allDone() {
     Terminal.finishLine();
   }
@@ -448,6 +476,7 @@ class CompactProgressIndicator extends CompactIndicator {
 class LineProgressIndicator extends ProgressIndicator {
   LineProgressIndicator(DateTime startTime) : super(startTime);
 
+  @override
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
     if (test.unexpectedOutput) {
@@ -463,6 +492,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 
   BuildbotProgressIndicator(DateTime startTime) : super(startTime);
 
+  @override
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
     if (test.unexpectedOutput) {
@@ -475,6 +505,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
     Terminal.print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
   }
 
+  @override
   void allDone() {
     if (_failedTests == 0) return;
     Terminal.print('@@@STEP_FAILURE@@@');
@@ -639,6 +670,7 @@ class ResultWriter extends EventListener {
     Directory(_outputDirectory).createSync(recursive: true);
   }
 
+  @override
   void allTestsKnown() {
     // Write an empty result log file, that will be overwritten if any tests
     // are actually run, when the allDone event handler is invoked.
@@ -647,8 +679,9 @@ class ResultWriter extends EventListener {
   }
 
   String newlineTerminated(Iterable<String> lines) =>
-      lines.map((l) => l + '\n').join();
+      lines.map((l) => '$l\n').join();
 
+  @override
   void done(TestCase test) {
     var name = test.displayName;
     var index = name.indexOf('/');
@@ -680,6 +713,7 @@ class ResultWriter extends EventListener {
     }
   }
 
+  @override
   void allDone() {
     writeOutputFile(_results, TestUtils.resultsFileName);
     writeOutputFile(_logs, TestUtils.logsFileName);

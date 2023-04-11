@@ -10,7 +10,7 @@ part of dart.core;
 /// It is a compile-time error for a class to attempt to extend or implement
 /// bool.
 @pragma("vm:entry-point")
-class bool {
+final class bool {
   /// Returns the boolean value of the environment declaration [name].
   ///
   /// The boolean value of the declaration is `true` if the declared value is
@@ -93,6 +93,68 @@ class bool {
   //ignore: const_constructor_with_body
   //ignore: const_factory
   external const factory bool.hasEnvironment(String name);
+
+  /// Parses [source] as an, optionally case-insensitive, boolean literal.
+  ///
+  /// If [caseSensitive] is `true`, which is the default,
+  /// the only accepted inputs are the strings `"true"` and `"false"`,
+  /// which returns the results `true` and `false` respectively.
+  ///
+  /// If [caseSensitive] is `false`, any combination of upper and lower case
+  /// ASCII letters in the words `"true"` and `"false"` are accepted,
+  /// as if the input was first lower-cased.
+  ///
+  /// Throws a [FormatException] if the [source] string does not contain
+  /// a valid boolean literal.
+  ///
+  /// Rather than throwing and immediately catching the [FormatException],
+  /// instead use [tryParse] to handle a potential parsing error.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(bool.tryParse('true')); // true
+  /// print(bool.tryParse('false')); // false
+  /// print(bool.tryParse('TRUE')); // throws FormatException
+  /// print(bool.tryParse('TRUE', caseSensitive: false)); // true
+  /// print(bool.tryParse('FALSE', caseSensitive: false)); // false
+  /// print(bool.tryParse('NO')); // throws FormatException
+  /// print(bool.tryParse('YES')); // throws FormatException
+  /// print(bool.tryParse('0')); // throws FormatException
+  /// print(bool.tryParse('1')); // throws FormatException
+  /// ```
+  @Since("3.0")
+  external static bool parse(String source, {bool caseSensitive = true});
+
+  /// Parses [source] as an, optionally case-insensitive, boolean literal.
+  ///
+  /// If [caseSensitive] is `true`, which is the default,
+  /// the only accepted inputs are the strings `"true"` and `"false"`,
+  /// which returns the results `true` and `false` respectively.
+  ///
+  /// If [caseSensitive] is `false`, any combination of upper and lower case
+  /// ASCII letters in the words `"true"` and `"false"` are accepted,
+  /// as if the input was first lower-cased.
+  ///
+  /// Returns `null` if the [source] string does not contain a valid
+  /// boolean literal.
+  ///
+  /// If the input can be assumed to be valid, use [bool.parse] to avoid
+  /// having to deal with a possible `null` result.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(bool.tryParse('true')); // true
+  /// print(bool.tryParse('false')); // false
+  /// print(bool.tryParse('TRUE')); // null
+  /// print(bool.tryParse('TRUE', caseSensitive: false)); // true
+  /// print(bool.tryParse('FALSE', caseSensitive: false)); // false
+  /// print(bool.tryParse('NO')); // null
+  /// print(bool.tryParse('YES')); // null
+  /// print(bool.tryParse('0')); // null
+  /// print(bool.tryParse('1')); // null
+  /// ```
+  @Since("3.0")
+  external static bool? tryParse(String source, {bool caseSensitive = true});
 
   external int get hashCode;
 

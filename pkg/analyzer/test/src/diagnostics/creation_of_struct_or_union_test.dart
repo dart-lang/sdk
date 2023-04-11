@@ -19,7 +19,7 @@ class CreationOfStructOrUnionTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class A extends Struct {
+final class A extends Struct {
   @Int32()
   external int a;
 }
@@ -28,7 +28,7 @@ void f() {
   A();
 }
 ''', [
-      error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 90, 1),
+      error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 96, 1),
     ]);
   }
 
@@ -36,7 +36,7 @@ void f() {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class A extends Union {
+final class A extends Union {
   @Int32()
   external int a;
 }
@@ -45,7 +45,7 @@ void f() {
   A();
 }
 ''', [
-      error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 89, 1),
+      error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 95, 1),
     ]);
   }
 }

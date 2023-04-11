@@ -5,73 +5,71 @@ import "dart:core" as core;
 static method test(dynamic o) → core::int {
   #L1:
   {
-    core::int #t1 = -1;
-    dynamic a;
-    final dynamic #0#0 = o;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true))
-      #t1 = 0;
-    else
-      if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0)
-        #t1 = 1;
-      else
-        if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-          #t1 = 2;
-        else
-          if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0)
-            #t1 = 3;
-          else
-            if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0)
-              #t1 = 4;
-            else
-              if(#C5 =={core::num::==}{(core::Object) → core::bool} #0#0)
-                #t1 = 5;
-              else
-                #t1 = 6;
-    switch(#t1) {
-      #L2:
-      case #C2:
-        {
+    core::int #t1 = 1.{core::int::unary-}(){() → core::int};
+    final synthesized dynamic #0#0 = o;
+    #L2:
+    {
+      {
+        hoisted dynamic a;
+        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
           {
             return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
           }
         }
-      #L3:
-      case #C1:
-        {
+      }
+      {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0) {
           {
-            continue #L4;
+            #t1 = 0;
+            break #L2;
           }
         }
-      #L5:
-      case #C3:
-        {
+      }
+      {
+        if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
           {
             return 1;
           }
         }
-      #L4:
-      case #C4:
+      }
+      {
+        if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+          #t1 = 0;
+          break #L2;
+        }
+      }
+      {
+        if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+          {
+            #t1 = 1;
+            break #L2;
+          }
+        }
+      }
+      {
+        if(#C5 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+          {
+            return 4;
+          }
+        }
+      }
+      {
+        {
+          #t1 = 1;
+          break #L2;
+        }
+      }
+    }
+    switch(#t1) {
+      #L3:
+      case #C2:
         {
           {
             return 2;
           }
         }
-      #L6:
-      case #C5:
-        {
-          {
-            continue #L7;
-          }
-        }
-      #L8:
-      case #C6:
-        {
-          {
-            return 4;
-          }
-        }
-      #L7:
-      case #C7:
+      #L4:
+      case #C1:
       default:
         {
           {
@@ -104,6 +102,4 @@ constants  {
   #C3 = 2
   #C4 = 3
   #C5 = 4
-  #C6 = 5
-  #C7 = 6
 }

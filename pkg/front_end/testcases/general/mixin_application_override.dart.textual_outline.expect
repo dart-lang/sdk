@@ -2,16 +2,12 @@ class S {
   foo([x]) {}
 }
 
-class M {
+mixin M {
   foo() {}
 }
-
-class M1 {}
-
-class M2 {}
-
-class MX {}
-
+mixin M1 {}
+mixin M2 {}
+mixin MX {}
 class A0 = S with M;
 class A1 = S with M1, M;
 class A2 = S with M1, M2, M;

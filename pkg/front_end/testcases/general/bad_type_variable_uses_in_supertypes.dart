@@ -6,9 +6,9 @@ typedef ContravariantUse<T> = Function(T);
 
 typedef InvariantUse<T> = T Function(T);
 
-class Empty {}
+mixin Empty {}
 
-class A<T> {}
+mixin class A<T> {}
 
 class B<T> extends A<Function(T)> {}
 

@@ -270,7 +270,7 @@ TEST_CASE(RangeBinaryOp) {
 
   {
     Range result;
-    Range::BinaryOp(Token::kADD, range_a, range_b, NULL, &result);
+    Range::BinaryOp(Token::kADD, range_a, range_b, nullptr, &result);
     ASSERT(!Range::IsUnknown(&result));
     EXPECT(!result.min().IsNegativeInfinity());
     EXPECT(!result.max().IsPositiveInfinity());
@@ -288,7 +288,7 @@ TEST_CASE(RangeBinaryOp) {
 
   {
     Range result;
-    Range::BinaryOp(Token::kADD, range_c, range_d, NULL, &result);
+    Range::BinaryOp(Token::kADD, range_c, range_d, nullptr, &result);
     ASSERT(!Range::IsUnknown(&result));
     EXPECT(result.min().ConstantValue() == 5);
     EXPECT(result.max().ConstantValue() == 15);
@@ -301,7 +301,7 @@ TEST_CASE(RangeBinaryOp) {
                              RangeBoundary::FromConstant(0xf));
   {
     Range result;
-    Range::BinaryOp(Token::kBIT_AND, range_e, range_f, NULL, &result);
+    Range::BinaryOp(Token::kBIT_AND, range_e, range_f, nullptr, &result);
     ASSERT(!Range::IsUnknown(&result));
     EXPECT(result.min().ConstantValue() == 0x0);
     EXPECT(result.max().ConstantValue() == 0xf);
@@ -320,7 +320,7 @@ TEST_CASE(RangeAdd) {
     EXPECT(left_range->max().ConstantValue() == l_max);                        \
     EXPECT(right_range->min().ConstantValue() == r_min);                       \
     EXPECT(right_range->max().ConstantValue() == r_max);                       \
-    Range::Add(left_range, right_range, &min, &max, NULL);                     \
+    Range::Add(left_range, right_range, &min, &max, nullptr);                  \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
       OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
@@ -400,7 +400,7 @@ TEST_CASE(RangeSub) {
     EXPECT(left_range->max().ConstantValue() == l_max);                        \
     EXPECT(right_range->min().ConstantValue() == r_min);                       \
     EXPECT(right_range->max().ConstantValue() == r_max);                       \
-    Range::Sub(left_range, right_range, &min, &max, NULL);                     \
+    Range::Sub(left_range, right_range, &min, &max, nullptr);                  \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
       OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \

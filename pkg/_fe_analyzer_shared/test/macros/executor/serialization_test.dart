@@ -317,18 +317,25 @@ void main() {
         );
 
         test('ClassDeclaration', () {
-          var fooClass = ClassDeclarationImpl(
-            id: RemoteInstance.uniqueId,
-            identifier:
-                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
-            interfaces: [barType],
-            isAbstract: true,
-            isExternal: false,
-            mixins: [serializableType],
-            superclass: objectType,
-            typeParameters: [zapTypeParam],
-          );
-          expectSerializationEquality(fooClass, mode);
+          for (var boolValue in [true, false]) {
+            var fooClass = ClassDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
+              interfaces: [barType],
+              hasAbstract: boolValue,
+              hasBase: boolValue,
+              hasExternal: boolValue,
+              hasFinal: boolValue,
+              hasInterface: boolValue,
+              hasMixin: boolValue,
+              hasSealed: boolValue,
+              mixins: [serializableType],
+              superclass: objectType,
+              typeParameters: [zapTypeParam],
+            );
+            expectSerializationEquality(fooClass, mode);
+          }
         });
 
         test('TypeAliasDeclaration', () {
@@ -345,6 +352,33 @@ void main() {
                 typeArguments: [barType]),
           );
           expectSerializationEquality(typeAlias, mode);
+        });
+
+        /// Transitively tests [RecordField]
+        test('RecordTypeAnnotation', () {
+          var recordType = RecordTypeAnnotationImpl(
+            id: RemoteInstance.uniqueId,
+            isNullable: true,
+            namedFields: [
+              RecordFieldDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'hello'),
+                name: 'hello',
+                type: barType,
+              ),
+            ],
+            positionalFields: [
+              RecordFieldDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+                name: null,
+                type: fooType,
+              ),
+            ],
+          );
+          expectSerializationEquality(recordType, mode);
         });
       });
     }

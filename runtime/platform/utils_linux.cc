@@ -34,7 +34,7 @@ int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   MSAN_UNPOISON(str, size);
   int retval = vsnprintf(str, size, format, args);
   if (retval < 0) {
-    FATAL1("Fatal error in Utils::VSNPrint with format '%s'", format);
+    FATAL("Fatal error in Utils::VSNPrint with format '%s'", format);
   }
   return retval;
 }

@@ -26,8 +26,7 @@ application_snapshot("dartdevc") {
 
   training_args = [
     "--dart-sdk-summary",
-    rebase_path(sdk_outline_unsound_dill),
-    "--no-sound-null-safety",
+    rebase_path(sdk_outline_sound_dill),
     "-o",
     "dartdevc.js",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
@@ -37,12 +36,8 @@ application_snapshot("dartdevc") {
     training_args += [ "--canary" ]
   }
 
-  deps = [
-    ":dartdevc_kernel_sdk",
-    ":dartdevc_platform_unsound",
-  ]
-
-  inputs = [ sdk_outline_unsound_dill ]
+  deps = [ ":dartdevc_platform_sound" ]
+  inputs = [ sdk_outline_sound_dill ]
 }
 
 sdk_root = "../../sdk"
@@ -78,6 +73,7 @@ template("dart2js_compile") {
     args = [
       "$abs_main",
       "-m",
+      "--invoker=gn_build",
       "-o$abs_output",
       "--no-source-maps",
       "--platform-binaries=" + rebase_path("$root_out_dir"),

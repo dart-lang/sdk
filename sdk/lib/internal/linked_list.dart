@@ -5,7 +5,7 @@
 part of dart._internal;
 
 /// A rudimentary linked list.
-class LinkedList<T extends LinkedListEntry<T>> extends IterableBase<T> {
+class LinkedList<T extends LinkedListEntry<T>> extends Iterable<T> {
   T get first => _first as T;
   T? _first;
 

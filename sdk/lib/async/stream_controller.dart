@@ -8,11 +8,12 @@ part of dart.async;
 // Controller for creating and adding events to a stream.
 // -------------------------------------------------------------------
 
-/// Type of a stream controller's `onListen`, `onPause` and `onResume` callbacks.
-typedef void ControllerCallback();
+/// Type of a stream controller's `onListen`, `onPause` and `onResume`
+/// callbacks.
+typedef ControllerCallback = void Function();
 
 /// Type of stream controller `onCancel` callbacks.
-typedef FutureOr<void> ControllerCancelCallback();
+typedef ControllerCancelCallback = FutureOr<void> Function();
 
 /// A controller with the stream it controls.
 ///
@@ -66,7 +67,7 @@ typedef FutureOr<void> ControllerCancelCallback();
 /// await streamController.close();
 /// isClosed = streamController.isClosed; // true
 /// ```
-abstract class StreamController<T> implements StreamSink<T> {
+abstract interface class StreamController<T> implements StreamSink<T> {
   /// The stream that this controller is controlling.
   Stream<T> get stream;
 
@@ -368,7 +369,8 @@ abstract class StreamController<T> implements StreamSink<T> {
 /// another event is in progress may cause the second event to be delayed
 /// and not be delivered synchronously, and until that event is delivered,
 /// the controller will not act synchronously.
-abstract class SynchronousStreamController<T> implements StreamController<T> {
+abstract interface class SynchronousStreamController<T>
+    implements StreamController<T> {
   /// Adds event to the controller's stream.
   ///
   /// As [StreamController.add], but must not be called while an event is
@@ -768,7 +770,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   }
 }
 
-abstract class _SyncStreamControllerDispatch<T>
+mixin _SyncStreamControllerDispatch<T>
     implements _StreamController<T>, SynchronousStreamController<T> {
   void _sendData(T data) {
     _subscription._add(data);
@@ -783,8 +785,7 @@ abstract class _SyncStreamControllerDispatch<T>
   }
 }
 
-abstract class _AsyncStreamControllerDispatch<T>
-    implements _StreamController<T> {
+mixin _AsyncStreamControllerDispatch<T> implements _StreamController<T> {
   void _sendData(T data) {
     _subscription._addPending(_DelayedData<T>(data));
   }

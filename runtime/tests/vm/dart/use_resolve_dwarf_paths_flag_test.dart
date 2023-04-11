@@ -29,8 +29,8 @@ main(List<String> args) async {
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
   }
-  if (!await testExecutable(aotRuntime)) {
-    throw "Cannot run test as $aotRuntime not available";
+  if (!await testExecutable(dartPrecompiledRuntime)) {
+    throw "Cannot run test as $dartPrecompiledRuntime not available";
   }
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
@@ -71,7 +71,7 @@ void runTests({required bool obfuscate}) async {
     ]);
 
     // Run the resulting Dwarf-AOT compiled script.
-    final dwarfTrace = await runError(aotRuntime, <String>[
+    final dwarfTrace = await runError(dartPrecompiledRuntime, <String>[
       scriptDwarfSnapshot,
       scriptDill,
     ]);

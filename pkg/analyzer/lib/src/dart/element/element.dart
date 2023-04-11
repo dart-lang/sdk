@@ -5,6 +5,8 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -28,6 +30,7 @@ import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/since_sdk_version.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -52,6 +55,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -570,6 +574,10 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   final DeclaredVariablePatternImpl node;
 
+  /// This flag is set to `true` if this variable clashes with another
+  /// pattern variable with the same name within the same pattern.
+  bool isDuplicate = false;
+
   BindPatternVariableElementImpl(this.node, super.name, super.offset);
 }
 
@@ -745,6 +753,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   @override
   bool get isExhaustive => isSealed;
 
+  @override
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  @override
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
   bool get isMacro {
     return hasModifier(Modifier.MACRO);
   }
@@ -773,6 +799,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
+  }
+
+  @override
   bool get isValidMixin {
     final supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
@@ -790,6 +825,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
+  }
+
+  /// If the class is final, returns all its subtypes.
+  /// All these subtypes can be only in the same library.
+  List<InterfaceType>? get subtypesOfFinal {
+    if (isFinal) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is InterfaceElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            result.add(elementThis);
+          }
+        }
+      }
+      return result;
+    }
+    return null;
   }
 
   @override
@@ -843,7 +896,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   /// one (this is used to detect cycles).
   List<ConstructorElementImpl> _computeMixinAppConstructors(
       [List<ClassElementImpl>? visitedClasses]) {
-    if (supertype == null) {
+    final superType = supertype;
+    if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
@@ -851,7 +905,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       return <ConstructorElementImpl>[];
     }
 
-    var superElement = supertype!.element as ClassElementImpl;
+    final superElement = superType.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -887,11 +941,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     var superClassParameters = superElement.typeParameters;
     List<DartType> argumentTypes = List<DartType>.filled(
         superClassParameters.length, DynamicTypeImpl.instance);
-    for (int i = 0; i < supertype!.typeArguments.length; i++) {
+    for (int i = 0; i < superType.typeArguments.length; i++) {
       if (i >= argumentTypes.length) {
         break;
       }
-      argumentTypes[i] = supertype!.typeArguments[i];
+      argumentTypes[i] = superType.typeArguments[i];
     }
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
@@ -961,7 +1015,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       implicitConstructor.enclosingElement = this;
       // TODO(scheglov) Why do we manually map parameters types above?
       implicitConstructor.superConstructor =
-          ConstructorMember.from(superclassConstructor, supertype!);
+          ConstructorMember.from(superclassConstructor, superType);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
@@ -1054,30 +1108,6 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
 
   set isBase(bool isBase) {
     setModifier(Modifier.BASE, isBase);
-  }
-
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  bool get isInterface {
-    return hasModifier(Modifier.INTERFACE);
-  }
-
-  set isInterface(bool isInterface) {
-    setModifier(Modifier.INTERFACE, isInterface);
-  }
-
-  bool get isSealed {
-    return hasModifier(Modifier.SEALED);
-  }
-
-  set isSealed(bool isSealed) {
-    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -2062,7 +2092,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   /// The AST of the annotation itself, cloned from the resolved AST for the
   /// source code.
-  late Annotation annotationAst;
+  late AnnotationImpl annotationAst;
 
   /// The result of evaluating this annotation as a compile-time constant
   /// expression, or `null` if the compilation unit containing the variable has
@@ -2085,6 +2115,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isConstantEvaluated => evaluationResult != null;
+
+  bool get isDartInternalSince {
+    final element = this.element;
+    if (element is ConstructorElement) {
+      return element.enclosingElement.name == 'Since' &&
+          element.library.source.uri.toString() == 'dart:_internal';
+    }
+    return false;
+  }
 
   @override
   bool get isDeprecated {
@@ -2260,6 +2299,14 @@ abstract class ElementImpl implements Element {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
+
+  /// Cached values for [sinceSdkVersion].
+  ///
+  /// Only very few elements have `@Since()` annotations, so instead of adding
+  /// an instance field to [ElementImpl], we attach this information this way.
+  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
+  /// don't pay for a hash lookup when we know that the result is `null`.
+  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
 
   static int _NEXT_ID = 0;
 
@@ -2712,6 +2759,22 @@ abstract class ElementImpl implements Element {
   @override
   AnalysisSession? get session {
     return enclosingElement?.session;
+  }
+
+  @override
+  Version? get sinceSdkVersion {
+    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
+      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
+      final result = SinceSdkVersionComputer().compute(this);
+      if (result != null) {
+        _sinceSdkVersion[this] = result;
+        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
+      }
+    }
+    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
+      return _sinceSdkVersion[this];
+    }
+    return null;
   }
 
   @override
@@ -3838,8 +3901,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   @override
   final List<PatternVariableElementImpl> variables;
 
-  @override
-  bool isConsistent;
+  shared.JoinedPatternVariableInconsistency inconsistency;
 
   /// The identifiers that reference this element.
   final List<SimpleIdentifier> references = [];
@@ -3848,7 +3910,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     super.name,
     super.offset,
     this.variables,
-    this.isConsistent,
+    this.inconsistency,
   ) {
     for (var component in variables) {
       component.join = this;
@@ -3857,6 +3919,11 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
   @override
   int get hashCode => identityHashCode(this);
+
+  @override
+  bool get isConsistent {
+    return inconsistency == shared.JoinedPatternVariableInconsistency.none;
+  }
 
   /// Returns this variable, and variables that join into it.
   List<PatternVariableElementImpl> get transitiveVariables {
@@ -4620,6 +4687,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
         definingCompilationUnit,
         ...libraryExports,
         ...libraryImports,
+        ...augmentationImports,
       ];
 
   @override
@@ -4870,9 +4938,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   }
 
   @override
-  bool get isExhaustive => isSealed;
-
-  @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
 
   @override
@@ -4908,15 +4973,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
     if (library == this.library) {
       return true;
     }
-    return !isBase && !isFinal && !isSealed;
-  }
-
-  @override
-  bool isMixableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isInterface && !isFinal && !isSealed;
+    return !isBase;
   }
 }
 
@@ -4979,58 +5036,66 @@ class Modifier implements Comparable<Modifier> {
   static const Modifier HAS_PART_OF_DIRECTIVE =
       Modifier('HAS_PART_OF_DIRECTIVE', 15);
 
+  /// Indicates that the value of [Element.sinceSdkVersion] was computed.
+  static const Modifier HAS_SINCE_SDK_VERSION_COMPUTED =
+      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 16);
+
+  /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
+  static const Modifier HAS_SINCE_SDK_VERSION_VALUE =
+      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 17);
+
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 18);
 
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 17);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 19);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 18);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 20);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 19);
+  static const Modifier LATE = Modifier('LATE', 21);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 20);
+  static const Modifier MACRO = Modifier('MACRO', 22);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 21);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 23);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 22);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 24);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 23);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 25);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 24);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 26);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 25);
+  static const Modifier SEALED = Modifier('SEALED', 27);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 26);
+  static const Modifier SETTER = Modifier('SETTER', 28);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 27);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 29);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 28);
+  static const Modifier STATIC = Modifier('STATIC', 30);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 29);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 31);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 30);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 32);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5049,6 +5114,8 @@ class Modifier implements Comparable<Modifier> {
     GETTER,
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
+    HAS_SINCE_SDK_VERSION_COMPUTED,
+    HAS_SINCE_SDK_VERSION_VALUE,
     IMPLICIT_TYPE,
     INTERFACE,
     INVOKES_SUPER_SELF,
@@ -5229,6 +5296,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Element get nonSynthetic => this;
+
+  @override
+  Version? get sinceSdkVersion => null;
 
   @override
   Source? get source => null;
@@ -5880,6 +5950,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   DartType get returnTypeInternal => variable.type;
 
   @override
+  Version? get sinceSdkVersion => variable.sinceSdkVersion;
+
+  @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
 
   @override
@@ -5948,6 +6021,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   DartType get returnTypeInternal => VoidTypeImpl.instance;
+
+  @override
+  Version? get sinceSdkVersion => variable.sinceSdkVersion;
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);

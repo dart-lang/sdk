@@ -15,8 +15,6 @@ import 'package:test/test.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
-import 'package:vm/transformations/static_weak_references.dart'
-    show StaticWeakReferences;
 import 'package:vm/transformations/type_flow/analysis.dart';
 import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
@@ -36,7 +34,7 @@ class FakeTypesBuilder extends TypesBuilder {
 
   @override
   TFClass getTFClass(Class c) =>
-      _classes[c] ??= new TFClass(++_classIdCounter, c);
+      _classes[c] ??= new TFClass(++_classIdCounter, c, null);
 }
 
 class FakeEntryPointsListener implements EntryPointsListener {
@@ -56,11 +54,11 @@ class FakeEntryPointsListener implements EntryPointsListener {
   }
 
   @override
-  Field getRecordPositionalField(int pos) =>
-      getRecordNamedField("\$${pos + 1}");
+  Field getRecordPositionalField(RecordShape shape, int pos) =>
+      getRecordNamedField(shape, shape.fieldName(pos));
 
   @override
-  Field getRecordNamedField(String name) =>
+  Field getRecordNamedField(RecordShape shape, String name) =>
       Field.immutable(Name(name), fileUri: dummyUri);
 
   @override
@@ -89,7 +87,6 @@ class PrintSummaries extends RecursiveVisitor {
         typesBuilder,
         NativeCodeOracle(coreTypes.index, annotationParser),
         GenericInterfacesInfoImpl(coreTypes, hierarchy),
-        StaticWeakReferences(annotationParser),
         /*_protobufHandler=*/ null);
   }
 

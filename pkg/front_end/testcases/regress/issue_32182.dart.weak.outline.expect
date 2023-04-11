@@ -8,9 +8,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T%>
     ;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   method m() → dynamic
     ;
 }

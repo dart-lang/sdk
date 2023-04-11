@@ -10,6 +10,9 @@
 // considered exhaustive if either (a) it is recognized as exhaustive by flow
 // analysis, or (b) it is recognized as exhaustive by the old (pre-patterns)
 // exhaustiveness algorithm for enums.
+//
+// With the enabling of the real exhaustiveness algorithm, these switches should
+// in most cases no longer cause errors.
 
 // SharedOptions=--enable-experiment=patterns --enable-experiment=records --enable-experiment=sealed-class
 
@@ -28,11 +31,9 @@ void ignore(Object? value) {}
 void typedWildcard(A a) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // a sealed class factors into its subclasses.
+  //
+  // The real exhaustiveness handles this.
   switch (a) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case B _:
       break;
     case C _:
@@ -41,10 +42,6 @@ void typedWildcard(A a) {
       break;
   }
   ignore(switch (a) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
       B _ => 0,
       C _ => 1,
       D _ => 2
@@ -54,11 +51,9 @@ void typedWildcard(A a) {
 void typedVariable(A a) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // a sealed class factors into its subclasses.
+  //
+  // The real exhaustiveness handles this.
   switch (a) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case B x:
       break;
     case C x:
@@ -67,10 +62,6 @@ void typedVariable(A a) {
       break;
   }
   ignore(switch (a) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
       B x => 0,
       C x => 1,
       D x => 2
@@ -80,11 +71,9 @@ void typedVariable(A a) {
 void typedObjectPattern(A a) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // a sealed class factors into its subclasses.
+  //
+  // The real exhaustiveness handles this.
   switch (a) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases.
     case B():
       break;
     case C():
@@ -93,10 +82,6 @@ void typedObjectPattern(A a) {
       break;
   }
   ignore(switch (a) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'A' is not exhaustively matched by the switch cases.
       B() => 0,
       C() => 1,
       D() => 2
@@ -106,19 +91,13 @@ void typedObjectPattern(A a) {
 void logicalOrPattern(E e) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // an enum value is exhausted by enum constants separated by `||`.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
     case E.e1 || E.e2:
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
       E.e1 || E.e2 => 0
   });
 }
@@ -126,39 +105,25 @@ void logicalOrPattern(E e) {
 void logicalAndPattern(E e) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand enum
   // constants appearing on either side of `&&`.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
     case E.e1 && E():
       break;
     case E.e2 && E():
       break;
   }
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
     case E() && E.e1:
       break;
     case E() && E.e2:
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
       E.e1 && E() => 0,
       E.e2 && E() => 1
   });
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
       E() && E.e1 => 0,
       E() && E.e2 => 1
   });
@@ -167,21 +132,15 @@ void logicalAndPattern(E e) {
 void castPattern(E? e) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand enum
   // constants appearing inside a cast pattern.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'E?' is not exhaustively matched by the switch cases.
     case E.e1 as E:
       break;
     case E.e2:
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
       E.e1 as E => 0,
       E.e2 => 1
   });
@@ -190,11 +149,9 @@ void castPattern(E? e) {
 void nullCheckPattern(E? e) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand enum
   // constants appearing inside a null-check pattern.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'E?' is not exhaustively matched by the switch cases.
     case E.e1?:
       break;
     case E.e2:
@@ -203,10 +160,6 @@ void nullCheckPattern(E? e) {
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'E?' is not exhaustively matched by the switch cases.
       E.e1? => 0,
       E.e2 => 1,
       null => 2
@@ -216,21 +169,15 @@ void nullCheckPattern(E? e) {
 void nullAssertPattern(E? e) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand enum
   // constants appearing inside a null-assert pattern.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'E?' is not exhaustively matched by the switch cases.
     case E.e1!:
       break;
     case E.e2:
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
       E.e1! => 0,
       //  ^
       // [analyzer] STATIC_WARNING.UNNECESSARY_NULL_ASSERT_PATTERN
@@ -242,11 +189,9 @@ void nullAssertPattern(E? e) {
 void recordPattern((E, E) r) {
   // Neither flow analysis nor the old exhaustiveness algorithm split record
   // patterns up into cases.
+  //
+  // The real exhaustiveness handles this.
   switch (r) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type '(E, E)' is not exhaustively matched by the switch cases.
     case (E.e1, E.e1):
       break;
     case (E.e1, E.e2):
@@ -256,13 +201,7 @@ void recordPattern((E, E) r) {
     case (E.e2, E.e2):
       break;
   }
-  ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] The type 'invalid-type' is not exhaustively matched by the switch cases.
-  // [cfe] Undefined name 'e'.
+  ignore(switch (r) {
       (E.e1, E.e1) => 0,
       (E.e1, E.e2) => 1,
       (E.e2, E.e1) => 2,
@@ -273,11 +212,9 @@ void recordPattern((E, E) r) {
 void listPattern(List<int> l) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // `[...]` matches all lists.
+  //
+  // The real exhaustiveness handles this.
   ignore(switch (l) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'List<int>' is not exhaustively matched by the switch cases.
       [...] => 0
   });
 }
@@ -285,33 +222,25 @@ void listPattern(List<int> l) {
 void mapPattern(Map<String, int> m) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // `{...}` matches all maps.
+  //
+  // The real exhaustiveness handles this.
   ignore(switch (m) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'Map<String, int>' is not exhaustively matched by the switch cases.
-      {...} => 0
+      Map() => 0
   });
 }
 
 void exhaustiveBoolean(bool b) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // `bool` is exhausted by `true` and `false`.
+  //
+  // The real exhaustiveness handles this.
   switch (b) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-//        ^
-// [cfe] The type 'bool' is not exhaustively matched by the switch cases.
     case true:
       break;
     case false:
       break;
   }
   ignore(switch (b) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
-  //             ^
-  // [cfe] The type 'bool' is not exhaustively matched by the switch cases.
       true => 0,
       false => 1
   });
@@ -320,11 +249,14 @@ void exhaustiveBoolean(bool b) {
 void relationalPattern(E e) {
   // Neither flow analysis nor the old exhaustiveness algorithm understand that
   // `== enumValue` matches an enum value.
+  //
+  // TODO(johnniwinther): Should the real exhaustiveness handle this? The
+  // call is on the expression which we do not control.
   switch (e) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
     case == E.e1:
       break;
     case == E.e2:
@@ -332,9 +264,9 @@ void relationalPattern(E e) {
   }
   ignore(switch (e) {
   //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
   //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
+  // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
       == E.e1 => 0,
       == E.e2 => 1
   });
@@ -343,11 +275,13 @@ void relationalPattern(E e) {
 void withGuard(E e) {
   // The old exhaustiveness algorithm doesn't understand guards, but for
   // soundness it will ignore any cases that are guarded.
+  //
+  // The real exhaustiveness handles this.
   switch (e) {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases.
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
     case E.e1 when true:
       break;
     case E.e2:
@@ -355,9 +289,9 @@ void withGuard(E e) {
   }
   ignore(switch (e) {
   //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
   //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases.
+  // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
       E.e1 when true => 0,
       E.e2 => 1
   });

@@ -63,6 +63,15 @@ Heap::Heap(IsolateGroup* isolate_group,
 }
 
 Heap::~Heap() {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  Dart_HeapSamplingDeleteCallback cleanup =
+      HeapProfileSampler::delete_callback();
+  if (cleanup != nullptr) {
+    new_weak_tables_[kHeapSamplingData]->CleanupValues(cleanup);
+    old_weak_tables_[kHeapSamplingData]->CleanupValues(cleanup);
+  }
+#endif
+
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     delete new_weak_tables_[sel];
     delete old_weak_tables_[sel];
@@ -96,7 +105,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   if (HeapProfileSampler::enabled()) {
     thread->heap_sampler().SampleOldSpaceAllocation(size);
   }
@@ -282,7 +291,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       }
     }
 #if defined(DEBUG)
-    ASSERT(old_space_->iterating_thread_ == NULL);
+    ASSERT(old_space_->iterating_thread_ == nullptr);
     old_space_->iterating_thread_ = thread;
 #endif
     old_space_->set_tasks(1);
@@ -302,7 +311,7 @@ HeapIterationScope::~HeapIterationScope() {
     MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == thread());
-    old_space_->iterating_thread_ = NULL;
+    old_space_->iterating_thread_ = nullptr;
 #endif
     ASSERT(old_space_->tasks() == 1);
     old_space_->set_tasks(0);
@@ -700,7 +709,7 @@ void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
 }
 
 void Heap::UpdateGlobalMaxUsed() {
-  ASSERT(isolate_group_ != NULL);
+  ASSERT(isolate_group_ != nullptr);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
@@ -1026,14 +1035,6 @@ void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.before_.store_buffer_ = isolate_group_->store_buffer()->Size();
 }
 
-static double AvgCollectionPeriod(int64_t run_time, intptr_t collections) {
-  if (collections <= 0 || run_time <= 0) {
-    return 0.0;
-  }
-  return MicrosecondsToMilliseconds(run_time) /
-         static_cast<double>(collections);
-}
-
 void Heap::RecordAfterGC(GCType type) {
   stats_.after_.micros_ = OS::GetCurrentMonotonicMicros();
   int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
@@ -1061,45 +1062,6 @@ void Heap::RecordAfterGC(GCType type) {
         /*at_safepoint=*/true);
   }
 #endif  // !PRODUCT
-  if (Dart::gc_event_callback() != nullptr) {
-    Dart_GCEvent event;
-    int64_t isolate_group_uptime_micros = isolate_group_->UptimeMicros();
-    event.isolate_group_id = isolate_group_->id();
-    event.type = GCTypeToString(stats_.type_);
-    event.reason = GCReasonToString(stats_.reason_);
-
-    // New space - Scavenger.
-    {
-      intptr_t new_space_collections = new_space_.collections();
-
-      event.new_space.collections = new_space_collections;
-      event.new_space.used = stats_.after_.new_.used_in_words * kWordSize;
-      event.new_space.capacity =
-          stats_.after_.new_.capacity_in_words * kWordSize;
-      event.new_space.external =
-          stats_.after_.new_.external_in_words * kWordSize;
-      event.new_space.time = MicrosecondsToSeconds(new_space_.gc_time_micros());
-      event.new_space.avg_collection_period = AvgCollectionPeriod(
-          isolate_group_uptime_micros, new_space_collections);
-    }
-
-    // Old space - Page.
-    {
-      intptr_t old_space_collections = old_space_.collections();
-
-      event.old_space.collections = old_space_collections;
-      event.old_space.used = stats_.after_.old_.used_in_words * kWordSize;
-      event.old_space.capacity =
-          stats_.after_.old_.capacity_in_words * kWordSize;
-      event.old_space.external =
-          stats_.after_.old_.external_in_words * kWordSize;
-      event.old_space.time = MicrosecondsToSeconds(old_space_.gc_time_micros());
-      event.old_space.avg_collection_period = AvgCollectionPeriod(
-          isolate_group_uptime_micros, old_space_collections);
-    }
-
-    (*Dart::gc_event_callback())(&event);
-  }
 }
 
 void Heap::PrintStats() {
@@ -1164,7 +1126,7 @@ void Heap::PrintStats() {
 
 void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 #if defined(SUPPORT_TIMELINE)
-  if ((event == NULL) || !event->enabled()) {
+  if ((event == nullptr) || !event->enabled()) {
     return;
   }
   intptr_t arguments = event->GetNumArguments();

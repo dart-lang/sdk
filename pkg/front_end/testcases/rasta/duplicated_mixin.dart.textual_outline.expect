@@ -1,4 +1,4 @@
-class Mixin {
+mixin Mixin {
   var field;
 }
 

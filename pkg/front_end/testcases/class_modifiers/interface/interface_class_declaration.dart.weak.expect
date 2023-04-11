@@ -12,7 +12,7 @@ abstract interface class B extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract interface class M extends core::Object /*isMixinDeclaration*/  {
+abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
 interface class C = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::C

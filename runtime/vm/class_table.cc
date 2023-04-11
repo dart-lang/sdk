@@ -52,14 +52,14 @@ ClassTable::ClassTable(ClassTableAllocator* allocator)
 }
 
 ClassTable::~ClassTable() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   for (intptr_t i = 1; i < classes_.num_cids(); i++) {
     const char* name = UserVisibleNameFor(i);
     if (name != nullptr) {
       free(const_cast<char*>(name));
     }
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 }
 
 void ClassTable::Register(const Class& cls) {
@@ -76,9 +76,9 @@ void ClassTable::Register(const Class& cls) {
   cls.set_id(cid);
   classes_.At<kClassIndex>(cid) = cls.ptr();
   classes_.At<kSizeIndex>(cid) = static_cast<int32_t>(instance_size);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   classes_.At<kClassNameIndex>(cid) = nullptr;
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
   if (did_grow) {
     IsolateGroup::Current()->set_cached_class_table_table(
@@ -274,8 +274,7 @@ void ClassTable::PrintObjectLayout(const char* filename) {
 }
 #endif  // defined(DART_PRECOMPILER)
 
-#ifndef PRODUCT
-
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 void ClassTable::PopulateUserVisibleNames() {
   Class& cls = Class::Handle();
   for (intptr_t i = 0; i < classes_.num_cids(); ++i) {
@@ -285,6 +284,9 @@ void ClassTable::PopulateUserVisibleNames() {
     }
   }
 }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+
+#if !defined(PRODUCT)
 
 void ClassTable::PrintToJSONObject(JSONObject* object) {
   Class& cls = Class::Handle();

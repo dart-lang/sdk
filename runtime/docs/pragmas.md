@@ -14,7 +14,8 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:invisible` | Allows to mark a function as invisible so it will not appear on stack traces. |
 | `vm:always-consider-inlining` | Marks a function which particularly benefits from inlining and specialization in context of the caller (for example, when concrete types of arguments are known). Inliner will not give up after one failed inlining attempt and will continue trying to inline this function. |
 | `vm:platform-const` | Marks a static getter or a static field with an initializer where the getter body or field initializer evaluates to a constant value if the target operating system is known. |
-| `vm:weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](compiler/pragmas_recognized_by_compiler.md#declaring-a-static-weak-reference-intrinsic-method) |
+| `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](compiler/pragmas_recognized_by_compiler.md#declaring-a-static-weak-reference-intrinsic-method) |
+| `vm:isolate-unsendable` | Marks a class, instances of which won't be allowed to be passed through ports or sent between isolates. |
 
 ## Unsafe pragmas for general use
 

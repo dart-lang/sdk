@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'data_sink.dart';
+import 'serialization.dart' show DataSink;
 import 'tags.dart' show Tag;
 
 /// [DataSinkWriter] that writes to a list of objects, useful for debugging
@@ -27,25 +27,21 @@ class ObjectDataSink implements DataSink {
 
   @override
   void writeEnum(dynamic value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _data!.add(value);
   }
 
   @override
   void writeInt(int value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _data!.add(value);
   }
 
   @override
   void writeString(String value) {
-    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _data!.add(value);
   }
 
   @override
   void writeDeferred(void writer()) {
-    assert((writer as dynamic) != null); // TODO(48820): Remove when sound.
     final sizeIndex = length;
     writeInt(0); // placeholder
     final startIndex = length;

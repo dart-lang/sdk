@@ -31,7 +31,7 @@ class UnoptimizedCall : public ValueObject {
     if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
       pc -= ARRAY_SIZE(call_pattern);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
 
     // movq CODE_REG, [PP + offset]
@@ -49,7 +49,7 @@ class UnoptimizedCall : public ValueObject {
       pc -= ARRAY_SIZE(load_code_disp32);
       code_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
     ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
 
@@ -69,7 +69,7 @@ class UnoptimizedCall : public ValueObject {
       pc -= ARRAY_SIZE(load_argument_disp32);
       argument_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
   }
 
@@ -171,7 +171,7 @@ class PoolPointerCall : public ValueObject {
     if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
       pc -= ARRAY_SIZE(call_pattern);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
 
     // movq CODE_REG, [PP + offset]
@@ -189,7 +189,7 @@ class PoolPointerCall : public ValueObject {
       pc -= ARRAY_SIZE(load_code_disp32);
       code_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
     ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
   }
@@ -261,7 +261,7 @@ class SwitchableCall : public SwitchableCallBase {
     if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
       pc -= ARRAY_SIZE(call_pattern);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
 
     // movq RBX, [PP + offset]
@@ -279,7 +279,7 @@ class SwitchableCall : public SwitchableCallBase {
       pc -= ARRAY_SIZE(load_data_disp32);
       data_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index_)).IsCode());
 
@@ -291,7 +291,7 @@ class SwitchableCall : public SwitchableCallBase {
                        ARRAY_SIZE(load_entry_pattern))) {
       pc -= ARRAY_SIZE(load_entry_pattern);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
 
     // movq CODE_REG, [PP + offset]
@@ -309,7 +309,7 @@ class SwitchableCall : public SwitchableCallBase {
       pc -= ARRAY_SIZE(load_code_disp32);
       target_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index_)).IsCode());
   }
@@ -344,7 +344,7 @@ class BareSwitchableCall : public SwitchableCallBase {
     if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
       pc -= ARRAY_SIZE(call_pattern);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
 
     // movq RBX, [PP + offset]
@@ -362,7 +362,7 @@ class BareSwitchableCall : public SwitchableCallBase {
       pc -= ARRAY_SIZE(load_data_disp32);
       data_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index_)).IsCode());
 
@@ -381,7 +381,7 @@ class BareSwitchableCall : public SwitchableCallBase {
       pc -= ARRAY_SIZE(load_code_disp32);
       target_index_ = IndexFromPPLoadDisp32(pc + 3);
     } else {
-      FATAL1("Failed to decode at %" Px, pc);
+      FATAL("Failed to decode at %" Px, pc);
     }
     ASSERT(object_pool_.TypeAt(target_index_) ==
            ObjectPool::EntryType::kImmediate);

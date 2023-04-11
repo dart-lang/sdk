@@ -159,6 +159,7 @@ class EntityDataInfoBuilder {
       case StaticUseKind.CLOSURE:
       case StaticUseKind.STATIC_GET:
       case StaticUseKind.STATIC_SET:
+      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
         processEntity();
         break;
       case StaticUseKind.SUPER_TEAR_OFF:

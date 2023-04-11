@@ -171,14 +171,6 @@ int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
 #endif
 }
 
-int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
-#if defined(SUPPORT_TIMELINE)
-  return OS::GetCurrentThreadCPUMicros();
-#else
-  return -1;
-#endif
-}
-
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_ARM64)
   return 16;

@@ -877,7 +877,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
-            FATAL3(
+            FATAL(
                 "Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
@@ -887,13 +887,13 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 ptr);
           }
         } else if (!is_remembered_) {
-          FATAL3(
-              "Old object %#" Px " references new object %#" Px
-              ", but it is "
-              "not in any store buffer. Consider using rr to watch the "
-              "slot %p and reverse-continue to find the store with a missing "
-              "barrier.\n",
-              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+          FATAL("Old object %#" Px " references new object %#" Px
+                ", but it is "
+                "not in any store buffer. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
       }
@@ -908,7 +908,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
-            FATAL3(
+            FATAL(
                 "Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
@@ -918,13 +918,13 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 ptr);
           }
         } else if (!is_remembered_) {
-          FATAL3(
-              "Old object %#" Px " references new object %#" Px
-              ", but it is "
-              "not in any store buffer. Consider using rr to watch the "
-              "slot %p and reverse-continue to find the store with a missing "
-              "barrier.\n",
-              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+          FATAL("Old object %#" Px " references new object %#" Px
+                ", but it is "
+                "not in any store buffer. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
       }
@@ -1069,7 +1069,7 @@ void Scavenger::Epilogue(SemiSpace* from) {
 
   delete from;
   UpdateMaxHeapUsage();
-  if (heap_ != NULL) {
+  if (heap_ != nullptr) {
     heap_->UpdateGlobalMaxUsed();
   }
 }
@@ -1160,7 +1160,7 @@ void Scavenger::IterateRememberedCards(
     ScavengerVisitorBase<parallel>* visitor) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateRememberedCards");
   heap_->old_space()->VisitRememberedCards(visitor);
-  visitor->VisitingOldObject(NULL);
+  visitor->VisitingOldObject(nullptr);
 }
 
 void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
@@ -1252,7 +1252,7 @@ void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
       thread_->MarkingStackAddObject(raw_object);
     }
   }
-  VisitingOldObject(NULL);
+  VisitingOldObject(nullptr);
 }
 
 template <bool parallel>
@@ -1292,27 +1292,27 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
-  if (heap_ == NULL) {
+  if (heap_ == nullptr) {
     // Some unit tests.
     return;
   }
-  ASSERT(to_ != NULL);
-  ASSERT(heap_ != NULL);
+  ASSERT(to_ != nullptr);
+  ASSERT(heap_ != nullptr);
   auto isolate_group = heap_->isolate_group();
-  ASSERT(isolate_group != NULL);
+  ASSERT(isolate_group != nullptr);
   isolate_group->GetHeapNewCapacityMaxMetric()->SetValue(
       to_->max_capacity_in_words() * kWordSize);
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
-  if (heap_ == NULL) {
+  if (heap_ == nullptr) {
     // Some unit tests.
     return;
   }
-  ASSERT(to_ != NULL);
-  ASSERT(heap_ != NULL);
+  ASSERT(to_ != nullptr);
+  ASSERT(heap_ != nullptr);
   auto isolate_group = heap_->isolate_group();
-  ASSERT(isolate_group != NULL);
+  ASSERT(isolate_group != nullptr);
   isolate_group->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 }
 
@@ -1411,7 +1411,8 @@ void Scavenger::MournWeakTables() {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "MournWeakTables");
 
   auto rehash_weak_table = [](WeakTable* table, WeakTable* replacement_new,
-                              WeakTable* replacement_old) {
+                              WeakTable* replacement_old,
+                              Dart_HeapSamplingDeleteCallback cleanup) {
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
@@ -1426,6 +1427,11 @@ void Scavenger::MournWeakTables() {
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
         }
+      } else {
+        // The object has been collected.
+        if (cleanup != nullptr) {
+          cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+        }
       }
     }
   };
@@ -1438,7 +1444,14 @@ void Scavenger::MournWeakTables() {
 
     // Create a new weak table for the new-space.
     auto table_new = WeakTable::NewFrom(table);
-    rehash_weak_table(table, table_new, table_old);
+
+    Dart_HeapSamplingDeleteCallback cleanup = nullptr;
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+    if (sel == Heap::kHeapSamplingData) {
+      cleanup = HeapProfileSampler::delete_callback();
+    }
+#endif
+    rehash_weak_table(table, table_new, table_old, cleanup);
     heap_->SetWeakTable(Heap::kNew, selector, table_new);
 
     // Remove the old table as it has been replaced with the newly allocated
@@ -1453,7 +1466,8 @@ void Scavenger::MournWeakTables() {
         auto table = isolate->forward_table_new();
         if (table != nullptr) {
           auto replacement = WeakTable::NewFrom(table);
-          rehash_weak_table(table, replacement, isolate->forward_table_old());
+          rehash_weak_table(table, replacement, isolate->forward_table_old(),
+                            nullptr);
           isolate->set_forward_table_new(replacement);
         }
       },
@@ -1603,7 +1617,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   ASSERT(heap_ != Dart::vm_isolate_group()->heap());
   ASSERT(!scavenging_);
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   // Find the remaining space available in the TLAB before abandoning it so we
   // can reset the heap sampling offset in the new TLAB.
   intptr_t remaining = thread->true_end() - thread->top();
@@ -1629,7 +1643,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
         (page->end() - kAllocationRedZoneSize) - page->object_end();
     if (available >= min_size) {
       page->Acquire(thread);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       thread->heap_sampler().HandleNewTLAB(remaining, /*is_first_tlab=*/false);
 #endif
       return;
@@ -1641,7 +1655,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
     return;
   }
   page->Acquire(thread);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().HandleNewTLAB(remaining, is_first_tlab);
 #endif
 }

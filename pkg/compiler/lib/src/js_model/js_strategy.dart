@@ -242,7 +242,8 @@ class JsBackendStrategy {
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen,
-      CodegenResults codegenResults) {
+      CodegenResults codegenResults,
+      SourceLookup sourceLookup) {
     OneShotInterceptorData oneShotInterceptorData = OneShotInterceptorData(
         closedWorld.interceptorData,
         closedWorld.commonElements,
@@ -269,7 +270,8 @@ class JsBackendStrategy {
             // TODO(johnniwinther): Avoid the need for a [ComponentLookup]. This
             // is caused by some type masks holding a kernel node for using in
             // tracing.
-            ComponentLookup(_elementMap.programEnv.mainComponent)),
+            ComponentLookup(_elementMap.programEnv.mainComponent),
+            sourceLookup),
         CodegenEnqueuerListener(
             _compiler.options,
             elementEnvironment,
@@ -329,7 +331,8 @@ class JsBackendStrategy {
       JClosedWorld closedWorld,
       CodegenResults codegenResults,
       EntityLookup entityLookup,
-      ComponentLookup componentLookup) {
+      ComponentLookup componentLookup,
+      SourceLookup sourceLookup) {
     MemberEntity member = work.element;
     CodegenResult result = codegenResults.getCodegenResults(member);
     if (_compiler.options.testMode) {
@@ -350,6 +353,7 @@ class JsBackendStrategy {
           CodegenReaderImpl(closedWorld, modularNames, modularExpression));
       source.registerEntityLookup(entityLookup);
       source.registerComponentLookup(componentLookup);
+      source.registerSourceLookup(sourceLookup);
       result = CodegenResult.readFromDataSource(
           source, modularNames, modularExpression);
     }
@@ -452,15 +456,27 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final CodegenResults _codegenResults;
   final EntityLookup _entityLookup;
   final ComponentLookup _componentLookup;
+  final SourceLookup _sourceLookup;
 
-  KernelCodegenWorkItemBuilder(this._backendStrategy, this._closedWorld,
-      this._codegenResults, this._entityLookup, this._componentLookup);
+  KernelCodegenWorkItemBuilder(
+      this._backendStrategy,
+      this._closedWorld,
+      this._codegenResults,
+      this._entityLookup,
+      this._componentLookup,
+      this._sourceLookup);
 
   @override
   WorkItem? createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-    return KernelCodegenWorkItem(_backendStrategy, _closedWorld,
-        _codegenResults, _entityLookup, _componentLookup, entity);
+    return KernelCodegenWorkItem(
+        _backendStrategy,
+        _closedWorld,
+        _codegenResults,
+        _entityLookup,
+        _componentLookup,
+        _sourceLookup,
+        entity);
   }
 }
 
@@ -470,6 +486,7 @@ class KernelCodegenWorkItem extends WorkItem {
   final CodegenResults _codegenResults;
   final EntityLookup _entityLookup;
   final ComponentLookup _componentLookup;
+  final SourceLookup _sourceLookup;
   @override
   final MemberEntity element;
 
@@ -479,12 +496,13 @@ class KernelCodegenWorkItem extends WorkItem {
       this._codegenResults,
       this._entityLookup,
       this._componentLookup,
+      this._sourceLookup,
       this.element);
 
   @override
   WorldImpact run() {
-    return _backendStrategy.generateCode(
-        this, _closedWorld, _codegenResults, _entityLookup, _componentLookup);
+    return _backendStrategy.generateCode(this, _closedWorld, _codegenResults,
+        _entityLookup, _componentLookup, _sourceLookup);
   }
 }
 
@@ -591,6 +609,12 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
+  AbstractValue? typeOfRecordLiteral(
+      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain) {
+    return _globalInferenceResults.typeOfRecordLiteral(recordLiteral);
+  }
+
+  @override
   AbstractValue? typeOfIterator(ir.ForInStatement node) {
     return _targetResults.typeOfIterator(node);
   }
@@ -640,9 +664,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue typeFromNativeBehavior(
-      // TODO(48820): remove covariant once interface and implementation match.
-      NativeBehavior nativeBehavior,
-      covariant JClosedWorld closedWorld) {
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

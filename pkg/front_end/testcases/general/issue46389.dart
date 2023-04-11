@@ -20,7 +20,7 @@ class A {
   int boz = 0;
 }
 
-abstract class B<X> {
+mixin B<X> {
   X foo(X x);
   X bar({required X x});
   void set baz(X x);

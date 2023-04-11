@@ -77,8 +77,8 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
   /// Validates that there is an identifier region at [regionSearch] with target
   /// at [targetSearch].
   void assertHasRegionTarget(String regionSearch, String targetSearch,
-      {int targetLength = -1}) {
-    assertHasRegion(regionSearch);
+      {int regionLength = -1, int targetLength = -1}) {
+    assertHasRegion(regionSearch, regionLength);
     assertHasTarget(targetSearch, targetLength);
   }
 
@@ -1277,6 +1277,49 @@ const int foo = 0;
     assertHasFileTarget(exampleApiFile1, 0, 0);
   }
 
+  Future<void> test_objectPattern_patternField_explicitlyNamed() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+void f(Object? x) {
+  if (x case A(foo: var a)) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo', 'foo =>');
+  }
+
+  Future<void> test_objectPattern_patternField_implicitlyNamed() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+void f(Object? x) {
+  if (x case A(: var foo)) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo))', 'foo =>');
+  }
+
+  Future<void> test_objectPattern_patternField_notResolved() async {
+    addTestFile('''
+class A {}
+
+void f(Object? x) {
+  if (x case A(foo: var a)) {}
+}
+''');
+    await prepareNavigation();
+
+    assertNoRegionAt('foo:');
+  }
+
   Future<void> test_operator_arithmetic() async {
     addTestFile('''
 class A {
@@ -1376,6 +1419,17 @@ void f(A a) {
 ''');
     await prepareNavigation();
     assertHasRegionTarget('f = 1', 'f = 0');
+  }
+
+  Future<void> test_recordPattern_patternField() async {
+    addTestFile('''
+void f(Object? x) {
+  if (x case (foo: var a,)) {}
+}
+''');
+    await prepareNavigation();
+
+    assertNoRegionAt('foo');
   }
 
   Future<void> test_redirectingConstructorInvocation() async {

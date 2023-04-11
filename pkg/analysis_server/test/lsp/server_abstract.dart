@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -55,6 +56,8 @@ abstract class AbstractLspAnalysisServerTest
   /// The number of context builds that had already occurred the last time
   /// resetContextBuildCounter() was called.
   int _previousContextBuilds = 0;
+
+  DartFixPromptManager? get dartFixPromptManager => null;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -165,7 +168,8 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   @override
-  Future sendNotificationToServer(NotificationMessage notification) async {
+  Future<void> sendNotificationToServer(
+      NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
     await pumpEventQueue(times: 5000);
   }
@@ -202,7 +206,8 @@ abstract class AbstractLspAnalysisServerTest
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
-        processRunner: processRunner);
+        processRunner: processRunner,
+        dartFixPromptManager: dartFixPromptManager);
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
@@ -222,13 +227,14 @@ analyzer:
   enable-experiment:
     - records
     - patterns
+    - sealed-class
 ''');
 
     analysisOptionsUri = Uri.file(analysisOptionsPath);
     writePackageConfig(projectFolderPath);
   }
 
-  Future tearDown() async {
+  Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
   }
@@ -743,6 +749,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         .cast<NotificationMessage>();
   }
 
+  /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
+  Stream<OpenUriParams> get openUriNotifications => notificationsFromServer
+      .where((notification) => notification.method == CustomMethods.openUri)
+      .map((message) =>
+          OpenUriParams.fromJson(message.params as Map<String, Object?>));
+
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
@@ -915,7 +927,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
   }
 
-  Future changeFile(
+  Future<void> changeFile(
     int newVersion,
     Uri uri,
     List<TextDocumentContentChangeEvent> changes,
@@ -931,7 +943,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
-  Future changeWorkspaceFolders({List<Uri>? add, List<Uri>? remove}) async {
+  Future<void> changeWorkspaceFolders(
+      {List<Uri>? add, List<Uri>? remove}) async {
     var notification = makeNotification(
       Method.workspace_didChangeWorkspaceFolders,
       DidChangeWorkspaceFoldersParams(
@@ -944,7 +957,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
-  Future closeFile(Uri uri) async {
+  Future<void> closeFile(Uri uri) async {
     var notification = makeNotification(
       Method.textDocument_didClose,
       DidCloseTextDocumentParams(
@@ -1698,7 +1711,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
   }
 
-  Future openFile(Uri uri, String content, {int version = 1}) async {
+  Future<void> openFile(Uri uri, String content, {int version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
       DidOpenTextDocumentParams(
@@ -1903,7 +1916,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return sendRequestToServer(request);
   }
 
-  Future replaceFile(int newVersion, Uri uri, String content) {
+  Future<void> replaceFile(int newVersion, Uri uri, String content) {
     return changeFile(
       newVersion,
       uri,
@@ -1979,6 +1992,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  /// Records the latest diagnostics for each file in [latestDiagnostics].
+  ///
+  /// [latestDiagnostics] maps from a file path to the set of current
+  /// diagnostics.
+  StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
+      Map<String, List<Diagnostic>> latestDiagnostics) {
+    return notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>))
+        .listen((diagnostics) {
+      latestDiagnostics[diagnostics.uri.toFilePath()] = diagnostics.diagnostics;
+    });
+  }
+
   Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
       TypeHierarchyItem item) {
     final request = makeRequest(
@@ -2013,44 +2042,41 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<void> waitForAnalysisStart() => waitForAnalysisStatus(true);
 
   Future<void> waitForAnalysisStatus(bool analyzing) async {
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage) {
-        if (message.method == CustomMethods.analyzerStatus) {
-          if (_clientCapabilities!.window?.workDoneProgress == true) {
-            throw Exception(
-                'Received ${CustomMethods.analyzerStatus} notification '
-                'but client supports workDoneProgress');
-          }
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.analyzerStatus) {
+        if (_clientCapabilities!.window?.workDoneProgress == true) {
+          throw Exception(
+              'Received ${CustomMethods.analyzerStatus} notification '
+              'but client supports workDoneProgress');
+        }
 
-          final params = AnalyzerStatusParams.fromJson(
-              message.params as Map<String, Object?>);
-          return params.isAnalyzing == analyzing;
-        } else if (message.method == Method.progress) {
-          if (_clientCapabilities!.window?.workDoneProgress != true) {
-            throw Exception(
-                'Received ${CustomMethods.analyzerStatus} notification '
-                'but client supports workDoneProgress');
-          }
+        final params = AnalyzerStatusParams.fromJson(
+            message.params as Map<String, Object?>);
+        return params.isAnalyzing == analyzing;
+      } else if (message.method == Method.progress) {
+        if (_clientCapabilities!.window?.workDoneProgress != true) {
+          throw Exception(
+              'Received ${CustomMethods.analyzerStatus} notification '
+              'but client supports workDoneProgress');
+        }
 
-          final params =
-              ProgressParams.fromJson(message.params as Map<String, Object?>);
+        final params =
+            ProgressParams.fromJson(message.params as Map<String, Object?>);
 
-          // Skip unrelated progress notifications.
-          if (params.token != analyzingProgressToken) {
-            return false;
-          }
+        // Skip unrelated progress notifications.
+        if (params.token != analyzingProgressToken) {
+          return false;
+        }
 
-          if (params.value is Map<String, dynamic>) {
-            final isDesiredStatusMessage = analyzing
-                ? WorkDoneProgressBegin.canParse(
-                    params.value, nullLspJsonReporter)
-                : WorkDoneProgressEnd.canParse(
-                    params.value, nullLspJsonReporter);
+        if (params.value is Map<String, dynamic>) {
+          final isDesiredStatusMessage = analyzing
+              ? WorkDoneProgressBegin.canParse(
+                  params.value, nullLspJsonReporter)
+              : WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter);
 
-            return isDesiredStatusMessage;
-          } else {
-            throw Exception('\$/progress params value was not valid');
-          }
+          return isDesiredStatusMessage;
+        } else {
+          throw Exception('\$/progress params value was not valid');
         }
       }
       // Message is not what we're waiting for.
@@ -2060,9 +2086,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
     late PublishClosingLabelsParams closingLabelsParams;
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.publishClosingLabels) {
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.publishClosingLabels) {
         closingLabelsParams = PublishClosingLabelsParams.fromJson(
             message.params as Map<String, Object?>);
 
@@ -2075,12 +2100,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) async {
     PublishDiagnosticsParams? diagnosticParams;
-    await serverToClient.map<Message?>((message) => message).firstWhere(
-        (message) {
-      if (message is NotificationMessage &&
-          message.method == Method.textDocument_publishDiagnostics) {
+    await notificationsFromServer
+        .map<NotificationMessage?>((message) => message)
+        .firstWhere((message) {
+      if (message?.method == Method.textDocument_publishDiagnostics) {
         diagnosticParams = PublishDiagnosticsParams.fromJson(
-            message.params as Map<String, Object?>);
+            message!.params as Map<String, Object?>);
         return diagnosticParams!.uri == uri;
       }
       return false;
@@ -2090,9 +2115,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
     late PublishFlutterOutlineParams outlineParams;
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.publishFlutterOutline) {
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.publishFlutterOutline) {
         outlineParams = PublishFlutterOutlineParams.fromJson(
             message.params as Map<String, Object?>);
 
@@ -2105,9 +2129,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<Outline> waitForOutline(Uri uri) async {
     late PublishOutlineParams outlineParams;
-    await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.publishOutline) {
+    await notificationsFromServer.firstWhere((message) {
+      if (message.method == CustomMethods.publishOutline) {
         outlineParams = PublishOutlineParams.fromJson(
             message.params as Map<String, Object?>);
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch, unsafeCast;
+import "dart:_internal" show checkNotNullable, patch, unsafeCast;
 
 // VM implementation of DateTime.
 @patch
@@ -47,12 +47,11 @@ class DateTime {
   @patch
   DateTime._internal(int year, int month, int day, int hour, int minute,
       int second, int millisecond, int microsecond, bool isUtc)
-      : this.isUtc = isUtc,
+      : this.isUtc = checkNotNullable(isUtc, "isUtc"),
         this._value = _brokenDownDateToValue(year, month, day, hour, minute,
                 second, millisecond, microsecond, isUtc) ??
             -1 {
     if (_value == -1) throw new ArgumentError();
-    if (isUtc == null) throw new ArgumentError();
   }
 
   static int _validateMilliseconds(int millisecondsSinceEpoch) =>
@@ -65,6 +64,11 @@ class DateTime {
   @patch
   DateTime._now()
       : isUtc = false,
+        _value = _getCurrentMicros();
+
+  @patch
+  DateTime._nowUtc()
+      : isUtc = true,
         _value = _getCurrentMicros();
 
   @patch

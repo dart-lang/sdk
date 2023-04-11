@@ -581,7 +581,7 @@ class B extends A {}
     return aaaRootPath;
   }
 
-  Future _ensureContainedFilesKnown() async {
+  Future<void> _ensureContainedFilesKnown() async {
     for (var driver in allDrivers) {
       var contextRoot = driver.analysisContext!.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {

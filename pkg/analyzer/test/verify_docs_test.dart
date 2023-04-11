@@ -125,7 +125,7 @@ $snippet
       if (results is ErrorsResult) {
         Iterable<AnalysisError> errors = results.errors.where((error) {
           ErrorCode errorCode = error.errorCode;
-          return errorCode != HintCode.UNUSED_IMPORT &&
+          return errorCode != WarningCode.UNUSED_IMPORT &&
               errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
         });
         if (errors.isNotEmpty) {

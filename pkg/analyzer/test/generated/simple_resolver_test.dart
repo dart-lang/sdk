@@ -543,8 +543,8 @@ f() {
   for (int x in list) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
     ]);
     verifyTestResolved();
   }
@@ -611,7 +611,7 @@ void main() {
   var y = new C().x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
     ]);
     verifyTestResolved();
 

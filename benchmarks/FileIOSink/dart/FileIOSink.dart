@@ -101,7 +101,7 @@ class BenchmarkAlternatingSizedAdd extends AsyncBenchmarkBase {
   }
 }
 
-void main() {
+void main() async {
   final benchmarks = [
     BenchmarkManySmallAdds(),
     BenchmarkOneLargeAdd(),
@@ -109,6 +109,6 @@ void main() {
   ];
 
   for (final benchmark in benchmarks) {
-    benchmark.report();
+    await benchmark.report();
   }
 }

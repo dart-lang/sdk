@@ -48,7 +48,7 @@ class Classy {
 
 // For automatic transform of NativeFieldWrapperClass1 to Pointer.
 
-class ClassWithNativeField extends NativeFieldWrapperClass1 {
+base class ClassWithNativeField extends NativeFieldWrapperClass1 {
   ClassWithNativeField(int value) {
     setNativeInstanceField(this, 0, value);
   }
@@ -105,7 +105,7 @@ int setState(int value) {
   return 0;
 }
 
-class StateSetter extends NativeFieldWrapperClass1 {
+base class StateSetter extends NativeFieldWrapperClass1 {
   StateSetter(int value) {
     setNativeInstanceField(this, 0, 0);
     state = value;

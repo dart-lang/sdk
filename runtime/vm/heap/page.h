@@ -85,7 +85,7 @@ class Page {
     return memory_->start() + NewObjectStartOffset();
   }
   uword object_end() const {
-    if (owner_ != NULL) return owner_->top();
+    if (owner_ != nullptr) return owner_->top();
     return top_;
   }
   intptr_t used() const { return object_end() - object_start(); }
@@ -175,7 +175,7 @@ class Page {
 
   void RememberCard(ObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       card_table_ = reinterpret_cast<uint8_t*>(
           calloc(card_table_size(), sizeof(uint8_t)));
     }
@@ -187,7 +187,7 @@ class Page {
   }
   bool IsCardRemembered(ObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       return false;
     }
     intptr_t offset =
@@ -199,7 +199,7 @@ class Page {
 #if defined(DART_COMPRESSED_POINTERS)
   void RememberCard(CompressedObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       card_table_ = reinterpret_cast<uint8_t*>(
           calloc(card_table_size(), sizeof(uint8_t)));
     }
@@ -211,7 +211,7 @@ class Page {
   }
   bool IsCardRemembered(CompressedObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       return false;
     }
     intptr_t offset =
@@ -257,7 +257,7 @@ class Page {
     thread->set_top(0);
     thread->set_end(0);
     thread->set_true_end(0);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
 #endif
   }
@@ -296,7 +296,7 @@ class Page {
     top_ = value;
   }
 
-  // Returns NULL on OOM.
+  // Returns nullptr on OOM.
   static Page* Allocate(intptr_t size, PageType type, bool can_use_cache);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
@@ -310,7 +310,7 @@ class Page {
   uint8_t* card_table_;  // Remembered set, not marking.
   RelaxedAtomic<intptr_t> progress_bar_;
 
-  // The thread using this page for allocation, otherwise NULL.
+  // The thread using this page for allocation, otherwise nullptr.
   Thread* owner_;
 
   // The address of the next allocation. If owner is non-NULL, this value is

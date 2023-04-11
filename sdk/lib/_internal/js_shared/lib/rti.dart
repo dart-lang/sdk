@@ -20,11 +20,42 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
-import 'dart:_js_helper' show createRecordTypePredicate;
+import 'dart:_js_helper' as records
+    show createRecordTypePredicate, getRtiForRecord;
 import 'dart:_js_names'
     show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
+
+/// A marker interface for classes with 'trustworthy' implementations of `get
+/// runtimeType`.
+///
+/// Generally, overrides of `get runtimeType` are not used in displaying the
+/// types of irritants in TypeErrors or computing the structural `runtimeType`
+/// of records. Instead the Rti (aka 'true') type is used.
+///
+/// The 'true' type is sometimes confusing because it shows implementation
+/// details, e.g. the true type of `42` is `JSInt` and `2.1` is `JSNumNotInt`.
+///
+/// For a limited number of implementation classes we tell a 'white lie' that
+/// the value is of another type, e.g. that `42` is an `int` and `2.1` is
+/// `double`. This is achieved by overriding `get runtimeType` to return the
+/// desired type, and marking the implementation class type with `implements
+/// [TrustedGetRuntimeType]`.
+///
+/// [TrustedGetRuntimeType] is not exposed outside the `dart:` libraries so
+/// users cannot tell lies.
+///
+/// The `Type` returned by a trusted `get runtimeType` must be an instance of
+/// the system `Type`, which is guaranteed by using a type literal. Type
+/// literals can be generic and dependent on type variables, e.g. `List<E>`.
+///
+/// Care needs to taken to ensure that the runtime does not get caught telling
+/// lies. Generally, a class's `runtimeType` lies by returning an abstract
+/// supertype of the class.  Since both the the marker interface and `get
+/// runtimeType` are inherited, there should be no way in which a user can
+/// extend the class or implement interface of the class.
+abstract class TrustedGetRuntimeType {}
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
@@ -833,9 +864,81 @@ Rti getTypeFromTypesTable(int index) {
   return _Utils.asRti(type);
 }
 
-Type getRuntimeType(Object? object) {
-  Rti rti = _instanceFunctionType(object) ?? instanceType(object);
+/// Called from [Object.runtimeType].
+///
+/// [Object.runtimeType] is shadowed by overrides so that [object] is always an
+/// ordinary object and never an Array, Closure or Record.
+@pragma('dart2js:never-inline')
+Type getRuntimeTypeOfDartObject(Object? object) {
+  Rti rti = _instanceType(object);
   return createRuntimeType(rti);
+}
+
+/// Called from [JSArray.runtimeType].
+Type getRuntimeTypeOfArray(Object? array) {
+  Rti rti = _getRuntimeTypeOfArrayAsRti(array);
+  return createRuntimeType(rti);
+}
+
+Rti _getRuntimeTypeOfArrayAsRti(Object? array) {
+  Rti rti = _arrayInstanceType(array);
+
+  // TODO(http://dartbug.com/51894):
+  //
+  // There are two reasonable types: `JSArray<E>` and `List<E>`.
+  //
+  // Either could be achieved by making JSArray implement TrustedGetRuntimeType
+  // and changing the definition of JSArray.runtimeType:
+  //
+  //     Type get runtimeType => JSArray<E>;
+  //     Type get runtimeType => List<E>;
+  //
+  // - `JSArray<E>`, the internal type, is stored on the array. There is an
+  //    SSA-level optimization that recognizes that type expression `JSArray<E>`
+  //    is just reconstructing the value, so we get the same operations as this
+  //    method.
+  //
+  // - `List<E>` would construct a derived type. This would be a little slower,
+  //    but not terrible, since in the steady state, the `List<E>` constructed
+  //    via a recipe is cached in a map on the stored Rti.
+  //
+  // The reason we don't just define a plain and understandable method is that
+  // the presence of type variable `E` defeats the type-erasure optimization
+  // when `.runtimeType` is used.
+  return rti;
+}
+
+/// Called from [Closure.runtimeType].
+Type getRuntimeTypeOfClosure(Object? closure) {
+  // If there is no function type, use the interface type.
+  Rti rti = closureFunctionType(closure) ?? instanceType(closure);
+  return createRuntimeType(rti);
+}
+
+/// Called from [Interceptor.runtimeType].
+Type getRuntimeTypeOfInterceptorNotArray(Object? interceptor, Object? object) {
+  Rti rti = _instanceTypeFromConstructor(interceptor);
+  return createRuntimeType(rti);
+}
+
+/// Called from [_Record.runtimeType].
+Type getRuntimeTypeOfRecord(Object record) {
+  Rti recordRti = records.getRtiForRecord(record);
+  return createRuntimeType(recordRti);
+}
+
+/// Returns the [Rti] for the structural record type or structural function type
+/// or interface type of [object].
+Rti _structuralTypeOf(Object? object) {
+  if (object is Record) return records.getRtiForRecord(object);
+  final functionRti = _instanceFunctionType(object);
+  if (functionRti != null) return functionRti;
+  if (object is TrustedGetRuntimeType) {
+    final type = object.runtimeType;
+    return _Utils.as_Type(type)._rti;
+  }
+  if (_Utils.isArray(object)) return _getRuntimeTypeOfArrayAsRti(object);
+  return instanceType(object);
 }
 
 /// Called from generated code.
@@ -864,43 +967,30 @@ _Type _createRuntimeType(Rti rti) {
       _createAndCacheRuntimeType(starErasedRti);
 }
 
-Type getRuntimeTypeOfRecord(String recordRecipe, List valuesList) {
+Rti evaluateRtiForRecord(String recordRecipe, List valuesList) {
   JSArray values = JS('', '#', valuesList);
   final length = values.length;
   if (length == 0) {
     // TODO(50081): Remove this when DDC can handle `TYPE_REF<()>`.
     if (JS_GET_FLAG('DEV_COMPILER')) {
-      throw UnimplementedError('getRuntimeTypeOfRecord not supported for DDC');
+      throw UnimplementedError('evaluateRtiForRecord not supported for DDC');
     } else {
-      return createRuntimeType(TYPE_REF<()>());
+      return TYPE_REF<()>();
     }
   }
 
   Rti bindings = _rtiEval(
-      _fieldTypeForRuntimeTypeOfRecord(values[0]),
+      _structuralTypeOf(values[0]),
       '${Recipe.pushDynamicString}'
       '${Recipe.startTypeArgumentsString}'
       '0'
       '${Recipe.endTypeArgumentsString}');
 
   for (int i = 1; i < length; i++) {
-    bindings = _rtiBind(bindings, _fieldTypeForRuntimeTypeOfRecord(values[i]));
+    bindings = _rtiBind(bindings, _structuralTypeOf(values[i]));
   }
 
-  final recordRti = _rtiEval(bindings, recordRecipe);
-  return createRuntimeType(recordRti);
-}
-
-Rti _fieldTypeForRuntimeTypeOfRecord(Object? object) {
-  // Since some objects override `get runtimeType`, we call that to get the
-  // type, otherwise we print e.g. `int` as `JSInt`.
-
-  // TODO(50081): SDK types that override `.runtimeType` are 'reasonable' in
-  // that they return the type of some interface. Get clarity on whether
-  // user-defined overrides of `.runtimeType` can affect the result of a record
-  // with a field of the type with the override.
-  Type type = object.runtimeType;
-  return (type as _Type)._rti;
+  return _rtiEval(bindings, recordRecipe);
 }
 
 /// Called from generated code in the constant pool.
@@ -944,6 +1034,10 @@ bool _installSpecializedIsTest(Object? object) {
   if (isTopType(testRti)) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
   }
+  if (Rti._getKind(testRti) == Rti.kindQuestion) {
+    return _finishIsFn(testRti, object,
+        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
+  }
 
   // `o is T*` generally behaves like `o is T`.
   // The exceptions are `Object*` (handled above) and `Never*`
@@ -957,6 +1051,10 @@ bool _installSpecializedIsTest(Object? object) {
   Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
       ? Rti._getStarArgument(testRti)
       : testRti;
+
+  if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
+  }
 
   var isFn = _simpleSpecializedIsTest(unstarred);
   if (isFn != null) {
@@ -985,9 +1083,6 @@ bool _installSpecializedIsTest(Object? object) {
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
     // fall through to general implementation.
-  } else if (Rti._getKind(testRti) == Rti.kindQuestion) {
-    return _finishIsFn(testRti, object,
-        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
   } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
     isFn = _recordSpecializedIsTest(unstarred);
     return _finishIsFn(testRti, object, isFn);
@@ -1021,7 +1116,8 @@ Object? _simpleSpecializedIsTest(Rti testRti) {
 Object? _recordSpecializedIsTest(Rti testRti) {
   final partialShapeTag = Rti._getRecordPartialShapeTag(testRti);
   final fieldRtis = Rti._getRecordFields(testRti);
-  final predicate = createRecordTypePredicate(partialShapeTag, fieldRtis);
+  final predicate =
+      records.createRecordTypePredicate(partialShapeTag, fieldRtis);
   return predicate ?? RAW_DART_FUNCTION_REF(_isNever);
 }
 
@@ -1157,10 +1253,7 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
 }
 
 void _failedAsCheck(Object? object, Rti testRti) {
-  // We need to generate an Rti for a record type to print it here.
-  Rti objectRti = instanceOrFunctionType(object, testRti);
-  String message =
-      _Error.compose(object, objectRti, _rtiToString(testRti, null));
+  String message = _Error.compose(object, _rtiToString(testRti, null));
   throw _TypeError.fromMessage(message);
 }
 
@@ -1183,10 +1276,9 @@ class _Error extends Error {
   final String _message;
   _Error(this._message);
 
-  static String compose(
-      Object? object, Rti? objectRti, String checkedTypeDescription) {
+  static String compose(Object? object, String checkedTypeDescription) {
     String objectDescription = Error.safeToString(object);
-    objectRti ??= instanceType(object);
+    Rti objectRti = _structuralTypeOf(object);
     String objectTypeDescription = _rtiToString(objectRti, null);
     return "${objectDescription}:"
         " type '${objectTypeDescription}'"
@@ -1201,7 +1293,7 @@ class _TypeError extends _Error implements TypeError {
   _TypeError.fromMessage(String message) : super('TypeError: $message');
 
   factory _TypeError.forType(object, String type) {
-    return _TypeError.fromMessage(_Error.compose(object, null, type));
+    return _TypeError.fromMessage(_Error.compose(object, type));
   }
 
   @override
@@ -1212,6 +1304,14 @@ class _TypeError extends _Error implements TypeError {
 //
 // Specializations can be placed on Rti objects as the _as and _is
 // 'methods'. They can also be called directly called from generated code.
+
+/// Specialization for `is FutureOr<T>`.
+/// Called from generated code via Rti `_is` method.
+bool _isFutureOr(Object? object) {
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
+      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
+}
 
 /// Specialization for 'is Object'.
 /// Called from generated code via Rti `_is` method.
@@ -1265,7 +1365,7 @@ bool _asBool(Object? object) {
 bool? _asBoolS(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'bool');
 }
 
@@ -1274,7 +1374,7 @@ bool? _asBoolS(dynamic object) {
 bool? _asBoolQ(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'bool?');
 }
 
@@ -1289,7 +1389,7 @@ double _asDouble(Object? object) {
 /// Called from generated code.
 double? _asDoubleS(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'double');
 }
 
@@ -1297,7 +1397,7 @@ double? _asDoubleS(dynamic object) {
 /// Called from generated code.
 double? _asDoubleQ(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'double?');
 }
 
@@ -1319,7 +1419,7 @@ int _asInt(Object? object) {
 /// Called from generated code.
 int? _asIntS(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'int');
 }
 
@@ -1327,7 +1427,7 @@ int? _asIntS(dynamic object) {
 /// Called from generated code.
 int? _asIntQ(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'int?');
 }
 
@@ -1348,7 +1448,7 @@ num _asNum(Object? object) {
 /// Called from generated code.
 num? _asNumS(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'num');
 }
 
@@ -1356,7 +1456,7 @@ num? _asNumS(dynamic object) {
 /// Called from generated code.
 num? _asNumQ(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'num?');
 }
 
@@ -1377,7 +1477,7 @@ String _asString(Object? object) {
 /// Called from generated code.
 String? _asStringS(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String');
 }
 
@@ -1385,7 +1485,7 @@ String? _asStringS(dynamic object) {
 /// Called from generated code.
 String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
-  if (object == null) return object;
+  if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String?');
 }
 
@@ -3081,6 +3181,9 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return true;
   }
 
+  // Record Type/Record:
+  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
+
   // Positional Function Types + Named Function Types:
   // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of function
   // types using features inaccessible from JavaScript.
@@ -3121,15 +3224,7 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  // Records
-  //
-  // TODO(50081): Reference rules to updated specification
-  // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-
-  // Record Type/Record:
-  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
-
-  // Record Type/Record Type:
+  // Record Types:
   if (sKind == Rti.kindRecord && tKind == Rti.kindRecord) {
     return _isRecordSubtype(universe, s, sEnv, t, tEnv);
   }
@@ -3394,6 +3489,7 @@ bool isJsFunctionType(Rti t) =>
 bool isRecordInterfaceType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Record>());
 
 class _Utils {
+  static Null asNull(Object? o) => JS('Null', '#', o);
   static bool asBool(Object? o) => JS('bool', '#', o);
   static double asDouble(Object? o) => JS('double', '#', o);
   static int asInt(Object? o) => JS('int', '#', o);
@@ -3401,6 +3497,7 @@ class _Utils {
   static String asString(Object? o) => JS('String', '#', o);
   static Rti asRti(Object? s) => JS('Rti', '#', s);
   static Rti? asRtiOrNull(Object? s) => JS('Rti|Null', '#', s);
+  static _Type as_Type(Object? o) => JS('_Type', '#', o);
 
   static bool isString(Object? o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object? o) => JS('bool', 'typeof # == "number"', o);

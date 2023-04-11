@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.33.4</version>
+  <version>1.34.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -92,7 +92,7 @@
   with each request that will produce it.
 </p>
 <p>
-  The server can also communicate to the clients by sending a
+  The server can communicate to the clients by sending a
   notification. The purpose of these notifications is to provide
   information to clients as it becomes available rather than to
   require that clients poll for it. Unless explicitly stated, all
@@ -111,6 +111,14 @@
   field is the 'params' field, whose structure is dependent on the
   kind of notification being sent. The structure of this field is
   described with each notification.
+</p>
+<p>
+  The server can also communicate to the clients by sending a request. As with
+  requests sent from the client, requests from the server have both an 'id' and
+  a 'method' field, and an optional 'params' field. The ids used by the server
+  are independent of the ids used by the client. In other words, the ids sent by
+  the server might be equal to ids already sent from the client, but are
+  unrelated to the client request with that same id.
 </p>
 <p>
   In order to be backward compatible, clients should ignore fields that were
@@ -134,6 +142,14 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.34.0</h4>
+<ul>
+  <li>
+    Added the ability for the server to send requests to the client when the
+    client uses <tt>setClientCapabilities</tt> to enable the requests. Also
+    added the <tt>openUrlRequest</tt> and <tt>showMessageRequest</tt> requests.
+  </li>
+</ul>
 <h4>1.33.1</h4>
 <ul>
   <li><tt>SourceChange</tt> now has an optional <tt>selectionLength</tt> that may be
@@ -323,7 +339,7 @@
       even in the case of cancellation, but clients should discard
       any results of any cancelled request because they may be
       incomplete or inaccurate.
-      
+
       This request always completes without error regardless of
       whether the request is successfully cancelled.</p>
     <params>
@@ -332,6 +348,118 @@
         <p>The id of the request that should be cancelled.</p>
       </field>
     </params>
+  </request>
+  <request method="setClientCapabilities">
+    <p>
+      Record the capabilities supported by the client. The default values,
+      documented below, will be assumed until this request is received.
+    </p>
+    <params>
+      <field name="requests">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The names of the requests that the server can safely send to the
+          client. Only requests whose name is in the list will be sent.
+        </p>
+        <p>
+          A request should only be included in the list if the client will
+          unconditionally honor the request.
+        </p>
+        <p>
+          The default, used before this request is received, is an empty list.
+        </p>
+        <p>
+          The following is a list of the names of the requests that can be
+          specified:
+        </p>
+        <ul>
+          <li>
+            <tt>openUrlRequest</tt>
+          </li>
+          <li>
+            <tt>showMessageRequest</tt>
+          </li>
+        </ul>
+      </field>
+    </params>
+  </request>
+  <request method="openUrlRequest">
+    <p><b>Note:</b> This is a request from the server to the client.</p>
+    <p>
+      Request that a URL be opened.
+    </p>
+    <p>
+      The client is expected to open the URL, either within the client's UI or
+      in the default browser.
+    </p>
+    <p>
+      The request will only be sent from the server to the client if the client
+      has indicated that it supports this request by using the
+      <tt>setClientCapabilities</tt> request.
+    </p>
+    <params>
+      <field name="url">
+        <ref>String</ref>
+        <p>
+          The URL to be opened.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="showMessageRequest">
+    <p><b>Note:</b> This is a request from the server to the client.</p>
+    <p>
+      Request that a message be displayed to the user.
+    </p>
+    <p>
+      The client is expected to display the message to the user with one or more
+      buttons with the specified labels, and to return a response consisting of
+      the label of the button that was clicked.
+    </p>
+    <p>
+      The request will only be sent from the server to the client if the client
+      has indicated that it supports this request by using the
+      <tt>setClientCapabilities</tt> request.
+    </p>
+    <p>
+      This request is modeled after the
+      <a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#window_showMessageRequest">
+      same request from the LSP specification</a>.
+    </p>
+    <params>
+      <field name="type">
+        <ref>MessageType</ref>
+        <p>
+          The type of the message.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message to be displayed.
+        </p>
+      </field>
+      <field name="actions">
+        <list>
+          <ref>MessageAction</ref>
+        </list>
+        <p>
+          The labels of the buttons by which the user can dismiss the message.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="action" optional="true">
+        <ref>String</ref>
+        <p>
+          The label of the action that was selected by the user. May be
+          omitted or `null` if the user dismissed the message without
+          clicking an action button.
+        </p>
+      </field>
+    </result>
   </request>
   <notification event="connected">
     <p>
@@ -4184,6 +4312,54 @@
         <code>NONE</code>
         <p>
           Do not match character cases when filtering completion lists.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="MessageAction">
+    <p>
+      An action associated with a message that the server is requesting the
+      client to display to the user.
+    </p>
+    <object>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label of the button to be displayed, and the value to be returned
+          to the server if the button is clicked.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="MessageType">
+    <p>
+      The type of a message that the server is requesting the client to display
+      to the user. The type can be used by the client to control the way in
+      which the message is displayed.
+    </p>
+    <enum>
+      <value>
+        <code>ERROR</code>
+        <p>
+          The message is an error message.
+        </p>
+      </value>
+      <value>
+        <code>WARNING</code>
+        <p>
+          The message is a warning message.
+        </p>
+      </value>
+      <value>
+        <code>INFO</code>
+        <p>
+          The message is an informational message.
+        </p>
+      </value>
+      <value>
+        <code>LOG</code>
+        <p>
+          The message is a log message.
         </p>
       </value>
     </enum>

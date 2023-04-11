@@ -78,7 +78,7 @@ List<String> sdkPaths = [
   "sky_engine/lib/math/math.dart",
   "sky_engine/lib/typed_data/typed_data.dart",
   "sky_engine/lib/ui/ui.dart",
-  "sky_engine/lib/wasm/wasm_types.dart",
+  "sky_engine/lib/_wasm/wasm_types.dart",
   "sky_engine/lib/_http/http.dart",
   "sky_engine/lib/_interceptors/interceptors.dart",
   "sky_engine/lib/internal/internal.dart",

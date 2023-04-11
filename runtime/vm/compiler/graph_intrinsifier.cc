@@ -172,8 +172,8 @@ static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
 static void VerifyParameterIsBoxed(BlockBuilder* builder, intptr_t arg_index) {
   const auto& function = builder->function();
   if (function.is_unboxed_parameter_at(arg_index)) {
-    FATAL2("Unsupported unboxed parameter %" Pd " in %s", arg_index,
-           function.ToFullyQualifiedCString());
+    FATAL("Unsupported unboxed parameter %" Pd " in %s", arg_index,
+          function.ToFullyQualifiedCString());
   }
 }
 

@@ -8,7 +8,8 @@
 //
 // $> d8 --experimental-wasm-gc --experimental-wasm-stack-switching \
 //       --experimental-wasm-type-reflection run_wasm.js \
-//       -- /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm]
+//       -- /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
+//       [-- Dart commandline arguments...]
 //
 // Please note we require an absolute path for the JS runtime. This is a
 // workaround for a discrepancy in D8. Specifically, `import`(used to load .mjs
@@ -31,7 +32,15 @@ const ffiArg = 2;
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    const dart2wasm = await import(arguments[jsRuntimeArg]);
+    var args = arguments;
+    var dartArgs = [];
+    const argsSplit = args.indexOf("--");
+    if (argsSplit != -1) {
+        dartArgs = args.slice(argsSplit + 1);
+        args = args.slice(0, argsSplit);
+    }
+
+    const dart2wasm = await import(args[jsRuntimeArg]);
     function compile(filename) {
         // Create a Wasm module from the binary wasm file.
         var bytes = readbuffer(filename);
@@ -42,22 +51,24 @@ const main = async () => {
         return new WebAssembly.Instance(compile(filename), imports);
     }
 
+    globalThis.window ??= globalThis;
+
     let importObject = {};
 
     // Is an FFI module specified?
-    if (arguments.length > 2) {
+    if (args.length > 2) {
         // instantiate FFI module
-        var ffiInstance = instantiate(arguments[ffiArg], {});
+        var ffiInstance = instantiate(args[ffiArg], {});
         // Make its exports available as imports under the 'ffi' module name
         importObject.ffi = ffiInstance.exports;
     }
 
     // Instantiate the Dart module, importing from the global scope.
-    var dartInstance = await dart2wasm.instantiate(Promise.resolve(compile(arguments[wasmArg])), Promise.resolve(importObject));
+    var dartInstance = await dart2wasm.instantiate(Promise.resolve(compile(args[wasmArg])), Promise.resolve(importObject));
 
     // Call `main`. If tasks are placed into the event loop (by scheduling tasks
     // explicitly or awaiting Futures), these will automatically keep the script
     // alive even after `main` returns.
-    await dart2wasm.invoke(dartInstance);
+    await dart2wasm.invoke(dartInstance, ...dartArgs);
 };
 main();

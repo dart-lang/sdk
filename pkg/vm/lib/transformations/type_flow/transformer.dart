@@ -6,6 +6,8 @@
 
 import 'dart:core' hide Type;
 
+import 'package:front_end/src/api_prototype/static_weak_references.dart'
+    show StaticWeakReferences;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -23,8 +25,6 @@ import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
 import 'package:vm/transformations/pragma.dart';
-import 'package:vm/transformations/static_weak_references.dart'
-    show StaticWeakReferences;
 
 import 'analysis.dart';
 import 'calls.dart';
@@ -207,7 +207,8 @@ class MoveFieldInitializers {
           initExpr = CloneVisitorNotMembers().clone(initExpr);
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(VariableDeclaration(null, initializer: initExpr))
+            ? LocalInitializer(VariableDeclaration(null,
+                initializer: initExpr, isSynthesized: true))
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -518,17 +519,12 @@ class AnnotateKernel extends RecursiveVisitor {
             _unboxingInfo.getUnboxingInfoOfMember(member);
         if (unboxingInfoMetadata != null) {
           // Check for partitions that only have abstract methods should be marked as boxed.
-          if (unboxingInfoMetadata.returnInfo ==
-              UnboxingInfoMetadata.kUnboxingCandidate) {
-            unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
+          if (unboxingInfoMetadata.returnInfo == UnboxingType.kUnknown) {
+            unboxingInfoMetadata.returnInfo = UnboxingType.kBoxed;
           }
-          for (int i = 0;
-              i < unboxingInfoMetadata.unboxedArgsInfo.length;
-              i++) {
-            if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
-                UnboxingInfoMetadata.kUnboxingCandidate) {
-              unboxingInfoMetadata.unboxedArgsInfo[i] =
-                  UnboxingInfoMetadata.kBoxed;
+          for (int i = 0; i < unboxingInfoMetadata.argsInfo.length; i++) {
+            if (unboxingInfoMetadata.argsInfo[i] == UnboxingType.kUnknown) {
+              unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
             }
           }
           if (!unboxingInfoMetadata.isFullyBoxed) {
@@ -712,7 +708,6 @@ class TreeShaker {
   final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   final FinalizableTypes _finalizableTypes;
-  final StaticWeakReferences _staticWeakReferences;
   late final FieldMorpher fieldMorpher;
   late final _TreeShakerTypeVisitor typeVisitor;
   late final _TreeShakerConstantVisitor constantVisitor;
@@ -725,9 +720,8 @@ class TreeShaker {
     CoreTypes coreTypes,
     ClassHierarchy hierarchy, {
     this.treeShakeWriteOnlyFields = true,
-  })  : _finalizableTypes = new FinalizableTypes(
-            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy),
-        _staticWeakReferences = typeFlowAnalysis.staticWeakReferences {
+  }) : _finalizableTypes = new FinalizableTypes(
+            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy) {
     fieldMorpher = new FieldMorpher(this);
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
@@ -894,7 +888,8 @@ class FieldMorpher {
     Procedure accessor;
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
-      final parameter = new VariableDeclaration('value', type: field.type)
+      final parameter = new VariableDeclaration('value',
+          type: field.type, isSynthesized: true)
         ..isCovariantByDeclaration = field.isCovariantByDeclaration
         ..isCovariantByClass = field.isCovariantByClass
         ..fileOffset = field.fileOffset;
@@ -1094,8 +1089,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
-    return new LocalInitializer(
-        new VariableDeclaration(null, initializer: _makeUnreachableCall(args)));
+    return new LocalInitializer(new VariableDeclaration(null,
+        initializer: _makeUnreachableCall(args), isSynthesized: true));
   }
 
   NarrowNotNull? _getNullTest(TreeNode node) =>
@@ -1379,11 +1374,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
   @override
   TreeNode visitStaticInvocation(
       StaticInvocation node, TreeNode? removalSentinel) {
-    if (shaker._staticWeakReferences.isWeakReference(node)) {
-      final target = shaker._staticWeakReferences.getWeakReferenceTarget(node);
+    if (StaticWeakReferences.isWeakReference(node)) {
+      final target = StaticWeakReferences.getWeakReferenceTarget(node);
       if (shaker.isMemberBodyReachable(target)) {
-        return transform(
-            shaker._staticWeakReferences.getWeakReferenceArgument(node));
+        return transform(StaticWeakReferences.getWeakReferenceArgument(node));
       }
       return NullLiteral()..fileOffset = node.fileOffset;
     }
@@ -1487,8 +1481,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
           "Field should be reachable: ${field}");
       if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
-          return LocalInitializer(
-              VariableDeclaration(null, initializer: node.value));
+          return LocalInitializer(VariableDeclaration(null,
+              initializer: node.value, isSynthesized: true));
         } else {
           return removalSentinel!;
         }

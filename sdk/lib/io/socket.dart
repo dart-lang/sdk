@@ -9,7 +9,7 @@ part of dart.io;
 /// Currently, IP version 4 (IPv4), IP version 6 (IPv6)
 /// and Unix domain address are supported.
 /// Unix domain sockets are available only on Linux, MacOS and Android.
-class InternetAddressType {
+final class InternetAddressType {
   static const InternetAddressType IPv4 = const InternetAddressType._(0);
   static const InternetAddressType IPv6 = const InternetAddressType._(1);
   @Since("2.8")
@@ -41,7 +41,7 @@ class InternetAddressType {
 /// An Internet address combined with a port number represents an
 /// endpoint to which a socket can connect or a listening socket can
 /// bind.
-abstract class InternetAddress {
+abstract interface class InternetAddress {
   /// IP version 4 loopback address.
   ///
   /// Use this address when listening on or connecting
@@ -165,7 +165,7 @@ abstract class InternetAddress {
 /// A [NetworkInterface] represents an active network interface on the current
 /// system. It contains a list of [InternetAddress]es that are bound to the
 /// interface.
-abstract class NetworkInterface {
+abstract interface class NetworkInterface {
   /// The name of the [NetworkInterface].
   String get name;
 
@@ -206,7 +206,7 @@ abstract class NetworkInterface {
 /// one for each connection made to the listening socket.
 ///
 /// See [RawSocket] for more info.
-abstract class RawServerSocket implements Stream<RawSocket> {
+abstract interface class RawServerSocket implements Stream<RawSocket> {
   /// Listens on a given address and port.
   ///
   /// When the returned future completes the server socket is bound
@@ -265,7 +265,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
 /// one for each connection made to the listening socket.
 ///
 /// See [Socket] for more info.
-abstract class ServerSocket implements ServerSocketBase<Socket> {
+abstract interface class ServerSocket implements ServerSocketBase<Socket> {
   /// Listens on a given address and port.
   ///
   /// When the returned future completes the server socket is bound
@@ -331,7 +331,7 @@ abstract class ServerSocket implements ServerSocketBase<Socket> {
 
 /// The [SocketDirection] is used as a parameter to [Socket.close] and
 /// [RawSocket.close] to close a socket in the specified direction(s).
-class SocketDirection {
+final class SocketDirection {
   static const SocketDirection receive = const SocketDirection._(0);
   static const SocketDirection send = const SocketDirection._(1);
   static const SocketDirection both = const SocketDirection._(2);
@@ -346,7 +346,7 @@ class SocketDirection {
 /// The [SocketOption] is used as a parameter to [Socket.setOption] and
 /// [RawSocket.setOption] to customize the behaviour of the underlying
 /// socket.
-class SocketOption {
+final class SocketOption {
   /// Enable or disable no-delay on the socket. If tcpNoDelay is enabled, the
   /// socket will not buffer data internally, but instead write each data chunk
   /// as an individual TCP packet.
@@ -383,7 +383,7 @@ enum _RawSocketOptions {
 /// will be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
 @Since("2.2")
-class RawSocketOption {
+final class RawSocketOption {
   /// Creates a [RawSocketOption] for [RawSocket.getRawOption]
   /// and [RawSocket.setRawOption].
   ///
@@ -499,7 +499,7 @@ class RawSocketEvent {
 ///
 /// Returned by the `startConnect` methods on client-side socket types `S`,
 /// `ConnectionTask<S>` allows cancelling an attempt to connect to a host.
-class ConnectionTask<S> {
+final class ConnectionTask<S> {
   /// A `Future` that completes with value that `S.connect()` would return
   /// unless [cancel] is called on this [ConnectionTask].
   ///
@@ -531,7 +531,7 @@ class ConnectionTask<S> {
 /// a certain change has happened, for example when data has become available
 /// ([RawSocketEvent.read]) or when the remote end has stopped listening
 /// ([RawSocketEvent.closed]).
-abstract class RawSocket implements Stream<RawSocketEvent> {
+abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
   /// events. Default is `true`.
   abstract bool readEventsEnabled;
@@ -549,9 +549,10 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// The [host] can either be a [String] or an [InternetAddress]. If [host] is a
   /// [String], [connect] will perform a [InternetAddress.lookup] and try
-  /// all returned [InternetAddress]es, until connected. Unless a
-  /// connection was established, the error from the first failing connection is
-  /// returned.
+  /// all returned [InternetAddress]es, until connected. If IPv4 and IPv6
+  /// addresses are both availble then connections over IPv4 are preferred. If
+  /// no connection can be establed then the error from the first failing
+  /// connection is returned.
   ///
   /// The argument [sourceAddress] can be used to specify the local
   /// address to bind when making the connection. The [sourceAddress] can either
@@ -718,7 +719,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
 /// Data, as [Uint8List]s, is received by the local socket, made available
 /// by the [Stream] interface of this class, and can be sent to the remote
 /// socket through the [IOSink] interface of this class.
-abstract class Socket implements Stream<Uint8List>, IOSink {
+abstract interface class Socket implements Stream<Uint8List>, IOSink {
   /// Creates a new socket connection to the host and port and returns a [Future]
   /// that will complete with either a [Socket] once connected or an error
   /// if the host-lookup or connection failed.
@@ -842,7 +843,7 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
 }
 
 /// A data packet received by a [RawDatagramSocket].
-class Datagram {
+final class Datagram {
   /// The actual bytes of the message.
   Uint8List data;
 
@@ -857,7 +858,7 @@ class Datagram {
 
 /// A wrapper around OS resource handle so it can be passed via Socket
 /// as part of [SocketMessage].
-abstract class ResourceHandle {
+abstract interface class ResourceHandle {
   /// Creates wrapper around opened file.
   external factory ResourceHandle.fromFile(RandomAccessFile file);
 
@@ -959,7 +960,7 @@ abstract class ResourceHandle {
 /// Control messages could carry different information including
 /// [ResourceHandle]. If [ResourceHandle]s are available as part of this message,
 /// they can be extracted via [extractHandles].
-abstract class SocketControlMessage {
+abstract interface class SocketControlMessage {
   /// Creates a control message containing the provided [handles].
   ///
   /// This is used by the sender when it sends handles across the socket.
@@ -1007,7 +1008,7 @@ abstract class SocketControlMessage {
 /// A socket message received by a [RawDatagramSocket].
 ///
 /// A socket message consists of [data] bytes and [controlMessages].
-class SocketMessage {
+final class SocketMessage {
   /// The actual bytes of the message.
   final Uint8List data;
 
@@ -1065,7 +1066,7 @@ class SocketMessage {
 ///   });
 /// }
 /// ```
-abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
+abstract interface class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// Whether the [RawDatagramSocket] should listen for
   /// [RawSocketEvent.read] events.
   ///

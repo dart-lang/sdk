@@ -41,7 +41,7 @@ part of dart.core;
 /// * [num]: The super class for [int] and [double].
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
-abstract class BigInt implements Comparable<BigInt> {
+abstract final class BigInt implements Comparable<BigInt> {
   /// A big integer with the numerical value 0.
   external static BigInt get zero;
 

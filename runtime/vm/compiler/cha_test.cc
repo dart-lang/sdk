@@ -30,7 +30,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
       "  bar() { }"
       "}\n";
 
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  TestCase::LoadTestScript(kScriptChars, nullptr);
 
   TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());

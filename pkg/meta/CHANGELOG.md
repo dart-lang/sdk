@@ -1,3 +1,8 @@
+## 1.9.1
+
+* Update SDK constraints to `>=2.12.0 <4.0.0`.
+* Mark `@reopen` stable.
+
 ## 1.9.0
 
 * Introduce `@reopen` to annotate class or mixin declarations that can safely

@@ -11,7 +11,7 @@ import "package:expect/expect.dart";
 
 void testZLibDeflateEmpty() {
   asyncStart();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   controller.stream
       .transform(new ZLibEncoder(gzip: false, level: 6))
       .fold<List<int>>([], (buffer, data) {
@@ -26,7 +26,7 @@ void testZLibDeflateEmpty() {
 
 void testZLibDeflateEmptyGzip() {
   asyncStart();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   controller.stream
       .transform(new ZLibEncoder(gzip: true, level: 6))
       .fold<List<int>>(<int>[], (buffer, data) {
@@ -42,7 +42,7 @@ void testZLibDeflateEmptyGzip() {
 
 void testZLibDeflate(List<int> data) {
   asyncStart();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   controller.stream
       .transform(new ZLibEncoder(gzip: false, level: 6))
       .fold<List<int>>([], (buffer, data) {
@@ -77,7 +77,7 @@ void testZLibDeflate(List<int> data) {
 
 void testZLibDeflateGZip(List<int> data) {
   asyncStart();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   controller.stream.transform(new ZLibEncoder(gzip: true)).fold<List<int>>([],
       (buffer, data) {
     buffer.addAll(data);
@@ -117,7 +117,7 @@ void testZLibDeflateGZip(List<int> data) {
 
 void testZLibDeflateRaw(List<int> data) {
   asyncStart();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   controller.stream
       .transform(new ZLibEncoder(raw: true, level: 6))
       .fold<List<int>>([], (buffer, data) {
@@ -153,7 +153,7 @@ void testZLibInflate(List<int> data) {
     ].forEach((strategy) {
       [3, 6, 9].forEach((level) {
         asyncStart();
-        var controller = new StreamController(sync: true);
+        var controller = new StreamController<List<int>>(sync: true);
         controller.stream
             .transform(
                 new ZLibEncoder(gzip: gzip, level: level, strategy: strategy))
@@ -175,7 +175,7 @@ void testZLibInflate(List<int> data) {
 void testZLibInflateRaw(List<int> data) {
   [3, 6, 9].forEach((level) {
     asyncStart();
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     controller.stream
         .transform(new ZLibEncoder(raw: true, level: level))
         .transform(new ZLibDecoder(raw: true))
@@ -215,7 +215,7 @@ void testZlibInflateWithLargerWindow() {
   [true, false].forEach((gzip) {
     [3, 6, 9].forEach((level) {
       asyncStart();
-      var controller = new StreamController(sync: true);
+      var controller = new StreamController<List<int>>(sync: true);
       controller.stream
           .transform(new ZLibEncoder(gzip: gzip, level: level, windowBits: 8))
           .transform(new ZLibDecoder(windowBits: 10))

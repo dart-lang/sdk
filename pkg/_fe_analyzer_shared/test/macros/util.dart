@@ -240,6 +240,11 @@ class _DeepEqualityMatcher extends Matcher {
 }
 
 class Fixtures {
+  static final nullableBoolType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bool'),
+      isNullable: true,
+      typeArguments: const []);
   static final stringType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'String'),
@@ -251,6 +256,31 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'void'),
       isNullable: false,
       typeArguments: const []);
+  static final recordType = RecordTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      isNullable: false,
+      namedFields: [
+        RecordFieldDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'world'),
+            name: 'world',
+            type: stringType),
+      ],
+      positionalFields: [
+        RecordFieldDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+            name: null,
+            type: stringType),
+        RecordFieldDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$2'),
+            name: 'hello',
+            type: nullableBoolType),
+      ]);
 
   // Top level, non-class declarations.
   static final myFunction = FunctionDeclarationImpl(
@@ -337,8 +367,13 @@ class Fixtures {
       identifier: myClassType.identifier,
       typeParameters: [],
       interfaces: [myInterfaceType],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: false,
+      hasSealed: false,
       mixins: [myMixinType],
       superclass: mySuperclassType);
   static final myConstructor = ConstructorDeclarationImpl(
@@ -378,8 +413,13 @@ class Fixtures {
       identifier: myInterfaceType.identifier,
       typeParameters: [],
       interfaces: [],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: true,
+      hasMixin: false,
+      hasSealed: false,
       mixins: [],
       superclass: null);
   static final myMethod = MethodDeclarationImpl(
@@ -392,7 +432,7 @@ class Fixtures {
       isSetter: false,
       namedParameters: [],
       positionalParameters: [],
-      returnType: stringType,
+      returnType: recordType,
       typeParameters: [],
       definingClass: myClassType.identifier,
       isStatic: false);
@@ -401,8 +441,13 @@ class Fixtures {
       identifier: myMixinType.identifier,
       typeParameters: [],
       interfaces: [],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: true,
+      hasSealed: false,
       mixins: [],
       superclass: null);
   static final mySuperclass = ClassDeclarationImpl(
@@ -410,8 +455,13 @@ class Fixtures {
       identifier: mySuperclassType.identifier,
       typeParameters: [],
       interfaces: [],
-      isAbstract: false,
-      isExternal: false,
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: false,
+      hasSealed: false,
       mixins: [],
       superclass: null);
 

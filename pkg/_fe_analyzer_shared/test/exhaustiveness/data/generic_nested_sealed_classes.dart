@@ -3,25 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 sealed class A<X> {}
+
 sealed class B<Y> extends A<Y> {}
+
 sealed class C extends A<int> {}
+
 sealed class D<Z, W> extends A<W> {}
 
 class B1<V1> extends B<V1> {}
+
 class B2 extends B<int> {}
 
 class C1 extends C {}
+
 class C2<U1> extends C {}
 
 class D1<V2, U2> extends D<V2, U2> {}
+
 class D2<V3> extends D<int, V3> {}
+
 class D3<U3> extends D<U3, int> {}
+
 class D4 extends D<bool, bool> {}
 
 exhaustiveLevel0<T1>(A<T1> a) {
   /*
+   checkingOrder={A<T1>,B<T1>,C,D<dynamic, dynamic>,B1<T1>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
    expandedSubtypes={B1<T1>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T1>,C,D<dynamic, dynamic>},
    type=A<T1>
   */
@@ -35,8 +43,8 @@ exhaustiveLevel0<T1>(A<T1> a) {
 
 exhaustiveLevel0_1<T2>(A<T2> a) {
   /*
+   checkingOrder={A<T2>,B<T2>,C,D<dynamic, dynamic>,B1<T2>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
    expandedSubtypes={B1<T2>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T2>,C,D<dynamic, dynamic>},
    type=A<T2>
   */
@@ -60,9 +68,9 @@ exhaustiveLevel1<T3>(A<T3> a) {
   // TODO(johnniwinther): Room for improvement here. We could recognized the
   //  direct passing of type variables in D.
   /*
-   error=non-exhaustive:D1<dynamic, dynamic>,
+   checkingOrder={A<T3>,B<T3>,C,D<dynamic, dynamic>,B1<T3>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
+   error=non-exhaustive:D1<dynamic, dynamic>(),
    expandedSubtypes={B1<T3>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T3>,C,D<dynamic, dynamic>},
    type=A<T3>
   */
@@ -84,7 +92,7 @@ exhaustiveLevel1<T3>(A<T3> a) {
 
 exhaustiveLevel1b<T3>(B<T3> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={B<T3>,B1<T3>,B2},
    subtypes={B1<T3>,B2},
    type=B<T3>
   */
@@ -95,7 +103,7 @@ exhaustiveLevel1b<T3>(B<T3> a) {
       break;
   }
   /*
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={B<T3>,B1<T3>,B2},
    subtypes={B1<T3>,B2},
    type=B<T3>
   */
@@ -115,9 +123,9 @@ exhaustiveLevel2<T4>(A<T4> a) {
   // TODO(johnniwinther): Room for improvement here. We could recognized the
   //  direct passing of type variables in D.
   /*
-   error=non-exhaustive:D1<dynamic, dynamic>,
+   checkingOrder={A<T4>,B<T4>,C,D<dynamic, dynamic>,B1<T4>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
+   error=non-exhaustive:D1<dynamic, dynamic>(),
    expandedSubtypes={B1<T4>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T4>,C,D<dynamic, dynamic>},
    type=A<T4>
   */
@@ -150,7 +158,7 @@ exhaustiveLevel2<T4>(A<T4> a) {
     case D3<dynamic> d3:
       print('d3');
       break;
-    /*space=D4*/case D4 d4:
+    /*space=D4*/ case D4 d4:
       print('d4');
       break;
   }
@@ -158,11 +166,12 @@ exhaustiveLevel2<T4>(A<T4> a) {
 
 exhaustiveLevel0_1_2<T5>(A<T5> a) {
   /*
+   checkingOrder={A<T5>,B<T5>,C,D<dynamic, dynamic>,B1<T5>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
    expandedSubtypes={B1<T5>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   fields={hashCode:int,runtimeType:Type},
    subtypes={B<T5>,C,D<dynamic, dynamic>},
    type=A<T5>
-  */switch (a) {
+  */
+  switch (a) {
     /*space=B<T5>*/
     case B<T5> b:
       print('b');

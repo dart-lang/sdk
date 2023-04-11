@@ -6,15 +6,19 @@ import "dart:_internal" as _in;
 static method test(core::Symbol value) → core::String {
   #L1:
   {
-    final core::Symbol #0#0 = value;
-    if(#C1 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-      {
-        return "foo";
+    final synthesized core::Symbol #0#0 = value;
+    {
+      if(#C1 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return "foo";
+        }
       }
     }
-    else {
+    {
       {
-        return "default";
+        {
+          return "default";
+        }
       }
     }
   }

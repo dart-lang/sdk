@@ -222,7 +222,7 @@ class ExtensionMemberResolver {
       substitution,
     );
 
-    if (receiverType.isVoid) {
+    if (receiverType is VoidType) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo(receiverType, extendedType)) {
@@ -352,7 +352,7 @@ class ExtensionMemberResolver {
         element.extendedType,
         'extendedType',
       );
-      return inferrer.upwardsInfer();
+      return inferrer.chooseFinalTypes();
     }
   }
 

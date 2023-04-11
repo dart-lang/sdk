@@ -16,7 +16,7 @@ class Super {
   int get extendedAbstractMixedInAbstractGetter;
 }
 
-class Mixin {
+mixin class Mixin {
   int get mixedInConcreteGetter => 0;
 
   int get mixedInAbstractGetter;

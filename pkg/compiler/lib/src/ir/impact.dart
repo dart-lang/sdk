@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../serialization/serialization.dart';
-import 'class_relation.dart';
 import 'constants.dart';
 import 'impact_data.dart' show ImpactData;
 import 'runtime_type_analysis.dart';
@@ -43,6 +42,9 @@ abstract class ImpactRegistry {
   void registerRecordLiteral(ir.RecordType type, {required bool isConst});
 
   void registerStaticTearOff(
+      ir.Procedure procedure, ir.LibraryDependency? import);
+
+  void registerWeakStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency? import);
 
   void registerStaticGet(ir.Member member, ir.LibraryDependency? import);

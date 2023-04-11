@@ -3,8 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   language:
     strict-casts: true
-    # TODO(srawlins): Enable this; there are currently ~250 violations.
-    # strict-raw-types: true
+    strict-raw-types: true
   exclude:
     - test/mock_packages/**
   errors:

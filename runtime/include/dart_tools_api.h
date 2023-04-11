@@ -254,70 +254,6 @@ DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
                                             const uint8_t* bytes,
                                             intptr_t bytes_length);
 
-/**
- * Usage statistics for a space/generation at a particular moment in time.
- *
- * \param used Amount of memory used, in bytes.
- *
- * \param capacity Memory capacity, in bytes.
- *
- * \param external External memory, in bytes.
- *
- * \param collections How many times the garbage collector has run in this
- *   space.
- *
- * \param time Cumulative time spent collecting garbage in this space, in
- *   seconds.
- *
- * \param avg_collection_period Average time between garbage collector running
- *   in this space, in milliseconds.
- */
-typedef struct {
-  intptr_t used;
-  intptr_t capacity;
-  intptr_t external;
-  intptr_t collections;
-  double time;
-  double avg_collection_period;
-} Dart_GCStats;
-
-/**
- * A Garbage Collection event with memory usage statistics.
- *
- * \param type The event type. Static lifetime.
- *
- * \param reason The reason for the GC event. Static lifetime.
- *
- * \param new_space Data for New Space.
- *
- * \param old_space Data for Old Space.
- */
-typedef struct {
-  const char* type;
-  const char* reason;
-
-  Dart_IsolateGroupId isolate_group_id;
-
-  Dart_GCStats new_space;
-  Dart_GCStats old_space;
-} Dart_GCEvent;
-
-/**
- * A callback invoked when the VM emits a GC event.
- *
- * \param event The GC event data. Pointer only valid for the duration of the
- *   callback.
- */
-typedef void (*Dart_GCEventCallback)(Dart_GCEvent* event);
-
-/**
- * Sets the native GC event callback.
- *
- * \param callback A function pointer to an event handler callback function.
- *   A NULL value removes the existing listen callback function if any.
- */
-DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback);
-
 /*
  * ========
  * Reload support
@@ -532,41 +468,19 @@ DART_EXPORT void Dart_SetTimelineRecorderCallback(
 
 /**
  * Return metrics gathered for the VM and individual isolates.
- *
- * NOTE: Non-heap metrics are not available in PRODUCT builds of Dart.
- * Calling the non-heap metric functions on a PRODUCT build might return invalid metrics.
  */
-DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
-DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
-DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
 DART_EXPORT int64_t
 Dart_IsolateGroupHeapOldUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateGroupHeapOldUsedMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
 Dart_IsolateGroupHeapOldCapacityMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateGroupHeapOldCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
 Dart_IsolateGroupHeapOldExternalMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
 Dart_IsolateGroupHeapNewUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateGroupHeapNewUsedMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
 Dart_IsolateGroupHeapNewCapacityMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateGroupHeapNewCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
 Dart_IsolateGroupHeapNewExternalMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateGroupHeapGlobalUsedMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateGroupHeapGlobalUsedMaxMetric(Dart_IsolateGroup group);  // Byte
-DART_EXPORT int64_t
-Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
-DART_EXPORT int64_t
-Dart_IsolateRunnableHeapSizeMetric(Dart_Isolate isolate);  // Byte
 
 /*
  * ========

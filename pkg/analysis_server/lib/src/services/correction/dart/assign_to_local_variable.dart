@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -50,7 +51,7 @@ class AssignToLocalVariable extends CorrectionProducer {
     var offset = expression.offset;
     // prepare expression type
     var type = expression.typeOrThrow;
-    if (type.isVoid) {
+    if (type is VoidType) {
       return;
     }
     // prepare excluded names

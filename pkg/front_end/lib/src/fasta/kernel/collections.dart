@@ -846,6 +846,7 @@ Expression convertToElement(
         otherwise: entry.otherwise == null
             ? null
             : convertToElement(entry.otherwise!, helper, onConvertMapEntry))
+      ..matchedValueType = entry.matchedValueType
       ..fileOffset = entry.fileOffset;
     onConvertMapEntry(entry, result);
     return result;
@@ -854,7 +855,7 @@ Expression convertToElement(
     if (entry is PatternForMapEntry) {
       PatternForElement result = new PatternForElement(
           patternVariableDeclaration: entry.patternVariableDeclaration,
-          prelude: entry.prelude,
+          intermediateVariables: entry.intermediateVariables,
           variables: entry.variables,
           condition: entry.condition,
           updates: entry.updates,
@@ -961,6 +962,7 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
         otherwise: element.otherwise == null
             ? null
             : convertToMapEntry(element.otherwise!, helper, onConvertElement))
+      ..matchedValueType = element.matchedValueType
       ..fileOffset = element.fileOffset;
     onConvertElement(element, result);
     return result;
@@ -969,7 +971,7 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
     if (element is PatternForElement) {
       PatternForMapEntry result = new PatternForMapEntry(
           patternVariableDeclaration: element.patternVariableDeclaration,
-          prelude: element.prelude,
+          intermediateVariables: element.intermediateVariables,
           variables: element.variables,
           condition: element.condition,
           updates: element.updates,

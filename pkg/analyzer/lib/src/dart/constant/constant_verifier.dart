@@ -64,7 +64,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// the exhaustiveness of the switch has been checked.
   Map<ConstantPattern, DartObjectImpl>? _constantPatternValues;
 
-  final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
+  Map<Expression, DartObjectImpl>? _mapPatternKeyValues;
+
+  late final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
 
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter,
@@ -92,9 +94,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
           configuration: ConstantEvaluationConfiguration(),
         ),
-        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem),
-        exhaustivenessDataForTesting =
-            retainDataForTesting ? ExhaustivenessDataForTesting() : null;
+        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem) {
+    exhaustivenessDataForTesting = retainDataForTesting
+        ? ExhaustivenessDataForTesting(_exhaustivenessCache)
+        : null;
+  }
 
   @override
   void visitAnnotation(Annotation node) {
@@ -298,6 +302,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY,
         );
         if (keyValue != null) {
+          _mapPatternKeyValues?[key] = keyValue;
           var existingKey = uniqueKeys[keyValue];
           if (existingKey != null) {
             duplicateKeys[key] = existingKey;
@@ -388,21 +393,24 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchExpression(SwitchExpression node) {
-    _withConstantPatternValues((constantPatternValues) {
+    _withConstantPatternValues((mapPatternKeyValues, constantPatternValues) {
       super.visitSwitchExpression(node);
       _validateSwitchExhaustiveness(
         node: node,
         switchKeyword: node.switchKeyword,
         scrutinee: node.expression,
         caseNodes: node.cases,
+        mapPatternKeyValues: mapPatternKeyValues,
         constantPatternValues: constantPatternValues,
+        mustBeExhaustive: true,
+        isSwitchExpression: true,
       );
     });
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _withConstantPatternValues((constantPatternValues) {
+    _withConstantPatternValues((mapPatternKeyValues, constantPatternValues) {
       super.visitSwitchStatement(node);
       if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
         _validateSwitchExhaustiveness(
@@ -410,7 +418,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           switchKeyword: node.switchKeyword,
           scrutinee: node.expression,
           caseNodes: node.members,
+          mapPatternKeyValues: mapPatternKeyValues,
           constantPatternValues: constantPatternValues,
+          mustBeExhaustive:
+              _typeSystem.isAlwaysExhaustive(node.expression.typeOrThrow),
+          isSwitchExpression: false,
         );
       } else if (_currentLibrary.isNonNullableByDefault) {
         _validateSwitchStatement_nullSafety(node);
@@ -755,7 +767,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     required Token switchKeyword,
     required Expression scrutinee,
     required List<AstNode> caseNodes,
+    required Map<Expression, DartObjectImpl> mapPatternKeyValues,
     required Map<ConstantPattern, DartObjectImpl> constantPatternValues,
+    required bool mustBeExhaustive,
+    required bool isSwitchExpression,
   }) {
     final scrutineeType = scrutinee.typeOrThrow;
     final scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
@@ -766,7 +781,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     // Build spaces for cases.
     final patternConverter = PatternConverter(
+      featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
+      mapPatternKeyValues: mapPatternKeyValues,
       constantPatternValues: constantPatternValues,
     );
     for (final caseNode in caseNodes) {
@@ -782,77 +799,60 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
 
       if (guardedPattern != null) {
-        Space space;
-        if (guardedPattern.whenClause != null) {
-          space = Space(_exhaustivenessCache.getUnknownStaticType());
-        } else {
-          final pattern = guardedPattern.pattern;
-          space = patternConverter.convertPattern(pattern, nonNull: false);
-        }
+        Space space = patternConverter.createRootSpace(
+            scrutineeTypeEx, guardedPattern.pattern,
+            hasGuard: guardedPattern.whenClause != null);
         caseNodesWithSpace.add(caseNode);
         caseSpaces.add(space);
       }
     }
 
     // Prepare for recording data for testing.
-    List<Space>? remainingSpaces;
     final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
-    if (exhaustivenessDataForTesting != null) {
-      remainingSpaces = [];
-    }
 
     // Compute and report errors.
-    final errors = reportErrors(scrutineeTypeEx, caseSpaces, remainingSpaces);
-    if (!useFallbackExhaustivenessAlgorithm) {
-      for (final error in errors) {
-        if (error is UnreachableCaseError) {
-          final caseNode = caseNodesWithSpace[error.index];
-          final Token errorToken;
-          if (caseNode is SwitchExpressionCase) {
-            errorToken = caseNode.arrow;
-          } else if (caseNode is SwitchPatternCase) {
-            errorToken = caseNode.keyword;
-          } else {
-            throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
-          }
-          _errorReporter.reportErrorForToken(
-            HintCode.UNREACHABLE_SWITCH_CASE,
-            errorToken,
-          );
-        } else if (error is NonExhaustiveError &&
-            _typeSystem.isAlwaysExhaustive(scrutineeType) &&
-            !hasDefault) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
-            switchKeyword,
-            [scrutineeType, error.witness],
-          );
+    final errors =
+        reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+    final reportNonExhaustive = mustBeExhaustive && !hasDefault;
+    for (final error in errors) {
+      if (error is UnreachableCaseError) {
+        final caseNode = caseNodesWithSpace[error.index];
+        final Token errorToken;
+        if (caseNode is SwitchExpressionCase) {
+          errorToken = caseNode.arrow;
+        } else if (caseNode is SwitchPatternCase) {
+          errorToken = caseNode.keyword;
+        } else {
+          throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
         }
+        _errorReporter.reportErrorForToken(
+          HintCode.UNREACHABLE_SWITCH_CASE,
+          errorToken,
+        );
+      } else if (error is NonExhaustiveError && reportNonExhaustive) {
+        _errorReporter.reportErrorForToken(
+          isSwitchExpression
+              ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+              : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+          switchKeyword,
+          [scrutineeType, error.witness.asWitness, error.witness.asCorrection],
+        );
       }
     }
 
     // Record data for testing.
-    if (exhaustivenessDataForTesting != null && remainingSpaces != null) {
-      assert(remainingSpaces.isEmpty ||
-          remainingSpaces.length == caseSpaces.length + 1);
+    if (exhaustivenessDataForTesting != null) {
       for (var i = 0; i < caseSpaces.length; i++) {
         final caseNode = caseNodesWithSpace[i];
         exhaustivenessDataForTesting.caseSpaces[caseNode] = caseSpaces[i];
-        if (remainingSpaces.isNotEmpty) {
-          exhaustivenessDataForTesting.remainingSpaces[caseNode] =
-              remainingSpaces[i];
-        }
       }
       exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
-      if (remainingSpaces.isNotEmpty) {
-        exhaustivenessDataForTesting.remainingSpaces[node] =
-            remainingSpaces.last;
-      }
+      exhaustivenessDataForTesting.switchCases[node] = caseSpaces;
       for (var error in errors) {
         if (error is UnreachableCaseError) {
           exhaustivenessDataForTesting.errors[caseNodesWithSpace[error.index]] =
               error;
-        } else {
+        } else if (reportNonExhaustive) {
           exhaustivenessDataForTesting.errors[node] = error;
         }
       }
@@ -955,12 +955,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// Runs [f] with new [_constantPatternValues].
   void _withConstantPatternValues(
-    void Function(Map<ConstantPattern, DartObjectImpl> constantPatternValues) f,
+    void Function(Map<Expression, DartObjectImpl> mapPatternKeyValues,
+            Map<ConstantPattern, DartObjectImpl> constantPatternValues)
+        f,
   ) {
-    final previous = _constantPatternValues;
-    final values = _constantPatternValues = {};
-    f(values);
-    _constantPatternValues = previous;
+    final previousMapKeyValues = _mapPatternKeyValues;
+    final previousConstantPatternValues = _constantPatternValues;
+    final mapKeyValues = _mapPatternKeyValues = {};
+    final constantValues = _constantPatternValues = {};
+    f(mapKeyValues, constantValues);
+    _mapPatternKeyValues = previousMapKeyValues;
+    _constantPatternValues = previousConstantPatternValues;
   }
 }
 

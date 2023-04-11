@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/flatten_type_variable_bound.dart:8:60: Error: Type 'FutureOr' not found.
+//     bar<T extends Future<num>, S, U extends num, V extends FutureOr<num>>(
+//                                                            ^^^^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method bar<T extends asy::Future<core::num*>*, S extends core::Object* = dynamic, U extends core::num*, V extends invalid-type>(self::bar::T* t, self::bar::S* s, self::bar::U* u, self::bar::V* v) → asy::Future<void>* async /* futureValueType= void */ {
+  core::num* x = await t;
+  if(s is asy::Future<core::num*>*) {
+    core::num* y = await s{self::bar::S* & asy::Future<core::num*>* /* '*' & '*' = '*' */};
+  }
+  self::bar::U* z = await u /* runtimeCheckType= asy::Future<self::bar::U*>* */ ;
+  self::bar::V* w = await v;
+}

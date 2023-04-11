@@ -13,9 +13,12 @@
 
 import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
     deferred as lib_BigIntParsePrint;
+import '../../Iterators/dart/Iterators.dart' deferred as lib_Iterators;
 import '../../ListCopy/dart/ListCopy.dart' deferred as lib_ListCopy;
 import '../../MapCopy/dart/MapCopy.dart' deferred as lib_MapCopy;
 import '../../MD5/dart/md5.dart' deferred as lib_MD5;
+import '../../RecordCollections/dart/RecordCollections.dart'
+    deferred as lib_RecordCollections;
 import '../../RuntimeType/dart/RuntimeType.dart' deferred as lib_RuntimeType;
 import '../../SHA1/dart/sha1.dart' deferred as lib_SHA1;
 import '../../SHA256/dart/sha256.dart' deferred as lib_SHA256;
@@ -39,6 +42,10 @@ final Map<String, Lib> benchmarks = {
     lib_BigIntParsePrint.loadLibrary,
     () => lib_BigIntParsePrint.main(),
   ),
+  'Iterators': Lib(
+    lib_Iterators.loadLibrary,
+    () => lib_Iterators.main([]),
+  ),
   'ListCopy': Lib(
     lib_ListCopy.loadLibrary,
     () => lib_ListCopy.main(),
@@ -50,6 +57,10 @@ final Map<String, Lib> benchmarks = {
   'MD5': Lib(
     lib_MD5.loadLibrary,
     () => lib_MD5.main(),
+  ),
+  'RecordCollections': Lib(
+    lib_RecordCollections.loadLibrary,
+    () => lib_RecordCollections.main(),
   ),
   'RuntimeType': Lib(
     lib_RuntimeType.loadLibrary,

@@ -34,7 +34,8 @@ mixin ErrorDetectionHelpers {
       DartType actualStaticType,
       ErrorCode errorCode,
       {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
+    if (expectedStaticType is! VoidType &&
+        checkForUseOfVoidResult(expression)) {
       return;
     }
 
@@ -67,7 +68,8 @@ mixin ErrorDetectionHelpers {
       DartType expectedStaticType,
       ErrorCode errorCode,
       {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
+    if (expectedStaticType is! VoidType &&
+        checkForUseOfVoidResult(expression)) {
       return;
     }
 
@@ -123,7 +125,7 @@ mixin ErrorDetectionHelpers {
     // test the static type of the expression
     DartType staticType = expression.typeOrThrow;
     if (typeSystem.isAssignableTo(staticType, fieldType)) {
-      if (!fieldType.isVoid) {
+      if (fieldType is! VoidType) {
         checkForUseOfVoidResult(expression);
       }
       return;

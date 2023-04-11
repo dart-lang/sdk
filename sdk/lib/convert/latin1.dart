@@ -21,7 +21,7 @@ const int _latin1Mask = 0xFF;
 
 /// A [Latin1Codec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
 /// and decodes Latin-1 bytes to strings.
-class Latin1Codec extends Encoding {
+final class Latin1Codec extends Encoding {
   final bool _allowInvalid;
 
   /// Instantiates a new [Latin1Codec].
@@ -72,7 +72,7 @@ class Latin1Codec extends Encoding {
 /// final encoded = latin1Encoder.convert(sample);
 /// print(encoded); // [224, 225, 226, 227, 228, 229]
 /// ```
-class Latin1Encoder extends _UnicodeSubsetEncoder {
+final class Latin1Encoder extends _UnicodeSubsetEncoder {
   const Latin1Encoder() : super(_latin1Mask);
 }
 
@@ -105,7 +105,7 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// final decoded = latin1Decoder.convert(encodedBytes);
 /// print(decoded); // �
 /// ```
-class Latin1Decoder extends _UnicodeSubsetDecoder {
+final class Latin1Decoder extends _UnicodeSubsetDecoder {
   /// Instantiates a new [Latin1Decoder].
   ///
   /// The optional [allowInvalid] argument defines how [convert] deals
@@ -134,7 +134,7 @@ class Latin1Decoder extends _UnicodeSubsetDecoder {
   }
 }
 
-class _Latin1DecoderSink extends ByteConversionSinkBase {
+class _Latin1DecoderSink extends ByteConversionSink {
   StringConversionSink? _sink;
   _Latin1DecoderSink(this._sink);
 

@@ -7,9 +7,3 @@ final class A {}
 typedef ATypeDef = A;
 
 typedef ATypeDef2 = ATypeDef;
-
-final mixin M {}
-
-typedef MTypeDef = M;
-
-typedef MTypeDef2 = MTypeDef;

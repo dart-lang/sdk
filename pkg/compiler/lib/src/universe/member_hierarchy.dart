@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/indexed.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/js_model/js_world.dart';
@@ -41,6 +38,74 @@ class DynamicCallTarget {
   String toString() => 'TargetResult($member, virtual: $isVirtual)';
 }
 
+/// Builds and maintains member override hierarchy for easy querying of targets
+/// when refining call sites during type inference.
+///
+/// We introduce the idea of a [DynamicCallTarget] which can either target a
+/// 'concrete' or 'virtual' member. A concrete member is one in which we know
+/// the target member is being called directly. A virtual member is one in which
+/// the call is to the target member or one of its overrides. Each member can
+/// have 2 types in the type inference graph, to represent its concrete and
+/// virtual versions. The type of a concrete member is based solely on the body
+/// of the member. The type of a virtual member is a union of the types of
+/// all its overrides. Abstract members only have virtual types since they do
+/// not have bodies and cannot be invoked directly.
+///
+/// Init phase:
+/// This class begins by processing all 'live' members, both abstract and not,
+/// and constructing an override graph for these members. We track the direct
+/// overrides of a member based on the class hierarchy. For every direct
+/// override in this graph we also add edges into the type graph. One to join
+/// the concrete and virtual version of a member and then one between its
+/// virtual type and the virtual type of each direct override.
+///
+/// Example type flow:
+/// ```
+/// class A {
+///   T foo(U arg) => ...;
+/// }
+///
+/// class B extends A {
+///   T foo(U arg) => ...;
+/// }
+/// ```
+/// Parameter types flow to overrides:
+/// A.fooConcrete#arg <- A.fooVirtual#arg -> B.fooVirtual#arg
+///
+/// Return types flow from overrides:
+/// A.fooConcrete#Return -> A.fooVirtual#Return <- B.fooVirtual#Return
+///
+/// We also maintain a list of 'dynamic roots' for each possible selector we can
+/// encounter. These dynamic roots are methods that are not overrides and
+/// therefore are the minimal set of targets for a dynamic call to that
+/// selector. This preprocessing makes handling dynamic calls very fast.
+/// See [rootsForSelector].
+///
+/// Query phase:
+/// For each query during type refinement we attempt to return as few targets as
+/// possible to represent calls on a receiver type cone. We start by trying to
+/// find the call that would be invoked if the call were on the root of the type
+/// cone by finding a matching member on a superclass (or the class itself).
+/// If we can find one then we determine if the call to this target would be
+/// virtual or concrete. The call can be concrete if:
+/// 1) The type cone is 'exact' so there is only one receiver class.
+/// 2) The type cone is 'subclass' but none of subclasses in the cone override
+///    the target.
+/// 3) The target we found has no overrides so it must be the actual target.
+/// See [findSuperclassTarget].
+///
+/// The above step produces a single target (virtual or concrete) reducing the
+/// number of edges in the type graph. However, since our type masks lose some
+/// precision as they get unioned, its possible that neither of those steps
+/// finds a target. In these cases we finally iterate over the subclasses (or
+/// subtypes for a subtype-cone) and find a set of targets that cover all
+/// classes in the cone. See [findMatchingAncestors].
+///
+/// We handle receiver masks that include `null` as well as no such method
+/// handling separately. See [rootsForCall].
+///
+/// All results returned from the query phase are cached on the pair of receiver
+/// type and selector for use in subsequent queries.
 class MemberHierarchyBuilder {
   final JClosedWorld closedWorld;
   final Map<SelectorMask, Iterable<DynamicCallTarget>> _callCache = {};
@@ -51,15 +116,77 @@ class MemberHierarchyBuilder {
 
   /// Applies [f] to each override of [entity].
   ///
-  /// If [f] returns `true` for a given input then its children are also
-  /// visited.
+  /// If [f] returns `false` for a given input then iteration is immediately
+  /// stopped and [f] is not called on any more members.
   void forEachOverride(
       MemberEntity entity, bool Function(MemberEntity override) f) {
+    _forEachOverrideSkipVisited(entity, f, {entity});
+  }
+
+  /// Returns `true` if every target member represented by [target] satisfies
+  /// the predicate [f].
+  bool everyTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    bool result = true;
+    forEachTargetMember(target, (member) {
+      // We exit early on a false result here.
+      return result = f(member);
+    });
+    return result;
+  }
+
+  /// Returns `true` if any target member represented by [target] satisfies the
+  /// predicate [f].
+  bool anyTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    bool result = false;
+    forEachTargetMember(target, (member) {
+      result = f(member);
+      // We exit early on a true result here.
+      return !result;
+    });
+    return result;
+  }
+
+  /// Applies [f] to each target represented by [target] including overrides
+  /// if the call is virtual.
+  ///
+  /// If [f] returns `false` for a given input then iteration is immediately
+  /// stopped and [f] is not called on any more members.
+  void forEachTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    if (!f(target.member)) return;
+
+    if (target.isVirtual) {
+      forEachOverride(target.member, f);
+    }
+  }
+
+  void _forEachOverrideSkipVisited(MemberEntity entity,
+      bool Function(MemberEntity override) f, Set<MemberEntity> visited) {
     final overrides = _overrides[entity];
     if (overrides == null) return;
     for (final override in overrides) {
-      if (f(override)) forEachOverride(override, f);
+      if (!visited.add(override)) continue;
+      if (!f(override)) return;
+      _forEachOverrideSkipVisited(override, f, visited);
     }
+  }
+
+  /// Check to see if any override of [match] is a target for a subclass call on
+  /// [cls]. If not then the call can be concrete rather than virtual.
+  bool _subclassNeedsVirtual(MemberEntity match, ClassEntity cls) {
+    bool needsVirtual = false;
+    final classHierarchy = closedWorld.classHierarchy;
+    forEachOverride(match, (override) {
+      if (classHierarchy.isSubclassOf(override.enclosingClass!, cls) ||
+          closedWorld.hasAnySubclassThatMixes(cls, override.enclosingClass!)) {
+        needsVirtual = true;
+        return false;
+      }
+      return true;
+    });
+    return needsVirtual;
   }
 
   /// Finds the first non-strict superclass of [cls] that contains a member
@@ -69,11 +196,16 @@ class MemberHierarchyBuilder {
   /// hierarchy. If no non-abstract matches are found then the first abstract
   /// match is used.
   ///
-  /// If [virtualResult] is true, the resulting [DynamicCallTarget] will be
+  /// If [isExact] is true, the resulting [DynamicCallTarget] will be
   /// virtual when the match is non-abstract and has overrides.
   /// Otherwise the resulting [DynamicCallTarget] is concrete.
-  DynamicCallTarget? findSuperclassTarget(ClassEntity cls, Selector selector,
-      {required bool virtualResult}) {
+  ///
+  /// For some selectors susceptible to degraded interceptor results,
+  /// when [isSubclass] is true, this will return a set of concrete subclass
+  /// targets rather than attempting to find a single virtual target.
+  Iterable<DynamicCallTarget> findSuperclassTarget(
+      ClassEntity cls, Selector selector,
+      {bool isExact = false, bool isSubclass = false}) {
     MemberEntity? firstAbstractMatch;
     ClassEntity? current = cls;
     final elementEnv = closedWorld.elementEnvironment;
@@ -84,41 +216,19 @@ class MemberHierarchyBuilder {
         if (match.isAbstract) {
           firstAbstractMatch ??= match;
         } else {
-          return DynamicCallTarget(match,
-              isVirtual: virtualResult && _hasOverride(match));
+          return [
+            DynamicCallTarget(match,
+                isVirtual: !isExact &&
+                    _hasOverride(match) &&
+                    (!isSubclass || _subclassNeedsVirtual(match, cls)))
+          ];
         }
       }
       current = elementEnv.getSuperClass(current);
     }
     return firstAbstractMatch != null
-        ? DynamicCallTarget.virtual(firstAbstractMatch)
-        : null;
-  }
-
-  /// Finds the first non-strict supertype of [cls] that contains a member
-  /// matching [selector] and returns that member.
-  DynamicCallTarget? findSupertypeTarget(ClassEntity cls, Selector selector) {
-    final queue = Queue<ClassEntity>();
-    final elementEnv = closedWorld.elementEnvironment;
-    queue.add(cls);
-    queue.addAll(closedWorld.elementMap
-        .getInterfaces(cls as IndexedClass)
-        .map((c) => c.element));
-    while (queue.isNotEmpty) {
-      final current = queue.removeFirst();
-      final match =
-          elementEnv.lookupLocalClassMember(current, selector.memberName);
-      if (match != null && !skipMember(match, selector)) {
-        return DynamicCallTarget.virtual(match);
-      } else {
-        final superClass = elementEnv.getSuperClass(current);
-        if (superClass != null) queue.add(superClass);
-        queue.addAll(closedWorld.elementMap
-            .getInterfaces(current as IndexedClass)
-            .map((c) => c.element));
-      }
-    }
-    return null;
+        ? [DynamicCallTarget.virtual(firstAbstractMatch)]
+        : const [];
   }
 
   /// For each subclass/subtype try to find a member matching selector.
@@ -130,9 +240,9 @@ class MemberHierarchyBuilder {
       {required bool isSubtype}) {
     final results = Setlet<DynamicCallTarget>();
     IterationStep handleEntity(entity) {
-      final match = findSuperclassTarget(entity, selector, virtualResult: true);
-      if (match != null) {
-        results.add(match);
+      final match = findSuperclassTarget(entity, selector);
+      if (match.isNotEmpty) {
+        results.addAll(match);
         return IterationStep.SKIP_SUBCLASSES;
       }
       return IterationStep.CONTINUE;
@@ -300,7 +410,8 @@ class MemberHierarchyBuilder {
 
   void init(void Function(MemberEntity parent, MemberEntity override) join) {
     final liveMembers = closedWorld.liveInstanceMembers
-        .followedBy(closedWorld.liveAbstractInstanceMembers);
+        .followedBy(closedWorld.liveAbstractInstanceMembers)
+        .followedBy(closedWorld.recordData.allGetters);
 
     for (final member in liveMembers) {
       _processMember(member, join);

@@ -18,10 +18,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
     : self::C::trace = "a: ${a}, b: ${b}", super core::Object::•()
     ;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    : super core::Object::•()
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
 class D extends self::C<core::String> implements self::M /*isEliminatedMixin*/  {
   synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::D

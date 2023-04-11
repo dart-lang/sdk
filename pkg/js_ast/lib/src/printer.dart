@@ -1661,7 +1661,13 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitComment(Comment node) => true;
 
   @override
-  bool visitBlock(Block node) => false;
+  bool visitBlock(Block node) {
+    // Singleton blocks are in many places printed as the contained statement so
+    // that statement might capture the dangling else.
+    if (node.statements.length != 1) return false;
+    return node.statements.single.accept(this);
+  }
+
   @override
   bool visitExpressionStatement(ExpressionStatement node) => false;
   @override

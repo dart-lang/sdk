@@ -120,7 +120,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     vm_data_mapping =
         file->Map(File::kReadOnly, vm_data_position, vm_data_size);
     if (vm_data_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -129,7 +129,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     vm_instr_mapping = file->Map(File::kReadExecute, vm_instructions_position,
                                  vm_instructions_size);
     if (vm_instr_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -138,7 +138,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     isolate_data_mapping =
         file->Map(File::kReadOnly, isolate_data_position, isolate_data_size);
     if (isolate_data_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -148,7 +148,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
         file->Map(File::kReadExecute, isolate_instructions_position,
                   isolate_instructions_size);
     if (isolate_instr_mapping == nullptr) {
-      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+      FATAL("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
@@ -476,15 +476,15 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
       reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
           library, kIsolateSnapshotDataCSymbol));
   if (isolate_data_buffer == nullptr) {
-    FATAL1("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
+    FATAL("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
   }
 
   const uint8_t* isolate_instructions_buffer =
       reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
           library, kIsolateSnapshotInstructionsCSymbol));
   if (isolate_instructions_buffer == nullptr) {
-    FATAL1("Failed to resolve symbol '%s'\n",
-           kIsolateSnapshotInstructionsCSymbol);
+    FATAL("Failed to resolve symbol '%s'\n",
+          kIsolateSnapshotInstructionsCSymbol);
   }
 
   return new DylibAppSnapshot(library, vm_data_buffer, vm_instructions_buffer,

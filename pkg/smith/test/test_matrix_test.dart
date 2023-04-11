@@ -13,7 +13,7 @@ void main() {
           "x64-dart2js-debug-vm-linux": <String, dynamic>{
             "options": <String, dynamic>{"enable-asserts": true},
           },
-          "x64-dartdevc-vm-linux": <String, dynamic>{
+          "x64-ddc-vm-linux": <String, dynamic>{
             "options": <String, dynamic>{
               "mode": "release",
               "enable-asserts": true
@@ -30,8 +30,8 @@ void main() {
               enableAsserts: true)));
       expect(
           testMatrix.configurations[1],
-          equals(Configuration("x64-dartdevc-vm-linux", Architecture.x64,
-              Compiler.dartdevc, Mode.release, Runtime.vm, System.linux,
+          equals(Configuration("x64-ddc-vm-linux", Architecture.x64,
+              Compiler.ddc, Mode.release, Runtime.vm, System.linux,
               enableAsserts: true)));
     });
 

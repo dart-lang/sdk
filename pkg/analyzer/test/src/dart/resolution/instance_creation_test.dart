@@ -10,14 +10,62 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceCreationTest);
-    defineReflectiveTests(InstanceCreationWithoutConstructorTearoffsTest);
+    defineReflectiveTests(InstanceCreationExpressionResolutionTest);
+    defineReflectiveTests(
+        InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs);
   });
 }
 
 @reflectiveTest
-class InstanceCreationTest extends PubPackageResolutionTest
+class InstanceCreationExpressionResolutionTest extends PubPackageResolutionTest
     with InstanceCreationTestCases {}
+
+@reflectiveTest
+class InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs
+    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+  test_unnamedViaNew() async {
+    await assertErrorsInCode('''
+class A {
+  A(int a);
+}
+
+void f() {
+  A.new(0);
+}
+
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3),
+    ]);
+
+    // Resolution should continue even though the experiment is not enabled.
+    var node = findNode.instanceCreation('A.new(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::new
+      staticType: null
+    staticElement: self::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+}
 
 mixin InstanceCreationTestCases on PubPackageResolutionTest {
   test_class_generic_named_inferTypeArguments() async {
@@ -1055,53 +1103,6 @@ void f() {
 
 ''');
 
-    var node = findNode.instanceCreation('A.new(0)');
-    assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
-      type: A
-    period: .
-    name: SimpleIdentifier
-      token: new
-      staticElement: self::@class::A::@constructor::new
-      staticType: null
-    staticElement: self::@class::A::@constructor::new
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
-        staticType: int
-    rightParenthesis: )
-  staticType: A
-''');
-  }
-}
-
-@reflectiveTest
-class InstanceCreationWithoutConstructorTearoffsTest
-    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
-  test_unnamedViaNew() async {
-    await assertErrorsInCode('''
-class A {
-  A(int a);
-}
-
-void f() {
-  A.new(0);
-}
-
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3),
-    ]);
-
-    // Resolution should continue even though the experiment is not enabled.
     var node = findNode.instanceCreation('A.new(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression

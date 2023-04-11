@@ -640,7 +640,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_dynamic() {
-    var element = typeParameter('T', bound: dynamicNone);
+    var element = typeParameter('T', bound: dynamicType);
 
     _checkTypeParameter(
       typeParameterTypeNone(element),

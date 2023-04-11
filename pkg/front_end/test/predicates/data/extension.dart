@@ -3,11 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension Extension on int {
-  int /*extensionThis*/ instanceMethod() => this;
+  int /*
+   extensionThis,
+   name=this
+  */
+      instanceMethod() => this;
 
-  int get /*extensionThis*/ instanceGetter => this;
+  int get /*
+   extensionThis,
+   name=this
+  */
+      instanceGetter => this;
 
-  void set /*extensionThis*/ instanceSetter(int value) {}
+  void set /*
+   extensionThis,
+   name=this
+  */
+      instanceSetter(int value) {}
 
   static int staticMethod() => 42;
 

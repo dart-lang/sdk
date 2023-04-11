@@ -854,6 +854,50 @@ ConstructorDeclaration
 ''');
   }
 
+  void test_constructor_superParamAndSuperInitializer() {
+    var parseResult = parseStringWithErrors(r'''
+abstract class A {
+  final String f1;
+
+  final int f2;
+
+  const A(this.f1, this.f2);
+}
+
+class B extends A {
+  const B(super.f1): super(2);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('B(');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  returnType: SimpleIdentifier
+    token: B
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SuperFormalParameter
+      superKeyword: super
+      period: .
+      name: f1
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 2
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   void test_constructor_wrongName() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -1232,18 +1276,15 @@ MixinDeclaration
 
   void test_mixin_final() {
     var parseResult = parseStringWithErrors(r'''
-/// text
 final mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.FINAL_MIXIN, 0, 5),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  finalKeyword: final
   mixinKeyword: mixin
   name: M
   leftBracket: {
@@ -1290,18 +1331,15 @@ MixinDeclaration
 
   void test_mixin_interface() {
     var parseResult = parseStringWithErrors(r'''
-/// text
 interface mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.INTERFACE_MIXIN, 0, 9),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  interfaceKeyword: interface
   mixinKeyword: mixin
   name: M
   leftBracket: {
@@ -1341,18 +1379,15 @@ MixinDeclaration
 
   void test_mixin_sealed() {
     var parseResult = parseStringWithErrors(r'''
-/// text
 sealed mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.SEALED_MIXIN, 0, 6),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  sealedKeyword: sealed
   mixinKeyword: mixin
   name: M
   leftBracket: {

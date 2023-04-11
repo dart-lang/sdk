@@ -85,6 +85,95 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
   }
 }
 
+class RecordTypeAnnotationImpl extends TypeAnnotationImpl
+    implements RecordTypeAnnotation {
+  @override
+  TypeAnnotationCode get code {
+    RecordTypeAnnotationCode underlyingType = new RecordTypeAnnotationCode(
+      namedFields: [
+        for (RecordFieldDeclarationImpl field in namedFields) field.code
+      ],
+      positionalFields: [
+        for (RecordFieldDeclarationImpl field in positionalFields) field.code
+      ],
+    );
+    return isNullable ? underlyingType.asNullable : underlyingType;
+  }
+
+  @override
+  final List<RecordFieldDeclarationImpl> namedFields;
+
+  @override
+  final List<RecordFieldDeclarationImpl> positionalFields;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.recordTypeAnnotation;
+
+  RecordTypeAnnotationImpl({
+    required super.id,
+    required super.isNullable,
+    required this.namedFields,
+    required this.positionalFields,
+  });
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode.isClient) return;
+
+    serializer.startList();
+    for (RecordFieldDeclarationImpl field in namedFields) {
+      field.serialize(serializer);
+    }
+    serializer.endList();
+
+    serializer.startList();
+    for (RecordFieldDeclarationImpl field in positionalFields) {
+      field.serialize(serializer);
+    }
+    serializer.endList();
+  }
+}
+
+// TODO: Currently the `name` is duplicated (if present) in both the
+// `identifier` and the `name` fields, because for positional fields they will
+// not be the same. We could optimize it to read the name from the `identifier`
+// field for named record fields though.
+class RecordFieldDeclarationImpl extends DeclarationImpl
+    implements RecordFieldDeclaration {
+  @override
+  RecordFieldCode get code {
+    return new RecordFieldCode(type: type.code, name: name);
+  }
+
+  @override
+  final String? name;
+
+  @override
+  final TypeAnnotationImpl type;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.recordFieldDeclaration;
+
+  RecordFieldDeclarationImpl({
+    required super.id,
+    required super.identifier,
+    required this.name,
+    required this.type,
+  });
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode.isClient) return;
+
+    serializer.addNullableString(name);
+    type.serialize(serializer);
+  }
+}
+
 class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     implements FunctionTypeAnnotation {
   @override
@@ -572,10 +661,25 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final List<NamedTypeAnnotationImpl> interfaces;
 
   @override
-  final bool isAbstract;
+  final bool hasAbstract;
 
   @override
-  final bool isExternal;
+  final bool hasBase;
+
+  @override
+  final bool hasExternal;
+
+  @override
+  final bool hasFinal;
+
+  @override
+  final bool hasInterface;
+
+  @override
+  final bool hasMixin;
+
+  @override
+  final bool hasSealed;
 
   @override
   final List<NamedTypeAnnotationImpl> mixins;
@@ -596,8 +700,13 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     required super.typeParameters,
     // ClassDeclaration fields
     required this.interfaces,
-    required this.isAbstract,
-    required this.isExternal,
+    required this.hasAbstract,
+    required this.hasBase,
+    required this.hasExternal,
+    required this.hasFinal,
+    required this.hasInterface,
+    required this.hasMixin,
+    required this.hasSealed,
     required this.mixins,
     required this.superclass,
   });
@@ -614,8 +723,13 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     }
     serializer
       ..endList()
-      ..addBool(isAbstract)
-      ..addBool(isExternal)
+      ..addBool(hasAbstract)
+      ..addBool(hasBase)
+      ..addBool(hasExternal)
+      ..addBool(hasFinal)
+      ..addBool(hasInterface)
+      ..addBool(hasMixin)
+      ..addBool(hasSealed)
       ..startList();
     for (NamedTypeAnnotationImpl mixin in mixins) {
       mixin.serialize(serializer);

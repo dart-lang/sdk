@@ -40,6 +40,7 @@ approval
 approximation
 arbitrarily
 area
+arglebargle
 asdf
 asserter
 assure
@@ -64,6 +65,7 @@ bailout
 bar'baz
 bar\'baz
 barbar
+baseline
 bash
 bat
 bazbaz
@@ -82,6 +84,7 @@ blah
 blorp
 bold
 boo
+bools
 bots
 boundaries
 boundarykey
@@ -112,6 +115,7 @@ cb
 cc
 ccc
 cdee
+center
 certificate
 cf
 characteristics
@@ -301,6 +305,7 @@ frequency
 frozen
 fulfill
 func
+futornullable
 futu
 futures
 fuzz
@@ -504,6 +509,8 @@ pays
 pc
 periodic
 periodically
+perm
+perms
 person
 phrase
 pink
@@ -638,6 +645,7 @@ stay
 std
 stopwatches
 stress
+stretch
 stringy
 strip
 strongest
@@ -646,6 +654,7 @@ stupid
 subcommand
 subdir
 subfolder
+subs
 subtool
 subtools
 successes
@@ -668,6 +677,7 @@ thereby
 thereof
 thread
 ticks
+tile
 timed
 timeout
 timer
@@ -734,6 +744,7 @@ week
 weekly
 wherever
 whiskers
+wildcards
 wins
 wording
 workflow

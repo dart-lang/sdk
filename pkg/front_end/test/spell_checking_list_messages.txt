@@ -23,6 +23,7 @@ augmentations
 augmented
 b
 c
+cast
 collide
 compilercontext.runincontext
 compilesdk
@@ -34,16 +35,20 @@ dart.dev
 dart2js_server
 dart:_internal
 dart:ffi
+dart:js_interop
 dart_runner
 dartbug.com
 dname
 e.g
+enclose
 exhaustively
 exportable
 f
 ffi
+finality
 flutter_runner
 futureor
+guarded
 guides
 h
 https
@@ -91,6 +96,7 @@ solutions
 stacktrace
 stand
 staticinterop
+strict
 stringokempty
 struct<#name
 structs

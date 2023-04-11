@@ -33,6 +33,19 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       // Make a copy, so that it is not a NodeList.
       var initializers = element.constantInitializers.toFixedList();
       initializers.forEach(_detachNode);
+
+      for (final initializer in initializers) {
+        if (initializer is ConstructorFieldInitializerImpl) {
+          final expression = initializer.expression;
+          final replacement = replaceNotSerializableNode(expression);
+          initializer.expression = replacement;
+        } else if (initializer is RedirectingConstructorInvocationImpl) {
+          _sanitizeArguments(initializer.argumentList.arguments);
+        } else if (initializer is SuperConstructorInvocationImpl) {
+          _sanitizeArguments(initializer.argumentList.arguments);
+        }
+      }
+
       element.constantInitializers = initializers;
     }
     super.visitConstructorElement(element);
@@ -40,8 +53,10 @@ class _Visitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    for (var elementAnnotation in element.metadata) {
-      _detachNode((elementAnnotation as ElementAnnotationImpl).annotationAst);
+    for (final annotation in element.metadata) {
+      final ast = (annotation as ElementAnnotationImpl).annotationAst;
+      _detachNode(ast);
+      _sanitizeArguments(ast.arguments?.arguments);
     }
     super.visitElement(element);
   }
@@ -75,7 +90,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       if (initializer is ExpressionImpl) {
         _detachNode(initializer);
 
-        initializer = replaceNotSerializableNodes(initializer);
+        initializer = replaceNotSerializableNode(initializer);
         element.constantInitializer = initializer;
 
         ConstantContextForExpressionImpl(element, initializer);
@@ -89,6 +104,14 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       // Also detach from the token stream.
       node.beginToken.previous = null;
       node.endToken.next = null;
+    }
+  }
+
+  void _sanitizeArguments(List<ExpressionImpl>? arguments) {
+    if (arguments != null) {
+      for (var i = 0; i < arguments.length; i++) {
+        arguments[i] = replaceNotSerializableNode(arguments[i]);
+      }
     }
   }
 }

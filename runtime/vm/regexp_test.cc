@@ -28,7 +28,8 @@ ISOLATE_UNIT_TEST_CASE(RegExp_OneByteString) {
   const String& str =
       String::Handle(OneByteString::New(chars, len, Heap::kNew));
 
-  const String& pat = String::Handle(String::New("bc"));
+  const String& pat =
+      String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
   const Array& res = Array::Handle(Match(pat, str));
   EXPECT_EQ(2, res.Length());
 
@@ -49,7 +50,8 @@ ISOLATE_UNIT_TEST_CASE(RegExp_TwoByteString) {
   const String& str =
       String::Handle(TwoByteString::New(chars, len, Heap::kNew));
 
-  const String& pat = String::Handle(String::New("bc"));
+  const String& pat =
+      String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
   const Array& res = Array::Handle(Match(pat, str));
   EXPECT_EQ(2, res.Length());
 
@@ -72,7 +74,8 @@ ISOLATE_UNIT_TEST_CASE(RegExp_ExternalOneByteString) {
   const String& str = String::Handle(ExternalOneByteString::New(
       chars, len, NULL, 0, NoopFinalizer, Heap::kNew));
 
-  const String& pat = String::Handle(String::New("bc"));
+  const String& pat =
+      String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
   const Array& res = Array::Handle(Match(pat, str));
   EXPECT_EQ(2, res.Length());
 
@@ -93,7 +96,8 @@ ISOLATE_UNIT_TEST_CASE(RegExp_ExternalTwoByteString) {
   const String& str = String::Handle(ExternalTwoByteString::New(
       chars, len, NULL, 0, NoopFinalizer, Heap::kNew));
 
-  const String& pat = String::Handle(String::New("bc"));
+  const String& pat =
+      String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
   const Array& res = Array::Handle(Match(pat, str));
   EXPECT_EQ(2, res.Length());
 

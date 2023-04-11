@@ -96,8 +96,8 @@ Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
 }
 
 /// Create a [RefactoringFeedback] corresponding the given [kind].
-RefactoringFeedback? refactoringFeedbackFromJson(
-    JsonDecoder jsonDecoder, String jsonPath, Object? json, Map feedbackJson) {
+RefactoringFeedback? refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
+    String jsonPath, Object? json, Map<Object?, Object?> feedbackJson) {
   var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);

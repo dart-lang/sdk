@@ -29,7 +29,7 @@ main() {
   asyncStart();
   snd.catchError((e) {
     Expect.isTrue(e is ArgumentError);
-    Expect.isTrue("$e".contains("NativeWrapper"));
+    Expect.isTrue("$e".contains("Test"));
     port.close();
     asyncEnd();
   });

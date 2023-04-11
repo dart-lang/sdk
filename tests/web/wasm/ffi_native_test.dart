@@ -93,7 +93,7 @@ external int incrementSize(int a);
 @Native<WChar Function(WChar)>()
 external int incrementWchar(int a);
 
-class MyStruct extends Struct implements NativeFieldWrapperClass1 {
+final class MyStruct extends Struct {
   @Double()
   external double x;
 

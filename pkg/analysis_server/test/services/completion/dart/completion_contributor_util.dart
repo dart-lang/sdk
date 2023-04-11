@@ -560,7 +560,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request);
 
-  Future computeSuggestions({int times = 200}) async {
+  Future<void> computeSuggestions({int times = 200}) async {
     result = await getResolvedUnit(testFile);
 
     // Build the request

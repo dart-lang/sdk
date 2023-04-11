@@ -160,8 +160,8 @@ abstract class Browser {
       var doneCompleter = Completer<bool>();
       done = doneCompleter.future;
 
-      var stdoutDone = Completer<Null>();
-      var stderrDone = Completer<Null>();
+      var stdoutDone = Completer<void>();
+      var stderrDone = Completer<void>();
 
       var stdoutIsDone = false;
       var stderrIsDone = false;
@@ -463,7 +463,7 @@ class IE extends Browser {
     // Allow popups from localhost
     await _setRegistryKey("$ieKey\\New Windows\\Allow", "127.0.0.1");
     // Disable IE first run wizard
-    await _setRegistryKey("$ieKey\Main", "DisableFirstRunCustomize",
+    await _setRegistryKey("$ieKey\\Main", "DisableFirstRunCustomize",
         data: "1", type: "REG_DWORD");
 
     var localAppData = Platform.environment['LOCALAPPDATA'];
@@ -564,6 +564,7 @@ class AndroidChrome extends Browser {
     return true;
   }
 
+  @override
   void logBrowserInfoToTestBrowserOutput() {
     _testBrowserOutput.stdout
         .write('Android device id: ${_adbDevice.deviceId}\n');
@@ -624,10 +625,10 @@ class Firefox extends Browser {
       };
       var args = [
         "-profile",
-        "${userDir.path}",
+        userDir.path,
         "-no-remote",
         "-new-instance",
-        url
+        url,
       ];
       var environment = Map<String, String>.from(Platform.environment);
       environment["MOZ_CRASHREPORTER_DISABLE"] = "1";

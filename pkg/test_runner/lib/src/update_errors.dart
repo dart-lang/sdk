@@ -106,7 +106,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
       // If the error is to the left of the indent and the "//", sacrifice the
       // indentation.
       if (error.column - 1 < indent + 2) indent = 0;
-      var comment = (" " * indent) + "//";
+      var comment = "${" " * indent}//";
 
       // Write the location line, unless we already have an identical one. Allow
       // sharing locations between errors with and without explicit lengths.

@@ -27,7 +27,7 @@ void testReturnStruct1ByteInt() {
   Expect.equals(1, result.a0);
 }
 
-class Struct1ByteInt extends Struct {
+final class Struct1ByteInt extends Struct {
   @Int8()
   external int a0;
 }

@@ -12,6 +12,8 @@ void main() {
   late Foo foo;
   // Generates a reachability fence between the constructor call and assignment.
   // That reachability fence should not trigger a late initialization error.
+  // So instead, the fence is generated on a new variable that always contains
+  // the value of the late variable but null on initialization.
   foo = Foo();
   print(foo);
 }

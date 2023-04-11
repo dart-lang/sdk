@@ -50,7 +50,7 @@ sealed class FooSealed {}
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
     kind: class
@@ -76,7 +76,7 @@ class A with ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   FooBase
     kind: class
@@ -88,119 +88,47 @@ suggestions
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
   }
 
-  Future<void> test_mixin_inside() async {
+  Future<void> test_mixin_base_inside() async {
     await computeSuggestions('''
 base mixin FooBase {}
-interface mixin FooInterface {}
-final mixin FooFinal {}
-sealed mixin FooSealed {}
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
-    kind: mixin
-  FooFinal
-    kind: mixin
-  FooInterface
-    kind: mixin
-  FooSealed
     kind: mixin
 ''');
   }
 
-  Future<void> test_mixin_outside_base() async {
+  Future<void> test_mixin_base_outside() async {
     newFile('$testPackageLibPath/a.dart', 'base mixin Foo {}');
     await computeSuggestions('''
 import 'a.dart';
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   Foo
     kind: mixin
 ''');
   }
 
-  Future<void> test_mixin_outside_final() async {
-    newFile('$testPackageLibPath/a.dart', 'final mixin Foo {}');
-    await computeSuggestions('''
-lib B;
-import 'a.dart';
-class A with ^
-''');
-
-    if (isProtocolVersion1) {
-      assertResponse('''
-suggestions
-  Foo
-    kind: mixin
-''');
-    } else {
-      assertResponse('''
-suggestions
-''');
-    }
-  }
-
-  Future<void> test_mixin_outside_interface() async {
-    newFile('$testPackageLibPath/a.dart', 'interface mixin Foo {}');
-    await computeSuggestions('''
-lib B;
-import 'a.dart';
-class A with ^
-''');
-
-    if (isProtocolVersion1) {
-      assertResponse('''
-suggestions
-  Foo
-    kind: mixin
-''');
-    } else {
-      assertResponse('''
-suggestions
-''');
-    }
-  }
-
-  Future<void> test_mixin_outside_sealed() async {
-    newFile('$testPackageLibPath/a.dart', 'sealed mixin Foo {}');
-    await computeSuggestions('''
-lib B;
-import 'a.dart';
-class A with ^
-''');
-
-    if (isProtocolVersion1) {
-      assertResponse('''
-suggestions
-  Foo
-    kind: mixin
-''');
-    } else {
-      assertResponse('''
-suggestions
-''');
-    }
-  }
-
-  Future<void> test_mixinClass_inside() async {
+  Future<void> test_mixinClass_base_inside() async {
     await computeSuggestions('''
 base mixin class FooBaseMixinClass {}
 mixin class FooMixinClass {}
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBaseMixinClass
     kind: class
@@ -209,7 +137,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_mixinClass_outside() async {
+  Future<void> test_mixinClass_base_outside() async {
     newFile('$testPackageLibPath/a.dart', '''
 base mixin class FooBaseMixinClass {}
 mixin class FooMixinClass {}
@@ -219,7 +147,7 @@ import 'a.dart';
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBaseMixinClass
     kind: class

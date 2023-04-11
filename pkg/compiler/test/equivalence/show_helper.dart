@@ -69,8 +69,8 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
       if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {
         continue;
       }
-      final sourceFile = provider.readUtf8FromFileSyncForTesting(fileUri)
-          as SourceFile<List<int>>?;
+      final sourceFile =
+          provider.readUtf8FromFileSyncForTesting(fileUri) as SourceFile?;
       String? sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
         sourceCode = File.fromUri(fileUri).readAsStringSync();

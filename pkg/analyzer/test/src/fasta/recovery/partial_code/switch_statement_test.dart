@@ -42,7 +42,8 @@ class SwitchStatementTest extends PartialCodeTest {
                 'labeled',
                 'localFunctionNonVoid',
                 'localFunctionVoid',
-                'return'
+                'return',
+                'switch',
               ]),
           TestDescriptor(
               'expression',

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Super {
+mixin class Super {
   int nullabilityMethod(int i, {required int j}) => i;
   int get nullabilityGetter => 0;
   void set nullabilitySetter(int value) {}
@@ -13,7 +13,7 @@ abstract class SuperExtra {
   int optionalArgumentsMethod(int i, [int? j]) => i;
 }
 
-abstract class SuperQ {
+abstract mixin class SuperQ {
   int? nullabilityMethod(int? i, {int? j}) => i;
   int? get nullabilityGetter => null;
   void set nullabilitySetter(int? value) {}

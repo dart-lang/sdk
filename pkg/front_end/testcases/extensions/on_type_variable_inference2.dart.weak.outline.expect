@@ -6,11 +6,11 @@ class Struct extends core::Object {
   synthetic constructor •() → self::Struct
     ;
 }
-class StructA extends self::Struct {
+final class StructA extends self::Struct {
   synthetic constructor •() → self::StructA
     ;
 }
-class StructB extends self::Struct {
+final class StructB extends self::Struct {
   synthetic constructor •() → self::StructB
     ;
 }

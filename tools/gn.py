@@ -67,14 +67,9 @@ def ToCommandLine(gn_args):
     return [merge(x, y) for x, y in gn_args.items()]
 
 
-# The C compiler's host.
+# The C compiler's target under the host toolchain (DART_HOST_ARCH_***).
 def HostCpuForArch(arch):
-    if arch.endswith('_x64'):
-        return 'x64'
-    if arch.endswith('_arm64'):
-        return 'arm64'
-    if arch.endswith('_riscv64'):
-        return 'riscv64'
+    arch = arch.split("_")[-1]
 
     # For each target architecture, we prefer in descending order
     # - using the same architecture for the host (supports all architectures)
@@ -105,32 +100,32 @@ def HostCpuForArch(arch):
         % (arch, candidates, available))
 
 
-# The C compiler's target.
-def TargetCpuForArch(arch, target_os):
+# The C compiler's target under the target toolchain (DART_HOST_ARCH_***).
+def TargetCpuForArch(arch):
     # Real target architectures
-    if arch in ['ia32']:
+    if arch.startswith('ia32'):
         return 'x86'
-    elif arch in ['x64', 'x64c']:
+    elif arch.startswith('x64'):
         return 'x64'
-    elif arch in ['arm', 'arm_x64', 'arm_arm64', 'arm_riscv64']:
-        return 'arm'
-    elif arch in ['arm64', 'arm64c']:
+    elif arch.startswith('arm64'):
         return 'arm64'
-    elif arch in ['riscv32', 'riscv32_x64', 'riscv32_arm64', 'riscv32_riscv64']:
+    elif arch.startswith('arm'):
+        return 'arm'
+    elif arch.startswith('riscv32'):
         return 'riscv32'
-    elif arch in ['riscv64']:
+    elif arch.startswith('riscv64'):
         return 'riscv64'
 
     # Simulators
-    if arch in ['simarm_x64', 'simriscv32_x64']:
+    if arch.endswith('_x64'):
         return 'x64'
-    elif arch in ['simarm_arm64', 'simriscv32_arm64', 'simx64', 'simx64c']:
+    elif arch.endswith('_arm64'):
         return 'arm64'
-    elif arch in ['simarm_riscv64', 'simriscv32_riscv64']:
+    elif arch.endswith('_riscv64'):
         return 'riscv64'
     elif arch in ['simarm', 'simriscv32']:
         candidates = ['arm', 'riscv32', 'x86']
-    elif arch in ['simarm64', 'simarm64c', 'simriscv64']:
+    elif arch in ['simx64', 'simx64c', 'simarm64', 'simarm64c', 'simriscv64']:
         candidates = ['arm64', 'riscv64', 'x64']
     else:
         raise Exception("Unknown Dart architecture: %s" % arch)
@@ -145,28 +140,18 @@ def TargetCpuForArch(arch, target_os):
         % (arch, candidates, available))
 
 
-# The Dart compiler's target.
+# The Dart compiler's target (DART_TARGET_ARCH_***)
 def DartTargetCpuForArch(arch):
-    if arch in ['ia32']:
-        return 'ia32'
-    if arch in ['x64', 'x64c', 'simx64', 'simx64c']:
-        return 'x64'
-    if arch in [
-            'arm', 'simarm', 'simarm_x64', 'arm_x64', 'simarm_arm64',
-            'arm_arm64'
-    ]:
-        return 'arm'
-    if arch in ['arm64', 'simarm64', 'arm64c', 'simarm64c']:
-        return 'arm64'
-    if arch in ['riscv32', 'simriscv32']:
-        return 'riscv32'
-    if arch in ['riscv64', 'simriscv64']:
-        return 'riscv64'
+    arch = arch.split("_")[0]
+    if arch.startswith("sim"):
+        arch = arch[3:]
+    if arch.endswith("c"):
+        arch = arch[:-1]
     return arch
 
 
 def IsCompressedPointerArch(arch):
-    return arch in ['x64c', 'arm64c', 'simarm64c']
+    return "64c" in arch
 
 
 def HostOsForGn(host_os):
@@ -217,7 +202,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['target_os'] = target_os
 
     gn_args['host_cpu'] = HostCpuForArch(arch)
-    gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
+    gn_args['target_cpu'] = TargetCpuForArch(arch)
     gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
     gn_args['dart_use_compressed_pointers'] = IsCompressedPointerArch(arch)
 
@@ -249,9 +234,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
                                     (gn_args['target_cpu'] != 'riscv32') and
                                     (gn_args['target_cpu'] != 'riscv64') and
                                     sanitizer == 'none')
-
-    # Use mallinfo2 if specified on the command line
-    gn_args['dart_use_mallinfo2'] = args.use_mallinfo2
 
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
@@ -300,6 +282,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['gen_snapshot_stripped_binary'] = (
             'exe.stripped/gen_snapshot_product')
         gn_args['analyze_snapshot_binary'] = ('exe.stripped/analyze_snapshot')
+        gn_args['wasm_opt_stripped_binary'] = 'exe.stripped/wasm-opt'
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -384,14 +367,7 @@ def ProcessOptions(args):
             print("Unknown mode %s" % mode)
             return False
     for i, arch in enumerate(args.arch):
-        if not arch in AVAILABLE_ARCHS:
-            # Normalise to lower case form to make it less case-picky.
-            arch_lower = arch.lower()
-            if arch_lower in AVAILABLE_ARCHS:
-                args.arch[i] = arch_lower
-                continue
-            print("Unknown arch %s" % arch)
-            return False
+        args.arch[i] = arch.lower()
     oses = [ProcessOsOption(os_name) for os_name in args.os]
     for os_name in oses:
         if not os_name in [
@@ -424,7 +400,7 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if not arch in ['x64', 'arm64', 'x64c', 'arm64c']:
+            if not arch in ['x64', 'arm64', 'x64c', 'arm64c', 'riscv64']:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
@@ -574,6 +550,10 @@ def AddOtherArgs(parser):
                         help='Verbose output.',
                         default=False,
                         action="store_true")
+    parser.add_argument("--test",
+                        help='Test this script.',
+                        default=False,
+                        action="store_true")
 
 
 def parse_args(args):
@@ -660,12 +640,87 @@ def RunGnOnConfiguredConfigurations(args):
     return 0
 
 
+def ExpectEquals(actual, expected):
+    if actual != expected:
+        raise Exception(f"Actual: {actual} Expected: {expected}")
+
+
+def RunTests():
+    host_arch = utils.HostArchitectures()[0]
+    host_arch_or_x64 = host_arch
+    if 'x64' in utils.HostArchitectures():
+        # Rosetta means 'x64' may be built directly.
+        host_arch_or_x64 = 'x64'
+
+    ExpectEquals(HostCpuForArch("arm64"), host_arch)
+    ExpectEquals(HostCpuForArch("arm64c"), host_arch)
+    ExpectEquals(HostCpuForArch("simarm64"), host_arch)
+    ExpectEquals(HostCpuForArch("simarm64_x64"), host_arch_or_x64)
+    ExpectEquals(HostCpuForArch("simarm64_arm64"), host_arch)
+    ExpectEquals(HostCpuForArch("simarm64_riscv64"), host_arch)
+    ExpectEquals(HostCpuForArch("x64"), host_arch_or_x64)
+    ExpectEquals(HostCpuForArch("simx64"), host_arch_or_x64)
+    ExpectEquals(HostCpuForArch("simx64_x64"), host_arch_or_x64)
+    ExpectEquals(HostCpuForArch("simx64_arm64"), host_arch)
+    ExpectEquals(HostCpuForArch("simx64_riscv64"), host_arch)
+
+    ExpectEquals(TargetCpuForArch("arm64"), "arm64")
+    ExpectEquals(TargetCpuForArch("arm64c"), "arm64")
+    ExpectEquals(TargetCpuForArch("simarm64"), host_arch)
+    ExpectEquals(TargetCpuForArch("simarm64_x64"), "x64")
+    ExpectEquals(TargetCpuForArch("simarm64_arm64"), "arm64")
+    ExpectEquals(TargetCpuForArch("simarm64_riscv64"), "riscv64")
+    ExpectEquals(TargetCpuForArch("x64"), "x64")
+    ExpectEquals(TargetCpuForArch("simx64"), host_arch)
+    ExpectEquals(TargetCpuForArch("simx64_x64"), "x64")
+    ExpectEquals(TargetCpuForArch("simx64_arm64"), "arm64")
+    ExpectEquals(TargetCpuForArch("simx64_riscv64"), "riscv64")
+
+    ExpectEquals(DartTargetCpuForArch("arm64"), "arm64")
+    ExpectEquals(DartTargetCpuForArch("arm64c"), "arm64")
+    ExpectEquals(DartTargetCpuForArch("simarm64"), "arm64")
+    ExpectEquals(DartTargetCpuForArch("simarm64_x64"), "arm64")
+    ExpectEquals(DartTargetCpuForArch("simarm64_arm64"), "arm64")
+    ExpectEquals(DartTargetCpuForArch("simarm64_riscv64"), "arm64")
+    ExpectEquals(DartTargetCpuForArch("x64"), "x64")
+    ExpectEquals(DartTargetCpuForArch("simx64"), "x64")
+    ExpectEquals(DartTargetCpuForArch("simx64_x64"), "x64")
+    ExpectEquals(DartTargetCpuForArch("simx64_arm64"), "x64")
+    ExpectEquals(DartTargetCpuForArch("simx64_riscv64"), "x64")
+
+    ExpectEquals(IsCompressedPointerArch("arm64c"), True)
+    ExpectEquals(IsCompressedPointerArch("simarm64c"), True)
+    ExpectEquals(IsCompressedPointerArch("simarm64c_x64"), True)
+    ExpectEquals(IsCompressedPointerArch("x64c"), True)
+    ExpectEquals(IsCompressedPointerArch("simx64c"), True)
+    ExpectEquals(IsCompressedPointerArch("simx64c_x64"), True)
+    ExpectEquals(IsCompressedPointerArch("arm64"), False)
+    ExpectEquals(IsCompressedPointerArch("simarm64"), False)
+    ExpectEquals(IsCompressedPointerArch("simarm64_x64"), False)
+    ExpectEquals(IsCompressedPointerArch("x64"), False)
+    ExpectEquals(IsCompressedPointerArch("simx64"), False)
+    ExpectEquals(IsCompressedPointerArch("simx64_x64"), False)
+
+    # Our Android bots:
+    ExpectEquals(HostCpuForArch("arm64c"), host_arch)
+    ExpectEquals(TargetCpuForArch("arm64c"), 'arm64')
+    ExpectEquals(DartTargetCpuForArch("arm64c"), 'arm64')
+    ExpectEquals(HostCpuForArch("arm_x64"), host_arch_or_x64)
+    ExpectEquals(TargetCpuForArch("arm_x64"), 'arm')
+    ExpectEquals(DartTargetCpuForArch("arm_x64"), 'arm')
+
+
 def Main(argv):
     starttime = time.time()
 
     args = parse_args(argv)
     if args is None:
         return 1
+
+    if args.test:
+        RunTests()
+        print("Tests passed.")
+        return 0
 
     result = RunGnOnConfiguredConfigurations(args)
 

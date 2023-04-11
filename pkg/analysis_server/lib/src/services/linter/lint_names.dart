@@ -57,6 +57,10 @@ class LintNames {
       'curly_braces_in_flow_control_structures';
   static const String dangling_library_doc_comments =
       'dangling_library_doc_comments';
+  static const String deprecated_member_use_from_same_package =
+      'deprecated_member_use_from_same_package';
+  static const String deprecated_member_use_from_same_package_with_message =
+      'deprecated_member_use_from_same_package_with_message';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
@@ -139,6 +143,8 @@ class LintNames {
       'sort_unnamed_constructors_first';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
+  static const String type_literal_in_constant_pattern =
+      'type_literal_in_constant_pattern';
   static const String unawaited_futures = 'unawaited_futures';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';

@@ -16,8 +16,6 @@ void main() {
 void devtools() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
     p = project();
     var result = await p.run(['devtools', '--help']);

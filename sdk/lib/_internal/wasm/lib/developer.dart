@@ -57,3 +57,11 @@ int _getNextTaskId() => 0;
 @patch
 void _reportTaskEvent(
     int taskId, int type, String name, String argumentsAsJson) {}
+
+@patch
+abstract final class NativeRuntime {
+  @patch
+  static void writeHeapSnapshotToFile(String filepath) =>
+      throw UnsupportedError(
+          "Generating heap snapshots is not supported on the wasm.");
+}

@@ -27,7 +27,6 @@
 #include "vm/isolate.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/native_entry.h"
@@ -68,7 +67,6 @@ Dart_FileReadCallback Dart::file_read_callback_ = NULL;
 Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
-Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
 Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
     nullptr;
 
@@ -260,6 +258,13 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       "host");
 #endif
 
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
+  char* error = CheckIsAtLeastMinRequiredMacOSVersion();
+  if (error != nullptr) {
+    return error;
+  }
+#endif
+
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
@@ -287,7 +292,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     }
   }
 
-  UntaggedFrame::Init();
+  FrameLayout::Init();
 
   set_thread_start_callback(params->thread_start);
   set_thread_exit_callback(params->thread_exit);
@@ -329,7 +334,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
   Page::Init();
-  NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
   TargetCPUFeatures::Init();
@@ -409,13 +413,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #else
         StubCode::Init();
         Object::FinishInit(vm_isolate_->group());
-        // MallocHooks can't be initialized until StubCode has been since stack
-        // trace generation relies on stub methods that are generated in
-        // StubCode::Init().
-        // TODO(bkonyi) Split initialization for stack trace collection from the
-        // initialization for the actual malloc hooks to increase accuracy of
-        // memory consumption statistics.
-        MallocHooks::Init();
 #endif
       } else {
         return Utils::StrDup("Invalid vm isolate snapshot seen");
@@ -456,13 +453,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::Init();
       Object::FinishInit(vm_isolate_->group());
-      // MallocHooks can't be initialized until StubCode has been since stack
-      // trace generation relies on stub methods that are generated in
-      // StubCode::Init().
-      // TODO(bkonyi) Split initialization for stack trace collection from the
-      // initialization for the actual malloc hooks to increase accuracy of
-      // memory consumption statistics.
-      MallocHooks::Init();
       Symbols::Init(vm_isolate_->group());
 #endif
     }
@@ -709,7 +699,6 @@ char* Dart::Cleanup() {
     }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
-    Metric::Cleanup();
     Thread::ExitIsolate();
   }
 #endif
@@ -806,7 +795,6 @@ char* Dart::Cleanup() {
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
-  MallocHooks::Cleanup();
   Flags::Cleanup();
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
@@ -907,7 +895,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return ApiError::New(message);
     }
   }
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   I->group()->class_table()->PopulateUserVisibleNames();
 #endif
 

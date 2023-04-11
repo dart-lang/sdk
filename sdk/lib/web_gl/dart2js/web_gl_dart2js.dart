@@ -1,8 +1,6 @@
-/**
- * 3D programming in the browser.
- *
- * {@category Web}
- */
+/// 3D programming in the browser.
+///
+/// {@category Web}
 library dart.dom.web_gl;
 
 import 'dart:async';

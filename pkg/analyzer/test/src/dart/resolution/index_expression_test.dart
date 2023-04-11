@@ -9,12 +9,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IndexExpressionTest);
+    defineReflectiveTests(IndexExpressionResolutionTest);
   });
 }
 
 @reflectiveTest
-class IndexExpressionTest extends PubPackageResolutionTest {
+class IndexExpressionResolutionTest extends PubPackageResolutionTest {
   test_contextType_read() async {
     await assertNoErrorsInCode(r'''
 class A {

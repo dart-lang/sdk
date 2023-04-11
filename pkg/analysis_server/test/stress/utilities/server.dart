@@ -165,7 +165,7 @@ class Server {
   /// are received after this function call, so it is safe to use this getter
   /// multiple times in one test; each time it is used it will wait afresh for
   /// analysis to finish.
-  Future get analysisFinished {
+  Future<void> get analysisFinished {
     var completer = _analysisFinishedCompleter ??= Completer<void>();
     return completer.future;
   }
@@ -201,7 +201,7 @@ class Server {
   /// [filePaths] to the list of errors in the file at that path.
   Future<ErrorMap> computeErrorMap(List<String> filePaths) async {
     var errorMap = ErrorMap();
-    var futures = <Future>[];
+    var futures = <Future<void>>[];
     for (var filePath in filePaths) {
       var requestData = sendAnalysisGetErrors(filePath);
       futures.add(requestData.respondedTo.then((Response response) {

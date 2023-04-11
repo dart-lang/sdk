@@ -13,10 +13,7 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     method foo() → dynamic {}
   }
-  class B extends dart.core::Object {
-    synthetic constructor •() → main::B
-      : super dart.core::Object::•()
-      ;
+  abstract class B extends dart.core::Object /*isMixinDeclaration*/  {
     method bar() → dynamic {}
   }
 }

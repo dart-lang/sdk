@@ -95,7 +95,9 @@ class UnionTypeMask extends TypeMask {
       } else if (mask.isEmpty) {
         continue;
       } else {
-        var flatMask = mask as FlatTypeMask;
+        var flatMask = mask is RecordTypeMask
+            ? mask.toFlatTypeMask(domain._closedWorld)
+            : mask as FlatTypeMask;
         int inListIndex = -1;
         bool covered = false;
 
@@ -214,6 +216,8 @@ class UnionTypeMask extends TypeMask {
     List<FlatTypeMask> newList = List<FlatTypeMask>.of(disjointMasks);
     if (other is UnionTypeMask) {
       newList.addAll(other.disjointMasks);
+    } else if (other is RecordTypeMask) {
+      newList.add(other.toFlatTypeMask(domain._closedWorld));
     } else {
       newList.add(other as FlatTypeMask);
     }

@@ -49,10 +49,11 @@ class ConstConditionalSimplifier extends RemovingTransformer {
 
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
-    _constantEvaluator._staticTypeContext =
-        new StaticTypeContext(node, _typeEnvironment);
-    _constantEvaluator._clearLocalCaches();
-    return super.defaultMember(node, removalSentinel);
+    return _constantEvaluator
+        .inStaticTypeContext(new StaticTypeContext(node, _typeEnvironment), () {
+      _constantEvaluator._clearLocalCaches();
+      return super.defaultMember(node, removalSentinel);
+    });
   }
 
   @override
@@ -78,8 +79,6 @@ class ConstConditionalSimplifier extends RemovingTransformer {
 }
 
 class _ConstantEvaluator extends TryConstantEvaluator {
-  late StaticTypeContext _staticTypeContext;
-
   // TODO(fishythefish): Do caches need to be invalidated when the static type
   // context changes?
   final Map<VariableDeclaration, Constant?> _variableCache = {};
@@ -102,7 +101,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   }
 
   Constant? _evaluate(Expression node) =>
-      evaluateOrNull(_staticTypeContext, node, requireConstant: false);
+      evaluateOrNull(staticTypeContext, node, requireConstant: false);
 
   Constant? _evaluateFunctionInvocation(FunctionNode node) {
     if (node.typeParameters.isNotEmpty ||

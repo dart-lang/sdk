@@ -231,6 +231,29 @@ class B {
     ]);
   }
 
+  test_getter_outsideClassAndLibrary_inObjectPattern() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+import 'lib1.dart';
+void f(Object o) {
+  switch (o) {
+    case A(a: 7): print('yes');
+  }
+}
+''');
+
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 65, 1),
+    ]);
+  }
+
   test_getter_subclass() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -390,7 +413,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 49, 2),
+      error(WarningCode.UNUSED_FIELD, 49, 2),
     ]);
   }
 

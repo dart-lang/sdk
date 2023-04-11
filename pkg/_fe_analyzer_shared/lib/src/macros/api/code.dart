@@ -223,6 +223,69 @@ class FunctionTypeAnnotationCode extends TypeAnnotationCode {
   });
 }
 
+/// A piece of code identifying a syntactically valid record field declaration.
+/// This is only usable in the context of [RecordTypeAnnotationCode] objects.
+///
+/// There is no distinction here made between named and positional fields.
+///
+/// The name is not required because it is optional for positional fields.
+///
+/// It is the job of the user to construct and combine these together in a way
+/// that creates valid record type annotations.
+class RecordFieldCode implements Code {
+  final String? name;
+  final TypeAnnotationCode type;
+
+  @override
+  CodeKind get kind => CodeKind.recordField;
+
+  @override
+  List<Object> get parts => [
+        type,
+        if (name != null) ' ${name!}',
+      ];
+
+  RecordFieldCode({
+    this.name,
+    required this.type,
+  });
+}
+
+/// A piece of code representing a syntactically valid record type annotation.
+class RecordTypeAnnotationCode extends TypeAnnotationCode {
+  final List<RecordFieldCode> namedFields;
+
+  final List<RecordFieldCode> positionalFields;
+
+  @override
+  CodeKind get kind => CodeKind.recordTypeAnnotation;
+
+  @override
+  List<Object> get parts => [
+        '(',
+        if (positionalFields.isNotEmpty)
+          for (RecordFieldCode positional in positionalFields) ...[
+            if (positional != positionalFields.first) ', ',
+            positional,
+          ],
+        if (namedFields.isNotEmpty) ...[
+          if (positionalFields.isNotEmpty) ', ',
+          '{',
+          for (RecordFieldCode named in namedFields) ...[
+            if (named != namedFields.first) ', ',
+            named,
+          ],
+          '}',
+        ],
+        ')',
+      ];
+
+  RecordTypeAnnotationCode({
+    this.namedFields = const [],
+    this.positionalFields = const [],
+  });
+}
+
 class OmittedTypeAnnotationCode extends TypeAnnotationCode {
   final OmittedTypeAnnotation typeAnnotation;
 
@@ -277,5 +340,7 @@ enum CodeKind {
   omittedTypeAnnotation,
   parameter,
   raw,
+  recordField,
+  recordTypeAnnotation,
   typeParameter,
 }

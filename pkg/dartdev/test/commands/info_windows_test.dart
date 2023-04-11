@@ -4,6 +4,8 @@
 
 @TestOn('windows')
 
+import 'dart:io';
+
 import 'package:dartdev/src/processes.dart';
 import 'package:test/test.dart';
 
@@ -35,12 +37,10 @@ void main() {
       // 233384kb == 227MB
       expect(result.memoryMb, 227);
     });
-  });
+  }, skip: !Platform.isWindows);
 
   group('info windows', () {
     late TestProject p;
-
-    tearDown(() async => await p.dispose());
 
     test('shows process info', () async {
       p = project(mainSrc: 'void main() {}');
@@ -56,5 +56,5 @@ void main() {
       expect(output, contains('| Memory'));
       expect(output, contains('| dart.exe '));
     });
-  }, timeout: longTimeout);
+  }, timeout: longTimeout, skip: !Platform.isWindows);
 }

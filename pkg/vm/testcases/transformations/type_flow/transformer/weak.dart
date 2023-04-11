@@ -35,11 +35,11 @@ void register(String Function()? getAccessor) {
   }
 }
 
-@pragma('vm:weak-tearoff-reference')
+@pragma('weak-tearoff-reference')
 Function? weakRef1(Function? x) => x;
 
 class Lib {
-  @pragma('vm:weak-tearoff-reference')
+  @pragma('weak-tearoff-reference')
   static T Function()? weakRef2<T>(T Function()? x) => x;
 }
 

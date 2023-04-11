@@ -271,7 +271,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     await assertErrorsInCode(code, [
       if (isNullSafetyEnabled)
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 32, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
 
     List<Statement> statements =
@@ -3002,7 +3002,7 @@ main() {
    ''';
     await assertErrorsInCode(code, [
       if (isNullSafetyEnabled)
-        error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 139, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 139, 7),
     ]);
   }
 
@@ -3027,7 +3027,7 @@ main() {
    ''';
     await assertErrorsInCode(code, [
       if (isNullSafetyEnabled)
-        error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 163, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 163, 7),
     ]);
   }
 
@@ -3049,10 +3049,8 @@ void main() {
     ]);
 
     final node = findNode.functionDeclaration('f<T>');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3080,7 +3078,7 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T
+          type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3089,11 +3087,13 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: self::@function::f
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   declaredElement: self::@function::f
-  declaredElementType: T Function<T>(T)
-'''
-            : r'''
+    type: T Function<T>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3121,7 +3121,7 @@ FunctionDeclaration
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T*
+          type: T*
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3130,10 +3130,12 @@ FunctionDeclaration
         staticType: Null*
       semicolon: ;
     declaredElement: self::@function::f
+      type: T* Function<T>(T*)*
     staticType: T* Function<T>(T*)*
   declaredElement: self::@function::f
-  declaredElementType: T* Function<T>(T*)*
+    type: T* Function<T>(T*)*
 ''');
+    }
   }
 
   test_genericFunction_bounds() async {
@@ -3143,10 +3145,8 @@ FunctionDeclaration
     ]);
 
     final node = findNode.functionDeclaration('f<T');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3181,7 +3181,7 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T
+          type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3190,11 +3190,13 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: self::@function::f
+      type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
   declaredElement: self::@function::f
-  declaredElementType: T Function<T extends num>(T)
-'''
-            : r'''
+    type: T Function<T extends num>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3229,7 +3231,7 @@ FunctionDeclaration
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
-        declaredElementType: T*
+          type: T*
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3238,10 +3240,12 @@ FunctionDeclaration
         staticType: Null*
       semicolon: ;
     declaredElement: self::@function::f
+      type: T* Function<T extends num*>(T*)*
     staticType: T* Function<T extends num*>(T*)*
   declaredElement: self::@function::f
-  declaredElementType: T* Function<T extends num*>(T*)*
+    type: T* Function<T extends num*>(T*)*
 ''');
+    }
   }
 
   test_genericFunction_parameter() async {
@@ -3265,10 +3269,8 @@ class C<E> {
     ]);
 
     final node = findNode.methodDeclaration('f<T>');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
@@ -3289,7 +3291,7 @@ MethodDeclaration
         type: T
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
-      declaredElementType: T
+        type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3298,9 +3300,10 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: self::@class::C::@method::f
-  declaredElementType: T Function<T>(T)
-'''
-            : r'''
+    type: T Function<T>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
@@ -3321,7 +3324,7 @@ MethodDeclaration
         type: T*
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
-      declaredElementType: T*
+        type: T*
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3330,8 +3333,9 @@ MethodDeclaration
       staticType: Null*
     semicolon: ;
   declaredElement: self::@class::C::@method::f
-  declaredElementType: T* Function<T>(T*)*
+    type: T* Function<T>(T*)*
 ''');
+    }
   }
 
   test_genericFunction_typedef() async {
@@ -3961,10 +3965,8 @@ class D extends C {
             : []);
 
     final node = findNode.methodDeclaration('f<T>(T y)');
-    assertResolvedNodeText(
-        node,
-        isNullSafetyEnabled
-            ? r'''
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -3984,7 +3986,7 @@ MethodDeclaration
         type: T
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
-      declaredElementType: T
+        type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3993,9 +3995,10 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: self::@class::D::@method::f
-  declaredElementType: T Function<T>(T)
-'''
-            : r'''
+    type: T Function<T>(T)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
     name: SimpleIdentifier
@@ -4015,7 +4018,7 @@ MethodDeclaration
         type: T*
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
-      declaredElementType: T*
+        type: T*
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -4024,8 +4027,9 @@ MethodDeclaration
       staticType: Null*
     semicolon: ;
   declaredElement: self::@class::D::@method::f
-  declaredElementType: T* Function<T>(T*)*
+    type: T* Function<T>(T*)*
 ''');
+    }
   }
 
   test_genericMethod_override_bounds() async {
@@ -5031,7 +5035,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
-      if (isNullSafetyEnabled) error(HintCode.DEAD_CODE, 37, 1),
+      if (isNullSafetyEnabled) error(WarningCode.DEAD_CODE, 37, 1),
     ]);
     expectInitializerType('foo', isNullSafetyEnabled ? 'int?' : 'int');
   }
@@ -5043,7 +5047,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
-      if (isNullSafetyEnabled) error(HintCode.DEAD_CODE, 34, 4),
+      if (isNullSafetyEnabled) error(WarningCode.DEAD_CODE, 34, 4),
     ]);
     expectInitializerType('foo', isNullSafetyEnabled ? 'int?' : 'int');
   }

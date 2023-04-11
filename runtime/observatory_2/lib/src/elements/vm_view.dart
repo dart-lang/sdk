@@ -172,52 +172,6 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'malloc used memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.mallocUsed != null
-                      ? Utils.formatSize(_vm.mallocUsed)
-                      : 'unavailable'
-                  ..title =
-                      _vm.mallocUsed != null ? '${_vm.mallocUsed} bytes' : null
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc capacity memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.mallocCapacity != null
-                      ? Utils.formatSize(_vm.mallocCapacity)
-                      : 'unavailable'
-                  ..title = _vm.mallocCapacity != null
-                      ? '${_vm.mallocCapacity} bytes'
-                      : null
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc implementation',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.mallocImplementation
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..children = <Element>[
-                    new SpanElement()..text = 'view ',
-                    new AnchorElement(href: Uris.nativeMemory())
-                      ..text = 'malloc profile'
-                  ],
-                new DivElement()
-                  ..classes = ['memberName']
                   ..children = <Element>[
                     new SpanElement()..text = 'view ',
                     new AnchorElement(href: Uris.processSnapshot())

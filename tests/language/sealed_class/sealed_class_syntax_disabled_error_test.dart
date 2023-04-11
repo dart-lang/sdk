@@ -29,8 +29,3 @@ sealed class SealedClassTypeAlias = Object with M;
 // [error column 1, length 6]
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] The 'sealed-class' language feature is disabled for this library.
-
-sealed mixin SealedMixin {}
-// [error column 1, length 6]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] The 'sealed-class' language feature is disabled for this library.

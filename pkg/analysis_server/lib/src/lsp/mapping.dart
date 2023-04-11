@@ -33,12 +33,16 @@ import 'package:collection/collection.dart';
 const languageSourceName = 'dart';
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _errorCode(HintCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
+  _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
     lsp.DiagnosticTag.Deprecated
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
+  'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
+  'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
@@ -897,6 +901,7 @@ lsp.CompletionItem toCompletionItem(
   // info appended (for example '(...)' on callables) that should not be included
   // in filterText.
   var label = suggestion.displayText ?? suggestion.completion;
+  assert(label.isNotEmpty);
   final filterText = label;
 
   // Trim any trailing comma from the (displayed) label.
@@ -1359,9 +1364,8 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   final supportsDocumentChanges = capabilities.documentChanges;
   if (supportsDocumentChanges) {
     final supportsCreate = capabilities.createResourceOperations;
-    final changes = <
-        Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
-            lsp.TextDocumentEdit>>[];
+    final changes = <Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
+        lsp.TextDocumentEdit>>[];
 
     // Convert each SourceEdit to either a TextDocumentEdit or a
     // CreateFile + a TextDocumentEdit depending on whether it's a new

@@ -14,7 +14,7 @@ static method recordDynamicFieldAccess([@vm.inferred-type.metadata=!] dynamic x)
 static method main() → dynamic {
   core::print(#C7);
   core::print([@vm.inferred-type.metadata=dart.core::_Record] self::recordLiteral());
-  core::print([@vm.inferred-type.metadata=dart.core::_Smi] self::recordFieldAccess1((10, "hi")));
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] self::recordFieldAccess1((10, "hi")));
   core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 20)] self::recordFieldAccess2(({a: 20, b: "bye"})));
   core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart.core::_GrowableList.[]??] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>] self::list{dynamic}.[](1)));
 }

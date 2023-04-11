@@ -1694,8 +1694,6 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_mappings)
   COMPRESSED_POINTER_FIELD(ArrayPtr, scripts)
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
-  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, potential_natives)
-  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, potential_pragma_functions)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constants_table)
   COMPRESSED_POINTER_FIELD(ArrayPtr, libraries_cache)
   COMPRESSED_POINTER_FIELD(ArrayPtr, classes_cache)
@@ -2339,9 +2337,10 @@ class UntaggedContextScope : public UntaggedObject {
     CompressedSmiPtr token_pos;
     CompressedStringPtr name;
     CompressedSmiPtr flags;
-    static constexpr intptr_t kIsFinal = 0x1;
-    static constexpr intptr_t kIsConst = 0x2;
-    static constexpr intptr_t kIsLate = 0x4;
+    static constexpr intptr_t kIsFinal = 1 << 0;
+    static constexpr intptr_t kIsConst = 1 << 1;
+    static constexpr intptr_t kIsLate = 1 << 2;
+    static constexpr intptr_t kIsInvisible = 1 << 3;
     CompressedSmiPtr late_init_offset;
     union {
       CompressedAbstractTypePtr type;

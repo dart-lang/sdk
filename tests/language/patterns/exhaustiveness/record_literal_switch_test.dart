@@ -26,9 +26,9 @@ void exhaustiveSwitch((Enum, bool) r) {
 void nonExhaustiveSwitch1((Enum, bool) r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases since it doesn't match '(Enum.b, false)'.
     case (Enum.a, false):
       print('(a, false)');
       break;
@@ -44,9 +44,9 @@ void nonExhaustiveSwitch1((Enum, bool) r) {
 void nonExhaustiveSwitch2((Enum, bool) r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases since it doesn't match '(Enum.a, false)'.
     case (Enum.b, false):
       print('(b, false)');
       break;
@@ -93,9 +93,9 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
 void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case (Enum.a, false):
       print('(a, false)');
       break;
@@ -114,9 +114,9 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
 void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   switch (r) /* Error */ {
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH
+// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases.
+// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(Enum.b, false)'.
     case (Enum.a, false):
       print('(a, false)');
       break;
@@ -147,8 +147,8 @@ void unreachableCase1((Enum, bool) r) {
       print('(b, true)');
       break;
     case (Enum.a, false): // Unreachable
-//  ^
-// [cfe] This case is covered by the previous cases.
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
       print('(a, false) #2');
       break;
   }
@@ -193,8 +193,8 @@ void unreachableCase3((Enum, bool)? r) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^
-// [cfe] This case is covered by the previous cases.
+//  ^^^^
+// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }

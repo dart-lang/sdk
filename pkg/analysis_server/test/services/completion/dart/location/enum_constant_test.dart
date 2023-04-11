@@ -35,7 +35,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions

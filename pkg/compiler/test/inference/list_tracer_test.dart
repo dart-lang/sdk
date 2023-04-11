@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:expect/expect.dart';
 
@@ -87,6 +88,10 @@ var listSetInNonFinalField = $listAllocation;
 var listWithChangedLength = $listAllocation;
 var listStoredInList = $listAllocation;
 var listStoredInListButEscapes = $listAllocation;
+var listStoredInRecordWithIndexAccess = $listAllocation;
+var listStoredInRecordWithNameAccess = $listAllocation;
+var listStoredInRecordWithoutAccess = $listAllocation;
+var listStoredInRecordWithDynamicAccess = $listAllocation;
 
 foo(list) {
   list[0] = aDouble;
@@ -182,6 +187,18 @@ main() {
   a = [listStoredInListButEscapes];
   a[0][0] = 42;
   a.forEach((e) => print(e));
+
+  listStoredInRecordWithoutAccess[0] = anInt;
+  listStoredInRecordWithIndexAccess[0] = anInt;
+  listStoredInRecordWithNameAccess[0] = anInt;
+  final c = (listStoredInRecordWithoutAccess, listStoredInRecordWithIndexAccess);
+  (c.\$2)[0] = aDouble;
+  final d = (name1: listStoredInRecordWithoutAccess, name2: listStoredInRecordWithNameAccess);
+  (d.name2)[0] = aDouble;
+
+  listStoredInRecordWithDynamicAccess[0] = anInt;
+  dynamic e = (listStoredInRecordWithDynamicAccess,);
+  (e.\$1)[0] = aDouble;
 }
 """;
 }
@@ -207,7 +224,9 @@ void main() {
 
 doTest(String allocation, {required bool nullify}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
+  var result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+      options: [Flags.soundNullSafety]);
   Expect.isTrue(result.isSuccess);
   var compiler = result.compiler;
   var results = compiler.globalInference.resultsForTesting;
@@ -246,6 +265,10 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listPassedAsNamedParameter', commonMasks.numType);
   checkType('listStoredInList', commonMasks.uint31Type);
   checkType('listStoredInListButEscapes', commonMasks.dynamicType);
+  checkType('listStoredInRecordWithIndexAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithNameAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithDynamicAccess', commonMasks.numType);
+  checkType('listStoredInRecordWithoutAccess', commonMasks.uint31Type);
 
   if (!allocation.contains('filled')) {
     checkType('listUnset', TypeMask.nonNullEmpty());

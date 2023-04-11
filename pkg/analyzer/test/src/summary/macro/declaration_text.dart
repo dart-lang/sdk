@@ -31,8 +31,8 @@ class _DeclarationPrinter {
   String _indent = '';
 
   void writeClassDeclaration(ClassDeclaration e) {
-    _writeIf(e.isAbstract, 'abstract ');
-    _writeIf(e.isExternal, 'external ');
+    _writeIf(e.hasAbstract, 'abstract ');
+    _writeIf(e.hasExternal, 'external ');
 
     _writeln('class ${e.identifier.name}');
 

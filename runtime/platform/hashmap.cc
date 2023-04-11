@@ -22,14 +22,14 @@ SimpleHashMap::Entry* SimpleHashMap::Lookup(void* key,
                                             bool insert) {
   // Find a matching entry.
   Entry* p = Probe(key, hash);
-  if (p->key != NULL) {
+  if (p->key != nullptr) {
     return p;
   }
 
   // No entry found; insert one if necessary.
   if (insert) {
     p->key = key;
-    p->value = NULL;
+    p->value = nullptr;
     p->hash = hash;
     occupancy_++;
 
@@ -43,13 +43,13 @@ SimpleHashMap::Entry* SimpleHashMap::Lookup(void* key,
   }
 
   // No entry found and none inserted.
-  return NULL;
+  return nullptr;
 }
 
 void SimpleHashMap::Remove(void* key, uint32_t hash) {
   // Lookup the entry for the key to remove.
   Entry* candidate = Probe(key, hash);
-  if (candidate->key == NULL) {
+  if (candidate->key == nullptr) {
     // Key not found nothing to remove.
     return;
   }
@@ -83,7 +83,7 @@ void SimpleHashMap::Remove(void* key, uint32_t hash) {
     // All entries between "candidate" and "next" have their initial position
     // between candidate and entry and the entry candidate can be cleared
     // without breaking the search for these entries.
-    if (next->key == NULL) {
+    if (next->key == nullptr) {
       break;
     }
 
@@ -104,7 +104,7 @@ void SimpleHashMap::Remove(void* key, uint32_t hash) {
   }
 
   // Clear the candidate which will not break searching the hash table.
-  candidate->key = NULL;
+  candidate->key = nullptr;
   occupancy_--;
 }
 
@@ -112,10 +112,10 @@ void SimpleHashMap::Clear(ClearFun clear) {
   // Mark all entries as empty.
   const Entry* end = map_end();
   for (Entry* p = map_; p < end; p++) {
-    if ((clear != NULL) && (p->key != NULL)) {
+    if ((clear != nullptr) && (p->key != nullptr)) {
       clear(p->value);
     }
-    p->key = NULL;
+    p->key = nullptr;
   }
   occupancy_ = 0;
 }
@@ -128,15 +128,15 @@ SimpleHashMap::Entry* SimpleHashMap::Next(Entry* p) const {
   const Entry* end = map_end();
   ASSERT(map_ - 1 <= p && p < end);
   for (p++; p < end; p++) {
-    if (p->key != NULL) {
+    if (p->key != nullptr) {
       return p;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 SimpleHashMap::Entry* SimpleHashMap::Probe(void* key, uint32_t hash) {
-  ASSERT(key != NULL);
+  ASSERT(key != nullptr);
 
   ASSERT(dart::Utils::IsPowerOfTwo(capacity_));
   Entry* p = map_ + (hash & (capacity_ - 1));
@@ -144,7 +144,7 @@ SimpleHashMap::Entry* SimpleHashMap::Probe(void* key, uint32_t hash) {
   ASSERT(map_ <= p && p < end);
 
   ASSERT(occupancy_ < capacity_);  // Guarantees loop termination.
-  while (p->key != NULL && (hash != p->hash || !match_(key, p->key))) {
+  while (p->key != nullptr && (hash != p->hash || !match_(key, p->key))) {
     p++;
     if (p >= end) {
       p = map_;
@@ -170,7 +170,7 @@ void SimpleHashMap::Resize() {
 
   // Rehash all current entries.
   for (Entry* p = map; n > 0; p++) {
-    if (p->key != NULL) {
+    if (p->key != nullptr) {
       Lookup(p->key, p->hash, true)->value = p->value;
       n--;
     }

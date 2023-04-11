@@ -15,6 +15,7 @@ const x64 = 'x64';
 // https://stackoverflow.com/questions/45125516/possible-values-for-uname-m
 final _unames = {
   'arm': arm,
+  'arm64': arm64,
   'aarch64_be': arm64,
   'aarch64': arm64,
   'armv8b': arm64,

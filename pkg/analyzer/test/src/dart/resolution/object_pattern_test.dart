@@ -15,7 +15,34 @@ main() {
 
 @reflectiveTest
 class ObjectPatternResolutionTest extends PubPackageResolutionTest {
-  test_class_generic_noTypeArguments_infer_interfaceType() async {
+  test_class_generic_noTypeArguments_infer_f_bounded() async {
+    await assertNoErrorsInCode(r'''
+abstract class B<T extends B<T>> {}
+abstract class C extends B<C> {}
+
+void f(Object o) {
+  switch (o) {
+    case B():
+  }
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: B
+      staticElement: self::@class::B
+      staticType: null
+    type: B<B<Object?>>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: Object
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_fromSuperType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
 class B<T> extends A<T> {}
@@ -41,7 +68,60 @@ ObjectPattern
 ''');
   }
 
-  test_class_generic_noTypeArguments_infer_interfaceType_viaTypeAlias() async {
+  test_class_generic_noTypeArguments_infer_partial_inference() async {
+    await assertNoErrorsInCode(r'''
+abstract class B<T> {}
+abstract class C<T, U extends Set<T>> extends B<T> {}
+
+void f(B<int> b) {
+  switch (b) {
+    case C():
+  }
+}
+''');
+
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: null
+    type: C<int, Set<int>>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: B<int>
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_useBounds() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {}
+
+void f(Object? x) {
+  switch (x) {
+    case A():
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A<num>
+  leftParenthesis: (
+  rightParenthesis: )
+  matchedValueType: Object?
+''');
+  }
+
+  test_class_generic_noTypeArguments_infer_viaTypeAlias() async {
     await assertNoErrorsInCode(r'''
 class A<T, U> {}
 class B<T, U> extends A<T, U> {}
@@ -346,7 +426,7 @@ void f(x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME, 75, 3),
+      error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 75, 3),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -594,6 +674,37 @@ ObjectPattern
       element: self::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
+''');
+  }
+
+  test_class_notGeneric_positionalField() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case Object(0)) {}
+}
+''', [
+      error(CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN, 40, 1),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
+  leftParenthesis: (
+  fields
+    PatternField
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        matchedValueType: dynamic
+      element: <null>
+  rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 

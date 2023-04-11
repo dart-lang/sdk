@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class Sealed extends core::Object {
+  synthetic constructor •() → self::Sealed
+    : super core::Object::•()
+    ;
+}
+class C1 extends self::Sealed {
+  synthetic constructor •() → self::C1
+    : super self::Sealed::•()
+    ;
+}
+class C2 extends self::Sealed {
+  synthetic constructor •() → self::C2
+    : super self::Sealed::•()
+    ;
+}
+static method main() → void {
+  self::Sealed s = new self::C1::•();
+  #L1:
+  {
+    final synthesized self::Sealed #0#0 = s;
+    {
+      if(#0#0 is{ForNonNullableByDefault} self::C1 || #0#0 is{ForNonNullableByDefault} self::C2) {
+      }
+    }
+  }
+  core::print(s);
+  core::print( block {
+    core::String #t1;
+    final synthesized self::Sealed #1#0 = s;
+    #L2:
+    {
+      {
+        if(#1#0 is{ForNonNullableByDefault} self::C1) {
+          #t1 = "C1";
+          break #L2;
+        }
+      }
+      {
+        if(#1#0 is{ForNonNullableByDefault} self::C2) {
+          #t1 = "C2";
+          break #L2;
+        }
+      }
+    }
+  } =>#t1);
+}

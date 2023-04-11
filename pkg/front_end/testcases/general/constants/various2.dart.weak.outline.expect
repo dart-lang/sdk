@@ -334,8 +334,7 @@ Evaluated: VariableGet @ org-dartlang-testcase:///various2.dart:85:12 -> IntCons
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various2.dart:126:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various2.dart:127:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various2.dart:128:28 -> BoolConstant(true)
-Evaluated: StaticGet @ org-dartlang-testcase:///various2.dart:129:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: StaticGet @ org-dartlang-testcase:///various2.dart:129:32 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: EqualsCall @ org-dartlang-testcase:///various2.dart:129:29 -> BoolConstant(true)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various2.dart:130:29 -> SymbolConstant(#Foo)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various2.dart:131:34 -> SymbolConstant(#Foo=)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various2.dart:132:40 -> SymbolConstant(#>>>)
@@ -361,4 +360,4 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:212:25
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:213:40 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:214:25 -> NullConstant(null)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:215:40 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 147, effectively constant: 66
+Extra constant evaluation: evaluated: 145, effectively constant: 65

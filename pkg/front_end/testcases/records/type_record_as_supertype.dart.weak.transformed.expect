@@ -6,41 +6,73 @@ library /*isNonNullableByDefault*/;
 // abstract class A1 extends Record {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:12:16: Error: 'Record' is restricted and can't be extended or implemented.
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:11:27: Error: The class 'Record' can't be extended outside of its library because it's a final class.
+// abstract class A1 extends Record {} // Error.
+//                           ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:13:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class A2 extends RR {} // Error.
 //                ^
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:7:9: Context: The issue arises via this type alias.
 // typedef RR = R;
 //         ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:16:16: Error: 'Record' is restricted and can't be extended or implemented.
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:13:27: Error: The class 'Record' can't be extended outside of its library because it's a final class.
+// abstract class A2 extends RR {} // Error.
+//                           ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:19:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class B1 implements Record {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:17:16: Error: 'Record' is restricted and can't be extended or implemented.
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:19:30: Error: The class 'Record' can't be implemented outside of its library because it's a final class.
+// abstract class B1 implements Record {} // Error.
+//                              ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:21:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class B2 implements RR {} // Error.
 //                ^
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:7:9: Context: The issue arises via this type alias.
 // typedef RR = R;
 //         ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:21:16: Error: 'Record' is restricted and can't be extended or implemented.
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:21:30: Error: The class 'Record' can't be implemented outside of its library because it's a final class.
+// abstract class B2 implements RR {} // Error.
+//                              ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:27:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class C1 with Record {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:22:16: Error: 'Record' is restricted and can't be extended or implemented.
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:27:24: Error: The class 'Record' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// abstract class C1 with Record {} // Error.
+//                        ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
 //                ^
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:7:9: Context: The issue arises via this type alias.
 // typedef RR = R;
 //         ^
 //
-// pkg/front_end/testcases/records/type_record_as_supertype.dart:22:16: Error: 'RR' is restricted and can't be extended or implemented.
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: 'RR' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
 //                ^
-// sdk/lib/core/record.dart:11:16: Context: This is the type denoted by the type alias.
-// abstract class Record {}
-//                ^
+// sdk/lib/core/record.dart:11:22: Context: This is the type denoted by the type alias.
+// abstract final class Record {}
+//                      ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:29:24: Error: The class 'Record' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// abstract class C2 with RR {} // Error.
+//                        ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:31:24: Error: The class 'G' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// abstract class C3 with G<Record> {} // Ok.
+//                        ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:33:24: Error: The class 'G' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// abstract class C4 with G<RR> {} // Ok.
+//                        ^
 //
 import self as self;
 import "dart:core" as core;
@@ -92,7 +124,7 @@ abstract class B4 extends core::Object implements self::G<core::Record> {
     : super core::Object::•()
     ;
 }
-abstract class _C1&Object&Record extends core::Object implements core::Record /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+abstract final class _C1&Object&Record extends core::Object implements core::Record /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C1&Object&Record
     : super core::Object::•()
     ;
@@ -102,7 +134,7 @@ abstract class C1 extends self::_C1&Object&Record {
     : super self::_C1&Object&Record::•()
     ;
 }
-abstract class _C2&Object&RR extends core::Object implements core::Record /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+abstract final class _C2&Object&RR extends core::Object implements core::Record /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C2&Object&RR
     : super core::Object::•()
     ;

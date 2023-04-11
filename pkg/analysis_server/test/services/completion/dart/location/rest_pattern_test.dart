@@ -34,17 +34,17 @@ void f(Object o) {
   if(o case [int first, ... ^]) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
+  const
+    kind: keyword
   false
+    kind: keyword
+  final
     kind: keyword
   null
     kind: keyword
   true
-    kind: keyword
-  const
-    kind: keyword
-  final
     kind: keyword
   var
     kind: keyword
@@ -58,7 +58,7 @@ void f(Object o) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -68,7 +68,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions

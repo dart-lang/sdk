@@ -9,7 +9,7 @@ class A {
   void foo(covariant num x) {}
 }
 
-class B {
+mixin B {
   void foo(num x) {}
 }
 

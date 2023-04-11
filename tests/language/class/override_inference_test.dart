@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // Test that inheriting types on overriding members work as specified.
 
 // ignore_for_file: unused_local_variable
@@ -47,7 +43,7 @@ class INumInt {
   int foo(num x) => x.toInt();
 }
 
-class IIntNum {
+mixin class IIntNum {
   num foo(int x) => x.toInt();
 }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
@@ -13,7 +12,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeNameResolutionTest);
-    defineReflectiveTests(TypeNameResolutionWithoutNullSafetyTest);
+    defineReflectiveTests(TypeNameResolutionTest_WithoutNullSafety);
   });
 }
 
@@ -117,16 +116,16 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F a');
-    assertNamedType(typeName, element, 'int* Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: [],
-    );
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  type: int* Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+''');
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
@@ -142,16 +141,18 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F a');
-    assertNamedType(typeName, element, 'dynamic Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: ['dynamic'],
-    );
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  type: dynamic Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+      typeArguments
+        dynamic
+''');
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
@@ -167,16 +168,18 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F a');
-    assertNamedType(typeName, element, 'num* Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: ['num*'],
-    );
+    final node = findNode.namedType('F a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  type: num* Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+      typeArguments
+        num*
+''');
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
@@ -192,16 +195,28 @@ import 'a.dart';
 f(F<int> a) {}
 ''');
 
-    var element = import_a.typeAlias('F');
-
-    var typeName = findNode.namedType('F<int> a');
-    assertNamedType(typeName, element, 'int* Function(bool*)*');
-
-    assertTypeAlias(
-      typeName.typeOrThrow,
-      element: element,
-      typeArguments: ['int*'],
-    );
+    final node = findNode.namedType('F<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: SimpleIdentifier
+    token: F
+    staticElement: package:test/a.dart::@typeAlias::F
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+    rightBracket: >
+  type: int* Function(bool*)*
+    alias: package:test/a.dart::@typeAlias::F
+      typeArguments
+        int*
+''');
   }
 
   test_optOut_fromOptIn_class() async {
@@ -604,6 +619,13 @@ Nothing f() {}
   }
 }
 
+@reflectiveTest
+class TypeNameResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
+    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
+  @override
+  bool get isNullSafetyEnabled => true;
+}
+
 mixin TypeNameResolutionTestCases on PubPackageResolutionTest {
   test_class() async {
     await assertNoErrorsInCode(r'''
@@ -870,11 +892,4 @@ f(Never a) {}
       typeStr('Never', 'Null*'),
     );
   }
-}
-
-@reflectiveTest
-class TypeNameResolutionWithoutNullSafetyTest extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {
-  @override
-  bool get isNullSafetyEnabled => true;
 }

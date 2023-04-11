@@ -37,7 +37,7 @@ void main() {
   rp.listen((dynamic data) {
     (data as A).verify();
     print("ok");
-    exit(0);
+    rp.close();
   });
   rp.sendPort.send(A());
 }

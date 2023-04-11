@@ -15,7 +15,7 @@ class I {
   void foo();
 }
 
-class M {
+mixin class M {
   dynamic noSuchMethod(Invocation i) => null;
 }
 

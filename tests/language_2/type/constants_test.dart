@@ -8,7 +8,7 @@
 // constant map keys and case expressions, and the value of non-constant type
 // literals are not.
 
-import "dart:collection" deferred as prefix;
+import "dart:collection" deferred as prefix show HashSet;
 
 main(args) {
   testSwitch(args);

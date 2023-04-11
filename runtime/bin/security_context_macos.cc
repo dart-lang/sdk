@@ -277,10 +277,10 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
 
   CObjectArray request(message);
   if (request.Length() != kNumTrustEvaluateRequestParams) {
-    FATAL2("Malformed trust evaluate message: got %" Pd
-           " parameters "
-           "expected %d\n",
-           request.Length(), kNumTrustEvaluateRequestParams);
+    FATAL("Malformed trust evaluate message: got %" Pd
+          " parameters "
+          "expected %d\n",
+          request.Length(), kNumTrustEvaluateRequestParams);
   }
   CObjectIntptr trust_cobject(request[0]);
   ScopedSecTrustRef trust(reinterpret_cast<SecTrustRef>(trust_cobject.Value()));

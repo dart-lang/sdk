@@ -82,9 +82,9 @@ class BlockBuilder : public ValueObject {
                            bool with_frame,
                            Representation representation) {
     auto normal_entry = flow_graph_->graph_entry()->normal_entry();
-    return AddToInitialDefinitions(
-        new ParameterInstr(index, param_offset, normal_entry, representation,
-                           with_frame ? FPREG : SPREG));
+    return AddToInitialDefinitions(new ParameterInstr(
+        /*env_index=*/index, /*param_index=*/index, param_offset, normal_entry,
+        representation, with_frame ? FPREG : SPREG));
   }
 
   TokenPosition TokenPos() const { return source_.token_pos; }

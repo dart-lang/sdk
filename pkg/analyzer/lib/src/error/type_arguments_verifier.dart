@@ -282,15 +282,16 @@ class TypeArgumentsVerifier {
   ///
   /// This checks if [node] refers to a generic type and does not have explicit
   /// or inferred type arguments. When that happens, it reports error code
-  /// [HintCode.STRICT_RAW_TYPE].
+  /// [WarningCode.STRICT_RAW_TYPE].
   void _checkForRawTypeName(NamedType node) {
     AstNode parentEscapingTypeArguments(NamedType node) {
       var parent = node.parent!;
       while (parent is TypeArgumentList || parent is NamedType) {
-        if (parent.parent == null) {
+        var grandparent = parent.parent;
+        if (grandparent == null) {
           return parent;
         }
-        parent = parent.parent!;
+        parent = grandparent;
       }
       return parent;
     }
@@ -303,12 +304,15 @@ class TypeArgumentsVerifier {
     var type = node.typeOrThrow;
     if (_isMissingTypeArguments(node, type, node.name.staticElement)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
-      if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
+      if (unwrappedParent is AsExpression ||
+          unwrappedParent is CastPattern ||
+          unwrappedParent is IsExpression ||
+          unwrappedParent is ObjectPattern) {
         // Do not report a "Strict raw type" error in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
-            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
+            .reportErrorForNode(WarningCode.STRICT_RAW_TYPE, node, [type]);
       }
     }
   }

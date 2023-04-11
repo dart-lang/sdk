@@ -3,18 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 sealed class A<X> {}
+
 class B<Y> extends A<Y> {}
+
 class C extends A<int> {}
+
 class D<Z, W> extends A<W> {}
 
-enum Enum {a, b}
+enum Enum { a, b }
 
 void exhaustiveSwitchGeneric<T1>(A<T1> a) {
   // TODO(johnniwinther): Room for improvement here. We could recognized the
   //  direct passing of type variables in D.
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<T1>,B<T1>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    subtypes={B<T1>,C,D<dynamic, dynamic>},
    type=A<T1>
   */
@@ -33,9 +36,10 @@ void exhaustiveSwitchGeneric<T1>(A<T1> a) {
       break;
   }
 }
+
 void exhaustiveSwitchGenericCatchAll<T2>(A<T2> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<T2>,B<T2>,C,D<dynamic, dynamic>},
    subtypes={B<T2>,C,D<dynamic, dynamic>},
    type=A<T2>
   */
@@ -59,8 +63,8 @@ void exhaustiveSwitchGenericBounded<T3 extends String>(A<T3> a) {
   // TODO(johnniwinther): Room for improvement here. We could recognized the
   //  direct passing of type variables in D.
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<T3>,B<T3>,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    subtypes={B<T3>,D<dynamic, dynamic>},
    type=A<T3>
   */
@@ -78,8 +82,8 @@ void exhaustiveSwitchGenericBounded<T3 extends String>(A<T3> a) {
 
 void nonExhaustiveSwitchWrongGeneric1<T4, S4>(A<T4> a) {
   /*
-   error=non-exhaustive:B<T4>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<T4>,B<T4>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:B<T4>(),
    subtypes={B<T4>,C,D<dynamic, dynamic>},
    type=A<T4>
   */
@@ -101,8 +105,8 @@ void nonExhaustiveSwitchWrongGeneric1<T4, S4>(A<T4> a) {
 
 void nonExhaustiveSwitchWrongGeneric2<T5, S5>(A<T5> a) {
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<T5>,B<T5>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    subtypes={B<T5>,C,D<dynamic, dynamic>},
    type=A<T5>
   */
@@ -126,8 +130,8 @@ void exhaustiveSwitch3(A<String> a) {
   // TODO(johnniwinther): Room for improvement here. We could recognized the
   //  direct passing of type variables in D.
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<String>,B<String>,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    subtypes={B<String>,D<dynamic, dynamic>},
    type=A<String>
   */
@@ -145,8 +149,8 @@ void exhaustiveSwitch3(A<String> a) {
 
 void nonExhaustiveSwitch1(A<int> a) {
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<int>,B<int>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -164,16 +168,16 @@ void nonExhaustiveSwitch1(A<int> a) {
 
 void nonExhaustiveSwitch2(A<int> a) {
   /*
-   error=non-exhaustive:B<int>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<int>,B<int>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:B<int>(),
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
   switch (a) {
-    /*space=C*/case C c:
+    /*space=C*/ case C c:
       print('C');
       break;
-    /*space=D<dynamic, int>*/case D<dynamic, int> d:
+    /*space=D<dynamic, int>*/ case D<dynamic, int> d:
       print('D');
       break;
   }
@@ -181,8 +185,8 @@ void nonExhaustiveSwitch2(A<int> a) {
 
 void nonExhaustiveSwitch3(A<num> a) {
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<num>,B<num>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    subtypes={B<num>,C,D<dynamic, dynamic>},
    type=A<num>
   */
@@ -204,8 +208,7 @@ void nonExhaustiveSwitch3(A<num> a) {
 
 void nonExhaustiveSwitchWithDefault(A<dynamic> a) {
   /*
-   error=non-exhaustive:B<dynamic>,
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<dynamic>,B<dynamic>,C,D<dynamic, dynamic>},
    subtypes={B<dynamic>,C,D<dynamic, dynamic>},
    type=A<dynamic>
   */
@@ -224,9 +227,9 @@ void exhaustiveNullableSwitch(A<int>? a) {
   // TODO(johnniwinther): Room for improvement here. We could recognized the
   //  direct passing of type variables in D.
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
+   checkingOrder={A<int>?,A<int>,Null,B<int>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */
@@ -252,9 +255,9 @@ void exhaustiveNullableSwitch(A<int>? a) {
 
 void nonExhaustiveNullableSwitch1(A<int>? a) {
   /*
-   error=non-exhaustive:Null,
+   checkingOrder={A<int>?,A<int>,Null,B<int>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:null,
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */
@@ -268,9 +271,9 @@ void nonExhaustiveNullableSwitch1(A<int>? a) {
 
 void nonExhaustiveNullableSwitch2(A<int>? a) {
   /*
-   error=non-exhaustive:D<dynamic, dynamic>,
+   checkingOrder={A<int>?,A<int>,Null,B<int>,C,D<dynamic, dynamic>},
+   error=non-exhaustive:D<dynamic, dynamic>(),
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */
@@ -292,7 +295,7 @@ void nonExhaustiveNullableSwitch2(A<int>? a) {
 
 void unreachableCase1(A<int> a) {
   /*
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<int>,B<int>,C,D<dynamic, dynamic>},
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -309,7 +312,7 @@ void unreachableCase1(A<int> a) {
     case D<dynamic, int> d:
       print('D');
       break;
-    /*space=A<dynamic>*/
+    /*space=A<int>*/
     case A a:
       print('A');
       break;
@@ -319,7 +322,7 @@ void unreachableCase1(A<int> a) {
 void unreachableCase2(A<int> a) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={A<int>,B<int>,C,D<dynamic, dynamic>},
    subtypes={B<int>,C,D<dynamic, dynamic>},
    type=A<int>
   */
@@ -337,8 +340,8 @@ void unreachableCase2(A<int> a) {
 
 void unreachableCase3(A<int>? a) {
   /*
+   checkingOrder={A<int>?,A<int>,Null,B<int>,C,D<dynamic, dynamic>},
    expandedSubtypes={B<int>,C,D<dynamic, dynamic>,Null},
-   fields={},
    subtypes={A<int>,Null},
    type=A<int>?
   */

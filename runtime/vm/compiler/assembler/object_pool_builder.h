@@ -254,8 +254,8 @@ class ObjectPoolBuilder : public ValueObject {
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
 
   // The zone used for allocating the handles we keep in the map and array (or
-  // NULL, in which case allocations happen using the zone active at the point
-  // of insertion).
+  // nullptr, in which case allocations happen using the zone active at the
+  // point of insertion).
   Zone* zone_;
 };
 

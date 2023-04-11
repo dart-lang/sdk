@@ -25,10 +25,7 @@ abstract class SuperClass2 extends core::Object {
     : self::SuperClass2::value = i, super core::Object::•()
     ;
 }
-class Mixin extends core::Object {
-  synthetic constructor •() → self::Mixin
-    : super core::Object::•()
-    ;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 class NamedMixin1 = self::SuperClass1 with self::Mixin {
   synthetic constructor •(core::String value) → self::NamedMixin1

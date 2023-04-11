@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -448,8 +449,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 }
 
 /// Instances of the class [UnusedLocalElementsVerifier] traverse an AST
-/// looking for cases of [HintCode.UNUSED_ELEMENT], [HintCode.UNUSED_FIELD],
-/// [HintCode.UNUSED_LOCAL_VARIABLE], etc.
+/// looking for cases of [WarningCode.UNUSED_ELEMENT],
+/// [WarningCode.UNUSED_FIELD],
+/// [WarningCode.UNUSED_LOCAL_VARIABLE], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The error listener to which errors will be reported.
   final AnalysisErrorListener _errorListener;
@@ -499,9 +501,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
     final declaredElement = node.declaredElement!;
-    _visitLocalVariableElement(declaredElement);
+    if (!declaredElement.isDuplicate) {
+      _visitLocalVariableElement(declaredElement);
+    }
 
     super.visitDeclaredVariablePattern(node);
   }
@@ -897,7 +903,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitFieldElement(FieldElement element) {
     if (!_isReadMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_FIELD, element, [element.displayName]);
+          WarningCode.UNUSED_FIELD, element, [element.displayName]);
     }
   }
 
@@ -916,7 +922,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       } else if (_usedElements.isCatchStackTrace(element)) {
         errorCode = WarningCode.UNUSED_CATCH_STACK;
       } else {
-        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
+        errorCode = WarningCode.UNUSED_LOCAL_VARIABLE;
       }
       _reportErrorForElement(errorCode, element, [element.displayName]);
     }

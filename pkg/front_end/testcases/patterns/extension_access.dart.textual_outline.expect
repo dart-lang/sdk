@@ -1,0 +1,15 @@
+class I {}
+
+class A implements I {}
+
+extension on A {
+  int get member => 87;
+}
+
+extension on I {
+  int get member => 42;
+}
+
+method(A a) => switch (a) {};
+main() {}
+expect(expected, actual) {}

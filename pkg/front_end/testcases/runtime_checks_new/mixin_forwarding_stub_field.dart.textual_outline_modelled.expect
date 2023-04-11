@@ -15,12 +15,10 @@ class B {
 }
 
 class C = B with M implements I<int>;
-
-class M {
+mixin M {
   int x = 0;
   int y = 0;
 }
-
 void expect(Object value, Object expected) {}
 void expectTypeError(void callback()) {}
 void main() {}

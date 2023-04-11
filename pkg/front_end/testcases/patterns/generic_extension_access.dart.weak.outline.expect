@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class I<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T%>
+    ;
+}
+class J<T extends core::Object? = dynamic> extends self::I<self::J::T%> {
+  synthetic constructor •() → self::J<self::J::T%>
+    ;
+}
+class A<T extends core::Object? = dynamic> extends self::J<self::A::T%> {
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on self::I<T%> {
+  get member = self::_extension#0|get#member;
+}
+static field core::int counter;
+static method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num
+  ;
+static method method1(self::I<core::num> i) → core::num
+  ;
+static method method2(self::A<core::num> i) → core::num
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

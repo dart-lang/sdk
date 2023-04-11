@@ -139,6 +139,108 @@ class TypeSystemImpl implements TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
+  /// Checks if an instance of [left] could possibly also be an instance of
+  /// [right]. For example, an instance of `num` could be `int`, so
+  /// canBeSubtypeOf(`num`, `int`) would return `true`, even though `num` is
+  /// not a subtype of `int`. More generally, we check if there could be a
+  /// type that implements both [left] and [right], regardless of whether
+  /// [left] is a subtype of [right], or [right] is a subtype of [left].
+  bool canBeSubtypeOf(DartType left, DartType right) {
+    // If one is `Null`, then the other must be nullable.
+    final leftIsNullable = isPotentiallyNullable(left);
+    final rightIsNullable = isPotentiallyNullable(right);
+    if (left.isDartCoreNull) {
+      return rightIsNullable;
+    } else if (right.isDartCoreNull) {
+      return leftIsNullable;
+    }
+
+    // If none is `Null`, but both are nullable, they match at `Null`.
+    if (leftIsNullable && rightIsNullable) {
+      return true;
+    }
+
+    // Could be `void Function() vs. Object`.
+    // Could be `void Function() vs. Function`.
+    if (left is FunctionTypeImpl && right is InterfaceTypeImpl) {
+      return right.isDartCoreFunction || right.isDartCoreObject;
+    }
+
+    // Could be `Object vs. void Function()`.
+    // Could be `Function vs. void Function()`.
+    if (left is InterfaceTypeImpl && right is FunctionTypeImpl) {
+      return left.isDartCoreFunction || left.isDartCoreObject;
+    }
+
+    if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
+      final leftElement = left.element;
+      final rightElement = right.element;
+
+      bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
+        assert(left.element == right.element);
+        final leftArguments = left.typeArguments;
+        final rightArguments = right.typeArguments;
+        assert(leftArguments.length == rightArguments.length);
+        for (var i = 0; i < leftArguments.length; i++) {
+          if (!canBeSubtypeOf(leftArguments[i], rightArguments[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // If the left is enum, we know types of all its instances.
+      if (leftElement is EnumElementImpl) {
+        for (final constant in leftElement.constants) {
+          final constantType = constant.type;
+          if (isSubtypeOf(constantType, right)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      if (leftElement == rightElement) {
+        return canBeSubtypeOfInterfaces(left, right);
+      }
+
+      if (leftElement is ClassElementImpl) {
+        // If the left is final, we know all subtypes, and can check them.
+        final finalSubtypes = leftElement.subtypesOfFinal;
+        if (finalSubtypes != null) {
+          for (final candidate in [left, ...finalSubtypes]) {
+            final asRight = candidate.asInstanceOf(rightElement);
+            if (asRight != null) {
+              if (_canBeEqualArguments(asRight, right)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+      }
+
+      if (rightElement is ClassElementImpl) {
+        // If the right is final, then it or one of its subtypes must
+        // implement the left.
+        final finalSubtypes = rightElement.subtypesOfFinal;
+        if (finalSubtypes != null) {
+          for (final candidate in [right, ...finalSubtypes]) {
+            final asLeft = candidate.asInstanceOf(leftElement);
+            if (asLeft != null) {
+              if (canBeSubtypeOfInterfaces(left, asLeft)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   /// Returns [type] in which all promoted type variables have been replaced
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
@@ -536,7 +638,7 @@ class TypeSystemImpl implements TypeSystem {
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.upwardsInfer();
+    return inferrer.chooseFinalTypes();
   }
 
   @override
@@ -716,9 +818,6 @@ class TypeSystemImpl implements TypeSystem {
       if (element is ClassElement && element.isSealed) {
         return true;
       }
-      if (element is MixinElement && element.isSealed) {
-        return true;
-      }
       if (type.isDartAsyncFutureOr) {
         return isAlwaysExhaustive(type.typeArguments[0]);
       }
@@ -794,10 +893,10 @@ class TypeSystemImpl implements TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings/hints for these in
-      // src/task/strong/checker.dart, which is a bit inconsistent. That
-      // code should be handled into places that use isAssignableTo, such as
-      // ErrorVerifier.
+      // TODO(leafp,jmesserly): we emit warnings for these in
+      // `src/task/strong/checker.dart`, which is a bit inconsistent. That code
+      // should be handled into places that use `isAssignableTo`, such as
+      // [ErrorVerifier].
       return true;
     }
 
@@ -1100,7 +1199,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNonNullable(DartType type) {
-    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
       return false;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNonNullable(type.promotedBound!);
@@ -1141,7 +1240,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNullable(DartType type) {
-    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
       return true;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNullable(type.promotedBound!);
@@ -1183,7 +1282,7 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isStrictlyNonNullable(DartType type) {
-    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
       return false;
     } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
@@ -1345,7 +1444,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     var inferredTypes = inferrer
-        .upwardsInfer()
+        .chooseFinalTypes()
         .map(_removeBoundsOfGenericFunctionTypes)
         .toFixedList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
@@ -1712,6 +1811,34 @@ class TypeSystemImpl implements TypeSystem {
     this.implicitCasts = implicitCasts;
     this.strictCasts = strictCasts;
     this.strictInference = strictInference;
+  }
+
+  /// Optimistically estimates, if type arguments of [left] can be equal to
+  /// the type arguments of [right]. Both types must be instantiations of the
+  /// same element.
+  bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
+    assert(left.element == right.element);
+    final leftArguments = left.typeArguments;
+    final rightArguments = right.typeArguments;
+    assert(leftArguments.length == rightArguments.length);
+    for (var i = 0; i < leftArguments.length; i++) {
+      final leftArgument = leftArguments[i];
+      final rightArgument = rightArguments[i];
+      if (!_canBeEqualTo(leftArgument, rightArgument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Optimistically estimates, if [left] can be equal to [right].
+  bool _canBeEqualTo(DartType left, DartType right) {
+    if (left is InterfaceType && right is InterfaceType) {
+      if (left.element != right.element) {
+        return false;
+      }
+    }
+    return true;
   }
 
   List<DartType> _defaultTypeArguments(

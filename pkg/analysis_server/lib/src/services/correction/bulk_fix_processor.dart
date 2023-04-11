@@ -25,6 +25,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -134,10 +135,10 @@ class BulkFixProcessor {
     HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
       DataDriven.new,
     ],
-    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
       DataDriven.new,
     ],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
+    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
       DataDriven.new,
     ],
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
@@ -172,11 +173,20 @@ class BulkFixProcessor {
   /// A map associating libraries to fixes with change counts.
   final ChangeMap changeMap = ChangeMap();
 
+  /// A token used to signal that the caller is no longer interested in the
+  /// results and processing can end early (in which case any results may be
+  /// invalid).
+  final CancellationToken? cancellationToken;
+
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
-  BulkFixProcessor(this.instrumentationService, this.workspace,
-      {this.useConfigFiles = false, List<String>? codes})
-      : builder = ChangeBuilder(workspace: workspace),
+  BulkFixProcessor(
+    this.instrumentationService,
+    this.workspace, {
+    this.useConfigFiles = false,
+    List<String>? codes,
+    this.cancellationToken,
+  })  : builder = ChangeBuilder(workspace: workspace),
         codes = codes?.map((e) => e.toLowerCase()).toList();
 
   List<BulkFix> get fixDetails {
@@ -191,10 +201,66 @@ class BulkFixProcessor {
     return details;
   }
 
+  bool get isCancelled => cancellationToken?.isCancellationRequested ?? false;
+
   /// Return a [BulkFixRequestResult] that includes a change builder that has
   /// been used to create fixes for the diagnostics in the libraries in the
   /// given [contexts].
-  Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) async {
+  Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) =>
+      _computeFixes(contexts);
+
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in [file] in the given [context].
+  Future<ChangeBuilder> fixErrorsForFile(
+      AnalysisContext context, String path) async {
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+
+    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+      var library = await context.currentSession.getResolvedLibrary(path);
+      if (!isCancelled && library is ResolvedLibraryResult) {
+        await _fixErrorsInLibrary(library);
+      }
+    }
+
+    return builder;
+  }
+
+  /// Checks whether any diagnostics are bulk fixable.
+  ///
+  /// This is faster than calling [fixErrors] if the only requirement is to
+  /// know that there are fixes, because it stops processing when the first
+  /// fixable diagnostic is found.
+  Future<bool> hasFixes(List<AnalysisContext> analysisContexts) async {
+    await _computeFixes(analysisContexts, stopAfterFirst: true);
+    return changeMap.hasFixes;
+  }
+
+  Future<void> _applyProducer(
+      CorrectionProducerContext context, CorrectionProducer producer) async {
+    producer.configure(context);
+    try {
+      var localBuilder = builder.copy();
+      await producer.compute(localBuilder);
+      builder = localBuilder;
+    } on ConflictingEditException {
+      // If a conflicting edit was added in [compute], then the [localBuilder]
+      // is discarded and we revert to the previous state of the builder.
+    }
+  }
+
+  /// Implementation for [fixErrors] and [hasFixes].
+  ///
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to create fixes for the diagnostics in the libraries in the
+  /// given [contexts].
+  ///
+  /// As an optimization for [hasFixes], if [stopAfterFirst] is `true`,
+  /// processing will stop early once a fixable diagnostic is found and the
+  /// results will contain at least that fix, but otherwise be incomplete.
+  Future<BulkFixRequestResult> _computeFixes(
+    List<AnalysisContext> contexts, {
+    bool stopAfterFirst = false,
+  }) async {
     // Ensure specified codes are defined.
     final codes = this.codes;
     if (codes != null) {
@@ -222,8 +288,14 @@ class BulkFixProcessor {
         }
 
         var library = await context.currentSession.getResolvedLibrary(path);
+        if (isCancelled) {
+          break;
+        }
         if (library is ResolvedLibraryResult) {
-          await _fixErrorsInLibrary(library);
+          await _fixErrorsInLibrary(library, stopAfterFirst: stopAfterFirst);
+          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+            break;
+          }
         }
       }
     }
@@ -231,38 +303,10 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  /// Return a change builder that has been used to create fixes for the
-  /// diagnostics in [file] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(
-      AnalysisContext context, String path) async {
-    var pathContext = context.contextRoot.resourceProvider.pathContext;
-
-    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
-      var library = await context.currentSession.getResolvedLibrary(path);
-      if (library is ResolvedLibraryResult) {
-        await _fixErrorsInLibrary(library);
-      }
-    }
-
-    return builder;
-  }
-
-  Future<void> _applyProducer(
-      CorrectionProducerContext context, CorrectionProducer producer) async {
-    producer.configure(context);
-    try {
-      var localBuilder = builder.copy();
-      await producer.compute(localBuilder);
-      builder = localBuilder;
-    } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
-    }
-  }
-
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
-  Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
+  Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
+      {bool stopAfterFirst = false}) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
 
     Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
@@ -316,6 +360,9 @@ class BulkFixProcessor {
       for (var error in filteredErrors(unitResult)) {
         await _fixSingleError(
             fixContext(unitResult, error), unitResult, error, overrideSet);
+        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+          return;
+        }
       }
     }
     //
@@ -336,7 +383,7 @@ class BulkFixProcessor {
           }
         } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
             errorCode == HintCode.UNNECESSARY_IMPORT ||
-            errorCode == HintCode.UNUSED_IMPORT) {
+            errorCode == WarningCode.UNUSED_IMPORT) {
           unusedImportErrors.add(error);
         }
       }
@@ -347,6 +394,9 @@ class BulkFixProcessor {
         if (context != null) {
           await _generateFix(context, OrganizeImports(),
               directivesOrderingError.errorCode.name);
+          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+            return;
+          }
         }
       } else {
         for (var error in unusedImportErrors) {
@@ -354,6 +404,9 @@ class BulkFixProcessor {
           if (context != null) {
             await _generateFix(
                 context, RemoveUnusedImport(), error.errorCode.name);
+            if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+              return;
+            }
           }
         }
       }
@@ -388,6 +441,9 @@ class BulkFixProcessor {
         var producer = generator();
         if (producer.canBeAppliedInBulk) {
           await _generateFix(context, producer, codeName);
+          if (isCancelled) {
+            return;
+          }
         }
       }
     }
@@ -398,9 +454,25 @@ class BulkFixProcessor {
       if (errorCode is LintCode) {
         var generators = FixProcessor.lintProducerMap[codeName] ?? [];
         await bulkApply(generators, codeName);
+        if (isCancelled) {
+          return;
+        }
+        var multiGenerators = FixProcessor.lintMultiProducerMap[codeName];
+        if (multiGenerators != null) {
+          for (var multiGenerator in multiGenerators) {
+            var multiProducer = multiGenerator();
+            multiProducer.configure(context);
+            for (var producer in await multiProducer.producers) {
+              await _generateFix(context, producer, codeName);
+            }
+          }
+        }
       } else {
         var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
         await bulkApply(generators, codeName);
+        if (isCancelled) {
+          return;
+        }
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
@@ -408,6 +480,9 @@ class BulkFixProcessor {
             multiProducer.configure(context);
             for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
+              if (isCancelled) {
+                return;
+              }
             }
           }
         }
@@ -471,6 +546,9 @@ class BulkFixRequestResult {
 class ChangeMap {
   /// Map of paths to maps of codes to counts.
   final Map<String, Map<String, int>> libraryMap = {};
+
+  /// Whether or not there are any available fixes.
+  bool get hasFixes => libraryMap.isNotEmpty;
 
   /// Add an entry for the given [code] in the given [libraryPath].
   void add(String libraryPath, String code) {

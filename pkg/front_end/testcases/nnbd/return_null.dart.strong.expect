@@ -108,32 +108,30 @@ static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
   #L1:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  switch(e) /*isExplicitlyExhaustive*/ {
+    #L2:
+    case #C3:
       {
         return e;
       }
-    }
-    else
-      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-        {
-          return e;
-        }
+    #L3:
+    case #C6:
+      {
+        return e;
       }
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
-  #L2:
-  {
-    final self::Enum #0#0 = e;
-    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+  #L4:
+  switch(e) {
+    #L5:
+    case #C3:
       {
         return e;
       }
-    }
-    else {
-    }
+    #L6:
+    default:
+      {}
   }
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
@@ -180,33 +178,31 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
-    #L3:
-    {
-      final self::Enum #0#0 = e;
-      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    #L7:
+    switch(e) /*isExplicitlyExhaustive*/ {
+      #L8:
+      case #C3:
         {
           return e;
         }
-      }
-      else
-        if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          {
-            return e;
-          }
+      #L9:
+      case #C6:
+        {
+          return e;
         }
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {
-    #L4:
-    {
-      final self::Enum #1#0 = e;
-      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #1#0) {
+    #L10:
+    switch(e) {
+      #L11:
+      case #C3:
         {
           return e;
         }
-      }
-      else {
-      }
+      #L12:
+      default:
+        {}
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.

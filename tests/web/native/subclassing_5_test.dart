@@ -10,7 +10,7 @@ import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 
 class I {}
 
-class M implements I {
+mixin M implements I {
   miz() => 'M';
 }
 

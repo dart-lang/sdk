@@ -36,52 +36,55 @@ void main() {
 
     test('exhaustiveness', () {
       // Case matching top type covers all subtypes.
-      expectReportErrors(a, [a]);
-      expectReportErrors(b, [a]);
-      expectReportErrors(d, [a]);
+      expectReportErrors(env, a, [a]);
+      expectReportErrors(env, b, [a]);
+      expectReportErrors(env, d, [a]);
 
       // Case matching subtype doesn't cover supertype.
-      expectReportErrors(a, [b], 'A is not exhaustively matched by B.');
-      expectReportErrors(b, [b]);
-      expectReportErrors(d, [b]);
-      expectReportErrors(e, [b]);
+      expectReportErrors(env, a, [b], 'A is not exhaustively matched by B.');
+      expectReportErrors(env, b, [b]);
+      expectReportErrors(env, d, [b]);
+      expectReportErrors(env, e, [b]);
 
       // Matching subtypes of sealed type is exhaustive.
-      expectReportErrors(a, [b, c]);
-      expectReportErrors(a, [d, e, f]);
-      expectReportErrors(a, [b, f]);
-      expectReportErrors(a, [c, d], 'A is not exhaustively matched by C|D.');
-      expectReportErrors(f, [g, h], 'F is not exhaustively matched by G|H.');
+      expectReportErrors(env, a, [b, c]);
+      expectReportErrors(env, a, [d, e, f]);
+      expectReportErrors(env, a, [b, f]);
+      expectReportErrors(
+          env, a, [c, d], 'A is not exhaustively matched by C|D.');
+      expectReportErrors(
+          env, f, [g, h], 'F is not exhaustively matched by G|H.');
     });
 
     test('unreachable case', () {
       // Same type.
-      expectReportErrors(b, [b, b], 'Case #2 B is unreachable.');
+      expectReportErrors(env, b, [b, b], 'Case #2 B is unreachable.');
 
       // Previous case is supertype.
-      expectReportErrors(b, [a, b], 'Case #2 B is unreachable.');
+      expectReportErrors(env, b, [a, b], 'Case #2 B is unreachable.');
 
       // Previous subtype cases cover sealed supertype.
-      expectReportErrors(a, [b, c, a], 'Case #3 A is unreachable.');
-      expectReportErrors(a, [d, e, f, a], 'Case #4 A is unreachable.');
-      expectReportErrors(a, [b, f, a], 'Case #3 A is unreachable.');
-      expectReportErrors(a, [c, d, a]);
+      expectReportErrors(env, a, [b, c, a], 'Case #3 A is unreachable.');
+      expectReportErrors(env, a, [d, e, f, a], 'Case #4 A is unreachable.');
+      expectReportErrors(env, a, [b, f, a], 'Case #3 A is unreachable.');
+      expectReportErrors(env, a, [c, d, a]);
 
       // Previous subtype cases do not cover unsealed supertype.
-      expectReportErrors(f, [g, h, f]);
+      expectReportErrors(env, f, [g, h, f]);
     });
 
     test('covered record destructuring |', () {
       var r = env.createRecordType({x: a, y: a, z: a});
 
       // Wider field is not covered.
-      expectReportErrors(r, [
+      expectReportErrors(env, r, [
         ty(r, {x: b}),
         ty(r, {x: a}),
       ]);
 
       // Narrower field is covered.
       expectReportErrors(
+          env,
           r,
           [
             ty(r, {x: a}),
@@ -104,35 +107,38 @@ void main() {
       var e = env.createClass('E', inherits: [c]);
 
       // Must cover null.
-      expectReportErrors(
-          a.nullable, [b, d, e], 'A? is not exhaustively matched by B|D|E.');
+      expectReportErrors(env, a.nullable, [b, d, e],
+          'A? is not exhaustively matched by B|D|E.');
 
       // Can cover null with any nullable subtype.
-      expectReportErrors(a.nullable, [b.nullable, c]);
-      expectReportErrors(a.nullable, [b, c.nullable]);
-      expectReportErrors(a.nullable, [b, d.nullable, e]);
-      expectReportErrors(a.nullable, [b, d, e.nullable]);
+      expectReportErrors(env, a.nullable, [b.nullable, c]);
+      expectReportErrors(env, a.nullable, [b, c.nullable]);
+      expectReportErrors(env, a.nullable, [b, d.nullable, e]);
+      expectReportErrors(env, a.nullable, [b, d, e.nullable]);
 
       // Can cover null with a null space.
-      expectReportErrors(a.nullable, [b, c, StaticType.nullType]);
-      expectReportErrors(a.nullable, [b, d, e, StaticType.nullType]);
+      expectReportErrors(env, a.nullable, [b, c, StaticType.nullType]);
+      expectReportErrors(env, a.nullable, [b, d, e, StaticType.nullType]);
 
       // Nullable covers the non-null.
       expectReportErrors(
-          a.nullable, [a.nullable, a], 'Case #2 A is unreachable.');
+          env, a.nullable, [a.nullable, a], 'Case #2 A is unreachable.');
       expectReportErrors(
-          b.nullable, [a.nullable, b], 'Case #2 B is unreachable.');
+          env, b.nullable, [a.nullable, b], 'Case #2 B is unreachable.');
 
       // Nullable covers null.
-      expectReportErrors(a.nullable, [a.nullable, StaticType.nullType],
+      expectReportErrors(env, a.nullable, [a.nullable, StaticType.nullType],
           'Case #2 Null is unreachable.');
-      expectReportErrors(b.nullable, [a.nullable, StaticType.nullType],
+      expectReportErrors(env, b.nullable, [a.nullable, StaticType.nullType],
           'Case #2 Null is unreachable.');
     });
   });
 }
 
-void expectReportErrors(StaticType valueType, List<Object> cases,
+void expectReportErrors(ObjectPropertyLookup objectFieldLookup,
+    StaticType valueType, List<Object> cases,
     [String errors = '']) {
-  expect(reportErrors(valueType, parseSpaces(cases)).join('\n'), errors);
+  expect(
+      reportErrors(objectFieldLookup, valueType, parseSpaces(cases)).join('\n'),
+      errors);
 }

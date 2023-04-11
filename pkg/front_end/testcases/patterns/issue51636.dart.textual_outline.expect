@@ -1,0 +1,2 @@
+int f<A>() => switch (unknownName) {};
+void main() {}

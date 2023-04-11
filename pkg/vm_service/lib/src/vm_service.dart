@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.3.0';
+const String vmServiceVersion = '4.4.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1791,6 +1791,12 @@ class VmServerConnection {
         'id': id,
         'result': response.toJson(),
       });
+    } on SentinelException catch (e) {
+      _responseSink.add({
+        'jsonrpc': '2.0',
+        'id': request['id'],
+        'result': e.sentinel.toJson(),
+      });
     } catch (e, st) {
       final error = e is RPCError
           ? e.toMap()
@@ -2862,6 +2868,9 @@ class InstanceKind {
 
   /// An instance of the Dart class ReceivePort.
   static const String kReceivePort = 'ReceivePort';
+
+  /// An instance of the Dart class UserTag.
+  static const String kUserTag = 'UserTag';
 }
 
 /// A `SentinelKind` is used to distinguish different kinds of `Sentinel`
@@ -5221,6 +5230,13 @@ class InstanceRef extends ObjRef {
   @optional
   String? debugName;
 
+  /// The label associated with a UserTag.
+  ///
+  /// Provided for instance kinds:
+  ///  - UserTag
+  @optional
+  String? label;
+
   InstanceRef({
     this.kind,
     this.identityHashCode,
@@ -5241,6 +5257,7 @@ class InstanceRef extends ObjRef {
     this.portId,
     this.allocationLocation,
     this.debugName,
+    this.label,
   }) : super(
           id: id,
         );
@@ -5284,6 +5301,7 @@ class InstanceRef extends ObjRef {
         createServiceObject(json['allocationLocation'], const ['InstanceRef'])
             as InstanceRef?;
     debugName = json['debugName'];
+    label = json['label'];
   }
 
   @override
@@ -5315,6 +5333,7 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'portId', portId);
     _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
     _setIfNotNull(json, 'debugName', debugName);
+    _setIfNotNull(json, 'label', label);
     return json;
   }
 
@@ -5669,6 +5688,14 @@ class Instance extends Obj implements InstanceRef {
   @override
   String? debugName;
 
+  /// The label associated with a UserTag.
+  ///
+  /// Provided for instance kinds:
+  ///  - UserTag
+  @optional
+  @override
+  String? label;
+
   Instance({
     this.kind,
     this.identityHashCode,
@@ -5705,6 +5732,7 @@ class Instance extends Obj implements InstanceRef {
     this.portId,
     this.allocationLocation,
     this.debugName,
+    this.label,
   }) : super(
           id: id,
           classRef: classRef,
@@ -5782,6 +5810,7 @@ class Instance extends Obj implements InstanceRef {
         createServiceObject(json['allocationLocation'], const ['InstanceRef'])
             as InstanceRef?;
     debugName = json['debugName'];
+    label = json['label'];
   }
 
   @override
@@ -5830,6 +5859,7 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'portId', portId);
     _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
     _setIfNotNull(json, 'debugName', debugName);
+    _setIfNotNull(json, 'label', label);
     return json;
   }
 

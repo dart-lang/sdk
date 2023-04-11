@@ -1,10 +1,10 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedOptions=--enable-experiment=sealed-class
 
-// Other-library declarations used by sealed_class_mixin_on_test.dart.
+// Other-library declarations used by sealed_class_mixin_on_error_test.dart.
 
 sealed class SealedClass {}
 
@@ -12,8 +12,8 @@ abstract class A extends SealedClass {}
 
 class B extends SealedClass {}
 
-sealed mixin SealedMixin {}
+// It is legal to declare a mixin whose `on` type is a sealed type from the
+// same library.
+mixin M on SealedClass {}
 
-class C extends SealedClass with SealedMixin {}
-
-class D with SealedMixin {}
+class C extends SealedClass with M {}

@@ -78,10 +78,10 @@ void createClassTest() {
         return (a ?? 'foo') + (b ?? 'bar');
       }
       this.doSum1Or2NonNull = function(a, b) {
-        return a + b;
+        return (a ?? 'foo') + (b ?? 'bar');
       }
       this.doSumUpTo2NonNull = function(a, b) {
-        return a + b;
+        return (a ?? 'foo') + (b ?? 'bar');
       }
       this.doIntSum1Or2 = function(a, b) {
         return a + (b ?? 2);
@@ -90,10 +90,10 @@ void createClassTest() {
         return (a ?? 1) + (b ?? 2);
       }
       this.doIntSum1Or2NonNull = function(a, b) {
-        return a + b;
+        return a + (b ?? 2);
       }
       this.doIntSumUpTo2NonNull = function(a, b) {
-        return a + b;
+        return (a ?? 1) + (b ?? 2);
       }
       this.nameInJSMethod = function(a, b) {
         return a + b;
@@ -307,23 +307,24 @@ class AnonymousJSClass {
 
 extension AnonymousJSClassExtension on AnonymousJSClass {
   external String? get foo;
-  external String get bar;
+  external String? get bar;
   external String? get bleep;
   external int? get goo;
-  external int get ooo;
+  external int? get ooo;
   external List<double>? saz;
-  external List<double> zoo;
+  external List<double>? zoo;
 }
 
 void anonymousTest() {
-  final anonymousJSClass = AnonymousJSClass.factory(foo: 'boo');
+  final anonymousJSClass = AnonymousJSClass.factory(
+      foo: 'boo', bleep: 'bleep', saz: const [1.0, 2.0], goo: 0);
   Expect.equals('boo', anonymousJSClass.foo);
-  Expect.equals('baz', anonymousJSClass.bar);
-  Expect.equals(null, anonymousJSClass.bleep);
-  Expect.equals(null, anonymousJSClass.goo);
-  Expect.equals(1, anonymousJSClass.ooo);
-  Expect.equals(null, anonymousJSClass.saz);
-  Expect.listEquals(const [1.0, 2.0], anonymousJSClass.zoo);
+  Expect.equals(null, anonymousJSClass.bar);
+  Expect.equals('bleep', anonymousJSClass.bleep);
+  Expect.equals(0, anonymousJSClass.goo);
+  Expect.equals(null, anonymousJSClass.ooo);
+  Expect.listEquals(const [1.0, 2.0], anonymousJSClass.saz!);
+  Expect.equals(null, anonymousJSClass.zoo);
 }
 
 @JS()

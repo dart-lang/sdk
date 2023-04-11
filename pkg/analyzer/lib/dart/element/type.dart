@@ -118,10 +118,15 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreSymbol;
 
+  /// Return `true` if this type represents the type 'Type' defined in the
+  /// dart:core library.
+  bool get isDartCoreType;
+
   /// Return `true` if this type represents the type 'dynamic'.
   bool get isDynamic;
 
   /// Return `true` if this type represents the type 'void'.
+  @Deprecated('Use `is VoidType` instead')
   bool get isVoid;
 
   /// Return the name of this type, or `null` if the type does not have a name,

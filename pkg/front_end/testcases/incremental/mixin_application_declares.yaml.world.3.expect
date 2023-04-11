@@ -15,10 +15,7 @@ library from "org-dartlang-test:///main_lib1.dart" as mai2 {
       ;
     method method(covariant-by-declaration dart.core::int i) → void {}
   }
-  class Mixin extends dart.core::Object {
-    synthetic constructor •() → mai2::Mixin
-      : super dart.core::Object::•()
-      ;
+  abstract class Mixin extends dart.core::Object /*isMixinDeclaration*/  {
     method method(dart.core::num i) → void {}
   }
   abstract class _Class&SuperClass&Mixin = mai2::SuperClass with mai2::Mixin /*isAnonymousMixin*/  {

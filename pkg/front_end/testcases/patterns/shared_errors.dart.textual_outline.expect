@@ -10,6 +10,8 @@ patternTypeMismatchInIrrefutableContext(List<String> list) {}
 duplicateAssignmentPatternVariable(List<String> list) {}
 duplicateRecordPatternField(o) {}
 duplicateRestPattern(o) {}
+emptyMapPattern(o) {}
+singleRestPatternInMap(o) {}
 matchedTypeIsStrictlyNonNullable(List<int> list) {}
 nonBooleanCondition(int i) {}
 refutablePatternInIrrefutableContext(int? x) {}

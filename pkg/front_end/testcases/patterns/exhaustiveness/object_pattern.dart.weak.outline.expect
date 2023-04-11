@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int field1;
+  field core::num field2;
+  constructor •(core::int field1, core::num field2) → self::A
+    ;
+}
+static method exhaustiveDirect(self::A a) → dynamic
+  ;
+static method exhaustiveWithWildcards(self::A a) → dynamic
+  ;
+static method exhaustiveWithFields(self::A a) → dynamic
+  ;
+static method exhaustiveWithTypedFields(self::A a) → dynamic
+  ;
+static method nonExhaustiveFixedField(self::A a) → dynamic
+  ;
+static method nonExhaustiveTypedField(self::A a) → dynamic
+  ;

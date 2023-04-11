@@ -474,6 +474,8 @@ suggestions
 
   Future<void> test_notImported_lowerRelevance_extension_getter() async {
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
@@ -513,6 +515,8 @@ suggestions
 
   Future<void> test_notImported_lowerRelevance_extension_method() async {
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
@@ -552,6 +556,8 @@ suggestions
 
   Future<void> test_notImported_lowerRelevance_extension_setter() async {
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
@@ -599,6 +605,8 @@ class A02 {}
 ''');
 
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     var response = await _getTestCodeSuggestions('''
 import 'b.dart';
@@ -634,6 +642,8 @@ int get foo02 => 0;
 ''');
 
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     var response = await _getTestCodeSuggestions('''
 import 'b.dart';
@@ -669,6 +679,8 @@ set foo02(int _) {}
 ''');
 
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     var response = await _getTestCodeSuggestions('''
 import 'b.dart';
@@ -704,6 +716,8 @@ var foo02 = 0;
 ''');
 
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     var response = await _getTestCodeSuggestions('''
 import 'b.dart';
@@ -919,6 +933,8 @@ class A03 {}
 ''');
 
     await _configureWithWorkspaceRoot();
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
 
     var response = await _getTestCodeSuggestions('''
 import 'a.dart' show A02;
@@ -2361,13 +2377,13 @@ extension MyClassExtension on MyClass {
     var request1 =
         CompletionGetSuggestionsParams(testFile.path, completionOffset)
             .toRequest('7');
-    var responseFuture1 = serverChannel.sendRequest(request1);
+    var responseFuture1 = serverChannel.simulateRequestFromClient(request1);
 
     // Make another request before the first request completes
     var request2 =
         CompletionGetSuggestionsParams(testFile.path, completionOffset)
             .toRequest('8');
-    var responseFuture2 = serverChannel.sendRequest(request2);
+    var responseFuture2 = serverChannel.simulateRequestFromClient(request2);
 
     // Await first response
     var response1 = await responseFuture1;

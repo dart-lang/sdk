@@ -1,4 +1,5 @@
 abstract class A {}
+
 inline class B {
   final A a;
   external B(A a);
@@ -14,4 +15,5 @@ inline class B {
   external static B get staticGetter;
   external static void set staticSetter(B b);
 }
+
 void method(A a) {}

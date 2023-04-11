@@ -1,0 +1,16 @@
+class I<T> {}
+
+class J<T> extends I<T> {}
+
+class A<T> extends J<T> {}
+
+int counter = 0;
+
+extension<T> on I<T> {
+  num get member {}
+}
+
+num method1(I<num> i) => switch (i) {};
+num method2(A<num> i) => switch (i) {};
+main() {}
+expect(expected, actual) {}

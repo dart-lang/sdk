@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 #include <math.h>
 #include <algorithm>
@@ -35,7 +35,8 @@
 namespace dart {
 
 bool HeapProfileSampler::enabled_ = false;
-Dart_HeapSamplingCallback HeapProfileSampler::callback_ = nullptr;
+Dart_HeapSamplingCreateCallback HeapProfileSampler::create_callback_ = nullptr;
+Dart_HeapSamplingDeleteCallback HeapProfileSampler::delete_callback_ = nullptr;
 RwLock* HeapProfileSampler::lock_ = new RwLock();
 intptr_t HeapProfileSampler::sampling_interval_ =
     HeapProfileSampler::kDefaultSamplingInterval;
@@ -78,10 +79,16 @@ void HeapProfileSampler::SetSamplingInterval(intptr_t bytes_interval) {
 }
 
 void HeapProfileSampler::SetSamplingCallback(
-    Dart_HeapSamplingCallback callback) {
+    Dart_HeapSamplingCreateCallback create_callback,
+    Dart_HeapSamplingDeleteCallback delete_callback) {
   // Protect against the callback being changed in the middle of a sample.
   WriteRwLocker locker(Thread::Current(), lock_);
-  callback_ = callback;
+  if ((create_callback_ != nullptr && create_callback == nullptr) ||
+      (delete_callback_ != nullptr && delete_callback == nullptr)) {
+    FATAL("Clearing sampling callbacks is prohibited.");
+  }
+  create_callback_ = create_callback;
+  delete_callback_ = delete_callback;
 }
 
 void HeapProfileSampler::ResetState() {
@@ -190,19 +197,15 @@ void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space,
   }
 }
 
-void HeapProfileSampler::InvokeCallbackForLastSample(
-    const char* type_name,
-    Dart_WeakPersistentHandle obj) {
+void* HeapProfileSampler::InvokeCallbackForLastSample() {
+  ASSERT(enabled_);
+  ASSERT(create_callback_ != nullptr);
   ReadRwLocker locker(thread_, lock_);
-  if (!enabled_) {
-    return;
-  }
-  if (callback_ != nullptr) {
-    callback_(
-        reinterpret_cast<void*>(thread_->isolate_group()->embedder_data()),
-        type_name, obj, last_sample_size_);
-  }
+  void* result = create_callback_(
+      reinterpret_cast<Dart_Isolate>(thread_->isolate()),
+      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()));
   last_sample_size_ = kUninitialized;
+  return result;
 }
 
 void HeapProfileSampler::SampleNewSpaceAllocation(intptr_t allocation_size) {
@@ -363,4 +366,4 @@ void HeapProfileSampler::SetNextSamplingIntervalLocked(intptr_t next_interval) {
 
 }  // namespace dart
 
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*spec.class: global#List:deps=[Class.m,JSArray.markFixedList],explicit=[List,List<Object>,List<String>?,List<markFixedList.T>],needsArgs,test*/
+/*spec.class: global#List:deps=[Class.m,JSArray.markFixedList],explicit=[List,List<Object>,List<Object?>,List<String>?,List<markFixedList.T>],needsArgs,test*/
 /*prod.class: global#List:deps=[Class.m],needsArgs,test*/
 
 /*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/

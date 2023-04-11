@@ -482,7 +482,7 @@ class Operand : public ValueObject {
   // used as an operand in either instruction. The encoded operand is written
   // to op.
   static OperandType CanHold(int64_t imm, uint8_t sz, Operand* op) {
-    ASSERT(op != NULL);
+    ASSERT(op != nullptr);
     ASSERT((sz == kXRegSizeInBits) || (sz == kWRegSizeInBits));
     if (Utils::IsUint(12, imm)) {
       op->encoding_ = imm << kImm12Shift;

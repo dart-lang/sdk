@@ -1,0 +1,5 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+[217]static method method([224] dynamic o) → dynamic
+[-1]  ;

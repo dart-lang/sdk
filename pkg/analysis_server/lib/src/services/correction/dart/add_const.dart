@@ -40,6 +40,23 @@ class AddConst extends CorrectionProducer {
       });
       return;
     }
+
+    Future<void> addParensAndConst(AstNode node_final) async {
+      var offset = node_final.offset;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset + node_final.length, ')');
+        builder.addSimpleInsertion(offset, 'const (');
+      });
+    }
+
+    if (targetNode is TypeArgumentList) {
+      while (targetNode is! CompilationUnit && targetNode is! ConstantPattern) {
+        targetNode = targetNode?.parent;
+      }
+    }
+    if (targetNode is CompilationUnit) {
+      return;
+    }
     if (targetNode is ConstantPattern) {
       var expression = targetNode.expression;
       var canBeConst = getLinterContext().canBeConst(expression);
@@ -48,6 +65,15 @@ class AddConst extends CorrectionProducer {
           final offset = expression.offset;
           builder.addSimpleInsertion(offset, 'const ');
         });
+      } else if (expression is TypeLiteral) {
+        var node_final = targetNode.parent;
+        if (node_final is ParenthesizedPattern) {
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addSimpleInsertion(node_final.offset, 'const ');
+          });
+        } else {
+          await addParensAndConst(node_final!);
+        }
       }
       return;
     }
@@ -61,11 +87,7 @@ class AddConst extends CorrectionProducer {
         });
       } else {
         // add const and parenthesis
-        var offset = node_final!.offset;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(offset + node_final.length, ')');
-          builder.addSimpleInsertion(offset, 'const (');
-        });
+        await addParensAndConst(node_final!);
       }
       return;
     }

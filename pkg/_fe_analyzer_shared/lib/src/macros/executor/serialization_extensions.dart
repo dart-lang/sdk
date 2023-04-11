@@ -61,6 +61,12 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.parameterDeclaration:
         moveNext();
         return _expectParameterDeclaration(id) as T;
+      case RemoteInstanceKind.recordFieldDeclaration:
+        moveNext();
+        return _expectRecordFieldDeclaration(id) as T;
+      case RemoteInstanceKind.recordTypeAnnotation:
+        moveNext();
+        return _expectRecordTypeAnnotation(id) as T;
       case RemoteInstanceKind.typeAliasDeclaration:
         moveNext();
         return _expectTypeAliasDeclaration(id) as T;
@@ -130,6 +136,21 @@ extension DeserializerExtensions on Deserializer {
         isNamed: (this..moveNext()).expectBool(),
         isRequired: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
+      );
+
+  RecordFieldDeclaration _expectRecordFieldDeclaration(int id) =>
+      new RecordFieldDeclarationImpl(
+          id: id,
+          identifier: expectRemoteInstance(),
+          name: (this..moveNext()).expectNullableString(),
+          type: (this..moveNext()).expectRemoteInstance());
+
+  RecordTypeAnnotation _expectRecordTypeAnnotation(int id) =>
+      new RecordTypeAnnotationImpl(
+        id: id,
+        isNullable: expectBool(),
+        namedFields: (this..moveNext())._expectRemoteInstanceList(),
+        positionalFields: (this..moveNext())._expectRemoteInstanceList(),
       );
 
   TypeParameterDeclaration _expectTypeParameterDeclaration(int id) =>
@@ -220,8 +241,13 @@ extension DeserializerExtensions on Deserializer {
         identifier: expectRemoteInstance(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
-        isAbstract: (this..moveNext()).expectBool(),
-        isExternal: (this..moveNext()).expectBool(),
+        hasAbstract: (this..moveNext()).expectBool(),
+        hasBase: (this..moveNext()).expectBool(),
+        hasExternal: (this..moveNext()).expectBool(),
+        hasFinal: (this..moveNext()).expectBool(),
+        hasInterface: (this..moveNext()).expectBool(),
+        hasMixin: (this..moveNext()).expectBool(),
+        hasSealed: (this..moveNext()).expectBool(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
         superclass:
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
@@ -234,8 +260,13 @@ extension DeserializerExtensions on Deserializer {
         identifier: expectRemoteInstance(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
-        isAbstract: (this..moveNext()).expectBool(),
-        isExternal: (this..moveNext()).expectBool(),
+        hasAbstract: (this..moveNext()).expectBool(),
+        hasBase: (this..moveNext()).expectBool(),
+        hasExternal: (this..moveNext()).expectBool(),
+        hasFinal: (this..moveNext()).expectBool(),
+        hasInterface: (this..moveNext()).expectBool(),
+        hasMixin: (this..moveNext()).expectBool(),
+        hasSealed: (this..moveNext()).expectBool(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
         superclass:
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
@@ -325,6 +356,14 @@ extension DeserializerExtensions on Deserializer {
             keywords: _readStringList(),
             name: (this..moveNext()).expectNullableString(),
             type: (this..moveNext()).expectNullableCode()) as T;
+      case CodeKind.recordField:
+        return new RecordFieldCode(
+            name: (this..moveNext()).expectNullableString(),
+            type: (this..moveNext()).expectCode()) as T;
+      case CodeKind.recordTypeAnnotation:
+        return new RecordTypeAnnotationCode(
+            namedFields: _readCodeList(),
+            positionalFields: _readCodeList()) as T;
       case CodeKind.typeParameter:
         return new TypeParameterCode(
             bound: (this..moveNext()).expectNullableCode(),
@@ -404,6 +443,25 @@ extension SerializeCode on Code {
         (self.typeAnnotation as OmittedTypeAnnotationImpl)
             .serialize(serializer);
         return;
+      case CodeKind.recordField:
+        RecordFieldCode self = this as RecordFieldCode;
+        serializer.addNullableString(self.name);
+        self.type.serialize(serializer);
+        return;
+      case CodeKind.recordTypeAnnotation:
+        RecordTypeAnnotationCode self = this as RecordTypeAnnotationCode;
+        serializer.startList();
+        for (RecordFieldCode field in self.namedFields) {
+          field.serialize(serializer);
+        }
+        serializer
+          ..endList()
+          ..startList();
+        for (RecordFieldCode field in self.positionalFields) {
+          field.serialize(serializer);
+        }
+        serializer.endList();
+        return;
       case CodeKind.parameter:
         ParameterCode self = this as ParameterCode;
         self.defaultValue.serializeNullable(serializer);
@@ -421,7 +479,10 @@ extension SerializeCode on Code {
         self.bound.serializeNullable(serializer);
         serializer.addString(self.name);
         return;
-      default:
+      case CodeKind.declaration:
+      case CodeKind.expression:
+      case CodeKind.raw:
+      case CodeKind.functionBody:
         serializer.startList();
         for (Object part in parts) {
           if (part is String) {

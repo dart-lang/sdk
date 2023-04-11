@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -337,6 +338,38 @@ PatternAssignment
   patternTypeSchema: (num)
   staticType: (int)
 ''');
+  }
+
+  test_declaredVariable_inPatternAssignment_referenced() async {
+    // Note: the error is reporting during parsing but we test it here to make
+    // sure that error recovery produces an AST that can be analyzed without
+    // crashing.
+    await assertErrorsInCode(r'''
+void f(a, y) {
+  [a, var d] = y;
+  d;
+}
+''', [
+      // The reference doesn't resolve so the errors include
+      // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+    ]);
+  }
+
+  test_declaredVariable_inPatternAssignment_unreferenced() async {
+    // Note: the error is reporting during parsing but we test it here to make
+    // sure that error recovery produces an AST that can be analyzed without
+    // crashing.
+    await assertErrorsInCode(r'''
+void f(a, y) {
+  [a, var d] = y;
+}
+''', [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+    ]);
   }
 
   test_final_becomesDefinitelyAssigned() async {

@@ -80,8 +80,6 @@ namespace dart {
   F(KernelProgramInfo, metadata_mappings_)                                     \
   F(KernelProgramInfo, scripts_)                                               \
   F(KernelProgramInfo, constants_)                                             \
-  F(KernelProgramInfo, potential_natives_)                                     \
-  F(KernelProgramInfo, potential_pragma_functions_)                            \
   F(KernelProgramInfo, constants_table_)                                       \
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \

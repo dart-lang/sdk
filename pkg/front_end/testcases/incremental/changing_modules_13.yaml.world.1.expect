@@ -16,15 +16,9 @@ library from "package:module/a.dart" as a {
       : super dart.core::Object::•()
       ;
   }
-  class B extends dart.core::Object {
-    synthetic constructor •() → a::B
-      : super dart.core::Object::•()
-      ;
+  abstract class B extends dart.core::Object /*isMixinDeclaration*/  {
   }
-  class C extends dart.core::Object {
-    synthetic constructor •() → a::C
-      : super dart.core::Object::•()
-      ;
+  abstract class C extends dart.core::Object /*isMixinDeclaration*/  {
   }
   class AB = a::A with a::B {
     synthetic constructor •() → a::AB

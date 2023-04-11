@@ -832,8 +832,21 @@ class CompilerOptions implements DiagnosticOptions {
       omitLateNames = false;
     }
 
-    if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
+    if (nullSafetyMode != NullSafetyMode.sound) {
+      // Technically, we should still assert if the user passed in a flag to
+      // assert, but this was not the behavior before, so to avoid a breaking
+      // change, we don't assert in unsound mode.
       nativeNullAssertions = false;
+    } else if (_noNativeNullAssertions) {
+      // Never assert if the user tells us not to.
+      nativeNullAssertions = false;
+    } else if (!nativeNullAssertions &&
+        (optimizationLevel != null && optimizationLevel! >= 3)) {
+      // If the user didn't tell us to assert and we're in >= -O3, optimize away
+      // the check. This should reduce issues in production.
+      nativeNullAssertions = false;
+    } else {
+      nativeNullAssertions = true;
     }
 
     if (_mergeFragmentsThreshold != null) {

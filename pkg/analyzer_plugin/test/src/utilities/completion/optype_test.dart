@@ -918,7 +918,7 @@ void g() {}
     addTestSource(r'''
 class C {
   final int foo;
-  
+
   C() : ^
 }
 ''');
@@ -930,7 +930,7 @@ class C {
     addTestSource(r'''
 class C {
   final int foo;
-  
+
   C() : foo = ^
 }
 ''');
@@ -2555,23 +2555,49 @@ main() {
   }
 
   Future<void> test_switchCase_expression1() async {
-    // SimpleIdentifier  SwitchCase  SwitchStatement
+    // SimpleIdentifier  SwitchPatternCase  SwitchStatement
     addTestSource('''m() {switch (x) {case ^D: return;}}''');
     await assertOpType(
-        completionLocation: 'SwitchCase_expression',
-        constructors: true,
-        returnValue: true,
-        typeNames: true);
+      completionLocation: 'SwitchPatternCase_pattern',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_switchCase_expression1_language219() async {
+    // SimpleIdentifier  SwitchCase  SwitchStatement
+    addTestSource('''
+// @dart = 2.19
+m() {switch (x) {case ^D: return;}}
+''');
+    await assertOpType(
+      completionLocation: 'SwitchCase_expression',
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
   }
 
   Future<void> test_switchCase_expression2() async {
-    // SimpleIdentifier  SwitchCase  SwitchStatement
+    // SimpleIdentifier  SwitchPatternCase  SwitchStatement
     addTestSource('''m() {switch (x) {case ^}}''');
     await assertOpType(
-        completionLocation: 'SwitchCase_expression',
-        constructors: true,
-        returnValue: true,
-        typeNames: true);
+      completionLocation: 'SwitchPatternCase_pattern',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_switchCase_expression2_language219() async {
+    // SimpleIdentifier  SwitchCase  SwitchStatement
+    addTestSource('''
+// @dart = 2.19
+m() {switch (x) {case ^}}
+''');
+    await assertOpType(
+      completionLocation: 'SwitchCase_expression',
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
   }
 
   Future<void> test_switchDefault_before() async {

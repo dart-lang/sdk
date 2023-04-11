@@ -107,7 +107,7 @@ class Float64x2 {
   factory Float64x2.fromFloat32x4(Float32x4 v) = _NaiveFloat64x2.fromFloat32x4;
 }
 
-class _NaiveInt32x4List extends Object
+final class _NaiveInt32x4List extends Object
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
   final Int32List _storage;
@@ -170,15 +170,12 @@ class _NaiveInt32x4List extends Object
   }
 }
 
-class _NaiveFloat32x4List extends Object
+final class _NaiveFloat32x4List extends Object
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
   final Float32List _storage;
 
   _NaiveFloat32x4List(int length) : _storage = Float32List(length * 4);
-
-  @override
-  Type get runtimeType => Float32x4List;
 
   _NaiveFloat32x4List._externalStorage(this._storage);
 
@@ -236,15 +233,12 @@ class _NaiveFloat32x4List extends Object
   }
 }
 
-class _NaiveFloat64x2List extends Object
+final class _NaiveFloat64x2List extends Object
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
   final Float64List _storage;
 
   _NaiveFloat64x2List(int length) : _storage = Float64List(length * 2);
-
-  @override
-  Type get runtimeType => Float64x2List;
 
   _NaiveFloat64x2List._externalStorage(this._storage);
 
@@ -296,7 +290,7 @@ class _NaiveFloat64x2List extends Object
   }
 }
 
-class _NaiveFloat32x4 implements Float32x4 {
+final class _NaiveFloat32x4 implements Float32x4 {
   final double x;
   final double y;
   final double z;
@@ -337,9 +331,6 @@ class _NaiveFloat32x4 implements Float32x4 {
         this.w = _truncate(w);
 
   _NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
-
-  @override
-  Type get runtimeType => Float32x4List;
 
   @override
   String toString() {
@@ -591,7 +582,7 @@ class _NaiveFloat32x4 implements Float32x4 {
   }
 }
 
-class _NaiveFloat64x2 implements Float64x2 {
+final class _NaiveFloat64x2 implements Float64x2 {
   final double x;
   final double y;
 
@@ -665,7 +656,7 @@ class _NaiveFloat64x2 implements Float64x2 {
   Float64x2 sqrt() => _NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
 }
 
-class _NaiveInt32x4 implements Int32x4 {
+final class _NaiveInt32x4 implements Int32x4 {
   final int x;
   final int y;
   final int z;

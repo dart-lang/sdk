@@ -96,6 +96,11 @@ class DartSnippetRequest {
         return SnippetContext.inStatement;
       }
 
+      // SwitchExpression outside of SwitchExpressionCase is a pattern.
+      if (node is SwitchExpression) {
+        return SnippetContext.inPattern;
+      }
+
       if (node is Expression) {
         return SnippetContext.inExpression;
       }
@@ -110,7 +115,8 @@ class DartSnippetRequest {
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
-          node is MixinDeclaration) {
+          node is MixinDeclaration ||
+          node is EnumDeclaration) {
         return SnippetContext.inClass;
       }
 

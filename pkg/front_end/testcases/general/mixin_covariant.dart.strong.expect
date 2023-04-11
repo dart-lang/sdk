@@ -9,16 +9,10 @@ typedef TakeOptionalInts = ([core::int?, core::int?, core::int?, core::int?]) �
 typedef TakeOptionalObjectsAndInts = ([core::Object?, core::int?, core::Object?, core::int?]) → void;
 typedef TakeNamedInts = ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void;
 typedef TakeNamedObjectsAndInts = ({a: core::Object?, b: core::int?, c: core::Object?, d: core::int?}) → void;
-class M1 extends core::Object {
-  synthetic constructor •() → self::M1
-    : super core::Object::•()
-    ;
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   method method(covariant-by-declaration core::int? a, core::int? b) → dynamic {}
 }
-class M2 extends core::Object {
-  synthetic constructor •() → self::M2
-    : super core::Object::•()
-    ;
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
   method method(core::int? a, covariant-by-declaration core::int? b) → dynamic {}
 }
 abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
@@ -113,16 +107,10 @@ class Interface2 extends core::Object {
     ;
   method method(core::int? a, covariant-by-declaration core::int? b, core::int? c, core::int? d, core::int? e) → void {}
 }
-class Mixin1 extends core::Object {
-  synthetic constructor •() → self::Mixin1
-    : super core::Object::•()
-    ;
+abstract class Mixin1 extends core::Object /*isMixinDeclaration*/  {
   method method(core::int? a, core::int? b, covariant-by-declaration core::int? c, core::int? d, core::int? e) → void {}
 }
-class Mixin2 extends core::Object {
-  synthetic constructor •() → self::Mixin2
-    : super core::Object::•()
-    ;
+abstract class Mixin2 extends core::Object /*isMixinDeclaration*/  {
   method method(core::int? a, core::int? b, core::int? c, covariant-by-declaration core::int? d, core::int? e) → void {}
 }
 class Superclass extends core::Object {

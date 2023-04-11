@@ -61,6 +61,7 @@ void testOpenBlankFilename() {
   openFuture.then((raf) => Expect.fail("Unreachable code")).catchError((error) {
     checkCannotOpenFileException(error);
     asyncEnd();
+    return file;
   });
 }
 
@@ -78,6 +79,7 @@ void testOpenNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -95,6 +97,7 @@ void testDeleteNonExistent() {
     checkDeleteNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -112,6 +115,7 @@ void testLengthNonExistent() {
     checkLengthNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -144,6 +148,7 @@ void testCreateInNonExistentDirectory() {
     checkCreateInNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -173,6 +178,7 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
     checkResolveSymbolicLinksOnNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -192,6 +198,7 @@ void testReadAsBytesNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -211,6 +218,7 @@ void testReadAsTextNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -230,6 +238,7 @@ testReadAsLinesNonExistent() {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
+    return file;
   });
 }
 
@@ -266,6 +275,7 @@ testWriteByteToReadOnlyFile() {
     writeByteFuture.catchError((error) {
       checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
+      return openedFile;
     });
   });
 }
@@ -283,6 +293,7 @@ testWriteFromToReadOnlyFile() {
     writeFromFuture.catchError((error) {
       checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
+      return openedFile;
     });
   });
 }
@@ -304,6 +315,7 @@ testTruncateReadOnlyFile() {
         .catchError((error) {
       checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
+      return openedFile;
     });
   });
 }
@@ -349,6 +361,7 @@ testOperateOnClosedFile() {
       if (--errorCount == 0) {
         done();
       }
+      return openedFile;
     }
 
     var readByteFuture = openedFile.readByte();
@@ -412,6 +425,7 @@ testRepeatedlyCloseFile() {
       closeFuture.then((ignore) => null).catchError((error) {
         Expect.isTrue(error is FileSystemException);
         done();
+        return openedFile;
       });
     });
   });

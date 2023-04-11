@@ -278,7 +278,7 @@ step_through_setter_test: Skip # Issues 32137 and 32138.
 step_through_switch_test: Skip # Times out. Issue 32137.
 step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $compiler == dartk && $simulator ]
 add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.

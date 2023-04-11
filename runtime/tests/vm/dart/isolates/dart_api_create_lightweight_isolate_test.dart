@@ -21,7 +21,7 @@ final bool usesDwarfStackTraces = Platform.executableArguments
 final bool hasSymbolicStackTraces = !usesDwarfStackTraces;
 final sdkRoot = Platform.script.resolve('../../../../../');
 
-class Isolate extends Opaque {}
+final class Isolate extends Opaque {}
 
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");

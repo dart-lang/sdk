@@ -1,3 +1,3 @@
 export "baz.dart";
 
-class Bar {}
+mixin Bar {}

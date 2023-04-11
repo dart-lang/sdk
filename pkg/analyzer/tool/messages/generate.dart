@@ -74,7 +74,7 @@ class _AnalyzerErrorGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -176,7 +176,7 @@ class _ErrorCodeValuesGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.

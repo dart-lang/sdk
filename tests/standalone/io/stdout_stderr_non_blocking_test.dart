@@ -24,7 +24,7 @@ callIOSink(IOSink sink) {
   controller.close();
 
   future.then((_) {
-    controller = new StreamController(sync: true);
+    controller = new StreamController<List<int>>(sync: true);
     controller.stream.pipe(sink);
     controller.add([72, 101, 108]);
     controller.add([108, 111, 10]);

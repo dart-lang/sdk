@@ -21,8 +21,6 @@ import 'package:path/path.dart' as path;
 import 'use_flag_test_helper.dart';
 
 Future main(List<String> args) async {
-  final buildDir = path.dirname(Platform.resolvedExecutable);
-
   if (!buildDir.contains('Product')) {
     print('Skipping test due to running in non-PRODUCT configuration.');
     return;

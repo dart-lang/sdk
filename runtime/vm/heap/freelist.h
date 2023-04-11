@@ -176,7 +176,7 @@ class FreeList {
   FreeListElement* DequeueElement(intptr_t index) {
     FreeListElement* result = free_lists_[index];
     FreeListElement* next = result->next();
-    if (next == NULL && index != kNumLists) {
+    if (next == nullptr && index != kNumLists) {
       intptr_t size = index << kObjectAlignmentLog2;
       if (size == last_free_small_size_) {
         // Note: This is -1 * kObjectAlignment if no other small sizes remain.

@@ -129,7 +129,19 @@ class RunCommand extends DartdevCommand {
         ..addFlag(
           'enable-asserts',
           help: 'Enable assert statements.',
-        );
+        )
+        ..addOption('timeline-recorder',
+            help: 'Selects the timeline recorder to use.\n'
+                'Valid recorders include: none, ring, endless, startup, '
+                'systrace, file, callback.\n'
+                'Defaults to ring.',
+            valueHelp: 'recorder');
+    } else {
+      argParser.addOption('timeline-recorder',
+          help: 'Selects the timeline recorder to use.\n'
+              'Valid recorders include: none, systrace, file, callback.\n'
+              'Defaults to none.',
+          valueHelp: 'recorder');
     }
     argParser.addOption(
       'verbosity',
@@ -197,6 +209,13 @@ class RunCommand extends DartdevCommand {
         hide: !verbose,
         negatable: false,
         help: 'Enables tracing of library and script loading.',
+      )
+      ..addOption(
+        'packages',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to the package resolution configuration file, which '
+            'supplies a mapping of package names\ninto paths.',
       );
 
     if (!isProductMode) {
@@ -331,7 +350,7 @@ class RunCommand extends DartdevCommand {
     VmInteropHandler.run(
       executable.executable,
       runArgs,
-      packageConfigOverride: executable.packageConfig,
+      packageConfigOverride: args['packages'] ?? executable.packageConfig,
     );
     return 0;
   }

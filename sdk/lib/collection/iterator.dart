@@ -21,7 +21,7 @@ part of dart.collection;
 /// cache the [Iterator.moveNext] result, so that [hasNext] can be
 /// checked multiple times.
 @Deprecated("Will be removed in a later version of the Dart SDK")
-class HasNextIterator<E> {
+final class HasNextIterator<E> {
   Iterator<E> _iterator;
 
   /// Cache for `_iterator.moveNext()`, used by `hasNext`.

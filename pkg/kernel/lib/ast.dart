@@ -87,6 +87,8 @@ import 'src/non_null.dart';
 import 'src/printer.dart';
 import 'src/text_util.dart';
 
+part 'src/ast/patterns.dart';
+
 /// Any type of node in the IR.
 abstract class Node {
   const Node();
@@ -3409,6 +3411,7 @@ class Procedure extends Member {
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagIsAbstractFieldAccessor = 1 << 9;
   static const int FlagInlineMember = 1 << 10;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 11;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3573,6 +3576,15 @@ class Procedure extends Member {
       stubKind == ProcedureStubKind.MemberSignature
           ? stubTargetReference?.asMember
           : null;
+
+  bool get hasWeakTearoffReferencePragma =>
+      flags & FlagHasWeakTearoffReferencePragma != 0;
+
+  void set hasWeakTearoffReferencePragma(bool value) {
+    flags = value
+        ? (flags | FlagHasWeakTearoffReferencePragma)
+        : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
 
   @override
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
@@ -11149,8 +11161,8 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// The name of the variable or parameter as provided in the source code.
   ///
   /// If this variable is synthesized, for instance the variable of a [Let]
-  /// expression, the name is in most cases `null`.
-  String? name;
+  /// expression, the name can be `null`.
+  String? _name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
 
@@ -11163,7 +11175,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Should be null in other cases.
   Expression? initializer; // May be null.
 
-  VariableDeclaration(this.name,
+  VariableDeclaration(this._name,
       {this.initializer,
       this.type = const DynamicType(),
       int flags = -1,
@@ -11174,6 +11186,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
+      bool isSynthesized = false,
+      bool isHoisted = false,
       bool hasDeclaredInitializer = false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
@@ -11189,7 +11203,11 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isRequired = isRequired;
       this.isLowered = isLowered;
       this.hasDeclaredInitializer = hasDeclaredInitializer;
+      this.isSynthesized = isSynthesized;
+      this.isHoisted = isHoisted;
     }
+    assert(_name != null || this.isSynthesized,
+        "Only synthesized variables can have no name.");
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
@@ -11211,6 +11229,19 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isRequired = isRequired;
     this.isLowered = isLowered;
     this.hasDeclaredInitializer = true;
+    this.isSynthesized = true;
+  }
+
+  /// The name of the variable as provided in the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  String? get name => _name;
+
+  void set name(String? value) {
+    assert(value != null || isSynthesized,
+        "Only synthesized variables can have no name.");
+    _name = value;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -11222,6 +11253,8 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagRequired = 1 << 6;
   static const int FlagCovariantByDeclaration = 1 << 7;
   static const int FlagLowered = 1 << 8;
+  static const int FlagSynthesized = 1 << 9;
+  static const int FlagHoisted = 1 << 10;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -11262,6 +11295,21 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Lowering is used for instance of encoding of 'this' in extension instance
   /// members and encoding of late locals.
   bool get isLowered => flags & FlagLowered != 0;
+
+  /// Whether this variable is synthesized, that is, it is _not_ declared in
+  /// the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  bool get isSynthesized => flags & FlagSynthesized != 0;
+
+  /// Whether the declaration of this variable is has been moved to an earlier
+  /// source location.
+  ///
+  /// This is for instance the case for variables declared in a pattern, where
+  /// the lowering requires the variable to be declared before the expression
+  /// that performs that matching in which its initialization occurs.
+  bool get isHoisted => flags & FlagHoisted != 0;
 
   /// Whether the variable has an initializer, either by declaration or copied
   /// from an original declaration.
@@ -11322,6 +11370,16 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   void set isLowered(bool value) {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  void set isSynthesized(bool value) {
+    assert(
+        value || _name != null, "Only synthesized variables can have no name.");
+    flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
+  }
+
+  void set isHoisted(bool value) {
+    flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
   }
 
   void set hasDeclaredInitializer(bool value) {
@@ -13315,7 +13373,11 @@ class RecordType extends DartType {
   final Nullability declaredNullability;
 
   RecordType(this.positional, this.named, this.declaredNullability)
-      : assert(() {
+      : /*TODO(johnniwinther): Enabled this assert:
+        assert(named.length == named.map((p) => p.name).toSet().length,
+            "Named field types must have unique names in a RecordType: "
+            "${named}"),*/
+        assert(() {
           // Assert that the named field types are sorted.
           for (int i = 1; i < named.length; i++) {
             if (named[i].name.compareTo(named[i - 1].name) < 0) {
@@ -15600,6 +15662,16 @@ final List<Statement> emptyListOfStatement =
 final List<SwitchCase> emptyListOfSwitchCase =
     List.filled(0, dummySwitchCase, growable: false);
 
+/// Almost const <SwitchExpressionCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<SwitchExpressionCase> emptyListOfSwitchExpressionCase =
+    List.filled(0, dummySwitchExpressionCase, growable: false);
+
+/// Almost const <PatternSwitchCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<PatternSwitchCase> emptyListOfPatternSwitchCase =
+    List.filled(0, dummyPatternSwitchCase, growable: false);
+
 /// Almost const <Catch>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Catch> emptyListOfCatch =
@@ -15914,13 +15986,31 @@ final Expression dummyExpression = new NullLiteral();
 final NamedExpression dummyNamedExpression =
     new NamedExpression('', dummyExpression);
 
+/// Almost const <Pattern>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Pattern> emptyListOfPattern =
+    List.filled(0, dummyPattern, growable: false);
+
+/// Almost const <NamedPattern>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedPattern> emptyListOfNamedPattern =
+    List.filled(0, dummyNamedPattern, growable: false);
+
+/// Almost const <MapPatternEntry>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<MapPatternEntry> emptyListOfMapPatternEntry =
+    List.filled(0, dummyMapPatternEntry, growable: false);
+
 /// Non-nullable [VariableDeclaration] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final VariableDeclaration dummyVariableDeclaration =
-    new VariableDeclaration(null);
+    new VariableDeclaration(null, isSynthesized: true);
 
 /// Non-nullable [TypeParameter] dummy value.
 ///

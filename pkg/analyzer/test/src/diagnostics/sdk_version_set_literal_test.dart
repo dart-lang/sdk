@@ -16,19 +16,19 @@ main() {
 @reflectiveTest
 class SdkVersionSetLiteralTest extends SdkConstraintVerifierTest {
   test_equals() async {
-    await verifyVersion('2.2.0', '''
+    await verifyVersion('>=2.2.0', '''
 Set<int> zero() => <int>{0};
 ''');
   }
 
   test_greaterThan() async {
-    await verifyVersion('2.3.0', '''
+    await verifyVersion('>=2.3.0', '''
 Set<int> zero() => <int>{0};
 ''');
   }
 
   test_lessThan() async {
-    await verifyVersion('2.1.0', '''
+    await verifyVersion('>=2.1.0', '''
 Set<int> zero() => <int>{0};
 ''', expectedErrors: [
       error(WarningCode.SDK_VERSION_SET_LITERAL, 19, 8),

@@ -8,6 +8,7 @@ is used to set up calls to tools used by the build that need wrappers.
 """
 
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -149,7 +150,28 @@ class WinTool(object):
                     not line.startswith('Generating code') and
                     not line.startswith('Finished generating code')):
                 print(line)
-        return link.wait()
+        link_result = link.wait()
+
+        if link_result != 0:
+            return link_result
+
+        # The toolchain configuration in gn always expects a .lib file to be
+        # included in the output of the link step. However, this only happens
+        # when the output has exports, and that is not always the case. In
+        # order to satisfy the expected outputs, we create a dummy .lib file
+        # in cases where the link step didn't actually create one.
+        for arg in args:
+            m = _LINK_EXE_OUT_ARG.match(arg)
+            if m:
+                output_filename = m.group('out')
+                (basename, extension) = os.path.splitext(output_filename)
+                if extension == '.exe':
+                    lib_path = pathlib.Path(basename + ".lib")
+                    if not os.path.exists(lib_path):
+                        lib_path.touch()
+                    break
+
+        return link_result
 
     def ExecMidlWrapper(self, arch, outdir, tlb, h, dlldata, iid, proxy, idl,
                         *flags):

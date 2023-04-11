@@ -41,9 +41,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:meta/meta.dart';
 
-@Deprecated('Use PatternField and visitPatternField() instead')
-typedef RecordPatternField = PatternField;
-
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
@@ -1963,6 +1960,9 @@ abstract class EnumConstantDeclaration implements Declaration {
   /// not be resolved.
   ConstructorElement? get constructorElement;
 
+  @override
+  FieldElement? get declaredElement;
+
   /// Return the name of the constant.
   Token get name;
 
@@ -2691,6 +2691,7 @@ abstract class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution has not yet been performed.
+  @Deprecated('Not used by clients')
   bool isPotentiallyMutatedInClosure(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within
@@ -3817,10 +3818,8 @@ abstract class MixinAugmentationDeclaration
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        mixinModifiers? 'mixin' name [TypeParameterList]?
+///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-///
-///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
@@ -3871,15 +3870,9 @@ abstract class MixinOrAugmentationDeclaration
   @override
   MixinOrAugmentationElement? get declaredElement2;
 
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
-  Token? get finalKeyword;
-
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
-
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
-  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
@@ -3896,9 +3889,6 @@ abstract class MixinOrAugmentationDeclaration
 
   /// Returns the right curly bracket.
   Token get rightBracket;
-
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
-  Token? get sealedKeyword;
 
   /// Returns the type parameters for the mixin, or `null` if the mixin does
   /// not have any type parameters.

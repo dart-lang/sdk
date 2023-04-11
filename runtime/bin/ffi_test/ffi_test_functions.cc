@@ -452,7 +452,13 @@ DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
   std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ", " << k << ")\n";
-  const intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
+  const intptr_t retval =
+      static_cast<uintptr_t>(a) + static_cast<uintptr_t>(b) +
+      static_cast<uintptr_t>(c) + static_cast<uintptr_t>(d) +
+      static_cast<uintptr_t>(e) + static_cast<uintptr_t>(f) +
+      static_cast<uintptr_t>(g) + static_cast<uintptr_t>(h) +
+      static_cast<uintptr_t>(i) + static_cast<uintptr_t>(j) +
+      static_cast<uintptr_t>(k);
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -827,15 +833,14 @@ TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
   std::cout << "result " << result << "\n";
   CHECK_EQ(result, 625);
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
-  CHECK_EQ(((int64_t)-0x8000000000000000LL),
-           fn(0, 0, 0, -0x8000000000000000LL));
+  CHECK_EQ(((int64_t)0x8000000000000000LL), fn(0, 0, 0, 0x8000000000000000LL));
   return 0;
 }
 
 DART_EXPORT intptr_t
 TestUintComputation(uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
-  CHECK_EQ(-0x8000000000000000LL, fn(0, 0, 0, -0x8000000000000000LL));
+  CHECK_EQ(0x8000000000000000LL, fn(0, 0, 0, 0x8000000000000000LL));
   CHECK_EQ(-1, (int64_t)fn(0, 0, 0, -1));
   return 0;
 }

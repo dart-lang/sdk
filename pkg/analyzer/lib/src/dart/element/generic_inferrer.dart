@@ -112,6 +112,14 @@ class GenericInferrer {
 
   TypeProviderImpl get typeProvider => _typeSystem.typeProvider;
 
+  /// Performs upwards inference, producing a final set of inferred types that
+  /// does not  contain references to the "unknown type".
+  List<DartType> chooseFinalTypes() => tryChooseFinalTypes(failAtError: false)!;
+
+  /// Performs partial (either downwards or horizontal) inference, producing a
+  /// set of inferred types that may contain references to the "unknown type".
+  List<DartType> choosePreliminaryTypes() => _chooseTypes(preliminary: true);
+
   /// Apply an argument constraint, which asserts that the [argument] staticType
   /// is a subtype of the [parameterType].
   void constrainArgument(
@@ -177,15 +185,11 @@ class GenericInferrer {
     _tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
-  /// Performs partial (either downwards or horizontal) inference, producing a
-  /// set of inferred types that may contain references to the "unknown type".
-  List<DartType> partialInfer() => _chooseTypes(partial: true);
-
-  /// Same as [upwardsInfer], but if [failAtError] is `true` (the default) and
-  /// inference fails, returns `null` rather than trying to perform error
+  /// Same as [chooseFinalTypes], but if [failAtError] is `true` (the default)
+  /// and inference fails, returns `null` rather than trying to perform error
   /// recovery.
-  List<DartType>? tryUpwardsInfer({bool failAtError = true}) {
-    var inferredTypes = _chooseTypes(partial: false);
+  List<DartType>? tryChooseFinalTypes({bool failAtError = true}) {
+    var inferredTypes = _chooseTypes(preliminary: false);
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement, DartType>{};
     var hasErrorReported = false;
@@ -297,10 +301,6 @@ class GenericInferrer {
     _nonNullifyTypes(result);
     return result;
   }
-
-  /// Performs upwards inference, producing a final set of inferred types that
-  /// does not  contain references to the "unknown type".
-  List<DartType> upwardsInfer() => tryUpwardsInfer(failAtError: false)!;
 
   /// Check that inferred [typeArguments] satisfy the [typeParameters] bounds.
   void _checkArgumentsNotMatchingBounds({
@@ -423,7 +423,7 @@ class GenericInferrer {
 
   /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
   /// that have been recorded so far.
-  List<DartType> _chooseTypes({required bool partial}) {
+  List<DartType> _chooseTypes({required bool preliminary}) {
     var inferredTypes = List<DartType>.filled(
         _typeFormals.length, UnknownInferredType.instance);
     for (int i = 0; i < _typeFormals.length; i++) {
@@ -445,7 +445,7 @@ class GenericInferrer {
       var previouslyInferredType = _typesInferredSoFar[typeParam];
       if (previouslyInferredType != null) {
         inferredTypes[i] = previouslyInferredType;
-      } else if (partial) {
+      } else if (preliminary) {
         var inferredType = _inferTypeParameterFromContext(
             constraints, extendsClause,
             isContravariant: typeParam.variance.isContravariant);

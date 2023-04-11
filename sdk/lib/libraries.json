@@ -139,6 +139,9 @@
       "_js_types": {
         "uri": "_internal/wasm/lib/js_types.dart"
       },
+      "_wasm": {
+        "uri": "_wasm/wasm_types.dart"
+      },
       "async": {
         "uri": "async/async.dart",
         "patches": [
@@ -231,9 +234,6 @@
           "_internal/wasm/lib/typed_data_patch.dart",
           "_internal/wasm/lib/simd_patch.dart"
         ]
-      },
-      "wasm": {
-        "uri": "wasm/wasm_types.dart"
       }
     }
   },

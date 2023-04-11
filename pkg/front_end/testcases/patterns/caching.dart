@@ -15,7 +15,7 @@ int ifCase(o) {
   if (o case 1) {
     return 1;
   }
-  if (o case (f: >=3 as int && <5 as int)) {
+  if (o case (f: (>=3) as int && (<5) as int)) {
     return 2;
   }
   if (o case 6 || 7) {
@@ -39,10 +39,10 @@ int ifCase(o) {
   if (o case [3, 4, ..., 5]) {
     return 9;
   }
-  if (o case [4, 5, ...[<1 as int, >2 as int]]) {
+  if (o case [4, 5, ...[(<1) as int, (>2) as int]]) {
     return 10;
   }
-  if (o case [5, 6, ...[<1 as int, >2 as int], 7]) {
+  if (o case [5, 6, ...[(<1) as int, (>2) as int], 7]) {
     return 11;
   }
   if (o case Class(field: 1)) {
@@ -72,13 +72,13 @@ int ifCase(o) {
   if (o case bool _) {
     return 20;
   }
-  if (o case {}) {
+  if (o case Map() when o.isEmpty) {
     return 21;
   }
   if (o case {0: int _}) {
     return 22;
   }
-  if (o case {1: String _, ...}) {
+  if (o case {1: String _}) {
     return 23;
   }
   if (o case {2: var a}) {
@@ -103,7 +103,7 @@ int ifCaseElse(o) {
   print('o = $o');
   if (o case 1) {
     return 1;
-  } else if (o case (f: >=3 as int && <5 as int)) {
+  } else if (o case (f: (>=3) as int && (<5) as int)) {
     return 2;
   } else if (o case 6 || 7) {
     return 3;
@@ -119,9 +119,9 @@ int ifCaseElse(o) {
     return 8;
   } else if (o case [3, 4, ..., 5]) {
     return 9;
-  } else if (o case [4, 5, ...[<1 as int, >2 as int]]) {
+  } else if (o case [4, 5, ...[(<1) as int, (>2) as int]]) {
     return 10;
-  } else if (o case [5, 6, ...[<1 as int, >2 as int], 7]) {
+  } else if (o case [5, 6, ...[(<1) as int, (>2) as int], 7]) {
     return 11;
   } else if (o case Class(field: 1)) {
     return 12;
@@ -141,11 +141,11 @@ int ifCaseElse(o) {
     return 19;
   } else if (o case bool _) {
     return 20;
-  } else if (o case {}) {
+  } else if (o case Map() when o.isEmpty) {
     return 21;
   } else if (o case {0: int _}) {
     return 22;
-  } else if (o case {1: String _, ...}) {
+  } else if (o case {1: String _}) {
     return 23;
   } else if (o case {2: var a}) {
     return 24;
@@ -167,7 +167,7 @@ int switchStatement(o) {
   switch (o) {
     case 1:
       return 1;
-    case (f: >=3 as int && <5 as int):
+    case (f: (>=3) as int && (<5) as int):
       return 2;
     case 6 || 7:
       return 3;
@@ -183,9 +183,9 @@ int switchStatement(o) {
       return 8;
     case [3, 4, ..., 5]:
       return 9;
-    case [4, 5, ...[<1 as int, >2 as int]]:
+    case [4, 5, ...[(<1) as int, (>2) as int]]:
       return 10;
-    case [5, 6, ...[<1 as int, >2 as int], 7]:
+    case [5, 6, ...[(<1) as int, (>2) as int], 7]:
       return 11;
     case Class(field: 1):
       return 12;
@@ -205,11 +205,11 @@ int switchStatement(o) {
       return 19;
     case bool _:
       return 20;
-    case {}:
+    case Map() when o.isEmpty:
       return 21;
     case {0: int _}:
       return 22;
-    case {1: String _, ...}:
+    case {1: String _}:
       return 23;
     case {2: var a}:
       return 24;
@@ -230,7 +230,7 @@ int switchExpression(o) {
   print('o = $o');
   return switch (o) {
     1 => 1,
-    (f: >=3 as int && <5 as int) => 2,
+    (f: (>=3) as int && (<5) as int) => 2,
     6 || 7 => 3,
     (g: 8 as int) => 4,
     (a: _!) => 5,
@@ -238,8 +238,8 @@ int switchExpression(o) {
     [1, 2] => 7,
     [2, 3, ...] => 8,
     [3, 4, ..., 5] => 9,
-    [4, 5, ...[<1 as int, >2 as int]] => 10,
-    [5, 6, ...[<1 as int, >2 as int], 7] => 11,
+    [4, 5, ...[(<1) as int, (>2) as int]] => 10,
+    [5, 6, ...[(<1) as int, (>2) as int], 7] => 11,
     Class(field: 1) => 12,
     Class(finalField: 2) => 13,
     Class(field: 3, getter: 4) => 14,
@@ -249,9 +249,9 @@ int switchExpression(o) {
     <int, int>{5: >= 16} => 18,
     [_] => 19,
     bool _ => 20,
-    {} => 21,
+    Map() when o.isEmpty => 21,
     {0: int _} => 22,
-    {1: String _, ...} => 23,
+    {1: String _} => 23,
     {2: var a} => 24,
     {3: int b} => 25,
     (0, 1) => 26,

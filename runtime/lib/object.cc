@@ -11,7 +11,6 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -334,22 +333,6 @@ DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
-#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
-  const String& filename =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  {
-    FileHeapSnapshotWriter file_writer(thread, filename.ToCString());
-    HeapSnapshotWriter writer(thread, &file_writer);
-    writer.Write();
-  }
-#else
-  Exceptions::ThrowUnsupportedError(
-      "Heap snapshots are only supported in non-product mode.");
-#endif  // !defined(PRODUCT)
-  return Object::null();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
   DeoptimizeFunctionsOnStack();
   return Object::null();
@@ -560,7 +543,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         DartFrameIterator iterator(Thread::Current(),
                                    StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* caller_frame = iterator.NextFrame();
-        ASSERT(caller_frame != NULL);
+        ASSERT(caller_frame != nullptr);
         location = caller_frame->GetTokenPos();
       }
       const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));

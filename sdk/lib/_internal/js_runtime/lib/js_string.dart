@@ -8,7 +8,8 @@ part of _interceptors;
 /// class as an interceptor, and changes references to [:this:] to
 /// actually use the receiver of the method, which is generated as an extra
 /// argument added to each member.
-class JSString extends Interceptor implements String, JSIndexable {
+final class JSString extends Interceptor
+    implements String, JSIndexable, TrustedGetRuntimeType {
   const JSString();
 
   @pragma('dart2js:noInline')
@@ -459,7 +460,8 @@ class JSString extends Interceptor implements String, JSIndexable {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  Type get runtimeType => String;
+  // Same as `=> String;`, but without a constant-pool object.
+  Type get runtimeType => createRuntimeType(TYPE_REF<String>());
 
   int get length => JS('int', r'#.length', this);
 

@@ -48,7 +48,7 @@ abstract class A2 extends core::Object implements core::Record {
   synthetic constructor •() → self::A2
     ;
 }
-abstract class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+abstract final class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A3&Object&Record
     : super core::Object::•()
     ;
@@ -134,7 +134,7 @@ import "dart:core" as core;
 typedef FromSupportedR = core::Record;
 typedef FromSupportedAR = typ::A<core::Record>;
 typedef FromSupportedRR = core::Record;
-abstract class A<X extends core::Object? = dynamic> extends core::Object {
+abstract mixin class A<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → typ::A<typ::A::X%>
     ;
 }

@@ -44,12 +44,12 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 0, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(3));
 
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL) {
+  if (recorder == nullptr) {
     return Object::null();
   }
 
   TimelineEvent* event = Timeline::GetDartStream()->StartEvent();
-  if (event == NULL) {
+  if (event == nullptr) {
     // Stream was turned off.
     return Object::null();
   }

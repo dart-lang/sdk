@@ -16,7 +16,7 @@ class Classy {
   external void goodHasReceiverHandle(int v);
 }
 
-class NativeClassy extends NativeFieldWrapperClass1 {
+base class NativeClassy extends NativeFieldWrapperClass1 {
   @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
   external static int returnIntPtrStatic(int x);
 

@@ -5,119 +5,120 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   #L1:
   {
-    core::int #t1 = -1;
-    core::int y;
-    core::double y#1;
-    core::String y#2;
-    final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
-      #t1 = 0;
-    else
-      if(#C1 =={core::String::==}{(core::Object) → core::bool} #0#0 || #C2 =={core::String::==}{(core::Object) → core::bool} #0#0)
-        #t1 = 1;
-      else
-        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = y#1 = #0#0{core::double} in true))
-          #t1 = 2;
-        else
-          if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y#2 = #0#0{core::String} in true))
-            #t1 = 3;
-          else
-            #t1 = 4;
-    switch(#t1) {
-      #L2:
-      case #C3:
-        {
+    core::int #t1 = 1.{core::int::unary-}(){() → core::int};
+    final synthesized dynamic #0#0 = x;
+    #L2:
+    {
+      {
+        hoisted core::int y;
+        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true)) {
           {
-            continue #L3;
+            #t1 = 0;
+            break #L2;
           }
         }
-      #L3:
-      case #C4:
-        {
+      }
+      {
+        if(#C1 =={core::String::==}{(core::Object) → core::bool} #0#0 || #C2 =={core::String::==}{(core::Object) → core::bool} #0#0) {
+          #t1 = 0;
+          break #L2;
+        }
+      }
+      {
+        hoisted core::double y;
+        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = y = #0#0{core::double} in true)) {
           {
-            return 0;
+            #t1 = 0;
+            break #L2;
           }
         }
-      #L4:
-      case #C5:
-        {
+      }
+      {
+        hoisted core::String y;
+        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#0{core::String} in true)) {
           {
-            continue #L3;
+            #t1 = 0;
+            break #L2;
           }
         }
-      #L5:
-      case #C6:
-        {
-          {
-            continue #L3;
-          }
-        }
-      #L6:
-      case #C7:
-      default:
+      }
+      {
         {
           {
             return 1;
+          }
+        }
+      }
+    }
+    switch(#t1) {
+      #L3:
+      case #C3:
+        {
+          {
+            return 0;
           }
         }
     }
   }
 }
 static method test2(dynamic x) → dynamic {
-  #L7:
+  #L4:
   {
-    core::int #t5 = -1;
-    core::String y;
-    core::int y#1;
-    core::double y#2;
-    core::bool y1;
-    core::List<dynamic> y2;
-    final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t6 = y = #0#0{core::String} in true))
-      #t5 = 0;
-    else
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y#1 = #0#0{core::int} in true))
-        #t5 = 1;
-      else
-        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t8 = y#2 = #0#0{core::double} in true))
-          #t5 = 2;
-        else
-          if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t9 = y1 = #0#0{core::bool} in true))
-            #t5 = 3;
-          else
-            if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (let final core::List<dynamic> #t10 = y2 = #0#0{core::List<dynamic>} in true) || true)
-              #t5 = 4;
-    switch(#t5) {
-      #L8:
-      case #C3:
-        {
+    core::int #t5 = 1.{core::int::unary-}(){() → core::int};
+    hoisted core::double y;
+    hoisted core::List<dynamic> y2;
+    final synthesized dynamic #0#0 = x;
+    #L5:
+    {
+      {
+        hoisted core::String y;
+        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t6 = y = #0#0{core::String} in true)) {
           {
             return "String";
           }
         }
-      #L9:
-      case #C4:
-        {
+      }
+      {
+        hoisted core::int y;
+        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y = #0#0{core::int} in true)) {
           {
-            continue #L10;
+            #t5 = 0;
+            break #L5;
           }
         }
-      #L10:
-      case #C5:
+      }
+      {
+        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t8 = y = #0#0{core::double} in true)) {
+          #t5 = 0;
+          break #L5;
+        }
+      }
+      {
+        hoisted core::bool y1;
+        if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t9 = y1 = #0#0{core::bool} in true)) {
+          {
+            #t5 = 1;
+            break #L5;
+          }
+        }
+      }
+      {
+        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (let final core::List<dynamic> #t10 = y2 = #0#0{core::List<dynamic>} in true) || true) {
+          #t5 = 1;
+          break #L5;
+        }
+      }
+    }
+    switch(#t5) {
+      #L6:
+      case #C3:
         {
           {
             return "num";
           }
         }
-      #L11:
-      case #C6:
-        {
-          {
-            continue #L12;
-          }
-        }
-      #L12:
-      case #C7:
+      #L7:
+      case #C4:
       default:
         {
           {
@@ -155,7 +156,9 @@ constants  {
   #C2 = "foobar"
   #C3 = 0
   #C4 = 1
-  #C5 = 2
-  #C6 = 3
-  #C7 = 4
 }
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue50931.dart:6:3 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue50931.dart:25:3 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 107, effectively constant: 2

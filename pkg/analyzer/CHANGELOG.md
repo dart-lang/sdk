@@ -1,3 +1,22 @@
+## 5.10.0
+* Added `DartType.isDartCoreType`.
+
+## 5.9.0
+* Deprecated `FunctionBody.isPotentiallyMutatedInClosure`, not used by clients.
+* Fix for `FunctionBody.isPotentiallyMutatedInScope` and pattern assignment.
+
+## 5.8.0
+* Deprecated `DartType.isVoid`, use `is VoidType` instead.
+* `records`, `patterns`, and `class-modifiers` features enabled by default.
+
+## 5.7.1
+* Require SDK `>=2.19.0 <3.0.0` to use `PathNotFoundException` from `dart:io`.
+
+## 5.7.0
+* Work on `class-modifiers` feature.
+* Work on `patterns` feature.
+* Support for primitive equality.
+
 ## 5.6.0
 * Fixes for patterns parsing.
 * Implemented `DartPattern.precedence`.

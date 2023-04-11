@@ -66,6 +66,7 @@ class StaticError implements Comparable<StaticError> {
   // of error codes in sdk/pkg/analyzer/lib/error/error.dart. Is there a more
   // systematic way to handle this?
   static const _analyzerWarningCodes = {
+    "HINT.UNREACHABLE_SWITCH_CASE",
     "STATIC_WARNING.ANALYSIS_OPTION_DEPRECATED",
     "STATIC_WARNING.INCLUDE_FILE_NOT_FOUND",
     "STATIC_WARNING.INCLUDED_FILE_WARNING",
@@ -315,6 +316,7 @@ class StaticError implements Comparable<StaticError> {
     throw UnsupportedError("ErrorSource ${source.name}");
   }
 
+  @override
   String toString() {
     var buffer = StringBuffer("StaticError(");
     buffer.write("line: $line, column: $column");
@@ -599,7 +601,7 @@ class _ErrorExpectationParser {
         var messageMatch = _errorMessageRestRegExp.firstMatch(nextLine);
         if (messageMatch == null) break;
 
-        message += "\n" + messageMatch[1]!;
+        message += "\n${messageMatch[1]!}";
         _advance();
         sourceLines.add(_currentLine);
       }

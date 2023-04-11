@@ -536,6 +536,18 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    visited.add(ExpressionKind.SwitchExpression);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    visited.add(ExpressionKind.PatternAssignment);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitArguments(Arguments node) {
     visited.add(NodeKind.Arguments);
     node.visitChildren(this);
@@ -676,6 +688,24 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    visited.add(StatementKind.PatternSwitchStatement);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    visited.add(StatementKind.PatternVariableDeclaration);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    visited.add(StatementKind.IfCaseStatement);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     visited.add(NodeKind.SwitchCase);
     node.visitChildren(this);
@@ -696,6 +726,140 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitComponent(Component node) {
     visited.add(NodeKind.Component);
+    node.visitChildren(this);
+  }
+
+  @override
+  void defaultPattern(Pattern node) {}
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    visited.add(PatternKind.ConstantPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAndPattern(AndPattern node) {
+    visited.add(PatternKind.AndPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitOrPattern(OrPattern node) {
+    visited.add(PatternKind.OrPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    visited.add(PatternKind.CastPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    visited.add(PatternKind.NullAssertPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    visited.add(PatternKind.NullCheckPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    visited.add(PatternKind.ListPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    visited.add(PatternKind.ObjectPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    visited.add(PatternKind.RelationalPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    visited.add(PatternKind.WildcardPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    visited.add(PatternKind.AssignedVariablePattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    visited.add(PatternKind.MapPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNamedPattern(NamedPattern node) {
+    visited.add(PatternKind.NamedPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    visited.add(PatternKind.RecordPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariablePattern(VariablePattern node) {
+    visited.add(PatternKind.VariablePattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRestPattern(RestPattern node) {
+    visited.add(PatternKind.RestPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitInvalidPattern(InvalidPattern node) {
+    visited.add(PatternKind.InvalidPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    visited.add(NodeKind.MapPatternEntry);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitMapPatternRestEntry(MapPatternRestEntry node) {
+    visited.add(NodeKind.MapPatternRestEntry);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternGuard(PatternGuard node) {
+    visited.add(NodeKind.PatternGuard);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternSwitchCase(PatternSwitchCase node) {
+    visited.add(NodeKind.PatternSwitchCase);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    visited.add(NodeKind.SwitchExpressionCase);
     node.visitChildren(this);
   }
 
@@ -1058,11 +1222,16 @@ enum NodeKind {
   LibraryDependency,
   LibraryPart,
   MapLiteralEntry,
+  MapPatternEntry,
+  MapPatternRestEntry,
   Name,
   NamedExpression,
   NamedType,
+  PatternGuard,
+  PatternSwitchCase,
   Supertype,
   SwitchCase,
+  SwitchExpressionCase,
   TypeParameter,
   Typedef,
 }
@@ -1127,6 +1296,7 @@ enum ExpressionKind {
   Not,
   NullCheck,
   NullLiteral,
+  PatternAssignment,
   RecordIndexGet,
   RecordLiteral,
   RecordNameGet,
@@ -1143,6 +1313,7 @@ enum ExpressionKind {
   SuperMethodInvocation,
   SuperPropertyGet,
   SuperPropertySet,
+  SwitchExpression,
   SymbolLiteral,
   ThisExpression,
   Throw,
@@ -1164,8 +1335,11 @@ enum StatementKind {
   ForInStatement,
   ForStatement,
   FunctionDeclaration,
+  IfCaseStatement,
   IfStatement,
   LabeledStatement,
+  PatternSwitchStatement,
+  PatternVariableDeclaration,
   ReturnStatement,
   SwitchStatement,
   TryCatch,
@@ -1173,6 +1347,26 @@ enum StatementKind {
   VariableDeclaration,
   WhileStatement,
   YieldStatement,
+}
+
+enum PatternKind {
+  AndPattern,
+  AssignedVariablePattern,
+  CastPattern,
+  ConstantPattern,
+  InvalidPattern,
+  ListPattern,
+  MapPattern,
+  NamedPattern,
+  NullAssertPattern,
+  NullCheckPattern,
+  ObjectPattern,
+  OrPattern,
+  RecordPattern,
+  RelationalPattern,
+  RestPattern,
+  VariablePattern,
+  WildcardPattern,
 }
 
 enum DartTypeKind {
@@ -1221,6 +1415,7 @@ Set<Object> missingNodes(CoverageVisitor visitor) {
     ...InitializerKind.values,
     ...ExpressionKind.values,
     ...StatementKind.values,
+    ...PatternKind.values,
     ...DartTypeKind.values,
     ...ConstantKind.values,
   };
@@ -1253,6 +1448,13 @@ Set<ExpressionKind> missingExpressions(CoverageVisitor visitor) {
 /// Returns the set of [StatementKind]s that were not visited by [visitor].
 Set<StatementKind> missingStatements(CoverageVisitor visitor) {
   Set<StatementKind> all = new Set<StatementKind>.of(StatementKind.values);
+  all.removeAll(visitor.visited);
+  return all;
+}
+
+/// Returns the set of [PatternKind]s that were not visited by [visitor].
+Set<PatternKind> missingPatterns(CoverageVisitor visitor) {
+  Set<PatternKind> all = new Set<PatternKind>.of(PatternKind.values);
   all.removeAll(visitor.visited);
   return all;
 }

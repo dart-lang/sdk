@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -23,23 +22,10 @@ typedef SharedPatternField
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
-            PromotableElement, DartType, DartPattern> {
+            PromotableElement, DartType, DartPattern, void> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
-
-  @override
-  void argumentTypeNotAssignable({
-    required Expression argument,
-    required DartType argumentType,
-    required DartType parameterType,
-  }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      argument,
-      [argumentType, parameterType],
-    );
-  }
 
   @override
   void assertInErrorRecovery() {}
@@ -124,6 +110,16 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void emptyMapPattern({
+    required DartPattern pattern,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
+      pattern,
+    );
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required PromotableElement variable,
     required PromotableElement component,
@@ -176,23 +172,6 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void nonExhaustiveSwitch(
-      {required AstNode node, required DartType scrutineeType}) {
-    // Report the error on the `switch` token, to match what the full
-    // exhaustiveness algorithm does
-    Token errorToken;
-    if (node is SwitchStatement) {
-      errorToken = node.switchKeyword;
-    } else {
-      errorToken = (node as SwitchExpression).switchKeyword;
-    }
-    _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
-        errorToken,
-        [scrutineeType, scrutineeType.toString()]);
-  }
-
-  @override
   void patternDoesNotAllowLate({required AstNode pattern}) {
     throw UnimplementedError('TODO(paulberry)');
   }
@@ -234,6 +213,19 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void relationalPatternOperandTypeNotAssignable({
+    required covariant RelationalPatternImpl pattern,
+    required DartType operandType,
+    required DartType parameterType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+      pattern.operand,
+      [operandType, parameterType, pattern.operator.lexeme],
+    );
+  }
+
+  @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
     required covariant RelationalPatternImpl pattern,
     required DartType returnType,
@@ -246,22 +238,13 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(
-      {required covariant MapPatternImpl node,
-      required covariant RestPatternElementImpl element}) {
+  void restPatternInMap({
+    required covariant MapPatternImpl node,
+    required covariant RestPatternElementImpl element,
+  }) {
     _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN,
+      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
       element,
-    );
-  }
-
-  @override
-  void restPatternWithSubPatternInMap(
-      {required covariant MapPatternImpl node,
-      required covariant RestPatternElementImpl element}) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
-      element.pattern!,
     );
   }
 

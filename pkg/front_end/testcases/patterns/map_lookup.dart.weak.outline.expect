@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+import "dart:collection";
+
+class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends col::MapBase<self::MyMap::K%, self::MyMap::V%> {
+  covariant-by-class field core::Map<self::MyMap::K%, self::MyMap::V%> _inner;
+  field core::String log;
+  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _inner) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+    ;
+  @core::override
+  operator [](core::Object? key) → self::MyMap::V?
+    ;
+  @core::override
+  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
+    ;
+  @core::override
+  method clear() → void
+    ;
+  @core::override
+  get keys() → core::Iterable<self::MyMap::K%>
+    ;
+  @core::override
+  method remove(core::Object? key) → self::MyMap::V?
+    ;
+  @core::override
+  get length() → core::int
+    ;
+  @core::override
+  method containsKey(core::Object? key) → core::bool
+    ;
+  method clearLog() → void
+    ;
+}
+static field core::String unsoundResult;
+static field core::String soundResult;
+static get hasUnsoundNullSafety() → core::bool
+  ;
+static method test1(core::Object o) → core::String
+  ;
+static method test2(core::Object o) → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:25:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:31:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:37:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:43:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:49:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:55:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///map_lookup.dart:61:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 7, effectively constant: 7

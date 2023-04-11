@@ -17,14 +17,14 @@ main() {
 class SdkVersionIsExpressionInConstContextTest
     extends SdkConstraintVerifierTest {
   test_equals() async {
-    await verifyVersion('2.5.0', '''
+    await verifyVersion('>=2.5.0', '''
 const dynamic a = 2;
 const c = a is int;
 ''');
   }
 
   test_lessThan() async {
-    await verifyVersion('2.2.0', '''
+    await verifyVersion('>=2.2.0', '''
 const dynamic a = 2;
 const c = a is int;
 ''', expectedErrors: [

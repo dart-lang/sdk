@@ -162,45 +162,6 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'malloc used memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = Utils.formatSize(_vm.mallocUsed)
-                  ..title = '${_vm.mallocUsed} bytes'
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc capacity memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = Utils.formatSize(_vm.mallocCapacity)
-                  ..title = '${_vm.mallocCapacity} bytes'
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc implementation',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.mallocImplementation
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..children = <Element>[
-                    new SpanElement()..text = 'view ',
-                    new AnchorElement(href: Uris.nativeMemory())
-                      ..text = 'malloc profile'
-                  ],
-                new DivElement()
-                  ..classes = ['memberName']
                   ..children = <Element>[
                     new SpanElement()..text = 'view ',
                     new AnchorElement(href: Uris.processSnapshot())

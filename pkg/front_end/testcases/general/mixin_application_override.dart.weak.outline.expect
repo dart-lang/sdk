@@ -131,23 +131,15 @@ class S extends core::Object {
   method foo([dynamic x = null]) → dynamic
     ;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   method foo() → dynamic
     ;
 }
-class M1 extends core::Object {
-  synthetic constructor •() → self::M1
-    ;
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
 }
-class M2 extends core::Object {
-  synthetic constructor •() → self::M2
-    ;
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
 }
-class MX extends core::Object {
-  synthetic constructor •() → self::MX
-    ;
+abstract class MX extends core::Object /*isMixinDeclaration*/  {
 }
 class A0 = self::S with self::M {
   synthetic constructor •() → self::A0

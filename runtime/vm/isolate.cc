@@ -489,7 +489,7 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
-  char* name;
+  char* name = nullptr;
   // We retrieve the flag value once to avoid the compiler complaining about the
   // possibly uninitialized value of name, as the compiler is unaware that when
   // the flag variable is non-const, it is set once during VM initialization and
@@ -633,7 +633,7 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->set_safepoint_state(
         Thread::SetBypassSafepoints(bypass_safepoint, 0));
     thread->set_vm_tag(VMTag::kVMTagId);
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     thread->heap_sampler().Initialize();
 #endif
     ASSERT(thread->no_safepoint_scope_depth() == 0);
@@ -692,7 +692,7 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().Cleanup();
 #endif
 
@@ -1310,7 +1310,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
 #if defined(DEBUG)
     // Malformed OOB messages are silently ignored in release builds.
     default:
-      FATAL1("Unknown OOB message type: %" Pd "\n", msg_type);
+      FATAL("Unknown OOB message type: %" Pd "\n", msg_type);
       break;
 #endif  // defined(DEBUG)
   }

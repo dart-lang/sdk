@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:wasm';
+import 'dart:_wasm';
 
 import 'package:expect/expect.dart';
 
@@ -25,6 +25,19 @@ int funCount = 0;
 WasmVoid? fun(WasmEqRef arg) {
   funCount++;
   Expect.equals("Dart object", arg.toObject());
+}
+
+class WasmFields {
+  final WasmI32 i32;
+  final WasmI64 i64;
+  final WasmF32 f32;
+  final WasmF64 f64;
+
+  const WasmFields(this.i32, this.i64, this.f32, this.f64);
+
+  @override
+  String toString() => "${i32.toIntSigned()} ${i64.toInt()} "
+      "${f32.toDouble()} ${f64.toDouble()}";
 }
 
 test() {
@@ -71,6 +84,18 @@ test() {
   Expect.equals(6.0, 6.0.toWasmF32().toDouble());
   Expect.notEquals(7.1, 7.1.toWasmF32().toDouble());
   Expect.equals(8.0, 8.0.toWasmF64().toDouble());
+
+  const wasmConst = const WasmFields(
+      const WasmI32(2), const WasmI64(3), const WasmF32(4), const WasmF64(5));
+  Expect.isFalse(wasmConst.i32 == const WasmI32(1));
+  Expect.isFalse(wasmConst.i64 == const WasmI64(1));
+  Expect.isFalse(wasmConst.f32 == const WasmF32(1));
+  Expect.isFalse(wasmConst.f64 == const WasmF64(1));
+  Expect.isTrue(wasmConst.i32 == const WasmI32(2));
+  Expect.isTrue(wasmConst.i64 == const WasmI64(3));
+  Expect.isTrue(wasmConst.f32 == const WasmF32(4));
+  Expect.isTrue(wasmConst.f64 == const WasmF64(5));
+  Expect.equals("2 3 4.0 5.0", wasmConst.toString());
 
   // Create a typed function reference for a Dart function and call it, both
   // directly and from JS.

@@ -229,8 +229,8 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
 
     _assertTypes(
-      _inferCall(rawType, [dynamicNone]),
-      [dynamicNone],
+      _inferCall(rawType, [dynamicType]),
+      [dynamicType],
     );
   }
 
@@ -247,7 +247,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
       returnType: typeParameterTypeNone(tTo),
     );
-    _assertTypes(_inferCall(cast, [intNone]), [intNone, dynamicNone]);
+    _assertTypes(_inferCall(cast, [intNone]), [intNone, dynamicType]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
@@ -326,7 +326,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
                 type: typeParameterTypeNone(T),
               ),
             ],
-            returnType: dynamicNone,
+            returnType: dynamicType,
           ),
         ),
       ],
@@ -338,7 +338,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
           parameters: [
             requiredParameter(type: numNone),
           ],
-          returnType: dynamicNone,
+          returnType: dynamicType,
         )
       ]),
       [numNone],
@@ -367,7 +367,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       parameters: [
         requiredParameter(type: typeParameterTypeNone(T)),
       ],
-      returnType: dynamicNone,
+      returnType: dynamicType,
     );
     _assertTypes(_inferCall(f, [intNone]), [intNone]);
   }
@@ -564,7 +564,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
                 type: typeParameterTypeNone(T),
               ),
             ],
-            returnType: dynamicNone,
+            returnType: dynamicType,
           ),
         ),
         requiredParameter(
@@ -574,7 +574,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
                 type: typeParameterTypeNone(T),
               ),
             ],
-            returnType: dynamicNone,
+            returnType: dynamicType,
           ),
         ),
       ],
@@ -586,13 +586,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
           parameters: [
             requiredParameter(type: intNone),
           ],
-          returnType: dynamicNone,
+          returnType: dynamicType,
         ),
         functionTypeNone(
           parameters: [
             requiredParameter(type: doubleNone),
           ],
-          returnType: dynamicNone,
+          returnType: dynamicType,
         )
       ]),
       [neverNone],
@@ -606,7 +606,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    _assertTypes(_inferCall(f, []), [dynamicNone]);
+    _assertTypes(_inferCall(f, []), [dynamicType]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
@@ -658,7 +658,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
     inferrer.constrainArguments(
         parameters: ft.parameters, argumentTypes: arguments);
-    var typeArguments = inferrer.upwardsInfer();
+    var typeArguments = inferrer.chooseFinalTypes();
 
     if (expectError) {
       expect(listener.errors.map((e) => e.errorCode).toList(),

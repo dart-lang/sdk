@@ -1,0 +1,114 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/generic_extension_access.dart:27:34: Error: The type 'A<num>' is not exhaustively matched by the switch cases since it doesn't match 'I<num>(member: double()) && J<num>(member: int())'.
+//  - 'A' is from 'pkg/front_end/testcases/patterns/generic_extension_access.dart'.
+// Try adding a wildcard pattern or cases that match 'I<num>(member: double()) && J<num>(member: int())'.
+// num method2(A<num> i) => switch (i) {
+//                                  ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class I<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T%>
+    : super core::Object::•()
+    ;
+}
+class J<T extends core::Object? = dynamic> extends self::I<self::J::T%> {
+  synthetic constructor •() → self::J<self::J::T%>
+    : super self::I::•()
+    ;
+}
+class A<T extends core::Object? = dynamic> extends self::J<self::A::T%> {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super self::J::•()
+    ;
+}
+extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on self::I<T%> {
+  get member = self::_extension#0|get#member;
+}
+static field core::int counter = 0;
+static method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num {
+  self::counter = self::counter.{core::num::+}(1){(core::num) → core::int};
+  return self::_extension#0|get#member::T% =={core::Type::==}{(core::Object) → core::bool} #C1 ?{core::num} 0.5 : 1.{core::int::unary-}(){() → core::int};
+}
+static method method1(self::I<core::num> i) → core::num
+  return block {
+    core::num #t1;
+    final synthesized self::I<core::num> #0#0 = i;
+    late final synthesized core::num #0#1 = self::_extension#0|get#member<core::num>(#0#0);
+    #L1:
+    {
+      {
+        hoisted core::num member;
+        if((let final dynamic #t2 = member = #0#1 in true) && member.{core::num::<}(0){(core::num) → core::bool}) {
+          #t1 = member;
+          break #L1;
+        }
+      }
+      {
+        hoisted core::num member;
+        if(#0#0 is{ForNonNullableByDefault} self::I<core::int> && (let final dynamic #t3 = member = self::_extension#0|get#member<core::int>(#0#0{self::I<core::int>}) in true) && member.{core::num::<}(0){(core::num) → core::bool}) {
+          #t1 = member;
+          break #L1;
+        }
+      }
+      {
+        hoisted core::num member;
+        if(let final dynamic #t4 = member = #0#1 in true) {
+          #t1 = member.{core::num::unary-}(){() → core::num};
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+static method method2(self::A<core::num> i) → core::num
+  return block {
+    core::num #t5;
+    final synthesized self::A<core::num> #0#0 = i;
+    late final synthesized core::num #0#1 = self::_extension#0|get#member<core::num>(#0#0);
+    #L2:
+    {
+      {
+        hoisted core::int member;
+        if(#0#1 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = member = #0#1{core::int} in true)) {
+          #t5 = member;
+          break #L2;
+        }
+      }
+      {
+        hoisted core::double member;
+        if(#0#1 is{ForNonNullableByDefault} core::double && (let final dynamic #t7 = member = #0#1{core::double} in true)) {
+          #t5 = member;
+          break #L2;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t5;
+static method main() → dynamic {
+  self::counter = 0;
+  self::expect(1.{core::int::unary-}(){() → core::int}, self::method1(new self::A::•<core::int>()));
+  self::expect(2, self::counter);
+  self::counter = 0;
+  self::expect(0.5.{core::double::unary-}(){() → core::double}, self::method1(new self::A::•<core::num>()));
+  self::expect(1, self::counter);
+  self::counter = 0;
+  self::expect(0.5.{core::double::unary-}(){() → core::double}, self::method1(new self::A::•<core::double>()));
+  self::expect(1, self::counter);
+  self::counter = 0;
+  self::expect(0.5, self::method2(new self::A::•<core::int>()));
+  self::expect(1, self::counter);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::num*)
+}

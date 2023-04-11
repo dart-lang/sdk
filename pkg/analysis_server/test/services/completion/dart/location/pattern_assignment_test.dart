@@ -35,7 +35,7 @@ void f((int, int) r01) {
   (a, b) = ^;
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   const
     kind: keyword
@@ -60,7 +60,7 @@ void f((int, int) r01) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -68,7 +68,7 @@ suggestions
     kind: parameter
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions

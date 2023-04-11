@@ -4,8 +4,8 @@ abstract class I<T> {
 
 class A extends Object with M implements I<int> {}
 
-class M {
+main() {}
+
+mixin class M {
   dynamic noSuchMethod(Invocation i) {}
 }
-
-main() {}

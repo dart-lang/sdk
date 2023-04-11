@@ -1,0 +1,28 @@
+name: Propose a breaking change.
+description: You would like to propose a breaking change.
+title: '[breaking change] <title>'
+labels: ['breaking-change-request']
+assignees:
+  - itsjustkevin
+  - kevmoo
+body:
+  - type: textarea
+    id: change_intent
+    attributes:
+      label: Change Intent
+      description: What is the intent of this change?
+  - type: textarea
+    id: justification
+    attributes:
+      label: Justification
+      description: What is the justification for this change?
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the impact of this change?
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Mitigation
+      description: How can we mitigate the impact?

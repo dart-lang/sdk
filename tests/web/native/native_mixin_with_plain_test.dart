@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=class-modifiers
+
 import "native_testing.dart";
 
 // Test that native classes and ordinary Dart classes can both use the same
@@ -20,7 +22,7 @@ class B extends A with M {
   get mm => 'B.mm($aa)';
 }
 
-class M {
+mixin class M {
   foo() => "M-foo ${this.mm}";
   bar() => "M-bar ${this.mm}";
   get mm => 'M.mm';

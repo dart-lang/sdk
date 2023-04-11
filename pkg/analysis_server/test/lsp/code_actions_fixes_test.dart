@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
@@ -13,6 +14,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
 void main() {
@@ -489,6 +491,39 @@ Future foo;''';
     };
     applyChanges(contents, fixAction.edit!.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  /// Repro for https://github.com/Dart-Code/Dart-Code/issues/4462.
+  ///
+  /// Original code only included a fix on its first error (which in this sample
+  /// is the opening brace) and not the whole range of the error.
+  Future<void> test_multilineError() async {
+    registerLintRules();
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_expression_function_bodies
+    ''');
+
+    final code = TestCode.parse('''
+int foo() {
+  [!return!] 1;
+}
+    ''');
+
+    newFile(mainFilePath, code.code);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: code.range.range);
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.convert.toExpressionBody'),
+        'Convert to expression body');
+    expect(fixAction, isNotNull);
   }
 
   Future<void> test_noDuplicates_differentFix() async {

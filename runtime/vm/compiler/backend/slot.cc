@@ -485,7 +485,7 @@ CompileType Slot::ComputeCompileType() const {
   }
 
   return CompileType(is_nullable(), is_sentinel_visible(), nullable_cid(),
-                     nullable_cid() == kDynamicCid ? static_type_ : nullptr);
+                     static_type_);
 }
 
 const AbstractType& Slot::static_type() const {

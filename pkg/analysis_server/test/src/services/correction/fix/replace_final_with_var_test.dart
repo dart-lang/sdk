@@ -49,6 +49,41 @@ class ReplaceFinalWithVarTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_final;
 
+  /// https://github.com/dart-lang/sdk/issues/51864
+  Future<void> test_listPattern_assignment() async {
+    await resolveTestCode('''
+f() {
+  final [a] = [1];
+  print(a);
+}
+''');
+    await assertHasFix('''
+f() {
+  var [a] = [1];
+  print(a);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/51864
+  @FailingTest(reason: 'Not supported')
+  Future<void> test_listPattern_ifCase() async {
+    // Note that the simpler case is also unsupported:
+    // final int x = 0;
+
+    // Switch cases are similarly unsupported.
+    await resolveTestCode('''
+f(Object o) {
+  if (o case [final int x]) print(x);
+}
+''');
+    await assertHasFix('''
+f(Object o) {
+  if (o case [int x]) print(x);
+}
+''');
+  }
+
   Future<void> test_method() async {
     await resolveTestCode('''
 void f() {
@@ -60,6 +95,22 @@ void f() {
 void f() {
   var a = 1;
   print(a);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/51864
+  Future<void> test_recordPattern_assignment() async {
+    await resolveTestCode(r'''
+f() {
+  final (a, b) = (1, 2);
+  print('$a$b');
+}
+''');
+    await assertHasFix(r'''
+f() {
+  var (a, b) = (1, 2);
+  print('$a$b');
 }
 ''');
   }

@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../fallback_exhaustiveness.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -94,7 +93,7 @@ void f(Object? x) {
   if (x case _ || 0) {}
 }
 ''', [
-      error(HintCode.DEAD_CODE, 35, 4),
+      error(WarningCode.DEAD_CODE, 35, 4),
     ]);
   }
 
@@ -154,15 +153,16 @@ void f(Object? x) {
   }
 
   test_switchExpression_logicalAnd() async {
-    await withFullExhaustivenessAlgorithm(() => assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   (switch (x) {
     0 && _ => 0,
+    _ => 1,
   });
 }
 ''', [
-          error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 45, 1),
-        ]));
+      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 45, 1),
+    ]);
   }
 
   test_switchExpression_topPattern() async {

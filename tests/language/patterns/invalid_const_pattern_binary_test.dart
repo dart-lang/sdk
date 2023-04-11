@@ -15,193 +15,389 @@ class Class {
 method<T>(o) {
   switch (o) {
     case 1 || 2: // Ok
+  }
+
+  switch (o) {
     case 1 && 2: // Ok
+  }
+
+  switch (o) {
     case 1 as T: // Ok
+  }
+
+  switch (o) {
     case const Object(): // Ok
+  }
+
+  switch (o) {
     case 1 + 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator + is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 - 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator - is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 * 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator * is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 / 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator / is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 ~/ 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator ~/ is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 % 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator % is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 == 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator == is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 != 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator != is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 ^ 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator ^ is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 & 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator & is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 | 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator | is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 < 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator < is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 <= 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator <= is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 > 2: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator > is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 >= 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator >= is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 << 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator << is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 >> 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator >> is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 >>> 2: // Error
     //     ^^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator >>> is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case 1 + 2 + 3: // Error
     //     ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_PATTERN_BINARY
     // [cfe] The binary operator + is not supported as a constant pattern.
+  }
+
+  switch (o) {
     case prefix.value as T: // Ok
+  }
+
+  switch (o) {
     case prefix.Class.value as T: // Ok
+  }
+
+  switch (o) {
     case const 1 as int: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 + 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 - 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 * 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 / 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 ~/ 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 % 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 == 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 != 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 ^ 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 & 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 | 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 < 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 <= 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 > 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 >= 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 << 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 >> 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 >>> 2: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const 1 + 2 + 3: // Error
     //         ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
+  }
+
+  switch (o) {
     case const Object() == 2: // Error
     //                ^
     // [analyzer] SYNTACTIC_ERROR.INVALID_CONSTANT_CONST_PREFIX
     // [cfe] The expression can't be prefixed by 'const' to form a constant pattern.
-    //                  ^
-    // [cfe] Constant evaluation error:
+  }
+
+  switch (o) {
     case const <int>[] as List<T>: // Ok
+  }
+
+  switch (o) {
     case const (1 + 2): // Ok
+  }
+
+  switch (o) {
     case const (1 - 2): // Ok
+  }
+
+  switch (o) {
     case const (1 * 2): // Ok
+  }
+
+  switch (o) {
     case const (1 / 2): // Ok
+  }
+
+  switch (o) {
     case const (1 ~/ 2): // Ok
+  }
+
+  switch (o) {
     case const (1 % 2): // Ok
+  }
+
+  switch (o) {
     case const (1 == 2): // Ok
+  }
+
+  switch (o) {
     case const (1 != 2): // Ok
+  }
+
+  switch (o) {
     case const (1 ^ 2): // Ok
+  }
+
+  switch (o) {
     case const (1 & 2): // Ok
+  }
+
+  switch (o) {
     case const (1 | 2): // Ok
+  }
+
+  switch (o) {
     case const (1 < 2): // Ok
+  }
+
+  switch (o) {
     case const (1 <= 2): // Ok
+  }
+
+  switch (o) {
     case const (1 > 2): // Ok
+  }
+
+  switch (o) {
     case const (1 >= 2): // Ok
+  }
+
+  switch (o) {
     case const (1 << 2): // Ok
+  }
+
+  switch (o) {
     case const (1 >> 2): // Ok
+  }
+
+  switch (o) {
     case const (1 >>> 2): // Ok
+  }
+
+  switch (o) {
     case const (1 + 2 + 3): // Ok
+  }
+
+  switch (o) {
     case 1 ?? 2: // Error
     //     ^^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -216,24 +412,32 @@ method<T>(o) {
     // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
     // [cfe] Expected an identifier, but got ':'.
     // [cfe] Unexpected token ':'.
+  }
+
+  switch (o) {
     case o++: // Error
-    //   ^
-    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     //   ^^^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.
+  }
+
+  switch (o) {
     case o--: // Error
     //   ^^^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.
-    //    ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
+  }
+
+  switch (o) {
     case ++o: // Error
     //   ^^^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.
+  }
+
+  switch (o) {
     case --o: // Error
     //   ^^^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION

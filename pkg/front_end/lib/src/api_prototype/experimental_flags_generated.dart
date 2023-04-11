@@ -61,7 +61,7 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
@@ -189,7 +189,7 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
@@ -197,15 +197,15 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(2, 19));
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
@@ -771,6 +771,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.records,
+  ExperimentalFlag.classModifiers,
+  ExperimentalFlag.sealedClass,
 }, sdkLibraryExperiments: {}, packageExperiments: {
   "async": {
     ExperimentalFlag.nonNullable,

@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::List<dynamic> value = #C2;
   {
-    final core::List<dynamic> #0#0 = value;
+    final synthesized core::List<dynamic> #0#0 = value;
     if(#C2 =={core::List::==}{(core::Object) → core::bool} #0#0) {
       core::print("OK");
     }

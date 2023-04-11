@@ -7,7 +7,7 @@ class Super {
   void method3(num n) {}
 }
 
-class Mixin {
+mixin class Mixin {
   dynamic noSuchMethod(_) => null;
   void method1(int i);
   void method2(covariant int i);

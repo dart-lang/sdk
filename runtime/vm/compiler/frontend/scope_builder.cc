@@ -17,12 +17,12 @@ namespace kernel {
 #define IG IsolateGroup::Current()
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
-    : result_(NULL),
+    : result_(nullptr),
       parsed_function_(parsed_function),
       translation_helper_(Thread::Current()),
       zone_(translation_helper_.zone()),
-      current_function_scope_(NULL),
-      scope_(NULL),
+      current_function_scope_(nullptr),
+      scope_(nullptr),
       depth_(0),
       name_index_(0),
       needs_expr_temp_(false),
@@ -45,9 +45,9 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
 }
 
 ScopeBuildingResult* ScopeBuilder::BuildScopes() {
-  if (result_ != NULL) return result_;
+  if (result_ != nullptr) return result_;
 
-  ASSERT(scope_ == NULL && depth_.loop_ == 0 && depth_.function_ == 0);
+  ASSERT(scope_ == nullptr && depth_.loop_ == 0 && depth_.function_ == 0);
   result_ = new (Z) ScopeBuildingResult();
 
   const Function& function = parsed_function_->function();
@@ -65,7 +65,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   ActiveTypeParametersScope active_type_params(&active_class_, function,
                                                &signature, Z);
 
-  LocalScope* enclosing_scope = NULL;
+  LocalScope* enclosing_scope = nullptr;
   if (function.IsImplicitClosureFunction() && !function.is_static()) {
     // Create artificial enclosing scope for the tear-off that contains
     // captured receiver value. This ensure that AssertAssignable will correctly
@@ -77,7 +77,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                      Symbols::This(), klass_type);
     parsed_function_->set_receiver_var(receiver_variable);
     receiver_variable->set_is_captured();
-    enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
+    enclosing_scope = new (Z) LocalScope(nullptr, 0, 0);
     enclosing_scope->set_context_level(0);
     enclosing_scope->AddVariable(receiver_variable);
     enclosing_scope->AddContextVariable(receiver_variable);
@@ -998,8 +998,10 @@ void ScopeBuilder::VisitExpression() {
     case kInstanceCreation:
     case kFileUriExpression:
     case kStaticTearOff:
-      // These nodes are internal to the front end and
-      // removed by the constant evaluator.
+    case kSwitchExpression:
+    case kPatternAssignment:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -1184,7 +1186,7 @@ void ScopeBuilder::VisitStatement() {
       return;
     case kReturnStatement: {
       if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
-          (result_->finally_return_variable == NULL)) {
+          (result_->finally_return_variable == nullptr)) {
         const String& name = Symbols::TryFinallyReturnValue();
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -1274,6 +1276,11 @@ void ScopeBuilder::VisitStatement() {
       HandleLocalFunction(offset);  // read function node.
       return;
     }
+    case kIfCaseStatement:
+    case kPatternSwitchStatement:
+    case kPatternVariableDeclaration:
+    // These nodes are internal to the front end and
+    // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("declaration", tag);
       UNREACHABLE();
@@ -1344,6 +1351,9 @@ void ScopeBuilder::VisitVariableDeclaration() {
   if (helper.IsLate()) {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
+  }
+  if (helper.IsSynthesized()) {
+    variable->set_invisible(true);
   }
 
   scope_->AddVariable(variable);
@@ -1702,7 +1712,7 @@ LocalVariable* ScopeBuilder::MakeVariable(
     const String& name,
     const AbstractType& type,
     intptr_t kernel_offset,
-    const InferredTypeMetadata* param_type_md /* = NULL */) {
+    const InferredTypeMetadata* param_type_md /* = nullptr */) {
   CompileType* param_type = nullptr;
   const Object* param_value = nullptr;
   if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
@@ -1719,7 +1729,7 @@ void ScopeBuilder::AddExceptionVariable(
     GrowableArray<LocalVariable*>* variables,
     const char* prefix,
     intptr_t nesting_depth) {
-  LocalVariable* v = NULL;
+  LocalVariable* v = nullptr;
 
   // No need to create variables for try/catch-statements inside
   // nested functions.
@@ -1728,7 +1738,7 @@ void ScopeBuilder::AddExceptionVariable(
 
   // If variable was not lifted by the transformer introduce a new
   // one into the current function scope.
-  if (v == NULL) {
+  if (v == nullptr) {
     v = MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      GenerateName(prefix, nesting_depth - 1),
                      AbstractType::dynamic_type());
@@ -1803,7 +1813,7 @@ void ScopeBuilder::AddIteratorVariable() {
 }
 
 void ScopeBuilder::AddSwitchVariable() {
-  if ((depth_.function_ == 0) && (result_->switch_variable == NULL)) {
+  if ((depth_.function_ == 0) && (result_->switch_variable == nullptr)) {
     LocalVariable* variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::SwitchExpr(), AbstractType::dynamic_type());
@@ -1833,7 +1843,7 @@ LocalVariable* ScopeBuilder::LookupVariable(
     // case that we are compiling a nested function and the variable is
     // declared in an outer scope.  In that case, look it up in the scope by
     // name and add it to the variable map to simplify later lookup.
-    ASSERT(current_function_scope_->parent() != NULL);
+    ASSERT(current_function_scope_->parent() != nullptr);
     StringIndex var_name = GetNameFromVariableDeclaration(
         declaration_binary_offset - helper_.data_program_offset_,
         parsed_function_->function());
@@ -1908,17 +1918,17 @@ void ScopeBuilder::HandleLoadReceiver() {
 void ScopeBuilder::HandleSpecialLoad(LocalVariable** variable,
                                      const String& symbol,
                                      intptr_t kernel_offset) {
-  if (current_function_scope_->parent() != NULL) {
+  if (current_function_scope_->parent() != nullptr) {
     // We are building the scope tree of a closure function and saw [node]. We
     // lazily populate the variable using the parent function scope.
-    if (*variable == NULL) {
+    if (*variable == nullptr) {
       *variable = current_function_scope_->parent()->LookupVariable(
           symbol, kernel_offset, true);
-      ASSERT(*variable != NULL);
+      ASSERT(*variable != nullptr);
     }
   }
 
-  if ((current_function_scope_->parent() != NULL) ||
+  if ((current_function_scope_->parent() != nullptr) ||
       (scope_->function_level() > 0)) {
     // Every scope we use the [variable] from needs to be notified of the usage
     // in order to ensure that preserving the context scope on that particular

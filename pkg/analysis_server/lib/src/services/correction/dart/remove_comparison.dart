@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -42,16 +41,16 @@ class RemoveComparison extends CorrectionProducer {
   bool get _conditionIsFalse {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
-        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_FALSE ||
-        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_FALSE;
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE ||
+        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
   }
 
   /// Return `true` if the condition will always return `true`.
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
-        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
-        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_TRUE ||
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE ||
         errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
   }
 

@@ -5,12 +5,14 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    core::int as;
-    final dynamic #0#0 = x;
-    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = as = #0#6{core::int} in true))) {
-      {
-        break #L1;
+    final synthesized dynamic #0#0 = x;
+    late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    {
+      hoisted core::int as;
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = as = #0#6{core::int} in true))) {
+        {
+          break #L1;
+        }
       }
     }
   }

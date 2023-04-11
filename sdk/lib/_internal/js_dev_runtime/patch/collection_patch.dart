@@ -137,7 +137,7 @@ class LinkedHashSet<E> {
   factory LinkedHashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _InternalSet<E>
+base class _HashSet<E> extends _InternalSet<E>
     implements HashSet<E>, LinkedHashSet<E> {
   /// The backing store for this set.
   ///
@@ -303,7 +303,7 @@ class _HashSet<E> extends _InternalSet<E>
 }
 
 // Used for DDC const sets.
-class _ImmutableSet<E> extends _HashSet<E> {
+base class _ImmutableSet<E> extends _HashSet<E> {
   _ImmutableSet.from(JSArray<E> entries) {
     var map = _map;
     for (var key in entries) {
@@ -327,7 +327,7 @@ class _ImmutableSet<E> extends _HashSet<E> {
       UnsupportedError("Cannot modify unmodifiable set");
 }
 
-class _IdentityHashSet<E> extends _InternalSet<E>
+base class _IdentityHashSet<E> extends _InternalSet<E>
     implements HashSet<E>, LinkedHashSet<E> {
   /// The backing store for this set.
   @notNull
@@ -388,7 +388,7 @@ class _IdentityHashSet<E> extends _InternalSet<E>
   }
 }
 
-class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
+base class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
   _Predicate<Object?> _validKey;
   _CustomKeyHashSet(_Equality<E> equals, _Hasher<E> hashCode, this._validKey)
       : super(equals, hashCode);
@@ -417,7 +417,7 @@ class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
   }
 }
 
-class _CustomHashSet<E> extends _InternalSet<E>
+base class _CustomHashSet<E> extends _InternalSet<E>
     implements HashSet<E>, LinkedHashSet<E> {
   _Equality<E> _equals;
   _Hasher<E> _hashCode;
@@ -536,7 +536,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 /// Base class for our internal [LinkedHashSet]/[HashSet] implementations.
 ///
 /// This implements the common functionality.
-abstract class _InternalSet<E> extends _SetBase<E> {
+abstract base class _InternalSet<E> extends _SetBase<E> {
   @notNull
   get _map;
 

@@ -16,7 +16,12 @@ import 'matching_cache.dart';
 /// determined by the use count of each expression.
 abstract class DelayedExpression {
   /// Creates the resulting [Expression].
-  Expression createExpression(TypeEnvironment typeEnvironment);
+  ///
+  /// If the expression has side effects that need to occur when the expression
+  /// evaluates to `true`, then these should be added to [effects]. If this is
+  /// not supported by the calling context, [effect] is `null`.
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]);
 
   /// Returns the type of the resulting expression.
   DartType getType(TypeEnvironment typeEnvironment);
@@ -56,7 +61,8 @@ class FixedExpression implements DelayedExpression {
   FixedExpression(this._expression, this._type);
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return _expression;
   }
 
@@ -81,7 +87,8 @@ class BooleanExpression implements DelayedExpression {
   BooleanExpression(this.value, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return createBoolLiteral(value, fileOffset: fileOffset);
   }
 
@@ -104,8 +111,10 @@ class IntegerExpression implements DelayedExpression {
   IntegerExpression(this.value, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createIntLiteral(value, fileOffset: fileOffset);
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return createIntLiteral(typeEnvironment.coreTypes, value,
+        fileOffset: fileOffset);
   }
 
   @override
@@ -128,9 +137,10 @@ class DelayedAndExpression implements DelayedExpression {
   DelayedAndExpression(this._left, this._right, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createAndExpression(_left.createExpression(typeEnvironment),
-        _right.createExpression(typeEnvironment),
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return createAndExpression(_left.createExpression(typeEnvironment, effects),
+        _right.createExpression(typeEnvironment, effects),
         fileOffset: fileOffset);
   }
 
@@ -154,7 +164,13 @@ class DelayedAndExpression implements DelayedExpression {
       DelayedExpression? left, DelayedExpression right,
       {required int fileOffset}) {
     if (left != null) {
-      return new DelayedAndExpression(left, right, fileOffset: fileOffset);
+      if (left is BooleanExpression && left.value) {
+        return right;
+      } else if (right is BooleanExpression && right.value) {
+        return left;
+      } else {
+        return new DelayedAndExpression(left, right, fileOffset: fileOffset);
+      }
     } else {
       return right;
     }
@@ -170,9 +186,10 @@ class DelayedOrExpression implements DelayedExpression {
   DelayedOrExpression(this._left, this._right, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createOrExpression(_left.createExpression(typeEnvironment),
-        _right.createExpression(typeEnvironment),
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return createOrExpression(_left.createExpression(typeEnvironment, effects),
+        _right.createExpression(typeEnvironment, effects),
         fileOffset: fileOffset);
   }
 
@@ -195,13 +212,13 @@ class DelayedOrExpression implements DelayedExpression {
 
 /// A conditional expression of the [_condition], [_then] and [_otherwise]
 /// expressions.
-class DelayedConditionExpression implements DelayedExpression {
+class DelayedConditionalExpression implements DelayedExpression {
   final DelayedExpression _condition;
   final DelayedExpression _then;
   final DelayedExpression _otherwise;
   final int fileOffset;
 
-  DelayedConditionExpression(this._condition, this._then, this._otherwise,
+  DelayedConditionalExpression(this._condition, this._then, this._otherwise,
       {required this.fileOffset});
 
   @override
@@ -209,11 +226,12 @@ class DelayedConditionExpression implements DelayedExpression {
       typeEnvironment.coreTypes.boolNonNullableRawType;
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return createConditionalExpression(
-        _condition.createExpression(typeEnvironment),
-        _then.createExpression(typeEnvironment),
-        _otherwise.createExpression(typeEnvironment),
+        _condition.createExpression(typeEnvironment, effects),
+        _then.createExpression(typeEnvironment, effects),
+        _otherwise.createExpression(typeEnvironment, effects),
         staticType: typeEnvironment.coreTypes.boolNonNullableRawType,
         fileOffset: fileOffset);
   }
@@ -233,6 +251,38 @@ class DelayedConditionExpression implements DelayedExpression {
       _otherwise.uses(expression);
 }
 
+/// A read of [_variable].
+class VariableGetExpression implements DelayedExpression {
+  final VariableDeclaration _variable;
+  final int fileOffset;
+
+  VariableGetExpression(this._variable, {required this.fileOffset});
+
+  @override
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    VariableDeclaration variable = _variable;
+    if (variable is VariableDeclarationImpl && variable.lateGetter != null) {
+      return createLocalFunctionInvocation(variable.lateGetter!,
+          arguments: createArguments([], fileOffset: fileOffset),
+          fileOffset: fileOffset);
+    } else {
+      return createVariableGet(_variable);
+    }
+  }
+
+  @override
+  DartType getType(TypeEnvironment typeEnvironment) {
+    return _variable.type;
+  }
+
+  @override
+  void registerUse() {}
+
+  @override
+  bool uses(DelayedExpression expression) => identical(this, expression);
+}
+
 /// An assignment of [_variable] with [_value].
 ///
 /// If [allowFinalAssignment] is `true`, the created [VariableSet] is allowed to
@@ -241,7 +291,7 @@ class DelayedConditionExpression implements DelayedExpression {
 // TODO(johnniwinther): Should we instead mark the variable as non-final?
 class VariableSetExpression implements DelayedExpression {
   final VariableDeclaration _variable;
-  final CacheableExpression _value;
+  final DelayedExpression _value;
   final bool allowFinalAssignment;
   final int fileOffset;
 
@@ -249,16 +299,18 @@ class VariableSetExpression implements DelayedExpression {
       {this.allowFinalAssignment = false, required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     VariableDeclaration variable = _variable;
     if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
       return createLocalFunctionInvocation(variable.lateSetter!,
-          arguments: createArguments([_value.createExpression(typeEnvironment)],
+          arguments: createArguments(
+              [_value.createExpression(typeEnvironment, effects)],
               fileOffset: fileOffset),
           fileOffset: fileOffset);
     } else {
       return createVariableSet(
-          _variable, _value.createExpression(typeEnvironment),
+          _variable, _value.createExpression(typeEnvironment, effects),
           allowFinalAssignment: allowFinalAssignment, fileOffset: fileOffset);
     }
   }
@@ -281,17 +333,38 @@ class VariableSetExpression implements DelayedExpression {
 /// A expression that executes [_effect] for effect and results in [_result].
 ///
 /// This is encoded as `let # = effect in result`.
+///
+/// An optional [_lateEffect] can be passed. This is registered as an effect
+/// in [createExpression] if the `effects` argument is supplied. Otherwise it
+/// is included in the created expression through this encoding:
+///
+///   let #1 = (let #2 = effect in late-effect) in result
+///
 class EffectExpression implements DelayedExpression {
   final DelayedExpression _effect;
   final DelayedExpression _result;
+  final DelayedExpression? _lateEffect;
 
-  EffectExpression(this._effect, this._result);
+  EffectExpression(this._effect, this._result, [this._lateEffect]);
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    DelayedExpression? lateEffect = _lateEffect;
+    if (lateEffect != null) {
+      if (effects != null) {
+        effects.add(lateEffect.createExpression(typeEnvironment, effects));
+      } else {
+        return createLetEffect(
+            effect: createLetEffect(
+                effect: _effect.createExpression(typeEnvironment, effects),
+                result: lateEffect.createExpression(typeEnvironment, effects)),
+            result: _result.createExpression(typeEnvironment, effects));
+      }
+    }
     return createLetEffect(
-        effect: _effect.createExpression(typeEnvironment),
-        result: _result.createExpression(typeEnvironment));
+        effect: _effect.createExpression(typeEnvironment, effects),
+        result: _result.createExpression(typeEnvironment, effects));
   }
 
   @override
@@ -303,13 +376,15 @@ class EffectExpression implements DelayedExpression {
   void registerUse() {
     _effect.registerUse();
     _result.registerUse();
+    _lateEffect?.registerUse();
   }
 
   @override
   bool uses(DelayedExpression expression) =>
       identical(this, expression) ||
       _effect.uses(expression) ||
-      _result.uses(expression);
+      _result.uses(expression) ||
+      (_lateEffect != null && _lateEffect!.uses(expression));
 }
 
 /// An is-test of [_operand] against [_type].
@@ -321,8 +396,10 @@ class DelayedIsExpression implements DelayedExpression {
   DelayedIsExpression(this._operand, this._type, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createIsExpression(_operand.createExpression(typeEnvironment), _type,
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return createIsExpression(
+        _operand.createExpression(typeEnvironment, effects), _type,
         forNonNullableByDefault: true, fileOffset: fileOffset);
   }
 
@@ -346,14 +423,26 @@ class DelayedAsExpression implements DelayedExpression {
   final DelayedExpression _operand;
   final DartType _type;
   final bool isUnchecked;
+  final bool isImplicit;
   final int fileOffset;
 
   DelayedAsExpression(this._operand, this._type,
-      {this.isUnchecked = false, required this.fileOffset});
+      {this.isUnchecked = false,
+      this.isImplicit = false,
+      required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createAsExpression(_operand.createExpression(typeEnvironment), _type,
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    Expression operand = _operand.createExpression(typeEnvironment, effects);
+    if (isImplicit) {
+      DartType operandType = _operand.getType(typeEnvironment);
+      if (typeEnvironment.isSubtypeOf(
+          operandType, _type, SubtypeCheckMode.withNullabilities)) {
+        return operand;
+      }
+    }
+    return createAsExpression(operand, _type,
         forNonNullableByDefault: true,
         isUnchecked: isUnchecked,
         fileOffset: fileOffset);
@@ -382,8 +471,9 @@ class DelayedNullAssertExpression implements DelayedExpression {
   DelayedNullAssertExpression(this._operand, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createNullCheck(_operand.createExpression(typeEnvironment),
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return createNullCheck(_operand.createExpression(typeEnvironment, effects),
         fileOffset: fileOffset);
   }
 
@@ -410,9 +500,10 @@ class DelayedNullCheckExpression implements DelayedExpression {
   DelayedNullCheckExpression(this._operand, {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return createNot(createEqualsNull(
-        _operand.createExpression(typeEnvironment),
+        _operand.createExpression(typeEnvironment, effects),
         fileOffset: fileOffset));
   }
 
@@ -447,14 +538,15 @@ class DelayedInstanceGet implements DelayedExpression {
       {required this.fileOffset, this.isObjectAccess = false});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     Member target = _target;
     if (target is Procedure && !target.isGetter) {
       return new InstanceTearOff(
           isObjectAccess
               ? InstanceAccessKind.Object
               : InstanceAccessKind.Instance,
-          _receiver.createExpression(typeEnvironment),
+          _receiver.createExpression(typeEnvironment, effects),
           _target.name,
           interfaceTarget: target,
           resultType: _resultType)
@@ -464,7 +556,7 @@ class DelayedInstanceGet implements DelayedExpression {
           isObjectAccess
               ? InstanceAccessKind.Object
               : InstanceAccessKind.Instance,
-          _receiver.createExpression(typeEnvironment),
+          _receiver.createExpression(typeEnvironment, effects),
           _target.name,
           interfaceTarget: target,
           resultType: _resultType)
@@ -502,9 +594,10 @@ class DelayedDynamicGet implements DelayedExpression {
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return new DynamicGet(
-        _kind, _receiver.createExpression(typeEnvironment), _propertyName)
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return new DynamicGet(_kind,
+        _receiver.createExpression(typeEnvironment, effects), _propertyName)
       ..fileOffset = fileOffset;
   }
 
@@ -535,8 +628,10 @@ class DelayedFunctionTearOff implements DelayedExpression {
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return new FunctionTearOff(_receiver.createExpression(typeEnvironment))
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return new FunctionTearOff(
+        _receiver.createExpression(typeEnvironment, effects))
       ..fileOffset = fileOffset;
   }
 
@@ -572,13 +667,15 @@ class DelayedDynamicInvocation implements DelayedExpression {
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return new DynamicInvocation(
         _kind,
-        _receiver.createExpression(typeEnvironment),
+        _receiver.createExpression(typeEnvironment, effects),
         _methodName,
-        new Arguments(
-            _arguments.map((e) => e.createExpression(typeEnvironment)).toList())
+        new Arguments(_arguments
+            .map((e) => e.createExpression(typeEnvironment, effects))
+            .toList())
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
   }
@@ -622,9 +719,12 @@ class DelayedRecordIndexGet implements DelayedExpression {
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return new RecordIndexGet(
-        _receiver.createExpression(typeEnvironment), _recordType, _index)
+        _receiver.createExpression(typeEnvironment, effects),
+        _recordType,
+        _index)
       ..fileOffset = fileOffset;
   }
 
@@ -653,12 +753,21 @@ class DelayedRecordNameGet implements DelayedExpression {
   final int fileOffset;
 
   DelayedRecordNameGet(this._receiver, this._recordType, this._name,
-      {required this.fileOffset});
+      {required this.fileOffset})
+      : assert(
+            _recordType.named
+                    .where((element) => element.name == _name)
+                    .length ==
+                1,
+            "Invalid record type $_recordType for named access of '$_name'.");
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return new RecordNameGet(
-        _receiver.createExpression(typeEnvironment), _recordType, _name)
+        _receiver.createExpression(typeEnvironment, effects),
+        _recordType,
+        _name)
       ..fileOffset = fileOffset;
   }
 
@@ -694,13 +803,15 @@ class DelayedInstanceInvocation implements DelayedExpression {
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return new InstanceInvocation(
         InstanceAccessKind.Instance,
-        _receiver.createExpression(typeEnvironment),
+        _receiver.createExpression(typeEnvironment, effects),
         _target.name,
-        new Arguments(
-            _arguments.map((e) => e.createExpression(typeEnvironment)).toList())
+        new Arguments(_arguments
+            .map((e) => e.createExpression(typeEnvironment, effects))
+            .toList())
           ..fileOffset = fileOffset,
         interfaceTarget: _target,
         functionType: _functionType)
@@ -741,19 +852,22 @@ class DelayedExtensionInvocation implements DelayedExpression {
   final Procedure _target;
   final List<DelayedExpression> _arguments;
   final List<DartType> _typeArguments;
-  final FunctionType _functionType;
+  final DartType _resultType;
   final int fileOffset;
 
   DelayedExtensionInvocation(
-      this._target, this._arguments, this._typeArguments, this._functionType,
+      this._target, this._arguments, this._typeArguments, this._resultType,
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
     return new StaticInvocation(
         _target,
         new Arguments(
-            _arguments.map((e) => e.createExpression(typeEnvironment)).toList(),
+            _arguments
+                .map((e) => e.createExpression(typeEnvironment, effects))
+                .toList(),
             types: _typeArguments)
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
@@ -761,7 +875,7 @@ class DelayedExtensionInvocation implements DelayedExpression {
 
   @override
   DartType getType(TypeEnvironment typeEnvironment) {
-    return _functionType.returnType;
+    return _resultType;
   }
 
   @override
@@ -797,9 +911,10 @@ class DelayedEqualsExpression implements DelayedExpression {
       {required this.fileOffset});
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return new EqualsCall(_left.createExpression(typeEnvironment),
-        _right.createExpression(typeEnvironment),
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return new EqualsCall(_left.createExpression(typeEnvironment, effects),
+        _right.createExpression(typeEnvironment, effects),
         functionType: _functionType, interfaceTarget: _target)
       ..fileOffset = fileOffset;
   }
@@ -829,8 +944,9 @@ class DelayedNotExpression implements DelayedExpression {
   DelayedNotExpression(this._expression);
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment) {
-    return createNot(_expression.createExpression(typeEnvironment));
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      [List<Expression>? effects]) {
+    return createNot(_expression.createExpression(typeEnvironment, effects));
   }
 
   @override

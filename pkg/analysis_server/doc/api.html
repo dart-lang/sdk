@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.33.4
+  1.34.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -195,7 +195,7 @@ a:focus, a:hover {
   with each request that will produce it.
 </p>
 <p>
-  The server can also communicate to the clients by sending a
+  The server can communicate to the clients by sending a
   notification. The purpose of these notifications is to provide
   information to clients as it becomes available rather than to
   require that clients poll for it. Unless explicitly stated, all
@@ -214,6 +214,14 @@ a:focus, a:hover {
   field is the 'params' field, whose structure is dependent on the
   kind of notification being sent. The structure of this field is
   described with each notification.
+</p>
+<p>
+  The server can also communicate to the clients by sending a request. As with
+  requests sent from the client, requests from the server have both an 'id' and
+  a 'method' field, and an optional 'params' field. The ids used by the server
+  are independent of the ids used by the client. In other words, the ids sent by
+  the server might be equal to ids already sent from the client, but are
+  unrelated to the client request with that same id.
 </p>
 <p>
   In order to be backward compatible, clients should ignore fields that were
@@ -237,6 +245,14 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.34.0</h4>
+<ul>
+  <li>
+    Added the ability for the server to send requests to the client when the
+    client uses <tt>setClientCapabilities</tt> to enable the requests. Also
+    added the <tt>openUrlRequest</tt> and <tt>showMessageRequest</tt> requests.
+  </li>
+</ul>
 <h4>1.33.1</h4>
 <ul>
   <li><tt>SourceChange</tt> now has an optional <tt>selectionLength</tt> that may be
@@ -307,6 +323,9 @@ a:focus, a:hover {
 <li><a href="#request_server.shutdown">server.shutdown</a></li>
 <li><a href="#request_server.setSubscriptions">server.setSubscriptions</a></li>
 <li><a href="#request_server.cancelRequest">server.cancelRequest</a></li>
+<li><a href="#request_server.setClientCapabilities">server.setClientCapabilities</a></li>
+<li><a href="#request_server.openUrlRequest">server.openUrlRequest</a></li>
+<li><a href="#request_server.showMessageRequest">server.showMessageRequest</a></li>
 </ul>
 
 <p><a href="#domain_analysis">Analysis</a></p><ul><li><a href="#request_analysis.getErrors">analysis.getErrors</a></li>
@@ -445,6 +464,9 @@ a:focus, a:hover {
   
   
   
+  
+  
+  
 <h3>Requests</h3><dl><dt class="request"><a name="request_server.getVersion">server.getVersion</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.getVersion"
@@ -517,13 +539,140 @@ a:focus, a:hover {
       even in the case of cancellation, but clients should discard
       any results of any cancelled request because they may be
       incomplete or inaccurate.
-      
+
       This request always completes without error regardless of
       whether the request is successfully cancelled.</p>
     
   <h4>parameters:</h4><dl><dt class="field"><b>id: String</b></dt><dd>
         
         <p>The id of the request that should be cancelled.</p>
+      </dd></dl></dd><dt class="request"><a name="request_server.setClientCapabilities">server.setClientCapabilities</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "server.setClientCapabilities"
+  "params": {
+    "<b>requests</b>": List&lt;String&gt;
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+}</pre></div>
+    <p>
+      Record the capabilities supported by the client. The default values,
+      documented below, will be assumed until this request is received.
+    </p>
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>requests: List&lt;String&gt;</b></dt><dd>
+        
+        <p>
+          The names of the requests that the server can safely send to the
+          client. Only requests whose name is in the list will be sent.
+        </p>
+        <p>
+          A request should only be included in the list if the client will
+          unconditionally honor the request.
+        </p>
+        <p>
+          The default, used before this request is received, is an empty list.
+        </p>
+        <p>
+          The following is a list of the names of the requests that can be
+          specified:
+        </p>
+        <ul>
+          <li>
+            <tt>openUrlRequest</tt>
+          </li>
+          <li>
+            <tt>showMessageRequest</tt>
+          </li>
+        </ul>
+      </dd></dl></dd><dt class="request"><a name="request_server.openUrlRequest">server.openUrlRequest</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "server.openUrlRequest"
+  "params": {
+    "<b>url</b>": String
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+}</pre></div>
+    <p><b>Note:</b> This is a request from the server to the client.</p>
+    <p>
+      Request that a URL be opened.
+    </p>
+    <p>
+      The client is expected to open the URL, either within the client's UI or
+      in the default browser.
+    </p>
+    <p>
+      The request will only be sent from the server to the client if the client
+      has indicated that it supports this request by using the
+      <tt>setClientCapabilities</tt> request.
+    </p>
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>url: String</b></dt><dd>
+        
+        <p>
+          The URL to be opened.
+        </p>
+      </dd></dl></dd><dt class="request"><a name="request_server.showMessageRequest">server.showMessageRequest</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "server.showMessageRequest"
+  "params": {
+    "<b>type</b>": <a href="#type_MessageType">MessageType</a>
+    "<b>message</b>": String
+    "<b>actions</b>": List&lt;<a href="#type_MessageAction">MessageAction</a>&gt;
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>action</b>": <span style="color:#999999">optional</span> String
+  }
+}</pre></div>
+    <p><b>Note:</b> This is a request from the server to the client.</p>
+    <p>
+      Request that a message be displayed to the user.
+    </p>
+    <p>
+      The client is expected to display the message to the user with one or more
+      buttons with the specified labels, and to return a response consisting of
+      the label of the button that was clicked.
+    </p>
+    <p>
+      The request will only be sent from the server to the client if the client
+      has indicated that it supports this request by using the
+      <tt>setClientCapabilities</tt> request.
+    </p>
+    <p>
+      This request is modeled after the
+      <a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#window_showMessageRequest">
+      same request from the LSP specification</a>.
+    </p>
+    
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>type: <a href="#type_MessageType">MessageType</a></b></dt><dd>
+        
+        <p>
+          The type of the message.
+        </p>
+      </dd><dt class="field"><b>message: String</b></dt><dd>
+        
+        <p>
+          The message to be displayed.
+        </p>
+      </dd><dt class="field"><b>actions: List&lt;<a href="#type_MessageAction">MessageAction</a>&gt;</b></dt><dd>
+        
+        <p>
+          The labels of the buttons by which the user can dismiss the message.
+        </p>
+      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>action: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The label of the action that was selected by the user. May be
+          omitted or `null` if the user dismissed the message without
+          clicking an action button.
+        </p>
       </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_server.connected">server.connected</a></dt><dd><div class="box"><pre>notification: {
   "event": "server.connected"
   "params": {
@@ -3292,6 +3441,8 @@ a:focus, a:hover {
   
   
   
+  
+  
 <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
     <p>
       A directive to begin overlaying the contents of a file. The supplied
@@ -4642,7 +4793,7 @@ a:focus, a:hover {
       </dd><dt class="value">METHOD_STATIC</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
-      </dd><dt class="value">PARAMETER</dt><dd>
+      </dd><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">SETTER_DECLARATION</dt><dd>
@@ -4990,6 +5141,45 @@ a:focus, a:hover {
         <p>
           The one-based index of the column containing the character immediately
           following the range.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_MessageAction">MessageAction: object</a></dt><dd>
+    <p>
+      An action associated with a message that the server is requesting the
+      client to display to the user.
+    </p>
+    
+  <dl><dt class="field"><b>label: String</b></dt><dd>
+        
+        <p>
+          The label of the button to be displayed, and the value to be returned
+          to the server if the button is clicked.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_MessageType">MessageType: String</a></dt><dd>
+    <p>
+      The type of a message that the server is requesting the client to display
+      to the user. The type can be used by the client to control the way in
+      which the message is displayed.
+    </p>
+    
+  <dl><dt class="value">ERROR</dt><dd>
+        
+        <p>
+          The message is an error message.
+        </p>
+      </dd><dt class="value">WARNING</dt><dd>
+        
+        <p>
+          The message is a warning message.
+        </p>
+      </dd><dt class="value">INFO</dt><dd>
+        
+        <p>
+          The message is an informational message.
+        </p>
+      </dd><dt class="value">LOG</dt><dd>
+        
+        <p>
+          The message is a log message.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_NavigationRegion">NavigationRegion: object</a></dt><dd>
     <p>
@@ -6277,6 +6467,6 @@ a:focus, a:hover {
   TODO: TBD
 </p>
 <h2 class="domain"><a name="index">Index</a></h2>
-<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li><li><a href="#request_server.cancelRequest">cancelRequest</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.log">log</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.getSuggestions2">getSuggestions2</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li><li><a href="#request_completion.getSuggestionDetails2">getSuggestionDetails2</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_BulkFix">BulkFix</a></li><li><a href="#type_BulkFixDetail">BulkFixDetail</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionCaseMatchingMode">CompletionCaseMatchingMode</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionMode">CompletionMode</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li><li><a href="#request_server.cancelRequest">cancelRequest</a></li><li><a href="#request_server.setClientCapabilities">setClientCapabilities</a></li><li><a href="#request_server.openUrlRequest">openUrlRequest</a></li><li><a href="#request_server.showMessageRequest">showMessageRequest</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.log">log</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.getSuggestions2">getSuggestions2</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li><li><a href="#request_completion.getSuggestionDetails2">getSuggestionDetails2</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_BulkFix">BulkFix</a></li><li><a href="#type_BulkFixDetail">BulkFixDetail</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionCaseMatchingMode">CompletionCaseMatchingMode</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionMode">CompletionMode</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_MessageAction">MessageAction</a></li><li><a href="#type_MessageType">MessageType</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
 </body>
 </html>

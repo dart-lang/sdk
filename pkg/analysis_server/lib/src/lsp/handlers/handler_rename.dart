@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
@@ -79,8 +81,6 @@ class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
 }
 
 class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
-  final _upperCasePattern = RegExp('[A-Z]');
-
   RenameHandler(super.server);
 
   LspGlobalClientConfiguration get config => server.clientConfiguration.global;
@@ -178,7 +178,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
         // Otherwise, ask the user whether to proceed with the rename.
         final userChoice = await server.showUserPrompt(
-          MessageType.Warning,
+          MessageType.warning,
           finalStatus.message!,
           [
             UserPromptActions.renameAnyway,
@@ -232,9 +232,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
         if (declaringFile != null) {
           final folder = pathContext.dirname(declaringFile);
           final actualFilename = pathContext.basename(declaringFile);
-          final oldComputedFilename =
-              _fileNameForClassName(refactoring.oldName);
-          final newFilename = _fileNameForClassName(params.newName);
+          final oldComputedFilename = refactoring.oldName.toFileName;
+          final newFilename = params.newName.toFileName;
 
           // Only if the existing filename matches exactly what we'd expect for
           // the original class name will we consider renaming.
@@ -256,16 +255,6 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     });
   }
 
-  /// Computes a filename for a given class name (convert from PascalCase to
-  /// snake_case).
-  String _fileNameForClassName(String className) {
-    final fileName = className
-        .replaceAllMapped(_upperCasePattern,
-            (match) => match.start == 0 ? match[0]! : '_${match[0]}')
-        .toLowerCase();
-    return '$fileName.dart';
-  }
-
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
       refactoring.element is InterfaceElement;
@@ -280,7 +269,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     }
 
     final userChoice = await server.showUserPrompt(
-      MessageType.Info,
+      MessageType.info,
       "Rename '$oldFilename' to '$newFilename'?",
       [
         UserPromptActions.yes,

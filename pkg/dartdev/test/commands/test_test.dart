@@ -11,20 +11,18 @@ import 'package:test/test.dart';
 import '../experiment_util.dart';
 import '../utils.dart';
 
-Future<void> main() async {
+void main() {
   ensureRunFromSdkBinDart();
 
-  final experiments = await experimentsWithValidation();
+  final experiments = experimentsWithValidation();
   group('test', () => defineTest(experiments), timeout: longTimeout);
 }
 
 void defineTest(List<Experiment> experiments) {
-  late TestProject p;
-
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
 
     final result = await p.run(['test', '--help']);
 
@@ -38,17 +36,21 @@ Usage: dart test [files or directories...]
   });
 
   test('dart help test', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
 
     final result = await p.run(['help', 'test']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains(' tests for a project'));
+    expect(result.stdout, contains('Usage: dart test [arguments]'));
     expect(result.stderr, isEmpty);
   });
 
   test('no pubspec.yaml', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
     var pubspec = File(path.join(p.dirPath, 'pubspec.yaml'));
     pubspec.deleteSync();
 
@@ -63,21 +65,15 @@ No pubspec.yaml file found - run this command in your project folder.
     var resultHelp = await p.run(['test', '--help']);
 
     expect(resultHelp.stderr, isEmpty);
-    expect(resultHelp.stdout, '''
-No pubspec.yaml file found - run this command in your project folder.
-
-Run tests for a project.
-
-Usage: dart test [arguments]
-
-
-Run "dart help" to see global options.
-''');
+    expect(resultHelp.stdout, contains('No pubspec.yaml file found'));
+    expect(resultHelp.stdout, contains('Usage: dart test [arguments]'));
     expect(resultHelp.exitCode, 65);
   });
 
   test('runs test', () async {
-    p = project();
+    final p = project(pubspecExtras: {
+      'dev_dependencies': {'test': 'any'}
+    });
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
 
@@ -97,11 +93,16 @@ void main() {
   });
 
   test('no package:test dependency', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    final p = project(
+      mainSrc: 'int get foo => 1;\n',
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'}
+      },
+    );
     p.file('pubspec.yaml', '''
 name: ${p.name}
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 ''');
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
@@ -133,7 +134,12 @@ void main() {
   });
 
   test('has package:test dependency', () async {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    final p = project(
+      mainSrc: 'int get foo => 1;\n',
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'}
+      },
+    );
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
 
@@ -152,6 +158,7 @@ void main() {
   });
 
   group('--enable-experiment', () {
+    late TestProject p;
     Future<ProcessResult> runTestWithExperimentFlag(String? flag) async {
       return await p.run([
         if (flag != null) flag,
@@ -179,8 +186,12 @@ void main() {
       test(experiment.name, () async {
         final currentSdk = Version.parse(Platform.version.split(' ').first);
         p = project(
-            mainSrc: experiment.validation,
-            sdkConstraint: VersionConstraint.compatibleWith(currentSdk));
+          mainSrc: experiment.validation,
+          sdkConstraint: VersionConstraint.compatibleWith(currentSdk),
+          pubspecExtras: {
+            'dev_dependencies': {'test': 'any'}
+          },
+        );
         p.file('test/experiment_test.dart', '''
 import 'package:dartdev_temp/main.dart' as imported;
 import 'package:test/test.dart';

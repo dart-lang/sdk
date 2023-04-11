@@ -61,6 +61,7 @@ apis
 app
 apparently
 applicable
+approximation
 architectures
 arg
 args
@@ -235,6 +236,7 @@ co
 codebase
 codec
 codes
+collides
 collision
 coloring
 colorized
@@ -289,6 +291,7 @@ consumers
 consumption
 container
 containers
+contextually
 continuations
 contra
 contribute
@@ -418,6 +421,7 @@ distribute
 diverged
 divided
 divides
+dividing
 dm
 doc
 docs
@@ -500,6 +504,7 @@ exchanging
 execute
 executor
 executors
+exhaust
 exhausted
 exhaustively
 exhaustiveness
@@ -571,6 +576,7 @@ fo
 foo
 foobar
 footer
+forcefully
 forcing
 foreign
 formed
@@ -975,6 +981,7 @@ obj
 obligated
 observatory
 observe
+obsolete
 obstruct
 obtaining
 occasionally
@@ -1089,6 +1096,7 @@ preexisted
 preexisting
 preferably
 prefixing
+preliminary
 premark
 preorder
 prepares
@@ -1106,6 +1114,7 @@ printf
 println
 prioritization
 proc
+proceeds
 processes
 processor
 producers
@@ -1464,6 +1473,7 @@ subname
 subnode
 subnodes
 subpatterns
+subproperties
 subscription
 subsection
 subsections
@@ -1493,6 +1503,7 @@ supernode
 supers
 suppose
 surprising
+surrounded
 suspended
 svar
 svg
@@ -1504,6 +1515,7 @@ symbolic
 synchronously
 syncs
 synth
+systematic
 t
 tagged
 tagger
@@ -1601,6 +1613,7 @@ unaligned
 unaltered
 unavailable
 unbound
+uncached
 uncategorized
 uncomment
 uncommon
@@ -1656,6 +1669,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unrestricted
 unreversed
 unseen
 unset
@@ -1665,6 +1679,7 @@ unsound
 unsubstituted
 untouched
 unusual
+unvisited
 unwrapper
 unwraps
 unwritten
@@ -1683,6 +1698,7 @@ usually
 util
 utils
 v
+validates
 validly
 value's
 variable's

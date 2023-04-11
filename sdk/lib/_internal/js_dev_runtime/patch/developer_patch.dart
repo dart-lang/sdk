@@ -196,7 +196,7 @@ class UserTag {
   static UserTag get defaultTag => _FakeUserTag._defaultTag;
 }
 
-class _FakeUserTag implements UserTag {
+final class _FakeUserTag implements UserTag {
   static final _instances = <String, _FakeUserTag>{};
 
   _FakeUserTag.real(this.label);
@@ -230,3 +230,11 @@ var _currentTag = _FakeUserTag._defaultTag;
 
 @patch
 UserTag getCurrentTag() => _currentTag;
+
+@patch
+abstract final class NativeRuntime {
+  @patch
+  static void writeHeapSnapshotToFile(String filepath) =>
+      throw UnsupportedError(
+          "Generating heap snapshots is not supported on the web.");
+}

@@ -554,10 +554,13 @@ class FfiTransformer extends Transformer {
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  DartType? convertNativeTypeToDartType(DartType nativeType,
-      {bool allowCompounds = false,
-      bool allowHandle = false,
-      bool allowInlineArray = false}) {
+  DartType? convertNativeTypeToDartType(
+    DartType nativeType, {
+    bool allowCompounds = false,
+    bool allowHandle = false,
+    bool allowInlineArray = false,
+    bool allowVoid = false,
+  }) {
     if (nativeType is! InterfaceType) {
       return null;
     }
@@ -567,6 +570,14 @@ class FfiTransformer extends Transformer {
 
     if (nativeClass == arrayClass) {
       if (!allowInlineArray) {
+        return null;
+      }
+      final nested = convertNativeTypeToDartType(
+        nativeType.typeArguments.single,
+        allowInlineArray: true,
+        allowCompounds: true,
+      );
+      if (nested == null) {
         return null;
       }
       return nativeType;
@@ -596,6 +607,9 @@ class FfiTransformer extends Transformer {
       return InterfaceType(boolClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kVoid) {
+      if (!allowVoid) {
+        return null;
+      }
       return VoidType();
     }
     if (nativeType_ == NativeType.kHandle && allowHandle) {
@@ -614,7 +628,7 @@ class FfiTransformer extends Transformer {
     if (fun.typeParameters.isNotEmpty) return null;
 
     final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
-        allowCompounds: true, allowHandle: true);
+        allowCompounds: true, allowHandle: true, allowVoid: true);
     if (returnType == null) return null;
     final argumentTypes = <DartType>[];
     for (final paramDartType in flattenVarargs(fun).positionalParameters) {
@@ -754,7 +768,8 @@ class FfiTransformer extends Transformer {
       Expression length, int fileOffset) {
     final typedDataVar = VariableDeclaration("#typedData",
         initializer: typedData,
-        type: InterfaceType(typedDataClass, Nullability.nonNullable))
+        type: InterfaceType(typedDataClass, Nullability.nonNullable),
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return Let(
         typedDataVar,
@@ -800,10 +815,14 @@ class FfiTransformer extends Transformer {
   Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
       Expression length, DartType dartType, int fileOffset) {
     final typedDataBaseVar = VariableDeclaration("#typedDataBase",
-        initializer: typedDataBase, type: coreTypes.objectNonNullableRawType)
+        initializer: typedDataBase,
+        type: coreTypes.objectNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     final offsetVar = VariableDeclaration("#offset",
-        initializer: offset, type: coreTypes.intNonNullableRawType)
+        initializer: offset,
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
       ..fileOffset = fileOffset;
     return BlockExpression(
         Block([typedDataBaseVar, offsetVar]),
@@ -888,13 +907,16 @@ class FfiTransformer extends Transformer {
   ///
   /// `Array<Array<Array<Unknown>>>` -> [InvalidType].
   DartType arraySingleElementType(DartType dartType) {
-    InterfaceType elementType = dartType as InterfaceType;
+    if (dartType is! InterfaceType) {
+      return InvalidType();
+    }
+    InterfaceType elementType = dartType;
     while (elementType.classNode == arrayClass) {
       final elementTypeAny = elementType.typeArguments[0];
-      if (elementTypeAny is InvalidType) {
-        return elementTypeAny;
+      if (elementTypeAny is! InterfaceType) {
+        return InvalidType();
       }
-      elementType = elementTypeAny as InterfaceType;
+      elementType = elementTypeAny;
     }
     return elementType;
   }
@@ -1183,12 +1205,18 @@ class FfiTransformer extends Transformer {
   }
 
   void ensureNativeTypeToDartType(
-      DartType nativeType, DartType dartType, TreeNode reportErrorOn,
-      {bool allowHandle = false}) {
+    DartType nativeType,
+    DartType dartType,
+    TreeNode reportErrorOn, {
+    bool allowHandle = false,
+    allowVoid = false,
+  }) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
-        nativeType,
-        allowCompounds: true,
-        allowHandle: allowHandle)!;
+      nativeType,
+      allowCompounds: true,
+      allowHandle: allowHandle,
+      allowVoid: allowVoid,
+    )!;
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
@@ -1210,14 +1238,19 @@ class FfiTransformer extends Transformer {
     throw FfiStaticTypeError();
   }
 
-  void ensureNativeTypeValid(DartType nativeType, TreeNode reportErrorOn,
-      {bool allowHandle = false,
-      bool allowCompounds = false,
-      bool allowInlineArray = false}) {
+  void ensureNativeTypeValid(
+    DartType nativeType,
+    TreeNode reportErrorOn, {
+    bool allowHandle = false,
+    bool allowCompounds = false,
+    bool allowInlineArray = false,
+    bool allowVoid = false,
+  }) {
     if (!_nativeTypeValid(nativeType,
         allowCompounds: allowCompounds,
         allowHandle: allowHandle,
-        allowInlineArray: allowInlineArray)) {
+        allowInlineArray: allowInlineArray,
+        allowVoid: allowVoid)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
@@ -1230,14 +1263,18 @@ class FfiTransformer extends Transformer {
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(DartType nativeType,
-      {bool allowCompounds = false,
-      bool allowHandle = false,
-      bool allowInlineArray = false}) {
+  bool _nativeTypeValid(
+    DartType nativeType, {
+    bool allowCompounds = false,
+    bool allowHandle = false,
+    bool allowInlineArray = false,
+    bool allowVoid = false,
+  }) {
     return convertNativeTypeToDartType(nativeType,
             allowCompounds: allowCompounds,
             allowHandle: allowHandle,
-            allowInlineArray: allowInlineArray) !=
+            allowInlineArray: allowInlineArray,
+            allowVoid: allowVoid) !=
         null;
   }
 }

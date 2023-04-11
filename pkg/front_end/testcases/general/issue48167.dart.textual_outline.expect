@@ -1,3 +1,4 @@
+// @dart = 2.19
 class Base {}
 
 class Mixin1a extends Base {}

@@ -18,11 +18,11 @@ static method nextElement() → asy::Future<self::Foo>
   return [@vm.inferred-type.metadata=dart.async::_Future<#lib::Foo>] asy::Future::value<self::Foo>(new self::Foo::•());
 static method main() → void async /* futureValueType= void */ {
   for (self::Foo element = new self::Foo::•(); await block {
-    final asy::Future<core::bool> :expressionValueWrappedFinalizable = self::hasMore();
+    final synthesized asy::Future<core::bool> :expressionValueWrappedFinalizable = self::hasMore();
     _in::reachabilityFence(element);
   } =>:expressionValueWrappedFinalizable; element = block {
-    final self::Foo :expressionValueWrappedFinalizable = await block {
-      final asy::Future<self::Foo> :expressionValueWrappedFinalizable = self::nextElement();
+    final synthesized self::Foo :expressionValueWrappedFinalizable = await block {
+      final synthesized asy::Future<self::Foo> :expressionValueWrappedFinalizable = self::nextElement();
       _in::reachabilityFence(element);
     } =>:expressionValueWrappedFinalizable;
     _in::reachabilityFence(element);

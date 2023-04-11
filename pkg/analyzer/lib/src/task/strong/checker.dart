@@ -649,7 +649,7 @@ class CodeChecker extends RecursiveAstVisitor {
   bool? _needsImplicitCast(SyntacticEntity expr,
       {required DartType from, required DartType to}) {
     // Void is considered Top, but may only be *explicitly* cast.
-    if (from.isVoid) return null;
+    if (from is VoidType) return null;
 
     if (to is FunctionType) {
       var needsCast = _checkFunctionTypeCasts(to, from);

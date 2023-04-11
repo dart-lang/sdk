@@ -31,6 +31,7 @@ import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/events.dart';
 import 'src/experiments.dart';
+import 'src/unified_analytics.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -40,29 +41,21 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   int? exitCode = 1;
   try {
     VmInteropHandler.initialize(port);
-
-    // TODO(sigurdm): Remove when top-level pub is removed.
-    if (args[0] == '__deprecated_pub') {
-      // This is the entry-point supporting the top-level `pub` script.
-      // ignore: deprecated_member_use
-      exitCode = await deprecatedpubCommand().run(args.skip(1));
-    } else {
-      if (args.contains('run')) {
-        // These flags have a format that can't be handled by package:args, so while
-        // they are valid flags we'll assume the VM has verified them by this point.
-        args = args
-            .where(
-              (element) => !(element.contains('--observe') ||
-                  element.contains('--enable-vm-service') ||
-                  element.contains('--devtools')),
-            )
-            .toList();
-      }
-
-      // Finally, call the runner to execute the command; see DartdevRunner.
-      final runner = DartdevRunner(args);
-      exitCode = await runner.run(args);
+    if (args.contains('run')) {
+      // These flags have a format that can't be handled by package:args, so while
+      // they are valid flags we'll assume the VM has verified them by this point.
+      args = args
+          .where(
+            (element) => !(element.contains('--observe') ||
+                element.contains('--enable-vm-service') ||
+                element.contains('--devtools')),
+          )
+          .toList();
     }
+
+    // Finally, call the runner to execute the command; see DartdevRunner.
+    final runner = DartdevRunner(args);
+    exitCode = await runner.run(args);
   } on UsageException catch (e) {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
     // when it is in DartdevRunner.runCommand.
@@ -89,10 +82,7 @@ class DartdevRunner extends CommandRunner<int> {
       'A command-line utility for Dart development';
 
   @override
-  final ArgParser argParser = ArgParser(
-    usageLineLength: dartdevUsageLineLength,
-    allowTrailingOptions: false,
-  );
+  late final ArgParser argParser;
 
   final bool verbose;
 
@@ -100,26 +90,9 @@ class DartdevRunner extends CommandRunner<int> {
 
   DartdevRunner(List<String> args)
       : verbose = args.contains('-v') || args.contains('--verbose'),
+        argParser = globalDartdevOptionsParser(
+            verbose: args.contains('-v') || args.contains('--verbose')),
         super('dart', '$dartdevDescription.') {
-    argParser.addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Show additional command output.');
-    argParser.addFlag('version',
-        negatable: false, help: 'Print the Dart SDK version.');
-    argParser.addFlag('enable-analytics',
-        negatable: false, help: 'Enable analytics.');
-    argParser.addFlag('disable-analytics',
-        negatable: false, help: 'Disable analytics.');
-
-    argParser.addFlag('diagnostics',
-        negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
-
-    argParser.addFlag(
-      'analytics',
-      negatable: true,
-      help: 'Disable analytics for this `dart *` run',
-      hide: true,
-    );
-
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
@@ -158,13 +131,16 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
+    bool suppressAnalytics =
+        !topLevelResults['analytics'] || topLevelResults['suppress-analytics'];
+    if (topLevelResults.wasParsed('analytics')) {
+      io.stderr.writeln(
+          '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
+          'to disable analytics for one run instead.');
+    }
     // The Analytics instance used to report information back to Google Analytics;
     // see lib/src/analytics.dart.
-    _analytics = createAnalyticsInstance(
-      topLevelResults.wasParsed('analytics')
-          ? !topLevelResults['analytics']
-          : false,
-    );
+    _analytics = createAnalyticsInstance(suppressAnalytics);
 
     // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
     // the user is on a terminal, and the machine is not a bot, then print the
@@ -179,10 +155,16 @@ class DartdevRunner extends CommandRunner<int> {
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
     // the respective intention and print any notices to standard out and exit.
-    if (topLevelResults['disable-analytics']) {
+    if (topLevelResults['disable-analytics'] ||
+        topLevelResults['disable-telemetry']) {
       // This block also potentially catches the case of (disableAnalytics &&
       // enableAnalytics), in which we favor the disabling of analytics.
       analytics.enabled = false;
+
+      // Disable sending data via the unified analytics package.
+      var unifiedAnalytics = createUnifiedAnalytics();
+      await unifiedAnalytics.setTelemetry(false);
+      unifiedAnalytics.close();
 
       // Alert the user that analytics has been disabled.
       print(analyticsDisabledNoticeMessage);

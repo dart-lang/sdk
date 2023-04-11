@@ -4,7 +4,7 @@
 
 part of dart._js_helper;
 
-class IdentityMap<K, V> extends InternalMap<K, V> {
+base class IdentityMap<K, V> extends InternalMap<K, V> {
   final _map = JS('', 'new Map()');
 
   // We track the number of modifications done to the key set of the
@@ -103,6 +103,7 @@ class _JSMapIterable<E> extends EfficientLengthIterable<E> {
 
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
 
   @JSExportName('Symbol.iterator')
   _jsIterator() {

@@ -6,7 +6,7 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   method toString() → core::String
     ;
 }
-abstract class A extends core::Object {
+abstract mixin class A extends core::Object {
   synthetic constructor •() → self::A
     ;
   method toString() → core::String
@@ -121,17 +121,17 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:17:6 -> ListConstant(const <E1*>[const E1{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:18:3 -> InstanceConstant(const E1{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:21:6 -> ListConstant(const <E2*>[const E2{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:22:3 -> InstanceConstant(const E2{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:27:6 -> ListConstant(const <E3*>[const E3{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:28:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:33:6 -> ListConstant(const <E4*>[const E4{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:34:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:37:6 -> ListConstant(const <E5*>[const E5{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:38:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:43:6 -> ListConstant(const <E6*>[const E6{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:44:3 -> InstanceConstant(const E6{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:47:6 -> ListConstant(const <E7*>[const E7{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:48:3 -> InstanceConstant(const E7{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:17:18 -> InstanceConstant(const E1{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:19:6 -> ListConstant(const <E2*>[const E2{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:20:3 -> InstanceConstant(const E2{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:25:6 -> ListConstant(const <E3*>[const E3{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:26:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:31:6 -> ListConstant(const <E4*>[const E4{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:31:24 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:33:6 -> ListConstant(const <E5*>[const E5{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:34:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:39:6 -> ListConstant(const <E6*>[const E6{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:39:18 -> InstanceConstant(const E6{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:41:6 -> ListConstant(const <E7*>[const E7{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:42:3 -> InstanceConstant(const E7{})
 Extra constant evaluation: evaluated: 53, effectively constant: 14

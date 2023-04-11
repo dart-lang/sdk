@@ -2,27 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:telemetry/telemetry.dart';
+import 'package:http/src/response.dart';
+import 'package:unified_analytics/src/config_handler.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 /// An implementation of [Analytics] that's appropriate to use when analytics
-/// have not been enabled.
-class NoopAnalytics extends Analytics {
+/// will be disabled for the current session, including tests.
+class NoopAnalytics implements Analytics {
   @override
-  String? get applicationName => null;
+  String get getConsentMessage => throw UnimplementedError();
 
   @override
-  String? get applicationVersion => null;
+  Map<String, ToolInfo> get parsedTools => throw UnimplementedError();
 
   @override
-  bool get enabled => false;
+  bool get shouldShowMessage => false;
 
   @override
-  set enabled(bool value) {
-    // Ignored
-  }
+  bool get telemetryEnabled => false;
 
   @override
-  Stream<Map<String, dynamic>> get onSend async* {
+  Map<String, Map<String, Object?>> get userPropertyMap =>
+      throw UnimplementedError();
+
+  @override
+  void clientShowedMessage() {
     // Ignored
   }
 
@@ -32,50 +36,20 @@ class NoopAnalytics extends Analytics {
   }
 
   @override
-  getSessionValue(String param) {
-    // Ignored
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
+  LogFileStats? logFileStats() {
     throw UnimplementedError();
   }
 
   @override
-  Future sendEvent(String category, String action,
-      {String? label, int? value, Map<String, String>? parameters}) async {
+  Future<Response>? sendEvent(
+      {required DashEvent eventName,
+      Map<String, Object?> eventData = const {}}) {
     // Ignored
+    return null;
   }
 
   @override
-  Future sendException(String description, {bool? fatal}) async {
-    // Ignored
-  }
-
-  @override
-  Future sendScreenView(String viewName,
-      {Map<String, String>? parameters}) async {
-    // Ignored
-  }
-
-  @override
-  Future sendSocial(String network, String action, String target) async {
-    // Ignored
-  }
-
-  @override
-  Future sendTiming(String variableName, int time,
-      {String? category, String? label}) async {
-    // Ignored
-  }
-
-  @override
-  void setSessionValue(String param, value) {
-    // Ignored
-  }
-
-  @override
-  Future waitForLastPing({Duration? timeout}) async {
-    // Ignored
+  Future<void> setTelemetry(bool reportingBool) {
+    throw UnimplementedError();
   }
 }

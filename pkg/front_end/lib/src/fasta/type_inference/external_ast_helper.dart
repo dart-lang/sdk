@@ -5,6 +5,7 @@
 /// Helper library for creating external AST nodes during inference.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../names.dart';
 import 'inference_results.dart';
@@ -99,13 +100,32 @@ BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
 }
 
 /// Creates an integer literal of [value].
-IntLiteral createIntLiteral(int value, {required int fileOffset}) {
-  return new IntLiteral(value)..fileOffset = fileOffset;
+Expression createIntLiteral(CoreTypes coreTypes, int value,
+    {required int fileOffset}) {
+  if (value < 0) {
+    /// The web backends need this to be encoded as a unary minus on the
+    /// positive value.
+    return new InstanceInvocation(
+        InstanceAccessKind.Instance,
+        new IntLiteral(-value)..fileOffset = fileOffset,
+        unaryMinusName,
+        new Arguments([])..fileOffset = fileOffset,
+        interfaceTarget: coreTypes.intUnaryMinus,
+        functionType: coreTypes.intUnaryMinus.getterType as FunctionType)
+      ..fileOffset = fileOffset;
+  } else {
+    return new IntLiteral(value)..fileOffset = fileOffset;
+  }
 }
 
 /// Creates a string literal of [value].
 StringLiteral createStringLiteral(String value, {required int fileOffset}) {
   return new StringLiteral(value)..fileOffset = fileOffset;
+}
+
+/// Creates a null literal.
+NullLiteral createNullLiteral({required int fileOffset}) {
+  return new NullLiteral()..fileOffset = fileOffset;
 }
 
 /// Creates a conditional expression of the [condition] and the [then] and
@@ -142,15 +162,17 @@ VariableDeclaration createVariableCache(Expression expression, DartType type) {
 /// Creates an uninitialized [VariableDeclaration] of the static [type].
 VariableDeclaration createUninitializedVariable(DartType type,
     {required int fileOffset}) {
-  return new VariableDeclaration(null, type: type)..fileOffset = fileOffset;
+  return new VariableDeclaration(null, type: type, isSynthesized: true)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates an initialized (but mutable) [VariableDeclaration] of the static
 /// [type].
 VariableDeclaration createInitializedVariable(
     Expression expression, DartType type,
-    {required int fileOffset}) {
-  return new VariableDeclaration(null, initializer: expression, type: type)
+    {required int fileOffset, String? name}) {
+  return new VariableDeclaration(name,
+      initializer: expression, type: type, isSynthesized: true)
     ..fileOffset = fileOffset;
 }
 

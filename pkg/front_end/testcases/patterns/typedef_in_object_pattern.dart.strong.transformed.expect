@@ -19,8 +19,8 @@ class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
 }
 static method test1(dynamic x) → dynamic {
   {
-    core::int foo;
-    final dynamic #0#0 = x;
+    hoisted core::int foo;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} self::A && (let final core::int #t1 = foo = #0#0{self::A}.{self::A::foo}{core::int} in true)) {
       return foo;
     }
@@ -31,8 +31,8 @@ static method test1(dynamic x) → dynamic {
 }
 static method test2(dynamic x) → dynamic {
   {
-    core::String x;
-    final dynamic #0#0 = x;
+    hoisted core::String x;
+    final synthesized dynamic #0#0 = x;
     if(#0#0 is{ForNonNullableByDefault} self::C<core::String, core::String> && (let final core::String #t2 = x = #0#0{self::C<core::String, core::String>}.{self::C::x}{core::String} in true)) {
       return x;
     }

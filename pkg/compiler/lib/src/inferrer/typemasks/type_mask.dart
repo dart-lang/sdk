@@ -100,6 +100,7 @@ enum TypeMaskKind {
   set,
   map,
   dictionary,
+  record,
   value,
 }
 
@@ -257,6 +258,8 @@ abstract class TypeMask implements AbstractValue {
         return MapTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.dictionary:
         return DictionaryTypeMask.readFromDataSource(source, domain);
+      case TypeMaskKind.record:
+        return RecordTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.value:
         return ValueTypeMask.readFromDataSource(source, domain);
     }
@@ -316,6 +319,14 @@ abstract class TypeMask implements AbstractValue {
       return null;
     } else if (mask is UnionTypeMask) {
       for (TypeMask submask in mask.disjointMasks) {
+        final submaskReason = getNotNormalizedReason(submask, closedWorld);
+        if (submaskReason != null) {
+          return 'Submask $submask in $mask: $submaskReason.';
+        }
+      }
+      return null;
+    } else if (mask is RecordTypeMask) {
+      for (TypeMask submask in mask.types) {
         final submaskReason = getNotNormalizedReason(submask, closedWorld);
         if (submaskReason != null) {
           return 'Submask $submask in $mask: $submaskReason.';

@@ -13,7 +13,7 @@ echo(msg) {
   reply.send('echoing ${data(1)}}');
 }
 
-class Test extends NativeFieldWrapperClass2 {
+base class Test extends NativeFieldWrapperClass2 {
   Test(this.i, this.j);
   int i, j;
 }
@@ -27,7 +27,7 @@ main() {
   asyncStart();
   Future<Isolate?>.value(snd).catchError((e) {
     Expect.isTrue(e is ArgumentError);
-    Expect.isTrue("$e".contains("NativeWrapper"));
+    Expect.isTrue("$e".contains("Test"));
     port.close();
     asyncEnd();
   });

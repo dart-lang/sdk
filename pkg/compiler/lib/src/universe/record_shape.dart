@@ -11,7 +11,7 @@ import '../serialization/serialization.dart';
 /// [fieldCount] to represent data about a record, for example, the types or
 /// values of the fields. Unnamed (indexed) fields correspond to the same index
 /// in the List. Named fields follow the unnamed fields in the canonical
-/// (sorted) order. [RecordShape.indexOfName] can be used to find the index
+/// (sorted) order. [RecordShape.indexOfFieldName] can be used to find the index
 /// corresponding to a name.
 class RecordShape {
   /// Tag used for identifying serialized [RecordShape] objects in a debugging
@@ -29,6 +29,10 @@ class RecordShape {
   int get fieldCount => positionalFieldCount + namedFieldCount;
 
   RecordShape._(this.positionalFieldCount, [this.fieldNames = const []]);
+
+  static String positionalFieldIndexToGetterName(int i) {
+    return '\$${i + 1}';
+  }
 
   factory RecordShape(int positionalFieldCount, List<String> names) {
     assert(positionalFieldCount >= 0);
@@ -94,10 +98,32 @@ class RecordShape {
     return 0;
   }
 
-  int indexOfName(String name) {
+  int indexOfFieldName(String name) {
     int nameIndex = fieldNames.indexOf(name);
     if (nameIndex < 0) throw ArgumentError.value(name, 'name');
     return positionalFieldCount + nameIndex;
+  }
+
+  int indexOfGetterName(String name) {
+    int nameIndex = fieldNames.indexOf(name);
+    if (nameIndex < 0) {
+      if (name[0] == '\$') {
+        final position = int.tryParse(name.substring(1));
+        if (position != null && position <= positionalFieldCount) {
+          return position - 1;
+        }
+      }
+      return -1;
+    }
+    return positionalFieldCount + nameIndex;
+  }
+
+  String getterNameOfIndex(int index) => index < positionalFieldCount
+      ? positionalFieldIndexToGetterName(index)
+      : fieldNames[index - positionalFieldCount];
+
+  bool nameMatchesGetter(String name) {
+    return indexOfGetterName(name) >= 0;
   }
 
   @override

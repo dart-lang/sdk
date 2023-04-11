@@ -197,10 +197,10 @@ class ClassDeclarationsMacro1 implements ClassDeclarationsMacro {
   FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (clazz.isAbstract) {
+    if (clazz.hasAbstract) {
       sb.write('a');
     }
-    if (clazz.isExternal) {
+    if (clazz.hasExternal) {
       sb.write('e');
     }
     builder.declareInLibrary(new DeclarationCode.fromString('''

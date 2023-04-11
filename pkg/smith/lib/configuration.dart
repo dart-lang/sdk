@@ -683,6 +683,8 @@ class Architecture extends NamedEnum {
   static const arm64 = Architecture._('arm64');
   static const arm64c = Architecture._('arm64c');
   static const simarm = Architecture._('simarm');
+  // ignore: constant_identifier_names
+  static const simarm_x64 = Architecture._('simarm_x64');
   static const simarm64 = Architecture._('simarm64');
   static const simarm64c = Architecture._('simarm64c');
   static const riscv32 = Architecture._('riscv32');
@@ -703,6 +705,7 @@ class Architecture extends NamedEnum {
     arm64,
     arm64c,
     simarm,
+    simarm_x64,
     simarm64,
     simarm64c,
     riscv32,
@@ -719,6 +722,18 @@ class Architecture extends NamedEnum {
   }
 
   const Architecture._(String name) : super(name);
+
+  bool get isSimulator => _simulators.contains(this);
+  static final _simulators = <Architecture>{
+    simx64,
+    simx64c,
+    simarm,
+    simarm_x64,
+    simarm64,
+    simarm64c,
+    simriscv32,
+    simriscv64,
+  };
 
   static final Architecture host = _computeHost();
   static Architecture _computeHost() {
@@ -764,8 +779,6 @@ class Compiler extends NamedEnum {
   static const dart2js = Compiler._('dart2js');
   static const dart2analyzer = Compiler._('dart2analyzer');
   static const dart2wasm = Compiler._('dart2wasm');
-  static const dartdevc = Compiler._('dartdevc');
-  static const dartdevk = Compiler._('dartdevk');
   static const ddc = Compiler._('ddc');
   static const appJitk = Compiler._('app_jitk');
   static const dartk = Compiler._('dartk');
@@ -779,8 +792,6 @@ class Compiler extends NamedEnum {
     dart2js,
     dart2analyzer,
     dart2wasm,
-    dartdevc,
-    dartdevk,
     ddc,
     appJitk,
     dartk,
@@ -820,8 +831,6 @@ class Compiler extends NamedEnum {
           Runtime.chromeOnAndroid,
         ];
 
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
       case Compiler.ddc:
         return const [
           Runtime.none,
@@ -862,8 +871,6 @@ class Compiler extends NamedEnum {
         return Runtime.d8;
       case Compiler.dart2wasm:
         return Runtime.d8;
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
       case Compiler.ddc:
         return Runtime.chrome;
       case Compiler.dart2analyzer:
@@ -886,8 +893,6 @@ class Compiler extends NamedEnum {
       case Compiler.dart2analyzer:
       case Compiler.dart2js:
       case Compiler.dart2wasm:
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
       case Compiler.ddc:
       case Compiler.fasta:
         return Mode.release;

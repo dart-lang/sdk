@@ -1,0 +1,17 @@
+void f(x) {
+const y = 1;
+switch (x) {
+case (y as int) as num:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+const[KeywordToken] y[StringToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]y[StringToken] as[KeywordToken] int[StringToken])[SimpleToken] as[KeywordToken] num[StringToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

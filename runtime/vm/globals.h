@@ -115,7 +115,7 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 
 #if defined(DART_ENABLE_TIMELINE) || !defined(PRODUCT) ||                      \
     defined(DART_HOST_OS_FUCHSIA) || defined(DART_TARGET_OS_FUCHSIA) ||        \
-    defined(DART_TARGET_OS_ANDROID)
+    defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_MACOS)
 #define SUPPORT_TIMELINE 1
 #endif
 

@@ -24,11 +24,12 @@ import 'dart:_js_helper'
         getTraceFromException,
         RuntimeError,
         wrapException,
-        wrapZoneUnaryCallback;
+        wrapZoneUnaryCallback,
+        TrustedGetRuntimeType;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
-import 'dart:_rti' show getRuntimeType;
+import 'dart:_rti' show getRuntimeTypeOfDartObject;
 
 import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
@@ -69,7 +70,7 @@ class Object {
   }
 
   @patch
-  Type get runtimeType => getRuntimeType(this);
+  Type get runtimeType => getRuntimeTypeOfDartObject(this);
 }
 
 @patch
@@ -220,14 +221,12 @@ class double {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    // Closures all have useful and safe toString methods.
-    if (object is Closure) return object.toString();
-    return Primitives.objectToHumanReadableString(object);
+    return Primitives.safeToString(object);
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    return jsonEncodeNative(string);
+    return Primitives.stringSafeToString(string);
   }
 
   @patch
@@ -279,6 +278,11 @@ class DateTime {
   @patch
   DateTime._now()
       : isUtc = false,
+        _value = Primitives.dateNow();
+
+  @patch
+  DateTime._nowUtc()
+      : isUtc = true,
         _value = Primitives.dateNow();
 
   /// Rounds the given [microsecond] to the nearest milliseconds value.
@@ -580,6 +584,16 @@ class String {
 class bool {
   @patch
   int get hashCode => super.hashCode;
+
+  @patch
+  static bool parse(String source, {bool caseSensitive = true}) =>
+      tryParse(source, caseSensitive: caseSensitive) ??
+      (throw FormatException("Invalid boolean", source));
+
+  @patch
+  static bool? tryParse(String source, {bool caseSensitive = true}) {
+    return Primitives.parseBool(source, caseSensitive);
+  }
 }
 
 @patch

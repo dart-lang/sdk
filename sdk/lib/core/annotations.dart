@@ -147,7 +147,7 @@ const Object override = _Override();
 /// function `foo` is annotated with a pragma 'other-pragma'
 /// specific to OtherTool.
 @pragma('vm:entry-point')
-class pragma {
+final class pragma {
   /// The name of the hint.
   ///
   /// A string that is recognized by one or more tools, or such a string prefixed

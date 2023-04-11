@@ -88,7 +88,7 @@ class C extends self::Super {
     core::String local;
     dynamic untypedLocal;
     {
-      core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::•<core::String>(0).{core::Iterable::iterator}{core::Iterator<core::String>};
+      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::•<core::String>(0).{core::Iterable::iterator}{core::Iterator<core::String>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::String #t1 = :sync-for-iterator.{core::Iterator::current}{core::String};
         {
@@ -97,7 +97,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -106,7 +106,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int #t3 = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
@@ -115,7 +115,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -124,7 +124,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::double> :sync-for-iterator = core::_GrowableList::•<core::double>(0).{core::Iterable::iterator}{core::Iterator<core::double>};
+      synthesized core::Iterator<core::double> :sync-for-iterator = core::_GrowableList::•<core::double>(0).{core::Iterable::iterator}{core::Iterator<core::double>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::double #t5 = :sync-for-iterator.{core::Iterator::current}{core::double};
         {
@@ -133,7 +133,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -142,7 +142,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::bool> :sync-for-iterator = core::_GrowableList::•<core::bool>(0).{core::Iterable::iterator}{core::Iterator<core::bool>};
+      synthesized core::Iterator<core::bool> :sync-for-iterator = core::_GrowableList::•<core::bool>(0).{core::Iterable::iterator}{core::Iterator<core::bool>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::bool #t7 = :sync-for-iterator.{core::Iterator::current}{core::bool};
         {
@@ -151,7 +151,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -160,7 +160,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int #t9 = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
@@ -169,7 +169,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -179,7 +179,7 @@ class C extends self::Super {
     }
     self::C c = new self::C::•();
     {
-      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::int #t11 = :sync-for-iterator.{core::Iterator::current}{core::int};
         {
@@ -188,7 +188,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -197,7 +197,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -214,7 +214,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t14 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -227,7 +227,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -248,7 +248,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     for (main() in []) {}
          ^^^^";
       {
-        core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+        synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{dynamic};
           {
@@ -265,7 +265,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     for (var x, y in <int>[]) {
          ^^^";
       {
-        core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
+        synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           final core::int #t17 = :sync-for-iterator.{core::Iterator::current}{core::int};
           {
@@ -281,7 +281,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t18 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {

@@ -13,7 +13,7 @@ abstract class I<T> {
   void f(T x);
 }
 
-class M {}
+mixin M {}
 
 class C = B with M implements I<int>;
 void g1(C c) {

@@ -27,7 +27,7 @@ main() {
     c1.ref.next = c3;
 
     Coordinate currentCoordinate = c1.ref;
-    for (var i in [0, 1, 2, 3, 4]) {
+    for (var _ in [0, 1, 2, 3, 4]) {
       currentCoordinate = currentCoordinate.next.ref;
       print("${currentCoordinate.x}; ${currentCoordinate.y}");
     }
@@ -53,7 +53,7 @@ main() {
     c3.ref.next = c2;
 
     Coordinate currentCoordinate = c1.ref;
-    for (var i in [0, 1, 2, 3, 4]) {
+    for (var _ in [0, 1, 2, 3, 4]) {
       currentCoordinate = currentCoordinate.next.ref;
       print("${currentCoordinate.x}; ${currentCoordinate.y}");
     }
@@ -64,9 +64,9 @@ main() {
   {
     // Allocating in native memory returns a pointer.
     final c = calloc<Coordinate>();
-    print(c is Pointer<Coordinate>);
+    print(c is Pointer<Coordinate>); // ignore: unnecessary_type_check
     // `.ref` returns a reference which gives access to the fields.
-    print(c.ref is Coordinate);
+    print(c.ref is Coordinate); // ignore: unnecessary_type_check
     calloc.free(c);
   }
 

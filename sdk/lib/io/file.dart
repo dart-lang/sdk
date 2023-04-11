@@ -181,7 +181,7 @@ class FileLock {
 ///   a tutorial about writing command-line apps, includes information about
 ///   files and directories.
 @pragma("vm:entry-point")
-abstract class File implements FileSystemEntity {
+abstract interface class File implements FileSystemEntity {
   /// Creates a [File] object.
   ///
   /// If [path] is a relative path, it will be interpreted relative to the
@@ -593,7 +593,7 @@ abstract class File implements FileSystemEntity {
 ///
 /// If an asynchronous method is pending, it is also not possible to call any
 /// synchronous methods. This will also throw a [FileSystemException].
-abstract class RandomAccessFile {
+abstract interface class RandomAccessFile {
   /// Closes the file.
   ///
   /// Returns a [Future] that completes when it has been closed.
@@ -1011,7 +1011,7 @@ class PathNotFoundException extends FileSystemException {
 ///   print(data);
 /// }, onDone: () => print('Done'));
 /// ```
-abstract class ReadPipe implements Stream<List<int>> {}
+abstract interface class ReadPipe implements Stream<List<int>> {}
 
 /// The "write" end of an [Pipe] created by [Pipe.create].
 ///
@@ -1020,7 +1020,7 @@ abstract class ReadPipe implements Stream<List<int>> {}
 /// pipe.write.add("Hello World!".codeUnits);
 /// pipe.write.close();
 /// ```
-abstract class WritePipe implements IOSink {}
+abstract interface class WritePipe implements IOSink {}
 
 /// An anonymous pipe that can be used to send data in a single direction i.e.
 /// data written to [write] can be read using [read].
@@ -1040,7 +1040,7 @@ abstract class WritePipe implements IOSink {}
 /// pipe.write.add('Hello over pipe!'.codeUnits);
 /// pipe.write.close();
 /// ```
-abstract class Pipe {
+abstract interface class Pipe {
   /// The read end of the [Pipe].
   ReadPipe get read;
 

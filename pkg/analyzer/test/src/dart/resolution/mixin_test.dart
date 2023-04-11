@@ -10,77 +10,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MixinDriverResolutionTest);
+    defineReflectiveTests(MixinDeclarationResolutionTest);
   });
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends PubPackageResolutionTest {
-  test_accessor_getter() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  int get g => 0;
-}
-''');
-
-    var element = findElement.mixin('M');
-
-    var accessors = element.accessors;
-    expect(accessors, hasLength(1));
-
-    var gElement = accessors[0];
-    assertElementName(gElement, 'g', offset: 20);
-
-    var gNode = findNode.methodDeclaration('g =>');
-    expect(gNode.declaredElement, same(gElement));
-
-    var fields = element.fields;
-    expect(fields, hasLength(1));
-    assertElementName(fields[0], 'g', isSynthetic: true);
-  }
-
-  test_accessor_method() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  void foo() {}
-}
-''');
-
-    var element = findElement.mixin('M');
-
-    var methods = element.methods;
-    expect(methods, hasLength(1));
-
-    var fooElement = methods[0];
-    assertElementName(fooElement, 'foo', offset: 17);
-
-    var fooNode = findNode.methodDeclaration('foo()');
-    expect(fooNode.declaredElement, same(fooElement));
-  }
-
-  test_accessor_setter() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  void set s(int _) {}
-}
-''');
-
-    var element = findElement.mixin('M');
-
-    var accessors = element.accessors;
-    expect(accessors, hasLength(1));
-
-    var sElement = accessors[0];
-    assertElementName(sElement, 's=', offset: 21);
-
-    var gNode = findNode.methodDeclaration('s(int _)');
-    expect(gNode.declaredElement, same(sElement));
-
-    var fields = element.fields;
-    expect(fields, hasLength(1));
-    assertElementName(fields[0], 's', isSynthetic: true);
-  }
-
+class MixinDeclarationResolutionTest extends PubPackageResolutionTest {
   test_classDeclaration_with() async {
     await assertNoErrorsInCode(r'''
 mixin M {}
@@ -191,34 +126,53 @@ mixin M<T> {
 }
 ''');
 
-    var element = findElement.mixin('M');
+    final node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: SimpleIdentifier
+        token: T
+        staticElement: T@8
+        staticType: null
+      type: T
+    variables
+      VariableDeclaration
+        name: f
+        declaredElement: self::@mixin::M::@field::f
+  semicolon: ;
+  declaredElement: <null>
+''');
+  }
 
-    var typeParameters = element.typeParameters;
-    expect(typeParameters, hasLength(1));
+  test_getter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get foo => 0;
+}
+''');
 
-    var tElement = typeParameters.single;
-    assertElementName(tElement, 'T', offset: 8);
-    assertEnclosingElement(tElement, element);
-
-    var tNode = findNode.typeParameter('T> {');
-    assertElement(tNode.declaredElement, tElement);
-
-    var fields = element.fields;
-    expect(fields, hasLength(1));
-
-    var fElement = fields[0];
-    assertElementName(fElement, 'f', offset: 22);
-    assertEnclosingElement(fElement, element);
-
-    var fNode = findNode.variableDeclaration('f;');
-    assertElement(fNode.declaredElement, fElement);
-
-    assertNamedType(findNode.namedType('T f'), tElement, 'T');
-
-    var accessors = element.accessors;
-    expect(accessors, hasLength(2));
-    assertElementName(accessors[0], 'f', isSynthetic: true);
-    assertElementName(accessors[1], 'f=', isSynthetic: true);
+    final node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  propertyKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredElement: self::@mixin::M::@getter::foo
+    type: int Function()
+''');
   }
 
   test_implementsClause() async {
@@ -293,6 +247,35 @@ mixin M {}
     expect(annotation.elementAnnotation, same(metadata[0]));
   }
 
+  test_method() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+''');
+
+    final node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: void
+      staticElement: <null>
+      staticType: null
+    type: void
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: self::@mixin::M::@method::foo
+    type: void Function()
+''');
+  }
+
   test_methodCallTypeInference_mixinType() async {
     await assertErrorsInCode('''
 g(M<T> f<T>()) {
@@ -351,6 +334,46 @@ mixin A on A {}
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1),
     ]);
+  }
+
+  test_setter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  void set foo(int _) {}
+}
+''');
+
+    final node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: void
+      staticElement: <null>
+      staticType: null
+    type: void
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+      name: _
+      declaredElement: self::@mixin::M::@setter::foo::@parameter::_
+        type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: self::@mixin::M::@setter::foo
+    type: void Function(int)
+''');
   }
 
   test_superInvocation_getter() async {

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// A visitor that will produce an HTML representation of an AST structure.
-class AstWriter extends UnifyingAstVisitor with TreeWriter {
+class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
   @override
   final StringBuffer buffer;
 

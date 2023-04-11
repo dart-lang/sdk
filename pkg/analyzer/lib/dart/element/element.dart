@@ -200,8 +200,11 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
-  /// Return `true` if this class is a base class. A class is a base class if it
-  /// has an explicit `base` modifier.
+  /// Return `true` if this class is a base class.
+  ///
+  /// A class is a base class if it has an explicit `base` modifier, or the
+  /// class has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows the class to be extended but not implemented.
   @experimental
   bool get isBase;
 
@@ -223,13 +226,21 @@ abstract class ClassElement
   @experimental
   bool get isExhaustive;
 
-  /// Return `true` if this class is a final class. A class is a final class if
-  /// it has an explicit `final` modifier.
+  /// Return `true` if this class is a final class.
+  ///
+  /// A class is a final class if it has an explicit `final` modifier, or the
+  /// class has a `final` induced modifier and [isSealed] is `true` as well.
+  /// The final modifier prohibits this class from being extended, implemented,
+  /// or mixed in.
   @experimental
   bool get isFinal;
 
-  /// Return `true` if this class is an interface class. A class is an interface
-  /// class if it has an explicit `interface` modifier.
+  /// Return `true` if this class is an interface class.
+  ///
+  /// A class is an interface class if it has an explicit `interface` modifier,
+  /// or the class has an `interface` induced modifier and [isSealed] is `true`
+  /// as well. The interface modifier allows the class to be implemented, but
+  /// not extended or mixed in.
   @experimental
   bool get isInterface;
 
@@ -727,6 +738,23 @@ abstract class Element implements AnalysisTarget {
 
   /// Return the analysis session in which this element is defined.
   AnalysisSession? get session;
+
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
+  Version? get sinceSdkVersion;
 
   @override
   Source? get source;
@@ -1990,31 +2018,13 @@ abstract class MixinElement
   /// Returns the result of applying augmentations to this element.
   AugmentedMixinElement get augmented;
 
-  /// Return `true` if this mixin is a base mixin. A mixin is a base mixin if it
-  /// has an explicit `base` modifier.
+  /// Return `true` if this mixin is a base mixin.
+  ///
+  /// A mixin is a base mixin if it has an explicit `base` modifier, or the
+  /// mixin has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows a mixin to be mixed in but not implemented.
   @experimental
   bool get isBase;
-
-  /// Return `true` if this element has the property where, in a switch, if you
-  /// cover all of the subtypes of this element, then the compiler knows that
-  /// you have covered all possible instances of the type.
-  @experimental
-  bool get isExhaustive;
-
-  /// Return `true` if this mixin is a final mixin. A mixin is a final mixin if
-  /// it has an explicit `final` modifier.
-  @experimental
-  bool get isFinal;
-
-  /// Return `true` if this mixin is an interface mixin. A mixin is an interface
-  /// mixin if it has an explicit `interface` modifier.
-  @experimental
-  bool get isInterface;
-
-  /// Return `true` if this mixin is a sealed mixin. A mixin is a sealed mixin
-  /// if it has an explicit `sealed` modifier.
-  @experimental
-  bool get isSealed;
 
   /// Returns the superclass constraints defined for this mixin. If the
   /// declaration does not have an `on` clause, then the list will contain
@@ -2031,11 +2041,6 @@ abstract class MixinElement
   /// implementable to classes, mixins, and enums in the given [library].
   @experimental
   bool isImplementableIn(LibraryElement library);
-
-  /// Return `true` if this element, assuming that it is within scope, is
-  /// able to be mixed-in by classes and enums in the given [library].
-  @experimental
-  bool isMixableIn(LibraryElement library);
 }
 
 /// Shared interface between [MixinElement] and [MixinAugmentationElement].

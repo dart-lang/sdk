@@ -15,28 +15,28 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
   dynamic d;
   core::Object o;
   {
-    core::Iterator<core::Object?> :sync-for-iterator = self::F<core::Iterable<core::Object?>>().{core::Iterable::iterator}{core::Iterator<core::Object?>};
+    synthesized core::Iterator<core::Object?> :sync-for-iterator = self::F<core::Iterable<core::Object?>>().{core::Iterable::iterator}{core::Iterator<core::Object?>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::Object? x = :sync-for-iterator.{core::Iterator::current}{core::Object?};
       {}
     }
   }
   {
-    core::Iterator<dynamic> :sync-for-iterator = self::F<core::Iterable<dynamic>>().{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = self::F<core::Iterable<dynamic>>().{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {}
     }
   }
   {
-    core::Iterator<core::Object> :sync-for-iterator = self::F<core::Iterable<core::Object>>().{core::Iterable::iterator}{core::Iterator<core::Object>};
+    synthesized core::Iterator<core::Object> :sync-for-iterator = self::F<core::Iterable<core::Object>>().{core::Iterable::iterator}{core::Iterator<core::Object>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::Object x = :sync-for-iterator.{core::Iterator::current}{core::Object};
       {}
     }
   }
   {
-    core::Iterator<dynamic> :sync-for-iterator = self::F<core::Iterable<dynamic>>().{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = self::F<core::Iterable<dynamic>>().{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -45,7 +45,7 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
     }
   }
   {
-    core::Iterator<core::Object> :sync-for-iterator = self::F<core::Iterable<core::Object>>().{core::Iterable::iterator}{core::Iterator<core::Object>};
+    synthesized core::Iterator<core::Object> :sync-for-iterator = self::F<core::Iterable<core::Object>>().{core::Iterable::iterator}{core::Iterator<core::Object>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::Object #t2 = :sync-for-iterator.{core::Iterator::current}{core::Object};
       {
@@ -54,8 +54,8 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
     }
   }
   {
-    asy::Stream<core::Object?> :stream = self::F<asy::Stream<core::Object?>>();
-    asy::_StreamIterator<core::Object?>? :for-iterator = new asy::_StreamIterator::•<core::Object?>(:stream);
+    synthesized asy::Stream<core::Object?> :stream = self::F<asy::Stream<core::Object?>>();
+    synthesized asy::_StreamIterator<core::Object?>? :for-iterator = new asy::_StreamIterator::•<core::Object?>(:stream);
     try
       while (let dynamic #t3 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         core::Object? x = :for-iterator.{asy::_StreamIterator::current}{core::Object?};
@@ -66,8 +66,8 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    asy::Stream<dynamic> :stream = self::F<asy::Stream<dynamic>>();
-    asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+    synthesized asy::Stream<dynamic> :stream = self::F<asy::Stream<dynamic>>();
+    synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t4 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         dynamic x = :for-iterator.{asy::_StreamIterator::current}{dynamic};
@@ -78,8 +78,8 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    asy::Stream<core::Object> :stream = self::F<asy::Stream<core::Object>>();
-    asy::_StreamIterator<core::Object>? :for-iterator = new asy::_StreamIterator::•<core::Object>(:stream);
+    synthesized asy::Stream<core::Object> :stream = self::F<asy::Stream<core::Object>>();
+    synthesized asy::_StreamIterator<core::Object>? :for-iterator = new asy::_StreamIterator::•<core::Object>(:stream);
     try
       while (let dynamic #t5 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         core::Object x = :for-iterator.{asy::_StreamIterator::current}{core::Object};
@@ -90,8 +90,8 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    asy::Stream<dynamic> :stream = self::F<asy::Stream<dynamic>>();
-    asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+    synthesized asy::Stream<dynamic> :stream = self::F<asy::Stream<dynamic>>();
+    synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t6 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final dynamic #t7 = :for-iterator.{asy::_StreamIterator::current}{dynamic};
@@ -104,8 +104,8 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    asy::Stream<core::Object> :stream = self::F<asy::Stream<core::Object>>();
-    asy::_StreamIterator<core::Object>? :for-iterator = new asy::_StreamIterator::•<core::Object>(:stream);
+    synthesized asy::Stream<core::Object> :stream = self::F<asy::Stream<core::Object>>();
+    synthesized asy::_StreamIterator<core::Object>? :for-iterator = new asy::_StreamIterator::•<core::Object>(:stream);
     try
       while (let dynamic #t8 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final core::Object #t9 = :for-iterator.{asy::_StreamIterator::current}{core::Object};
@@ -120,29 +120,29 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
 }
 static method main() → asy::Future<dynamic> async /* futureValueType= dynamic */ {
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
       {}
     }
   }
   {
-    core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal3<core::num>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::num>};
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal3<core::num>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::num>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::num x = :sync-for-iterator.{core::Iterator::current}{core::num};
       {}
     }
   }
   {
-    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
       {}
     }
   }
   {
-    self::MyStream<core::int> :stream = self::MyStream::•<core::int>();
-    asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+    synthesized self::MyStream<core::int> :stream = self::MyStream::•<core::int>();
+    synthesized asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
     try
       while (let dynamic #t10 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         core::int x = :for-iterator.{asy::_StreamIterator::current}{core::int};
@@ -153,8 +153,8 @@ static method main() → asy::Future<dynamic> async /* futureValueType= dynamic 
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    self::MyStream<core::int> :stream = self::MyStream::•<core::int>();
-    asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+    synthesized self::MyStream<core::int> :stream = self::MyStream::•<core::int>();
+    synthesized asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
     try
       while (let dynamic #t11 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         core::int x = :for-iterator.{asy::_StreamIterator::current}{core::int};

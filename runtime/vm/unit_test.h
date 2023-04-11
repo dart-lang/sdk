@@ -107,7 +107,7 @@
       if (setjmp(*jump.Set()) == 0) {                                          \
         compiler::ObjectPoolBuilder object_pool_builder;                       \
         compiler::Assembler assembler(&object_pool_builder, far_branch_level); \
-        AssemblerTest test("" #name, &assembler);                              \
+        AssemblerTest test("" #name, &assembler, thread->zone());              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
         AssemblerTestRun##name(&test);                                         \
@@ -118,7 +118,7 @@
           RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \
         } else {                                                               \
-          FATAL1("Unexpected error: %s\n", error.ToErrorCString());            \
+          FATAL("Unexpected error: %s\n", error.ToErrorCString());             \
         }                                                                      \
       }                                                                        \
     }                                                                          \
@@ -504,11 +504,11 @@ struct is_double<double> {
 
 class AssemblerTest {
  public:
-  AssemblerTest(const char* name, compiler::Assembler* assembler)
+  AssemblerTest(const char* name, compiler::Assembler* assembler, Zone* zone)
       : name_(name),
         assembler_(assembler),
-        code_(Code::ZoneHandle()),
-        disassembly_(Thread::Current()->zone()->Alloc<char>(DISASSEMBLY_SIZE)) {
+        code_(Code::ZoneHandle(zone)),
+        disassembly_(zone->Alloc<char>(DISASSEMBLY_SIZE)) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }

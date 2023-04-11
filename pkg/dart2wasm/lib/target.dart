@@ -30,6 +30,7 @@ import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
 
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
+import 'package:dart2wasm/records.dart' show RecordShape;
 
 class WasmTarget extends Target {
   WasmTarget({this.constantBranchPruning = true});
@@ -68,8 +69,9 @@ class WasmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:js_interop',
+        'dart:js',
         'dart:js_util',
-        'dart:wasm',
+        'dart:_wasm',
         'dart:developer',
       ];
 
@@ -80,8 +82,12 @@ class WasmTarget extends Target {
         'dart:typed_data',
         'dart:js_interop',
         'dart:js_util',
-        'dart:wasm',
+        'dart:_wasm',
       ];
+
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      importer.path.contains('tests/web/wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -108,9 +114,11 @@ class WasmTarget extends Target {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     final jsInteropChecks = JsInteropChecks(
         coreTypes,
+        hierarchy,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!,
-        enableDisallowedExternalCheck: false);
+        enableDisallowedExternalCheck: false,
+        enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
@@ -362,4 +370,11 @@ class WasmTarget extends Target {
 
   @override
   bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
+
+  late final Map<RecordShape, Class> recordClasses;
+
+  @override
+  Class getRecordImplementationClass(CoreTypes coreTypes,
+          int numPositionalFields, List<String> namedFields) =>
+      recordClasses[RecordShape(numPositionalFields, namedFields)]!;
 }

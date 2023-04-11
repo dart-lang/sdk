@@ -43,10 +43,7 @@ abstract class I<T extends core::Object? = dynamic> extends core::Object {
   abstract get y() → core::Object;
   abstract set y(covariant-by-declaration core::Object value) → void;
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    : super core::Object::•()
-    ;
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   get x() → core::int
     return 1;
   set x(core::int value) → void {

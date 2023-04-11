@@ -11,7 +11,7 @@ part of dart.core;
 ///
 /// These objects are created by the runtime, it is not possible to create
 /// them programmatically.
-abstract class StackTrace {
+abstract interface class StackTrace {
   /// A stack trace object with no information.
   ///
   /// This stack trace is used as the default in situations where

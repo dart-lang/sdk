@@ -2,7 +2,7 @@ mixin M {
   String toString() => "M";
 }
 
-abstract class A {
+abstract mixin class A {
   String toString() => "A";
 }
 

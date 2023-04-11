@@ -158,7 +158,8 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
     await CompilerContext.runWithDefaultOptions((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
 
-      Printer printer = new Printer(sb);
+      Printer printer = new Printer(sb,
+          showOffsets: result.compilationSetup.folderOptions.showOffsets);
       for (Library library in component.libraries) {
         if (result.userLibraries.contains(library.importUri)) {
           printer.writeLibraryFile(library);
@@ -223,6 +224,12 @@ class MatchExpectation
 
     Component componentToText = component;
     if (serializeFirst) {
+      if (result.compilationSetup.folderOptions.showOffsets) {
+        // Not all offsets are serialized so the output won't match and there is
+        // currently no reason to check this.
+        // TODO(johnniwinther): Find a way to avoid or verify the discrepancies.
+        return new Future.value(new Result<ComponentResult>.pass(result));
+      }
       // TODO(johnniwinther): Use library filter instead.
       List<Library> sdkLibraries =
           component.libraries.where((l) => !result.isUserLibrary(l)).toList();
@@ -296,7 +303,8 @@ class MatchExpectation
       // non-serialized step.
       errors.clear();
     }
-    Printer printer = new Printer(buffer)
+    Printer printer = new Printer(buffer,
+        showOffsets: result.compilationSetup.folderOptions.showOffsets)
       ..writeProblemsAsJson(
           "Problems in component", componentToText.problemsAsJson);
     libraries.forEach((Library library) {

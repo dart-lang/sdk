@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum Enum {a, b}
+enum Enum { a, b }
 
 sealed class A {
   final Enum a;
@@ -17,7 +17,8 @@ class B extends A {
 
 void exhaustiveSwitch1(A r) {
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -43,7 +44,8 @@ void exhaustiveSwitch1(A r) {
 
 void exhaustiveSwitch2(A r) {
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -69,8 +71,9 @@ void exhaustiveSwitch2(A r) {
 
 void nonExhaustiveSwitch1(A r) {
   /*
+   checkingOrder={A,B},
    error=non-exhaustive:B(a: Enum.b, b: false),
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -92,8 +95,9 @@ void nonExhaustiveSwitch1(A r) {
 
 void nonExhaustiveSwitch2(A r) {
   /*
+   checkingOrder={A,B},
    error=non-exhaustive:B(a: Enum.a, b: false),
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -115,8 +119,8 @@ void nonExhaustiveSwitch2(A r) {
 
 void nonExhaustiveSwitchWithDefault(A r) {
   /*
-   error=non-exhaustive:B(a: Enum.a, b: true),
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -133,8 +137,9 @@ void nonExhaustiveSwitchWithDefault(A r) {
 
 void exhaustiveNullableSwitch(A? r) {
   /*
+   checkingOrder={A?,A,Null,B},
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -164,9 +169,10 @@ void exhaustiveNullableSwitch(A? r) {
 
 void nonExhaustiveNullableSwitch1(A? r) {
   /*
-   error=non-exhaustive:Null,
+   checkingOrder={A?,A,Null,B},
+   error=non-exhaustive:null,
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -192,9 +198,10 @@ void nonExhaustiveNullableSwitch1(A? r) {
 
 void nonExhaustiveNullableSwitch2(A? r) {
   /*
+   checkingOrder={A?,A,Null,B},
    error=non-exhaustive:B(a: Enum.b, b: false),
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -220,7 +227,8 @@ void nonExhaustiveNullableSwitch2(A? r) {
 
 void unreachableCase1(A r) {
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -254,7 +262,8 @@ void unreachableCase1(A r) {
 void unreachableCase2(A r) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
-   fields={a:Enum,b:bool,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B},
+   fields={a:Enum,b:bool},
    subtypes={B},
    type=A
   */
@@ -284,8 +293,9 @@ void unreachableCase2(A r) {
 
 void unreachableCase3(A? r) {
   /*
+   checkingOrder={A?,A,Null,B},
    expandedSubtypes={B,Null},
-   fields={},
+   fields={a:-,b:-},
    subtypes={A,Null},
    type=A?
   */
@@ -306,7 +316,7 @@ void unreachableCase3(A? r) {
     case A(a: Enum.b, b: true):
       print('A(b, true)');
       break;
-    /*space=Null*/case null:
+    /*space=Null*/ case null:
       print('null #1');
       break;
     /*

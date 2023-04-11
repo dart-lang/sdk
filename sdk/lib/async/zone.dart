@@ -324,7 +324,7 @@ class _ZoneFunction<T extends Function> {
 /// Handlers can either stop propagating the request (by simply not calling the
 /// parent handler), or forward to the parent zone, potentially modifying the
 /// arguments on the way.
-abstract class ZoneSpecification {
+abstract final class ZoneSpecification {
   /// Creates a specification with the provided handlers.
   ///
   /// If the [handleUncaughtError] is provided, the new zone will be a new
@@ -428,7 +428,7 @@ abstract class ZoneSpecification {
 /// The implementation wants to rely on the fact that the getters cannot change
 /// dynamically. We thus require users to go through the redirecting
 /// [ZoneSpecification] constructor which instantiates this class.
-class _ZoneSpecification implements ZoneSpecification {
+base class _ZoneSpecification implements ZoneSpecification {
   const _ZoneSpecification(
       {this.handleUncaughtError,
       this.run,
@@ -479,7 +479,7 @@ class _ZoneSpecification implements ZoneSpecification {
 ///   zone the action has been initiated in.
 /// 2. delegate calls are more efficient, since the implementation knows how
 ///   to skip zones that would just delegate to their parents.
-abstract class ZoneDelegate {
+abstract final class ZoneDelegate {
   // Invoke the [HandleUncaughtErrorHandler] of the zone with a current zone.
   void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace);
 
@@ -570,7 +570,8 @@ abstract class ZoneDelegate {
 /// Similarly, zones provide [bindCallbackGuarded] (and the corresponding
 /// [bindUnaryCallbackGuarded] and [bindBinaryCallbackGuarded]), when the
 /// callback should be invoked through [Zone.runGuarded].
-abstract class Zone {
+@vmIsolateUnsendable
+abstract final class Zone {
   // Private constructor so that it is not possible instantiate a Zone class.
   Zone._();
 
@@ -935,7 +936,7 @@ abstract class Zone {
   dynamic operator [](Object? key);
 }
 
-class _ZoneDelegate implements ZoneDelegate {
+base class _ZoneDelegate implements ZoneDelegate {
   final _Zone _delegationTarget;
 
   _ZoneDelegate(this._delegationTarget);
@@ -1035,7 +1036,7 @@ class _ZoneDelegate implements ZoneDelegate {
 }
 
 /// Base class for Zone implementations.
-abstract class _Zone implements Zone {
+abstract base class _Zone implements Zone {
   const _Zone();
 
   // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
@@ -1087,7 +1088,7 @@ abstract class _Zone implements Zone {
   }
 }
 
-class _CustomZone extends _Zone {
+base class _CustomZone extends _Zone {
   // The actual zone and implementation of each of these
   // inheritable zone functions.
   // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
@@ -1515,7 +1516,7 @@ Zone _rootFork(Zone? self, ZoneDelegate? parent, Zone zone,
   return _CustomZone(zone, specification, valueMap);
 }
 
-class _RootZone extends _Zone {
+base class _RootZone extends _Zone {
   const _RootZone();
 
   _ZoneFunction<RunHandler> get _run =>

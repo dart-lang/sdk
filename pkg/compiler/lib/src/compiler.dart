@@ -42,6 +42,7 @@ import 'inferrer_experimental/types.dart' as experimentalInferrer
 import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
     show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
+import 'io/source_information.dart';
 import 'ir/annotations.dart';
 import 'ir/modular.dart' hide reportLocatedMessage;
 import 'js_backend/codegen_inputs.dart' show CodegenInputs;
@@ -397,7 +398,7 @@ class Compiler {
   }
 
   Future<load_kernel.Output?> produceKernel() async {
-    if (options.readClosedWorldUri == null) {
+    if (shouldComputeClosedWorld) {
       load_kernel.Output? output = await loadKernel();
       if (output == null || compilationFailed) return null;
       ir.Component component = output.component;
@@ -438,6 +439,9 @@ class Compiler {
     } else {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
+      if (retainDataForTesting) {
+        componentForTesting = component;
+      }
       return load_kernel.Output(component, null, null, null, null);
     }
   }
@@ -445,41 +449,36 @@ class Compiler {
   bool shouldStopAfterLoadKernel(load_kernel.Output? output) =>
       output == null || compilationFailed || options.cfeOnly;
 
-  void simplifyConstConditionals(load_kernel.Output output) {
-    if (options.readClosedWorldUri == null) {
-      void reportMessage(
-          fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
-        reportLocatedMessage(reporter, message, context);
-      }
-
-      bool shouldNotInline(ir.TreeNode node) {
-        if (node is! ir.Annotatable) {
-          return false;
-        }
-        return computePragmaAnnotationDataFromIr(node).any((pragma) =>
-            pragma == const PragmaAnnotationData('noInline') ||
-            pragma == const PragmaAnnotationData('never-inline'));
-      }
-
-      // No existing closed world means we're in phase 1, so run the
-      // transformer.
-      fe.ConstConditionalSimplifier(
-              const Dart2jsDartLibrarySupport(),
-              const Dart2jsConstantsBackend(
-                  supportsUnevaluatedConstants: false),
-              output.component,
-              reportMessage,
-              environmentDefines: environment.definitions,
-              evaluationMode: options.useLegacySubtyping
-                  ? fe.EvaluationMode.weak
-                  : fe.EvaluationMode.strong,
-              shouldNotInline: shouldNotInline)
-          .run();
+  void simplifyConstConditionals(ir.Component component) {
+    void reportMessage(
+        fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
+      reportLocatedMessage(reporter, message, context);
     }
 
-    // If the closed world is deserialized instead, then the input .dill should
-    // already have the modified AST.
+    bool shouldNotInline(ir.TreeNode node) {
+      if (node is! ir.Annotatable) {
+        return false;
+      }
+      return computePragmaAnnotationDataFromIr(node).any((pragma) =>
+          pragma == const PragmaAnnotationData('noInline') ||
+          pragma == const PragmaAnnotationData('never-inline'));
+    }
+
+    fe.ConstConditionalSimplifier(
+            const Dart2jsDartLibrarySupport(),
+            const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+            component,
+            reportMessage,
+            environmentDefines: environment.definitions,
+            evaluationMode: options.useLegacySubtyping
+                ? fe.EvaluationMode.weak
+                : fe.EvaluationMode.strong,
+            shouldNotInline: shouldNotInline)
+        .run();
   }
+
+  bool get usingModularAnalysis =>
+      options.modularMode || options.hasModularAnalysisInputs;
 
   Future<ModuleData> runModularAnalysis(
       load_kernel.Output output, Set<Uri> moduleLibraries) async {
@@ -534,7 +533,8 @@ class Compiler {
         mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
-  int runCodegenEnqueuer(CodegenResults codegenResults) {
+  int runCodegenEnqueuer(
+      CodegenResults codegenResults, SourceLookup sourceLookup) {
     GlobalTypeInferenceResults globalInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
@@ -544,7 +544,8 @@ class Compiler {
         closedWorld,
         globalInferenceResults,
         codegenInputs,
-        codegenResults)
+        codegenResults,
+        sourceLookup)
       ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;
@@ -600,11 +601,28 @@ class Compiler {
         globalTypeInferenceResultsData);
   }
 
+  bool get shouldComputeClosedWorld => options.readClosedWorldUri == null;
+
   Future<DataAndIndices<JClosedWorld>?> produceClosedWorld(
       load_kernel.Output output, ModuleData? moduleData) async {
     ir.Component component = output.component;
     DataAndIndices<JClosedWorld> closedWorldAndIndices;
-    if (options.readClosedWorldUri == null) {
+    if (shouldComputeClosedWorld) {
+      if (!usingModularAnalysis) {
+        // If we're deserializing the closed world, the input .dill already
+        // contains the modified AST, so the transformer only needs to run if
+        // the closed world is being computed from scratch.
+        //
+        // However, the transformer is not currently compatible with modular
+        // analysis. When modular analysis is enabled in Blaze, some aspects run
+        // before this phase of the compiler. This can cause dart2js to crash if
+        // the kernel AST is mutated, since we will attempt to serialize and
+        // deserialize against different ASTs.
+        //
+        // TODO(fishythefish): Make this compatible with modular analysis.
+        simplifyConstConditionals(component);
+      }
+
       Uri rootLibraryUri = output.rootLibraryUri!;
       List<Uri> libraries = output.libraries!;
       final closedWorld =
@@ -684,8 +702,8 @@ class Compiler {
   }
 
   Future<CodegenResults> produceCodegenResults(
-      DataAndIndices<GlobalTypeInferenceResults>
-          globalTypeInferenceResults) async {
+      DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults,
+      SourceLookup sourceLookup) async {
     final globalTypeInferenceData = globalTypeInferenceResults.data!;
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceData);
     CodegenResults codegenResults;
@@ -702,7 +720,8 @@ class Compiler {
           globalTypeInferenceData,
           codegenInputs,
           globalTypeInferenceResults.indices!,
-          useDeferredSourceReads);
+          useDeferredSourceReads,
+          sourceLookup);
     }
     return codegenResults;
   }
@@ -724,19 +743,17 @@ class Compiler {
     final output = await produceKernel();
     if (shouldStopAfterLoadKernel(output)) return;
 
-    simplifyConstConditionals(output!);
-
     // Run modular analysis. This may be null if modular analysis was not
     // requested for this pipeline.
     ModuleData? moduleData;
-    if (options.modularMode || options.hasModularAnalysisInputs) {
-      moduleData = await produceModuleData(output);
+    if (usingModularAnalysis) {
+      moduleData = await produceModuleData(output!);
     }
     if (shouldStopAfterModularAnalysis) return;
 
     // Compute closed world.
     DataAndIndices<JClosedWorld>? closedWorldAndIndices =
-        await produceClosedWorld(output, moduleData);
+        await produceClosedWorld(output!, moduleData);
     if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
 
     // Run global analysis.
@@ -745,12 +762,13 @@ class Compiler {
     if (shouldStopAfterGlobalTypeInference) return;
 
     // Run codegen.
+    final sourceLookup = SourceLookup(output.component);
     CodegenResults codegenResults =
-        await produceCodegenResults(globalTypeInferenceResults);
+        await produceCodegenResults(globalTypeInferenceResults, sourceLookup);
     if (shouldStopAfterCodegen) return;
 
     // Link.
-    int programSize = runCodegenEnqueuer(codegenResults);
+    int programSize = runCodegenEnqueuer(codegenResults, sourceLookup);
 
     // Dump Info.
     if (options.dumpInfo) {

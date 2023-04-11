@@ -4,40 +4,44 @@
 
 equals(o1, o2) {
   var a = /*
-   fields={},
+   checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */switch (o1) {
-    == 0 /*space=??*/=> 0,
-    _ /*space=()*/=> 1
+  */
+      switch (o1) {
+    == 0 /*space=?*/ => 0,
+    _ /*space=()*/ => 1
   };
 
   var b = /*
-   error=non-exhaustive:Object,
-   fields={},
+   checkingOrder={Object?,Object,Null},
+   error=non-exhaustive:Object(),
    subtypes={Object,Null},
    type=Object?
-  */switch (o2) {
-    == 0 /*space=??*/=> 0,
+  */
+      switch (o2) {
+    == 0 /*space=?*/ => 0,
   };
 }
 
 greaterThan(o1, o2) {
   var a = /*
-   fields={},
+   checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */switch (o1) {
-    >= 0 /*space=??*/=> 0,
-    _ /*space=()*/=> 1
+  */
+      switch (o1) {
+    >= 0 /*space=?*/ => 0,
+    _ /*space=()*/ => 1
   };
 
   var b = /*
-   error=non-exhaustive:Object,
-   fields={},
+   checkingOrder={Object?,Object,Null},
+   error=non-exhaustive:Object(),
    subtypes={Object,Null},
    type=Object?
-  */switch (o2) {
-    >= 0 /*space=??*/=> 0,
+  */
+      switch (o2) {
+    >= 0 /*space=?*/ => 0,
   };
 }

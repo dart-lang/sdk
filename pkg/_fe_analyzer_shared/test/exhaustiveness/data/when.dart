@@ -19,37 +19,44 @@ class C extends A {
 
 method(A a) {
   /*
-   fields={field:int,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B,C},
    subtypes={B,C},
    type=A
-  */switch (a) {
-    /*space=B*/case B():
-    /*space=C*/case C():
+  */
+  switch (a) {
+    /*space=B*/ case B():
+    /*space=C*/ case C():
   }
   /*
-   fields={field:int,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B,C},
+   fields={field:int},
    subtypes={B,C},
    type=A
-  */switch (a) {
-    /*space=B(field: int)*/case B(:var field):
-    /*space=C(field: int)*/case C(:var field):
+  */
+  switch (a) {
+    /*space=B(field: int)*/ case B(:var field):
+    /*space=C(field: int)*/ case C(:var field):
   }
   /*
-   error=non-exhaustive:B,
-   fields={field:int,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B,C},
+   error=non-exhaustive:B(),
+   fields={field:int},
    subtypes={B,C},
    type=A
-  */switch (a) {
-    /*space=??*/case B(:var field) when field > 0:
-    /*space=C(field: int)*/case C(:var field):
+  */
+  switch (a) {
+    /*space=?*/ case B(:var field) when field > 0:
+    /*space=C(field: int)*/ case C(:var field):
   }
   /*
-   error=non-exhaustive:C,
-   fields={field:int,hashCode:int,runtimeType:Type},
+   checkingOrder={A,B,C},
+   error=non-exhaustive:C(),
+   fields={field:int},
    subtypes={B,C},
    type=A
-  */switch (a) {
-    /*space=B(field: int)*/case B(:var field):
-    /*space=??*/case C(:var field) when field > 0:
+  */
+  switch (a) {
+    /*space=B(field: int)*/ case B(:var field):
+    /*space=?*/ case C(:var field) when field > 0:
   }
 }

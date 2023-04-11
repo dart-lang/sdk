@@ -5,7 +5,7 @@
 // This test checks that the noSuchMethod forwarder is generated in cases when
 // the user-defined noSuchMethod is mixed in to a class with abstract methods.
 
-class A {
+mixin class A {
   dynamic noSuchMethod(Invocation i) {
     return null;
   }

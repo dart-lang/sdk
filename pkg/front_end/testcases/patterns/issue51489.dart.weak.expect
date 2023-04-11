@@ -1,17 +1,16 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method test1() → dynamic
   return block {
     final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
-    for (final dynamic #t2 in <dynamic>[]) {
-      dynamic i;
+    for (final core::List<core::Object?> #t2 in <core::List<core::Object?>>[]) {
+      hoisted core::Object? i;
       {
-        final dynamic #0#0 = #t2;
-        if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
-          throw new _in::ReachabilityError::•();
+        final synthesized dynamic #0#0 = #t2;
+        if(!(#0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = i = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true)))
+          throw new core::StateError::•("Pattern matching error");
       }
       #t1.{core::Map::[]=}{Invariant}(i, i){(dynamic, dynamic) → void};
     }
@@ -21,18 +20,18 @@ static method test2(dynamic x, dynamic another) → dynamic
     final core::Map<dynamic, dynamic> #t4 = <dynamic, dynamic>{};
     #t4.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     for (final dynamic #t5 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-      dynamic i;
+      hoisted dynamic i;
       {
-        final dynamic #0#0 = #t5;
+        final synthesized dynamic #0#0 = #t5;
         if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
-          throw new _in::ReachabilityError::•();
+          throw new core::StateError::•("Pattern matching error");
       }
       for (final dynamic #t7 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-        dynamic j;
+        hoisted dynamic j;
         {
-          final dynamic #1#0 = #t7;
+          final synthesized dynamic #1#0 = #t7;
           if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t8 = j = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
-            throw new _in::ReachabilityError::•();
+            throw new core::StateError::•("Pattern matching error");
         }
         #t4.{core::Map::addAll}{Invariant}(another as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
       }

@@ -33,9 +33,9 @@ ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
     Thread* T,
     SafepointLevel level)
     : ThreadStackResource(T), level_(level) {
-  ASSERT(T != NULL);
+  ASSERT(T != nullptr);
   IsolateGroup* IG = T->isolate_group();
-  ASSERT(IG != NULL);
+  ASSERT(IG != nullptr);
 
   T->IncrementForceGrowthScopeDepth();
 
@@ -45,9 +45,9 @@ ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
 
 ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
   Thread* T = thread();
-  ASSERT(T != NULL);
+  ASSERT(T != nullptr);
   IsolateGroup* IG = T->isolate_group();
-  ASSERT(IG != NULL);
+  ASSERT(IG != nullptr);
 
   auto handler = IG->safepoint_handler();
   handler->ResumeThreads(T, level_);

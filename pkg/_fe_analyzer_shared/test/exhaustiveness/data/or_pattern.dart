@@ -4,7 +4,7 @@
 
 or(bool b1, bool? b2) {
   /*
-   fields={hashCode:int,runtimeType:Type},
+   checkingOrder={bool,true,false},
    subtypes={true,false},
    type=bool
   */
@@ -14,8 +14,8 @@ or(bool b1, bool? b2) {
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -27,8 +27,8 @@ or(bool b1, bool? b2) {
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -40,8 +40,8 @@ or(bool b1, bool? b2) {
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -53,8 +53,8 @@ or(bool b1, bool? b2) {
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -64,8 +64,8 @@ or(bool b1, bool? b2) {
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -75,21 +75,21 @@ or(bool b1, bool? b2) {
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    error=non-exhaustive:false,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
   switch (b2) {
-  /*space=true?*/
+    /*space=true?*/
     case true || Null _:
   }
 
   /*
+   checkingOrder={bool?,bool,Null,true,false},
    error=non-exhaustive:true,
    expandedSubtypes={true,false,Null},
-   fields={},
    subtypes={bool,Null},
    type=bool?
   */
@@ -103,40 +103,43 @@ inRecord((bool, bool?) r) {
   /*
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
-  */switch (r) {
-    /*space=($1: true|false, $2: true|false|Null)*/
+  */
+  switch (r) {
+    /*space=(true|false, true|false|Null)*/
     case (true || false, true || false || null):
   }
   /*
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
-  */switch (r) {
-    /*space=($1: true, $2: true|false|Null)*/
+  */
+  switch (r) {
+    /*space=(true, true|false|Null)*/
     case (true, true || false || null):
-    /*space=($1: false, $2: true|false)*/
+    /*space=(false, true|false)*/
     case (false, true || false):
-    /*space=($1: false, $2: Null)*/
+    /*space=(false, Null)*/
     case (false, null):
   }
 
   /*
-   error=non-exhaustive:($1: false, $2: Null),
-   fields={$1:bool,$2:bool?},
-   type=(bool, bool?)
-  */switch (r) {
-    /*space=($1: true, $2: true|false|Null)*/
-    case (true, true || false || null):
-    /*space=($1: false, $2: true|false)*/
-    case (false, true || false):
-  }
-
-  /*
-   error=non-exhaustive:($1: true, $2: false),
+   error=non-exhaustive:(false, null),
    fields={$1:bool,$2:bool?},
    type=(bool, bool?)
   */
   switch (r) {
-    /*space=($1: true|false, $2: true?)*/
+    /*space=(true, true|false|Null)*/
+    case (true, true || false || null):
+    /*space=(false, true|false)*/
+    case (false, true || false):
+  }
+
+  /*
+   error=non-exhaustive:(true, false),
+   fields={$1:bool,$2:bool?},
+   type=(bool, bool?)
+  */
+  switch (r) {
+    /*space=(true|false, true?)*/
     case (true || false, true || null):
   }
 }

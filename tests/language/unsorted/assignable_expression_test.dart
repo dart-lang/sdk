@@ -4,6 +4,10 @@
 //
 // @dart=2.19
 
+// SharedOptions=--enable-experiment=patterns,records
+// Enable the experiments even though the test itself is pinned to 2.19 since
+// the error messages relate to patterns.
+
 // Test to detect syntactically illegal left-hand-side (assignable)
 // expressions.
 
@@ -18,7 +22,6 @@ main() {
   (variable) = 0;
 //^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
-//^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
 //         ^
 // [cfe] Can't assign to a parenthesized expression.
@@ -36,7 +39,6 @@ main() {
   (C.field) = 0;
 //^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
-//^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
 //        ^
 // [cfe] Can't assign to a parenthesized expression.
@@ -56,7 +58,6 @@ main() {
   (variable[0]) = 0;
 //^^^^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
-//^^^^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
 //            ^
 // [cfe] Can't assign to a parenthesized expression.
@@ -74,7 +75,6 @@ main() {
   (C.field[0]) = 0;
 //^^^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
-//^^^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
 //           ^
 // [cfe] Can't assign to a parenthesized expression.
@@ -92,7 +92,6 @@ main() {
   (a) = 0;
 //^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
-//^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
 //  ^
 // [cfe] Can't assign to a parenthesized expression.

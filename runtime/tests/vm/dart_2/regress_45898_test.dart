@@ -9,14 +9,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import 'use_flag_test_helper.dart' show withTempDir, run;
-
-final buildDir = path.dirname(Platform.executable);
-final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
-final genSnapshot1 = path.join(buildDir, 'gen_snapshot');
-final genSnapshot2 = path.join('${buildDir}_X64', 'gen_snapshot');
-final genSnapshot =
-    File(genSnapshot1).existsSync() ? genSnapshot1 : genSnapshot2;
+import 'use_flag_test_helper.dart';
 
 const classCount = 10000;
 const subclassCount = 5000;

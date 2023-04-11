@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-
+import 'exhaustive.dart';
+import 'key.dart';
 import 'space.dart';
 import 'static_type.dart';
 
@@ -15,30 +15,44 @@ class Tags {
   static const String space = 'space';
   static const String subtypes = 'subtypes';
   static const String expandedSubtypes = 'expandedSubtypes';
-  static const String remaining = 'remaining';
+  static const String checkingOrder = 'checkingOrder';
 }
 
 /// Returns a textual representation for [space] used for testing.
-String spaceToText(Space space) => space.toString();
+String spacesToText(Space space) {
+  String text = space.toString();
+  if (text.startsWith('[') && text.endsWith(']')) {
+    // Avoid list-like syntax which collides with the [Features] encoding.
+    return '<$text>';
+  }
+  return text;
+}
 
-/// Returns a textual representation for [fields] used for testing.
-String fieldsToText(Map<String, StaticType> fields) {
-  // TODO(johnniwinther): Enforce that field maps are always sorted.
-  List<String> sortedNames = fields.keys.toList()..sort();
+/// Returns a textual representation for [properties] used for testing.
+String fieldsToText(StaticType type, ObjectPropertyLookup objectFieldLookup,
+    Set<Key> fieldsOfInterest) {
+  List<Key> sortedNames = fieldsOfInterest.toList()..sort();
   StringBuffer sb = new StringBuffer();
   String comma = '';
   sb.write('{');
-  for (String name in sortedNames) {
-    if (name.startsWith('_')) {
-      // Avoid implementation specific fields, like `Object._identityHashCode`
-      // and `Enum._name`.
-      // TODO(johnniwinther): Support private fields in the test code.
-      continue;
-    }
+  for (Key key in sortedNames) {
     sb.write(comma);
-    sb.write(name);
-    sb.write(':');
-    sb.write(staticTypeToText(fields[name]!));
+    if (key is ExtensionKey) {
+      sb.write(key.receiverType);
+      sb.write('.');
+      sb.write(key.name);
+      sb.write(':');
+      sb.write(staticTypeToText(key.type));
+    } else {
+      StaticType? fieldType = type.getPropertyType(objectFieldLookup, key);
+      sb.write(key.name);
+      sb.write(':');
+      if (fieldType != null) {
+        sb.write(staticTypeToText(fieldType));
+      } else {
+        sb.write("-");
+      }
+    }
     comma = ',';
   }
   sb.write('}');
@@ -66,7 +80,13 @@ String? typesToText(Iterable<StaticType> types) {
 
 String errorToText(ExhaustivenessError error) {
   if (error is NonExhaustiveError) {
-    return 'non-exhaustive:${error.witness}';
+    String witnessText = error.witness.asWitness;
+    String correctionText = error.witness.asCorrection;
+    if (witnessText != correctionText) {
+      return 'non-exhaustive:$witnessText/$correctionText';
+    } else {
+      return 'non-exhaustive:$witnessText';
+    }
   } else {
     assert(error is UnreachableCaseError);
     return 'unreachable';

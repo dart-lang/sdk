@@ -21,7 +21,8 @@ class A {}
 mixin class B extends A {}
 class C extends Object with B {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 33, 1),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 33,
+          1),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 66, 1),
     ]);
   }
@@ -60,7 +61,8 @@ mixin class A {}
 mixin class B extends Object with A {}
 class C extends Object with B {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 46,
+          6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 84, 1),
     ]);
   }
@@ -91,7 +93,8 @@ mixin class B {}
 mixin class C = Object with A, B;
 class D extends Object with C {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 57, 9),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 57,
+          9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 96, 1),
     ]);
   }
@@ -131,7 +134,8 @@ class A {}
 mixin class B extends A {}
 class C = Object with B;
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 33, 1),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 33,
+          1),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 60, 1),
     ]);
   }
@@ -153,7 +157,8 @@ mixin class A {}
 mixin class B extends Object with A {}
 class C = Object with B;
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 46,
+          6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 78, 1),
     ]);
   }
@@ -184,7 +189,8 @@ mixin class B {}
 mixin class C = Object with A, B;
 class D = Object with C;
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 57, 9),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 57,
+          9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 90, 1),
     ]);
   }
@@ -226,7 +232,8 @@ enum E with B {
   v
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 33, 1),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 33,
+          1),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 50, 1),
     ]);
   }
@@ -273,7 +280,8 @@ enum E with B {
   v
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 46,
+          6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 68, 1),
     ]);
   }
@@ -344,7 +352,8 @@ enum E with B {
 mixin class A {}
 mixin class B extends A {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 39, 1),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 39,
+          1),
     ]);
   }
 
@@ -359,16 +368,18 @@ mixin class A extends Object {}
 mixin class A {}
 mixin class B extends Object with A {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 46,
+          6),
     ]);
   }
 
   test_mixinClass_class_with() async {
     await assertErrorsInCode(r'''
-mixin class A {}
-mixin class B with A {}
+mixin M {}
+mixin class A with M {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 31, 6),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 25,
+          6),
     ]);
   }
 
@@ -385,7 +396,8 @@ mixin class A {}
 mixin class B {}
 mixin class C = Object with A, B;
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 57, 9),
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 57,
+          9),
     ]);
   }
 }

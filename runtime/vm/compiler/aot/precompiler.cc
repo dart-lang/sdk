@@ -386,7 +386,7 @@ void Precompiler::ReportStats() {
 
 Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
-      zone_(NULL),
+      zone_(nullptr),
       changed_(false),
       retain_root_library_caches_(false),
       function_count_(0),
@@ -426,7 +426,7 @@ Precompiler::Precompiler(Thread* thread)
       api_uses_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {
-  ASSERT(Precompiler::singleton_ == NULL);
+  ASSERT(Precompiler::singleton_ == nullptr);
   Precompiler::singleton_ = this;
 
   if (FLAG_print_precompiler_timings) {
@@ -443,7 +443,7 @@ Precompiler::~Precompiler() {
   functions_to_retain_.Release();
 
   ASSERT(Precompiler::singleton_ == this);
-  Precompiler::singleton_ = NULL;
+  Precompiler::singleton_ = nullptr;
 
   delete thread()->compiler_timings();
   thread()->set_compiler_timings(nullptr);
@@ -655,8 +655,8 @@ void Precompiler::DoCompileAll() {
     const auto& non_visited =
         Function::Handle(Z, FindUnvisitedRetainedFunction());
     if (!non_visited.IsNull()) {
-      FATAL1("Code visitor would miss the code for function \"%s\"\n",
-             non_visited.ToFullyQualifiedCString());
+      FATAL("Code visitor would miss the code for function \"%s\"\n",
+            non_visited.ToFullyQualifiedCString());
     }
 #endif
     DiscardCodeObjects();
@@ -673,7 +673,7 @@ void Precompiler::DoCompileAll() {
       retained_reasons_writer_ = nullptr;
     }
 
-    zone_ = NULL;
+    zone_ = nullptr;
   }
 
   intptr_t symbols_before = -1;
@@ -2028,8 +2028,8 @@ void Precompiler::TraceForRetainedFunctions() {
     // they are referenced only from code (object pool).
     if (!functions_to_retain_.ContainsKey(function) &&
         !function.IsFfiTrampoline()) {
-      FATAL1("Function %s was not traced in TraceForRetainedFunctions\n",
-             function.ToFullyQualifiedCString());
+      FATAL("Function %s was not traced in TraceForRetainedFunctions\n",
+            function.ToFullyQualifiedCString());
     }
   }
 #endif  // DEBUG
@@ -2745,7 +2745,7 @@ void Precompiler::DropLibraryEntries() {
       } else if (entry.IsLibraryPrefix()) {
         // Always drop.
       } else {
-        FATAL1("Unexpected library entry: %s", entry.ToCString());
+        FATAL("Unexpected library entry: %s", entry.ToCString());
       }
       dict.SetAt(j, Object::null_object());
     }
@@ -3555,7 +3555,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           precompiler_->global_object_pool_builder());
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
 
-      CodeStatistics* function_stats = NULL;
+      CodeStatistics* function_stats = nullptr;
       if (FLAG_print_instruction_stats) {
         // At the moment we are leaking CodeStatistics objects for
         // simplicity because this is just a development mode flag.
@@ -3760,7 +3760,7 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
 }
 
 Obfuscator::Obfuscator(Thread* thread, const String& private_key)
-    : state_(NULL) {
+    : state_(nullptr) {
   auto isolate_group = thread->isolate_group();
   if (!isolate_group->obfuscate()) {
     // Nothing to do.
@@ -3791,7 +3791,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
 }
 
 Obfuscator::~Obfuscator() {
-  if (state_ != NULL) {
+  if (state_ != nullptr) {
     state_->SaveState();
   }
 }
@@ -3912,7 +3912,7 @@ static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 void Obfuscator::PreventRenaming(const char* name) {
   // For constructor names Class.name skip class name (if any) and a dot.
   const char* dot = strchr(name, '.');
-  if (dot != NULL) {
+  if (dot != nullptr) {
     name = dot + 1;
   }
 
@@ -4095,7 +4095,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
       Array::Handle(thread->zone(),
                     thread->isolate_group()->object_store()->obfuscation_map());
   if (obfuscation_state.IsNull()) {
-    return NULL;
+    return nullptr;
   }
 
   const Array& renames = Array::Handle(
@@ -4114,7 +4114,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
     str ^= renames_map.GetPayload(entry, 0);
     result[idx++] = StringToCString(str);
   }
-  result[idx++] = NULL;
+  result[idx++] = nullptr;
   renames_map.Release();
 
   return result;

@@ -1017,7 +1017,7 @@ class D extends C {}
             convertPath('/does/not/exist.dart'), 0,
             superOnly: true)
         .toRequest(requestId);
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     var items =
         SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
     expect(items, isNull);
@@ -1373,11 +1373,11 @@ enum E with M {
       {bool? superOnly}) async {
     await waitForTasksFinished();
     var request = _createGetTypeHierarchyRequest(search, superOnly: superOnly);
-    var response = await serverChannel.sendRequest(request);
+    var response = await serverChannel.simulateRequestFromClient(request);
     return SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
   }
 
-  List _toJson(List<TypeHierarchyItem> items) {
+  List<Map<String, Object>> _toJson(List<TypeHierarchyItem> items) {
     return items.map((item) => item.toJson()).toList();
   }
 

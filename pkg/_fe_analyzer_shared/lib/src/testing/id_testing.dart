@@ -749,6 +749,11 @@ class MarkerOptions {
   Iterable<String> get supportedMarkers => markers.keys;
 
   Future<void> runAll(List<String> args) async {
+    bool assertsEnabled = true;
+    try {
+      assert(false);
+      assertsEnabled = false;
+    } catch (_) {}
     Set<MarkerTester> testers = markers.values.toSet();
     int errorsCount = 0;
     for (MarkerTester tester in testers) {
@@ -756,7 +761,12 @@ class MarkerOptions {
       print('Running tester: ${tester.path} ${args.join(' ')}');
       print('================================================================');
       Process process = await Process.start(
-          Platform.resolvedExecutable, [tester.uri.toString(), ...args],
+          Platform.resolvedExecutable,
+          [
+            if (assertsEnabled) '--enable_asserts',
+            tester.uri.toString(),
+            ...args
+          ],
           mode: ProcessStartMode.inheritStdio);
       if (await process.exitCode != 0) {
         errorsCount++;
