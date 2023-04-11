@@ -14,15 +14,14 @@ bool parametersNeedParens(List<String> parameters) =>
 /// dart2wasm needs to create a trampoline method in JS that then calls the
 /// interop member in question. In order to do so, we need information on things
 /// like the name of the member, how many parameters it takes in, and more.
-abstract class JSLoweringConfig {
+abstract class LoweringConfig {
   final Procedure interopMethod;
   final String jsString;
   final InlineExtensionIndex _inlineExtensionIndex;
   late final bool firstParameterIsObject =
       _inlineExtensionIndex.isInstanceInteropMember(interopMethod);
 
-  JSLoweringConfig(
-      this.interopMethod, this.jsString, this._inlineExtensionIndex);
+  LoweringConfig(this.interopMethod, this.jsString, this._inlineExtensionIndex);
 
   FunctionNode get function => interopMethod.function;
   Uri get fileUri => interopMethod.fileUri;
@@ -64,16 +63,16 @@ abstract class JSLoweringConfig {
 }
 
 /// Config class for interop members that get lowered on the procedure side.
-abstract class JSProcedureLoweringConfig extends JSLoweringConfig {
-  JSProcedureLoweringConfig(
+abstract class ProcedureLoweringConfig extends LoweringConfig {
+  ProcedureLoweringConfig(
       super.interopMethod, super.jsString, super._inlineExtensionIndex);
 
   @override
   List<VariableDeclaration> get parameters => function.positionalParameters;
 }
 
-class JSConstructorLoweringConfig extends JSProcedureLoweringConfig {
-  JSConstructorLoweringConfig(
+class ConstructorLoweringConfig extends ProcedureLoweringConfig {
+  ConstructorLoweringConfig(
       super.interopMethod, super.jsString, super._inlineExtensionIndex);
 
   @override
@@ -84,8 +83,8 @@ class JSConstructorLoweringConfig extends JSProcedureLoweringConfig {
       "new $jsString(${callArguments.join(',')})";
 }
 
-class JSGetterLoweringConfig extends JSProcedureLoweringConfig {
-  JSGetterLoweringConfig(
+class GetterLoweringConfig extends ProcedureLoweringConfig {
+  GetterLoweringConfig(
       super.interopMethod, super.jsString, super._inlineExtensionIndex);
 
   @override
@@ -96,8 +95,8 @@ class JSGetterLoweringConfig extends JSProcedureLoweringConfig {
       '$object.$jsString';
 }
 
-class JSSetterLoweringConfig extends JSProcedureLoweringConfig {
-  JSSetterLoweringConfig(
+class SetterLoweringConfig extends ProcedureLoweringConfig {
+  SetterLoweringConfig(
       super.interopMethod, super.jsString, super._inlineExtensionIndex);
 
   @override
@@ -108,8 +107,8 @@ class JSSetterLoweringConfig extends JSProcedureLoweringConfig {
       '$object.$jsString = ${callArguments[0]}';
 }
 
-class JSMethodLoweringConfig extends JSProcedureLoweringConfig {
-  JSMethodLoweringConfig(
+class MethodLoweringConfig extends ProcedureLoweringConfig {
+  MethodLoweringConfig(
       super.interopMethod, super.jsString, super._inlineExtensionIndex);
 
   @override
@@ -120,8 +119,8 @@ class JSMethodLoweringConfig extends JSProcedureLoweringConfig {
       "$object.$jsString(${callArguments.join(',')})";
 }
 
-class JSOperatorLoweringConfig extends JSProcedureLoweringConfig {
-  JSOperatorLoweringConfig(
+class OperatorLoweringConfig extends ProcedureLoweringConfig {
+  OperatorLoweringConfig(
       super.interopMethod, super.jsString, super._inlineExtensionIndex);
 
   @override
@@ -140,9 +139,9 @@ class JSOperatorLoweringConfig extends JSProcedureLoweringConfig {
 }
 
 /// Config class for interop members that get lowered on the invocation side.
-abstract class JSInvocationLoweringConfig extends JSLoweringConfig {
+abstract class InvocationLoweringConfig extends LoweringConfig {
   final StaticInvocation invocation;
-  JSInvocationLoweringConfig(super.interopMethod, super.jsString,
+  InvocationLoweringConfig(super.interopMethod, super.jsString,
       super._inlineExtensionIndex, this.invocation);
 
   /// The parameters of the given `interopMethod` that were given a correspondig
@@ -156,9 +155,9 @@ abstract class JSInvocationLoweringConfig extends JSLoweringConfig {
 
 /// Config class for procedures that are lowered on the invocation-side, but
 /// only contain positional parameters.
-abstract class JSPositionalInvocationLoweringConfig
-    extends JSInvocationLoweringConfig {
-  JSPositionalInvocationLoweringConfig(super.interopMethod, super.jsString,
+abstract class PositionalInvocationLoweringConfig
+    extends InvocationLoweringConfig {
+  PositionalInvocationLoweringConfig(super.interopMethod, super.jsString,
       super._inlineExtensionIndex, super.invocation);
 
   @override
@@ -169,9 +168,9 @@ abstract class JSPositionalInvocationLoweringConfig
   List<Expression> get arguments => invocation.arguments.positional;
 }
 
-class JSConstructorInvocationLoweringConfig
-    extends JSPositionalInvocationLoweringConfig {
-  JSConstructorInvocationLoweringConfig(super.interopMethod, super.jsString,
+class ConstructorInvocationLoweringConfig
+    extends PositionalInvocationLoweringConfig {
+  ConstructorInvocationLoweringConfig(super.interopMethod, super.jsString,
       super._inlineExtensionIndex, super.invocation);
 
   @override
@@ -182,9 +181,9 @@ class JSConstructorInvocationLoweringConfig
       "new $jsString(${callArguments.join(',')})";
 }
 
-class JSMethodInvocationLoweringConfig
-    extends JSPositionalInvocationLoweringConfig {
-  JSMethodInvocationLoweringConfig(super.interopMethod, super.jsString,
+class MethodInvocationLoweringConfig
+    extends PositionalInvocationLoweringConfig {
+  MethodInvocationLoweringConfig(super.interopMethod, super.jsString,
       super._inlineExtensionIndex, super.invocation);
 
   @override
@@ -197,8 +196,8 @@ class JSMethodInvocationLoweringConfig
 
 /// Config class for object literals, which only use named arguments and are
 /// only lowered at the invocation-level.
-class JSObjectLiteralLoweringConfig extends JSInvocationLoweringConfig {
-  JSObjectLiteralLoweringConfig(Procedure interopMethod,
+class ObjectLiteralLoweringConfig extends InvocationLoweringConfig {
+  ObjectLiteralLoweringConfig(Procedure interopMethod,
       InlineExtensionIndex _inlineExtensionIndex, StaticInvocation invocation)
       : super(interopMethod, '', _inlineExtensionIndex, invocation);
 

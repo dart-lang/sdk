@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,13 +13,12 @@ import 'package:_js_interop_checks/src/js_interop.dart'
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show InlineExtensionIndex;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
-import 'package:dart2wasm/js_runtime_blob.dart';
+import 'package:dart2wasm/js/lowering_config.dart';
+import 'package:dart2wasm/js/runtime_blob.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
-
-import 'js_lowering_config.dart';
 
 enum _AnnotationType { import, export }
 
@@ -36,7 +35,7 @@ enum _AnnotationType { import, export }
 /// simpify this code significantly and clean up the nullabilities.
 /// TODO(srujzs): This and the related `js` prefixed files should move to their
 /// own `js` folder. We can then remove the `JS` prefixes from all the classes.
-class _JSLowerer extends Transformer {
+class _Lowerer extends Transformer {
   final Procedure _dartifyRawTarget;
   final Procedure _jsifyRawTarget;
   final Procedure _isDartFunctionWrappedTarget;
@@ -66,7 +65,7 @@ class _JSLowerer extends Transformer {
   late InlineExtensionIndex _inlineExtensionIndex;
   final StatefulStaticTypeContext _staticTypeContext;
 
-  _JSLowerer(this._coreTypes, ClassHierarchy hierarchy)
+  _Lowerer(this._coreTypes, ClassHierarchy hierarchy)
       : _dartifyRawTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         _jsifyRawTarget = _coreTypes.index
@@ -146,11 +145,11 @@ class _JSLowerer extends Transformer {
       return _expandInlineJS(node.target, node);
     } else if (target.isExternal || _overloadedProcedures.containsKey(target)) {
       final config = getLoweringConfig(target, node);
-      if (config is JSPositionalInvocationLoweringConfig) {
+      if (config is PositionalInvocationLoweringConfig) {
         // These types may contain optionals. Therefore, we do invocation-level
         // lowering to support passing fewer than the max arguments.
         return _specializeJSInvocation(config);
-      } else if (config is JSObjectLiteralLoweringConfig) {
+      } else if (config is ObjectLiteralLoweringConfig) {
         return _specializeJSObjectLiteral(config);
       }
     }
@@ -171,19 +170,19 @@ class _JSLowerer extends Transformer {
   /// Get the `JSLoweringConfig` for the non-constructor [node] with its
   /// associated [jsString] name, and the [invocation] it's used in if this is
   /// an invocation-level lowering.
-  JSLoweringConfig? _getConfigForMember(Procedure node, String jsString,
+  LoweringConfig? _getConfigForMember(Procedure node, String jsString,
       [StaticInvocation? invocation]) {
     if (_inlineExtensionIndex.isGetter(node)) {
-      return JSGetterLoweringConfig(node, jsString, _inlineExtensionIndex);
+      return GetterLoweringConfig(node, jsString, _inlineExtensionIndex);
     } else if (_inlineExtensionIndex.isSetter(node)) {
-      return JSSetterLoweringConfig(node, jsString, _inlineExtensionIndex);
+      return SetterLoweringConfig(node, jsString, _inlineExtensionIndex);
     } else if (_inlineExtensionIndex.isOperator(node)) {
-      return JSOperatorLoweringConfig(node, jsString, _inlineExtensionIndex);
+      return OperatorLoweringConfig(node, jsString, _inlineExtensionIndex);
     } else if (_inlineExtensionIndex.isMethod(node)) {
       return invocation != null
-          ? JSMethodInvocationLoweringConfig(
+          ? MethodInvocationLoweringConfig(
               node, jsString, _inlineExtensionIndex, invocation)
-          : JSMethodLoweringConfig(node, jsString, _inlineExtensionIndex);
+          : MethodLoweringConfig(node, jsString, _inlineExtensionIndex);
     }
     return null;
   }
@@ -191,19 +190,19 @@ class _JSLowerer extends Transformer {
   /// Get the `JSLoweringConfig` for the constructor [node], whether it
   /// [isObjectLiteral] or not, with its associated [jsString] name, and the
   /// [invocation] it's used in if this is an invocation-level lowering.
-  JSLoweringConfig? _getConfigForConstructor(
+  LoweringConfig? _getConfigForConstructor(
       bool isObjectLiteral, Procedure node, String jsString,
       [StaticInvocation? invocation]) {
     if (invocation != null) {
       if (isObjectLiteral) {
-        return JSObjectLiteralLoweringConfig(
+        return ObjectLiteralLoweringConfig(
             node, _inlineExtensionIndex, invocation);
       } else {
-        return JSConstructorInvocationLoweringConfig(
+        return ConstructorInvocationLoweringConfig(
             node, jsString, _inlineExtensionIndex, invocation);
       }
     } else if (!isObjectLiteral) {
-      return JSConstructorLoweringConfig(node, jsString, _inlineExtensionIndex);
+      return ConstructorLoweringConfig(node, jsString, _inlineExtensionIndex);
     }
     return null;
   }
@@ -216,7 +215,7 @@ class _JSLowerer extends Transformer {
   ///
   /// TODO(srujzs): This lowering config code should move to
   /// `js_lowering_config.dart`.
-  JSLoweringConfig? getLoweringConfig(Procedure node,
+  LoweringConfig? getLoweringConfig(Procedure node,
       [StaticInvocation? invocation]) {
     if (node.enclosingClass != null &&
         hasJSInteropAnnotation(node.enclosingClass!)) {
@@ -271,7 +270,7 @@ class _JSLowerer extends Transformer {
     _staticTypeContext.enterMember(node);
     final config = getLoweringConfig(node);
     if (node.isExternal && config != null) {
-      if (config is JSProcedureLoweringConfig) {
+      if (config is ProcedureLoweringConfig) {
         // For the time being to support tearoffs we simply replace the body of
         // the original procedure, but leave all the optional arguments intact.
         // This unfortunately results in inconsistent behavior between the
@@ -606,7 +605,7 @@ class _JSLowerer extends Transformer {
   ///
   /// TODO(srujzs): This and the specialization logic should be moved to the
   /// configs themselves with some virtual method like `specialize`.
-  Procedure _getInteropProcedure(JSLoweringConfig config) {
+  Procedure _getInteropProcedure(LoweringConfig config) {
     // Procedures with optional arguments are specialized at the
     // invocation-level, so we cache if we've already created an interop
     // procedure for the given number of parameters.
@@ -640,9 +639,9 @@ class _JSLowerer extends Transformer {
     jsMethods[dartProcedure] =
         "$jsMethodName: ${config.generateJS(jsParameterStrings)}";
 
-    if (config is JSPositionalInvocationLoweringConfig ||
-        config is JSMethodLoweringConfig ||
-        config is JSConstructorLoweringConfig) {
+    if (config is PositionalInvocationLoweringConfig ||
+        config is MethodLoweringConfig ||
+        config is ConstructorLoweringConfig) {
       // For now, these are the only configs that are cached in
       // `_overloadedProcedures` since they may contain optionals.
       _overloadedProcedures.putIfAbsent(
@@ -655,7 +654,7 @@ class _JSLowerer extends Transformer {
 
   /// Given a [config], returns an invocation of a specialized JS method that
   /// creates an object literal using the arguments from the [config].
-  Expression _specializeJSObjectLiteral(JSObjectLiteralLoweringConfig config) {
+  Expression _specializeJSObjectLiteral(ObjectLiteralLoweringConfig config) {
     // To avoid one method for every invocation, we optimize and compute one
     // method per invocation shape. For example, `Cons(a: 0, b: 0)`,
     // `Cons(a: 0)`, and `Cons(a: 1, b: 1)` only create two shapes:
@@ -681,7 +680,7 @@ class _JSLowerer extends Transformer {
   /// Given a [config], returns an invocation of a specialized JS method meant
   /// to be used in an invocation-level lowering.
   Expression _specializeJSInvocation(
-      JSPositionalInvocationLoweringConfig config) {
+      PositionalInvocationLoweringConfig config) {
     // Create or get the specialized procedure for the invoked number of
     // arguments. Cast as needed and return the final invocation.
     final invocation = StaticInvocation(
@@ -696,7 +695,7 @@ class _JSLowerer extends Transformer {
 
   /// Given a [config], returns an invocation of a specialized JS method meant
   /// to be used in a procedure-level lowering.
-  Statement _specializeJSProcedure(JSProcedureLoweringConfig config) {
+  Statement _specializeJSProcedure(ProcedureLoweringConfig config) {
     // Return the replacement body.
     final returnType = config.function.returnType;
     Expression invocation = StaticInvocation(
@@ -861,9 +860,9 @@ Map<Procedure, String> _performJSInteropTransformations(
     CoreTypes coreTypes,
     ClassHierarchy classHierarchy,
     Set<Library> interopDependentLibraries) {
-  final jsLowerer = _JSLowerer(coreTypes, classHierarchy);
+  final lowerer = _Lowerer(coreTypes, classHierarchy);
   for (Library library in interopDependentLibraries) {
-    jsLowerer.visitLibrary(library);
+    lowerer.visitLibrary(library);
   }
 
   // We want static types to help us specialize methods based on receivers.
@@ -875,13 +874,13 @@ Map<Procedure, String> _performJSInteropTransformations(
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }
-  return jsLowerer.jsMethods;
+  return lowerer.jsMethods;
 }
 
-class JSRuntimeFinalizer {
+class RuntimeFinalizer {
   final Map<Procedure, String> allJSMethods;
 
-  JSRuntimeFinalizer(this.allJSMethods);
+  RuntimeFinalizer(this.allJSMethods);
 
   String generate(Iterable<Procedure> translatedProcedures) {
     Set<Procedure> usedProcedures = {};
@@ -899,7 +898,7 @@ class JSRuntimeFinalizer {
   }
 }
 
-JSRuntimeFinalizer createJSRuntimeFinalizer(
+RuntimeFinalizer createRuntimeFinalizer(
     Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
@@ -912,5 +911,5 @@ JSRuntimeFinalizer createJSRuntimeFinalizer(
   Map<Procedure, String> jsInteropMethods = {};
   jsInteropMethods = _performJSInteropTransformations(
       component, coreTypes, classHierarchy, transitiveImportingJSInterop);
-  return JSRuntimeFinalizer(jsInteropMethods);
+  return RuntimeFinalizer(jsInteropMethods);
 }
