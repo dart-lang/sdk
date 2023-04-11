@@ -24,7 +24,8 @@ class UseBuildContextSynchronouslyTest extends LintRuleTest {
   @override
   String get testPackageRootPath => '$workspaceRootPath/lib';
 
-  test_await_afterReferenceToContextInBody() async {
+  test_await_afterReferenceToContext() async {
+    // Use of BuildContext, then await, in statement block is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -37,7 +38,8 @@ Future<void> f() async {}
 ''');
   }
 
-  test_await_beforeReferenceToContextInBody() async {
+  test_await_beforeReferenceToContext() async {
+    // Await, then use of BuildContext, in statement block is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -52,7 +54,9 @@ Future<void> f() async {}
     ]);
   }
 
-  test_awaitBeforeIf_mountedExitGuardInIfConditionWithOr_beforeReferenceToContext() async {
+  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext() async {
+    // Await, then a proper "exit if not mounted" guard in an if-condition (or'd
+    // with another bool), then use of BuildContext, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -68,7 +72,9 @@ bool get c => true;
 ''');
   }
 
-  test_awaitBeforeIf_mountedGuardInIfCondition_referenceToContextInIfBody() async {
+  test_awaitBeforeIf_mountedGuardInIf1() async {
+    // Await, then a proper "if mounted" guard in an if-condition, then use of
+    // BuildContext in the if-body, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -84,7 +90,9 @@ Future<void> f() async {}
 ''');
   }
 
-  test_awaitBeforeIf_mountedGuardInIfConditionWithAnd_referenceToContextInIfBody() async {
+  test_awaitBeforeIf_mountedGuardInIf2() async {
+    // Await, then a proper "if mounted" guard in an if-condition (and'd with
+    // another condition), then use of BuildContext in the if-body, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -101,7 +109,8 @@ bool get c => true;
 ''');
   }
 
-  test_awaitBeforeIfStatement_beforeReferenceToContext() async {
+  test_awaitBeforeIfStatement_withReferenceToContext() async {
+    // Await, then use of BuildContext in an unrelated if-body, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -118,6 +127,7 @@ Future<bool> c() async => true;
   }
 
   test_awaitBeforeReferenceToContext_inClosure() async {
+    // Await, then use of BuildContext in a closure, is REPORTED.
     // todo (pq): what about closures?
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
@@ -135,7 +145,9 @@ Future<bool> c() async => true;
 ''');
   }
 
-  test_awaitBeforeSwitch_mountedExitGuardInCase_beforeReferenceToContext() async {
+  test_awaitBeforeSwitch_mountedGuardInCase_beforeReferenceToContext() async {
+    // Await, then switch statement, and in one case body, a proper "exit if
+    // mounted" guard, then use of BuildContext, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -157,6 +169,8 @@ Future<void> f() async {}
 
   // https://github.com/dart-lang/linter/issues/3457
   test_awaitInIfCondition_aboveReferenceToContext() async {
+    // Await in an if-condition, then use of BuildContext in the if-body, is
+    // REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -172,6 +186,7 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfCondition_beforeReferenceToContext() async {
+    // Await in an if-condition, then use of BuildContext, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -186,6 +201,7 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfReferencesContext_beforeReferenceToContext() async {
+    // Await in an if-condition, then use of BuildContext, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -201,6 +217,7 @@ void foo(
   }
 
   test_awaitInIfThen_afterReferenceToContext() async {
+    // Use of BuildContext, then await in an if-body, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -216,6 +233,7 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfThen_beforeReferenceToContext() async {
+    // Await in an if-body, then use of BuildContext, is OK.
     // TODO(srawlins): I think this should report a lint, since an `await` is
     // encountered in the if-body.
     await assertNoDiagnostics(r'''
@@ -233,6 +251,8 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfThenAndExitInElse_afterReferenceToContext() async {
+    // Use of BuildContext, then await in an if-body and await in the associated
+    // else, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -250,6 +270,8 @@ Future<bool> c() async => true;
   }
 
   test_awaitInIfThenAndExitInElse_beforeReferenceToContext() async {
+    // Await in an if-body and await in the associated else, then use of
+    // BuildContext, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -270,6 +292,8 @@ Future<bool> c() async => true;
 
   @FailingTest(reason: 'Logic not implemented yet.')
   test_awaitInWhileBody_afterReferenceToContext() async {
+    // While-true statement, and inside the while-body: use of
+    // BuildContext, then await, is OK.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -289,6 +313,8 @@ Future<void> f() async {}
   }
 
   test_awaitInWhileBody_afterReferenceToContextOutsideWait() async {
+    // Use of BuildContext, then While-true statement, and inside the
+    // while-body: await and break, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -304,6 +330,8 @@ Future<void> f() async {}
   }
 
   test_awaitInWhileBody_beforeReferenceToContext() async {
+    // While-true statement, and inside the while-body: await and break, then
+    // use of BuildContext, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -320,7 +348,9 @@ Future<void> f() async {}
     ]);
   }
 
-  test_awaitThenExitInIfThenAndElse_afterReferenceToContext() async {
+  test_awaitThenExitInIf_afterReferenceToContext() async {
+    // Use of BuildContext, then await-and-return in an if-body and
+    // await-and-return in the associated else, then use of BuildContext, is OK.
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -338,7 +368,9 @@ Future<bool> c() async => true;
 ''');
   }
 
-  test_awaitThenExitInIfThenAndElse_beforeReferenceToContext() async {
+  test_awaitThenExitInIf_beforeReferenceToContext() async {
+    // Await-and-return in an if-body and await-and-return in the associated
+    // else, then use of BuildContext, is OK.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
