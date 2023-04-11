@@ -158,8 +158,8 @@ class HeapProfileSampler {
   static Dart_HeapSamplingDeleteCallback delete_callback_;
   static intptr_t sampling_interval_;
 
-  static const intptr_t kUninitialized = -1;
-  static const intptr_t kDefaultSamplingInterval = 512 * KB;
+  static constexpr intptr_t kUninitialized = -1;
+  static constexpr intptr_t kDefaultSamplingInterval = 512 * KB;
 
   bool thread_enabled_ = false;
   intptr_t interval_to_next_sample_ = kUninitialized;

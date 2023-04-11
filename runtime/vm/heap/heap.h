@@ -69,7 +69,7 @@ class Heap {
   };
 
   // Pattern for unused new space and swept old space.
-  static const uint8_t kZapByte = 0xf3;
+  static constexpr uint8_t kZapByte = 0xf3;
 
   ~Heap();
 
@@ -317,8 +317,8 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
-  static const intptr_t kNewAllocatableSize = 256 * KB;
-  static const intptr_t kAllocatablePageSize = 64 * KB;
+  static constexpr intptr_t kNewAllocatableSize = 256 * KB;
+  static constexpr intptr_t kAllocatablePageSize = 64 * KB;
 
   Space SpaceForExternal(intptr_t size) const;
 
@@ -411,7 +411,7 @@ class Heap {
   bool last_gc_was_old_space_;
   bool assume_scavenge_will_fail_;
 
-  static const intptr_t kNoForcedGarbageCollection = -1;
+  static constexpr intptr_t kNoForcedGarbageCollection = -1;
 
   // Whether the next heap allocation (new or old) should trigger
   // CollectAllGarbage. Used within unit tests for testing GC on certain

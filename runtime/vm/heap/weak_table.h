@@ -154,9 +154,9 @@ class WeakTable {
     kEntrySize,
   };
 
-  static const intptr_t kNoEntry = 1;       // Not a valid OOP.
-  static const intptr_t kDeletedEntry = 3;  // Not a valid OOP.
-  static const intptr_t kMinSize = 8;
+  static constexpr intptr_t kNoEntry = 1;       // Not a valid OOP.
+  static constexpr intptr_t kDeletedEntry = 3;  // Not a valid OOP.
+  static constexpr intptr_t kMinSize = 8;
 
   static intptr_t SizeFor(intptr_t count, intptr_t size);
   static intptr_t LimitFor(intptr_t size) {
