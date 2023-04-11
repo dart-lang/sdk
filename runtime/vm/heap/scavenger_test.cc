@@ -13,19 +13,23 @@ namespace dart {
 class FailingObjectVisitor : public ObjectVisitor {
  public:
   FailingObjectVisitor() {}
-  virtual void VisitObject(ObjectPtr obj) { EXPECT(false); }
+  void VisitObject(ObjectPtr obj) override { EXPECT(false); }
 };
 
 // Expects to visit no objects (since the space should be empty).
 class FailingObjectPointerVisitor : public ObjectPointerVisitor {
  public:
   FailingObjectPointerVisitor() : ObjectPointerVisitor(nullptr) {}
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) { EXPECT(false); }
-  void VisitCompressedPointers(uword heap_base,
-                               CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     EXPECT(false);
   }
+#if defined(DART_COMPRESSED_POINTERS)
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) override {
+    EXPECT(false);
+  }
+#endif
 };
 
 // Expects to visit no objects (since the space should be empty).

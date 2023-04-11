@@ -2861,7 +2861,7 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
     ASSERT(old_obj_->IsOldObject());
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     if (old_obj_->IsArray()) {
       for (ObjectPtr* slot = from; slot <= to; ++slot) {
         ObjectPtr value = *slot;
@@ -2879,9 +2879,10 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     if (old_obj_->IsArray()) {
       for (CompressedObjectPtr* slot = from; slot <= to; ++slot) {
         ObjectPtr value = slot->Decompress(heap_base);
@@ -2898,6 +2899,7 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
       }
     }
   }
+#endif
 
  private:
   Thread* thread_;
@@ -19963,19 +19965,21 @@ class CheckForPointers : public ObjectPointerVisitor {
 
   bool has_pointers() const { return has_pointers_; }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     if (last >= first) {
       has_pointers_ = true;
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     if (last >= first) {
       has_pointers_ = true;
     }
   }
+#endif
 
  private:
   bool has_pointers_;

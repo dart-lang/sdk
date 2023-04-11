@@ -1297,7 +1297,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
-    void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
       for (ObjectPtr* current = first; current <= last; current++) {
         subinstance_ = *current;
         if (subinstance_.IsInstance()) {
@@ -1307,9 +1307,10 @@ void Precompiler::AddConstObject(const class Instance& instance) {
       subinstance_ = Object::null();
     }
 
+#if defined(DART_COMPRESSED_POINTERS)
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* first,
-                                 CompressedObjectPtr* last) {
+                                 CompressedObjectPtr* last) override {
       for (CompressedObjectPtr* current = first; current <= last; current++) {
         subinstance_ = current->Decompress(heap_base);
         if (subinstance_.IsInstance()) {
@@ -1318,6 +1319,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
       }
       subinstance_ = Object::null();
     }
+#endif
 
    private:
     Precompiler* precompiler_;
@@ -2399,7 +2401,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
                               GrowableHandlePtrArray<const AbstractType>* types)
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
-      void VisitObject(ObjectPtr obj) {
+      void VisitObject(ObjectPtr obj) override {
         if (obj->GetClassId() == kTypeCid ||
             obj->GetClassId() == kFunctionTypeCid ||
             obj->GetClassId() == kRecordTypeCid ||
@@ -3313,7 +3315,7 @@ void Precompiler::Obfuscate() {
                               GrowableHandlePtrArray<const Script>* scripts)
         : script_(Script::Handle(zone)), scripts_(scripts) {}
 
-    void VisitObject(ObjectPtr obj) {
+    void VisitObject(ObjectPtr obj) override {
       if (obj->GetClassId() == kScriptCid) {
         script_ ^= obj;
         scripts_->Add(Script::Cast(script_));

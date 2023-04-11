@@ -119,7 +119,7 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
         funcHandle_(Function::Handle(thread->zone())),
         typeHandle_(AbstractType::Handle(thread->zone())) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsFunction()) {
       funcHandle_ ^= obj;
       classHandle_ ^= funcHandle_.Owner();

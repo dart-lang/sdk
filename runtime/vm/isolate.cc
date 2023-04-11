@@ -262,7 +262,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   explicit FinalizeWeakPersistentHandlesVisitor(IsolateGroup* isolate_group)
       : HandleVisitor(Thread::Current()), isolate_group_(isolate_group) {}
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     auto handle = reinterpret_cast<FinalizablePersistentHandle*>(addr);
     handle->UpdateUnreachable(isolate_group_);
   }

@@ -1499,7 +1499,7 @@ class CidRewriteVisitor : public ObjectVisitor {
     return old_to_new_cids_[cid];
   }
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
       const classid_t old_cid = cls->untag()->id_;
@@ -1621,7 +1621,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
         record_type_(RecordType::Handle(zone)),
         type_args_(TypeArguments::Handle(zone)) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsTypeParameter()) {
       type_param_ ^= obj;
       type_param_.SetHash(0);

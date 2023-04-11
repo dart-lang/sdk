@@ -1444,7 +1444,7 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 
   ~CodeLookupTableBuilder() {}
 
-  void VisitObject(ObjectPtr raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsCode() && !Code::IsUnknownDartCode(Code::RawCast(raw_obj))) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
     }

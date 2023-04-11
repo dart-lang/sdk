@@ -29,7 +29,7 @@ class VerifyObjectVisitor : public ObjectVisitor {
         allocated_set_(allocated_set),
         mark_expectation_(mark_expectation) {}
 
-  virtual void VisitObject(ObjectPtr obj);
+  void VisitObject(ObjectPtr obj) override;
 
  private:
   IsolateGroup* isolate_group_;
@@ -47,10 +47,12 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
                                  ObjectSet* allocated_set)
       : ObjectPointerVisitor(isolate_group), allocated_set_(allocated_set) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override;
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last);
+                               CompressedObjectPtr* last) override;
+#endif
 
   static void VerifyPointers(MarkExpectation mark_expectation = kForbidMarked);
 
@@ -65,7 +67,7 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
   explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
       : HandleVisitor(Thread::Current()), visitor_(visitor) {}
 
-  virtual void VisitHandle(uword addr);
+  void VisitHandle(uword addr) override;
 
  private:
   ObjectPointerVisitor* visitor_;
@@ -79,7 +81,7 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
 class VerifyCanonicalVisitor : public ObjectVisitor {
  public:
   explicit VerifyCanonicalVisitor(Thread* thread);
-  virtual void VisitObject(ObjectPtr obj);
+  void VisitObject(ObjectPtr obj) override;
 
  private:
   Thread* thread_;
