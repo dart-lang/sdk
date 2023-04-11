@@ -10,15 +10,41 @@ import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
 
-enum IsTestSpecialization {
+enum _Kind {
   isNull,
-  notNull,
-  string,
-  bool,
-  num,
-  int,
-  arrayTop,
-  instanceof,
+  isNotNull,
+  isString,
+  isBool,
+  isNum,
+  isInt,
+  isArrayTop,
+  isInstanceof,
+}
+
+class IsTestSpecialization {
+  static const isNull = IsTestSpecialization._(_Kind.isNull);
+  static const isNotNull = IsTestSpecialization._(_Kind.isNotNull);
+  static const isString = IsTestSpecialization._(_Kind.isString);
+  static const isBool = IsTestSpecialization._(_Kind.isBool);
+  static const isNum = IsTestSpecialization._(_Kind.isNum);
+  static const isInt = IsTestSpecialization._(_Kind.isInt);
+  static const isArrayTop = IsTestSpecialization._(_Kind.isArrayTop);
+
+  final _Kind _kind;
+  final InterfaceType? _type;
+
+  const IsTestSpecialization._(this._kind) : _type = null;
+
+  const IsTestSpecialization._instanceof(InterfaceType type)
+      : _kind = _Kind.isInstanceof,
+        _type = type;
+
+  bool get isInstanceof => _kind == _Kind.isInstanceof;
+
+  InterfaceType get interfaceType {
+    assert(_kind == _Kind.isInstanceof);
+    return _type!;
+  }
 }
 
 class SpecializedChecks {
@@ -48,18 +74,18 @@ class SpecializedChecks {
 
       if (element == commonElements.jsStringClass ||
           element == commonElements.stringClass) {
-        return IsTestSpecialization.string;
+        return IsTestSpecialization.isString;
       }
 
       if (element == commonElements.jsBoolClass ||
           element == commonElements.boolClass) {
-        return IsTestSpecialization.bool;
+        return IsTestSpecialization.isBool;
       }
 
       if (element == commonElements.doubleClass ||
           element == commonElements.jsNumberClass ||
           element == commonElements.numClass) {
-        return IsTestSpecialization.num;
+        return IsTestSpecialization.isNum;
       }
 
       if (element == commonElements.jsIntClass ||
@@ -67,13 +93,14 @@ class SpecializedChecks {
           element == commonElements.jsUInt32Class ||
           element == commonElements.jsUInt31Class ||
           element == commonElements.jsPositiveIntClass) {
-        return IsTestSpecialization.int;
+        return IsTestSpecialization.isInt;
       }
 
       DartTypes dartTypes = closedWorld.dartTypes;
       // Top types should be constant folded outside the specializer. This test
       // protects logic below.
       if (dartTypes.isTopType(dartType)) return null;
+
       ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
       if (!dartTypes.isSubtype(
           elementEnvironment.getClassInstantiationToBounds(element),
@@ -82,27 +109,51 @@ class SpecializedChecks {
       }
 
       if (element == commonElements.jsArrayClass) {
-        return IsTestSpecialization.arrayTop;
+        return IsTestSpecialization.isArrayTop;
       }
 
       if (dartType.isObject) {
         assert(!dartTypes.isTopType(dartType)); // Checked above.
-        return IsTestSpecialization.notNull;
+        return IsTestSpecialization.isNotNull;
       }
 
       ClassHierarchy classHierarchy = closedWorld.classHierarchy;
       InterceptorData interceptorData = closedWorld.interceptorData;
       OutputUnitData outputUnitData = closedWorld.outputUnitData;
 
-      if (classHierarchy.hasOnlySubclasses(element) &&
-          classHierarchy.isInstantiated(element) &&
-          !interceptorData.isInterceptedClass(element) &&
+      final topmost = closedWorld.getLubOfInstantiatedSubtypes(element);
+
+      // No LUB means the test is always false, and should be constant folded
+      // outside of this specializer.
+      if (topmost == null) return null;
+
+      if (classHierarchy.hasOnlySubclasses(topmost) &&
+          !interceptorData.isInterceptedClass(topmost) &&
           outputUnitData.hasOnlyNonDeferredImportPathsToClass(
-              compiland, element)) {
+              compiland, topmost)) {
         assert(!dartType.isObject); // Checked above.
-        return IsTestSpecialization.instanceof;
+        return IsTestSpecialization._instanceof(
+            elementEnvironment.getClassInstantiationToBounds(topmost));
       }
+
+      // Two ideas for further consideration:
+      //
+      // 1. It might be profitable to know the type of the tested value - for
+      // example, `Pattern` and `Comparable` are both interfaces that are
+      // impemented by many classes and cannot be handled by any of the tricks
+      // above. However, if we know the tested value is a `Pattern` then `is
+      // Comparable` can be compiled as `is String`.
+      //
+      // 2. We could re-introduce type testing using the `$isFoo` property. The
+      // Rti `_is` stubs use this property, but in a polymorphic manner.
+      // Specialized stubs would be monomorphic in the property symbol, but they
+      // still need to use `getInterceptor` (although this can be specialized
+      // too).  Using the `$isFoo` property directly in the code would be most
+      // beneficial when the interceptor is needed for other reasons (including
+      // additional checks), otherwise it is just a more verbose version of
+      // calling the specialized Rti stub.
     }
+
     return null;
   }
 
