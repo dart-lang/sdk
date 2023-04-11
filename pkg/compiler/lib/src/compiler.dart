@@ -630,7 +630,8 @@ class Compiler {
       closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
-            closedWorld!.elementMap.programEnv.mainComponent);
+            closedWorld!.elementMap.programEnv.mainComponent,
+            includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld);
       }
     } else {
