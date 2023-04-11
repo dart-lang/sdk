@@ -21,7 +21,7 @@ void f(x) {
   if (x case int _ && double _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 8),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 6),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -58,7 +58,7 @@ void f(x) {
   }
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 8),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 6),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
