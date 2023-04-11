@@ -48,7 +48,7 @@ DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 // before / mark-sweep time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first mark-sweep, we instead use a value
 // based on the device's actual speed.
-static const intptr_t kConservativeInitialMarkSpeed = 20;
+static constexpr intptr_t kConservativeInitialMarkSpeed = 20;
 
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : heap_(heap),

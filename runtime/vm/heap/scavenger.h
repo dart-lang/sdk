@@ -118,7 +118,7 @@ class ScavengeStats {
 
 class Scavenger {
  private:
-  static const intptr_t kTLABSize = 512 * KB;
+  static constexpr intptr_t kTLABSize = 512 * KB;
 
  public:
   Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
@@ -303,7 +303,7 @@ class Scavenger {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
-  static const int kStatsHistoryCapacity = 4;
+  static constexpr int kStatsHistoryCapacity = 4;
   RingBuffer<ScavengeStats, kStatsHistoryCapacity> stats_history_;
 
   intptr_t scavenge_words_per_micro_;

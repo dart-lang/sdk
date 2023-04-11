@@ -749,7 +749,7 @@ void SemiSpace::AddList(Page* head, Page* tail) {
 // before / scavenge time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first scavenge, we instead use a value based
 // on the device's actual speed.
-static const intptr_t kConservativeInitialScavengeSpeed = 40;
+static constexpr intptr_t kConservativeInitialScavengeSpeed = 40;
 
 Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
     : heap_(heap),
