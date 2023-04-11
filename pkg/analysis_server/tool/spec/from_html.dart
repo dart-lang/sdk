@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code for reading an HTML API description.
+library;
+
 import 'dart:io';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;

@@ -7,6 +7,8 @@
 // "pkg/analysis_server/tool/spec/generate_files".
 
 /// Convenience methods for running integration tests.
+library;
+
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';

@@ -4,6 +4,8 @@
 
 /// Support for interacting with an analysis server that is running in a
 /// separate process.
+library;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
