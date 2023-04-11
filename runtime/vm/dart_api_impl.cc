@@ -571,7 +571,7 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
   if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
     auto isolate_group = arguments->thread()->isolate_group();
     *peer = isolate_group->heap()->GetPeer(raw_obj);
-    return (*peer != 0);
+    return (*peer != nullptr);
   }
   if (cid == kExternalTwoByteStringCid) {
     ExternalTwoByteStringPtr raw_string =
@@ -5347,7 +5347,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
         "an Error.",
         ret_obj.ToCString());
   }
-  ASSERT(retval != 0);
+  ASSERT(retval != nullptr);
   Api::SetReturnValue(arguments, retval);
 }
 

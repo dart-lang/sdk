@@ -184,7 +184,7 @@ class IlTestPrinter : public AllStatic {
     static std::false_type test(...);
 
    public:
-    static constexpr bool value = decltype(test<T>(0))::value;
+    static constexpr bool value = decltype(test<T>(nullptr))::value;
   };
 
   class AttributesSerializer : public InstructionVisitor {
@@ -239,7 +239,7 @@ class IlTestPrinter : public AllStatic {
     template <typename T>
     void WriteDescriptor(
         const char* name,
-        typename std::enable_if_t<HasGetAttributes<T>::value>* = 0) {
+        typename std::enable_if_t<HasGetAttributes<T>::value>* = nullptr) {
       writer_->OpenArray(name);
       WriteTuple(T::GetAttributeNames());
       writer_->CloseArray();
@@ -248,7 +248,7 @@ class IlTestPrinter : public AllStatic {
     template <typename T>
     void WriteDescriptor(
         const char* name,
-        typename std::enable_if_t<!HasGetAttributes<T>::value>* = 0) {}
+        typename std::enable_if_t<!HasGetAttributes<T>::value>* = nullptr) {}
 
     JSONWriter* writer_;
   };

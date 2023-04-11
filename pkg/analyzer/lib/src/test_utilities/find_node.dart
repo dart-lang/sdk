@@ -24,7 +24,11 @@ class FindNode {
     return result;
   }
 
+  AdjacentStrings get singleAdjacentStrings => _single();
+
   Annotation get singleAnnotation => _single();
+
+  AsExpression get singleAsExpression => _single();
 
   AssertInitializer get singleAssertInitializer => _single();
 
@@ -35,6 +39,11 @@ class FindNode {
   Block get singleBlock => _single();
 
   CascadeExpression get singleCascadeExpression => _single();
+
+  ConditionalExpression get singleConditionalExpression => _single();
+
+  ConstructorFieldInitializer get singleConstructorFieldInitializer =>
+      _single();
 
   ExtendsClause get singleExtendsClause => _single();
 
@@ -80,6 +89,11 @@ class FindNode {
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
 
   PropertyAccess get singlePropertyAccess => _single();
+
+  RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
+      _single();
+
+  SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
 
   SwitchExpression get singleSwitchExpression => _single();
 
@@ -209,6 +223,10 @@ class FindNode {
   }
 
   ConstructorDeclaration constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
+  }
+
+  ConstructorDeclaration constructorDeclaration(String search) {
     return _node(search, (n) => n is ConstructorDeclaration);
   }
 

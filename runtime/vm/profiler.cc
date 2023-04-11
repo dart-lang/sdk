@@ -986,10 +986,10 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     }
 
     uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
-    bool has_exit_frame = exit_fp != 0;
+    bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
       // Exited from compiled code.
-      pc_ = 0;
+      pc_ = nullptr;
       fp_ = exit_fp;
 
       // Skip exit frame.
@@ -1029,9 +1029,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     for (;;) {
       // Skip entry frame.
       if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
-        pc_ = 0;
+        pc_ = nullptr;
         fp_ = ExitLink();
-        if (fp_ == 0) {
+        if (fp_ == nullptr) {
           break;  // End of Dart stack.
         }
 

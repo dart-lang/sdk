@@ -15399,7 +15399,7 @@ const UntaggedCompressedStackMaps::Payload* InstructionsTable::FindStackMap(
     *start_pc = InstructionsTable::start_pc(table) + entries[idx].pc_offset;
     return rodata->StackMapAt(entries[idx].stack_map_offset);
   }
-  return 0;
+  return nullptr;
 }
 
 CodePtr InstructionsTable::FindCode(InstructionsTablePtr table, uword pc) {

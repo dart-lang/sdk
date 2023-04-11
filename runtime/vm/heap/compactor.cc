@@ -728,7 +728,7 @@ void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
   } else {
     // The backing store didn't move, we therefore don't need to update the
     // inner pointer.
-    if (view->untag()->data_ == 0) {
+    if (view->untag()->data_ == nullptr) {
       ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
              RawSmiValue(view->untag()->length()) == 0 &&
              view->untag()->typed_data() == Object::null());

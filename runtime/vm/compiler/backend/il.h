@@ -375,12 +375,12 @@ class EmbeddedArray<T, 0> {
   intptr_t length() const { return 0; }
   const T& operator[](intptr_t i) const {
     UNREACHABLE();
-    static T sentinel = 0;
+    static T sentinel = nullptr;
     return sentinel;
   }
   T& operator[](intptr_t i) {
     UNREACHABLE();
-    static T sentinel = 0;
+    static T sentinel = nullptr;
     return sentinel;
   }
 };

@@ -261,13 +261,13 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   LOG_INFO("SocketBase::LookupAddress: calling getaddrinfo\n");
-  int status = NO_RETRY_EXPECTED(getaddrinfo(host, 0, &hints, &info));
+  int status = NO_RETRY_EXPECTED(getaddrinfo(host, nullptr, &hints, &info));
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
     // e.g. '::1', when there are no global IPv6 addresses.
     hints.ai_flags = 0;
     LOG_INFO("SocketBase::LookupAddress: calling getaddrinfo again\n");
-    status = NO_RETRY_EXPECTED(getaddrinfo(host, 0, &hints, &info));
+    status = NO_RETRY_EXPECTED(getaddrinfo(host, nullptr, &hints, &info));
     if (status != 0) {
       ASSERT(*os_error == NULL);
       *os_error =
