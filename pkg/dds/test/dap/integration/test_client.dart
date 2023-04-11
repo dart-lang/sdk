@@ -424,7 +424,13 @@ class DapTestClient {
     await _subscription.cancel();
   }
 
-  Future<Response> terminate() => sendRequest(TerminateArguments());
+  /// Whether or not any `terminate()` request has been sent.
+  bool get hasSentTerminateRequest => _hasSentTerminateRequest;
+  bool _hasSentTerminateRequest = false;
+  Future<Response?> terminate() async {
+    _hasSentTerminateRequest = true;
+    return sendRequest(TerminateArguments());
+  }
 
   /// Sends a threads request to the server to request the list of active
   /// threads (isolates).
