@@ -602,7 +602,6 @@ class Server {
       case 'server.connected':
 //        new ServerConnectedParams.fromNotification(notification);
         _serverConnectedCompleter!.complete(null);
-        break;
       case 'server.error':
 //        new ServerErrorParams.fromNotification(notification);
         throw StateError('Server error: ${notification.toJson()}');
@@ -614,19 +613,15 @@ class Server {
             _analysisFinishedCompleter!.complete(null);
           }
         }
-        break;
       case 'analysis.analyzedFiles':
         var params = AnalysisAnalyzedFilesParams.fromNotification(notification);
         _analyzedFiles = params.directories;
-        break;
       case 'analysis.errors':
         var params = AnalysisErrorsParams.fromNotification(notification);
         _errorMap.pathMap[params.file] = params.errors;
-        break;
       case 'analysis.flushResults':
 //        new AnalysisFlushResultsParams.fromNotification(notification);
         _errorMap.pathMap.clear();
-        break;
       case 'analysis.folding':
 //        new AnalysisFoldingParams.fromNotification(notification);
         break;

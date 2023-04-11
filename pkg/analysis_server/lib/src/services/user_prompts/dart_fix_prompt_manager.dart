@@ -130,10 +130,8 @@ class DartFixPromptManager {
     switch (response) {
       case learnMoreActionText:
         _handleLearnMore();
-        break;
       case doNotShowAgainActionText:
         preferences.showDartFixPrompts = false;
-        break;
       default:
       // User closed prompt without clicking a button, or request failed
       // due to shutdown. Do nothing.
