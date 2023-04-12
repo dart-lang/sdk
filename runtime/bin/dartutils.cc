@@ -32,20 +32,6 @@ namespace dart {
 namespace bin {
 
 const char* DartUtils::original_working_directory = nullptr;
-const char* const DartUtils::kDartScheme = "dart:";
-const char* const DartUtils::kAsyncLibURL = "dart:async";
-const char* const DartUtils::kBuiltinLibURL = "dart:_builtin";
-const char* const DartUtils::kCoreLibURL = "dart:core";
-const char* const DartUtils::kInternalLibURL = "dart:_internal";
-const char* const DartUtils::kIsolateLibURL = "dart:isolate";
-const char* const DartUtils::kHttpLibURL = "dart:_http";
-const char* const DartUtils::kIOLibURL = "dart:io";
-const char* const DartUtils::kIOLibPatchURL = "dart:io-patch";
-const char* const DartUtils::kCLILibURL = "dart:cli";
-const char* const DartUtils::kCLILibPatchURL = "dart:cli-patch";
-const char* const DartUtils::kUriLibURL = "dart:uri";
-const char* const DartUtils::kHttpScheme = "http:";
-const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
 dart::SimpleHashMap* DartUtils::environment_ = nullptr;
 

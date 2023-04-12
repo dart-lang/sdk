@@ -225,7 +225,7 @@ class SignalInfo {
 // allocated.
 class BufferListBase {
  protected:
-  static const intptr_t kBufferSize = 16 * 1024;
+  static constexpr intptr_t kBufferSize = 16 * 1024;
 
   class BufferListNode {
    public:

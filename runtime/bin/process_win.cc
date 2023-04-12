@@ -24,8 +24,8 @@
 namespace dart {
 namespace bin {
 
-static const int kReadHandle = 0;
-static const int kWriteHandle = 1;
+static constexpr int kReadHandle = 0;
+static constexpr int kWriteHandle = 1;
 
 int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = nullptr;
@@ -849,7 +849,7 @@ bool Process::Wait(intptr_t pid,
 
   // Create three events for overlapped IO. These are created as already
   // signalled to ensure they have read called at least once.
-  static const int kHandles = 3;
+  const int kHandles = 3;
   HANDLE events[kHandles];
   for (int i = 0; i < kHandles; i++) {
     events[i] = CreateEvent(nullptr, FALSE, TRUE, nullptr);

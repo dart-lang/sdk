@@ -119,7 +119,7 @@ class Socket : public ReferenceCounted<Socket> {
     udp_receive_buffer_ = nullptr;
   }
 
-  static const int kClosedFd = -1;
+  static constexpr int kClosedFd = -1;
 
   static bool short_socket_read_;
   static bool short_socket_write_;
@@ -135,7 +135,7 @@ class Socket : public ReferenceCounted<Socket> {
 
 class ServerSocket {
  public:
-  static const intptr_t kTemporaryFailure = -2;
+  static constexpr intptr_t kTemporaryFailure = -2;
 
   static intptr_t Accept(intptr_t fd);
 
@@ -245,7 +245,7 @@ class ListeningSocketRegistry {
     }
   };
 
-  static const intptr_t kInitialSocketsCount = 8;
+  static constexpr intptr_t kInitialSocketsCount = 8;
 
   OSSocket* FindOSSocketWithAddress(OSSocket* current, const RawAddr& addr) {
     while (current != nullptr) {

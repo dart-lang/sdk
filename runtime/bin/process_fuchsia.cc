@@ -206,7 +206,7 @@ class ExitCodeHandler {
   }
 
  private:
-  static const uint64_t kShutdownPacketKey = 1;
+  static constexpr uint64_t kShutdownPacketKey = 1;
 
   static void SendShutdownMessage() {
     zx_port_packet_t pkt;

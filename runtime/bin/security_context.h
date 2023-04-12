@@ -24,8 +24,8 @@ typedef void (*TrustEvaluateHandlerFunc)(Dart_Port dest_port_id,
 class SSLCertContext : public ReferenceCounted<SSLCertContext> {
  public:
   static const intptr_t kApproximateSize;
-  static const int kSecurityContextNativeFieldIndex = 0;
-  static const int kX509NativeFieldIndex = 0;
+  static constexpr int kSecurityContextNativeFieldIndex = 0;
+  static constexpr int kX509NativeFieldIndex = 0;
 
   explicit SSLCertContext(SSL_CTX* context)
       : ReferenceCounted(),

@@ -36,7 +36,7 @@
 namespace dart {
 namespace bin {
 
-static const int kSocketIdNativeField = 0;
+static constexpr int kSocketIdNativeField = 0;
 
 void FUNCTION_NAME(SynchronousSocket_LookupRequest)(Dart_NativeArguments args) {
   if (Dart_GetNativeArgumentCount(args) != 2) {

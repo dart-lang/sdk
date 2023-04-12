@@ -23,7 +23,7 @@
 namespace dart {
 namespace bin {
 
-static const int kSocketIdNativeField = 0;
+static constexpr int kSocketIdNativeField = 0;
 
 ListeningSocketRegistry* globalTcpListeningSocketRegistry = nullptr;
 

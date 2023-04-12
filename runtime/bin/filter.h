@@ -45,7 +45,7 @@ class Filter {
   Filter() : initialized_(false) {}
 
  private:
-  static const intptr_t kFilterBufferSize = 64 * KB;
+  static constexpr intptr_t kFilterBufferSize = 64 * KB;
   uint8_t processed_buffer_[kFilterBufferSize];
   bool initialized_;
 

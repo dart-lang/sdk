@@ -25,7 +25,7 @@ const bool SSL_LOG_CERTS = false;
 
 class SecureSocketUtils : public AllStatic {
  public:
-  static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
+  static constexpr int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 
   static void ThrowIOException(int status,
                                const char* exception_type,

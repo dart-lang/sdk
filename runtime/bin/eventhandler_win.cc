@@ -30,9 +30,9 @@ namespace bin {
 
 // kBufferSize must be >= kMaxUDPPackageLength so that a complete UDP packet
 // can fit in the buffer.
-static const int kBufferSize = 64 * 1024;
-static const int kStdOverlappedBufferSize = 16 * 1024;
-static const int kMaxUDPPackageLength = 64 * 1024;
+static constexpr int kBufferSize = 64 * 1024;
+static constexpr int kStdOverlappedBufferSize = 16 * 1024;
+static constexpr int kMaxUDPPackageLength = 64 * 1024;
 
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
@@ -463,8 +463,8 @@ bool ListenSocket::IssueAccept() {
   // AcceptEx documentation says: "This value must be at least 16
   // bytes more than the maximum address length for the transport
   // protocol in use."
-  static const int kAcceptExAddressAdditionalBytes = 16;
-  static const int kAcceptExAddressStorageSize =
+  const int kAcceptExAddressAdditionalBytes = 16;
+  const int kAcceptExAddressStorageSize =
       sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
   OverlappedBuffer* buffer =
       OverlappedBuffer::AllocateAcceptBuffer(2 * kAcceptExAddressStorageSize);

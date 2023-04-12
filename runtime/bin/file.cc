@@ -20,7 +20,7 @@
 namespace dart {
 namespace bin {
 
-static const int kFileNativeFieldIndex = 0;
+static constexpr int kFileNativeFieldIndex = 0;
 
 #if !defined(PRODUCT)
 static bool IsFile(Dart_Handle file_obj) {

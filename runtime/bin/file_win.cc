@@ -589,8 +589,9 @@ typedef struct _REPARSE_DATA_BUFFER {
   };
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
-static const int kReparseDataHeaderSize = sizeof(ULONG) + 2 * sizeof(USHORT);
-static const int kMountPointHeaderSize = 4 * sizeof(USHORT);
+static constexpr int kReparseDataHeaderSize =
+    sizeof(ULONG) + 2 * sizeof(USHORT);
+static constexpr int kMountPointHeaderSize = 4 * sizeof(USHORT);
 
 // Note: CreateLink used to create junctions on Windows instead of true
 // symbolic links. All File::*Link methods now support handling links created

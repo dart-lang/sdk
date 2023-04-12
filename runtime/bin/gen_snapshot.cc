@@ -15,6 +15,7 @@
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/dartutils.h"
+#include "bin/error_exit.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/loader.h"
@@ -36,13 +37,6 @@
 
 namespace dart {
 namespace bin {
-
-// Exit code indicating an API error.
-static const int kApiErrorExitCode = 253;
-// Exit code indicating a compilation error.
-static const int kCompilationErrorExitCode = 254;
-// Exit code indicating an unhandled error that is not a compilation error.
-static const int kErrorExitCode = 255;
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \

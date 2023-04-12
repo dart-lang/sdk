@@ -54,7 +54,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   };
 
   static const intptr_t kApproximateSize;
-  static const int kSSLFilterNativeFieldIndex = 0;
+  static constexpr int kSSLFilterNativeFieldIndex = 0;
 
   SSLFilter()
       : callback_error(nullptr),

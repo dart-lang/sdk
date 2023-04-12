@@ -965,7 +965,7 @@ int64_t Process::MaxRSS() {
 
 static Mutex* signal_mutex = nullptr;
 static SignalInfo* signal_handlers = nullptr;
-static const int kSignalsCount = 7;
+static constexpr int kSignalsCount = 7;
 static const int kSignals[kSignalsCount] = {
     SIGHUP, SIGINT, SIGTERM, SIGUSR1, SIGUSR2, SIGWINCH,
     SIGQUIT  // Allow VMService to listen on SIGQUIT.

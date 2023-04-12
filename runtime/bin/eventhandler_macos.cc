@@ -43,7 +43,7 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
   if (!di->tracked_by_kqueue()) {
     return;
   }
-  static const intptr_t kMaxChanges = 2;
+  const intptr_t kMaxChanges = 2;
   struct kevent events[kMaxChanges];
   EV_SET(events, di->fd(), EVFILT_READ, EV_DELETE, 0, 0, nullptr);
   VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, nullptr, 0, nullptr));
@@ -56,7 +56,7 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
 // the events currently of interest.
 static void AddToKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
   ASSERT(!di->tracked_by_kqueue());
-  static const intptr_t kMaxChanges = 2;
+  const intptr_t kMaxChanges = 2;
   intptr_t changes = 0;
   struct kevent events[kMaxChanges];
   int flags = EV_ADD;
@@ -428,7 +428,7 @@ void EventHandlerImplementation::HandleTimeout() {
 }
 
 void EventHandlerImplementation::EventHandlerEntry(uword args) {
-  static const intptr_t kMaxEvents = 16;
+  const intptr_t kMaxEvents = 16;
   struct kevent events[kMaxEvents];
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;

@@ -20,7 +20,7 @@ namespace bin {
 // epoch (January 1, 1970 UTC) measured in 100ns intervals.
 //
 // See https://docs.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-static const int64_t kFileTimeEpoch = 116444736000000000LL;
+static constexpr int64_t kFileTimeEpoch = 116444736000000000LL;
 
 // Although win32 uses 64-bit integers for representing timestamps,
 // these are packed into a FILETIME structure. The FILETIME
@@ -50,7 +50,7 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
 }
 
 FILETIME GetFiletimeFromMillis(int64_t millis) {
-  static const int64_t kTimeScaler = 10000;  // 100 ns to ms.
+  const int64_t kTimeScaler = 10000;  // 100 ns to ms.
   TimeStamp t;
   t.t_ = millis * kTimeScaler + kFileTimeEpoch;
   return t.ft_;
@@ -68,7 +68,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
   set_code(code);
 
-  static const int kMaxMessageLength = 256;
+  const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
   char* utf8 = StringUtilsWin::WideToUtf8(message);
@@ -194,7 +194,7 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
 }
 
 static int64_t GetCurrentTimeMicros() {
-  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+  const int64_t kTimeScaler = 10;  // 100 ns to us.
 
   TimeStamp time;
   GetSystemTimeAsFileTime(&time.ft_);
