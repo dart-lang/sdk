@@ -359,8 +359,6 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([math::Random? random = #C5]) → void {
     random == null ?{math::Random} random = math::Random::•() : null;
-    if(random{math::Random} == null)
-      throw "!";
     core::int length = this.{core::List::length}{core::int};
     while (length.{core::num::>}(1){(core::num) → core::bool}) {
       core::int pos = random{math::Random}.{math::Random::nextInt}(length){(core::int) → core::int};
@@ -381,8 +379,6 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(core::int start, [core::int? end = #C5]) → core::List<cac::_CustomList&Object&ListMixin::E%> {
     core::int listLength = this.{core::List::length}{core::int};
     end == null ?{core::int} end = listLength : null;
-    if(end{core::int} == null)
-      throw "!";
     core::RangeError::checkValidRange(start, end{core::int}, listLength);
     return core::List::from<cac::_CustomList&Object&ListMixin::E%>(this.{col::ListBase::getRange}(start, end{core::int}){(core::int, core::int) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>});
   }
@@ -504,8 +500,6 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexOf(covariant-by-class core::Object? element, [core::int? start = #C5]) → core::int {
     if(start == null || start{core::int}.{core::num::>=}(this.{core::List::length}{core::int}){(core::num) → core::bool})
       start = this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int};
-    if(start{core::int} == null)
-      throw "!";
     for (core::int i = start{core::int}; i.{core::num::>=}(0){(core::num) → core::bool}; i = i.{core::num::-}(1){(core::num) → core::int}) {
       if(this.{core::List::[]}(i){(core::int) → cac::_CustomList&Object&ListMixin::E%} =={core::Object::==}{(core::Object) → core::bool} element)
         return i;
@@ -515,8 +509,6 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int? start = #C5]) → core::int {
     if(start == null || start{core::int}.{core::num::>=}(this.{core::List::length}{core::int}){(core::num) → core::bool})
       start = this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int};
-    if(start{core::int} == null)
-      throw "!";
     for (core::int i = start{core::int}; i.{core::num::>=}(0){(core::num) → core::bool}; i = i.{core::num::-}(1){(core::num) → core::int}) {
       if(test(this.{core::List::[]}(i){(core::int) → cac::_CustomList&Object&ListMixin::E%}){(cac::_CustomList&Object&ListMixin::E%) → core::bool})
         return i;
@@ -623,8 +615,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:456:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:464:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:476:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:488:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1166, effectively constant: 4
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:454:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 1154, effectively constant: 4
