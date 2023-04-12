@@ -151,29 +151,21 @@ class LintScore {
         case Detail.rule:
           sb.write(
               ' [$name](https://dart-lang.github.io/linter/lints/$name.html) |');
-          break;
         case Detail.linter:
           sb.write(' ${since!.sinceLinter} |');
-          break;
         case Detail.sdk:
           sb.write(' ${since!.sinceDartSdk} |');
-          break;
         case Detail.fix:
           sb.write('${hasFix ? " $bulb" : ""} |');
-          break;
         case Detail.flutterUser:
           sb.write('${ruleSets.contains('flutter') ? " $checkMark" : ""} |');
-          break;
         case Detail.flutterRepo:
           sb.write(
               '${ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
-          break;
         case Detail.status:
           sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
-          break;
         case Detail.bugs:
           sb.write(' ${bugReferences.join(", ")} |');
-          break;
       }
     }
     return sb.toString();

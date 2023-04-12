@@ -39,6 +39,7 @@ linter:
 #    - combinators_ordering
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
+    - dangling_library_doc_comments
     - directives_ordering
     - discarded_futures
     - join_return_with_assignment
@@ -71,6 +72,7 @@ linter:
     - throw_in_finally
 #    - type_annotate_public_apis
     - unawaited_futures # pedantic
+    - unnecessary_breaks
     - unnecessary_final
     - unnecessary_lambdas
     - unnecessary_null_checks

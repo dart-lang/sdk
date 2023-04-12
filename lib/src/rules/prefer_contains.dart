@@ -140,25 +140,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  TokenType _invertedTokenType(TokenType type) {
-    switch (type) {
-      case TokenType.LT_EQ:
-        return TokenType.GT_EQ;
-
-      case TokenType.LT:
-        return TokenType.GT;
-
-      case TokenType.GT:
-        return TokenType.LT;
-
-      case TokenType.GT_EQ:
-        return TokenType.LT_EQ;
-
-      default:
-        return type;
-    }
-  }
-
   /// Returns whether [expression] is an invocation of `Iterable.indexOf` or
   /// `String.indexOf`, which is not assigned to a value.
   bool _isUnassignedIndexOf(Expression expression) {
@@ -193,4 +174,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     return true;
   }
+
+  static TokenType _invertedTokenType(TokenType type) => switch (type) {
+        TokenType.LT_EQ => TokenType.GT_EQ,
+        TokenType.LT => TokenType.GT,
+        TokenType.GT => TokenType.LT,
+        TokenType.GT_EQ => TokenType.LT_EQ,
+        _ => type
+      };
 }

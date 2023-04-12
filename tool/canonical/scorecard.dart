@@ -197,25 +197,20 @@ class LintScore {
         case Detail.rule:
           sb.write(
               ' [`$name`](https://dart-lang.github.io/linter/lints/$name.html) |');
-          break;
         case Detail.fix:
           var status = unfixableLints.contains(name)
               ? skip
               : (hasFix ? checkMark : consider);
           sb.write(' $status |');
-          break;
         case Detail.bulk:
           var status = unfixableLints.contains(name)
               ? skip
               : (hasBulkFix ? checkMark : consider);
           sb.write(' $status |');
-          break;
         case Detail.status:
           sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
-          break;
         case Detail.bugs:
           sb.write(' ${bugReferences.join(", ")} |');
-          break;
       }
     }
     return sb.toString();

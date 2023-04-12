@@ -127,7 +127,6 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
             typeArgument.getDisplayString(withNullability: true),
           ]);
         }
-        break;
 
       case ExpectedArgumentKind.assignableToCollection:
         if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
@@ -136,7 +135,6 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
             collectionType.getDisplayString(withNullability: true),
           ]);
         }
-        break;
 
       case ExpectedArgumentKind.assignableToIterableOfTypeArgument:
         var iterableType =
