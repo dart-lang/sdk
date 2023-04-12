@@ -80,6 +80,7 @@ o
 opt
 opts
 outdated
+package:js
 part(s)
 patch(es)
 patterns

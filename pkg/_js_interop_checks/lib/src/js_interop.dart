@@ -8,12 +8,16 @@ import 'package:kernel/util/graph.dart' as kernel_graph;
 /// Returns true iff the node has an `@JS(...)` annotation from `package:js` or
 /// from the internal `dart:_js_annotations`.
 bool hasJSInteropAnnotation(Annotatable a) =>
-    a.annotations.any(_isPublicJSAnnotation);
+    a.annotations.any(_isJSInteropAnnotation);
+
+/// Returns true iff the node has an `@JS(...)` annotation from `package:js`.
+bool hasPackageJSAnnotation(Annotatable a) =>
+    a.annotations.any(_isPackageJSAnnotation);
 
 /// Returns true iff the node has an `@JS(...)` annotation from the internal
 /// `dart:_js_annotations`.
-bool hasInternalJSInteropAnnotation(Annotatable a) =>
-    a.annotations.any(_isInternalJSAnnotation);
+bool hasJSAnnotationsJSAnnotation(Annotatable a) =>
+    a.annotations.any(_isJSAnnotationsJSAnnotation);
 
 /// Returns true iff the node has an `@anonymous` annotation from `package:js`
 /// or from the internal `dart:_js_annotations`.
@@ -53,7 +57,7 @@ bool hasObjectLiteralAnnotation(Annotatable a) =>
 String getJSName(Annotatable a) {
   String jsClass = '';
   for (var annotation in a.annotations) {
-    if (_isPublicJSAnnotation(annotation)) {
+    if (_isJSInteropAnnotation(annotation)) {
       var jsClasses = stringAnnotationValues(annotation);
       if (jsClasses.isNotEmpty) {
         jsClass = jsClasses[0];
@@ -103,29 +107,32 @@ String getJSExportName(Annotatable a) {
 }
 
 final _packageJs = Uri.parse('package:js/js.dart');
-final _internalJs = Uri.parse('dart:_js_annotations');
+final _jsAnnotations = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
 final _jsInterop = Uri.parse('dart:js_interop');
 
 /// Returns true if [value] is the interop annotation whose class is
-/// [annotationClassName] from `package:js` or from `dart:_js_annotations`.
+/// [annotationClassName] from [interopLibraries].
 ///
-/// If [internalJsOnly] is true, we only check if it's the annotation from
+/// If [interopLibraries] is null, we check `package:js` and
 /// `dart:_js_annotations`.
 bool _isInteropAnnotation(Expression value, String annotationClassName,
-    {bool internalJsOnly = false}) {
+    {Set<Uri>? interopLibraries}) {
+  interopLibraries ??= {_packageJs, _jsAnnotations};
   var c = annotationClass(value);
   if (c == null || c.name != annotationClassName) return false;
   var importUri = c.enclosingLibrary.importUri;
-  if (internalJsOnly) return importUri == _internalJs;
-  return importUri == _packageJs || importUri == _internalJs;
+  return interopLibraries.contains(importUri);
 }
 
-bool _isInternalJSAnnotation(Expression value) =>
-    _isInteropAnnotation(value, 'JS', internalJsOnly: true);
-
-bool _isPublicJSAnnotation(Expression value) =>
+bool _isJSInteropAnnotation(Expression value) =>
     _isInteropAnnotation(value, 'JS');
+
+bool _isPackageJSAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'JS', interopLibraries: {_packageJs});
+
+bool _isJSAnnotationsJSAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'JS', interopLibraries: {_jsAnnotations});
 
 bool _isAnonymousAnnotation(Expression value) =>
     _isInteropAnnotation(value, '_Anonymous');

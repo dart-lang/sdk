@@ -569,6 +569,8 @@ JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler 
 JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
+JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: Fail # Web compiler specific
+JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropExportClassNotMarkedExportable/analyzerCode: Fail # Web compiler specific
@@ -589,6 +591,8 @@ JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler 
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
