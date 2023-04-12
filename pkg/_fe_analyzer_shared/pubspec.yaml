@@ -15,3 +15,9 @@ dependencies:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   test: any
+
+dependency_overrides:
+  test:
+    path: ../../third_party/pkg/test/pkgs/test/
+  analyzer:
+    path: ../analyzer
