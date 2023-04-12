@@ -26,6 +26,7 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
+      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dartdevc_2/",
       "tests/ffi_2/",
@@ -1182,7 +1183,7 @@
           "shards": 10
         },
         {
-         "name": "vm nnbd tests in weak mode with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
