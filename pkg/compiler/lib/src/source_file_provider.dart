@@ -56,7 +56,11 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    registerUri(resourceUri);
+    // Do not register URIs with schemes other than 'file' as these are internal
+    // libraries that we cannot read later.
+    if (resourceUri.isScheme('file')) {
+      registerUri(resourceUri);
+    }
   }
 
   /// Registers the URI and returns true if the URI is new.
