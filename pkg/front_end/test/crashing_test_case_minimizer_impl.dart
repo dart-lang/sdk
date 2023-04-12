@@ -89,7 +89,7 @@ class TestMinimizerSettings {
   bool serialize = false;
   bool widgetTransformation = false;
   final List<Uri> invalidate = [];
-  String targetString = "VM";
+  String targetString = "vm";
   bool noTryToDeleteEmptyFilesUpFront = false;
   bool oldBlockDelete = false;
   bool lineDelete = false;
@@ -185,14 +185,30 @@ class TestMinimizer {
 
   Component? _latestComponent;
   IncrementalCompiler? _latestCrashingIncrementalCompiler;
+  Map<Uri, LibraryBuilder>? _latestCrashingKnownInitialBuilders;
   StreamSubscription<List<int>>? _stdinSubscription;
 
   static const int _$LF = 10;
 
   TestMinimizer(this._settings);
 
+  bool? _oldEchoMode;
+  bool? _oldLineMode;
+
+  Future<void> _resetStdin() async {
+    try {
+      stdin.echoMode = _oldEchoMode!;
+    } catch (e) {}
+    try {
+      stdin.lineMode = _oldLineMode!;
+    } catch (e) {}
+    await _stdinSubscription!.cancel();
+  }
+
   void _setupStdin() {
     try {
+      _oldEchoMode = stdin.echoMode;
+      _oldLineMode = stdin.lineMode;
       stdin.echoMode = false;
       stdin.lineMode = false;
     } catch (e) {
@@ -237,36 +253,41 @@ class TestMinimizer {
 
   Future tryToMinimize() async {
     _setupStdin();
-    while (_currentFsNum < _settings.fileSystems.length) {
-      try {
-        if (_currentFsNum >= 0) {
-          print("Replacing filesystem!");
-          _settings.goToFileSystem(_currentFsNum);
-          _expectedCrashLine = null;
-          _latestComponent = null;
-          _latestCrashingIncrementalCompiler = null;
+    try {
+      while (_currentFsNum < _settings.fileSystems.length) {
+        try {
+          if (_currentFsNum >= 0) {
+            print("Replacing filesystem!");
+            _settings.goToFileSystem(_currentFsNum);
+            _expectedCrashLine = null;
+            _latestComponent = null;
+            _latestCrashingIncrementalCompiler = null;
+            _latestCrashingKnownInitialBuilders = null;
+          }
+          await _tryToMinimizeImpl();
+          if (_currentFsNum + 1 < _settings.fileSystems.length) {
+            // We have more to do --- but we just printed something the user
+            // might want to read. So wait a little before continuing.
+            print("Waiting for 5 seconds before continuing.");
+            await Future.delayed(new Duration(seconds: 5));
+          }
+        } catch (e) {
+          if (e is _DoesntCrashOnInput) {
+            print(
+                "Currently doesn't crash (or no longer crashes) the compiler.");
+          } else {
+            print(
+                "About to crash. Dumping settings including the filesystem so "
+                "we can (hopefully) continue later.");
+            _dumpToJson();
+            rethrow;
+          }
         }
-        await _tryToMinimizeImpl();
-        if (_currentFsNum + 1 < _settings.fileSystems.length) {
-          // We have more to do --- but we just printed something the user might
-          // want to read. So wait a little before continuing.
-          print("Waiting for 5 seconds before continuing.");
-          await Future.delayed(new Duration(seconds: 5));
-        }
-      } catch (e) {
-        if (e is _DoesntCrashOnInput) {
-          print("Currently doesn't crash (or no longer crashes) the compiler.");
-        } else {
-          print("About to crash. Dumping settings including the filesystem so "
-              "we can (hopefully) continue later.");
-          _dumpToJson();
-          rethrow;
-        }
+        _currentFsNum++;
       }
-      _currentFsNum++;
+    } finally {
+      await _resetStdin();
     }
-
-    await _stdinSubscription!.cancel();
   }
 
   Future _tryToMinimizeImpl() async {
@@ -726,7 +747,7 @@ class TestMinimizer {
 
     // TODO(jensj): don't use full uris.
     print("""
-# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
@@ -768,7 +789,7 @@ worlds:
       print("      - $uri");
       print("    expectedLibraryCount: $dartFiles "
           "# with parts this is not right");
-      print("    expectsRebuildBodiesOnly: true # or false?");
+      print("    advancedInvalidation: bodiesOnly # or something else?");
       print("");
     }
 
@@ -1775,15 +1796,14 @@ worlds:
 
   bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
     Uri asImportUri = _getImportUri(uri);
-    LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .kernelTargetForTesting!.loader
-        .lookupLibraryBuilder(asImportUri);
+    LibraryBuilder? libraryBuilder =
+        _latestCrashingKnownInitialBuilders![asImportUri];
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
     print("Couldn't lookup $uri");
-    for (LibraryBuilder libraryBuilder in _latestCrashingIncrementalCompiler!
-        .kernelTargetForTesting!.loader.libraryBuilders) {
+    for (LibraryBuilder libraryBuilder
+        in _latestCrashingKnownInitialBuilders!.values) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;
@@ -1815,6 +1835,7 @@ worlds:
           _setupCompilerContext(), initialComponent);
     }
     incrementalCompiler.invalidate(_mainUri);
+    Map<Uri, LibraryBuilder>? knownInitialBuilders;
     try {
       IncrementalCompilerResult incrementalCompilerResult =
           await incrementalCompiler.computeDelta();
@@ -1826,6 +1847,12 @@ worlds:
         BinaryPrinter printer = new BinaryPrinter(sink);
         printer.writeComponentFile(_latestComponent!);
       }
+
+      knownInitialBuilders = <Uri, LibraryBuilder>{
+        for (var v in incrementalCompiler
+            .kernelTargetForTesting!.loader.libraryBuilders)
+          v.importUri: v
+      };
 
       if (_gotWantedError) didNotGetWantedErrorAfterFirstCompile = false;
 
@@ -1869,15 +1896,18 @@ worlds:
           }
         }
       }
+
       // ignore: unnecessary_null_comparison
       if (foundLine == null) throw "Unexpected crash without stacktrace: $e";
       if (_expectedCrashLine == null) {
         print("Got '$foundLine'");
         _expectedCrashLine = foundLine;
         _latestCrashingIncrementalCompiler = incrementalCompiler;
+        _latestCrashingKnownInitialBuilders = knownInitialBuilders;
         return true;
       } else if (foundLine == _expectedCrashLine) {
         _latestCrashingIncrementalCompiler = incrementalCompiler;
+        _latestCrashingKnownInitialBuilders = knownInitialBuilders;
         return true;
       } else {
         if (_settings.autoUncoverAllCrashes &&
@@ -1903,6 +1933,7 @@ worlds:
             if (answer == "yes" || answer == "y") {
               _expectedCrashLine = foundLine;
               _latestCrashingIncrementalCompiler = incrementalCompiler;
+              _latestCrashingKnownInitialBuilders = knownInitialBuilders;
               return true;
             } else if (answer == "no" || answer == "n") {
               break;
