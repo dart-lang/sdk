@@ -19,6 +19,8 @@
 /// doing so will simplify the task of writing your visitor and guard against
 /// future changes to the AST structure. For example, the [RecursiveAstVisitor]
 /// automates the process of visiting all of the descendants of a node.
+library;
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';

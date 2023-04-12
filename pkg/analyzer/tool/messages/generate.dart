@@ -14,6 +14,8 @@
 ///
 /// It is expected that 'pkg/front_end/tool/fasta generate-messages'
 /// has already been successfully run.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

@@ -34,6 +34,8 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
+library;
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';

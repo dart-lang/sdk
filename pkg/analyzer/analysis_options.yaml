@@ -40,6 +40,7 @@ linter:
     - avoid_dynamic_calls
     - avoid_unused_constructor_parameters
     - collection_methods_unrelated_type
+    - dangling_library_doc_comments
     - enable_null_safety
     - implicit_call_tearoffs
     - library_annotations
