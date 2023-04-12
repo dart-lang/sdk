@@ -3347,8 +3347,8 @@ static void DeoptimizeLastDartFrameIfOptimized() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static const intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
-static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
+static constexpr intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
+static constexpr intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
 
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,

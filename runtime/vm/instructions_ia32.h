@@ -77,7 +77,7 @@ class CallPattern : public InstructionPattern<CallPattern> {
   }
 
  private:
-  static const int kLengthInBytes = 5;
+  static constexpr int kLengthInBytes = 5;
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
@@ -92,7 +92,7 @@ class ReturnPattern : public InstructionPattern<ReturnPattern> {
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 1;
+  static constexpr int kLengthInBytes = 1;
 };
 
 // push ebp
@@ -109,7 +109,7 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 3;
+  static constexpr int kLengthInBytes = 3;
 };
 
 // mov ebp, esp
@@ -126,7 +126,7 @@ class SetFramePointerPattern
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 2;
+  static constexpr int kLengthInBytes = 2;
 };
 
 }  // namespace dart

@@ -136,7 +136,7 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   intptr_t advance_current_offset_;
   intptr_t advance_current_end_;
 
-  static const int kInvalidPC = -1;
+  static constexpr int kInvalidPC = -1;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BytecodeRegExpMacroAssembler);
 };

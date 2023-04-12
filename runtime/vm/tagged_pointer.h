@@ -18,8 +18,12 @@ class IsolateGroup;
 class UntaggedObject;
 
 #define OBJECT_POINTER_CORE_FUNCTIONS(type, ptr)                               \
-  type* operator->() { return this; }                                          \
-  const type* operator->() const { return this; }                              \
+  type* operator->() {                                                         \
+    return this;                                                               \
+  }                                                                            \
+  const type* operator->() const {                                             \
+    return this;                                                               \
+  }                                                                            \
   bool IsWellFormed() const {                                                  \
     const uword value = ptr;                                                   \
     return (value & kSmiTagMask) == 0 ||                                       \
@@ -37,8 +41,7 @@ class UntaggedObject;
     return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;    \
   }                                                                            \
   bool IsNewObjectMayBeSmi() const {                                           \
-    static const uword kNewObjectBits =                                        \
-        (kNewObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword kNewObjectBits = (kNewObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
     return (addr & kObjectAlignmentMask) == kNewObjectBits;                    \
   }                                                                            \
@@ -52,8 +55,7 @@ class UntaggedObject;
   /* Like !IsHeapObject() || IsOldObject() but compiles to a single branch. */ \
   bool IsSmiOrOldObject() const {                                              \
     ASSERT(IsWellFormed());                                                    \
-    static const uword kNewObjectBits =                                        \
-        (kNewObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword kNewObjectBits = (kNewObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
     return (addr & kObjectAlignmentMask) != kNewObjectBits;                    \
   }                                                                            \
@@ -61,8 +63,7 @@ class UntaggedObject;
   /* Like !IsHeapObject() || IsNewObject() but compiles to a single branch. */ \
   bool IsSmiOrNewObject() const {                                              \
     ASSERT(IsWellFormed());                                                    \
-    static const uword kOldObjectBits =                                        \
-        (kOldObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword kOldObjectBits = (kOldObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
     return (addr & kObjectAlignmentMask) != kOldObjectBits;                    \
   }                                                                            \

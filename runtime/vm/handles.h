@@ -232,18 +232,18 @@ class Handles {
 };
 
 #if defined(DEBUG)
-static const int kVMHandleSizeInWords = 3;
-static const int kOffsetOfIsZoneHandle = 2;
+static constexpr int kVMHandleSizeInWords = 3;
+static constexpr int kOffsetOfIsZoneHandle = 2;
 #else
-static const int kVMHandleSizeInWords = 2;
+static constexpr int kVMHandleSizeInWords = 2;
 #endif
-static const int kVMHandlesPerChunk = 63;
-static const int kOffsetOfRawPtr = kWordSize;
+static constexpr int kVMHandlesPerChunk = 63;
+static constexpr int kOffsetOfRawPtr = kWordSize;
 class VMHandles : public Handles<kVMHandleSizeInWords,
                                  kVMHandlesPerChunk,
                                  kOffsetOfRawPtr> {
  public:
-  static const int kOffsetOfRawPtrInHandle = kOffsetOfRawPtr;
+  static constexpr int kOffsetOfRawPtrInHandle = kOffsetOfRawPtr;
 
   VMHandles()
       : Handles<kVMHandleSizeInWords, kVMHandlesPerChunk, kOffsetOfRawPtr>() {

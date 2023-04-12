@@ -56,7 +56,7 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   void AddFrame(const Object& code, uword pc_offset) override;
 
  private:
-  static const int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
+  static constexpr int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
 
   const StackTrace& stacktrace_;
   intptr_t cur_index_;

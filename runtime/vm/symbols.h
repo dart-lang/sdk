@@ -556,11 +556,11 @@ class Symbols : public AllStatic {
   };
 
   // Number of one character symbols being predefined in the predefined_ array.
-  static const int kNumberOfOneCharCodeSymbols =
+  static constexpr int kNumberOfOneCharCodeSymbols =
       (kMaxPredefinedId - kNullCharId);
 
   // Offset of Null character which is the predefined character symbol.
-  static const int kNullCharCodeSymbolOffset = 0;
+  static constexpr int kNullCharCodeSymbolOffset = 0;
 
   static const String& Symbol(intptr_t index) {
     ASSERT((index > kIllegal) && (index < kMaxPredefinedId));

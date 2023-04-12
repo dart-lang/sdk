@@ -18,14 +18,14 @@ static void DeleteRegion(const MemoryRegion& region) {
 }
 
 VM_UNIT_TEST_CASE(NullRegion) {
-  static const uword kSize = 512;
+  const uword kSize = 512;
   MemoryRegion region(nullptr, kSize);
   EXPECT(region.pointer() == nullptr);
   EXPECT_EQ(kSize, region.size());
 }
 
 VM_UNIT_TEST_CASE(NewRegion) {
-  static const uword kSize = 1024;
+  const uword kSize = 1024;
   MemoryRegion region(NewRegion(kSize), kSize);
   EXPECT_EQ(kSize, region.size());
   EXPECT(region.pointer() != nullptr);
@@ -37,9 +37,9 @@ VM_UNIT_TEST_CASE(NewRegion) {
 }
 
 VM_UNIT_TEST_CASE(Subregion) {
-  static const uword kSize = 1024;
-  static const uword kSubOffset = 128;
-  static const uword kSubSize = 512;
+  const uword kSize = 1024;
+  const uword kSubOffset = 128;
+  const uword kSubSize = 512;
   MemoryRegion region(NewRegion(kSize), kSize);
   MemoryRegion sub_region;
   sub_region.Subregion(region, kSubOffset, kSubSize);
@@ -56,9 +56,9 @@ VM_UNIT_TEST_CASE(Subregion) {
 }
 
 VM_UNIT_TEST_CASE(ExtendedRegion) {
-  static const uword kSize = 1024;
-  static const uword kSubSize = 512;
-  static const uword kExtendSize = 512;
+  const uword kSize = 1024;
+  const uword kSubSize = 512;
+  const uword kExtendSize = 512;
   MemoryRegion region(NewRegion(kSize), kSize);
   MemoryRegion sub_region;
   sub_region.Subregion(region, 0, kSubSize);

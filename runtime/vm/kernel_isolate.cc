@@ -42,26 +42,6 @@ DEFINE_FLAG(charp,
             "URI scheme that replaces filepaths prefixes specified"
             " by kernel_multiroot_filepaths option");
 
-// Tags used to indicate different requests to the dart frontend.
-//
-// Current tags include the following:
-//   0 - Perform normal compilation.
-//   1 - Update in-memory file system with in-memory sources (used by tests).
-//   2 - Accept last compilation result.
-//   3 - APP JIT snapshot training run for kernel_service.
-//   4 - Compile expressions in context (used by expression evaluation).
-//   5 - Generate dependencies used to create a dependencies file.
-//   6 - Triggers shutdown of the kernel isolate.
-//   7 - Reject last compilation result.
-const int KernelIsolate::kCompileTag = 0;
-const int KernelIsolate::kUpdateSourcesTag = 1;
-const int KernelIsolate::kAcceptTag = 2;
-const int KernelIsolate::kTrainTag = 3;
-const int KernelIsolate::kCompileExpressionTag = 4;
-const int KernelIsolate::kListDependenciesTag = 5;
-const int KernelIsolate::kNotifyIsolateShutdown = 6;
-const int KernelIsolate::kRejectTag = 7;
-
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = nullptr;
 Monitor* KernelIsolate::monitor_ = new Monitor();

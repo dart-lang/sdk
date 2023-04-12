@@ -91,8 +91,8 @@ class FieldTable {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  static const int kInitialCapacity = 512;
-  static const int kCapacityIncrement = 256;
+  static constexpr int kInitialCapacity = 512;
+  static constexpr int kCapacityIncrement = 256;
 
  private:
   friend class GCMarker;

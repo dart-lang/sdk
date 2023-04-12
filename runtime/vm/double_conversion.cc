@@ -12,13 +12,13 @@
 
 namespace dart {
 
-char const DoubleToStringConstants::kExponentChar = 'e';
-const char* const DoubleToStringConstants::kInfinitySymbol = "Infinity";
-const char* const DoubleToStringConstants::kNaNSymbol = "NaN";
+static constexpr char kExponentChar = 'e';
+static constexpr const char* kInfinitySymbol = "Infinity";
+static constexpr const char* kNaNSymbol = "NaN";
 
 void DoubleToCString(double d, char* buffer, int buffer_size) {
-  static const int kDecimalLow = -6;
-  static const int kDecimalHigh = 21;
+  const int kDecimalLow = -6;
+  const int kDecimalHigh = 21;
 
   // The output contains the sign, at most kDecimalHigh - 1 digits,
   // the decimal point followed by a 0 plus the \0.
@@ -31,16 +31,15 @@ void DoubleToCString(double d, char* buffer, int buffer_size) {
   // sign, at most three exponent digits, plus the \0.
   ASSERT(buffer_size >= 1 + 17 + 1 + 1 + 1 + 3 + 1);
 
-  static const int kConversionFlags =
+  const int kConversionFlags =
       double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN |
       double_conversion::DoubleToStringConverter::EMIT_TRAILING_DECIMAL_POINT |
       double_conversion::DoubleToStringConverter::
           EMIT_TRAILING_ZERO_AFTER_POINT;
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags, DoubleToStringConstants::kInfinitySymbol,
-      DoubleToStringConstants::kNaNSymbol,
-      DoubleToStringConstants::kExponentChar, kDecimalLow, kDecimalHigh, 0,
+      kConversionFlags, kInfinitySymbol, kNaNSymbol, kExponentChar, kDecimalLow,
+      kDecimalHigh, 0,
       0);  // Last two values are ignored in shortest mode.
 
   double_conversion::StringBuilder builder(buffer, buffer_size);
@@ -51,14 +50,14 @@ void DoubleToCString(double d, char* buffer, int buffer_size) {
 }
 
 StringPtr DoubleToStringAsFixed(double d, int fraction_digits) {
-  static const int kMinFractionDigits = 0;
-  static const int kMaxFractionDigits = 20;
-  static const int kMaxDigitsBeforePoint = 20;
+  const int kMinFractionDigits = 0;
+  const int kMaxFractionDigits = 20;
+  const int kMaxDigitsBeforePoint = 20;
   // The boundaries are exclusive.
-  static const double kLowerBoundary = -1e21;
-  static const double kUpperBoundary = 1e21;
+  const double kLowerBoundary = -1e21;
+  const double kUpperBoundary = 1e21;
   // TODO(floitsch): remove the UNIQUE_ZERO flag when the test is updated.
-  static const int kConversionFlags =
+  const int kConversionFlags =
       double_conversion::DoubleToStringConverter::NO_FLAGS;
   const int kBufferSize = 128;
 
@@ -78,9 +77,7 @@ StringPtr DoubleToStringAsFixed(double d, int fraction_digits) {
          fraction_digits <= kMaxFractionDigits);
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags, DoubleToStringConstants::kInfinitySymbol,
-      DoubleToStringConstants::kNaNSymbol,
-      DoubleToStringConstants::kExponentChar, 0, 0, 0,
+      kConversionFlags, kInfinitySymbol, kNaNSymbol, kExponentChar, 0, 0, 0,
       0);  // Last four values are ignored in fixed mode.
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
@@ -92,9 +89,9 @@ StringPtr DoubleToStringAsFixed(double d, int fraction_digits) {
 }
 
 StringPtr DoubleToStringAsExponential(double d, int fraction_digits) {
-  static const int kMinFractionDigits = -1;  // -1 represents shortest mode.
-  static const int kMaxFractionDigits = 20;
-  static const int kConversionFlags =
+  const int kMinFractionDigits = -1;  // -1 represents shortest mode.
+  const int kMaxFractionDigits = 20;
+  const int kConversionFlags =
       double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
   const int kBufferSize = 128;
 
@@ -109,9 +106,7 @@ StringPtr DoubleToStringAsExponential(double d, int fraction_digits) {
          fraction_digits <= kMaxFractionDigits);
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags, DoubleToStringConstants::kInfinitySymbol,
-      DoubleToStringConstants::kNaNSymbol,
-      DoubleToStringConstants::kExponentChar, 0, 0, 0,
+      kConversionFlags, kInfinitySymbol, kNaNSymbol, kExponentChar, 0, 0, 0,
       0);  // Last four values are ignored in exponential mode.
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
@@ -123,11 +118,11 @@ StringPtr DoubleToStringAsExponential(double d, int fraction_digits) {
 }
 
 StringPtr DoubleToStringAsPrecision(double d, int precision) {
-  static const int kMinPrecisionDigits = 1;
-  static const int kMaxPrecisionDigits = 21;
-  static const int kMaxLeadingPaddingZeroes = 6;
-  static const int kMaxTrailingPaddingZeroes = 0;
-  static const int kConversionFlags =
+  const int kMinPrecisionDigits = 1;
+  const int kMaxPrecisionDigits = 21;
+  const int kMaxLeadingPaddingZeroes = 6;
+  const int kMaxTrailingPaddingZeroes = 0;
+  const int kConversionFlags =
       double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
   const int kBufferSize = 128;
 
@@ -145,9 +140,7 @@ StringPtr DoubleToStringAsPrecision(double d, int precision) {
   ASSERT(kMinPrecisionDigits <= precision && precision <= kMaxPrecisionDigits);
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags, DoubleToStringConstants::kInfinitySymbol,
-      DoubleToStringConstants::kNaNSymbol,
-      DoubleToStringConstants::kExponentChar, 0,
+      kConversionFlags, kInfinitySymbol, kNaNSymbol, kExponentChar, 0,
       0,  // Ignored in precision mode.
       kMaxLeadingPaddingZeroes, kMaxTrailingPaddingZeroes);
 
@@ -166,8 +159,7 @@ bool CStringToDouble(const char* str, intptr_t length, double* result) {
 
   double_conversion::StringToDoubleConverter converter(
       double_conversion::StringToDoubleConverter::NO_FLAGS, 0.0, 0.0,
-      DoubleToStringConstants::kInfinitySymbol,
-      DoubleToStringConstants::kNaNSymbol);
+      kInfinitySymbol, kNaNSymbol);
 
   int parsed_count = 0;
   *result =

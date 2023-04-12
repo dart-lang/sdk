@@ -963,7 +963,7 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "final int kArrayLength = 10;\n"
       "getList() {\n"
       "  return List.filled(kArrayLength, null);\n"
@@ -1073,7 +1073,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "final int kArrayLength = 10;\n"
       "getList() {\n"
       "  return [null, null, null, null, null, null, null, null, null, null];\n"
@@ -1293,7 +1293,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -1486,7 +1486,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
 VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -1985,7 +1985,7 @@ VM_UNIT_TEST_CASE(PostCObject) {
   object.value.as_array.length = 0;
   EXPECT(Dart_PostCObject(port_id, &object));
 
-  static const int kArrayLength = 10;
+  const int kArrayLength = 10;
   Dart_CObject* array = reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(
       sizeof(Dart_CObject) + sizeof(Dart_CObject*) * kArrayLength));  // NOLINT
   array->type = Dart_CObject_kArray;

@@ -4135,7 +4135,7 @@ class AcquiredData {
   }
 
  private:
-  static const uint8_t kZapReleasedByte = 0xda;
+  static constexpr uint8_t kZapReleasedByte = 0xda;
   intptr_t size_in_bytes_;
   void* data_;
   void* data_copy_;
@@ -6547,9 +6547,9 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
 
 // Used for StreamingWriteStream/BlobImageWriter sizes for ELF and blobs.
 #if !defined(TARGET_ARCH_IA32) && defined(DART_PRECOMPILER)
-static const intptr_t kAssemblyInitialSize = 512 * KB;
-static const intptr_t kInitialSize = 2 * MB;
-static const intptr_t kInitialDebugSize = 1 * MB;
+static constexpr intptr_t kAssemblyInitialSize = 512 * KB;
+static constexpr intptr_t kInitialSize = 2 * MB;
+static constexpr intptr_t kInitialDebugSize = 1 * MB;
 
 static void CreateAppAOTSnapshot(
     Dart_StreamingWriteCallback callback,

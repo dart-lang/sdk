@@ -174,7 +174,7 @@ class SampleFilter : public ValueObject {
 
   bool take_samples() const { return take_samples_; }
 
-  static const intptr_t kNoTaskFilter = -1;
+  static constexpr intptr_t kNoTaskFilter = -1;
 
  private:
   Dart_Port port_;
@@ -650,7 +650,7 @@ class SampleBuffer : public ProcessedSampleBufferBuilder {
 class SampleBlock : public SampleBuffer {
  public:
   // The default number of samples per block. Overridden by some tests.
-  static const intptr_t kSamplesPerBlock = 100;
+  static constexpr intptr_t kSamplesPerBlock = 100;
 
   SampleBlock() = default;
   virtual ~SampleBlock() = default;
@@ -743,7 +743,7 @@ class SampleBlock : public SampleBuffer {
 
 class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
  public:
-  static const intptr_t kDefaultBlockCount = 600;
+  static constexpr intptr_t kDefaultBlockCount = 600;
 
   // Creates a SampleBlockBuffer with a predetermined number of blocks.
   //
@@ -942,7 +942,7 @@ class SampleBlockProcessor : public AllStatic {
   static void Cleanup();
 
  private:
-  static const intptr_t kMaxThreads = 4096;
+  static constexpr intptr_t kMaxThreads = 4096;
   static bool initialized_;
   static bool shutdown_;
   static bool thread_running_;

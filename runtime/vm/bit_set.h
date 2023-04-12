@@ -91,7 +91,7 @@ class BitSet {
   intptr_t Size() const { return N; }
 
  private:
-  static const int kLengthInWords = 1 + ((N - 1) / kBitsPerWord);
+  static constexpr int kLengthInWords = 1 + ((N - 1) / kBitsPerWord);
   uword data_[kLengthInWords];
 };
 

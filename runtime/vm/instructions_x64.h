@@ -71,7 +71,7 @@ class ReturnPattern : public InstructionPattern<ReturnPattern> {
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 1;
+  static constexpr int kLengthInBytes = 1;
 };
 
 // push rbp
@@ -89,7 +89,7 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 4;
+  static constexpr int kLengthInBytes = 4;
 };
 
 // mov rbp, rsp
@@ -106,13 +106,13 @@ class SetFramePointerPattern
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 3;
+  static constexpr int kLengthInBytes = 3;
 };
 
 // callq *[rip+offset]
 class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
  public:
-  static const int kLengthInBytes = 5;
+  static constexpr int kLengthInBytes = 5;
 
   // Theoretically we can encode offsets 5 bytes more than INT_MAX since the
   // instruction encoding uses the PC after current instruction.
@@ -162,7 +162,7 @@ class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
 // allow testing of trampolines on X64 we have it nonetheless)
 class PcRelativeTrampolineJumpPattern : public ValueObject {
  public:
-  static const int kLengthInBytes = 5;
+  static constexpr int kLengthInBytes = 5;
 
   explicit PcRelativeTrampolineJumpPattern(uword pattern_start)
       : pattern_start_(pattern_start) {}

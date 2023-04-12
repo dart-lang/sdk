@@ -2166,7 +2166,7 @@ bool Isolate::VerifyTerminateCapability(const Object& capability) const {
 
 bool Isolate::AddResumeCapability(const Capability& capability) {
   // Ensure a limit for the number of resume capabilities remembered.
-  static const intptr_t kMaxResumeCapabilities =
+  const intptr_t kMaxResumeCapabilities =
       compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
@@ -2218,8 +2218,7 @@ bool Isolate::RemoveResumeCapability(const Capability& capability) {
 void Isolate::AddExitListener(const SendPort& listener,
                               const Instance& response) {
   // Ensure a limit for the number of listeners remembered.
-  static const intptr_t kMaxListeners =
-      compiler::target::kSmiMax / (12 * kWordSize);
+  const intptr_t kMaxListeners = compiler::target::kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), isolate_object_store()->exit_listeners());
@@ -2286,8 +2285,7 @@ void Isolate::NotifyExitListeners() {
 
 void Isolate::AddErrorListener(const SendPort& listener) {
   // Ensure a limit for the number of listeners remembered.
-  static const intptr_t kMaxListeners =
-      compiler::target::kSmiMax / (6 * kWordSize);
+  const intptr_t kMaxListeners = compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), isolate_object_store()->error_listeners());

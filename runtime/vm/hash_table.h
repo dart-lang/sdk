@@ -15,7 +15,7 @@ namespace dart {
 struct ArrayStorageTraits {
   using ArrayHandle = Array;
   using ArrayPtr = dart::ArrayPtr;
-  static const intptr_t ArrayCid = kArrayCid;
+  static constexpr intptr_t ArrayCid = kArrayCid;
 
   static ArrayHandle& PtrToHandle(ArrayPtr ptr) { return Array::Handle(ptr); }
 
@@ -47,7 +47,7 @@ struct ArrayStorageTraits {
 struct WeakArrayStorageTraits {
   using ArrayHandle = WeakArray;
   using ArrayPtr = dart::WeakArrayPtr;
-  static const intptr_t ArrayCid = kWeakArrayCid;
+  static constexpr intptr_t ArrayCid = kWeakArrayCid;
 
   static ArrayHandle& PtrToHandle(ArrayPtr ptr) {
     return WeakArray::Handle(ptr);
@@ -458,21 +458,21 @@ class HashTable : public HashTableBase {
   }
 
  protected:
-  static const intptr_t kOccupiedEntriesIndex = 0;
-  static const intptr_t kDeletedEntriesIndex = 1;
+  static constexpr intptr_t kOccupiedEntriesIndex = 0;
+  static constexpr intptr_t kDeletedEntriesIndex = 1;
 #if defined(PRODUCT)
-  static const intptr_t kHeaderSize = kDeletedEntriesIndex + 1;
+  static constexpr intptr_t kHeaderSize = kDeletedEntriesIndex + 1;
 #else
-  static const intptr_t kNumGrowsIndex = 2;
-  static const intptr_t kNumLT5LookupsIndex = 3;
-  static const intptr_t kNumLT25LookupsIndex = 4;
-  static const intptr_t kNumGT25LookupsIndex = 5;
-  static const intptr_t kNumProbesIndex = 6;
-  static const intptr_t kHeaderSize = kNumProbesIndex + 1;
+  static constexpr intptr_t kNumGrowsIndex = 2;
+  static constexpr intptr_t kNumLT5LookupsIndex = 3;
+  static constexpr intptr_t kNumLT25LookupsIndex = 4;
+  static constexpr intptr_t kNumGT25LookupsIndex = 5;
+  static constexpr intptr_t kNumProbesIndex = 6;
+  static constexpr intptr_t kHeaderSize = kNumProbesIndex + 1;
 #endif
-  static const intptr_t kMetaDataIndex = kHeaderSize;
-  static const intptr_t kFirstKeyIndex = kHeaderSize + kMetaDataSize;
-  static const intptr_t kEntrySize = 1 + kPayloadSize;
+  static constexpr intptr_t kMetaDataIndex = kHeaderSize;
+  static constexpr intptr_t kFirstKeyIndex = kHeaderSize + kMetaDataSize;
+  static constexpr intptr_t kEntrySize = 1 + kPayloadSize;
 
   intptr_t KeyIndex(intptr_t entry) const {
     ASSERT(0 <= entry && entry < NumEntries());
@@ -537,7 +537,7 @@ class UnorderedHashTable
   typedef HashTable<KeyTraits, kUserPayloadSize, 0, StorageTraits> BaseTable;
   typedef typename StorageTraits::ArrayPtr ArrayPtr;
   typedef typename StorageTraits::ArrayHandle ArrayHandle;
-  static const intptr_t kPayloadSize = kUserPayloadSize;
+  static constexpr intptr_t kPayloadSize = kUserPayloadSize;
   explicit UnorderedHashTable(ArrayPtr data)
       : BaseTable(Thread::Current()->zone(), data) {}
   UnorderedHashTable(Zone* zone, ArrayPtr data) : BaseTable(zone, data) {}

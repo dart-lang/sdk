@@ -85,7 +85,7 @@ class Zone {
   }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static const intptr_t kAlignment = kDoubleSize;
+  static constexpr intptr_t kAlignment = kDoubleSize;
 
   static void Init();
   static void Cleanup();
@@ -98,16 +98,16 @@ class Zone {
   ~Zone();  // Delete all memory associated with the zone.
 
   // Default initial chunk size.
-  static const intptr_t kInitialChunkSize = 128;
+  static constexpr intptr_t kInitialChunkSize = 128;
 
   // Default segment size.
-  static const intptr_t kSegmentSize = 64 * KB;
+  static constexpr intptr_t kSegmentSize = 64 * KB;
 
   // Zap value used to indicate deleted zone area (debug purposes).
-  static const unsigned char kZapDeletedByte = 0x42;
+  static constexpr unsigned char kZapDeletedByte = 0x42;
 
   // Zap value used to indicate uninitialized zone area (debug purposes).
-  static const unsigned char kZapUninitializedByte = 0xab;
+  static constexpr unsigned char kZapUninitializedByte = 0xab;
 
   // Total size of current zone segments.
   static RelaxedAtomic<intptr_t> total_size_;

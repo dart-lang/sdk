@@ -265,8 +265,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
 
   bool visit_weak_persistent_handles_ = false;
   static ObjectPtr* const kSentinel;
-  static const intptr_t kInitialCapacity = 1024;
-  static const intptr_t kNoParent = -1;
+  static constexpr intptr_t kInitialCapacity = 1024;
+  static constexpr intptr_t kNoParent = -1;
 
   intptr_t Parent(intptr_t index) const {
     // The parent is just below the next sentinel.
@@ -1058,7 +1058,7 @@ enum NonReferenceDataTags {
   kNameData,
 };
 
-static const intptr_t kMaxStringElements = 128;
+static constexpr intptr_t kMaxStringElements = 128;
 
 enum ExtraCids {
   kRootExtraCid = 1,  // 1-origin

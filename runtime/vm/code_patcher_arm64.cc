@@ -34,7 +34,7 @@ class PoolPointerCall : public ValueObject {
   }
 
  private:
-  static const int kCallPatternSize = 3 * Instr::kInstrSize;
+  static constexpr int kCallPatternSize = 3 * Instr::kInstrSize;
   uword end_;
   const ObjectPool& object_pool_;
   Register reg_;

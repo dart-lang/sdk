@@ -31,9 +31,9 @@ class UnoptimizedCall : public ValueObject {
     return LoadUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1));
   }
 
-  static const int kMovInstructionSize = 5;
-  static const int kCallInstructionSize = 3;
-  static const int kPatternSize =
+  static constexpr int kMovInstructionSize = 5;
+  static constexpr int kCallInstructionSize = 3;
+  static constexpr int kPatternSize =
       2 * kMovInstructionSize + kCallInstructionSize;
 
  private:
@@ -160,8 +160,8 @@ class StaticCall : public ValueObject {
                                 target.ptr(), Thread::Current());
   }
 
-  static const int kMovInstructionSize = 5;
-  static const int kCallInstructionSize = 3;
+  static constexpr int kMovInstructionSize = 5;
+  static constexpr int kCallInstructionSize = 3;
 
  private:
   uword return_address() const {

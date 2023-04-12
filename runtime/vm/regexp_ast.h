@@ -36,7 +36,7 @@ class RegExpVisitor : public ValueObject {
 
 class RegExpTree : public ZoneAllocated {
  public:
-  static const intptr_t kInfinity = kMaxInt32;
+  static constexpr intptr_t kInfinity = kMaxInt32;
   virtual ~RegExpTree() {}
   virtual void* Accept(RegExpVisitor* visitor, void* data) = 0;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,

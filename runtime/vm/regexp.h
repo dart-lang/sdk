@@ -77,8 +77,8 @@ class CharacterRange {
   // Negate the contents of a character range in canonical form.
   static void Negate(ZoneGrowableArray<CharacterRange>* src,
                      ZoneGrowableArray<CharacterRange>* dst);
-  static const intptr_t kStartMarker = (1 << 24);
-  static const intptr_t kPayloadMask = (1 << 24) - 1;
+  static constexpr intptr_t kStartMarker = (1 << 24);
+  static constexpr intptr_t kPayloadMask = (1 << 24) - 1;
 
  private:
   int32_t from_;
@@ -94,7 +94,7 @@ class OutSet : public ZoneAllocated {
   OutSet() : first_(0), remaining_(nullptr), successors_(nullptr) {}
   OutSet* Extend(unsigned value, Zone* zone);
   bool Get(unsigned value) const;
-  static const unsigned kFirstLimit = 32;
+  static constexpr unsigned kFirstLimit = 32;
 
  private:
   // Destructively set a value in this set.  In most cases you want
@@ -192,12 +192,12 @@ class UnicodeRangeSplitter : public ValueObject {
   ZoneGrowableArray<CharacterRange>* non_bmp() const { return non_bmp_; }
 
  private:
-  static const int kBase = 0;
+  static constexpr int kBase = 0;
   // Separate ranges into
-  static const int kBmpCodePoints = 1;
-  static const int kLeadSurrogates = 2;
-  static const int kTrailSurrogates = 3;
-  static const int kNonBmpCodePoints = 4;
+  static constexpr int kBmpCodePoints = 1;
+  static constexpr int kLeadSurrogates = 2;
+  static constexpr int kTrailSurrogates = 3;
+  static constexpr int kNonBmpCodePoints = 4;
 
   Zone* zone_;
   ChoiceTable table_;
@@ -419,7 +419,7 @@ class RegExpNode : public ZoneAllocated {
                                     RegExpCompiler* compiler,
                                     intptr_t characters_filled_in,
                                     bool not_at_start) = 0;
-  static const intptr_t kNodeIsTooComplexForGreedyLoops = -1;
+  static constexpr intptr_t kNodeIsTooComplexForGreedyLoops = -1;
   virtual intptr_t GreedyLoopTextLength() {
     return kNodeIsTooComplexForGreedyLoops;
   }
@@ -435,7 +435,7 @@ class RegExpNode : public ZoneAllocated {
   // implementation.  TODO(erikcorry):  This should share more code with
   // EatsAtLeast, GetQuickCheckDetails.  The budget argument is used to limit
   // the number of nodes we are willing to look at in order to create this data.
-  static const intptr_t kRecursionBudget = 200;
+  static constexpr intptr_t kRecursionBudget = 200;
   virtual void FillInBMInfo(intptr_t offset,
                             intptr_t budget,
                             BoyerMooreLookahead* bm,
@@ -472,7 +472,7 @@ class RegExpNode : public ZoneAllocated {
   // on how often we allow that to happen before we insist on starting a new
   // trace and generating generic code for a node that can be reused by flushing
   // the deferred actions in the current trace and generating a goto.
-  static const intptr_t kMaxCopiesCodeGenerated = 10;
+  static constexpr intptr_t kMaxCopiesCodeGenerated = 10;
 
   NodeInfo* info() { return &info_; }
 
@@ -493,7 +493,7 @@ class RegExpNode : public ZoneAllocated {
   }
 
  private:
-  static const intptr_t kFirstCharBudget = 10;
+  static constexpr intptr_t kFirstCharBudget = 10;
   BlockLabel label_;
   NodeInfo info_;
   // This variable keeps track of how many times code has been generated for
@@ -528,7 +528,7 @@ class Interval {
   intptr_t from() const { return from_; }
   intptr_t to() const { return to_; }
   static Interval Empty() { return Interval(); }
-  static const intptr_t kNone = -1;
+  static constexpr intptr_t kNone = -1;
 
  private:
   intptr_t from_;
@@ -705,8 +705,8 @@ class TextNode : public SeqRegExpNode {
     CHARACTER_CLASS_MATCH        // Character class.
   };
   static bool SkipPass(intptr_t pass, bool ignore_case);
-  static const intptr_t kFirstRealPass = SIMPLE_CHARACTER_MATCH;
-  static const intptr_t kLastPass = CHARACTER_CLASS_MATCH;
+  static constexpr intptr_t kFirstRealPass = SIMPLE_CHARACTER_MATCH;
+  static constexpr intptr_t kLastPass = CHARACTER_CLASS_MATCH;
   void TextEmitPass(RegExpCompiler* compiler,
                     TextEmitPassType pass,
                     bool preloaded,
@@ -1109,8 +1109,8 @@ class BoyerMoorePositionInfo : public ZoneAllocated {
 
   bool& at(intptr_t i) { return (*map_)[i]; }
 
-  static const intptr_t kMapSize = 128;
-  static const intptr_t kMask = kMapSize - 1;
+  static constexpr intptr_t kMapSize = 128;
+  static constexpr intptr_t kMask = kMapSize - 1;
 
   intptr_t map_count() const { return map_count_; }
 
@@ -1371,7 +1371,7 @@ class GreedyLoopState {
 };
 
 struct PreloadState {
-  static const intptr_t kEatsAtLeastNotYetInitialized = -1;
+  static constexpr intptr_t kEatsAtLeastNotYetInitialized = -1;
   bool preload_is_current_;
   bool preload_has_checked_bounds_;
   intptr_t preload_characters_;

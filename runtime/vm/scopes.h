@@ -56,7 +56,7 @@ class Slot;
 //       builder and they refer to indices into context objects.
 class VariableIndex {
  public:
-  static const int kInvalidIndex = std::numeric_limits<int>::min();
+  static constexpr int kInvalidIndex = std::numeric_limits<int>::min();
 
   explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
 
@@ -222,7 +222,7 @@ class LocalVariable : public ZoneAllocated {
     kExplicit,
   };
 
-  static const int kUninitializedIndex = INT_MIN;
+  static constexpr int kUninitializedIndex = INT_MIN;
 
   static bool IsFilteredIdentifier(const String& name);
 
@@ -430,7 +430,7 @@ class LocalScope : public ZoneAllocated {
   void CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
                              int16_t* scope_id);
 
-  static const int kUninitializedContextLevel = INT_MIN;
+  static constexpr int kUninitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;

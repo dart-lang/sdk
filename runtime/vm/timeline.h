@@ -681,7 +681,7 @@ class TimelineBeginEndScope : public TimelineEventScope {
 // A block of |TimelineEvent|s. Not thread safe.
 class TimelineEventBlock : public MallocAllocated {
  public:
-  static const intptr_t kBlockSize = 64;
+  static constexpr intptr_t kBlockSize = 64;
 
   explicit TimelineEventBlock(intptr_t index);
   ~TimelineEventBlock();
@@ -866,7 +866,7 @@ class TimelineEventRecorder : public MallocAllocated {
   friend class Timeline;
 
  private:
-  static const intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
+  static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
   SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
@@ -875,7 +875,7 @@ class TimelineEventRecorder : public MallocAllocated {
 // An abstract recorder that stores events in a buffer of fixed capacity.
 class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
  public:
-  static const intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
+  static constexpr intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
 
   explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
   virtual ~TimelineEventFixedBufferRecorder();

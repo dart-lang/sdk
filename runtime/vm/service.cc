@@ -2111,12 +2111,12 @@ static ObjectPtr LookupHeapObjectCode(char** parts, int num_parts) {
     return Object::sentinel().ptr();
   }
   uword pc;
-  static const char* const kCollectedPrefix = "collected-";
-  static intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
-  static const char* const kNativePrefix = "native-";
-  static const intptr_t kNativePrefixLen = strlen(kNativePrefix);
-  static const char* const kReusedPrefix = "reused-";
-  static const intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
+  const char* const kCollectedPrefix = "collected-";
+  const intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
+  const char* const kNativePrefix = "native-";
+  const intptr_t kNativePrefixLen = strlen(kNativePrefix);
+  const char* const kReusedPrefix = "reused-";
+  const intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
   const char* id = parts[1];
   if (strncmp(kCollectedPrefix, id, kCollectedPrefixLen) == 0) {
     if (!GetUnsignedIntegerId(&id[kCollectedPrefixLen], &pc, 16)) {
