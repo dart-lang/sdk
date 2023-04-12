@@ -85,12 +85,10 @@ def add_postponed_alt_console_entries():
 _extra_builder(
     "vm-linux-debug-x64",
     category = "vm|jit|d",
-    on_cq = True,
 )
 _extra_builder(
     "vm-linux-release-x64",
     category = "vm|jit|r",
-    on_cq = True,
 )
 _nightly_builder(
     "vm-linux-debug-ia32",
@@ -123,12 +121,12 @@ _extra_builder(
     execution_timeout = 4 * time.hour,
     properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
-_nightly_builder(
+_extra_builder(
     "vm-mac-debug-arm64",
     category = "vm|jit|m1d",
-    channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
+    on_cq = True,
 )
 _builder(
     "vm-mac-debug-x64",
@@ -136,11 +134,12 @@ _builder(
     dimensions = mac,
     properties = slow_shards,
 )
-_builder(
+_extra_builder(
     "vm-mac-release-arm64",
     category = "vm|jit|m1r",
     dimensions = [mac, arm64],
     properties = no_android,
+    on_cq = True,
 )
 _builder(
     "vm-mac-release-x64",
