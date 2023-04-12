@@ -10506,7 +10506,8 @@ TEST_CASE(DartAPI_UserTags) {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 static void* HeapSamplingCreate(Dart_Isolate isolate,
-                                Dart_IsolateGroup isolate_group) {
+                                Dart_IsolateGroup isolate_group,
+                                intptr_t heap_size) {
   return strdup("test data");
 }
 
@@ -10515,7 +10516,6 @@ static void HeapSamplingDelete(void* data) {
 }
 
 static void* last_allocation_context = nullptr;
-static intptr_t last_allocation_size = 0;
 static const char* last_allocation_cls = nullptr;
 static void* last_allocation_data = nullptr;
 static intptr_t heap_samples = 0;
@@ -10523,11 +10523,9 @@ static const char* expected_allocation_cls = nullptr;
 static bool found_allocation = false;
 
 void HeapSamplingReport(void* context,
-                        intptr_t heap_size,
                         const char* cls_name,
                         void* data) {
   last_allocation_context = context;
-  last_allocation_size = heap_size;
   last_allocation_cls = cls_name;
   last_allocation_data = data;
   if (strcmp(cls_name, expected_allocation_cls) == 0) {
@@ -10541,7 +10539,6 @@ void ResetHeapSamplingState(const char* expected_cls = nullptr) {
   expected_allocation_cls = expected_cls;
   found_allocation = false;
   last_allocation_context = nullptr;
-  last_allocation_size = 0;
   last_allocation_cls = nullptr;
   last_allocation_data = nullptr;
 }
@@ -10591,7 +10588,8 @@ TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
   Dart_ExitIsolate();
 
   void* context = reinterpret_cast<void*>(42);  // Fake data, not used.
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, context);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, context,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < 100000);
   EXPECT(last_allocation_context == context);
@@ -10611,7 +10609,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   EXPECT(isolate != nullptr);
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
 #if !defined(PRODUCT)
   EXPECT_STREQ("List", last_allocation_cls);
@@ -10632,7 +10631,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
@@ -10650,7 +10650,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
@@ -10664,7 +10665,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
@@ -10692,7 +10694,8 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   EXPECT(isolate != nullptr);
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
 
@@ -10725,7 +10728,8 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
 

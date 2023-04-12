@@ -1854,12 +1854,16 @@ DART_EXPORT void Dart_RegisterHeapSamplingCallback(
 
 DART_EXPORT void Dart_ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
-    void* context) {
+    void* context,
+    bool force_gc) {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   CHECK_NO_ISOLATE(Thread::Current());
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     Thread::EnterIsolateGroupAsHelper(group, Thread::kUnknownTask,
                                       /*bypass_safepoint=*/false);
+    if (force_gc) {
+      group->heap()->CollectAllGarbage(GCReason::kDebugging);
+    }
     group->heap()->ReportSurvivingAllocations(callback, context);
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
   });
