@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -254,6 +255,28 @@ extension ExpressionExtension on Expression? {
   bool get isNullLiteral => this?.unParenthesized is NullLiteral;
 }
 
+extension InhertanceManager3Extension on InheritanceManager3 {
+  /// Returns the class member that is overridden by [member], if there is one,
+  /// as defined by [getInherited].
+  ExecutableElement? overriddenMember(Element? member) {
+    if (member == null) {
+      return null;
+    }
+
+    var interfaceElement = member.thisOrAncestorOfType<InterfaceElement>();
+    if (interfaceElement == null) {
+      return null;
+    }
+    var name = member.name;
+    if (name == null) {
+      return null;
+    }
+
+    var libraryUri = interfaceElement.library.source.uri;
+    return getInherited(interfaceElement.thisType, Name(libraryUri, name));
+  }
+}
+
 extension InterfaceElementExtension on InterfaceElement {
   /// Returns whether this element is exactly [otherName] declared in
   /// [otherLibrary].
@@ -401,24 +424,12 @@ extension NullableAstNodeExtension on AstNode? {
   }
 }
 
-extension InhertanceManager3Extension on InheritanceManager3 {
-  /// Returns the class member that is overridden by [member], if there is one,
-  /// as defined by [getInherited].
-  ExecutableElement? overriddenMember(Element? member) {
-    if (member == null) {
-      return null;
-    }
-
-    var interfaceElement = member.thisOrAncestorOfType<InterfaceElement>();
-    if (interfaceElement == null) {
-      return null;
-    }
-    var name = member.name;
-    if (name == null) {
-      return null;
-    }
-
-    var libraryUri = interfaceElement.library.source.uri;
-    return getInherited(interfaceElement.thisType, Name(libraryUri, name));
-  }
+extension TokenTypeExtension on TokenType {
+  TokenType get inverted => switch (this) {
+        TokenType.LT_EQ => TokenType.GT_EQ,
+        TokenType.LT => TokenType.GT,
+        TokenType.GT => TokenType.LT,
+        TokenType.GT_EQ => TokenType.LT_EQ,
+        _ => this
+      };
 }
