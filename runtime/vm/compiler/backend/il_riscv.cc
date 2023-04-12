@@ -269,10 +269,10 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if XLEN == 32
       __ lw(TMP, compiler::Address(src_reg, 0));
       __ lw(TMP2, compiler::Address(src_reg, 4));
-      __ addi(src_reg, src_reg, 16);
+      __ addi(src_reg, src_reg, 8);
       __ sw(TMP, compiler::Address(dest_reg, 0));
       __ sw(TMP2, compiler::Address(dest_reg, 4));
-      __ addi(dest_reg, dest_reg, 16);
+      __ addi(dest_reg, dest_reg, 8);
 #else
       __ ld(TMP, compiler::Address(src_reg));
       __ addi(src_reg, src_reg, 8);
