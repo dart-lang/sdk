@@ -1236,7 +1236,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         },
         {
           "name": "vm co19 tests",
@@ -1245,7 +1245,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         }
       ]
     },
@@ -1280,7 +1280,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 8
         },
         {
           "name": "vm co19 tests",
@@ -1289,7 +1289,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 12
         }
       ]
     },
@@ -1324,7 +1324,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 8
         }
       ]
     },
@@ -1494,7 +1494,7 @@
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         }
       ]
     },
@@ -1551,7 +1551,7 @@
             "standalone"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         }
       ]
     },
@@ -1859,7 +1859,7 @@
             "-nvm-checked-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         }
       ]
     },
