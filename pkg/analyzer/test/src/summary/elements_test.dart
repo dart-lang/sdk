@@ -15447,7 +15447,7 @@ library
                   literal: true @38
                   staticType: bool
                 rightParenthesis: ) @42
-                thenElement: SetOrMapLiteral
+                thenElement: MapLiteralEntry
                   key: IntegerLiteral
                     literal: 1 @44
                     staticType: int
@@ -15483,7 +15483,7 @@ library
             constKeyword: const @17
             leftBracket: { @23
             elements
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -15553,7 +15553,7 @@ library
                     rightBracket: > @46
                   leftBracket: { @47
                   elements
-                    SetOrMapLiteral
+                    MapLiteralEntry
                       key: IntegerLiteral
                         literal: 1 @48
                         staticType: int
@@ -15626,7 +15626,7 @@ library
                     rightBracket: > @47
                   leftBracket: { @48
                   elements
-                    SetOrMapLiteral
+                    MapLiteralEntry
                       key: IntegerLiteral
                         literal: 1 @49
                         staticType: int
@@ -19033,21 +19033,21 @@ library
             constKeyword: const @10
             leftBracket: { @16
             elements
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 0 @17
                   staticType: int
                 separator: : @18
                 value: SimpleStringLiteral
                   literal: 'aaa' @20
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 1 @27
                   staticType: int
                 separator: : @28
                 value: SimpleStringLiteral
                   literal: 'bbb' @30
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 2 @37
                   staticType: int

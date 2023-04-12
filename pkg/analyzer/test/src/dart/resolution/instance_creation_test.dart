@@ -770,6 +770,42 @@ InstanceCreationExpression
 ''');
   }
 
+  test_importPrefix() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as prefix;
+
+void f() {
+  new prefix(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: prefix
+        staticElement: self::@prefix::prefix
+        staticType: null
+      type: dynamic
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
+''');
+  }
+
   test_importPrefix_class_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -1587,6 +1623,40 @@ InstanceCreationExpression
         staticType: int
     rightParenthesis: )
   staticType: A
+''');
+  }
+
+  test_unresolved() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new Unresolved(0);
+}
+
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: Unresolved
+        staticElement: <null>
+        staticType: null
+      type: dynamic
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
 ''');
   }
 

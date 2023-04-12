@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 class NodeTextExpectationsCollector {
-  static const updatingIsEnabled = true;
+  static const updatingIsEnabled = false;
 
   static const assertMethods = {
     'ContextResolutionTest.assertDriverStateString',

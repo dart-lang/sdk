@@ -59,6 +59,8 @@ class FindNode {
 
   FunctionBody get singleFunctionBody => _single();
 
+  FunctionDeclaration get singleFunctionDeclaration => _single();
+
   FunctionDeclarationStatement get singleFunctionDeclarationStatement =>
       _single();
 
@@ -82,7 +84,13 @@ class FindNode {
 
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
+  IsExpression get singleIsExpression => _single();
+
+  LabeledStatement get singleLabeledStatement => _single();
+
   LibraryDirective get singleLibraryDirective => _single();
+
+  ListLiteral get singleListLiteral => _single();
 
   MethodDeclaration get singleMethodDeclaration => _single();
 
@@ -104,11 +112,19 @@ class FindNode {
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
+  RethrowExpression get singleRethrowExpression => _single();
+
+  SetOrMapLiteral get singleSetOrMapLiteral => _single();
+
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
 
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
+
+  TryStatement get singleTryStatement => _single();
+
+  WhileStatement get singleWhileStatement => _single();
 
   WithClause get singleWithClause => _single();
 
