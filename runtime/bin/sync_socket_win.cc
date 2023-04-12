@@ -17,7 +17,7 @@ bool SynchronousSocket::Initialize() {
 
 static intptr_t Create(const RawAddr& addr) {
   const intptr_t type = SOCK_STREAM;
-  SOCKET s = WSASocket(addr.ss.ss_family, type, 0, NULL, 0, 0);
+  SOCKET s = WSASocket(addr.ss.ss_family, type, 0, nullptr, 0, 0);
   return (s == INVALID_SOCKET) ? -1 : s;
 }
 
@@ -55,7 +55,7 @@ SocketAddress* SynchronousSocket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   RawAddr raw;
   socklen_t size = sizeof(raw);
   if (getpeername(socket, &raw.addr, &size)) {
-    return NULL;
+    return nullptr;
   }
   *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString

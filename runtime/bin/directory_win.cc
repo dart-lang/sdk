@@ -35,7 +35,7 @@ PathBuffer::~PathBuffer() {
 
 char* PathBuffer::AsString() const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 wchar_t* PathBuffer::AsStringW() const {
@@ -76,7 +76,7 @@ void PathBuffer::Reset(intptr_t new_length) {
 static bool IsBrokenLink(const wchar_t* link_name) {
   HANDLE handle = CreateFileW(
       link_name, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-      NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+      nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
     return true;
   } else {
@@ -108,10 +108,10 @@ static ListType HandleFindFile(DirectoryListing* listing,
     if (!listing->follow_links()) {
       return kListLink;
     }
-    HANDLE handle =
-        CreateFileW(listing->path_buffer().AsStringW(), 0,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                    NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    HANDLE handle = CreateFileW(
+        listing->path_buffer().AsStringW(), 0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (handle == INVALID_HANDLE_VALUE) {
       // Report as (broken) link.
       return kListLink;
@@ -133,7 +133,7 @@ static ListType HandleFindFile(DirectoryListing* listing,
       current_link.id_high = info.nFileIndexHigh;
       current_link.next = entry->link();
       LinkList* previous = entry->link();
-      while (previous != NULL) {
+      while (previous != nullptr) {
         if ((previous->volume == current_link.volume) &&
             (previous->id_low == current_link.id_low) &&
             (previous->id_high == current_link.id_high)) {
@@ -170,7 +170,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   WIN32_FIND_DATAW find_file_data;
 
   if (lister_ == 0) {
-    const wchar_t* tail = parent_ == NULL ? L"*" : L"\\*";
+    const wchar_t* tail = parent_ == nullptr ? L"*" : L"\\*";
     if (!listing->path_buffer().AddW(tail)) {
       done_ = true;
       return kListError;
@@ -218,11 +218,12 @@ DirectoryListingEntry::~DirectoryListingEntry() {
 }
 
 void DirectoryListingEntry::ResetLink() {
-  if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
+  if ((link_ != nullptr) &&
+      ((parent_ == nullptr) || (parent_->link_ != link_))) {
     delete link_;
-    link_ = NULL;
+    link_ = nullptr;
   }
-  if (parent_ != NULL) {
+  if (parent_ != nullptr) {
     link_ = parent_->link_;
   }
 }
@@ -361,16 +362,17 @@ Directory::ExistsResult Directory::Exists(Namespace* namespc,
 }
 
 char* Directory::CurrentNoScope() {
-  int length = GetCurrentDirectoryW(0, NULL);
+  int length = GetCurrentDirectoryW(0, nullptr);
   if (length == 0) {
-    return NULL;
+    return nullptr;
   }
   wchar_t* current = new wchar_t[length + 1];
   GetCurrentDirectoryW(length + 1, current);
-  int utf8_len =
-      WideCharToMultiByte(CP_UTF8, 0, current, -1, NULL, 0, NULL, NULL);
+  int utf8_len = WideCharToMultiByte(CP_UTF8, 0, current, -1, nullptr, 0,
+                                     nullptr, nullptr);
   char* result = reinterpret_cast<char*>(malloc(utf8_len));
-  WideCharToMultiByte(CP_UTF8, 0, current, -1, result, utf8_len, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, current, -1, result, utf8_len, nullptr,
+                      nullptr);
   delete[] current;
   return result;
 }
@@ -378,7 +380,7 @@ char* Directory::CurrentNoScope() {
 bool Directory::Create(Namespace* namespc, const char* dir_name) {
   const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
   Utf8ToWideScope system_name(prefixed_dir_name);
-  int create_status = CreateDirectoryW(system_name.wide(), NULL);
+  int create_status = CreateDirectoryW(system_name.wide(), nullptr);
   // If the directory already existed, treat it as a success.
   if ((create_status == 0) && (GetLastError() == ERROR_ALREADY_EXISTS) &&
       (ExistsHelper(system_name.wide()) == EXISTS)) {
@@ -399,32 +401,32 @@ static const char* CreateTempFromUUID(const char* prefix) {
   PathBuffer path;
   Utf8ToWideScope system_prefix(prefix);
   if (!path.AddW(system_prefix.wide())) {
-    return NULL;
+    return nullptr;
   }
 
   // Length of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 36.
   if (path.length() > MAX_LONG_PATH - 36) {
-    return NULL;
+    return nullptr;
   }
 
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
   if ((status != RPC_S_OK) && (status != RPC_S_UUID_LOCAL_ONLY)) {
-    return NULL;
+    return nullptr;
   }
   RPC_WSTR uuid_string;
   status = UuidToStringW(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
-    return NULL;
+    return nullptr;
   }
 
   // RPC_WSTR is an unsigned short*, so we cast to wchar_t*.
   if (!path.AddW(reinterpret_cast<wchar_t*>(uuid_string))) {
-    return NULL;
+    return nullptr;
   }
   RpcStringFreeW(&uuid_string);
-  if (!CreateDirectoryW(path.AsStringW(), NULL)) {
-    return NULL;
+  if (!CreateDirectoryW(path.AsStringW(), nullptr)) {
+    return nullptr;
   }
   return path.AsScopedString();
 }
@@ -445,13 +447,13 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   PathBuffer path;
   Utf8ToWideScope system_prefix(prefix);
   if (!path.AddW(system_prefix.wide())) {
-    return NULL;
+    return nullptr;
   }
 
   // Adding 8 hex digits.
   if (path.length() > MAX_LONG_PATH - 8) {
     // No fallback, there won't be enough room for the UUID, either.
-    return NULL;
+    return nullptr;
   }
 
   // First try a short suffix using the rng, then if that fails fall back on
@@ -469,10 +471,10 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   Utils::SNPrint(suffix, sizeof(suffix), "%x", suffix_bytes);
   if (!path.Add(suffix)) {
     // Adding to the path failed, maybe because of low-memory. Don't fall back.
-    return NULL;
+    return nullptr;
   }
 
-  if (!CreateDirectoryW(path.AsStringW(), NULL)) {
+  if (!CreateDirectoryW(path.AsStringW(), nullptr)) {
     // Creation failed, possibly because an entry with the name already exists.
     // Fall back to using the UUID suffix.
     return CreateTempFromUUID(prefix);

@@ -37,10 +37,11 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       bool recursive) {
   USE(id);
   Utf8ToWideScope name(path);
-  HANDLE dir = CreateFileW(
-      name.wide(), FILE_LIST_DIRECTORY,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);
+  HANDLE dir =
+      CreateFileW(name.wide(), FILE_LIST_DIRECTORY,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                  nullptr, OPEN_EXISTING,
+                  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
 
   if (dir == INVALID_HANDLE_VALUE) {
     return -1;

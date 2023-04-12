@@ -63,7 +63,7 @@ class IOHandle : public ReferenceCounted<IOHandle> {
 
  private:
   ~IOHandle() {
-    if (fdio_ != NULL) {
+    if (fdio_ != nullptr) {
       fdio_unsafe_release(fdio_);
     }
   }

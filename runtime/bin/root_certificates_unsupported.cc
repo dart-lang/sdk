@@ -11,7 +11,7 @@
 namespace dart {
 namespace bin {
 
-const unsigned char* root_certificates_pem = NULL;
+const unsigned char* root_certificates_pem = nullptr;
 unsigned int root_certificates_pem_length = 0;
 
 }  // namespace bin

@@ -42,7 +42,7 @@ char* PathBuffer::AsString() const {
 
 wchar_t* PathBuffer::AsStringW() const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 const char* PathBuffer::AsScopedString() const {
@@ -91,7 +91,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
       done_ = true;
       return kListError;
     }
-    if (parent_ != NULL) {
+    if (parent_ != nullptr) {
       if (!listing->path_buffer().Add(File::PathSeparator())) {
         return kListError;
       }
@@ -109,7 +109,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   dirent* result;
   status = NO_RETRY_EXPECTED(
       readdir_r(reinterpret_cast<DIR*>(lister_), &entry, &result));
-  if ((status == 0) && (result != NULL)) {
+  if ((status == 0) && (result != nullptr)) {
     if (!listing->path_buffer().Add(entry.d_name)) {
       done_ = true;
       return kListError;
@@ -149,7 +149,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           // Check to see if we are in a loop created by a symbolic link.
           LinkList current_link = {entry_info.st_dev, entry_info.st_ino, link_};
           LinkList* previous = link_;
-          while (previous != NULL) {
+          while (previous != nullptr) {
             if ((previous->dev == current_link.dev) &&
                 (previous->ino == current_link.ino)) {
               // Report the looping link as a link, rather than following it.
@@ -217,11 +217,12 @@ DirectoryListingEntry::~DirectoryListingEntry() {
 }
 
 void DirectoryListingEntry::ResetLink() {
-  if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
+  if ((link_ != nullptr) &&
+      ((parent_ == nullptr) || (parent_->link_ != link_))) {
     delete link_;
-    link_ = NULL;
+    link_ = nullptr;
   }
-  if (parent_ != NULL) {
+  if (parent_ != nullptr) {
     link_ = parent_->link_;
   }
 }
@@ -258,8 +259,8 @@ static bool DeleteRecursively(PathBuffer* path) {
   DIR* dir_pointer;
   do {
     dir_pointer = opendir(path->AsString());
-  } while ((dir_pointer == NULL) && (errno == EINTR));
-  if (dir_pointer == NULL) {
+  } while ((dir_pointer == nullptr) && (errno == EINTR));
+  if (dir_pointer == nullptr) {
     return false;
   }
 
@@ -268,7 +269,7 @@ static bool DeleteRecursively(PathBuffer* path) {
   dirent entry;
   dirent* result;
   while (NO_RETRY_EXPECTED(readdir_r(dir_pointer, &entry, &result)) == 0) {
-    if (result == NULL) {
+    if (result == nullptr) {
       // End of directory.
       return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
              (NO_RETRY_EXPECTED(remove(path->AsString())) == 0);
@@ -357,7 +358,7 @@ Directory::ExistsResult Directory::Exists(Namespace* namespc,
 }
 
 char* Directory::CurrentNoScope() {
-  return getcwd(NULL, 0);
+  return getcwd(nullptr, 0);
 }
 
 bool Directory::Create(Namespace* namespc, const char* dir_name) {
@@ -374,14 +375,14 @@ bool Directory::Create(Namespace* namespc, const char* dir_name) {
 const char* Directory::SystemTemp(Namespace* namespc) {
   PathBuffer path;
   const char* temp_dir = getenv("TMPDIR");
-  if (temp_dir == NULL) {
+  if (temp_dir == nullptr) {
     temp_dir = getenv("TMP");
   }
-  if (temp_dir == NULL) {
+  if (temp_dir == nullptr) {
     temp_dir = "/tmp";
   }
   if (!path.Add(temp_dir)) {
-    return NULL;
+    return nullptr;
   }
   // Remove any trailing slash.
   char* result = path.AsString();
@@ -399,18 +400,18 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   // The return value is Dart_ScopeAllocated.
   PathBuffer path;
   if (!path.Add(prefix)) {
-    return NULL;
+    return nullptr;
   }
   if (!path.Add("XXXXXX")) {
     // Pattern has overflowed.
-    return NULL;
+    return nullptr;
   }
   char* result;
   do {
     result = mkdtemp(path.AsString());
-  } while ((result == NULL) && (errno == EINTR));
-  if (result == NULL) {
-    return NULL;
+  } while ((result == nullptr) && (errno == EINTR));
+  if (result == nullptr) {
+    return nullptr;
   }
   return path.AsScopedString();
 }

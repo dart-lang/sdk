@@ -23,7 +23,7 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   }
   intptr_t count = static_cast<intptr_t>(count64);
   uint8_t* buffer = Dart_ScopeAllocate(count);
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
   if (!Crypto::GetRandomBytes(count, buffer)) {
     Dart_ThrowException(DartUtils::NewDartOSError());
     UNREACHABLE();

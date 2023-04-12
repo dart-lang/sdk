@@ -41,10 +41,10 @@ static inline void* GetHashmapKeyFromString(char* key) {
 class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
-      : count_(0), max_count_(max_count), arguments_(NULL) {
+      : count_(0), max_count_(max_count), arguments_(nullptr) {
     static const int kWordSize = sizeof(intptr_t);
     arguments_ = reinterpret_cast<const char**>(malloc(max_count * kWordSize));
-    if (arguments_ == NULL) {
+    if (arguments_ == nullptr) {
       max_count_ = 0;
     }
   }
@@ -52,7 +52,7 @@ class CommandLineOptions {
     free(arguments_);
     count_ = 0;
     max_count_ = 0;
-    arguments_ = NULL;
+    arguments_ = nullptr;
   }
 
   void Reset() { count_ = 0; }
@@ -62,7 +62,7 @@ class CommandLineOptions {
   const char** arguments() const { return arguments_; }
 
   const char* GetArgument(int index) const {
-    return (index >= 0 && index < count_) ? arguments_[index] : NULL;
+    return (index >= 0 && index < count_) ? arguments_[index] : nullptr;
   }
   void AddArgument(const char* argument) {
     if (count_ < max_count_) {
@@ -201,7 +201,7 @@ class DartUtils {
 
   // Create a new Dart String object from a UTF8 encoded C String.
   static Dart_Handle NewString(const char* str) {
-    ASSERT(str != NULL);
+    ASSERT(str != nullptr);
     return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
                                   strlen(str));
   }
@@ -211,7 +211,7 @@ class DartUtils {
 
   // Allocate length bytes for a C string with Dart_ScopeAllocate.
   static char* ScopedCString(intptr_t length) {
-    char* result = NULL;
+    char* result = nullptr;
     result =
         reinterpret_cast<char*>(Dart_ScopeAllocate(length * sizeof(*result)));
     return result;
@@ -372,7 +372,7 @@ class CObject {
   static CObject* NewOSError(OSError* os_error);
 
  protected:
-  CObject() : cobject_(NULL) {}
+  CObject() : cobject_(nullptr) {}
   Dart_CObject* cobject_;
 
  private:
@@ -395,7 +395,7 @@ class CObject {
     cobject_ = cobject;                                                        \
   }                                                                            \
   explicit CObject##t(CObject* cobject) : CObject() {                          \
-    ASSERT(cobject != NULL);                                                   \
+    ASSERT(cobject != nullptr);                                                \
     ASSERT(cobject->type() == Dart_CObject_k##t);                              \
     cobject_ = cobject->AsApiCObject();                                        \
   }
@@ -407,7 +407,7 @@ class CObject {
     cobject_ = cobject;                                                        \
   }                                                                            \
   explicit CObject##t##Array(CObject* cobject) : CObject() {                   \
-    ASSERT(cobject != NULL);                                                   \
+    ASSERT(cobject != nullptr);                                                \
     ASSERT(cobject->type() == Dart_CObject_kTypedData);                        \
     ASSERT(cobject->byte_array_type() == Dart_TypedData_k##t);                 \
     cobject_ = cobject->AsApiCObject();                                        \
@@ -421,7 +421,7 @@ class CObject {
     cobject_ = cobject;                                                        \
   }                                                                            \
   explicit CObjectExternal##t##Array(CObject* cobject) : CObject() {           \
-    ASSERT(cobject != NULL);                                                   \
+    ASSERT(cobject != nullptr);                                                \
     ASSERT(cobject->type() == Dart_CObject_kExternalTypedData);                \
     ASSERT(cobject->byte_array_type() == Dart_TypedData_k##t);                 \
     cobject_ = cobject->AsApiCObject();                                        \
@@ -464,7 +464,7 @@ class CObjectIntptr : public CObject {
     cobject_ = cobject;
   }
   explicit CObjectIntptr(CObject* cobject) : CObject() {
-    ASSERT(cobject != NULL);
+    ASSERT(cobject != nullptr);
     ASSERT(cobject->type() == Dart_CObject_kInt64 ||
            cobject->type() == Dart_CObject_kInt32);
     cobject_ = cobject->AsApiCObject();
@@ -540,7 +540,7 @@ class CObjectTypedData : public CObject {
     cobject_ = cobject;
   }
   explicit CObjectTypedData(CObject* cobject) : CObject() {
-    ASSERT(cobject != NULL);
+    ASSERT(cobject != nullptr);
     ASSERT(cobject->type() == Dart_CObject_kTypedData);
     cobject_ = cobject->AsApiCObject();
   }

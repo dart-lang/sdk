@@ -16,10 +16,10 @@ void Decompress(const uint8_t* input,
                 intptr_t input_len,
                 uint8_t** output,
                 intptr_t* output_length) {
-  ASSERT(input != NULL);
+  ASSERT(input != nullptr);
   ASSERT(input_len > 0);
-  ASSERT(output != NULL);
-  ASSERT(output_length != NULL);
+  ASSERT(output != nullptr);
+  ASSERT(output_length != nullptr);
 
   const intptr_t kChunkSize = 256 * 1024;
 

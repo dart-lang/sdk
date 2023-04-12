@@ -22,7 +22,7 @@ Socket::Socket(intptr_t fd)
       fd_(fd),
       isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
-      udp_receive_buffer_(NULL) {}
+      udp_receive_buffer_(nullptr) {}
 
 void Socket::CloseFd() {
   SetClosedFd();

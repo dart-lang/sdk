@@ -1460,11 +1460,11 @@ void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
       callback = SignalSocketFinalizer;
       break;
     default:
-      callback = NULL;
+      callback = nullptr;
       UNREACHABLE();
       break;
   }
-  if (callback != NULL) {
+  if (callback != nullptr) {
     Dart_NewFinalizableHandle(handle, reinterpret_cast<void*>(socket),
                               sizeof(Socket), callback);
   }

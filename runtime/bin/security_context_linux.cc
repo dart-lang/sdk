@@ -31,11 +31,11 @@ const intptr_t SSLCertContext::kApproximateSize =
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
-  if (root_certs_file() != NULL) {
+  if (root_certs_file() != nullptr) {
     LoadRootCertFile(root_certs_file());
     return;
   }
-  if (root_certs_cache() != NULL) {
+  if (root_certs_cache() != nullptr) {
     LoadRootCertCache(root_certs_cache());
     return;
   }
@@ -52,12 +52,12 @@ void SSLCertContext::TrustBuiltinRoots() {
     // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
     const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
     const char* cachedir = "/etc/ssl/certs";
-    if (File::Exists(NULL, bundle)) {
+    if (File::Exists(nullptr, bundle)) {
       LoadRootCertFile(bundle);
       return;
     }
 
-    if (Directory::Exists(NULL, cachedir) == Directory::EXISTS) {
+    if (Directory::Exists(nullptr, cachedir) == Directory::EXISTS) {
       LoadRootCertCache(cachedir);
       return;
     }

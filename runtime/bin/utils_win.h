@@ -30,16 +30,16 @@ class StringUtilsWin {
  public:
   static char* WideToUtf8(wchar_t* wide,
                           intptr_t len = -1,
-                          intptr_t* result_len = NULL);
+                          intptr_t* result_len = nullptr);
   static const char* WideToUtf8(const wchar_t* wide,
                                 intptr_t len = -1,
-                                intptr_t* result_len = NULL);
+                                intptr_t* result_len = nullptr);
   static wchar_t* Utf8ToWide(char* utf8,
                              intptr_t len = -1,
-                             intptr_t* result_len = NULL);
+                             intptr_t* result_len = nullptr);
   static const wchar_t* Utf8ToWide(const char* utf8,
                                    intptr_t len = -1,
-                                   intptr_t* result_len = NULL);
+                                   intptr_t* result_len = nullptr);
 
  private:
   DISALLOW_ALLOCATION();
@@ -54,9 +54,9 @@ class WideToUtf8Scope {
   explicit WideToUtf8Scope(const wchar_t* wide)
       : utf8_(Utils::CreateCStringUniquePtr(nullptr)) {
     intptr_t utf8_len =
-        WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
+        WideCharToMultiByte(CP_UTF8, 0, wide, -1, nullptr, 0, nullptr, nullptr);
     char* utf8 = reinterpret_cast<char*>(malloc(utf8_len));
-    WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, utf8_len, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, utf8_len, nullptr, nullptr);
     length_ = utf8_len;
     utf8_ = Utils::CreateCStringUniquePtr(utf8);
   }
@@ -78,7 +78,7 @@ class WideToUtf8Scope {
 class Utf8ToWideScope {
  public:
   explicit Utf8ToWideScope(const char* utf8, intptr_t length = -1) {
-    int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, length, NULL, 0);
+    int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, length, nullptr, 0);
     wchar_t* wide =
         reinterpret_cast<wchar_t*>(malloc(sizeof(wchar_t) * wide_len));
     MultiByteToWideChar(CP_UTF8, 0, utf8, length, wide, wide_len);
