@@ -4,6 +4,8 @@
 
 /// Utility methods to compute the value of the features used for code
 /// completion.
+library;
+
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol

@@ -1953,8 +1953,8 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                    bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  static const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
-  static const intptr_t kStringParamOffset = 1 * target::kWordSize;
+  const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
+  const intptr_t kStringParamOffset = 1 * target::kWordSize;
   // start_index smi is located at offset 0.
 
   // Incoming registers:

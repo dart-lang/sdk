@@ -68,7 +68,7 @@ enum Representation {
       kNumRepresentations
 };
 
-static const intptr_t kMaxLocationCount = 2;
+static constexpr intptr_t kMaxLocationCount = 2;
 
 inline intptr_t LocationCount(Representation rep) {
   switch (rep) {
@@ -145,8 +145,8 @@ class Location : public ValueObject {
     kPayloadBitsSize = kBitsPerWord - kPayloadBitsPos,
   };
 
-  static const uword kInvalidLocation = 0;
-  static const uword kLocationTagMask = 0x3;
+  static constexpr uword kInvalidLocation = 0;
+  static constexpr uword kLocationTagMask = 0x3;
 
  public:
   static bool ParseRepresentation(const char* str, Representation* out);
@@ -474,11 +474,12 @@ class Location : public ValueObject {
 
 // Layout for stack slots.
 #if defined(ARCH_IS_64_BIT)
-  static const intptr_t kBitsForBaseReg = 6;
+  static constexpr intptr_t kBitsForBaseReg = 6;
 #else
-  static const intptr_t kBitsForBaseReg = 5;
+  static constexpr intptr_t kBitsForBaseReg = 5;
 #endif
-  static const intptr_t kBitsForStackIndex = kPayloadBitsSize - kBitsForBaseReg;
+  static constexpr intptr_t kBitsForStackIndex =
+      kPayloadBitsSize - kBitsForBaseReg;
   class StackSlotBaseField
       : public BitField<uword, Register, 0, kBitsForBaseReg> {};
   class StackIndexField
@@ -486,8 +487,8 @@ class Location : public ValueObject {
   };
   COMPILE_ASSERT(1 << kBitsForBaseReg >= kNumberOfCpuRegisters);
 
-  static const intptr_t kStackIndexBias = static_cast<intptr_t>(1)
-                                          << (kBitsForStackIndex - 1);
+  static constexpr intptr_t kStackIndexBias = static_cast<intptr_t>(1)
+                                              << (kBitsForStackIndex - 1);
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a
@@ -549,7 +550,7 @@ class PairLocation : public ZoneAllocated {
   }
 
  private:
-  static const intptr_t kPairLength = 2;
+  static constexpr intptr_t kPairLength = 2;
   Location locations_[kPairLength];
 };
 

@@ -217,7 +217,7 @@ intptr_t ExpectAbort(void (*fn)()) {
   fprintf(stderr, "**** EXPECT STACKTRACE TO FOLLOW. THIS IS OK. ****\n");
 
   struct sigaction old_action = {};
-  intptr_t result = __sigsetjmp(buf, /*savesigs=*/1);
+  intptr_t result = sigsetjmp(buf, /*savesigs=*/1);
   if (result == 0) {
     // Install signal handler.
     struct sigaction handler = {};

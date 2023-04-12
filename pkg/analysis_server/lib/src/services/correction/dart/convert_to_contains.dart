@@ -107,18 +107,13 @@ class ConvertToContains extends CorrectionProducer {
   }
 
   TokenType _invertedTokenType(TokenType type) {
-    switch (type) {
-      case TokenType.LT_EQ:
-        return TokenType.GT_EQ;
-      case TokenType.LT:
-        return TokenType.GT;
-      case TokenType.GT:
-        return TokenType.LT;
-      case TokenType.GT_EQ:
-        return TokenType.LT_EQ;
-      default:
-        return type;
-    }
+    return switch (type) {
+      TokenType.LT_EQ => TokenType.GT_EQ,
+      TokenType.LT => TokenType.GT,
+      TokenType.GT => TokenType.LT,
+      TokenType.GT_EQ => TokenType.LT_EQ,
+      _ => type
+    };
   }
 
   /// Return `true` if the given [expression] is a literal integer, possibly

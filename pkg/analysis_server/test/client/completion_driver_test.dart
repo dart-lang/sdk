@@ -170,10 +170,8 @@ $actual
     switch (protocol) {
       case TestingCompletionProtocol.version1:
         suggestions = await driver.getSuggestions();
-        break;
       case TestingCompletionProtocol.version2:
         suggestions = await driver.getSuggestions2();
-        break;
     }
     return suggestions;
   }

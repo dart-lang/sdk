@@ -503,25 +503,16 @@ enum _TokenKind {
 
 extension on _TokenKind {
   String get displayName {
-    switch (this) {
-      case _TokenKind.and:
-        return "'&&'";
-      case _TokenKind.closeSquareBracket:
-        return "']'";
-      case _TokenKind.equal:
-        return "'=='";
-      case _TokenKind.identifier:
-        return 'an identifier';
-      case _TokenKind.integer:
-        return 'an integer';
-      case _TokenKind.notEqual:
-        return "'!='";
-      case _TokenKind.openSquareBracket:
-        return "'['";
-      case _TokenKind.period:
-        return "'.'";
-      case _TokenKind.string:
-        return 'a string';
-    }
+    return switch (this) {
+      _TokenKind.and => "'&&'",
+      _TokenKind.closeSquareBracket => "']'",
+      _TokenKind.equal => "'=='",
+      _TokenKind.identifier => 'an identifier',
+      _TokenKind.integer => 'an integer',
+      _TokenKind.notEqual => "'!='",
+      _TokenKind.openSquareBracket => "'['",
+      _TokenKind.period => "'.'",
+      _TokenKind.string => 'a string'
+    };
   }
 }

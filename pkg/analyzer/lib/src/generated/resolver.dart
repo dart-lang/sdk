@@ -673,9 +673,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (context.irrefutableContext == null) {
       final matchedType = pattern.matchedValueType!;
       if (!typeSystem.canBeSubtypeOf(matchedType, requiredType)) {
+        AstNodeImpl? errorNode;
+        if (pattern is CastPatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is DeclaredVariablePatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is ObjectPatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is WildcardPatternImpl) {
+          errorNode = pattern.type;
+        }
+        errorNode ??= pattern;
         errorReporter.reportErrorForNode(
           WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
-          pattern,
+          errorNode,
           [matchedType, requiredType],
         );
       }

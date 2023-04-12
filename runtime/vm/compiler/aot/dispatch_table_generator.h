@@ -64,9 +64,9 @@ class SelectorMap {
   const TableSelector* GetSelector(int32_t sid) const;
 
  private:
-  static const int32_t kInvalidSelectorId =
+  static constexpr int32_t kInvalidSelectorId =
       kernel::ProcedureAttributesMetadata::kInvalidSelectorId;
-  static const int32_t kInvalidSelectorOffset = -1;
+  static constexpr int32_t kInvalidSelectorOffset = -1;
 
   int32_t SelectorId(const Function& interface_target) const;
 

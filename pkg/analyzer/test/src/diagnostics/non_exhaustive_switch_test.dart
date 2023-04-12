@@ -128,7 +128,7 @@ void f(bool x) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 5),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3),
     ]);
   }
 

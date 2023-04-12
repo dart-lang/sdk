@@ -57,7 +57,7 @@ ASSEMBLER_TEST_RUN(ReadArgument, test) {
   ReadArgumentCode id = reinterpret_cast<ReadArgumentCode>(test->entry());
   EXPECT_EQ(42, id(42));
   EXPECT_EQ(87, id(87));
-  static const int64_t kLargeConstant = 0x1234567812345678LL;
+  const int64_t kLargeConstant = 0x1234567812345678LL;
   EXPECT_EQ(kLargeConstant, id(kLargeConstant));
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rdi\n"
@@ -987,9 +987,9 @@ ASSEMBLER_TEST_RUN(SignedMultiply64, test) {
       "ret\n");
 }
 
-static const int64_t kLargeConstant = 0x1234567887654321;
-static const int64_t kAnotherLargeConstant = 987654321987654321LL;
-static const int64_t kProductLargeConstants = 0x5bbb29a7f52fbbd1;
+static constexpr int64_t kLargeConstant = 0x1234567887654321;
+static constexpr int64_t kAnotherLargeConstant = 987654321987654321LL;
+static constexpr int64_t kProductLargeConstants = 0x5bbb29a7f52fbbd1;
 
 ASSEMBLER_TEST_GENERATE(SignedMultiplyLong, assembler) {
   Label done;

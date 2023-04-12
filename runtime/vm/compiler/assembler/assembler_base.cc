@@ -157,7 +157,7 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
 
 AssemblerBuffer::AssemblerBuffer()
     : pointer_offsets_(new ZoneGrowableArray<intptr_t>(16)) {
-  static const intptr_t kInitialBufferCapacity = 4 * KB;
+  const intptr_t kInitialBufferCapacity = 4 * KB;
   contents_ = NewContents(kInitialBufferCapacity);
   cursor_ = contents_;
   limit_ = ComputeLimit(contents_, kInitialBufferCapacity);
