@@ -212,7 +212,8 @@ class ListTracerVisitor extends TracerVisitor {
         inputs.add(inferrer.types.nullType);
       }
     } else if (selector.isCall &&
-        (info.hasClosureCallTargets || dynamicCallTargetsNonFunction(info))) {
+        (info.hasClosureCallTargets ||
+            info.concreteTargets.any((element) => !element.isFunction))) {
       bailout('Passed to a closure');
       return;
     }
