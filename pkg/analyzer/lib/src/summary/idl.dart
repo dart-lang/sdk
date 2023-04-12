@@ -39,6 +39,8 @@
 ///
 /// Except as otherwise noted, synthetic elements are not stored in the summary;
 /// they are re-synthesized at the time the summary is read.
+library;
+
 import 'package:analyzer/src/summary/base.dart' as base;
 import 'package:analyzer/src/summary/base.dart' show Id, TopLevel;
 import 'package:analyzer/src/summary/format.dart' as generated;

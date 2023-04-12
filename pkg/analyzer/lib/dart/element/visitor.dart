@@ -20,6 +20,8 @@
 /// future changes to the element model. For example, the
 /// [RecursiveElementVisitor] automates the process of visiting all of the
 /// descendants of an element.
+library;
+
 import 'package:analyzer/dart/element/element.dart';
 
 /// An element visitor that will recursively visit all of the elements in an

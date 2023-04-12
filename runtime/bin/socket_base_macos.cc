@@ -63,20 +63,20 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   struct addrinfo* info = nullptr;
   int status = getaddrinfo(host, nullptr, &hints, &info);
   if (status != 0) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     *os_error =
         new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
-    return NULL;
+    return nullptr;
   }
   intptr_t count = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       count++;
     }
   }
   intptr_t i = 0;
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;

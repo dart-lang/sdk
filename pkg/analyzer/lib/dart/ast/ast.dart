@@ -32,6 +32,8 @@
 /// When an AST is resolved, the identifiers in the AST will be associated with
 /// the elements that they refer to and every expression in the AST will have a
 /// type associated with it.
+library;
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';

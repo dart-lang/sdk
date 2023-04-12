@@ -63,7 +63,7 @@ struct LinkList;
 class DirectoryListingEntry {
  public:
   explicit DirectoryListingEntry(DirectoryListingEntry* parent)
-      : parent_(parent), fd_(-1), lister_(0), done_(false), link_(NULL) {}
+      : parent_(parent), fd_(-1), lister_(0), done_(false), link_(nullptr) {}
 
   ~DirectoryListingEntry();
 
@@ -95,14 +95,14 @@ class DirectoryListing {
                    bool recursive,
                    bool follow_links)
       : namespc_(namespc),
-        top_(NULL),
+        top_(nullptr),
         error_(false),
         recursive_(recursive),
         follow_links_(follow_links) {
     if (!path_buffer_.Add(dir_name)) {
       error_ = true;
     }
-    Push(new DirectoryListingEntry(NULL));
+    Push(new DirectoryListingEntry(nullptr));
   }
 
   virtual ~DirectoryListing() { PopAll(); }
@@ -122,7 +122,7 @@ class DirectoryListing {
     delete current;
   }
 
-  bool IsEmpty() const { return top_ == NULL; }
+  bool IsEmpty() const { return top_ == nullptr; }
 
   void PopAll() {
     while (!IsEmpty()) {
@@ -170,7 +170,7 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
                         bool follow_links)
       : ReferenceCounted(),
         DirectoryListing(namespc, dir_name, recursive, follow_links),
-        array_(NULL),
+        array_(nullptr),
         index_(0),
         length_(0) {}
 

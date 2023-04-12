@@ -19,6 +19,8 @@
 /// class as `class Pair<K, V> {}`, the declarations of `K` and `V` represent
 /// type parameters. But if we declare a variable as `Pair<String, int> pair;`
 /// the references to `String` and `int` are type arguments.
+library;
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';

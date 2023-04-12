@@ -57,4 +57,55 @@ IsExpression
   staticType: bool
 ''');
   }
+
+  test_is() async {
+    await assertNoErrorsInCode('''
+void f(Object? a) {
+  a is int;
+}
+''');
+
+    final node = findNode.singleIsExpression;
+    assertResolvedNodeText(node, r'''
+IsExpression
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Object?
+  isOperator: is
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: bool
+''');
+  }
+
+  test_isNot() async {
+    await assertNoErrorsInCode('''
+void f(Object? a) {
+  a is! int;
+}
+''');
+
+    final node = findNode.singleIsExpression;
+    assertResolvedNodeText(node, r'''
+IsExpression
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Object?
+  isOperator: is
+  notOperator: !
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: bool
+''');
+  }
 }

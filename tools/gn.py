@@ -294,7 +294,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
         toolchain = ToolchainPrefix(args)
         if toolchain:
-            gn_args['toolchain_prefix'] = ParseStringMap(arch, toolchain)
+            for arch in ['ia32', 'x64', 'arm', 'arm64', 'riscv32', 'riscv64']:
+                prefix = ParseStringMap(arch, toolchain)
+                if prefix != None:
+                    gn_args[arch + '_toolchain_prefix'] = prefix
 
     goma_dir = os.environ.get('GOMA_DIR')
     # Search for goma in depot_tools in path

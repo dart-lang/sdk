@@ -59,6 +59,7 @@ import 'library_element_test.dart' as library_element;
 import 'library_export_test.dart' as library_export;
 import 'library_import_prefix_test.dart' as library_import_prefix;
 import 'library_import_test.dart' as library_import;
+import 'list_literal_test.dart' as list_literal;
 import 'list_pattern_test.dart' as list_pattern;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
@@ -95,6 +96,7 @@ import 'redirecting_constructor_invocation_test.dart'
     as redirecting_constructor_invocation;
 import 'relational_pattern_test.dart' as relational_pattern;
 import 'scope_test.dart' as scope;
+import 'set_or_map_literal_test.dart' as set_or_map_literal;
 import 'simple_identifier_test.dart' as simple_identifier;
 import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
@@ -107,6 +109,7 @@ import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
 import 'variance_test.dart' as variance_test;
+import 'while_statement_test.dart' as while_statement;
 import 'wildcard_pattern_test.dart' as wildcard_pattern;
 import 'yield_statement_test.dart' as yield_statement;
 
@@ -161,6 +164,7 @@ main() {
     library_export.main();
     library_import_prefix.main();
     library_import.main();
+    list_literal.main();
     list_pattern.main();
     local_function.main();
     local_variable.main();
@@ -194,6 +198,7 @@ main() {
     redirecting_constructor_invocation.main();
     relational_pattern.main();
     scope.main();
+    set_or_map_literal.main();
     simple_identifier.main();
     super_constructor_invocation.main();
     super_formal_parameter.main();
@@ -206,6 +211,7 @@ main() {
     type_literal.main();
     type_name.main();
     variance_test.main();
+    while_statement.main();
     wildcard_pattern.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);

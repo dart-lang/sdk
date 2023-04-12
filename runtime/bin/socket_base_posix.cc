@@ -52,8 +52,8 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       char* address,
                                       int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
-  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len, NULL,
-                                        0, NI_NUMERICHOST)) == 0);
+  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len,
+                                        nullptr, 0, NI_NUMERICHOST)) == 0);
 }
 
 bool SocketBase::IsBindError(intptr_t error_number) {
@@ -187,8 +187,8 @@ bool SocketBase::AvailableDatagram(intptr_t fd,
                                    void* buffer,
                                    intptr_t num_bytes) {
   ASSERT(fd >= 0);
-  ssize_t read_bytes =
-      TEMP_FAILURE_RETRY(recvfrom(fd, buffer, num_bytes, MSG_PEEK, NULL, NULL));
+  ssize_t read_bytes = TEMP_FAILURE_RETRY(
+      recvfrom(fd, buffer, num_bytes, MSG_PEEK, nullptr, nullptr));
   return read_bytes >= 0;
 }
 
@@ -318,7 +318,7 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   RawAddr raw;
   socklen_t size = sizeof(raw);
   if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
-    return NULL;
+    return nullptr;
   }
   // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
   // If size is the size of sa_family_t, this is an unnamed socket and
@@ -342,9 +342,9 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
   ASSERT(host_len >= NI_MAXHOST);
   int status = NO_RETRY_EXPECTED(
       getnameinfo(&addr.addr, SocketAddress::GetAddrLength(addr), host,
-                  host_len, NULL, 0, NI_NAMEREQD));
+                  host_len, nullptr, 0, NI_NAMEREQD));
   if (status != 0) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     *os_error =
         new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
     return false;
@@ -365,7 +365,7 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
 }
 
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
-  if (ifa->ifa_addr == NULL) {
+  if (ifa->ifa_addr == nullptr) {
     // OpenVPN's virtual device tun0.
     return false;
   }
@@ -382,16 +382,16 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
 
   int status = NO_RETRY_EXPECTED(getifaddrs(&ifaddr));
   if (status != 0) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     *os_error =
         new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
-    return NULL;
+    return nullptr;
   }
 
   int lookup_family = SocketAddress::FromType(type);
 
   intptr_t count = 0;
-  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+  for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       count++;
     }
@@ -400,7 +400,7 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   AddressList<InterfaceSocketAddress>* addresses =
       new AddressList<InterfaceSocketAddress>(count);
   int i = 0;
-  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+  for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
       addresses->SetAt(
@@ -420,11 +420,12 @@ void SocketBase::Close(intptr_t fd) {
 
 bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
   if (addr->addr.sa_family == AF_INET) {
-    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) != NULL;
+    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) !=
+           nullptr;
   } else {
     ASSERT(addr->addr.sa_family == AF_INET6);
     return inet_ntop(AF_INET6, &addr->in6.sin6_addr, str, INET6_ADDRSTRLEN) !=
-           NULL;
+           nullptr;
   }
 }
 

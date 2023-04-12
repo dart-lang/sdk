@@ -17,15 +17,15 @@ TypedDataScope::TypedDataScope(Dart_Handle data) : data_handle_(data) {
 }
 
 void TypedDataScope::Release() {
-  if (data_handle_ == NULL) {
+  if (data_handle_ == nullptr) {
     return;
   }
   Dart_Handle result = Dart_TypedDataReleaseData(data_handle_);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
-  data_handle_ = NULL;
-  data_ = NULL;
+  data_handle_ = nullptr;
+  data_ = nullptr;
   length_ = 0;
   type_ = Dart_TypedData_kInvalid;
 }

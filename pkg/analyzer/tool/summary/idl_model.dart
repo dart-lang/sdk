@@ -5,6 +5,7 @@
 /// This file contains a set of concrete classes representing an in-memory
 /// semantic model of the IDL used to code generate summary serialization and
 /// deserialization code.
+library;
 
 /// Information about a single class defined in the IDL.
 class ClassDeclaration extends Declaration {

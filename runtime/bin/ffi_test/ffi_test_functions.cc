@@ -42,7 +42,7 @@ namespace dart {
 int32_t globalVar;
 
 DART_EXPORT void InduceACrash() {
-  (*(reinterpret_cast<int*>(42))) = 123;
+  *reinterpret_cast<int*>(InduceACrash) = 123;
 }
 
 DART_EXPORT void SetGlobalVar(int32_t v) {

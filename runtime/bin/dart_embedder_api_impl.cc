@@ -19,7 +19,7 @@ namespace embedder {
 static char* MallocFormatedString(const char* format, ...) {
   va_list measure_args;
   va_start(measure_args, format);
-  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
+  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));

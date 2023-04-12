@@ -230,7 +230,7 @@ intptr_t ExpectAbort(void (*fn)()) {
     fn();
   } else {
     // Caught the setjmp.
-    sigaction(SIGABRT, &old_action, NULL);
+    sigaction(SIGABRT, &old_action, nullptr);
     exit(0);
   }
   fprintf(stderr, "Expected abort!!!\n");
@@ -240,7 +240,7 @@ intptr_t ExpectAbort(void (*fn)()) {
 void* TestCallbackOnThreadOutsideIsolate(void* parameter) {
   CallbackTestData* data = reinterpret_cast<CallbackTestData*>(parameter);
   data->success = ExpectAbort(data->callback);
-  return NULL;
+  return nullptr;
 }
 
 intptr_t TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
@@ -423,7 +423,7 @@ DART_EXPORT intptr_t InitDartApiDL(void* data) {
 void Fatal(char const* file, int line, char const* error) {
   printf("FATAL %s:%i\n", file, line);
   printf("%s\n", error);
-  Dart_DumpNativeStackTrace(NULL);
+  Dart_DumpNativeStackTrace(nullptr);
   Dart_PrepareToAbort();
   abort();
 }
@@ -926,7 +926,7 @@ DART_EXPORT void IsolateExitTest_LookupAndCallIsolateExit(int i) {
     ENSURE(Dart_IsError(result));
   } else {
     Dart_Handle method_name = Dart_NewStringFromCString("callIsolateExit");
-    Dart_Handle result = Dart_Invoke(root_lib, method_name, 0, NULL);
+    Dart_Handle result = Dart_Invoke(root_lib, method_name, 0, nullptr);
     if (Dart_IsError(result)) {
       fprintf(stderr,
               "%d failed to invoke %s in child isolate: %s, carrying on..\n", i,

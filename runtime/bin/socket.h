@@ -116,7 +116,7 @@ class Socket : public ReferenceCounted<Socket> {
   ~Socket() {
     ASSERT(fd_ == kClosedFd);
     free(udp_receive_buffer_);
-    udp_receive_buffer_ = NULL;
+    udp_receive_buffer_ = nullptr;
   }
 
   static const int kClosedFd = -1;
@@ -240,7 +240,7 @@ class ListeningSocketRegistry {
           shared(shared),
           ref_count(0),
           namespc(namespc),
-          next(NULL) {
+          next(nullptr) {
       fd = socketfd->fd();
     }
   };
@@ -248,19 +248,19 @@ class ListeningSocketRegistry {
   static const intptr_t kInitialSocketsCount = 8;
 
   OSSocket* FindOSSocketWithAddress(OSSocket* current, const RawAddr& addr) {
-    while (current != NULL) {
+    while (current != nullptr) {
       if (SocketAddress::AreAddressesEqual(current->address, addr)) {
         return current;
       }
       current = current->next;
     }
-    return NULL;
+    return nullptr;
   }
 
   OSSocket* FindOSSocketWithPath(OSSocket* current,
                                  Namespace* namespc,
                                  const char* path) {
-    while (current != NULL) {
+    while (current != nullptr) {
       ASSERT(current->address.addr.sa_family == AF_UNIX);
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
       bool condition;
@@ -283,7 +283,7 @@ class ListeningSocketRegistry {
 #endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
       current = current->next;
     }
-    return NULL;
+    return nullptr;
   }
 
   static bool SameIntptrValue(void* key1, void* key2) {

@@ -55,7 +55,7 @@ int Thread::Start(const char* name,
                   uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(name, function, parameter);
   uint32_t tid;
-  uintptr_t thread = _beginthreadex(NULL, Thread::GetMaxStackSize(),
+  uintptr_t thread = _beginthreadex(nullptr, Thread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
   if ((thread == -1L) || (thread == 0)) {
 #ifdef DEBUG

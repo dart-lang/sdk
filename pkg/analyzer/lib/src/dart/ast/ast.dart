@@ -1748,6 +1748,10 @@ class CatchClauseParameterImpl extends AstNodeImpl
   Token get endToken => name;
 
   @override
+  ChildEntities get _childEntities =>
+      super._childEntities..addToken('name', name);
+
+  @override
   E? accept<E>(AstVisitor<E> visitor) {
     return visitor.visitCatchClauseParameter(this);
   }

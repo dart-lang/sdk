@@ -8,12 +8,13 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FieldTypedFormalParameterResolutionTest);
+    defineReflectiveTests(FunctionTypedFormalParameterResolutionTest);
   });
 }
 
 @reflectiveTest
-class FieldTypedFormalParameterResolutionTest extends PubPackageResolutionTest {
+class FunctionTypedFormalParameterResolutionTest
+    extends PubPackageResolutionTest {
   test_hasTypeParameters() async {
     await resolveTestCode('''
 void f<V>(T p<T, U>(U a, V b)) {}

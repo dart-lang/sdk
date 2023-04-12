@@ -20,7 +20,7 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     {DartUtils::kCLILibURL, true},
 
     // End marker.
-    {NULL, false}};
+    {nullptr, false}};
 
 const int Builtin::num_libs_ =
     sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);

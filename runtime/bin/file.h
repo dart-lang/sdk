@@ -204,7 +204,7 @@ class File : public ReferenceCounted<File> {
 
   // Set the finalizable handle for the File's Dart wrapper.
   void SetFinalizableHandle(Dart_FinalizableHandle handle) {
-    ASSERT(finalizable_handle_ == NULL);
+    ASSERT(finalizable_handle_ == nullptr);
     finalizable_handle_ = handle;
   }
 
@@ -213,7 +213,7 @@ class File : public ReferenceCounted<File> {
   // needed.
   void DeleteFinalizableHandle(Dart_Isolate isolate, Dart_Handle strong_ref) {
     Dart_DeleteFinalizableHandle(finalizable_handle_, strong_ref);
-    finalizable_handle_ = NULL;
+    finalizable_handle_ = nullptr;
   }
 
   // Open the file with the given path. The file is always opened for
@@ -334,7 +334,7 @@ class File : public ReferenceCounted<File> {
 
  private:
   explicit File(FileHandle* handle)
-      : ReferenceCounted(), handle_(handle), finalizable_handle_(NULL) {}
+      : ReferenceCounted(), handle_(handle), finalizable_handle_(nullptr) {}
 
   ~File();
 

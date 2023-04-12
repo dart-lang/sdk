@@ -67,7 +67,8 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
   RawAddr& raw = const_cast<RawAddr&>(addr);
   wchar_t* waddress = reinterpret_cast<wchar_t*>(
       Dart_ScopeAllocate((salen + 1) * sizeof(wchar_t)));
-  intptr_t result = WSAAddressToStringW(&raw.addr, salen, NULL, waddress, &l);
+  intptr_t result =
+      WSAAddressToStringW(&raw.addr, salen, nullptr, waddress, &l);
   if (result != 0) {
     return true;
   }
@@ -184,7 +185,7 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   RawAddr raw;
   socklen_t size = sizeof(raw);
   if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
-    return NULL;
+    return nullptr;
   }
   *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString
@@ -244,7 +245,7 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_ADDRCONFIG;
   hints.ai_protocol = IPPROTO_TCP;
-  struct addrinfo* info = NULL;
+  struct addrinfo* info = nullptr;
   int status = getaddrinfo(host, 0, &hints, &info);
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
@@ -253,21 +254,21 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
     status = getaddrinfo(host, 0, &hints, &info);
   }
   if (status != 0) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     DWORD error_code = WSAGetLastError();
     SetLastError(error_code);
     *os_error = new OSError();
-    return NULL;
+    return nullptr;
   }
   intptr_t count = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       count++;
     }
   }
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   intptr_t i = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
@@ -283,9 +284,9 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
                                OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
   int status = getnameinfo(&addr.addr, SocketAddress::GetAddrLength(addr), host,
-                           host_len, NULL, 0, NI_NAMEREQD);
+                           host_len, nullptr, 0, NI_NAMEREQD);
   if (status != 0) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     DWORD error_code = WSAGetLastError();
     SetLastError(error_code);
     *os_error = new OSError();
@@ -313,13 +314,13 @@ bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
   wchar_t tmp_buffer[INET6_ADDRSTRLEN];
   if (addr->addr.sa_family == AF_INET) {
     if (InetNtop(AF_INET, &addr->in.sin_addr, tmp_buffer, INET_ADDRSTRLEN) ==
-        NULL) {
+        nullptr) {
       return false;
     }
   } else {
     ASSERT(addr->addr.sa_family == AF_INET6);
     if (InetNtop(AF_INET6, &addr->in6.sin6_addr, tmp_buffer,
-                 INET6_ADDRSTRLEN) == NULL) {
+                 INET6_ADDRSTRLEN) == nullptr) {
       return false;
     }
   }
@@ -340,25 +341,25 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   DWORD flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
                 GAA_FLAG_SKIP_DNS_SERVER;
   // Query the size needed.
-  int status = GetAdaptersAddresses(SocketAddress::FromType(type), flags, NULL,
-                                    NULL, &size);
-  IP_ADAPTER_ADDRESSES* addrs = NULL;
+  int status = GetAdaptersAddresses(SocketAddress::FromType(type), flags,
+                                    nullptr, nullptr, &size);
+  IP_ADAPTER_ADDRESSES* addrs = nullptr;
   if (status == ERROR_BUFFER_OVERFLOW) {
     addrs = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(malloc(size));
     // Get the addresses now we have the right buffer.
-    status = GetAdaptersAddresses(SocketAddress::FromType(type), flags, NULL,
+    status = GetAdaptersAddresses(SocketAddress::FromType(type), flags, nullptr,
                                   addrs, &size);
   }
   if (status != NO_ERROR) {
-    ASSERT(*os_error == NULL);
+    ASSERT(*os_error == nullptr);
     DWORD error_code = WSAGetLastError();
     SetLastError(error_code);
     *os_error = new OSError();
-    return NULL;
+    return nullptr;
   }
   intptr_t count = 0;
-  for (IP_ADAPTER_ADDRESSES* a = addrs; a != NULL; a = a->Next) {
-    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != NULL;
+  for (IP_ADAPTER_ADDRESSES* a = addrs; a != nullptr; a = a->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != nullptr;
          u = u->Next) {
       count++;
     }
@@ -366,8 +367,8 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   AddressList<InterfaceSocketAddress>* addresses =
       new AddressList<InterfaceSocketAddress>(count);
   intptr_t i = 0;
-  for (IP_ADAPTER_ADDRESSES* a = addrs; a != NULL; a = a->Next) {
-    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != NULL;
+  for (IP_ADAPTER_ADDRESSES* a = addrs; a != nullptr; a = a->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != nullptr;
          u = u->Next) {
       addresses->SetAt(
           i, new InterfaceSocketAddress(

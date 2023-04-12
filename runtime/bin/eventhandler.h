@@ -112,14 +112,14 @@ static const int kShutdownId = -2;
 template <typename T>
 class CircularLinkedList {
  public:
-  CircularLinkedList() : head_(NULL) {}
+  CircularLinkedList() : head_(nullptr) {}
 
   typedef void (*ClearFun)(void* value);
 
   // Returns true if the list was empty.
   bool Add(T t) {
     Entry* e = new Entry(t);
-    if (head_ == NULL) {
+    if (head_ == nullptr) {
       // Empty list, make e head, and point to itself.
       e->next_ = e;
       e->prev_ = e;
@@ -135,30 +135,30 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveHead(ClearFun clear = NULL) {
-    ASSERT(head_ != NULL);
+  void RemoveHead(ClearFun clear = nullptr) {
+    ASSERT(head_ != nullptr);
 
     Entry* e = head_;
     if (e->next_ == e) {
-      head_ = NULL;
+      head_ = nullptr;
     } else {
       e->prev_->next_ = e->next_;
       e->next_->prev_ = e->prev_;
       head_ = e->next_;
     }
-    if (clear != NULL) {
+    if (clear != nullptr) {
       clear(reinterpret_cast<void*>(e->t));
     }
     delete e;
   }
 
   void Remove(T item) {
-    if (head_ == NULL) {
+    if (head_ == nullptr) {
       return;
     } else if (head_ == head_->next_) {
       if (head_->t == item) {
         delete head_;
-        head_ = NULL;
+        head_ = nullptr;
         return;
       }
     } else {
@@ -182,7 +182,7 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveAll(ClearFun clear = NULL) {
+  void RemoveAll(ClearFun clear = nullptr) {
     while (HasHead()) {
       RemoveHead(clear);
     }
@@ -190,18 +190,18 @@ class CircularLinkedList {
 
   T head() const { return head_->t; }
 
-  bool HasHead() const { return head_ != NULL; }
+  bool HasHead() const { return head_ != nullptr; }
 
   void Rotate() {
-    if (head_ != NULL) {
-      ASSERT(head_->next_ != NULL);
+    if (head_ != nullptr) {
+      ASSERT(head_->next_ != nullptr);
       head_ = head_->next_;
     }
   }
 
  private:
   struct Entry {
-    explicit Entry(const T& t) : t(t), next_(NULL), prev_(NULL) {}
+    explicit Entry(const T& t) : t(t), next_(nullptr), prev_(nullptr) {}
     const T t;
     Entry* next_;
     Entry* prev_;
@@ -402,7 +402,7 @@ class DescriptorInfoMultipleMixin : public DI {
     SimpleHashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), true);
     PortEntry* pentry;
-    if (entry->value == NULL) {
+    if (entry->value == nullptr) {
       pentry = new PortEntry();
       pentry->dart_port = port;
       pentry->token_count = kTokenCount;
@@ -440,7 +440,7 @@ class DescriptorInfoMultipleMixin : public DI {
       } while (current != root);
     }
 
-    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
+    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != nullptr;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       if (pentry->IsReady()) {
@@ -455,7 +455,7 @@ class DescriptorInfoMultipleMixin : public DI {
   virtual void RemovePort(Dart_Port port) {
     SimpleHashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), false);
-    if (entry != NULL) {
+    if (entry != nullptr) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       if (pentry->IsReady()) {
         active_readers_.Remove(pentry);
@@ -477,10 +477,10 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemoveAllPorts() {
-    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
+    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != nullptr;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
-      entry->value = NULL;
+      entry->value = nullptr;
       active_readers_.Remove(pentry);
       delete pentry;
     }
@@ -518,7 +518,7 @@ class DescriptorInfoMultipleMixin : public DI {
     ASSERT(IS_EVENT(events, kCloseEvent) || IS_EVENT(events, kErrorEvent) ||
            IS_EVENT(events, kDestroyedEvent));
 
-    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
+    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != nullptr;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       DartUtils::PostInt32(pentry->dart_port, events);
@@ -538,7 +538,7 @@ class DescriptorInfoMultipleMixin : public DI {
   virtual void ReturnTokens(Dart_Port port, int count) {
     SimpleHashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), false);
-    ASSERT(entry != NULL);
+    ASSERT(entry != nullptr);
 
     PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
     bool was_ready = pentry->IsReady();
