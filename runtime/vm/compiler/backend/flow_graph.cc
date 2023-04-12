@@ -2053,7 +2053,7 @@ void FlowGraph::InsertRecordBoxing(Definition* def) {
   ASSERT(insert_before != nullptr);
   InsertBefore(insert_before, x, nullptr, FlowGraph::kValue);
   InsertBefore(insert_before, y, nullptr, FlowGraph::kValue);
-  InsertBefore(insert_before, alloc, nullptr, FlowGraph::kValue);
+  InsertBefore(insert_before, alloc, def->env(), FlowGraph::kValue);
 }
 
 void FlowGraph::InsertConversionsFor(Definition* def) {
