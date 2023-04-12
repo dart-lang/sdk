@@ -434,27 +434,4 @@ abstract class TypeMask implements AbstractValue {
   /// Returns the [element] that is known to always be hit at runtime
   /// on this mask. Returns null if there is none.
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain);
-
-  /// Returns a set of [DynamicCallTarget] that cover all possible members that
-  /// can be targeted by an invocation of [selector] on a receiver wih the type
-  /// represented by this mask. Attempts to minimize the number of
-  /// [DynamicCallTarget] by including virtual targets where possible. A virtual
-  /// target on a member represents a call to that member or any of its
-  /// overrides. If a [DynamicCallTarget] is not marked virtual (i.e. it is
-  /// concrete) then the target is only the attached member.
-  ///
-  /// ```
-  /// class A {
-  ///   int foo() => ...;
-  /// }
-  /// class B extends A {
-  ///   int foo() => ...;
-  /// }
-  /// ```
-  ///
-  /// Given the above member structure, a call to `foo` of the form
-  ///  `A a = B(); a.foo();` handled by this method could return
-  /// `(A.foo: virtual)` or `(A.foo: concrete, B.foo: concrete)`.
-  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
-      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld);
 }

@@ -65,6 +65,8 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   GlobalTypeInferenceResults buildResults() {
+    inferrer.close();
+
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         <MemberEntity, GlobalTypeInferenceMemberResult>{};
     Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};

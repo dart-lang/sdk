@@ -432,15 +432,4 @@ class RecordTypeMask extends TypeMask {
 
   @override
   bool get isNull => false;
-
-  @override
-  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
-      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
-    final recordClass = _classForRecord(closedWorld);
-    return memberHierarchyBuilder.rootsForCall(
-        recordClass != null
-            ? closedWorld.abstractValueDomain.createNonNullSubclass(recordClass)
-            : null,
-        selector);
-  }
 }

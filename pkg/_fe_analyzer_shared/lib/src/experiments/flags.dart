@@ -180,7 +180,7 @@ enum ExperimentalFlag {
   unnamedLibraries(
       name: 'unnamed-libraries',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19)),
 

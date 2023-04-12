@@ -572,7 +572,7 @@ class IsExpired {
   static const bool triple_shift = true;
 
   /// Expiration status of the experiment "unnamed-libraries"
-  static const bool unnamed_libraries = false;
+  static const bool unnamed_libraries = true;
 
   /// Expiration status of the experiment "value-class"
   static const bool value_class = false;

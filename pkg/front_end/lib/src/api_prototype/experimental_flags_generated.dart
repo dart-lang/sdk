@@ -254,7 +254,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag unnamedLibraries = const ExperimentalFlag(
       name: 'unnamed-libraries',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 19),
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19));
