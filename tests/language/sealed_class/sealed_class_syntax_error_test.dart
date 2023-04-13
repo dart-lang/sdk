@@ -82,12 +82,8 @@ sealed extension StringExtension on String {}
 
 sealed enum Enum { x }
 // [error column 1, length 6]
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
-// [cfe] 'sealed' is already declared in this scope.
-// [cfe] Expected ';' after this.
-// [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [analyzer] SYNTACTIC_ERROR.SEALED_ENUM
+// [cfe] Enums can't be declared to be 'sealed'.
 
 sealed typedef EnumTypedef = Enum;
 // [error column 1, length 6]

@@ -20274,9 +20274,6 @@ ParserErrorCode:
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
-  FINAL_ENUM:
-    problemMessage: "Enums can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."

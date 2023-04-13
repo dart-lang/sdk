@@ -23,6 +23,7 @@ regress/utf_16_le_content.crash: EmptyOutput
 
 class_modifiers/final/final_mixin_declaration: FormatterCrash
 class_modifiers/interface/interface_mixin_declaration: FormatterCrash
+class_modifiers/invalid_enum_modifiers: FormatterCrash
 class_modifiers/mixin/mixin_class_invalid_modifiers: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash

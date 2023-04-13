@@ -396,6 +396,15 @@ Message _withArgumentsBaseClassImplementedOutsideOfLibraryCause(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBaseEnum = messageBaseEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBaseEnum = const MessageCode("BaseEnum",
+    index: 155,
+    problemMessage: r"""Enums can't be declared to be 'base'.""",
+    correctionMessage: r"""Try removing the keyword 'base'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -5299,6 +5308,15 @@ Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalEnum = messageFinalEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalEnum = const MessageCode("FinalEnum",
+    index: 156,
+    problemMessage: r"""Enums can't be declared to be 'final'.""",
+    correctionMessage: r"""Try removing the keyword 'final'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -6458,6 +6476,15 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
           """The class '${name}' can't be extended outside of its library because it's an interface class.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInterfaceEnum = messageInterfaceEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInterfaceEnum = const MessageCode("InterfaceEnum",
+    index: 157,
+    problemMessage: r"""Enums can't be declared to be 'interface'.""",
+    correctionMessage: r"""Try removing the keyword 'interface'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInterfaceMixin = messageInterfaceMixin;
@@ -11517,6 +11544,15 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
           """The class '${name}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSealedEnum = messageSealedEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSealedEnum = const MessageCode("SealedEnum",
+    index: 158,
+    problemMessage: r"""Enums can't be declared to be 'sealed'.""",
+    correctionMessage: r"""Try removing the keyword 'sealed'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSealedMixin = messageSealedMixin;

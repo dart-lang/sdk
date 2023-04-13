@@ -1188,10 +1188,7 @@ class Foo {
 
   void test_finalEnum() {
     parseCompilationUnit("final enum E {ONE}", errors: [
-      // Fasta interprets the `final` as a malformed top level final
-      // and `enum` as the start of a enum declaration.
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
+      error(ParserErrorCode.FINAL_ENUM, 0, 5),
     ]);
   }
 
