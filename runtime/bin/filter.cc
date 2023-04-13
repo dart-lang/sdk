@@ -15,7 +15,7 @@ namespace bin {
 const int kZLibFlagUseGZipHeader = 16;
 const int kZLibFlagAcceptAnyHeader = 32;
 
-static const int kFilterPointerNativeField = 0;
+static constexpr int kFilterPointerNativeField = 0;
 
 static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
   ASSERT(filter != nullptr);

@@ -2753,8 +2753,8 @@ class TwoByteStringMessageDeserializationCluster
   }
 };
 
-static const intptr_t kFirstReference = 1;
-static const intptr_t kUnallocatedReference = -1;
+static constexpr intptr_t kFirstReference = 1;
+static constexpr intptr_t kUnallocatedReference = -1;
 
 BaseSerializer::BaseSerializer(Thread* thread, Zone* zone)
     : StackResource(thread),

@@ -273,11 +273,11 @@ class JitDumpCodeObserver : public CodeObserver {
 
   // ELF machine architectures
   // From linux/include/uapi/linux/elf-em.h
-  static const uint32_t EM_386 = 3;
-  static const uint32_t EM_X86_64 = 62;
-  static const uint32_t EM_ARM = 40;
-  static const uint32_t EM_AARCH64 = 183;
-  static const uint32_t EM_RISCV = 243;
+  static constexpr uint32_t EM_386 = 3;
+  static constexpr uint32_t EM_X86_64 = 62;
+  static constexpr uint32_t EM_ARM = 40;
+  static constexpr uint32_t EM_AARCH64 = 183;
+  static constexpr uint32_t EM_RISCV = 243;
 
   static uint32_t GetElfMachineArchitecture() {
 #if TARGET_ARCH_IA32
@@ -297,9 +297,9 @@ class JitDumpCodeObserver : public CodeObserver {
   }
 
 #if ARCH_IS_64_BIT
-  static const int kElfHeaderSize = 0x40;
+  static constexpr int kElfHeaderSize = 0x40;
 #else
-  static const int kElfHeaderSize = 0x34;
+  static constexpr int kElfHeaderSize = 0x34;
 #endif
 
   void WriteDebugInfo(uword base, const CodeComments* comments) {

@@ -26,6 +26,7 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
+      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dartdevc_2/",
       "tests/ffi_2/",
@@ -1182,7 +1183,7 @@
           "shards": 10
         },
         {
-         "name": "vm nnbd tests in weak mode with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
@@ -1236,7 +1237,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         },
         {
           "name": "vm co19 tests",
@@ -1245,7 +1246,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         }
       ]
     },
@@ -1280,7 +1281,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 8
         },
         {
           "name": "vm co19 tests",
@@ -1289,7 +1290,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 12
         }
       ]
     },
@@ -1324,7 +1325,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 8
         }
       ]
     },
@@ -1494,7 +1495,7 @@
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         }
       ]
     },
@@ -1551,7 +1552,7 @@
             "standalone"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         }
       ]
     },
@@ -1859,7 +1860,7 @@
             "-nvm-checked-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         }
       ]
     },

@@ -118,7 +118,7 @@ class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
     TokenPosition token_position = TokenPosition::kNoSource;
   };
 
-  static const intptr_t kCacheSize = 128;
+  static constexpr intptr_t kCacheSize = 128;
   intptr_t cache_cursor_;
   intptr_t last_hit_;
   CacheEntry cache_[kCacheSize];

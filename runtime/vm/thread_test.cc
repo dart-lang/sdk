@@ -369,7 +369,7 @@ TEST_CASE(ThreadRegistry) {
 // A helper thread that repeatedly reads ICData
 class ICDataTestTask : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
+  static constexpr intptr_t kTaskCount = 1;
 
   ICDataTestTask(Isolate* isolate,
                  const Array& ic_datas,
@@ -447,8 +447,6 @@ static Function* CreateFunction(const char* name) {
   return &function;
 }
 
-const intptr_t ICDataTestTask::kTaskCount = 1;
-
 // Test that checks that other threads only see a fully initialized ICData
 // whenever ICData is updated.
 ISOLATE_UNIT_TEST_CASE(ICDataTest) {
@@ -511,7 +509,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
 // not happen in the first rendezvous, since tasks are still starting up).
 class SafepointTestTask : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
+  static constexpr intptr_t kTaskCount = 5;
 
   SafepointTestTask(Isolate* isolate,
                     Monitor* monitor,
@@ -591,8 +589,6 @@ class SafepointTestTask : public ThreadPool::Task {
   intptr_t* exited_;          // # tasks that are no longer running.
   bool local_done_;           // this task has successfully safepointed >= once.
 };
-
-const intptr_t SafepointTestTask::kTaskCount = 5;
 
 // Test rendezvous of:
 // - helpers in VM code,

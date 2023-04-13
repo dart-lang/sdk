@@ -488,22 +488,22 @@ void SetupCoreLibrariesForUnitTest();
 
 template <typename T>
 struct is_void {
-  static const bool value = false;
+  static constexpr bool value = false;
 };
 
 template <>
 struct is_void<void> {
-  static const bool value = true;
+  static constexpr bool value = true;
 };
 
 template <typename T>
 struct is_double {
-  static const bool value = false;
+  static constexpr bool value = false;
 };
 
 template <>
 struct is_double<double> {
-  static const bool value = true;
+  static constexpr bool value = true;
 };
 
 class AssemblerTest {
@@ -634,7 +634,7 @@ class AssemblerTest {
   const char* name_;
   compiler::Assembler* assembler_;
   Code& code_;
-  static const intptr_t DISASSEMBLY_SIZE = 10240;
+  static constexpr intptr_t DISASSEMBLY_SIZE = 10240;
   char* disassembly_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);

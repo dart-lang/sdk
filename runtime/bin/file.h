@@ -340,7 +340,7 @@ class File : public ReferenceCounted<File> {
 
   static File* FileOpenW(const wchar_t* system_name, FileOpenMode mode);
 
-  static const int kClosedFd = -1;
+  static constexpr int kClosedFd = -1;
 
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.

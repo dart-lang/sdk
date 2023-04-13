@@ -1854,12 +1854,16 @@ DART_EXPORT void Dart_RegisterHeapSamplingCallback(
 
 DART_EXPORT void Dart_ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
-    void* context) {
+    void* context,
+    bool force_gc) {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   CHECK_NO_ISOLATE(Thread::Current());
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     Thread::EnterIsolateGroupAsHelper(group, Thread::kUnknownTask,
                                       /*bypass_safepoint=*/false);
+    if (force_gc) {
+      group->heap()->CollectAllGarbage(GCReason::kDebugging);
+    }
     group->heap()->ReportSurvivingAllocations(callback, context);
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
   });
@@ -4131,7 +4135,7 @@ class AcquiredData {
   }
 
  private:
-  static const uint8_t kZapReleasedByte = 0xda;
+  static constexpr uint8_t kZapReleasedByte = 0xda;
   intptr_t size_in_bytes_;
   void* data_;
   void* data_copy_;
@@ -6543,9 +6547,9 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
 
 // Used for StreamingWriteStream/BlobImageWriter sizes for ELF and blobs.
 #if !defined(TARGET_ARCH_IA32) && defined(DART_PRECOMPILER)
-static const intptr_t kAssemblyInitialSize = 512 * KB;
-static const intptr_t kInitialSize = 2 * MB;
-static const intptr_t kInitialDebugSize = 1 * MB;
+static constexpr intptr_t kAssemblyInitialSize = 512 * KB;
+static constexpr intptr_t kInitialSize = 2 * MB;
+static constexpr intptr_t kInitialDebugSize = 1 * MB;
 
 static void CreateAppAOTSnapshot(
     Dart_StreamingWriteCallback callback,

@@ -104,10 +104,10 @@ class InterruptMessage {
   int64_t data;
 };
 
-static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kInfinityTimeout = -1;
-static const int kTimerId = -1;
-static const int kShutdownId = -2;
+static constexpr int kInterruptMessageSize = sizeof(InterruptMessage);
+static constexpr int kInfinityTimeout = -1;
+static constexpr int kTimerId = -1;
+static constexpr int kShutdownId = -2;
 
 template <typename T>
 class CircularLinkedList {
@@ -266,7 +266,7 @@ class DescriptorInfoBase {
 template <typename DI>
 class DescriptorInfoSingleMixin : public DI {
  private:
-  static const int kTokenCount = 16;
+  static constexpr int kTokenCount = 16;
 
  public:
   DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
@@ -356,7 +356,7 @@ class DescriptorInfoSingleMixin : public DI {
 template <typename DI>
 class DescriptorInfoMultipleMixin : public DI {
  private:
-  static const int kTokenCount = 4;
+  static constexpr int kTokenCount = 4;
 
   static bool SamePortValue(void* key1, void* key2) {
     return reinterpret_cast<Dart_Port>(key1) ==

@@ -173,9 +173,9 @@ typedef uword cpp_vtable;
 
 // Zap value used to indicate uninitialized handle area (debug purposes).
 #if defined(ARCH_IS_32_BIT)
-static const uword kZapUninitializedWord = 0xabababab;
+static constexpr uword kZapUninitializedWord = 0xabababab;
 #else
-static const uword kZapUninitializedWord = 0xabababababababab;
+static constexpr uword kZapUninitializedWord = 0xabababababababab;
 #endif
 
 // Macros to get the contents of the fp register.

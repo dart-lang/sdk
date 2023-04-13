@@ -56,8 +56,8 @@ void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
-  static const int kExists = 1;
-  static const int kDoesNotExist = 0;
+  const int kExists = 1;
+  const int kDoesNotExist = 0;
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
   OSError os_error;
@@ -212,7 +212,7 @@ void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
   }
 }
 
-static const int kAsyncDirectoryListerFieldIndex = 0;
+static constexpr int kAsyncDirectoryListerFieldIndex = 0;
 
 void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
     Dart_NativeArguments args) {
@@ -303,8 +303,8 @@ CObject* Directory::DeleteRequest(const CObjectArray& request) {
 }
 
 CObject* Directory::ExistsRequest(const CObjectArray& request) {
-  static const int kExists = 1;
-  static const int kDoesNotExist = 0;
+  const int kExists = 1;
+  const int kDoesNotExist = 0;
   if ((request.Length() < 1) || !request[0]->IsIntptr()) {
     return CObject::IllegalArgumentError();
   }

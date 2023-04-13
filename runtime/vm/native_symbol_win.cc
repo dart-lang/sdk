@@ -60,8 +60,8 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
 #ifdef DART_TARGET_OS_WINDOWS_UWP
   return nullptr;
 #else
-  static const intptr_t kMaxNameLength = 2048;
-  static const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
+  const intptr_t kMaxNameLength = 2048;
+  const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];
   static char name_buffer[kMaxNameLength];
   MutexLocker lock(lock_);

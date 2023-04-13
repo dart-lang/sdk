@@ -96,13 +96,13 @@ class BlockLabel : public ValueObject {
 class RegExpMacroAssembler : public ZoneAllocated {
  public:
   // The implementation must be able to handle at least:
-  static const intptr_t kMaxRegister = (1 << 16) - 1;
-  static const intptr_t kMaxCPOffset = (1 << 15) - 1;
-  static const intptr_t kMinCPOffset = -(1 << 15);
+  static constexpr intptr_t kMaxRegister = (1 << 16) - 1;
+  static constexpr intptr_t kMaxCPOffset = (1 << 15) - 1;
+  static constexpr intptr_t kMinCPOffset = -(1 << 15);
 
-  static const intptr_t kTableSizeBits = 7;
-  static const intptr_t kTableSize = 1 << kTableSizeBits;
-  static const intptr_t kTableMask = kTableSize - 1;
+  static constexpr intptr_t kTableSizeBits = 7;
+  static constexpr intptr_t kTableSize = 1 << kTableSizeBits;
+  static constexpr intptr_t kTableMask = kTableSize - 1;
 
   enum {
     kParamRegExpIndex = 0,

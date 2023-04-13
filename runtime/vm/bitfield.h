@@ -122,7 +122,7 @@ class AtomicBitFieldContainer : AtomicBitFieldContainerBase {
   std::atomic<T> field_;
 };
 
-static const uword kUwordOne = 1U;
+static constexpr uword kUwordOne = 1U;
 
 // BitField is a template for encoding and decoding a value of type T
 // inside a storage of type S.
@@ -141,7 +141,7 @@ class BitField {
   static_assert(!sign_extend || std::is_signed<T>::value,
                 "Should only sign extend signed bitfield types");
 
-  static const intptr_t kNextBit = position + size;
+  static constexpr intptr_t kNextBit = position + size;
 
   // Tells whether the provided value fits into the bit field.
   static constexpr bool is_valid(T value) {

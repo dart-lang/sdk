@@ -34,7 +34,7 @@ typedef struct {
 
 class Simulator {
  public:
-  static const uword kSimulatorStackUnderflowSize = 64;
+  static constexpr uword kSimulatorStackUnderflowSize = 64;
 
   Simulator();
   ~Simulator();
@@ -116,12 +116,12 @@ class Simulator {
  private:
   // Known bad pc value to ensure that the simulator does not execute
   // without being properly setup.
-  static const uword kBadLR = -1;
+  static constexpr uword kBadLR = -1;
   // A pc value used to signal the simulator to stop execution.  Generally
   // the lr is set to this value on transition from native C code to
   // simulated execution, so that the simulator can "return" to the native
   // C code.
-  static const uword kEndSimulatingPC = -2;
+  static constexpr uword kEndSimulatingPC = -2;
 
   // CPU state.
   int64_t registers_[kNumberOfCpuRegisters];

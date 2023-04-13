@@ -26,8 +26,8 @@
 namespace dart {
 namespace bin {
 
-static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
-static const int64_t kAppSnapshotPageSize = 16 * KB;
+static constexpr int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
+static constexpr int64_t kAppSnapshotPageSize = 16 * KB;
 
 static const char kMachOAppSnapshotNoteName[] DART_UNUSED = "__dart_app_snap";
 

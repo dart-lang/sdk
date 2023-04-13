@@ -189,7 +189,7 @@ TEST_CASE(PrintToString) {
 
 #if !defined(PRODUCT)
 // Allow for pooling in the malloc implementation.
-static const int64_t kRssSlack = 20 * MB;
+static constexpr int64_t kRssSlack = 20 * MB;
 #endif  // !defined(PRODUCT)
 
 // clang-format off

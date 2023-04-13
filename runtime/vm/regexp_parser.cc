@@ -17,7 +17,7 @@ namespace dart {
 #define Z zone()
 
 // Enables possessive quantifier syntax for testing.
-static const bool FLAG_regexp_possessive_quantifier = false;
+static constexpr bool FLAG_regexp_possessive_quantifier = false;
 
 RegExpBuilder::RegExpBuilder(RegExpFlags flags)
     : zone_(Thread::Current()->zone()),

@@ -379,7 +379,7 @@ class ProfileStackWalker {
     return profile_->GetCodeFromPC(pc, timestamp);
   }
 
-  static const intptr_t kInvalidInlinedIndex = -1;
+  static constexpr intptr_t kInvalidInlinedIndex = -1;
 
   bool UpdateFunctionIndex() {
     if (inlined_index_ != kInvalidInlinedIndex) {

@@ -31,7 +31,7 @@ namespace bin {
     return false;                                                              \
   }
 
-static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
+static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();

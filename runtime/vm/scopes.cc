@@ -575,7 +575,7 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
 }
 
 ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
-  static const intptr_t kNumCapturedVars = 1;
+  const intptr_t kNumCapturedVars = 1;
 
   // Create a ContextScope with space for kNumCapturedVars descriptors.
   const ContextScope& context_scope =

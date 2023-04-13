@@ -28,10 +28,10 @@
 namespace dart {
 
 // Default to generating optimized regexp code.
-static const bool kRegexpOptimization = true;
+static constexpr bool kRegexpOptimization = true;
 
 // More makes code generation slower, less makes V8 benchmark score lower.
-static const intptr_t kMaxLookaheadForBoyerMoore = 8;
+static constexpr intptr_t kMaxLookaheadForBoyerMoore = 8;
 
 ContainedInLattice AddRange(ContainedInLattice containment,
                             const int32_t* ranges,
@@ -326,14 +326,14 @@ class RegExpCompiler : public ValueObject {
 
   inline void AddWork(RegExpNode* node) { work_list_->Add(node); }
 
-  static const intptr_t kImplementationOffset = 0;
-  static const intptr_t kNumberOfRegistersOffset = 0;
-  static const intptr_t kCodeOffset = 1;
+  static constexpr intptr_t kImplementationOffset = 0;
+  static constexpr intptr_t kNumberOfRegistersOffset = 0;
+  static constexpr intptr_t kCodeOffset = 1;
 
   RegExpMacroAssembler* macro_assembler() { return macro_assembler_; }
   EndNode* accept() { return accept_; }
 
-  static const intptr_t kMaxRecursion = 100;
+  static constexpr intptr_t kMaxRecursion = 100;
   inline intptr_t recursion_depth() { return recursion_depth_; }
   inline void IncrementRecursionDepth() { recursion_depth_++; }
   inline void DecrementRecursionDepth() { recursion_depth_--; }
@@ -352,7 +352,7 @@ class RegExpCompiler : public ValueObject {
 
   Zone* zone() const { return zone_; }
 
-  static const intptr_t kNoRegister = -1;
+  static constexpr intptr_t kNoRegister = -1;
 
  private:
   EndNode* accept_;
@@ -548,7 +548,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
     intptr_t value = 0;
     bool absolute = false;
     bool clear = false;
-    static const intptr_t kNoStore = kMinInt32;
+    const intptr_t kNoStore = kMinInt32;
     intptr_t store_position = kNoStore;
     // This is a little tricky because we are scanning the actions in reverse
     // historical order (newest first).
@@ -1067,8 +1067,8 @@ static void EmitUseLookupTable(RegExpMacroAssembler* masm,
                                BlockLabel* fall_through,
                                BlockLabel* even_label,
                                BlockLabel* odd_label) {
-  static const intptr_t kSize = RegExpMacroAssembler::kTableSize;
-  static const intptr_t kMask = RegExpMacroAssembler::kTableMask;
+  const intptr_t kSize = RegExpMacroAssembler::kTableSize;
+  const intptr_t kMask = RegExpMacroAssembler::kTableMask;
 
   intptr_t base = (min_char & ~kMask);
 
@@ -1149,8 +1149,8 @@ static void SplitSearchSpace(ZoneGrowableArray<uint16_t>* ranges,
                              intptr_t* new_start_index,
                              intptr_t* new_end_index,
                              uint16_t* border) {
-  static const intptr_t kSize = RegExpMacroAssembler::kTableSize;
-  static const intptr_t kMask = RegExpMacroAssembler::kTableMask;
+  const intptr_t kSize = RegExpMacroAssembler::kTableSize;
+  const intptr_t kMask = RegExpMacroAssembler::kTableMask;
 
   uint16_t first = ranges->At(start_index);
   uint16_t last = ranges->At(end_index) - 1;
@@ -1265,7 +1265,7 @@ static void GenerateBranches(RegExpMacroAssembler* masm,
 
   // If there are a lot of intervals in the regexp, then we will use tables to
   // determine whether the character is inside or outside the character class.
-  static const intptr_t kBits = RegExpMacroAssembler::kTableSizeBits;
+  const intptr_t kBits = RegExpMacroAssembler::kTableSizeBits;
 
   if ((max_char >> kBits) == (min_char >> kBits)) {
     EmitUseLookupTable(masm, ranges, start_index, end_index, min_char,
@@ -2749,7 +2749,7 @@ class AlternativeGenerationList {
   }
 
  private:
-  static const intptr_t kAFew = 10;
+  static constexpr intptr_t kAFew = 10;
 
   intptr_t count_;
   AlternativeGeneration a_few_alt_gens_[kAFew];
@@ -2759,28 +2759,28 @@ class AlternativeGenerationList {
   DISALLOW_COPY_AND_ASSIGN(AlternativeGenerationList);
 };
 
-static const int32_t kRangeEndMarker = Utf::kMaxCodePoint + 1;
+static constexpr int32_t kRangeEndMarker = Utf::kMaxCodePoint + 1;
 
 // The '2' variant is inclusive from and exclusive to.
 // This covers \s as defined in ECMA-262 5.1, 15.10.2.12,
 // which include WhiteSpace (7.2) or LineTerminator (7.3) values.
 // 0x180E has been removed from Unicode's Zs category and thus
 // from ECMAScript's WhiteSpace category as of Unicode 6.3.
-static const int32_t kSpaceRanges[] = {
+static constexpr int32_t kSpaceRanges[] = {
     '\t',   '\r' + 1, ' ',    ' ' + 1, 0x00A0, 0x00A1, 0x1680,
     0x1681, 0x2000,   0x200B, 0x2028,  0x202A, 0x202F, 0x2030,
     0x205F, 0x2060,   0x3000, 0x3001,  0xFEFF, 0xFF00, kRangeEndMarker};
-static const intptr_t kSpaceRangeCount = ARRAY_SIZE(kSpaceRanges);
-static const int32_t kWordRanges[] = {
+static constexpr intptr_t kSpaceRangeCount = ARRAY_SIZE(kSpaceRanges);
+static constexpr int32_t kWordRanges[] = {
     '0', '9' + 1, 'A', 'Z' + 1, '_', '_' + 1, 'a', 'z' + 1, kRangeEndMarker};
-static const intptr_t kWordRangeCount = ARRAY_SIZE(kWordRanges);
-static const int32_t kDigitRanges[] = {'0', '9' + 1, kRangeEndMarker};
-static const intptr_t kDigitRangeCount = ARRAY_SIZE(kDigitRanges);
-static const int32_t kSurrogateRanges[] = {0xd800, 0xe000, kRangeEndMarker};
-static const intptr_t kSurrogateRangeCount = ARRAY_SIZE(kSurrogateRanges);
-static const int32_t kLineTerminatorRanges[] = {
+static constexpr intptr_t kWordRangeCount = ARRAY_SIZE(kWordRanges);
+static constexpr int32_t kDigitRanges[] = {'0', '9' + 1, kRangeEndMarker};
+static constexpr intptr_t kDigitRangeCount = ARRAY_SIZE(kDigitRanges);
+static constexpr int32_t kSurrogateRanges[] = {0xd800, 0xe000, kRangeEndMarker};
+static constexpr intptr_t kSurrogateRangeCount = ARRAY_SIZE(kSurrogateRanges);
+static constexpr int32_t kLineTerminatorRanges[] = {
     0x000A, 0x000B, 0x000D, 0x000E, 0x2028, 0x202A, kRangeEndMarker};
-static const intptr_t kLineTerminatorRangeCount =
+static constexpr intptr_t kLineTerminatorRangeCount =
     ARRAY_SIZE(kLineTerminatorRanges);
 
 void BoyerMoorePositionInfo::Set(intptr_t character) {
@@ -2863,7 +2863,7 @@ intptr_t BoyerMooreLookahead::FindBestInterval(intptr_t max_number_of_chars,
                                                intptr_t* from,
                                                intptr_t* to) {
   intptr_t biggest_points = old_biggest_points;
-  static const intptr_t kSize = RegExpMacroAssembler::kTableSize;
+  static constexpr intptr_t kSize = RegExpMacroAssembler::kTableSize;
   for (intptr_t i = 0; i < length_;) {
     while (i < length_ && Count(i) > max_number_of_chars)
       i++;
@@ -4220,7 +4220,7 @@ RegExpNode* RegExpQuantifier::ToNode(RegExpCompiler* compiler,
 // regexp graph generator.
 class RegExpExpansionLimiter : public ValueObject {
  public:
-  static const intptr_t kMaxExpansionFactor = 6;
+  static constexpr intptr_t kMaxExpansionFactor = 6;
   RegExpExpansionLimiter(RegExpCompiler* compiler, intptr_t factor)
       : compiler_(compiler),
         saved_expansion_factor_(compiler->current_expansion_factor()),
@@ -4281,9 +4281,9 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
   // from step 2.1.  If the min and max are small we can unroll a little in
   // this case.
   // Unroll (foo)+ and (foo){3,}
-  static const intptr_t kMaxUnrolledMinMatches = 3;
+  const intptr_t kMaxUnrolledMinMatches = 3;
   // Unroll (foo)? and (foo){x,3}
-  static const intptr_t kMaxUnrolledMaxMatches = 3;
+  const intptr_t kMaxUnrolledMaxMatches = 3;
   if (max == 0) return on_success;  // This can happen due to recursion.
   bool body_can_be_empty = (body->min_match() == 0);
   intptr_t body_start_reg = RegExpCompiler::kNoRegister;
@@ -5383,7 +5383,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
-  static const intptr_t kMaxBacksearchLimit = 1024;
+  const intptr_t kMaxBacksearchLimit = 1024;
   if (is_end_anchored && !is_start_anchored && !is_sticky &&
       max_length < kMaxBacksearchLimit) {
     macro_assembler->SetCurrentPositionFromEnd(max_length);
@@ -5493,7 +5493,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
 
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
-  static const intptr_t kMaxBacksearchLimit = 1024;
+  const intptr_t kMaxBacksearchLimit = 1024;
   if (is_end_anchored && !is_start_anchored && !is_sticky &&
       max_length < kMaxBacksearchLimit) {
     macro_assembler->SetCurrentPositionFromEnd(max_length);

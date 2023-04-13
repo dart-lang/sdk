@@ -27,7 +27,7 @@ class MaybeOnStackBuffer {
   char* p() { return p_; }
 
  private:
-  static const intptr_t kOnStackBufferCapacity = 4096;
+  static constexpr intptr_t kOnStackBufferCapacity = 4096;
   char* p_;
   char buffer_[kOnStackBufferCapacity];
 };

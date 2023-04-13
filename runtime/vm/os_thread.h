@@ -229,7 +229,7 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static const intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
+  static constexpr intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
   static constexpr float kStackSizeBufferFraction = 0.5;
 
   static const ThreadId kInvalidThreadId;
@@ -340,7 +340,7 @@ class Monitor {
  public:
   enum WaitResult { kNotified, kTimedOut };
 
-  static const int64_t kNoTimeout = 0;
+  static constexpr int64_t kNoTimeout = 0;
 
   Monitor();
   ~Monitor();

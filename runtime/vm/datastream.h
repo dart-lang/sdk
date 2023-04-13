@@ -15,13 +15,15 @@
 
 namespace dart {
 
-static const int8_t kDataBitsPerByte = 7;
-static const int8_t kByteMask = (1 << kDataBitsPerByte) - 1;
-static const int8_t kMaxUnsignedDataPerByte = kByteMask;
-static const int8_t kMinDataPerByte = -(1 << (kDataBitsPerByte - 1));
-static const int8_t kMaxDataPerByte = (~kMinDataPerByte & kByteMask);  // NOLINT
-static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
-static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
+static constexpr int8_t kDataBitsPerByte = 7;
+static constexpr int8_t kByteMask = (1 << kDataBitsPerByte) - 1;
+static constexpr int8_t kMaxUnsignedDataPerByte = kByteMask;
+static constexpr int8_t kMinDataPerByte = -(1 << (kDataBitsPerByte - 1));
+static constexpr int8_t kMaxDataPerByte =
+    (~kMinDataPerByte & kByteMask);  // NOLINT
+static constexpr uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
+static constexpr uint8_t kEndUnsignedByteMarker =
+    (255 - kMaxUnsignedDataPerByte);
 
 struct LEB128Constants : AllStatic {
   // Convenience template for ensuring non-signed types trigger SFINAE.

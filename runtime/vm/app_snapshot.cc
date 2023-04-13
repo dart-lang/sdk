@@ -6742,7 +6742,7 @@ class UnitDeserializationRoots : public DeserializationRoots {
 };
 
 #if defined(DEBUG)
-static const int32_t kSectionMarker = 0xABAB;
+static constexpr int32_t kSectionMarker = 0xABAB;
 #endif
 
 Serializer::Serializer(Thread* thread,

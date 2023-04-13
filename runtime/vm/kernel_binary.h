@@ -175,9 +175,9 @@ static const uint32_t kSupportedKernelFormatVersion = 101;
   V(SpecializedVariableSet, 232)                                               \
   V(SpecializedIntLiteral, 240)
 
-static const intptr_t kSpecializedTagHighBits = 0xe0;
-static const intptr_t kSpecializedTagMask = 0xf8;
-static const intptr_t kSpecializedPayloadMask = 0x7;
+static constexpr intptr_t kSpecializedTagHighBits = 0xe0;
+static constexpr intptr_t kSpecializedTagMask = 0xf8;
+static constexpr intptr_t kSpecializedPayloadMask = 0x7;
 
 enum Tag {
 #define DECLARE(Name, value) k##Name = value,
@@ -264,12 +264,12 @@ enum class FunctionAccessKind {
   kNullable,
 };
 
-static const int SpecializedIntLiteralBias = 3;
-static const int LibraryCountFieldCountFromEnd = 1;
-static const int KernelFormatVersionOffset = 4;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 9;
+static constexpr int SpecializedIntLiteralBias = 3;
+static constexpr int LibraryCountFieldCountFromEnd = 1;
+static constexpr int KernelFormatVersionOffset = 4;
+static constexpr int SourceTableFieldCountFromFirstLibraryOffset = 9;
 
-static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
+static constexpr int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
 class Reader : public ValueObject {
  public:

@@ -17,14 +17,14 @@
 namespace dart {
 namespace bin {
 
-static const int kProcessIdNativeField = 0;
+static constexpr int kProcessIdNativeField = 0;
 
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,
                                  Dart_Handle status_handle,
                                  const char* error_msg,
                                  intptr_t* length) {
-  static const intptr_t kMaxArgumentListLength = 1024 * 1024;
+  static constexpr intptr_t kMaxArgumentListLength = 1024 * 1024;
   ASSERT(Dart_IsList(strings));
   intptr_t len = 0;
   Dart_Handle result = Dart_ListLength(strings, &len);

@@ -1801,12 +1801,12 @@ TEST_CASE(DartAPI_ExternalStringPretenure) {
 TEST_CASE(DartAPI_ExternalTypedDataPretenure) {
   {
     Dart_EnterScope();
-    static const int kBigLength = 16 * MB / 8;
+    const int kBigLength = 16 * MB / 8;
     int64_t* big_data = new int64_t[kBigLength]();
     Dart_Handle big =
         Dart_NewExternalTypedData(Dart_TypedData_kInt64, big_data, kBigLength);
     EXPECT_VALID(big);
-    static const int kSmallLength = 16 * KB / 8;
+    const int kSmallLength = 16 * KB / 8;
     int64_t* small_data = new int64_t[kSmallLength]();
     Dart_Handle small = Dart_NewExternalTypedData(Dart_TypedData_kInt64,
                                                   small_data, kSmallLength);
@@ -2344,7 +2344,7 @@ ByteData main() {
   EXPECT_VALID(result);
 }
 
-static const intptr_t kExtLength = 16;
+static constexpr intptr_t kExtLength = 16;
 static int8_t data[kExtLength] = {
     0x41, 0x42, 0x41, 0x42, 0x41, 0x42, 0x41, 0x42,
     0x41, 0x42, 0x41, 0x42, 0x41, 0x42, 0x41, 0x42,
@@ -2483,7 +2483,7 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
 
 #ifndef PRODUCT
 
-static const intptr_t kOptExtLength = 16;
+static constexpr intptr_t kOptExtLength = 16;
 static int8_t opt_data[kOptExtLength] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
@@ -4188,7 +4188,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
   EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   Dart_WeakPersistentHandle weak1 = nullptr;
-  static const intptr_t kWeak1ExternalSize = 1 * KB;
+  const intptr_t kWeak1ExternalSize = 1 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
@@ -4200,7 +4200,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
   }
   Dart_PersistentHandle strong_ref = nullptr;
   Dart_WeakPersistentHandle weak2 = nullptr;
-  static const intptr_t kWeak2ExternalSize = 2 * KB;
+  const intptr_t kWeak2ExternalSize = 2 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("strongly referenced string");
@@ -4237,7 +4237,7 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
   Heap* heap = IsolateGroup::Current()->heap();
   EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
-  static const intptr_t kWeak1ExternalSize = 1 * KB;
+  const intptr_t kWeak1ExternalSize = 1 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
@@ -4246,7 +4246,7 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
     Dart_ExitScope();
   }
   Dart_PersistentHandle strong_ref = nullptr;
-  static const intptr_t kWeak2ExternalSize = 2 * KB;
+  const intptr_t kWeak2ExternalSize = 2 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("strongly referenced string");
@@ -4443,9 +4443,9 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOldspaceGC) {
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Heap* heap = IsolateGroup::Current()->heap();
   Dart_WeakPersistentHandle weak1 = nullptr;
-  static const intptr_t kWeak1ExternalSize = 1 * KB;
+  const intptr_t kWeak1ExternalSize = 1 * KB;
   Dart_WeakPersistentHandle weak2 = nullptr;
-  static const intptr_t kWeak2ExternalSize = 2 * KB;
+  const intptr_t kWeak2ExternalSize = 2 * KB;
   EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   {
     Dart_EnterScope();
@@ -4478,10 +4478,10 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOddReferents) {
   Heap* heap = IsolateGroup::Current()->heap();
   Dart_FinalizableHandle weak1 = nullptr;
   Dart_PersistentHandle strong1 = nullptr;
-  static const intptr_t kWeak1ExternalSize = 1 * KB;
+  const intptr_t kWeak1ExternalSize = 1 * KB;
   Dart_FinalizableHandle weak2 = nullptr;
   Dart_PersistentHandle strong2 = nullptr;
-  static const intptr_t kWeak2ExternalSize = 2 * KB;
+  const intptr_t kWeak2ExternalSize = 2 * KB;
   EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   {
     Dart_EnterScope();
@@ -5787,9 +5787,9 @@ TEST_CASE(DartAPI_InjectNativeFields4) {
 #endif
 }
 
-static const int kTestNumNativeFields = 2;
-static const intptr_t kNativeField1Value = 30;
-static const intptr_t kNativeField2Value = 40;
+static constexpr int kTestNumNativeFields = 2;
+static constexpr intptr_t kNativeField1Value = 30;
+static constexpr intptr_t kNativeField2Value = 40;
 
 void TestNativeFieldsAccess_init(Dart_NativeArguments args) {
   Dart_Handle receiver = Dart_GetNativeArgument(args, 0);
@@ -8457,7 +8457,7 @@ TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {
   EXPECT(Dart_CloseNativePort(port_id2));
 }
 
-static const intptr_t kSendLength = 16;
+static constexpr intptr_t kSendLength = 16;
 
 static void NewNativePort_ExternalTypedData(Dart_Port dest_port_id,
                                             Dart_CObject* message) {
@@ -10506,7 +10506,8 @@ TEST_CASE(DartAPI_UserTags) {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 static void* HeapSamplingCreate(Dart_Isolate isolate,
-                                Dart_IsolateGroup isolate_group) {
+                                Dart_IsolateGroup isolate_group,
+                                intptr_t heap_size) {
   return strdup("test data");
 }
 
@@ -10515,7 +10516,6 @@ static void HeapSamplingDelete(void* data) {
 }
 
 static void* last_allocation_context = nullptr;
-static intptr_t last_allocation_size = 0;
 static const char* last_allocation_cls = nullptr;
 static void* last_allocation_data = nullptr;
 static intptr_t heap_samples = 0;
@@ -10523,11 +10523,9 @@ static const char* expected_allocation_cls = nullptr;
 static bool found_allocation = false;
 
 void HeapSamplingReport(void* context,
-                        intptr_t heap_size,
                         const char* cls_name,
                         void* data) {
   last_allocation_context = context;
-  last_allocation_size = heap_size;
   last_allocation_cls = cls_name;
   last_allocation_data = data;
   if (strcmp(cls_name, expected_allocation_cls) == 0) {
@@ -10541,7 +10539,6 @@ void ResetHeapSamplingState(const char* expected_cls = nullptr) {
   expected_allocation_cls = expected_cls;
   found_allocation = false;
   last_allocation_context = nullptr;
-  last_allocation_size = 0;
   last_allocation_cls = nullptr;
   last_allocation_data = nullptr;
 }
@@ -10591,7 +10588,8 @@ TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
   Dart_ExitIsolate();
 
   void* context = reinterpret_cast<void*>(42);  // Fake data, not used.
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, context);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, context,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < 100000);
   EXPECT(last_allocation_context == context);
@@ -10611,7 +10609,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   EXPECT(isolate != nullptr);
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
 #if !defined(PRODUCT)
   EXPECT_STREQ("List", last_allocation_cls);
@@ -10632,7 +10631,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
@@ -10650,7 +10650,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
@@ -10664,7 +10665,8 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(found_allocation);
 
@@ -10692,7 +10694,8 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   EXPECT(isolate != nullptr);
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
 
@@ -10725,7 +10728,8 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   // Exit the isolate after performing allocations.
   Dart_ExitIsolate();
 
-  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr);
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
 

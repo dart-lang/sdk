@@ -108,8 +108,8 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  static const int64_t kTimeEpoc = 116444736000000000LL;
-  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+  const int64_t kTimeEpoc = 116444736000000000LL;
+  const int64_t kTimeScaler = 10;  // 100 ns to us.
 
   // Although win32 uses 64-bit integers for representing timestamps,
   // these are packed into a FILETIME structure. The FILETIME

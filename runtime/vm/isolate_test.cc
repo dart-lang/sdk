@@ -106,8 +106,8 @@ TEST_CASE(IsolateSpawn_PackageUri) {
 
 class InterruptChecker : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
-  static const intptr_t kIterations;
+  static constexpr intptr_t kTaskCount = 5;
+  static constexpr intptr_t kIterations = 10;
 
   InterruptChecker(Thread* thread, ThreadBarrier* barrier)
       : thread_(thread), barrier_(barrier) {}
@@ -138,9 +138,6 @@ class InterruptChecker : public ThreadPool::Task {
   Thread* thread_;
   ThreadBarrier* barrier_;
 };
-
-const intptr_t InterruptChecker::kTaskCount = 5;
-const intptr_t InterruptChecker::kIterations = 10;
 
 // Test and document usage of Isolate::HasInterruptsScheduled.
 //

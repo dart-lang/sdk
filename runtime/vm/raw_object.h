@@ -174,9 +174,9 @@ class UntaggedObject {
     kHashTagSize = 32,
   };
 
-  static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-  static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
-  static const intptr_t kBarrierOverlapShift = 2;
+  static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
+  static constexpr intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
@@ -1997,9 +1997,10 @@ class UntaggedPcDescriptors : public UntaggedObject {
     }
 
    private:
-    static const intptr_t kKindShiftSize = 3;
-    static const intptr_t kTryIndexSize = 10;
-    static const intptr_t kYieldIndexSize = 32 - kKindShiftSize - kTryIndexSize;
+    static constexpr intptr_t kKindShiftSize = 3;
+    static constexpr intptr_t kTryIndexSize = 10;
+    static constexpr intptr_t kYieldIndexSize =
+        32 - kKindShiftSize - kTryIndexSize;
 
     class KindShiftBits
         : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};

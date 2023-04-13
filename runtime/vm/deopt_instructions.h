@@ -571,7 +571,7 @@ class DeoptTable : public AllStatic {
   class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> {};
 
  private:
-  static const intptr_t kEntrySize = 3;
+  static constexpr intptr_t kEntrySize = 3;
 };
 
 // Holds deopt information at one deoptimization point. The information consists

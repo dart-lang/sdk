@@ -372,9 +372,9 @@ class FinalizablePersistentHandle {
 };
 
 // Local handles repository structure.
-static const int kLocalHandleSizeInWords = sizeof(LocalHandle) / kWordSize;
-static const int kLocalHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInLocalHandle = 0;
+static constexpr int kLocalHandleSizeInWords = sizeof(LocalHandle) / kWordSize;
+static constexpr int kLocalHandlesPerChunk = 64;
+static constexpr int kOffsetOfRawPtrInLocalHandle = 0;
 class LocalHandles : Handles<kLocalHandleSizeInWords,
                              kLocalHandlesPerChunk,
                              kOffsetOfRawPtrInLocalHandle> {
@@ -431,10 +431,10 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
 };
 
 // Persistent handles repository structure.
-static const int kPersistentHandleSizeInWords =
+static constexpr int kPersistentHandleSizeInWords =
     sizeof(PersistentHandle) / kWordSize;
-static const int kPersistentHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInPersistentHandle = 0;
+static constexpr int kPersistentHandlesPerChunk = 64;
+static constexpr int kOffsetOfRawPtrInPersistentHandle = 0;
 class PersistentHandles : Handles<kPersistentHandleSizeInWords,
                                   kPersistentHandlesPerChunk,
                                   kOffsetOfRawPtrInPersistentHandle> {
@@ -521,10 +521,10 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 };
 
 // Finalizable persistent handles repository structure.
-static const int kFinalizablePersistentHandleSizeInWords =
+static constexpr int kFinalizablePersistentHandleSizeInWords =
     sizeof(FinalizablePersistentHandle) / kWordSize;
-static const int kFinalizablePersistentHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInFinalizablePersistentHandle = 0;
+static constexpr int kFinalizablePersistentHandlesPerChunk = 64;
+static constexpr int kOffsetOfRawPtrInFinalizablePersistentHandle = 0;
 class FinalizablePersistentHandles
     : Handles<kFinalizablePersistentHandleSizeInWords,
               kFinalizablePersistentHandlesPerChunk,

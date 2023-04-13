@@ -41,7 +41,7 @@ class RegExpBuilder : public ZoneAllocated {
   bool is_dot_all() const { return flags_.IsDotAll(); }
 
  private:
-  static const uint16_t kNoPendingSurrogate = 0;
+  static constexpr uint16_t kNoPendingSurrogate = 0;
   void AddLeadSurrogate(uint16_t lead_surrogate);
   void AddTrailSurrogate(uint16_t trail_surrogate);
   void FlushPendingSurrogate();
@@ -142,8 +142,8 @@ class RegExpParser : public ValueObject {
 
   static bool IsSyntaxCharacterOrSlash(uint32_t c);
 
-  static const intptr_t kMaxCaptures = 1 << 16;
-  static const uint32_t kEndMarker = (1 << 21);
+  static constexpr intptr_t kMaxCaptures = 1 << 16;
+  static constexpr uint32_t kEndMarker = (1 << 21);
 
  private:
   enum SubexpressionType {

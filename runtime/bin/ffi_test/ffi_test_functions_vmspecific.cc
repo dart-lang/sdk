@@ -30,8 +30,6 @@
 #include <iostream>
 #include <limits>
 
-#include "bin/lockers.h"
-
 // TODO(dartbug.com/40579): This requires static linking to either link
 // dart.exe or dart_precompiled_runtime.exe on Windows.
 // The sample currently fails on Windows in AOT mode.
@@ -421,6 +419,16 @@ DART_EXPORT intptr_t InitDartApiDL(void* data) {
 // Functions for async callbacks example.
 //
 // sample_async_callback.dart
+
+void Fatal(char const* file, int line, char const* error) {
+  printf("FATAL %s:%i\n", file, line);
+  printf("%s\n", error);
+  Dart_DumpNativeStackTrace(nullptr);
+  Dart_PrepareToAbort();
+  abort();
+}
+
+#define FATAL(error) Fatal(__FILE__, __LINE__, error)
 
 DART_EXPORT void SleepOnAnyOS(intptr_t seconds) {
 #if defined(DART_HOST_OS_WINDOWS)
@@ -886,16 +894,11 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
   dart_exit_isolate();
   {
     std::unique_lock<std::mutex> lock(mutex);
-
     ++thread_count;
-    if (thread_count < num_threads) {
-      while (thread_count < num_threads) {
-        cvar.wait(lock);
-      }
-    } else {
-      if (thread_count != num_threads) FATAL("bug");
-      cvar.notify_all();
+    while (thread_count < num_threads) {
+      cvar.wait(lock);
     }
+    cvar.notify_all();
   }
   dart_enter_isolate(isolate);
 }
@@ -1275,25 +1278,8 @@ DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
 }
 
 DART_EXPORT void WaitUntilNThreadsEnterBarrier(intptr_t num_threads) {
-  Dart_Isolate isolate = Dart_CurrentIsolate_DL();
-  Dart_ExitIsolate_DL();
-  {
-    ENSURE(Dart_CurrentIsolate_DL() == nullptr);
-
-    // Guaranteed to be initialized exactly once (no race between multiple
-    // threads).
-    static dart::bin::Monitor monitor;
-    static intptr_t thread_count = 0;
-
-    dart::bin::MonitorLocker ml(&monitor);
-    ++thread_count;
-    while (thread_count < num_threads) {
-      ml.Wait();
-    }
-    if (thread_count != num_threads) UNREACHABLE();
-    ml.NotifyAll();
-  }
-  Dart_EnterIsolate_DL(isolate);
+  ThreadPoolTest_BarrierSync(Dart_CurrentIsolate_DL, Dart_EnterIsolate_DL,
+                             Dart_ExitIsolate_DL, num_threads);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

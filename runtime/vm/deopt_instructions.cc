@@ -444,7 +444,7 @@ class DeoptRetAddressInstr : public DeoptInstr {
   intptr_t deopt_id() const { return deopt_id_; }
 
  private:
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
+  static constexpr intptr_t kFieldWidth = kBitsPerWord / 2;
   class ObjectTableIndex : public BitField<intptr_t, intptr_t, 0, kFieldWidth> {
   };
   class DeoptId
@@ -580,7 +580,7 @@ class DeoptMintPairInstr : public DeoptIntegerInstrBase {
   }
 
  private:
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
+  static constexpr intptr_t kFieldWidth = kBitsPerWord / 2;
   class LoRegister : public BitField<intptr_t, intptr_t, 0, kFieldWidth> {};
   class HiRegister
       : public BitField<intptr_t, intptr_t, kFieldWidth, kFieldWidth> {};

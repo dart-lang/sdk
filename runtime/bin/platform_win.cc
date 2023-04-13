@@ -115,7 +115,7 @@ int Platform::NumberOfProcessors() {
 // registry because GetVersionEx() and friends lie about the OS version after
 // Windows 8.1. See:
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724451(v=vs.85).aspx
-static const wchar_t* kCurrentVersion =
+static constexpr const wchar_t* kCurrentVersion =
     L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
 
 static bool GetCurrentVersionDWord(const wchar_t* field, DWORD* value) {

@@ -213,7 +213,7 @@ class Token {
 
   static const Kind kFirstKeyword = kABSTRACT;
   static const Kind kLastKeyword = kWITH;
-  static const int kNumKeywords = kLastKeyword - kFirstKeyword + 1;
+  static constexpr int kNumKeywords = kLastKeyword - kFirstKeyword + 1;
 
   static bool IsAssignmentOperator(Kind tok) {
     return kASSIGN <= tok && tok <= kASSIGN_COND;

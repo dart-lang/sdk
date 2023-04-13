@@ -14,7 +14,7 @@
 namespace dart {
 namespace bin {
 
-static const int kNamespaceNativeFieldIndex = 0;
+static constexpr int kNamespaceNativeFieldIndex = 0;
 
 static void ReleaseNamespace(void* isolate_callback_data, void* peer) {
   Namespace* namespc = reinterpret_cast<Namespace*>(peer);

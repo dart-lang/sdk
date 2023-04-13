@@ -42,7 +42,7 @@ class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
       : count_(0), max_count_(max_count), arguments_(nullptr) {
-    static const int kWordSize = sizeof(intptr_t);
+    const int kWordSize = sizeof(intptr_t);
     arguments_ = reinterpret_cast<const char**>(malloc(max_count * kWordSize));
     if (arguments_ == nullptr) {
       max_count_ = 0;
@@ -256,20 +256,20 @@ class DartUtils {
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 
-  static const char* const kDartScheme;
-  static const char* const kAsyncLibURL;
-  static const char* const kBuiltinLibURL;
-  static const char* const kCoreLibURL;
-  static const char* const kInternalLibURL;
-  static const char* const kIsolateLibURL;
-  static const char* const kHttpLibURL;
-  static const char* const kIOLibURL;
-  static const char* const kIOLibPatchURL;
-  static const char* const kCLILibURL;
-  static const char* const kCLILibPatchURL;
-  static const char* const kUriLibURL;
-  static const char* const kHttpScheme;
-  static const char* const kVMServiceLibURL;
+  static constexpr const char* kDartScheme = "dart:";
+  static constexpr const char* kAsyncLibURL = "dart:async";
+  static constexpr const char* kBuiltinLibURL = "dart:_builtin";
+  static constexpr const char* kCoreLibURL = "dart:core";
+  static constexpr const char* kInternalLibURL = "dart:_internal";
+  static constexpr const char* kIsolateLibURL = "dart:isolate";
+  static constexpr const char* kHttpLibURL = "dart:_http";
+  static constexpr const char* kIOLibURL = "dart:io";
+  static constexpr const char* kIOLibPatchURL = "dart:io-patch";
+  static constexpr const char* kCLILibURL = "dart:cli";
+  static constexpr const char* kCLILibPatchURL = "dart:cli-patch";
+  static constexpr const char* kUriLibURL = "dart:uri";
+  static constexpr const char* kHttpScheme = "http:";
+  static constexpr const char* kVMServiceLibURL = "dart:vmservice";
 
   static void SetEnvironment(dart::SimpleHashMap* environment);
   static Dart_Handle EnvironmentCallback(Dart_Handle name);
@@ -298,10 +298,10 @@ class DartUtils {
 class CObject {
  public:
   // These match the constants in sdk/lib/io/common.dart.
-  static const int kSuccess = 0;
-  static const int kArgumentError = 1;
-  static const int kOSError = 2;
-  static const int kFileClosedError = 3;
+  static constexpr int kSuccess = 0;
+  static constexpr int kArgumentError = 1;
+  static constexpr int kOSError = 2;
+  static constexpr int kFileClosedError = 3;
 
   explicit CObject(Dart_CObject* cobject) : cobject_(cobject) {}
   Dart_CObject_Type type() { return cobject_->type; }
@@ -620,7 +620,7 @@ class ScopedBlockingCall {
 };
 
 struct MagicNumberData {
-  static const intptr_t kMaxLength = 8;
+  static constexpr intptr_t kMaxLength = 8;
 
   intptr_t length;
   const uint8_t bytes[kMaxLength];

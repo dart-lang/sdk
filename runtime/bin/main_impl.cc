@@ -918,8 +918,8 @@ static void DeleteIsolateGroupData(void* callback_data) {
   delete isolate_group_data;
 }
 
-static const char* kStdoutStreamId = "Stdout";
-static const char* kStderrStreamId = "Stderr";
+static constexpr const char* kStdoutStreamId = "Stdout";
+static constexpr const char* kStderrStreamId = "Stderr";
 
 static bool ServiceStreamListenCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {

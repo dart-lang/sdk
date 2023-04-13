@@ -12,9 +12,9 @@
 
 namespace unibrow {
 
-static const intptr_t kStartBit = (1 << 30);
-static const intptr_t kChunkBits = (1 << 13);
-static const int32_t kSentinel = static_cast<int32_t>(-1);
+static constexpr intptr_t kStartBit = (1 << 30);
+static constexpr intptr_t kChunkBits = (1 << 13);
+static constexpr int32_t kSentinel = static_cast<int32_t>(-1);
 
 /**
  * \file
@@ -46,7 +46,7 @@ static inline bool IsStart(int32_t entry) {
  * information available about the character.
  */
 static bool LookupPredicate(const int32_t* table, uint16_t size, int32_t chr) {
-  static const intptr_t kEntryDist = 1;
+  const intptr_t kEntryDist = 1;
   uint16_t value = chr & (kChunkBits - 1);
   uint32_t low = 0;
   uint32_t high = size - 1;
@@ -77,7 +77,7 @@ static bool LookupPredicate(const int32_t* table, uint16_t size, int32_t chr) {
 
 template <intptr_t kW>
 struct MultiCharacterSpecialCase {
-  static const int32_t kEndOfEncoding = kSentinel;
+  static constexpr int32_t kEndOfEncoding = kSentinel;
   int32_t chars[kW];
 };
 
@@ -100,7 +100,7 @@ static intptr_t LookupMapping(const int32_t* table,
                               int32_t next,
                               int32_t* result,
                               bool* allow_caching_ptr) {
-  static const intptr_t kEntryDist = 2;
+  const intptr_t kEntryDist = 2;
   uint16_t key = chr & (kChunkBits - 1);
   uint16_t chunk_start = chr - key;
   uint32_t low = 0;
@@ -184,8 +184,8 @@ static intptr_t LookupMapping(const int32_t* table,
 
 // Letter:               point.category in ['Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Nl']
 // clang-format off
-static const uint16_t kLetterTable0Size = 431;
-static const int32_t kLetterTable0[431] = {
+static constexpr uint16_t kLetterTable0Size = 431;
+static constexpr int32_t kLetterTable0[431] = {
     1073741889, 90,         1073741921, 122,
     170,        181,        186,        1073742016,  // NOLINT
     214,        1073742040, 246,        1073742072,
@@ -294,8 +294,8 @@ static const int32_t kLetterTable0[431] = {
     8140,       1073749968, 8147,       1073749974,  // NOLINT
     8155,       1073749984, 8172,       1073750002,
     8180,       1073750006, 8188};  // NOLINT
-static const uint16_t kLetterTable1Size = 87;
-static const int32_t kLetterTable1[87] = {
+static constexpr uint16_t kLetterTable1Size = 87;
+static constexpr int32_t kLetterTable1[87] = {
   113, 127, 1073741968, 156, 258, 263, 1073742090, 275,  // NOLINT
   277, 1073742105, 285, 292, 294, 296, 1073742122, 301,  // NOLINT
   1073742127, 313, 1073742140, 319, 1073742149, 329, 334, 1073742176,  // NOLINT
@@ -307,17 +307,17 @@ static const int32_t kLetterTable1[87] = {
   4137, 1073745969, 4149, 1073745976, 4156, 1073745985, 4246, 1073746077,  // NOLINT
   4255, 1073746081, 4346, 1073746172, 4351, 1073746181, 4397, 1073746225,  // NOLINT
   4494, 1073746336, 4538, 1073746416, 4607, 1073746944, 8191 };  // NOLINT
-static const uint16_t kLetterTable2Size = 4;
-static const int32_t kLetterTable2[4] = {
+static constexpr uint16_t kLetterTable2Size = 4;
+static constexpr int32_t kLetterTable2[4] = {
   1073741824, 3509, 1073745408, 8191 };  // NOLINT
-static const uint16_t kLetterTable3Size = 2;
-static const int32_t kLetterTable3[2] = {
+static constexpr uint16_t kLetterTable3Size = 2;
+static constexpr int32_t kLetterTable3[2] = {
   1073741824, 8191 };  // NOLINT
-static const uint16_t kLetterTable4Size = 2;
-static const int32_t kLetterTable4[2] = {
+static constexpr uint16_t kLetterTable4Size = 2;
+static constexpr int32_t kLetterTable4[2] = {
   1073741824, 8140 };  // NOLINT
-static const uint16_t kLetterTable5Size = 100;
-static const int32_t kLetterTable5[100] = {
+static constexpr uint16_t kLetterTable5Size = 100;
+static constexpr int32_t kLetterTable5[100] = {
     1073741824, 1164,       1073743056, 1277,
     1073743104, 1548,       1073743376, 1567,  // NOLINT
     1073743402, 1579,       1073743424, 1646,
@@ -343,11 +343,11 @@ static const int32_t kLetterTable5[100] = {
     1073744680, 2862,       1073744688, 2906,
     1073744732, 2911,       1073744740, 2917,   // NOLINT
     1073744832, 3042,       1073744896, 8191};  // NOLINT
-static const uint16_t kLetterTable6Size = 6;
-static const int32_t kLetterTable6[6] = {
+static constexpr uint16_t kLetterTable6Size = 6;
+static constexpr int32_t kLetterTable6[6] = {
   1073741824, 6051, 1073747888, 6086, 1073747915, 6139 };  // NOLINT
-static const uint16_t kLetterTable7Size = 48;
-static const int32_t kLetterTable7[48] = {
+static constexpr uint16_t kLetterTable7Size = 48;
+static constexpr int32_t kLetterTable7[48] = {
   1073748224, 6765, 1073748592, 6873, 1073748736, 6918, 1073748755, 6935,  // NOLINT
   6941, 1073748767, 6952, 1073748778, 6966, 1073748792, 6972, 6974,  // NOLINT
   1073748800, 6977, 1073748803, 6980, 1073748806, 7089, 1073748947, 7485,  // NOLINT
@@ -388,8 +388,8 @@ bool Letter::Is(int32_t c) {
 
 static const MultiCharacterSpecialCase<1> kEcma262CanonicalizeMultiStrings0[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kEcma262CanonicalizeTable0Size = 498;  // NOLINT
-static const int32_t kEcma262CanonicalizeTable0[996] = {
+static constexpr uint16_t kEcma262CanonicalizeTable0Size = 498;  // NOLINT
+static constexpr int32_t kEcma262CanonicalizeTable0[996] = {
     1073741921, -128,   122,        -128,   181,        2972,
     1073742048, -128,   246,        -128,   1073742072, -128,
     254,        -128,   255,        484,  // NOLINT
@@ -579,8 +579,8 @@ static const int32_t kEcma262CanonicalizeTable0[996] = {
     8161,       32,     8165,       28};                          // NOLINT
 static const MultiCharacterSpecialCase<1> kEcma262CanonicalizeMultiStrings1[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kEcma262CanonicalizeTable1Size = 73;  // NOLINT
-static const int32_t kEcma262CanonicalizeTable1[146] = {
+static constexpr uint16_t kEcma262CanonicalizeTable1Size = 73;  // NOLINT
+static constexpr int32_t kEcma262CanonicalizeTable1[146] = {
   334, -112, 1073742192, -64, 383, -64, 388, -4, 1073743056, -104, 1257, -104, 1073744944, -192, 3166, -192,  // NOLINT
   3169, -4, 3173, -43180, 3174, -43168, 3176, -4, 3178, -4, 3180, -4, 3187, -4, 3190, -4,  // NOLINT
   3201, -4, 3203, -4, 3205, -4, 3207, -4, 3209, -4, 3211, -4, 3213, -4, 3215, -4,  // NOLINT
@@ -593,8 +593,8 @@ static const int32_t kEcma262CanonicalizeTable1[146] = {
   3373, -29056 };  // NOLINT
 static const MultiCharacterSpecialCase<1> kEcma262CanonicalizeMultiStrings5[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kEcma262CanonicalizeTable5Size = 95;  // NOLINT
-static const int32_t kEcma262CanonicalizeTable5
+static constexpr uint16_t kEcma262CanonicalizeTable5Size = 95;  // NOLINT
+static constexpr int32_t kEcma262CanonicalizeTable5
     [190] = {1601, -4, 1603, -4, 1605, -4, 1607, -4,
              1609, -4, 1611, -4, 1613, -4, 1615, -4,  // NOLINT
              1617, -4, 1619, -4, 1621, -4, 1623, -4,
@@ -621,8 +621,8 @@ static const int32_t kEcma262CanonicalizeTable5
              1957, -4, 1959, -4, 1961, -4};                       // NOLINT
 static const MultiCharacterSpecialCase<1> kEcma262CanonicalizeMultiStrings7[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kEcma262CanonicalizeTable7Size = 2;  // NOLINT
-static const int32_t kEcma262CanonicalizeTable7[4] = {
+static constexpr uint16_t kEcma262CanonicalizeTable7Size = 2;  // NOLINT
+static constexpr int32_t kEcma262CanonicalizeTable7[4] = {
   1073749825, -128, 8026, -128 };  // NOLINT
 intptr_t Ecma262Canonicalize::Convert(int32_t c,
                       int32_t n,
@@ -1171,8 +1171,8 @@ static const MultiCharacterSpecialCase<4>
         {{8161, 8169, kSentinel}},
         {{8165, 8172, kSentinel}},
         {{kSentinel}}};                                         // NOLINT
-static const uint16_t kEcma262UnCanonicalizeTable0Size = 1005;  // NOLINT
-static const int32_t kEcma262UnCanonicalizeTable0[2010] = {
+static constexpr uint16_t kEcma262UnCanonicalizeTable0Size = 1005;  // NOLINT
+static constexpr int32_t kEcma262UnCanonicalizeTable0[2010] = {
     1073741889, 1,    90,         5,    1073741921, 1,
     122,        5,    181,        9,    1073742016, 13,
     214,        17,   1073742040, 21,  // NOLINT
@@ -1572,8 +1572,8 @@ static const MultiCharacterSpecialCase<2> kEcma262UnCanonicalizeMultiStrings1[83
   {{11486, 11487}}, {{11488, 11489}}, {{11490, 11491}}, {{11499, 11500}},  // NOLINT
   {{11501, 11502}}, {{11506, 11507}}, {{4256, 11520}}, {{4293, 11557}},  // NOLINT
   {{4295, 11559}}, {{4301, 11565}}, {{kSentinel}} }; // NOLINT
-static const uint16_t kEcma262UnCanonicalizeTable1Size = 149;  // NOLINT
-static const int32_t kEcma262UnCanonicalizeTable1[298] = {
+static constexpr uint16_t kEcma262UnCanonicalizeTable1Size = 149;  // NOLINT
+static constexpr int32_t kEcma262UnCanonicalizeTable1[298] = {
   306, 1, 334, 1, 1073742176, 5, 367, 9, 1073742192, 5, 383, 9, 387, 13, 388, 13,  // NOLINT
   1073743030, 17, 1231, 21, 1073743056, 17, 1257, 21, 1073744896, 25, 3118, 29, 1073744944, 25, 3166, 29,  // NOLINT
   3168, 33, 3169, 33, 3170, 37, 3171, 41, 3172, 45, 3173, 49, 3174, 53, 3175, 57,  // NOLINT
@@ -1699,8 +1699,8 @@ static const MultiCharacterSpecialCase<2>
         {{670, 42928}},
         {{647, 42929}},
         {{kSentinel}}};                                        // NOLINT
-static const uint16_t kEcma262UnCanonicalizeTable5Size = 198;  // NOLINT
-static const int32_t kEcma262UnCanonicalizeTable5
+static constexpr uint16_t kEcma262UnCanonicalizeTable5Size = 198;  // NOLINT
+static constexpr int32_t kEcma262UnCanonicalizeTable5
     [396] = {1600, 1,   1601, 1,   1602, 5,   1603, 5,
              1604, 9,   1605, 9,   1606, 13,  1607, 13,  // NOLINT
              1608, 17,  1609, 17,  1610, 21,  1611, 21,
@@ -1753,8 +1753,8 @@ static const int32_t kEcma262UnCanonicalizeTable5
              1968, 405, 1969, 409};                                   // NOLINT
 static const MultiCharacterSpecialCase<2> kEcma262UnCanonicalizeMultiStrings7[3] = {  // NOLINT
   {{65313, 65345}}, {{65338, 65370}}, {{kSentinel}} }; // NOLINT
-static const uint16_t kEcma262UnCanonicalizeTable7Size = 4;  // NOLINT
-static const int32_t kEcma262UnCanonicalizeTable7[8] = {
+static constexpr uint16_t kEcma262UnCanonicalizeTable7Size = 4;  // NOLINT
+static constexpr int32_t kEcma262UnCanonicalizeTable7[8] = {
   1073749793, 1, 7994, 5, 1073749825, 1, 8026, 5 };  // NOLINT
 intptr_t Ecma262UnCanonicalize::Convert(int32_t c,
                       int32_t n,
@@ -1796,8 +1796,8 @@ intptr_t Ecma262UnCanonicalize::Convert(int32_t c,
 
 static const MultiCharacterSpecialCase<1> kCanonicalizationRangeMultiStrings0[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kCanonicalizationRangeTable0Size = 70;  // NOLINT
-static const int32_t kCanonicalizationRangeTable0[140] = {
+static constexpr uint16_t kCanonicalizationRangeTable0Size = 70;  // NOLINT
+static constexpr int32_t kCanonicalizationRangeTable0[140] = {
   1073741889, 100, 90, 0, 1073741921, 100, 122, 0, 1073742016, 88, 214, 0, 1073742040, 24, 222, 0,  // NOLINT
   1073742048, 88, 246, 0, 1073742072, 24, 254, 0, 1073742715, 8, 893, 0, 1073742728, 8, 906, 0,  // NOLINT
   1073742749, 8, 927, 0, 1073742759, 16, 939, 0, 1073742765, 8, 943, 0, 1073742781, 8, 959, 0,  // NOLINT
@@ -1809,14 +1809,14 @@ static const int32_t kCanonicalizationRangeTable0[140] = {
   1073749864, 28, 8047, 0, 1073749874, 12, 8053, 0, 1073749960, 12, 8139, 0 };  // NOLINT
 static const MultiCharacterSpecialCase<1> kCanonicalizationRangeMultiStrings1[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kCanonicalizationRangeTable1Size = 14;  // NOLINT
-static const int32_t kCanonicalizationRangeTable1[28] = {
+static constexpr uint16_t kCanonicalizationRangeTable1Size = 14;  // NOLINT
+static constexpr int32_t kCanonicalizationRangeTable1[28] = {
   1073742176, 60, 367, 0, 1073742192, 60, 383, 0, 1073743030, 100, 1231, 0, 1073743056, 100, 1257, 0,  // NOLINT
   1073744896, 184, 3118, 0, 1073744944, 184, 3166, 0, 1073745152, 148, 3365, 0 };  // NOLINT
 static const MultiCharacterSpecialCase<1> kCanonicalizationRangeMultiStrings7[1] = {  // NOLINT
   {{kSentinel}} }; // NOLINT
-static const uint16_t kCanonicalizationRangeTable7Size = 4;  // NOLINT
-static const int32_t kCanonicalizationRangeTable7[8] = {
+static constexpr uint16_t kCanonicalizationRangeTable7Size = 4;  // NOLINT
+static constexpr int32_t kCanonicalizationRangeTable7[8] = {
   1073749793, 100, 7994, 0, 1073749825, 100, 8026, 0 };  // NOLINT
 
 // clang-format on

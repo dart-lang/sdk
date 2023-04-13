@@ -95,7 +95,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   shutdown_ = false;
   // The initial size passed to epoll_create is ignored on newer (>= 2.6.8)
   // Linux versions
-  static const int kEpollInitialSize = 64;
+  const int kEpollInitialSize = 64;
   epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
     FATAL("Failed creating epoll file descriptor: %i", errno);
@@ -377,7 +377,7 @@ void EventHandlerImplementation::HandleTimeout() {
 
 void EventHandlerImplementation::Poll(uword args) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
-  static const intptr_t kMaxEvents = 16;
+  const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;

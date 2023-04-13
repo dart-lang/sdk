@@ -35,9 +35,9 @@ class ObjectIdRing {
     kNumIdPolicy,
   };
 
-  static const int32_t kMaxId = 0x3FFFFFFF;
-  static const int32_t kInvalidId = -1;
-  static const int32_t kDefaultCapacity = 8192;
+  static constexpr int32_t kMaxId = 0x3FFFFFFF;
+  static constexpr int32_t kInvalidId = -1;
+  static constexpr int32_t kDefaultCapacity = 8192;
 
   ObjectIdRing();
   ~ObjectIdRing();
