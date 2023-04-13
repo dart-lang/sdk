@@ -630,7 +630,7 @@ void f(int x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
       error(WarningCode.DEAD_CODE, 59, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 59, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 

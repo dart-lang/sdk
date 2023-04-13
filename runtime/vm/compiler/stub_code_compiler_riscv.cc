@@ -1317,8 +1317,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ lx(TMP2, Address(A3, target::Thread::invoke_dart_code_stub_offset()));
   __ sx(TMP2, Address(SP, 0 * target::kWordSize));
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-  __ sx(S2, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
+#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+  __ sx(GP, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -3002,8 +3002,12 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   __ mv(SP, A1);                 // Stack pointer.
   __ mv(FP, A2);                 // Frame_pointer.
   __ mv(THR, A3);
-#if defined(DART_TARGET_OS_FUCHSIA)
-  __ lx(S2, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
+#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+  // We need to restore the shadow call stack pointer like longjmp would,
+  // effectively popping all the return addresses between the Dart exit frame
+  // and Exceptions::JumpToFrame, otherwise the shadow call stack might
+  // eventually overflow.
+  __ lx(GP, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif

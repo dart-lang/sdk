@@ -54,7 +54,7 @@ class A {
   int v2;
 }
 ''');
-    await assertHasFixAllFix(HintCode.UNNECESSARY_FINAL, '''
+    await assertHasFixAllFix(WarningCode.UNNECESSARY_FINAL, '''
 class A {
   A(this.v1, this.v2);
   int v1;

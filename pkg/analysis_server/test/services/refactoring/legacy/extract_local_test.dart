@@ -983,6 +983,62 @@ void f() {
 ''');
   }
 
+  Future<void> test_occurrences_inSwitchCase() async {
+    await indexTestUnit('''
+// @dart = 2.19
+void f(int x) {
+  switch (x) {
+    case 0:
+      print(x + 1);
+      print(x + 1);
+      break;
+  }
+}
+''');
+    _createRefactoringForString('x + 1');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+// @dart = 2.19
+void f(int x) {
+  switch (x) {
+    case 0:
+      var res = x + 1;
+      print(res);
+      print(res);
+      break;
+  }
+}
+''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [69, 94, 112], names: ['object', 'i']);
+  }
+
+  Future<void> test_occurrences_inSwitchPatternCase() async {
+    await indexTestUnit('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      print(x + 1);
+      print(x + 1);
+  }
+}
+''');
+    _createRefactoringForString('x + 1');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      var res = x + 1;
+      print(res);
+      print(res);
+  }
+}
+''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [53, 78, 96], names: ['object', 'i']);
+  }
+
   Future<void> test_occurrences_singleExpression() async {
     await indexTestUnit('''
 int foo() => 42;
@@ -1245,6 +1301,58 @@ class A {
   }
 }
 ''');
+  }
+
+  Future<void> test_singleExpression_inSwitchCase() async {
+    await indexTestUnit('''
+// @dart = 2.19
+void f(int x) {
+  switch (x) {
+    case 0:
+      print(x + 1);
+      break;
+  }
+}
+''');
+    _createRefactoringForString('x + 1');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+// @dart = 2.19
+void f(int x) {
+  switch (x) {
+    case 0:
+      var res = x + 1;
+      print(res);
+      break;
+  }
+}
+''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [69, 94], names: ['object', 'i']);
+  }
+
+  Future<void> test_singleExpression_inSwitchPatternCase() async {
+    await indexTestUnit('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      print(x + 1);
+  }
+}
+''');
+    _createRefactoringForString('x + 1');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      var res = x + 1;
+      print(res);
+  }
+}
+''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [53, 78], names: ['object', 'i']);
   }
 
   Future<void> test_singleExpression_leadingNotWhitespace() async {

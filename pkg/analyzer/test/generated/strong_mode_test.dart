@@ -428,7 +428,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 144, 5),
+      error(WarningCode.UNUSED_ELEMENT, 144, 5),
     ]);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
@@ -1527,7 +1527,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
 }
     ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 5, 10),
+      error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
     final node = findNode.singleBlock;
@@ -1849,7 +1849,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
 }
     ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 5, 10),
+      error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
     final node = findNode.singleBlock;
@@ -2171,7 +2171,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
 }
     ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 5, 10),
+      error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
     final node = findNode.singleBlock;
@@ -5473,7 +5473,7 @@ S f<S>(S x) {
   return null;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 16, 1),
+      error(WarningCode.UNUSED_ELEMENT, 16, 1),
       if (isNullSafetyEnabled)
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
     ]);

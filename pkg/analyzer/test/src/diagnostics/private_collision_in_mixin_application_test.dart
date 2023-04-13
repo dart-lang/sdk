@@ -331,8 +331,8 @@ mixin B {
 
 class C extends Object with A, B {}
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 17, 4),
-      error(HintCode.UNUSED_ELEMENT, 47, 4),
+      error(WarningCode.UNUSED_ELEMENT, 17, 4),
+      error(WarningCode.UNUSED_ELEMENT, 47, 4),
     ]);
   }
 
@@ -348,8 +348,8 @@ mixin class B {
 
 class C extends Object with A, B {}
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 23, 4),
-      error(HintCode.UNUSED_ELEMENT, 59, 4),
+      error(WarningCode.UNUSED_ELEMENT, 23, 4),
+      error(WarningCode.UNUSED_ELEMENT, 59, 4),
     ]);
   }
 

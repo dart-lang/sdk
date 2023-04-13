@@ -403,6 +403,7 @@ class Thread : public ThreadState {
     saved_safestack_limit_ = limit;
   }
 #endif
+  uword saved_shadow_call_stack() const { return saved_shadow_call_stack_; }
   static uword saved_shadow_call_stack_offset() {
     return OFFSET_OF(Thread, saved_shadow_call_stack_);
   }

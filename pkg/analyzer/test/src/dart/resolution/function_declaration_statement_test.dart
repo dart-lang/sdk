@@ -22,7 +22,7 @@ void f() {
   T g<T, U>(T a, U b) => a;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 15, 1),
+      error(WarningCode.UNUSED_ELEMENT, 15, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -91,7 +91,7 @@ void f() {
   void g<T extends U, U, V extends U>(T x, U y, V z) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 18, 1),
+      error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -184,7 +184,7 @@ void f() {
   void g<T>({T? a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 18, 1),
+      error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -243,7 +243,7 @@ void f() {
   void g<T>([T? a]) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 18, 1),
+      error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -302,7 +302,7 @@ void f() {
   void g<T>({required T? a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 18, 1),
+      error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -362,7 +362,7 @@ void f() {
   void g<T>(T a) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 18, 1),
+      error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -415,7 +415,7 @@ void f() {
   g() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 13, 1),
+      error(WarningCode.UNUSED_ELEMENT, 13, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;
@@ -445,7 +445,7 @@ void f() {
   g() => 0;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 13, 1),
+      error(WarningCode.UNUSED_ELEMENT, 13, 1),
     ]);
 
     final node = findNode.singleFunctionDeclarationStatement;

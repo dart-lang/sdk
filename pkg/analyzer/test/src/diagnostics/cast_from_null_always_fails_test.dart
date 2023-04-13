@@ -88,7 +88,7 @@ void f(Null n) {
   n as int?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 19, 9),
+      error(WarningCode.UNNECESSARY_CAST, 19, 9),
     ]);
   }
 
@@ -109,7 +109,7 @@ void f(Null n) {
   n as int;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 33, 8),
+      error(WarningCode.UNNECESSARY_CAST, 33, 8),
     ]);
   }
 

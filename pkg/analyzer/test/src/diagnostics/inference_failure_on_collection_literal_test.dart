@@ -94,9 +94,9 @@ void main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
-      error(HintCode.UNUSED_ELEMENT, 172, 1),
-      error(HintCode.UNUSED_ELEMENT, 194, 1),
-      error(HintCode.UNUSED_ELEMENT, 221, 1),
+      error(WarningCode.UNUSED_ELEMENT, 172, 1),
+      error(WarningCode.UNUSED_ELEMENT, 194, 1),
+      error(WarningCode.UNUSED_ELEMENT, 221, 1),
     ]);
   }
 

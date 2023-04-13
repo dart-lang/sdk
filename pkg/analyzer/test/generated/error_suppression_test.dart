@@ -39,7 +39,7 @@ int x = '';
 int _y = 0; //INVALID_ASSIGNMENT
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 34, 2),
-      error(HintCode.UNUSED_ELEMENT, 42, 2),
+      error(WarningCode.UNUSED_ELEMENT, 42, 2),
     ]);
   }
 
@@ -98,7 +98,7 @@ int x = (0 as int);
 // ignore: unused_element
 String _foo = ''; //UNUSED_ELEMENT
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 28, 8),
+      error(WarningCode.UNNECESSARY_CAST, 28, 8),
     ]);
   }
 
@@ -108,7 +108,7 @@ String _foo = ''; //UNUSED_ELEMENT
 int x = (0 as int);
 String _foo = ''; // ignore: $ignoredCode
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 28, 8),
+      error(WarningCode.UNNECESSARY_CAST, 28, 8),
     ]);
   }
 
@@ -169,7 +169,7 @@ int x = (0 as int); //This is the first comment...
 // ignore: $ignoredCode
 String _foo = ''; //UNUSED_ELEMENT
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 9, 8),
+      error(WarningCode.UNNECESSARY_CAST, 9, 8),
     ]);
   }
 
@@ -236,7 +236,7 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 int x = (0 as int); // ignore: unnecessary_cast
 int y = (0 as int);
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 57, 8),
+      error(WarningCode.UNNECESSARY_CAST, 57, 8),
     ]);
   }
 
@@ -261,7 +261,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 // ignore: type=lint
 int _x = 1;
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 25, 2),
+      error(WarningCode.UNUSED_ELEMENT, 25, 2),
     ]);
   }
 
@@ -292,7 +292,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 int a = 0;
 int _x = 1;
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 45, 2),
+      error(WarningCode.UNUSED_ELEMENT, 45, 2),
     ]);
   }
 

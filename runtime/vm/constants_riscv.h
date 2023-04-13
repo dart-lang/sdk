@@ -46,7 +46,7 @@ enum Register {
   ZR = 0,
   RA = 1,
   SP = 2,
-  GP = 3,
+  GP = 3,  // Shadow call stack on Fuchsia and Android
   TP = 4,
   T0 = 5,
   T1 = 6,
@@ -61,7 +61,7 @@ enum Register {
   A5 = 15,  // PP, untagged
   A6 = 16,
   A7 = 17,
-  S2 = 18,  // ShadowCallStack
+  S2 = 18,
   S3 = 19,
   S4 = 20,  // ARGS_DESC_REG
   S5 = 21,  // IC_DATA_REG
@@ -198,19 +198,19 @@ struct InstantiateTAVInternalRegs {
   static constexpr intptr_t kSavedRegisters = 0;
 
   // Additional registers used to probe hash-based caches.
-  static constexpr Register kEntryStartReg = S3;
-  static constexpr Register kProbeMaskReg = S4;
-  static constexpr Register kProbeDistanceReg = S5;
-  static constexpr Register kCurrentEntryIndexReg = S6;
+  static constexpr Register kEntryStartReg = S2;
+  static constexpr Register kProbeMaskReg = S3;
+  static constexpr Register kProbeDistanceReg = S4;
+  static constexpr Register kCurrentEntryIndexReg = S5;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of type testing stubs that are _not_ preserved.
 struct TTSInternalRegs {
-  static constexpr Register kInstanceTypeArgumentsReg = S3;
-  static constexpr Register kScratchReg = S4;
-  static constexpr Register kSubTypeArgumentReg = S5;
-  static constexpr Register kSuperTypeArgumentReg = S6;
+  static constexpr Register kInstanceTypeArgumentsReg = S2;
+  static constexpr Register kScratchReg = S3;
+  static constexpr Register kSubTypeArgumentReg = S4;
+  static constexpr Register kSuperTypeArgumentReg = S5;
 
   // Must be pushed/popped whenever generic type arguments are being checked as
   // they overlap with registers in TypeTestABI.
@@ -225,10 +225,10 @@ struct TTSInternalRegs {
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
-  static constexpr Register kInstanceCidOrSignatureReg = S3;
-  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = S4;
-  static constexpr Register kInstanceParentFunctionTypeArgumentsReg = S5;
-  static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = S6;
+  static constexpr Register kInstanceCidOrSignatureReg = S2;
+  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = S3;
+  static constexpr Register kInstanceParentFunctionTypeArgumentsReg = S4;
+  static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = S5;
 
   static constexpr intptr_t kInternalRegisters =
       (1 << kInstanceCidOrSignatureReg) |
@@ -493,13 +493,10 @@ constexpr RegList kAbiPreservedCpuRegs = R(S1) | R(S2) | R(S3) | R(S4) | R(S5) |
                                          R(S10) | R(S11);
 constexpr int kAbiPreservedCpuRegCount = 11;
 
-// S2 is reserved as the shadow call stack pointer on Fuchsia and Android.
-// Although it is available on Linux, we mark it as reserved unconditionally to
-// avoid adding another dimenision for OS into the extracted runtime offsets.
 constexpr RegList kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
     R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
-    R(FAR_TMP) | R(S2);
+    R(FAR_TMP);
 constexpr intptr_t kNumberOfReservedCpuRegisters =
     Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
@@ -568,8 +565,8 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = A1;
   static constexpr FpuRegister kReturnFpuReg = FA0;
 
-  // S0=FP, S1=THR, S2=ShadowCallStack
-  static constexpr Register kFfiAnyNonAbiRegister = S3;
+  // S0=FP, S1=THR
+  static constexpr Register kFfiAnyNonAbiRegister = S2;
   static constexpr Register kFirstNonArgumentRegister = T0;
   static constexpr Register kSecondNonArgumentRegister = T1;
   static constexpr Register kStackPointerRegister = SPREG;
