@@ -14142,6 +14142,10 @@ abstract class VariablePatternImpl extends DartPatternImpl
   @override
   final Token name;
 
+  /// If this variable was used to resolve an implicitly named field, the
+  /// implicit name node is recorded here for a future use.
+  PatternFieldNameImpl? fieldNameWithImplicitName;
+
   VariablePatternImpl({
     required this.name,
   });

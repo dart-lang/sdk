@@ -49,6 +49,18 @@ class RenameProcessor {
         .searchReferences(element)
         .then(addReferenceEdits);
   }
+
+  /// Add an edit that replaces the specified region with [code].
+  /// Uses [referenceElement] to identify the file to update.
+  void replace({
+    required Element referenceElement,
+    required int offset,
+    required int length,
+    required String code,
+  }) {
+    final edit = SourceEdit(offset, length, code);
+    doSourceChange_addElementEdit(change, referenceElement, edit);
+  }
 }
 
 /// An abstract implementation of [RenameRefactoring].

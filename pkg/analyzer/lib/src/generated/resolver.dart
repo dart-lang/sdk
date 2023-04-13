@@ -535,8 +535,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (fieldName != null) {
         nameToken = fieldName.name;
         if (nameToken == null) {
-          nameToken = field.pattern.variablePattern?.name;
-          if (nameToken == null) {
+          final variablePattern = field.pattern.variablePattern;
+          if (variablePattern != null) {
+            variablePattern.fieldNameWithImplicitName = fieldName;
+            nameToken = variablePattern.name;
+          } else {
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
               field,
