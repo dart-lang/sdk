@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../utils.dart';
+import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
 
@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (hasLeadingUnderscore(id.name)) {
+    if (id.name.hasLeadingUnderscore) {
       rule.reportLint(id, arguments: [id.name]);
     }
   }

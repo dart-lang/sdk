@@ -60,6 +60,9 @@ bool isValidDartFileName(String name) {
 }
 
 extension StringExtensions on String {
+  /// Returns `true` if `this` has a leading `_`.
+  bool get hasLeadingUnderscore => startsWith('_');
+
   /// Returns whether `this` is just underscores.
   bool get isJustUnderscores {
     if (isEmpty) {

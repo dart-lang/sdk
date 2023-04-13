@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'ast.dart';
+import 'util/ascii_utils.dart';
 
 // An identifier here is defined as:
 // * A sequence of `_`, `$`, letters or digits,
@@ -49,7 +50,8 @@ final _pubspec = RegExp(r'^_?pubspec\.yaml$');
 final _validLibraryPrefix = RegExp(r'^\$?_*[a-z][_a-z\d]*$');
 
 /// Returns `true` if the given [name] has a leading `_`.
-bool hasLeadingUnderscore(String name) => name.startsWith('_');
+@Deprecated('Prefer: ascii_utils String extension `hasLeadingUnderscore`')
+bool hasLeadingUnderscore(String name) => name.hasLeadingUnderscore;
 
 /// Check if this [string] is formatted in `CamelCase`.
 bool isCamelCase(String string) => CamelCaseString.isCamelCase(string);
