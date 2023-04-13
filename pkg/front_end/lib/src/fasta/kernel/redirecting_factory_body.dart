@@ -10,6 +10,14 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'body_builder.dart' show EnsureLoaded;
 
+/// Name of variable used to wrap expression by the VMs FFI Finalizable
+/// transformation.
+///
+/// Used to recognize the original expression for recovering the redirecting
+/// factory body.
+const String expressionValueWrappedFinalizableName =
+    ":expressionValueWrappedFinalizable";
+
 /// Name used for a static field holding redirecting factory information.
 const String redirectingName = "_redirecting#";
 
@@ -56,6 +64,8 @@ const String varNamePrefix = "#typeArg";
 
 class RedirectingFactoryBody extends ReturnStatement {
   RedirectingFactoryBody._internal(Expression value) : super(value);
+  RedirectingFactoryBody._internalTransformed(Expression value, this.usedValue)
+      : super(value);
 
   RedirectingFactoryBody(
       Member target, List<DartType> typeArguments, FunctionNode function)
@@ -64,8 +74,10 @@ class RedirectingFactoryBody extends ReturnStatement {
   RedirectingFactoryBody.error(String errorMessage)
       : this._internal(new InvalidExpression(errorMessage));
 
+  Expression? usedValue;
+
   Member? get target {
-    final Expression? value = this.expression;
+    final Expression? value = usedValue ?? this.expression;
     if (value is StaticInvocation) {
       return value.target;
     } else if (value is ConstructorInvocation) {
@@ -75,14 +87,14 @@ class RedirectingFactoryBody extends ReturnStatement {
   }
 
   String? get errorMessage {
-    final Expression? value = this.expression;
+    final Expression? value = usedValue ?? this.expression;
     return value is InvalidExpression ? value.message : null;
   }
 
   bool get isError => errorMessage != null;
 
   List<DartType>? get typeArguments {
-    final Expression? value = this.expression;
+    final Expression? value = usedValue ?? this.expression;
     if (value is InvocationExpression) {
       return value.arguments.types;
     }
@@ -115,12 +127,40 @@ class RedirectingFactoryBody extends ReturnStatement {
 
   static void restoreFromDill(Procedure factory) {
     // This is a hack / workaround for storing redirecting constructors in
-    // dill files. See `ClassBuilder.addRedirectingConstructor` in
-    // [kernel_class_builder.dart](kernel_class_builder.dart).
+    // dill files.
+    // See `SourceClassBuilder._addRedirectingConstructor` in
+    // [source_class_builder.dart](source_class_builder.dart) and
+    // `SourceFactoryBuilder` in
+    // [source_factory_builder.dart](source_factory_builder.dart).
     FunctionNode function = factory.function;
-    Expression value = (function.body as ReturnStatement).expression!;
-    function.body = new RedirectingFactoryBody._internal(value)
-      ..parent = function;
+    Statement? body = function.body;
+    if (body is ReturnStatement) {
+      Expression value = body.expression!;
+      if (value is StaticInvocation || value is ConstructorInvocation) {
+        // Unmodified encoding by the CFE.
+        function.body = new RedirectingFactoryBody._internal(value)
+          ..parent = function;
+        return;
+      }
+      if (value is BlockExpression) {
+        if (value.body.statements.isNotEmpty &&
+            value.body.statements.first is VariableDeclaration) {
+          VariableDeclaration variableDeclaration =
+              value.body.statements.first as VariableDeclaration;
+          if (variableDeclaration.name ==
+              expressionValueWrappedFinalizableName) {
+            // Transformed by the FFI finalizable transformation.
+            Expression usedValue = variableDeclaration.initializer!;
+            function.body = new RedirectingFactoryBody._internalTransformed(
+                value, usedValue)
+              ..parent = function;
+            return;
+          }
+        }
+      }
+    }
+    throw 'Unexpected shape of redirecting factory body: '
+        '${body.runtimeType}: $body';
   }
 
   static bool hasRedirectingFactoryBodyShape(Procedure factory) {
