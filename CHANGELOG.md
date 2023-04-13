@@ -83,6 +83,7 @@
     * `RegExpMatch`
     * `StackTrace`
     * `StringSink`
+
     None of these declarations contained any implementation to inherit,
     and are marked as `interface` to signify that they are only intended
     as interfaces.
@@ -93,6 +94,7 @@
     * `Expando`
     * `WeakReference`
     * `Finalizer`
+    
     The `MapEntry` value class is restricted to enable later optimizations.
     The remaining classes are tightly coupled to the platform and not
     intended to be subclassed or implemented.
