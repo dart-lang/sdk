@@ -105,8 +105,6 @@ abstract final class _StringBase implements String {
 
   int _computeHashCode();
 
-  int get _identityHashCode => hashCode;
-
   bool get _isOneByte {
     // Alternatively return false and override it on one-byte string classes.
     return this is _OneByteString;

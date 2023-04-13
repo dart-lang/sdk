@@ -2519,6 +2519,8 @@ ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
     Add the parens.
 ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER:
   status: noFix
+ParserErrorCode.BASE_ENUM:
+  status: needsEvaluation
 ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT:
   status: needsFix
   notes: |-
@@ -2859,6 +2861,8 @@ ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
   status: needsFix
   notes: |-
     Remove the initializer.
+ParserErrorCode.INTERFACE_ENUM:
+  status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN:
   status: needsFix
   notes: |-
@@ -3155,6 +3159,8 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the redirection.
+ParserErrorCode.SEALED_ENUM:
+  status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
   status: needsFix
   notes: |-

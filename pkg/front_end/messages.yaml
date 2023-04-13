@@ -6248,6 +6248,42 @@ CantUseClassAsMixin:
     lib.dart:
       class A {}
 
+BaseEnum:
+  index: 155
+  problemMessage: "Enums can't be declared to be 'base'."
+  correctionMessage: "Try removing the keyword 'base'."
+  analyzerCode: ParserErrorCode.BASE_ENUM
+  experiments: class-modifiers
+  script:
+    - "base enum E { v }"
+
+FinalEnum:
+  index: 156
+  problemMessage: "Enums can't be declared to be 'final'."
+  correctionMessage: "Try removing the keyword 'final'."
+  analyzerCode: ParserErrorCode.FINAL_ENUM
+  experiments: class-modifiers
+  script:
+    - "final enum E { v }"
+
+InterfaceEnum:
+  index: 157
+  problemMessage: "Enums can't be declared to be 'interface'."
+  correctionMessage: "Try removing the keyword 'interface'."
+  analyzerCode: ParserErrorCode.INTERFACE_ENUM
+  experiments: class-modifiers
+  script:
+    - "interface enum E { v }"
+
+SealedEnum:
+  index: 158
+  problemMessage: "Enums can't be declared to be 'sealed'."
+  correctionMessage: "Try removing the keyword 'sealed'."
+  analyzerCode: ParserErrorCode.SEALED_ENUM
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed enum E { v }"
+
 FinalMixin:
   index: 146
   problemMessage: "A mixin can't be declared 'final'."
