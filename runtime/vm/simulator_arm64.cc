@@ -3890,6 +3890,9 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(nullptr, FP, static_cast<int64_t>(fp));
   set_register(nullptr, THR, reinterpret_cast<int64_t>(thread));
   set_register(nullptr, R31, thread->saved_stack_limit() - 4096);
+#if defined(DART_TARGET_OS_FUCHSIA)
+  set_register(nullptr, R18, thread->saved_shadow_call_stack());
+#endif
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.

@@ -449,6 +449,9 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_xreg(SP, static_cast<uintx_t>(sp));
   set_xreg(FP, static_cast<uintx_t>(fp));
   set_xreg(THR, reinterpret_cast<uintx_t>(thread));
+#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+  set_xreg(GP, thread->saved_shadow_call_stack());
+#endif
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
