@@ -894,16 +894,11 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
   dart_exit_isolate();
   {
     std::unique_lock<std::mutex> lock(mutex);
-
     ++thread_count;
-    if (thread_count < num_threads) {
-      while (thread_count < num_threads) {
-        cvar.wait(lock);
-      }
-    } else {
-      if (thread_count != num_threads) FATAL("bug");
-      cvar.notify_all();
+    while (thread_count < num_threads) {
+      cvar.wait(lock);
     }
+    cvar.notify_all();
   }
   dart_enter_isolate(isolate);
 }
@@ -1280,6 +1275,11 @@ DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
   ENSURE(!Dart_IsError(library));
   Dart_Handle result = Dart_SetFfiNativeResolver(library, &FfiNativeResolver);
   ENSURE(!Dart_IsError(result));
+}
+
+DART_EXPORT void WaitUntilNThreadsEnterBarrier(intptr_t num_threads) {
+  ThreadPoolTest_BarrierSync(Dart_CurrentIsolate_DL, Dart_EnterIsolate_DL,
+                             Dart_ExitIsolate_DL, num_threads);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
