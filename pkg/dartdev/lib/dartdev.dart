@@ -276,8 +276,13 @@ class DartdevRunner extends CommandRunner<int> {
           );
         }
 
+        // Use no more than 5% of the running time or 1 second to process
+        // analytics, whichever is less.  Assume a base of 150ms for dart VM
+        // initialization (not counted by stopwatch).
+        var ms = stopwatch.elapsedMilliseconds + 150;
+        var timeout = ms ~/ 20 > 1000 ? 1000 : ms ~/ 20;
         await analytics.waitForLastPing(
-            timeout: const Duration(milliseconds: 200));
+            timeout: Duration(milliseconds: timeout));
       }
 
       // Set the enabled flag in the analytics object to true. Note: this will not
