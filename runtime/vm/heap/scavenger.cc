@@ -1432,11 +1432,11 @@ void Scavenger::MournWeakTables() {
           auto replacement =
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
-        }
-      } else {
-        // The object has been collected.
-        if (cleanup != nullptr) {
-          cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+        } else {
+          // The object has been collected.
+          if (cleanup != nullptr) {
+            cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+          }
         }
       }
     }
