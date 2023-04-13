@@ -62,7 +62,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 58, 2),
+      error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
 
@@ -107,7 +107,7 @@ class C {
 }
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
-      error(HintCode.UNUSED_ELEMENT, 69, 2),
+      error(WarningCode.UNUSED_ELEMENT, 69, 2),
     ]);
   }
 
@@ -117,7 +117,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 58, 2),
+      error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
 
@@ -127,7 +127,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 57, 2),
+      error(WarningCode.UNUSED_ELEMENT, 57, 2),
     ]);
   }
 
@@ -137,7 +137,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 58, 2),
+      error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
 
@@ -147,7 +147,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 60, 2),
+      error(WarningCode.UNUSED_ELEMENT, 60, 2),
     ]);
   }
 
@@ -157,7 +157,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 58, 2),
+      error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
 
@@ -168,8 +168,8 @@ import 'package:meta/meta.dart';
 ''', [
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
       error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 58, 2),
-      error(HintCode.UNUSED_ELEMENT, 66, 2),
+      error(WarningCode.UNUSED_ELEMENT, 58, 2),
+      error(WarningCode.UNUSED_ELEMENT, 66, 2),
     ]);
   }
 

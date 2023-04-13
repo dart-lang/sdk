@@ -826,7 +826,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
         }
         _errorReporter.reportErrorForToken(
-          HintCode.UNREACHABLE_SWITCH_CASE,
+          WarningCode.UNREACHABLE_SWITCH_CASE,
           errorToken,
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {

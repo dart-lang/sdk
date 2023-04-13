@@ -1381,23 +1381,8 @@ class FixProcessor extends BaseProcessor {
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
     ],
-    HintCode.UNNECESSARY_CAST: [
-      RemoveUnnecessaryCast.new,
-    ],
-    HintCode.UNNECESSARY_FINAL: [
-      RemoveUnnecessaryFinal.new,
-    ],
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
-    ],
-    HintCode.UNREACHABLE_SWITCH_CASE: [
-      RemoveDeadCode.new,
-    ],
-    HintCode.UNUSED_ELEMENT: [
-      RemoveUnusedElement.new,
-    ],
-    HintCode.UNUSED_ELEMENT_PARAMETER: [
-      RemoveUnusedParameter.new,
     ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
@@ -1616,6 +1601,12 @@ class FixProcessor extends BaseProcessor {
     WarningCode.UNDEFINED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
     ],
+    WarningCode.UNNECESSARY_CAST: [
+      RemoveUnnecessaryCast.new,
+    ],
+    WarningCode.UNNECESSARY_FINAL: [
+      RemoveUnnecessaryFinal.new,
+    ],
     WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
       RemoveComparison.new,
       ReplaceWithIsNan.new,
@@ -1645,11 +1636,20 @@ class FixProcessor extends BaseProcessor {
     WarningCode.UNNECESSARY_WILDCARD_PATTERN: [
       RemoveUnnecessaryWildcardPattern.new,
     ],
+    WarningCode.UNREACHABLE_SWITCH_CASE: [
+      RemoveDeadCode.new,
+    ],
     WarningCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,
     ],
     WarningCode.UNUSED_CATCH_STACK: [
       RemoveUnusedCatchStack.new,
+    ],
+    WarningCode.UNUSED_ELEMENT: [
+      RemoveUnusedElement.new,
+    ],
+    WarningCode.UNUSED_ELEMENT_PARAMETER: [
+      RemoveUnusedParameter.new,
     ],
     WarningCode.UNUSED_FIELD: [
       RemoveUnusedField.new,

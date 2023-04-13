@@ -579,7 +579,7 @@ extension on void {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 22, 8),
+      error(WarningCode.UNUSED_ELEMENT, 22, 8),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 96, 4),
     ]);
   }

@@ -864,7 +864,7 @@ extension on double {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 24, 3),
+      error(WarningCode.UNUSED_ELEMENT, 24, 3),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3,
           messageContains: ["for the type 'double'"]),
     ]);

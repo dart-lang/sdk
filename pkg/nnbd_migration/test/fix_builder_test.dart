@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -177,8 +177,8 @@ f(int i) {
   print((i as int) + 1);
 }
 ''');
-    expect(
-        testAnalysisResult.errors.single.errorCode, HintCode.UNNECESSARY_CAST);
+    expect(testAnalysisResult.errors.single.errorCode,
+        WarningCode.UNNECESSARY_CAST);
     var asExpression = findNode.simple('i as').parent as Expression;
     visitSubexpression(asExpression, 'int');
   }

@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
@@ -681,8 +681,8 @@ void f(int i) {
   (i as int).gcd(1);
 }
 ''');
-    expect(
-        testAnalysisResult.errors.single.errorCode, HintCode.UNNECESSARY_CAST);
+    expect(testAnalysisResult.errors.single.errorCode,
+        WarningCode.UNNECESSARY_CAST);
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int)').node,
         hard: true);

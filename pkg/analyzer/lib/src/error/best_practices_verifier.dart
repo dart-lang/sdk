@@ -146,7 +146,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
-      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
+      _errorReporter.reportErrorForNode(WarningCode.UNNECESSARY_CAST, node);
     }
     var type = node.type.type;
     if (_isNonNullableByDefault &&
@@ -794,7 +794,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
       _errorReporter.reportErrorForToken(
-        HintCode.UNNECESSARY_FINAL,
+        WarningCode.UNNECESSARY_FINAL,
         keyword!,
       );
     }
@@ -1588,11 +1588,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return _workspacePackage!.contains(library.source);
   }
 
-  /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]
+  /// Checks for the passed as expression for the [WarningCode.UNNECESSARY_CAST]
   /// hint code.
   ///
   /// Returns `true` if and only if an unnecessary cast hint should be generated
-  /// on [node].  See [HintCode.UNNECESSARY_CAST].
+  /// on [node].  See [WarningCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     var leftType = node.expression.typeOrThrow;
     var rightType = node.type.typeOrThrow;
