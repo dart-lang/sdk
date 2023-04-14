@@ -8337,8 +8337,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
       invoke_instantiate_tav_arguments.SetAt(1, instantiator_type_args);
       invoke_instantiate_tav_arguments.SetAt(2, function_type_args);
       result_type_args ^= DartEntry::InvokeCode(
-          invoke_instantiate_tav, invoke_instantiate_tav.EntryPoint(),
-          invoke_instantiate_tav_args_descriptor,
+          invoke_instantiate_tav, invoke_instantiate_tav_args_descriptor,
           invoke_instantiate_tav_arguments, thread);
       EXPECT_EQ(1, result_type_args.Length());
       result_type = result_type_args.TypeAt(0);

@@ -525,9 +525,8 @@ class TTSTestState : public ValueObject {
     }
     {
       TraceStubInvocationScope scope;
-      last_result_ = DartEntry::InvokeCode(
-          tts_invoker_, tts_invoker_.EntryPoint(), arguments_descriptor_,
-          last_arguments_, thread_);
+      last_result_ = DartEntry::InvokeCode(tts_invoker_, arguments_descriptor_,
+                                           last_arguments_, thread_);
     }
     new_tts_stub_ = last_tested_type_.type_test_stub();
     last_stc_ = current_stc();
