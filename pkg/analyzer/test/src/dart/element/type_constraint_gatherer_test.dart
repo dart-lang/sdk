@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,8 +22,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
   late final TypeParameterType T_star;
-
-  UnknownInferredType get unknownType => UnknownInferredType.instance;
 
   @override
   void setUp() {
@@ -914,7 +911,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   /// If `P` is `_` then the match holds with no constraints.
   test_left_unknown() {
-    _checkMatch([T], unknownType, numNone, true, ['_ <: T <: _']);
+    _checkMatch([T], unknownInferredType, numNone, true, ['_ <: T <: _']);
   }
 
   test_recordType_differentShape() {
@@ -1319,8 +1316,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   /// If `Q` is `_` then the match holds with no constraints.
   test_right_unknown() {
-    _checkMatch([T], numNone, unknownType, true, ['_ <: T <: _']);
-    _checkMatch([T], numNone, unknownType, true, ['_ <: T <: _']);
+    _checkMatch([T], numNone, unknownInferredType, true, ['_ <: T <: _']);
+    _checkMatch([T], numNone, unknownInferredType, true, ['_ <: T <: _']);
   }
 
   void _checkMatch(

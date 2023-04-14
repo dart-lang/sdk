@@ -15,6 +15,15 @@ main() {
 
 @reflectiveTest
 class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
+//   solo_test_X() async {
+//     await assertNoErrorsInCode(r'''
+// ''');
+//
+//     final node = findNode.singleListLiteral;
+//     assertResolvedNodeText(node, r'''
+// ''');
+//   }
+
   test_element() async {
     await assertNoErrorsInCode(r'''
 class A {}
