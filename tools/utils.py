@@ -196,13 +196,13 @@ class Version(object):
             return True
         if self.channel == 'be' and other.channel != 'be':
             return False
-        if int(self.prerelease_patch) < int(other.prerelease_patch):
-            return True
-        if int(self.prerelease_patch) > int(other.prerelease_patch):
-            return False
         if int(self.prerelease) < int(other.prerelease):
             return True
         if int(self.prerelease) > int(other.prerelease):
+            return False
+        if int(self.prerelease_patch) < int(other.prerelease_patch):
+            return True
+        if int(self.prerelease_patch) > int(other.prerelease_patch):
             return False
         return False
 
