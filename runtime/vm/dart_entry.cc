@@ -96,56 +96,6 @@ class SuspendLongJumpScope : public ThreadStackResource {
   LongJumpScope* saved_long_jump_base_;
 };
 
-ObjectPtr DartEntry::InvokeFunction(const Function& function,
-                                    const Array& arguments,
-                                    const Array& arguments_descriptor,
-                                    uword current_sp) {
-  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
-  // and never start the VM service isolate. So we should never end up invoking
-  // any dart code in the Dart 2.0 AOT compiler.
-  if (FLAG_precompiled_mode) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    Thread* thread = Thread::Current();
-    thread->set_global_object_pool(
-        thread->isolate_group()->object_store()->global_object_pool());
-    const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
-    if (dispatch_table != nullptr) {
-      thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
-    }
-    ASSERT(thread->global_object_pool() != Object::null());
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  }
-
-  ASSERT(!function.IsNull());
-
-  // Get the entrypoint corresponding to the function specified, this
-  // will result in a compilation of the function if it is not already
-  // compiled.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ASSERT(thread->IsMutatorThread());
-  ScopedIsolateStackLimits stack_limit(thread, current_sp);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!function.HasCode()) {
-    const Object& result =
-        Object::Handle(zone, Compiler::CompileFunction(thread, function));
-    if (result.IsError()) {
-      return Error::Cast(result).ptr();
-    }
-
-    // At this point we should have native code.
-    ASSERT(function.HasCode());
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  // Now Call the invoke stub which will invoke the dart function.
-  const Code& code = Code::Handle(zone, function.CurrentCode());
-  return InvokeCode(code, function.entry_point(), arguments_descriptor,
-                    arguments, thread);
-}
-
 extern "C" {
 // Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
 // values like ObjectPtr. In some calling conventions (IA32), ObjectPtr is
@@ -161,9 +111,69 @@ typedef uword /*ObjectPtr*/ (*invokestub_bare_instructions)(
     Thread* thread);
 }
 
+ObjectPtr DartEntry::InvokeFunction(const Function& function,
+                                    const Array& arguments,
+                                    const Array& arguments_descriptor,
+                                    uword current_sp) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(!function.IsNull());
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  thread->set_global_object_pool(
+      thread->isolate_group()->object_store()->global_object_pool());
+  const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
+  ASSERT(dispatch_table != nullptr);
+  thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
+  ASSERT(thread->global_object_pool() != Object::null());
+#else
+  if (!function.HasCode()) {
+    const Object& result = Object::Handle(
+        thread->zone(), Compiler::CompileFunction(thread, function));
+    if (result.IsError()) {
+      return Error::Cast(result).ptr();
+    }
+  }
+  Code& code = Code::Handle(thread->zone());
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+  ASSERT(function.HasCode());
+
+  ScopedIsolateStackLimits stack_limit(thread, current_sp);
+  SuspendLongJumpScope suspend_long_jump_scope(thread);
+  TransitionToGenerated transition(thread);
+
+  const uword stub = StubCode::InvokeDartCode().EntryPoint();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  uword entry_point = function.entry_point();
+#if defined(USING_SIMULATOR)
+  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+      static_cast<intptr_t>(stub), static_cast<intptr_t>(entry_point),
+      reinterpret_cast<intptr_t>(&arguments_descriptor),
+      reinterpret_cast<intptr_t>(&arguments),
+      reinterpret_cast<intptr_t>(thread)));
+#else
+  return static_cast<ObjectPtr>((reinterpret_cast<invokestub_bare_instructions>(
+      stub))(entry_point, arguments_descriptor, arguments, thread));
+#endif
+#else  // defined(DART_PRECOMPILED_RUNTIME)
+  code = function.CurrentCode();  // *After* the safepoint transition.
+#if defined(USING_SIMULATOR)
+  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+      static_cast<intptr_t>(stub), reinterpret_cast<intptr_t>(&code),
+      reinterpret_cast<intptr_t>(&arguments_descriptor),
+      reinterpret_cast<intptr_t>(&arguments),
+      reinterpret_cast<intptr_t>(thread)));
+#else
+  return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
+      code, arguments_descriptor, arguments, thread));
+#endif
+#endif
+}
+
+#if defined(TESTING)
 NO_SANITIZE_SAFE_STACK
 ObjectPtr DartEntry::InvokeCode(const Code& code,
-                                uword entry_point,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
@@ -171,28 +181,36 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!thread->isolate_group()->null_safety_not_set());
 
-  const uword stub = StubCode::InvokeDartCode().EntryPoint();
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
+
+  const uword stub = StubCode::InvokeDartCode().EntryPoint();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  uword entry_point = code.EntryPoint();
 #if defined(USING_SIMULATOR)
   return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub),
-      FLAG_precompiled_mode ? static_cast<intptr_t>(entry_point)
-                            : reinterpret_cast<intptr_t>(&code),
+      static_cast<intptr_t>(stub), static_cast<intptr_t>(entry_point),
       reinterpret_cast<intptr_t>(&arguments_descriptor),
       reinterpret_cast<intptr_t>(&arguments),
       reinterpret_cast<intptr_t>(thread)));
 #else
-  if (FLAG_precompiled_mode) {
-    return static_cast<ObjectPtr>(
-        (reinterpret_cast<invokestub_bare_instructions>(stub))(
-            entry_point, arguments_descriptor, arguments, thread));
-  } else {
-    return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
-        code, arguments_descriptor, arguments, thread));
-  }
+  return static_cast<ObjectPtr>((reinterpret_cast<invokestub_bare_instructions>(
+      stub))(entry_point, arguments_descriptor, arguments, thread));
+#endif
+#else  // defined(DART_PRECOMPILED_RUNTIME)
+#if defined(USING_SIMULATOR)
+  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+      static_cast<intptr_t>(stub), reinterpret_cast<intptr_t>(&code),
+      reinterpret_cast<intptr_t>(&arguments_descriptor),
+      reinterpret_cast<intptr_t>(&arguments),
+      reinterpret_cast<intptr_t>(thread)));
+#else
+  return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
+      code, arguments_descriptor, arguments, thread));
+#endif
 #endif
 }
+#endif  // defined(TESTING)
 
 ObjectPtr DartEntry::ResolveCallable(Thread* thread,
                                      const Array& arguments,
