@@ -223,6 +223,7 @@ class Circle {
 
     final regions = await _computeSelectionRanges(content);
     _expectRegions(regions, content, [
+      'var l',
       'length: var l',
       'Square(length: var l)',
       'Square(length: var l) => l * l',
