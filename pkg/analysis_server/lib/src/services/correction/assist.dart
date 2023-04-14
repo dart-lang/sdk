@@ -206,6 +206,11 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to switch expression',
   );
+  static const DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT = AssistKind(
+    'dart.assist.destructureLocalVariableAssignment',
+    DartAssistKindPriority.DEFAULT,
+    'Destructure variable assignment',
+  );
   static const CONVERT_TO_SWITCH_STATEMENT = AssistKind(
     'dart.assist.convert.switchStatement',
     DartAssistKindPriority.DEFAULT,
