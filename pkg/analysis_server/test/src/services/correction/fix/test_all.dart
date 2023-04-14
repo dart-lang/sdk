@@ -248,6 +248,7 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_unicode_escape_test.dart' as replace_with_unicode_escape_;
 import 'replace_with_var_test.dart' as replace_with_var;
+import 'replace_with_wildcard_test.dart' as replace_with_wildcard;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
 import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
@@ -481,6 +482,7 @@ void main() {
     replace_with_tear_off.main();
     replace_with_unicode_escape_.main();
     replace_with_var.main();
+    replace_with_wildcard.main();
     sort_properties_last.main();
     sort_constructor_first_test.main();
     sort_combinators_test.main();

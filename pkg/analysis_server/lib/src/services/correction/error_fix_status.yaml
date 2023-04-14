@@ -2603,10 +2603,7 @@ ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
   notes: |-
     Remove `covariant`.
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/51953
-  notes: |-
-    Replace with a wildcard pattern
+  status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
   status: needsFix
   notes: |-
