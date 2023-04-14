@@ -207,14 +207,38 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
+    final defaultSdkPath = _getSdkPath(results);
+    final dartSdkManager = DartSdkManager(defaultSdkPath);
+
+    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
+    // can't be re-used, but the SDK is needed to create a package map provider
+    // in the case where we need to run `pub` in order to get the package map.
+    var defaultSdk = _createDefaultSdk(defaultSdkPath);
+
+    // Create the analytics manager.
+    AnalyticsManager analyticsManager;
+    if (disableAnalyticsForSession) {
+      analyticsManager = AnalyticsManager(NoopAnalytics());
+    } else {
+      // TODO(jcollins): implement a full map of `clientId`s to tools to cover
+      // more analyzer entry points than vscode.
+      if (clientId == 'VS-Code') {
+        analyticsManager = AnalyticsManager(_createAnalytics(
+            defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
+      } else {
+        analyticsManager = AnalyticsManager(NoopAnalytics());
+      }
+    }
+
     bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.
       if (sdkConfig.crashReportingForceEnabled == true) {
         return true;
       }
 
-      // TODO(devoncarew): Replace with a real enablement check.
-      return false;
+      // Reuse the unified_analytics consent mechanism to determine whether
+      // we can send a crash report.
+      return analyticsManager.analytics.okToSend;
     }
 
     // Crash reporting
@@ -247,29 +271,6 @@ class Driver implements ServerStarter {
     if (results[HELP_OPTION] as bool) {
       _printUsage(parser, analytics, fromHelp: true);
       return;
-    }
-
-    final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath);
-
-    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
-    // can't be re-used, but the SDK is needed to create a package map provider
-    // in the case where we need to run `pub` in order to get the package map.
-    var defaultSdk = _createDefaultSdk(defaultSdkPath);
-
-    // Create the analytics manager.
-    AnalyticsManager analyticsManager;
-    if (disableAnalyticsForSession) {
-      analyticsManager = AnalyticsManager(NoopAnalytics());
-    } else {
-      // TODO(jcollins): implement a full map of `clientId`s to tools to cover
-      // more analyzer entry points than vscode.
-      if (clientId == 'VS-Code') {
-        analyticsManager = AnalyticsManager(_createAnalytics(
-            defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
-      } else {
-        analyticsManager = AnalyticsManager(NoopAnalytics());
-      }
     }
 
     // Record the start of the session.
