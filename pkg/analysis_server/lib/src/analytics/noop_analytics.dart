@@ -12,6 +12,9 @@ class NoopAnalytics implements Analytics {
   String get getConsentMessage => throw UnimplementedError();
 
   @override
+  bool get okToSend => false;
+
+  @override
   Map<String, ToolInfo> get parsedTools => throw UnimplementedError();
 
   @override

@@ -17,8 +17,7 @@ class CompilerOptions {
   Uri mainUri;
   String outputFile;
   String? depFile;
-  late final String outputJSRuntimeFile =
-      '${outputFile.substring(0, outputFile.lastIndexOf('.'))}.mjs';
+  String? outputJSRuntimeFile;
   Map<String, String> environment = const {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;

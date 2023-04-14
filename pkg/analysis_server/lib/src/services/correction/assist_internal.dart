@@ -40,6 +40,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_switch_expression.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_switch_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
@@ -123,6 +124,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertToSingleQuotes.new,
     ConvertToSuperParameters.new,
     ConvertToSwitchExpression.new,
+    ConvertToSwitchStatement.new,
     EncapsulateField.new,
     ExchangeOperands.new,
     FlutterConvertToChildren.new,
