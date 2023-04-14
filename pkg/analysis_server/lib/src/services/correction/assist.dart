@@ -206,6 +206,11 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to switch expression',
   );
+  static const CONVERT_TO_SWITCH_STATEMENT = AssistKind(
+    'dart.assist.convert.switchStatement',
+    DartAssistKindPriority.DEFAULT,
+    'Convert to switch statement',
+  );
   static const ENCAPSULATE_FIELD = AssistKind(
     'dart.assist.encapsulateField',
     DartAssistKindPriority.DEFAULT,
