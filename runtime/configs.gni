@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("runtime_args.gni")
+
 _dart_runtime = get_path_info("../runtime", "abspath")
 
 _base_config = [
@@ -225,9 +227,15 @@ template("library_for_all_configs") {
         }
       }
       deps = configured_deps + extra_deps
-      if (conf.is_product) {
+
+      # The "dart_maybe_product_config" and "dart_product_config" configs in
+      # runtime/BUILD.gn have logic to avoid building PRODUCT artifacts in debug
+      # builds.
+      if (conf.is_product && !dart_debug) {
+        not_needed([ "extra_nonproduct_deps" ])
         deps += extra_product_deps
       } else {
+        not_needed([ "extra_product_deps" ])
         deps += extra_nonproduct_deps
       }
       if (conf.snapshot) {
@@ -257,6 +265,14 @@ template("library_for_all_configs_with_compiler") {
   if (defined(invoker.extra_deps)) {
     extra_deps += invoker.extra_deps
   }
+  extra_product_deps = []
+  if (defined(invoker.extra_product_deps)) {
+    extra_product_deps += invoker.extra_product_deps
+  }
+  extra_nonproduct_deps = []
+  if (defined(invoker.extra_nonproduct_deps)) {
+    extra_nonproduct_deps += invoker.extra_nonproduct_deps
+  }
   foreach(conf, _all_configs) {
     if (conf.compiler) {
       target(invoker.target_type, "${target_name}${conf.suffix}") {
@@ -273,6 +289,17 @@ template("library_for_all_configs_with_compiler") {
           configured_deps += [ "${dep}${conf.suffix}" ]
         }
         deps = configured_deps + extra_deps
+
+        # The "dart_maybe_product_config" and "dart_product_config" configs in
+        # runtime/BUILD.gn have logic to avoid building PRODUCT artifacts in
+        # debug builds.
+        if (conf.is_product && !dart_debug) {
+          not_needed([ "extra_nonproduct_deps" ])
+          deps += extra_product_deps
+        } else {
+          not_needed([ "extra_product_deps" ])
+          deps += extra_nonproduct_deps
+        }
         if (conf.snapshot) {
           if (defined(snapshot_sources)) {
             sources += snapshot_sources

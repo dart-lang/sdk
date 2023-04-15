@@ -205,6 +205,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_wildcard.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
@@ -1386,6 +1387,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
+    ],
+    ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
+      ReplaceWithWildcard.new,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,

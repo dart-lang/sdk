@@ -551,6 +551,22 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var identifier = node.name;
+    if (identifier == entity &&
+        offset < identifier.offset &&
+        node.type == null &&
+        node.keyword?.keyword != Keyword.VAR) {
+      // Adding a type before the identifier.
+      optype.includeTypeNameSuggestions = true;
+    }
+    var parent = node.parent;
+    if (parent is PatternFieldImpl) {
+      _extractPatternFieldInfo(parent);
+    }
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (identical(entity, node.defaultValue)) {
       optype.completionLocation = 'DefaultFormalParameter_defaultValue';
@@ -1183,42 +1199,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitPatternField(covariant PatternFieldImpl node) {
-    optype.completionLocation = 'PatternField_pattern';
-
-    final parent = node.parent;
-    DartType parentMatchedValueType;
-    List<PatternField> existingFields;
-    if (parent is ObjectPattern) {
-      parentMatchedValueType = parent.type.typeOrThrow;
-      existingFields = parent.fields;
-    } else if (parent is RecordPattern) {
-      parentMatchedValueType = parent.matchedValueTypeOrThrow;
-      existingFields = parent.fields;
-    } else {
-      return;
-    }
-
-    final nameNode = node.name;
-    if (nameNode != null && nameNode.name == null) {
-      final pattern = node.pattern;
-      final patternContext = pattern.patternContext;
-      if (pattern is DeclaredVariablePatternImpl ||
-          patternContext is PatternVariableDeclaration) {
-        optype.patternLocation = NamedPatternFieldWantsName(
-          matchedType: parentMatchedValueType,
-          existingFields: existingFields,
-        );
-        return;
-      } else if (patternContext is PatternAssignment) {
-        // fallthrough
-      } else {
-        optype.patternLocation = NamedPatternFieldWantsFinalOrVar();
-        return;
-      }
-    }
-
-    optype.includeTypeNameSuggestions = true;
-    optype.includeReturnValueSuggestions = true;
+    _extractPatternFieldInfo(node);
   }
 
   @override
@@ -1740,6 +1721,45 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     }
     throw ArgumentError(
         'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}');
+  }
+
+  void _extractPatternFieldInfo(PatternFieldImpl node) {
+    optype.completionLocation = 'PatternField_pattern';
+
+    final parent = node.parent;
+    DartType parentMatchedValueType;
+    List<PatternField> existingFields;
+    if (parent is ObjectPattern) {
+      parentMatchedValueType = parent.type.typeOrThrow;
+      existingFields = parent.fields;
+    } else if (parent is RecordPattern) {
+      parentMatchedValueType = parent.matchedValueTypeOrThrow;
+      existingFields = parent.fields;
+    } else {
+      return;
+    }
+
+    final nameNode = node.name;
+    if (nameNode != null && nameNode.name == null) {
+      final pattern = node.pattern;
+      final patternContext = pattern.patternContext;
+      if (pattern is DeclaredVariablePatternImpl ||
+          patternContext is PatternVariableDeclaration) {
+        optype.patternLocation = NamedPatternFieldWantsName(
+          matchedType: parentMatchedValueType,
+          existingFields: existingFields,
+        );
+        return;
+      } else if (patternContext is PatternAssignment) {
+        // fallthrough
+      } else {
+        optype.patternLocation = NamedPatternFieldWantsFinalOrVar();
+        return;
+      }
+    }
+
+    optype.includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
   }
 
   bool _isEntityPrevTokenSynthetic() {

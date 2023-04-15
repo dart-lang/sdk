@@ -329,6 +329,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    if (node.name is SyntheticStringToken) {
+      return;
+    }
     var parent = node.parent;
     if (!(parent is GuardedPattern && parent.hasWhen)) {
       _addSuggestion(Keyword.WHEN);
