@@ -839,7 +839,7 @@ class InferrerEngine {
           ? types.getInferredTypeOfVirtualMember(callee)
           : types.getInferredTypeOfMember(callee);
       _markForClosurization(memberInfo, callSiteType,
-          remove: remove, addToQueue: addToQueue);
+          remove: remove, addToQueue: addToQueue, isVirtualCall: virtualCall);
       return true;
     } else {
       final method = callee as FunctionEntity;
@@ -1012,7 +1012,9 @@ class InferrerEngine {
 
   void _markForClosurization(
       MemberTypeInformation memberInfo, TypeInformation callSiteType,
-      {required bool remove, required bool addToQueue}) {
+      {required bool remove,
+      required bool addToQueue,
+      required bool isVirtualCall}) {
     final member = memberInfo.member;
     if (remove) {
       memberInfo.closurizedCount--;
@@ -1027,8 +1029,9 @@ class InferrerEngine {
       }
       types.strategy.forEachParameter(member as FunctionEntity,
           (Local parameter) {
-        ParameterTypeInformation info =
-            types.getInferredTypeOfParameter(parameter);
+        ParameterTypeInformation info = isVirtualCall
+            ? types.getInferredTypeOfVirtualParameter(parameter)
+            : types.getInferredTypeOfParameter(parameter);
         info.tagAsTearOffClosureParameter(this);
         if (addToQueue) _workQueue.add(info);
       });
@@ -1054,7 +1057,9 @@ class InferrerEngine {
 
         if (needsClosurization) {
           _markForClosurization(info, callSiteType,
-              remove: false, addToQueue: false);
+              remove: false,
+              addToQueue: false,
+              isVirtualCall: target.isVirtual);
         }
       }
       return true;
