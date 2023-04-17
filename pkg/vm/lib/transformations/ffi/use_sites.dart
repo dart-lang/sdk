@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         templateFfiDartTypeMismatch,
@@ -13,6 +14,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiExtendsOrImplementsSealedClass,
         templateFfiNotStatic;
 
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -117,16 +119,33 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   }
 
   @override
+  visitConstructorInvocation(ConstructorInvocation node) {
+    if (_inFfiTearoff) {
+      return node;
+    }
+    final target = node.target;
+    if (hierarchy.isSubclassOf(target.enclosingClass, compoundClass) &&
+        target.name != Name("#fromTypedDataBase")) {
+      diagnosticReporter.report(messageFfiCreateOfStructOrUnion,
+          node.fileOffset, 1, node.location?.file);
+    }
+    return super.visitConstructorInvocation(node);
+  }
+
+  @override
   visitProcedure(Procedure node) {
     assert(_inFfiTearoff == false);
-    _inFfiTearoff = (isFfiLibrary &&
-        node.isExtensionMember &&
-        (node == allocationTearoff ||
-            node == asFunctionTearoff ||
-            node == lookupFunctionTearoff ||
-            node == abiSpecificIntegerPointerElementAtTearoff ||
-            node == structPointerElementAtTearoff ||
-            node == unionPointerElementAtTearoff));
+    _inFfiTearoff = ((isFfiLibrary &&
+            node.isExtensionMember &&
+            (node == allocationTearoff ||
+                node == asFunctionTearoff ||
+                node == lookupFunctionTearoff ||
+                node == abiSpecificIntegerPointerElementAtTearoff ||
+                node == structPointerElementAtTearoff ||
+                node == unionPointerElementAtTearoff))) ||
+        // Dart2wasm uses enabledConstructorTearOffLowerings but these are not
+        // users trying to call constructors.
+        isConstructorTearOffLowering(node);
     final result = super.visitProcedure(node);
     _inFfiTearoff = false;
     return result;
