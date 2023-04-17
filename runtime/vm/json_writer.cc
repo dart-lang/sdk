@@ -35,14 +35,13 @@ class MaybeOnStackBuffer {
 JSONWriter::JSONWriter(intptr_t buf_size)
     : open_objects_(0), buffer_(buf_size) {}
 
+void JSONWriter::AppendBytes(const uint8_t* buffer, intptr_t buffer_length) {
+  buffer_.AddRaw(buffer, buffer_length);
+}
+
 void JSONWriter::AppendSerializedObject(const char* serialized_object) {
   PrintCommaIfNeeded();
   buffer_.AddString(serialized_object);
-}
-
-void JSONWriter::AppendSerializedObject(const uint8_t* buffer,
-                                        intptr_t buffer_length) {
-  buffer_.AddRaw(buffer, buffer_length);
 }
 
 void JSONWriter::AppendSerializedObject(const char* property_name,

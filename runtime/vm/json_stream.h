@@ -156,14 +156,14 @@ class JSONStream : ValueObject {
                              intptr_t* offset,
                              intptr_t* count);
 
+  // Append |buffer| to the stream.
+  void AppendBytes(const uint8_t* buffer, intptr_t buffer_length) {
+    writer_.AppendBytes(buffer, buffer_length);
+  }
+
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object) {
     writer_.AppendSerializedObject(serialized_object);
-  }
-
-  // Append |buffer| to the stream.
-  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length) {
-    writer_.AppendSerializedObject(buffer, buffer_length);
   }
 
   // Append |serialized_object| to the stream with |property_name|.

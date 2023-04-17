@@ -23,11 +23,11 @@ class JSONWriter : ValueObject {
 
   void PrintCommaIfNeeded();
 
+  // Append |buffer| to the stream.
+  void AppendBytes(const uint8_t* buffer, intptr_t buffer_length);
+
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object);
-
-  // Append |buffer| to the stream.
-  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length);
 
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
