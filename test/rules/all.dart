@@ -61,6 +61,7 @@ import 'library_private_types_in_public_api_test.dart'
 import 'lines_longer_than_80_chars_test.dart' as lines_longer_than_80_chars;
 import 'literal_only_boolean_expressions_test.dart'
     as literal_only_boolean_expressions;
+import 'matching_super_parameters_test.dart' as matching_super_parameters;
 import 'missing_whitespace_between_adjacent_strings_test.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
@@ -181,6 +182,7 @@ void main() {
   library_private_types_in_public_api.main();
   lines_longer_than_80_chars.main();
   literal_only_boolean_expressions.main();
+  matching_super_parameters.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
