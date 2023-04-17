@@ -885,7 +885,10 @@ class InferrerEngine {
   /// - setter/field
   /// - method/method
   void _initializeOverrideEdges(MemberEntity parent, MemberEntity override) {
-    if (parent.name == Identifiers.noSuchMethod_) return;
+    // Skip adding edges for Object.noSuchMethod since it cannot virtually
+    // dispatch to other implementations of NSM. However, user-defined NSM
+    // methods do need to handle virtual dispatch.
+    if (parent == commonElements.objectNoSuchMethod) return;
     final parentType = _getAndSetupVirtualMember(parent);
     final overrideType = _getAndSetupVirtualMember(override);
 

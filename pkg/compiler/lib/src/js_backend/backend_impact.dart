@@ -201,7 +201,7 @@ class BackendImpacts {
   late final BackendImpact superNoSuchMethod = BackendImpact(
     staticUses: [
       _commonElements.createInvocationMirror,
-      _commonElements.objectNoSuchMethod
+      _commonElements.objectNoSuchMethod!
     ],
     otherImpacts: [
       _needsInt('Needed to encode the invocation kind of super.noSuchMethod.'),

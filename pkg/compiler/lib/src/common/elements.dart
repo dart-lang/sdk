@@ -438,9 +438,9 @@ abstract class CommonElements {
               PrivateName('_makeEmpty', setLiteralClass.library.canonicalUri))
           as FunctionEntity;
 
-  late final FunctionEntity objectNoSuchMethod = _env.lookupLocalClassMember(
+  late final FunctionEntity? objectNoSuchMethod = _env.lookupLocalClassMember(
           objectClass, const PublicName(Identifiers.noSuchMethod_))
-      as FunctionEntity;
+      as FunctionEntity?;
 
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element) {
     ClassEntity? classElement = element.enclosingClass;
