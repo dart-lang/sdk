@@ -178,6 +178,9 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
+      if (parent is ConstructorDeclaration) {
+        semanticModifiers = {CustomSemanticTokenModifiers.constructor};
+      }
     }
 
     if (_isAnnotationIdentifier(node)) {
