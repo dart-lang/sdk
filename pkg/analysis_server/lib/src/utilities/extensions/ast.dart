@@ -175,6 +175,16 @@ extension CompilationUnitExtension on CompilationUnit {
       declaredElement?.library.isNonNullableByDefault ?? false;
 }
 
+extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
+  Token? get finalKeyword {
+    return keyword.asFinalKeyword;
+  }
+
+  Token? get varKeyword {
+    return keyword.asVarKeyword;
+  }
+}
+
 extension DirectiveExtensions on Directive {
   /// If the target imports or exports a [LibraryElement], returns it.
   LibraryElement? get referencedLibrary {
@@ -260,9 +270,24 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 }
 
+extension TokenQuestionExtension on Token? {
+  Token? get asFinalKeyword {
+    final self = this;
+    return self != null && self.keyword == Keyword.FINAL ? self : null;
+  }
+
+  Token? get asVarKeyword {
+    final self = this;
+    return self != null && self.keyword == Keyword.VAR ? self : null;
+  }
+}
+
 extension VariableDeclarationListExtension on VariableDeclarationList {
   Token? get finalKeyword {
-    final keyword = this.keyword;
-    return keyword != null && keyword.keyword == Keyword.FINAL ? keyword : null;
+    return keyword.asFinalKeyword;
+  }
+
+  Token? get varKeyword {
+    return keyword.asVarKeyword;
   }
 }

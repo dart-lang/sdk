@@ -3235,9 +3235,7 @@ ParserErrorCode.UNEXPECTED_TOKEN:
 ParserErrorCode.UNEXPECTED_TOKENS:
   status: noFix
 ParserErrorCode.VAR_AND_TYPE:
-  status: needsFix
-  notes: |-
-    Remove `var`. Remove the type.
+  status: hasFix
 ParserErrorCode.VAR_AS_TYPE_NAME:
   status: hasFix
 ParserErrorCode.VAR_CLASS:

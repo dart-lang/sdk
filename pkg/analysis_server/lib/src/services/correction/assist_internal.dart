@@ -147,7 +147,7 @@ class AssistProcessor extends BaseProcessor {
     JoinIfWithInner.new,
     JoinIfWithOuter.new,
     JoinVariableDeclaration.new,
-    RemoveTypeAnnotation.new,
+    RemoveTypeAnnotation.other,
     ReplaceConditionalWithIfElse.new,
     ReplaceIfElseWithConditional.new,
     ReplaceWithVar.new,
