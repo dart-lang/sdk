@@ -1274,17 +1274,12 @@ rethrowStatement
     ;
 
 tryStatement
-    :    TRY block (onParts finallyPart? | finallyPart)
+    :    TRY block (onPart+ finallyPart? | finallyPart)
     ;
 
 onPart
     :    catchPart block
     |    ON typeNotVoid catchPart? block
-    ;
-
-onParts
-    :    onPart onParts
-    |    onPart
     ;
 
 catchPart
