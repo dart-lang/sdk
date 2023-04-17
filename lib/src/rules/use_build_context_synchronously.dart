@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -346,7 +347,9 @@ extension on Statement {
   bool get terminatesControl {
     var self = this;
     if (self is Block) {
-      return self.statements.last.terminatesControl;
+      // TODO(scheglov) Stop using package:collection when SDK 3.0.0
+      var last = self.statements.lastOrNull;
+      return last != null && last.terminatesControl;
     }
     // TODO(srawlins): Make ExitDetector 100% functional for our needs. The
     // basic (only?) difference is that it doesn't consider a `break` statement

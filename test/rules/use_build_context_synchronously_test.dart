@@ -428,6 +428,21 @@ Future<void> bar({required BuildContext context}) async {}
     ]);
   }
 
+  test_noAwaitBefore_ifEmptyThen_methodInvocation() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void f(BuildContext context) async {
+  if (true) {}
+  context.foo();
+}
+
+extension on BuildContext {
+  void foo() {}
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/3700
   test_propertyAccess_getter() async {
     await assertDiagnostics(r'''
