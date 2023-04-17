@@ -128,44 +128,44 @@ void testListContainingRestPatternAndNonRestPattern(List<Object> x) {
 }
 
 void testListContainingOnlyRestPattern(List<Object> x) {
-  // TODO(paulberry): this should be trivially exhaustive
+  // Trivially exhaustive
   bool? y;
   switch (x) {
     case [...]:
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testListContainingOnlyRestPatternWithSubpatternWildcard(List<Object> x) {
-  // TODO(paulberry): this should be trivially exhaustive
+  // Trivially exhaustive
   bool? y;
   switch (x) {
     case [..._]:
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testListContainingOnlyRestPatternWithSubpatternAnyList(List<Object> x) {
-  // TODO(paulberry): this should be trivially exhaustive
+  // Trivially exhaustive
   bool? y;
   switch (x) {
     case [...[...]]:
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testListContainingOnlyRestPatternWithSubpatternObjectPattern(
     List<Object> x) {
-  // TODO(paulberry): this should be trivially exhaustive
+  // Trivially exhaustive
   bool? y;
   switch (x) {
     case [...List()]:
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testListContainingOnlyRestPatternWithSubpatternOther(List<Object> x) {
@@ -179,13 +179,13 @@ void testListContainingOnlyRestPatternWithSubpatternOther(List<Object> x) {
 }
 
 void testListSupertype(List<Object> x) {
-  // TODO(paulberry): this should be trivially exhaustive
+  // Trivially exhaustive
   bool? y;
   switch (x) {
     case <Object?>[...]:
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testListSubtype(List<Object> x) {
