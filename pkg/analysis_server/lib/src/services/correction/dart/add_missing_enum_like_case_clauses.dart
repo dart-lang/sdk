@@ -35,7 +35,11 @@ class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
 
       var statementIndent = utils.getLinePrefix(node.offset);
       var singleIndent = utils.getIndent(1);
-      var location = utils.newCaseClauseAtEndLocation(node);
+      var location = utils.newCaseClauseAtEndLocation(
+        switchKeyword: node.switchKeyword,
+        leftBracket: node.leftBracket,
+        rightBracket: node.rightBracket,
+      );
 
       await builder.addDartFileEdit(file, (builder) {
         // TODO(brianwilkerson) Consider inserting the names in order into the

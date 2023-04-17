@@ -1019,17 +1019,21 @@ class CorrectionUtils {
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
-  InsertionLocation newCaseClauseAtEndLocation(SwitchStatement statement) {
-    var blockStartLine = getLineThis(statement.leftBracket.offset);
-    var blockEndLine = getLineThis(statement.end);
+  InsertionLocation newCaseClauseAtEndLocation({
+    required Token switchKeyword,
+    required Token leftBracket,
+    required Token rightBracket,
+  }) {
+    var blockStartLine = getLineThis(leftBracket.offset);
+    var blockEndLine = getLineThis(rightBracket.offset);
     var offset = blockEndLine;
     var prefix = '';
     var suffix = '';
     if (blockStartLine == blockEndLine) {
       // The switch body is on a single line.
       prefix = endOfLine;
-      offset = statement.leftBracket.end;
-      suffix = getLinePrefix(statement.offset);
+      offset = leftBracket.end;
+      suffix = getLinePrefix(switchKeyword.offset);
     }
     return InsertionLocation(prefix, offset, suffix);
   }

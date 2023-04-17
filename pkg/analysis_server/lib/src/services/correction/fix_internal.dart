@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_enum_li
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_switch_cases.dart';
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
@@ -1175,6 +1176,12 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
       AddConst.new,
+    ],
+    CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION: [
+      AddMissingSwitchCases.new,
+    ],
+    CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT: [
+      AddMissingSwitchCases.new,
     ],
     CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM: [
       MakeFinal.new,

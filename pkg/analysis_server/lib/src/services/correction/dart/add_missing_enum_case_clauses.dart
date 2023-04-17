@@ -79,7 +79,11 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
 
     var statementIndent = utils.getLinePrefix(statement.offset);
     var singleIndent = utils.getIndent(1);
-    var location = utils.newCaseClauseAtEndLocation(statement);
+    var location = utils.newCaseClauseAtEndLocation(
+      switchKeyword: statement.switchKeyword,
+      leftBracket: statement.leftBracket,
+      rightBracket: statement.rightBracket,
+    );
 
     var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
     final enumName_final = '$prefixString$enumName';
