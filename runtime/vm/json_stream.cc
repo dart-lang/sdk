@@ -595,6 +595,40 @@ void JSONArray::AddValueF(const char* format, ...) const {
   va_end(args);
 }
 
+void JSONBase64String::AppendBytes(const uint8_t* bytes, intptr_t length) {
+  ASSERT(bytes != nullptr);
+
+  if (num_queued_bytes_ > 0) {
+    while (length > 0) {
+      queued_bytes_[num_queued_bytes_++] = bytes[0];
+      bytes++;
+      length--;
+      if (num_queued_bytes_ == 3) {
+        break;
+      }
+    }
+    if (num_queued_bytes_ < 3) {
+      return;
+    }
+    stream_->AppendBytesInBase64(queued_bytes_, 3);
+    num_queued_bytes_ = 0;
+  }
+
+  intptr_t length_mod_3 = length % 3;
+  intptr_t largest_multiple_of_3_less_than_or_equal_to_length =
+      length - length_mod_3;
+  if (largest_multiple_of_3_less_than_or_equal_to_length > 0) {
+    stream_->AppendBytesInBase64(
+        bytes, largest_multiple_of_3_less_than_or_equal_to_length);
+  }
+
+  for (intptr_t i = 0; i < length_mod_3; ++i) {
+    queued_bytes_[i] =
+        bytes[largest_multiple_of_3_less_than_or_equal_to_length + i];
+  }
+  num_queued_bytes_ = length_mod_3;
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart
