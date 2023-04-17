@@ -120,7 +120,7 @@ String kernelComponentToString(Component component) {
       .replaceAll(mainLibrary.importUri.toString(), mainLibrary.name!);
 }
 
-class DevNullSink<T> extends Sink<T> {
+class DevNullSink<T> implements Sink<T> {
   @override
   void add(T data) {}
 

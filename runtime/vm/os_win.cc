@@ -73,10 +73,11 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // Convert the wchar string to a null-terminated utf8 string.
   wchar_t* wchar_name = daylight_savings ? zone_information.DaylightName
                                          : zone_information.StandardName;
-  intptr_t utf8_len =
-      WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, NULL, 0, NULL, NULL);
+  intptr_t utf8_len = WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, nullptr,
+                                          0, nullptr, nullptr);
   char* name = ThreadState::Current()->zone()->Alloc<char>(utf8_len + 1);
-  WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, name, utf8_len, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, name, utf8_len, nullptr,
+                      nullptr);
   name[utf8_len] = '\0';
   return name;
 }
@@ -107,8 +108,8 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  static const int64_t kTimeEpoc = 116444736000000000LL;
-  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+  const int64_t kTimeEpoc = 116444736000000000LL;
+  const int64_t kTimeScaler = 10;  // 100 ns to us.
 
   // Although win32 uses 64-bit integers for representing timestamps,
   // these are packed into a FILETIME structure. The FILETIME
@@ -246,7 +247,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -255,7 +256,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
   }
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   // Print.
   va_list print_args;
@@ -266,7 +267,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
 }
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
   int32_t base = 10;
   char* endptr;
   int i = 0;

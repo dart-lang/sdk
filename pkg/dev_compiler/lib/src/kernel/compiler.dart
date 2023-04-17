@@ -4744,33 +4744,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Statement visitIfStatement(IfStatement node) {
+    bool isTriviallyTrue(condition) =>
+        condition is js_ast.LiteralBool && condition.value;
+
+    bool isTriviallyFalse(condition) =>
+        condition is js_ast.LiteralBool && !condition.value;
+
     var condition = _visitTest(node.condition);
-    if (node.otherwise != null) {
-      if (condition is js_ast.LiteralBool) {
-        // Avoid emitting the branch with code that will never execute.
-        if (condition.value) {
-          return _visitScope(node.then).toStatement();
-        } else {
-          return _visitScope(node.otherwise!).toStatement();
-        }
-      }
-      return js_ast.If(
-          condition, _visitScope(node.then), _visitScope(node.otherwise!));
+    if (isTriviallyTrue(condition)) return _visitScope(node.then);
+    var otherwise = node.otherwise;
+    var hasElse = otherwise != null;
+    if (isTriviallyFalse(condition)) {
+      return hasElse ? _visitScope(otherwise) : js_ast.EmptyStatement();
     }
-
-    if (condition is js_ast.LiteralBool) {
-      if (condition.value) {
-        // Avoid emitting conditional when it is always true.
-        // ex: `if (true) {abc...}` -> `{abc...}`
-        return _visitScope(node.then).toStatement();
-      } else {
-        // Avoid emitting conditional and then when it will never execute.
-        // ex: `if (false) {abc...}` -> `;`
-        return js_ast.EmptyStatement();
-      }
-    }
-
-    return js_ast.If.noElse(condition, _visitScope(node.then));
+    return hasElse
+        ? js_ast.If(condition, _visitScope(node.then), _visitScope(otherwise))
+        : js_ast.If.noElse(condition, _visitScope(node.then));
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope

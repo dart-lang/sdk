@@ -4,6 +4,8 @@
 
 /// This tests the benchmarks in benchmark/benchmark.test, and ensures that our
 /// benchmarks can run.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

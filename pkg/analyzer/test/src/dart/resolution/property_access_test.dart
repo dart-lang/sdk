@@ -39,6 +39,178 @@ int Function() foo() {
     assertType(identifier, 'A?');
   }
 
+  test_inClass_superQualifier_identifier_getter() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  int get foo => 0;
+
+  void f() {
+    super.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inClass_superQualifier_identifier_method() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo(int _) {}
+}
+
+class B extends A {
+  void foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  staticType: void Function(int)
+''');
+  }
+
+  test_inClass_superQualifier_identifier_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3),
+    ]);
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_inClass_thisExpression_identifier_getter() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inClass_thisExpression_identifier_method() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo(int _) {}
+
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  staticType: void Function(int)
+''');
+  }
+
+  test_inClass_thisExpression_identifier_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3),
+    ]);
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_nullShorting_cascade() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -51,19 +223,30 @@ void f(A? a) {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('..foo'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('..bar'),
-      element: findElement.getter('bar'),
-      type: 'int',
-    );
-
-    assertType(findNode.cascade('a?'), 'A?');
+    final node = findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  cascadeSections
+    PropertyAccess
+      operator: ?..
+      propertyName: SimpleIdentifier
+        token: foo
+        staticElement: self::@class::A::@getter::foo
+        staticType: int
+      staticType: int
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: bar
+        staticElement: self::@class::A::@getter::bar
+        staticType: int
+      staticType: int
+  staticType: A?
+''');
   }
 
   test_nullShorting_cascade2() async {
@@ -78,19 +261,39 @@ main() {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('..foo?'),
-      element: findElement.getter('foo'),
-      type: 'int?',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('.isEven'),
-      element: intElement.getGetter('isEven'),
-      type: 'bool',
-    );
-
-    assertType(findNode.cascade('A()'), 'A');
+    final node = findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  cascadeSections
+    PropertyAccess
+      target: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: foo
+          staticElement: self::@class::A::@getter::foo
+          staticType: int?
+        staticType: int?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: isEven
+        staticElement: dart:core::@class::int::@getter::isEven
+        staticType: bool
+      staticType: bool
+  staticType: A
+''');
   }
 
   test_nullShorting_cascade3() async {
@@ -107,25 +310,46 @@ main() {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('.foo'),
-      element: findElement.getter('foo'),
-      type: 'A?',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('.bar'),
-      element: findElement.getter('bar'),
-      type: 'A?',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('.baz'),
-      element: findElement.getter('baz'),
-      type: 'A?',
-    );
-
-    assertType(findNode.cascade('A()'), 'A');
+    final node = findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  cascadeSections
+    PropertyAccess
+      target: PropertyAccess
+        target: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: foo
+            staticElement: self::@class::A::@getter::foo
+            staticType: A?
+          staticType: A?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: bar
+          staticElement: self::@class::A::@getter::bar
+          staticType: A?
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: baz
+        staticElement: self::@class::A::@getter::baz
+        staticType: A?
+      staticType: A?
+  staticType: A
+''');
   }
 
   test_nullShorting_cascade4() async {
@@ -143,31 +367,37 @@ main() {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('foo?'),
-      element: findElement.topGet('foo'),
-      type: 'A?',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('.bar'),
-      element: findElement.getter('bar'),
-      type: 'A?',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('.baz'),
-      element: findElement.getter('baz'),
-      type: 'A?',
-    );
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('.baq'),
-      element: findElement.getter('baq'),
-      type: 'A',
-    );
-
-    assertType(findNode.cascade('foo?'), 'A?');
+    final node = findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: PropertyAccess
+    target: SimpleIdentifier
+      token: foo
+      staticElement: self::@getter::foo
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: bar
+      staticElement: self::@class::A::@getter::bar
+      staticType: A
+    staticType: A?
+  cascadeSections
+    PropertyAccess
+      target: PropertyAccess
+        operator: ?..
+        propertyName: SimpleIdentifier
+          token: baz
+          staticElement: self::@class::A::@getter::baz
+          staticType: A?
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: baq
+        staticElement: self::@class::A::@getter::baq
+        staticType: A
+      staticType: A
+  staticType: A?
+''');
   }
 
   test_ofEnum_read() async {
@@ -182,18 +412,24 @@ void f(E e) {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: e
+      staticElement: self::@function::f::@parameter::e
+      staticType: E
+    rightParenthesis: )
+    staticType: E
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@enum::E::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_ofEnum_read_fromMixin() async {
@@ -211,18 +447,24 @@ void f(E e) {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: e
+      staticElement: self::@function::f::@parameter::e
+      staticType: E
+    rightParenthesis: )
+    staticType: E
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@mixin::M::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_ofEnum_write() async {
@@ -839,18 +1081,60 @@ void f(A a) {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A
+      rightParenthesis: )
+    extendedType: A
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A*
+      rightParenthesis: )
+    extendedType: A*
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_extensionOverride_readWrite_assignment() async {
@@ -1051,11 +1335,44 @@ void f(int Function(String) a) {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('call;'),
-      element: null,
-      type: 'int Function(String)',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: int Function(String)
+    rightParenthesis: )
+    staticType: int Function(String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: int Function(String)
+  staticType: int Function(String)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: int* Function(String*)*
+    rightParenthesis: )
+    staticType: int* Function(String*)*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: int* Function(String*)*
+  staticType: int* Function(String*)*
+''');
+    }
   }
 
   test_instanceCreation_read() async {
@@ -1069,18 +1386,54 @@ void f() {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A*
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_instanceCreation_readWrite_assignment() async {
@@ -1262,11 +1615,36 @@ AssignmentExpression
 void f({a = b?.foo}) {}
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('?.foo'),
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
@@ -1274,11 +1652,36 @@ void f({a = b?.foo}) {}
 typedef void F({a = b?.foo});
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('?.foo'),
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: b
+    staticElement: <null>
+    staticType: dynamic
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_invalid_inDefaultValue_nullAware_cascade() async {
@@ -1286,11 +1689,62 @@ typedef void F({a = b?.foo});
 void f({a = b?..foo}) {}
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('?..foo'),
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.defaultParameter('a =');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+DefaultFormalParameter
+  parameter: SimpleFormalParameter
+    name: a
+    declaredElement: self::@function::f::@parameter::a
+      type: dynamic
+  separator: =
+  defaultValue: CascadeExpression
+    target: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: dynamic
+    cascadeSections
+      PropertyAccess
+        operator: ?..
+        propertyName: SimpleIdentifier
+          token: foo
+          staticElement: <null>
+          staticType: dynamic
+        staticType: dynamic
+    staticType: dynamic
+  declaredElement: self::@function::f::@parameter::a
+    type: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+DefaultFormalParameter
+  parameter: SimpleFormalParameter
+    name: a
+    declaredElement: self::@function::f::@parameter::a
+      type: dynamic
+  separator: =
+  defaultValue: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: b
+        staticElement: <null>
+        staticType: dynamic
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: <empty> <synthetic>
+        staticElement: <null>
+        staticType: dynamic
+      staticType: dynamic
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: dynamic
+    staticType: dynamic
+  declaredElement: self::@function::f::@parameter::a
+    type: dynamic
+''');
+    }
   }
 
   test_ofDynamic_read_hash() async {
@@ -1300,18 +1754,44 @@ void f(dynamic a) {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('hash;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hash
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hash
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_ofDynamic_read_hashCode() async {
@@ -1321,23 +1801,46 @@ void f(dynamic a) {
 }
 ''');
 
-    var hashCodeElement = elementMatcher(
-      objectElement.getGetter('hashCode'),
-      isLegacy: isLegacyLibrary,
-    );
-
-    var propertyAccess = findNode.propertyAccess('hashCode;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: hashCodeElement,
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: hashCodeElement,
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: PropertyAccessorMember
+      base: dart:core::@class::Object::@getter::hashCode
+      isLegacy: true
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_ofDynamic_read_runtimeType() async {
@@ -1347,23 +1850,46 @@ void f(dynamic a) {
 }
 ''');
 
-    var runtimeTypeElement = elementMatcher(
-      objectElement.getGetter('runtimeType'),
-      isLegacy: isLegacyLibrary,
-    );
-
-    var propertyAccess = findNode.propertyAccess('runtimeType;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: runtimeTypeElement,
-      type: 'Type',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: runtimeTypeElement,
-      type: 'Type',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: runtimeType
+    staticElement: dart:core::@class::Object::@getter::runtimeType
+    staticType: Type
+  staticType: Type
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: runtimeType
+    staticElement: PropertyAccessorMember
+      base: dart:core::@class::Object::@getter::runtimeType
+      isLegacy: true
+    staticType: Type*
+  staticType: Type*
+''');
+    }
   }
 
   test_ofDynamic_read_toString() async {
@@ -1373,23 +1899,46 @@ void f(dynamic a) {
 }
 ''');
 
-    var toStringElement = elementMatcher(
-      objectElement.getMethod('toString'),
-      isLegacy: isLegacyLibrary,
-    );
-
-    var propertyAccess = findNode.propertyAccess('toString;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: toStringElement,
-      type: 'String Function()',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: toStringElement,
-      type: 'String Function()',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  staticType: String Function()
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: toString
+    staticElement: MethodMember
+      base: dart:core::@class::Object::@method::toString
+      isLegacy: true
+    staticType: String* Function()*
+  staticType: String* Function()*
+''');
+    }
   }
 
   test_ofExtension_read() async {
@@ -1405,18 +1954,54 @@ void f(A a) {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A*
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int*
+  staticType: int*
+''');
+    }
   }
 
   test_ofExtension_readWrite_assignment() async {
@@ -1788,18 +2373,44 @@ class A<T extends dynamic> {
 }
 ''');
 
-    var propertyAccess = findNode.propertyAccess('.foo');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: t
+      staticElement: self::@class::A::@method::f::@parameter::t
+      staticType: T
+    rightParenthesis: )
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: t
+      staticElement: self::@class::A::@method::f::@parameter::t
+      staticType: T*
+    rightParenthesis: )
+    staticType: T*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_targetTypeParameter_noBound() async {
@@ -1820,18 +2431,44 @@ class C<T> {
       ],
     ));
 
-    var propertyAccess = findNode.propertyAccess('.foo');
-    assertPropertyAccess2(
-      propertyAccess,
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      propertyAccess.propertyName,
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: t
+      staticElement: self::@class::C::@method::f::@parameter::t
+      staticType: T
+    rightParenthesis: )
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: t
+      staticElement: self::@class::C::@method::f::@parameter::t
+      staticType: T*
+    rightParenthesis: )
+    staticType: T*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+    }
   }
 
   test_tearOff_method() async {

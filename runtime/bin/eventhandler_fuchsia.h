@@ -63,7 +63,7 @@ class IOHandle : public ReferenceCounted<IOHandle> {
 
  private:
   ~IOHandle() {
-    if (fdio_ != NULL) {
+    if (fdio_ != nullptr) {
       fdio_unsafe_release(fdio_);
     }
   }
@@ -150,7 +150,7 @@ class EventHandlerImplementation {
   void Shutdown();
 
  private:
-  static const uint64_t kInterruptPacketKey = 1;
+  static constexpr uint64_t kInterruptPacketKey = 1;
 
   static void Poll(uword args);
   static void* GetHashmapKeyFromFd(intptr_t fd);

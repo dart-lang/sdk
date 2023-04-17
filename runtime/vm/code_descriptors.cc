@@ -133,7 +133,7 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
   handlers.set_has_async_handler(has_async_handler_);
   for (intptr_t i = 0; i < num_handlers; i++) {
     // Assert that every element in the array has been initialized.
-    if (list_[i].handler_types == NULL) {
+    if (list_[i].handler_types == nullptr) {
       // Unreachable handler, entry not computed.
       // Initialize it to some meaningful value.
       const bool has_catch_all = false;
@@ -173,7 +173,7 @@ class CatchEntryMovesMapBuilder::TrieNode : public ZoneAllocated {
     for (intptr_t i = 0; i < children_.length(); i++) {
       if (children_[i]->move_ == next) return children_[i];
     }
-    return NULL;
+    return nullptr;
   }
 
  private:
@@ -203,7 +203,7 @@ void CatchEntryMovesMapBuilder::EndMapping() {
   // Find the largest common suffix, get the last node of the path.
   for (intptr_t i = moves_.length() - 1; i >= 0; i--) {
     TrieNode* n = suffix->Follow(moves_[i]);
-    if (n == NULL) break;
+    if (n == nullptr) break;
     suffix_length++;
     suffix = n;
   }

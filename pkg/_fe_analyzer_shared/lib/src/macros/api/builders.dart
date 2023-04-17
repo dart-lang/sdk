@@ -18,11 +18,11 @@ abstract class IdentifierResolver {
   /// You should only do this for libraries that are definitely in the
   /// transitive import graph of the library you are generating code into.
   @Deprecated(
-      'This api should eventually be replaced with a different, safer API.')
+      'This API should eventually be replaced with a different, safer API.')
   Future<Identifier> resolveIdentifier(Uri library, String name);
 }
 
-/// The api used by [Macro]s to contribute new type declarations to the
+/// The API used by [Macro]s to contribute new type declarations to the
 /// current library, and get [TypeAnnotation]s from runtime [Type] objects.
 abstract class TypeBuilder implements Builder, IdentifierResolver {
   /// Adds a new type declaration to the surrounding library.
@@ -35,7 +35,7 @@ abstract class TypeBuilder implements Builder, IdentifierResolver {
 /// The interface used to create [StaticType] instances, which are used to
 /// examine type relationships.
 ///
-/// This api is only available to the declaration and definition phases of
+/// This API is only available to the declaration and definition phases of
 /// macro expansion.
 abstract class TypeResolver {
   /// Instantiates a new [StaticType] for a given [type] annotation.
@@ -48,11 +48,18 @@ abstract class TypeResolver {
   Future<StaticType> resolve(TypeAnnotationCode type);
 }
 
-/// The api used to introspect on any [TypeDeclaration] which also has the
+/// The API used to introspect on any [TypeDeclaration] which also has the
 /// marker interface [IntrospectableType].
 ///
 /// Available in the declaration and definition phases.
 abstract class TypeIntrospector {
+  /// The values available for [enuum].
+  ///
+  /// This may be incomplete if additional declaration macros are going to run
+  /// on [enuum].
+  Future<List<EnumValueDeclaration>> valuesOf(
+      covariant IntrospectableEnum enuum);
+
   /// The fields available for [type].
   ///
   /// This may be incomplete if additional declaration macros are going to run
@@ -93,7 +100,7 @@ abstract class TypeDeclarationResolver {
   Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
 }
 
-/// The api used by [Macro]s to contribute new (non-type)
+/// The API used by [Macro]s to contribute new (non-type)
 /// declarations to the current library.
 ///
 /// Can also be used to do subtype checks on types.
@@ -110,10 +117,16 @@ abstract class DeclarationBuilder
   void declareInLibrary(DeclarationCode declaration);
 }
 
-/// The api used by [Macro]s to contribute new members to a class.
-abstract class ClassMemberDeclarationBuilder implements DeclarationBuilder {
+/// The API used by [Macro]s to contribute new members to a type.
+abstract class MemberDeclarationBuilder implements DeclarationBuilder {
   /// Adds a new declaration to the surrounding class.
-  void declareInClass(DeclarationCode declaration);
+  void declareInType(DeclarationCode declaration);
+}
+
+/// The API used by [Macro]s to contribute new members or values to an enum.
+abstract class EnumDeclarationBuilder implements MemberDeclarationBuilder {
+  /// Adds a new enum entry declaration to the surrounding enum.
+  void declareEnumValue(DeclarationCode declaration);
 }
 
 /// The interface used by [Macro]s to get the inferred type for an
@@ -140,9 +153,9 @@ abstract class DefinitionBuilder
         TypeInferrer,
         TypeResolver {}
 
-/// The apis used by [Macro]s that run on classes, to fill in the definitions
-/// of any external declarations within that class.
-abstract class ClassDefinitionBuilder implements DefinitionBuilder {
+/// The APIs used by [Macro]s that run on type declarations, to fill in the
+/// definitions of any declarations within that class.
+abstract class TypeDefinitionBuilder implements DefinitionBuilder {
   /// Retrieve a [VariableDefinitionBuilder] for a field with [identifier].
   ///
   /// Throws an [ArgumentError] if [identifier] does not refer to a field in
@@ -163,7 +176,17 @@ abstract class ClassDefinitionBuilder implements DefinitionBuilder {
   Future<ConstructorDefinitionBuilder> buildConstructor(Identifier identifier);
 }
 
-/// The apis used by [Macro]s to define the body of a constructor
+/// The APIs used by [Macro]s that run on enums, to fill in the
+/// definitions of any declarations within that enum.
+abstract class EnumDefinitionBuilder implements TypeDefinitionBuilder {
+  /// Retrieve an [EnumValueDefinitionBuilder] for an entry with [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to an entry on
+  /// this enum.
+  Future<EnumValueDefinitionBuilder> buildEnumValue(Identifier identifier);
+}
+
+/// The APIs used by [Macro]s to define the body of a constructor
 /// or wrap the body of an existing constructor with additional statements.
 abstract class ConstructorDefinitionBuilder implements DefinitionBuilder {
   /// Augments an existing constructor body with [body] and [initializers].
@@ -174,7 +197,7 @@ abstract class ConstructorDefinitionBuilder implements DefinitionBuilder {
   void augment({FunctionBodyCode? body, List<Code>? initializers});
 }
 
-/// The apis used by [Macro]s to augment functions or methods.
+/// The APIs used by [Macro]s to augment functions or methods.
 abstract class FunctionDefinitionBuilder implements DefinitionBuilder {
   /// Augments the function.
   ///
@@ -182,7 +205,7 @@ abstract class FunctionDefinitionBuilder implements DefinitionBuilder {
   void augment(FunctionBodyCode body);
 }
 
-/// The api used by [Macro]s to augment a top level variable or instance field.
+/// The API used by [Macro]s to augment a top level variable or instance field.
 abstract class VariableDefinitionBuilder implements DefinitionBuilder {
   /// Augments the field.
   ///
@@ -195,4 +218,12 @@ abstract class VariableDefinitionBuilder implements DefinitionBuilder {
     DeclarationCode? setter,
     ExpressionCode? initializer,
   });
+}
+
+/// The API used by [Macro]s to augment an enum entry.
+abstract class EnumValueDefinitionBuilder implements DefinitionBuilder {
+  /// Augments the entry by replacing it with a new one.
+  ///
+  /// The name of the produced [entry] must match the original name.
+  void augment(DeclarationCode entry);
 }

@@ -23,8 +23,8 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
   VirtualMemory* vm =
       VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
-  EXPECT(vm != NULL);
-  EXPECT(vm->address() != NULL);
+  EXPECT(vm != nullptr);
+  EXPECT(vm->address() != nullptr);
   EXPECT_EQ(vm->start(), reinterpret_cast<uword>(vm->address()));
   EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
   EXPECT_EQ(vm->start() + kVirtualMemoryBlockSize, vm->end());

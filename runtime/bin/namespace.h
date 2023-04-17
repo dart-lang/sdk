@@ -43,7 +43,7 @@ class Namespace : public ReferenceCounted<Namespace> {
  private:
   // When namespc_ has this value, it indicates that there is currently
   // no namespace for resolving absolute paths.
-  static const intptr_t kNone = 0;
+  static constexpr intptr_t kNone = 0;
 
   explicit Namespace(NamespaceImpl* namespc)
       : ReferenceCounted(), namespc_(namespc) {}

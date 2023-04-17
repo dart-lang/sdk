@@ -52,6 +52,10 @@ abstract final class _A3&Object&Record = core::Object with core::Record /*isAnon
   const synthetic constructor •() → self::_A3&Object&Record
     : super core::Object::•()
     ;
+  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
+  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
+  abstract mixin-stub method toString() → core::String; -> core::Record::toString
 }
 abstract class A3 extends self::_A3&Object&Record {
   synthetic constructor •() → self::A3

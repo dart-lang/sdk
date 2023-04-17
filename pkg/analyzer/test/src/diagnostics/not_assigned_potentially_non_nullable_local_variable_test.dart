@@ -644,7 +644,7 @@ void f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNUSED_ELEMENT, 38, 1),
+      error(WarningCode.UNUSED_ELEMENT, 38, 1),
       _notAssignedError(64, 1),
     ]);
   }
@@ -665,7 +665,7 @@ void f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 40, 1),
+      error(WarningCode.UNUSED_ELEMENT, 40, 1),
       _notAssignedError(94, 2),
     ]);
   }
@@ -685,7 +685,7 @@ void f() {
   v2 = 0;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 44, 1),
+      error(WarningCode.UNUSED_ELEMENT, 44, 1),
       _notAssignedError(62, 2),
     ]);
   }
@@ -702,7 +702,7 @@ void f() {
   v;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 28, 1),
+      error(WarningCode.UNUSED_ELEMENT, 28, 1),
       _notAssignedError(52, 1),
     ]);
   }

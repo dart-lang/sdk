@@ -970,6 +970,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    MixinWithClauseHandle data = new MixinWithClauseHandle(ParserAstType.HANDLE,
+        withKeyword: withKeyword);
+    seen(data);
+  }
+
+  @override
   void beginNamedMixinApplication(
       Token begin,
       Token? abstractToken,
@@ -4705,6 +4712,18 @@ class EnumNoWithClauseHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+}
+
+class MixinWithClauseHandle extends ParserAstNode {
+  final Token withKeyword;
+
+  MixinWithClauseHandle(ParserAstType type, {required this.withKeyword})
+      : super("MixinWithClause", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "withKeyword": withKeyword,
+      };
 }
 
 class NamedMixinApplicationBegin extends ParserAstNode {

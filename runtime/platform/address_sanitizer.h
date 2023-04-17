@@ -23,7 +23,7 @@ extern "C" void __asan_unpoison_memory_region(void*, size_t);
 #define NO_SANITIZE_ADDRESS
 #define ASAN_UNPOISON(ptr, len)                                                \
   do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
+  } while (false && (ptr) == nullptr && (len) == 0)
 #endif  // defined(USING_ADDRESS_SANITIZER)
 
 #endif  // RUNTIME_PLATFORM_ADDRESS_SANITIZER_H_

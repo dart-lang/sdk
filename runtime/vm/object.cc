@@ -189,8 +189,6 @@ ClassPtr Object::weak_serialization_reference_class_ =
     static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::weak_array_class_ = static_cast<ClassPtr>(RAW_NULL);
 
-const double MegamorphicCache::kLoadFactor = 0.50;
-
 static void AppendSubString(BaseTextBuffer* buffer,
                             const char* name,
                             intptr_t start_pos,
@@ -321,7 +319,7 @@ const char* String::ScrubName(const String& name, bool is_extension) {
     }
   }
 
-  const char* unmangled_name = NULL;
+  const char* unmangled_name = nullptr;
   if (start_pos == 0) {
     // No name unmangling needed, reuse the name that was passed in.
     unmangled_name = cname;
@@ -332,7 +330,7 @@ const char* String::ScrubName(const String& name, bool is_extension) {
     sum_segment_len += segment_len;
     AppendSubString(&printer, cname, start_pos, segment_len);
   }
-  if (unmangled_name == NULL) {
+  if (unmangled_name == nullptr) {
     // Merge unmangled_segments.
     unmangled_name = printer.buffer();
   }
@@ -1702,8 +1700,8 @@ void Object::RegisterPrivateClass(const Class& cls,
 //   2. There is no vm snapshot.  This function will bootstrap from source.
 //   3. There is a vm snapshot.  The caller should initialize from the snapshot.
 //
-// A non-NULL kernel argument indicates (1).
-// A NULL kernel indicates (2) or (3).
+// A non-null kernel argument indicates (1).
+// A nullptr kernel indicates (2) or (3).
 ErrorPtr Object::Init(IsolateGroup* isolate_group,
                       const uint8_t* kernel_buffer,
                       intptr_t kernel_buffer_size) {
@@ -1715,7 +1713,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool bootstrapping = false;
 #else
-  const bool is_kernel = (kernel_buffer != NULL);
+  const bool is_kernel = (kernel_buffer != nullptr);
   const bool bootstrapping =
       (Dart::vm_snapshot_kind() == Snapshot::kNone) || is_kernel;
 #endif  // defined(DART_PRECOMPILED_RUNTIME).
@@ -2861,7 +2859,7 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
     ASSERT(old_obj_->IsOldObject());
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     if (old_obj_->IsArray()) {
       for (ObjectPtr* slot = from; slot <= to; ++slot) {
         ObjectPtr value = *slot;
@@ -2879,9 +2877,10 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     if (old_obj_->IsArray()) {
       for (CompressedObjectPtr* slot = from; slot <= to; ++slot) {
         ObjectPtr value = slot->Decompress(heap_base);
@@ -2898,6 +2897,7 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
       }
     }
   }
+#endif
 
  private:
   Thread* thread_;
@@ -2931,7 +2931,7 @@ ObjectPtr Object::Clone(const Object& orig,
   // Copy the body of the original into the clone.
   uword orig_addr = UntaggedObject::ToAddr(orig.ptr());
   uword clone_addr = UntaggedObject::ToAddr(raw_clone);
-  static const intptr_t kHeaderSizeInBytes = sizeof(UntaggedObject);
+  const intptr_t kHeaderSizeInBytes = sizeof(UntaggedObject);
   if (load_with_relaxed_atomics) {
     auto orig_atomics_ptr = reinterpret_cast<std::atomic<uword>*>(orig_addr);
     auto clone_ptr = reinterpret_cast<uword*>(clone_addr);
@@ -4712,12 +4712,12 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
     return Error::null();
   }
   LeaveCompilerScope ncs(thread);
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   const Error& error =
       Error::Handle(thread->zone(), ClassFinalizer::LoadClassMembers(*this));
   if (!error.IsNull()) {
     ASSERT(thread == Thread::Current());
-    if (thread->long_jump_base() != NULL) {
+    if (thread->long_jump_base() != nullptr) {
       Report::LongJump(error);
       UNREACHABLE();
     }
@@ -4737,11 +4737,11 @@ ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
   if (is_allocate_finalized()) {
     return Error::null();
   }
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Error& error = Error::Handle(thread->zone(), EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     ASSERT(thread == Thread::Current());
-    if (thread->long_jump_base() != NULL) {
+    if (thread->long_jump_base() != nullptr) {
       Report::LongJump(error);
       UNREACHABLE();
     }
@@ -8790,7 +8790,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
                                       String* error_message) const {
   if ((num_type_arguments != 0) &&
       (num_type_arguments != NumTypeParameters())) {
-    if (error_message != NULL) {
+    if (error_message != nullptr) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
       Utils::SNPrint(message_buffer, kMessageBufferSize,
@@ -8803,7 +8803,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
     return false;  // Too many type arguments.
   }
   if (num_named_arguments > NumOptionalNamedParameters()) {
-    if (error_message != NULL) {
+    if (error_message != nullptr) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
       Utils::SNPrint(message_buffer, kMessageBufferSize,
@@ -8819,7 +8819,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_pos_params = num_fixed_parameters() + num_opt_pos_params;
   if (num_pos_args > num_pos_params) {
-    if (error_message != NULL) {
+    if (error_message != nullptr) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
@@ -8837,7 +8837,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
     return false;  // Too many fixed and/or positional arguments.
   }
   if (num_pos_args < num_fixed_parameters()) {
-    if (error_message != NULL) {
+    if (error_message != nullptr) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
@@ -9248,7 +9248,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
   Zone* zone = Thread::Current()->zone();
   const char* name = String::Handle(zone, function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
-  reserve_len += Utils::SNPrint(NULL, 0, function_format, name);
+  reserve_len += Utils::SNPrint(nullptr, 0, function_format, name);
   const Function& parent = Function::Handle(zone, function.parent_function());
   intptr_t written = 0;
   if (parent.IsNull()) {
@@ -9256,9 +9256,9 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
     ASSERT(!function_class.IsNull());
     const char* class_name =
         String::Handle(zone, function_class.Name()).ToCString();
-    ASSERT(class_name != NULL);
-    const char* library_name = NULL;
-    const char* lib_class_format = NULL;
+    ASSERT(class_name != nullptr);
+    const char* library_name = nullptr;
+    const char* lib_class_format = nullptr;
     if (with_lib) {
       const Library& library = Library::Handle(zone, function_class.library());
       ASSERT(!library.IsNull());
@@ -9272,15 +9272,15 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
         default:
           UNREACHABLE();
       }
-      ASSERT(library_name != NULL);
+      ASSERT(library_name != nullptr);
       lib_class_format = (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
     } else {
       library_name = "";
       lib_class_format = "%s%s.";
     }
     reserve_len +=
-        Utils::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
-    ASSERT(chars != NULL);
+        Utils::SNPrint(nullptr, 0, lib_class_format, library_name, class_name);
+    ASSERT(chars != nullptr);
     *chars = zone->Alloc<char>(reserve_len + 1);
     written = Utils::SNPrint(*chars, reserve_len + 1, lib_class_format,
                              library_name, class_name);
@@ -9288,34 +9288,34 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
     written = ConstructFunctionFullyQualifiedCString(parent, chars, reserve_len,
                                                      with_lib, lib_kind);
   }
-  ASSERT(*chars != NULL);
+  ASSERT(*chars != nullptr);
   char* next = *chars + written;
   written += Utils::SNPrint(next, reserve_len + 1, function_format, name);
   // Replace ":" with "_".
   while (true) {
     next = strchr(next, ':');
-    if (next == NULL) break;
+    if (next == nullptr) break;
     *next = '_';
   }
   return written;
 }
 
 const char* Function::ToFullyQualifiedCString() const {
-  char* chars = NULL;
+  char* chars = nullptr;
   ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true,
                                          kQualifiedFunctionLibKindLibUrl);
   return chars;
 }
 
 const char* Function::ToLibNamePrefixedQualifiedCString() const {
-  char* chars = NULL;
+  char* chars = nullptr;
   ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true,
                                          kQualifiedFunctionLibKindLibName);
   return chars;
 }
 
 const char* Function::ToQualifiedCString() const {
-  char* chars = NULL;
+  char* chars = nullptr;
   ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false,
                                          kQualifiedFunctionLibKindLibUrl);
   return chars;
@@ -10632,7 +10632,7 @@ void Function::SaveICDataMap(
   // Compute number of ICData objects to save.
   intptr_t count = 0;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
-    if (deopt_id_to_ic_data[i] != NULL) {
+    if (deopt_id_to_ic_data[i] != nullptr) {
       count++;
     }
   }
@@ -10643,7 +10643,7 @@ void Function::SaveICDataMap(
       Array::New(ICDataArrayIndices::kFirstICData + count, Heap::kOld));
   for (intptr_t i = 0, pos = ICDataArrayIndices::kFirstICData;
        i < deopt_id_to_ic_data.length(); i++) {
-    if (deopt_id_to_ic_data[i] != NULL) {
+    if (deopt_id_to_ic_data[i] != nullptr) {
       ASSERT(i == deopt_id_to_ic_data[i]->deopt_id());
       array.SetAt(pos++, *deopt_id_to_ic_data[i]);
     }
@@ -10681,7 +10681,7 @@ void Function::RestoreICDataMap(
         1;
     deopt_id_to_ic_data->SetLength(restored_length);
     for (intptr_t i = 0; i < restored_length; i++) {
-      (*deopt_id_to_ic_data)[i] = NULL;
+      (*deopt_id_to_ic_data)[i] = nullptr;
     }
     for (intptr_t i = ICDataArrayIndices::kFirstICData; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
@@ -13427,7 +13427,7 @@ ObjectPtr Library::LookupReExport(const String& name,
     return Object::null();
   }
 
-  if (trail == NULL) {
+  if (trail == nullptr) {
     trail = new ZoneGrowableArray<intptr_t>();
   }
   Object& obj = Object::Handle();
@@ -14000,8 +14000,8 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.untag()->set_imports(Object::empty_array().ptr());
   result.untag()->set_exports(Object::empty_array().ptr());
   result.untag()->set_loaded_scripts(Array::null());
-  result.set_native_entry_resolver(NULL);
-  result.set_native_entry_symbol_resolver(NULL);
+  result.set_native_entry_resolver(nullptr);
+  result.set_native_entry_symbol_resolver(nullptr);
   result.set_ffi_native_resolver(nullptr);
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
@@ -14298,7 +14298,7 @@ ObjectPtr Library::EvaluateCompiledExpression(
 
 void Library::InitNativeWrappersLibrary(IsolateGroup* isolate_group,
                                         bool is_kernel) {
-  static const int kNumNativeWrappersClasses = 4;
+  const int kNumNativeWrappersClasses = 4;
   COMPILE_ASSERT((kNumNativeWrappersClasses > 0) &&
                  (kNumNativeWrappersClasses < 10));
   Thread* thread = Thread::Current();
@@ -14312,8 +14312,8 @@ void Library::InitNativeWrappersLibrary(IsolateGroup* isolate_group,
   native_flds_lib.Register(thread);
   native_flds_lib.SetLoadInProgress();
   isolate_group->object_store()->set_native_wrappers_library(native_flds_lib);
-  static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
-  static const int kNameLength = 25;
+  const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
+  const int kNameLength = 25;
   ASSERT(kNameLength == (strlen(kNativeWrappersClass) + 1 + 1));
   char name_buffer[kNameLength];
   String& cls_name = String::Handle(zone);
@@ -14369,7 +14369,7 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
   std::unique_ptr<kernel::Program> kernel_pgm =
       kernel::Program::ReadFromTypedData(kernel_buffer);
 
-  if (kernel_pgm == NULL) {
+  if (kernel_pgm == nullptr) {
     return ApiError::New(String::Handle(
         zone, String::New("Kernel isolate returned ill-formed kernel.")));
   }
@@ -14410,7 +14410,7 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
 #endif
 }
 
-// Returns library with given url in current isolate, or NULL.
+// Returns library with given url in current isolate, or nullptr.
 LibraryPtr Library::LookupLibrary(Thread* thread, const String& url) {
   Zone* zone = thread->zone();
   ObjectStore* object_store = thread->isolate_group()->object_store();
@@ -14520,7 +14520,7 @@ StringPtr Library::PrivateName(const String& name) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(IsPrivate(name));
-  // ASSERT(strchr(name, '@') == NULL);
+  // ASSERT(strchr(name, '@') == nullptr);
   String& str = String::Handle(zone);
   str = name.ptr();
   str = Symbols::FromConcat(thread, str,
@@ -14784,7 +14784,7 @@ ObjectPtr Namespace::Lookup(const String& name,
   Zone* zone = Thread::Current()->zone();
   const Library& lib = Library::Handle(zone, target());
 
-  if (trail != NULL) {
+  if (trail != nullptr) {
     // Look for cycle in reexport graph.
     for (int i = 0; i < trail->length(); i++) {
       if (trail->At(i) == lib.index()) {
@@ -15399,7 +15399,7 @@ const UntaggedCompressedStackMaps::Payload* InstructionsTable::FindStackMap(
     *start_pc = InstructionsTable::start_pc(table) + entries[idx].pc_offset;
     return rodata->StackMapAt(entries[idx].stack_map_offset);
   }
-  return 0;
+  return nullptr;
 }
 
 CodePtr InstructionsTable::FindCode(InstructionsTablePtr table, uword pc) {
@@ -15548,7 +15548,7 @@ void ObjectPool::DebugPrint() const {
       uword pc = RawValueAt(i);
       uintptr_t start = 0;
       char* name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-      if (name != NULL) {
+      if (name != nullptr) {
         THR_Print("%s (native function)\n", name);
         NativeSymbolResolver::FreeSymbolName(name);
       } else {
@@ -15658,7 +15658,7 @@ const char* PcDescriptors::ToCString() const {
   {
     Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
-      len += Utils::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
+      len += Utils::SNPrint(nullptr, 0, FORMAT, addr_width, iter.PcOffset(),
                             KindAsStr(iter.Kind()), iter.DeoptId(),
                             iter.TokenPos().ToCString(), iter.TryIndex(),
                             iter.YieldIndex());
@@ -15908,7 +15908,7 @@ const char* LocalVarDescriptors::ToCString() const {
     UntaggedLocalVarDescriptors::VarInfo info;
     var_name = GetName(i);
     GetInfo(i, &info);
-    len += PrintVarInfo(NULL, 0, i, var_name, info);
+    len += PrintVarInfo(nullptr, 0, i, var_name, info);
   }
   char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
   buffer[0] = '\0';
@@ -15936,7 +15936,7 @@ const char* LocalVarDescriptors::KindToCString(
       return "CurrentCtx";
     default:
       UNIMPLEMENTED();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -16005,7 +16005,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
 void ExceptionHandlers::GetHandlerInfo(intptr_t try_index,
                                        ExceptionHandlerInfo* info) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  ASSERT(info != NULL);
+  ASSERT(info != nullptr);
   *info = untag()->data()[try_index];
 }
 
@@ -16126,18 +16126,18 @@ const char* ExceptionHandlers::ToCString() const {
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
     len += Utils::SNPrint(
-        NULL, 0, FORMAT1, i, info.handler_pc_offset, num_types,
+        nullptr, 0, FORMAT1, i, info.handler_pc_offset, num_types,
         info.outer_try_index,
         ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
         ((info.is_generated != 0) ? " (generated)" : ""));
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += Utils::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
+      len += Utils::SNPrint(nullptr, 0, FORMAT2, k, type.ToCString());
     }
   }
   if (has_async_handler()) {
-    len += Utils::SNPrint(NULL, 0, FORMAT3);
+    len += Utils::SNPrint(nullptr, 0, FORMAT3);
   }
   // Allocate the buffer.
   char* buffer = Thread::Current()->zone()->Alloc<char>(len);
@@ -16834,8 +16834,8 @@ void ICData::GetCheckAt(intptr_t index,
                         GrowableArray<intptr_t>* class_ids,
                         Function* target) const {
   ASSERT(index < NumberOfChecks());
-  ASSERT(class_ids != NULL);
-  ASSERT(target != NULL);
+  ASSERT(class_ids != nullptr);
+  ASSERT(target != nullptr);
   class_ids->Clear();
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
@@ -16851,7 +16851,7 @@ void ICData::GetCheckAt(intptr_t index,
 void ICData::GetClassIdsAt(intptr_t index,
                            GrowableArray<intptr_t>* class_ids) const {
   ASSERT(index < Length());
-  ASSERT(class_ids != NULL);
+  ASSERT(class_ids != nullptr);
   ASSERT(IsValidEntryIndex(index));
   class_ids->Clear();
   Thread* thread = Thread::Current();
@@ -16867,8 +16867,8 @@ void ICData::GetClassIdsAt(intptr_t index,
 void ICData::GetOneClassCheckAt(intptr_t index,
                                 intptr_t* class_id,
                                 Function* target) const {
-  ASSERT(class_id != NULL);
-  ASSERT(target != NULL);
+  ASSERT(class_id != nullptr);
+  ASSERT(target != nullptr);
   ASSERT(NumArgsTested() == 1);
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
@@ -17136,7 +17136,7 @@ void ICData::Init() {
 
 void ICData::Cleanup() {
   for (int i = 0; i < kCachedICDataArrayCount; ++i) {
-    cached_icdata_arrays_[i] = NULL;
+    cached_icdata_arrays_[i] = nullptr;
   }
 }
 
@@ -17755,7 +17755,7 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
     return;
   }
   const uword start = PayloadStart();
-  if (formatter == NULL) {
+  if (formatter == nullptr) {
     Disassembler::Disassemble(start, start + Size(), *this);
   } else {
     Disassembler::Disassemble(start, start + Size(), formatter, *this);
@@ -17928,7 +17928,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
   auto thread = Thread::Current();
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
-  ASSERT(assembler != NULL);
+  ASSERT(assembler != nullptr);
   ObjectPool& object_pool = ObjectPool::Handle();
 
   if (pool_attachment == PoolAttachment::kAttachPool) {
@@ -18115,7 +18115,7 @@ bool Code::SlowFindRawCodeVisitor::FindObject(ObjectPtr raw_obj) const {
 CodePtr Code::LookupCodeInIsolateGroup(IsolateGroup* isolate_group, uword pc) {
   ASSERT((isolate_group == IsolateGroup::Current()) ||
          (isolate_group == Dart::vm_isolate_group()));
-  if (isolate_group->heap() == NULL) {
+  if (isolate_group->heap() == nullptr) {
     return Code::null();
   }
   HeapIterationScope heap_iteration_scope(Thread::Current());
@@ -18220,7 +18220,7 @@ const char* Code::Name() const {
   if (IsStubCode()) {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
-    if (name == NULL) {
+    if (name == nullptr) {
       return "[unknown stub]";  // Not yet recorded.
     }
     return OS::SCreate(zone, "[Stub] %s", name);
@@ -18883,7 +18883,7 @@ void SubtypeTestCache::Init() {
 }
 
 void SubtypeTestCache::Cleanup() {
-  cached_array_ = NULL;
+  cached_array_ = nullptr;
 }
 
 SubtypeTestCachePtr SubtypeTestCache::New() {
@@ -19963,19 +19963,21 @@ class CheckForPointers : public ObjectPointerVisitor {
 
   bool has_pointers() const { return has_pointers_; }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     if (last >= first) {
       has_pointers_ = true;
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     if (last >= first) {
       has_pointers_ = true;
     }
   }
+#endif
 
  private:
   bool has_pointers_;
@@ -20495,7 +20497,7 @@ intptr_t* Instance::NativeFieldsDataAddr() const {
   TypedDataPtr native_fields = static_cast<TypedDataPtr>(
       NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields == TypedData::null()) {
-    return NULL;
+    return nullptr;
   }
   return reinterpret_cast<intptr_t*>(native_fields->untag()->data());
 }
@@ -20516,7 +20518,7 @@ void Instance::SetNativeField(int index, intptr_t value) const {
 void Instance::SetNativeFields(uint16_t num_native_fields,
                                const intptr_t* field_values) const {
   ASSERT(num_native_fields == NumNativeFields());
-  ASSERT(field_values != NULL);
+  ASSERT(field_values != nullptr);
   Object& native_fields =
       Object::Handle(NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields.IsNull()) {
@@ -20672,7 +20674,7 @@ TypeArgumentsPtr AbstractType::arguments() const {
   ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void AbstractType::set_arguments(const TypeArguments& value) const {
@@ -20905,7 +20907,7 @@ AbstractTypePtr AbstractType::InstantiateFrom(
   ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 AbstractTypePtr AbstractType::UpdateParentFunctionType(
@@ -20914,7 +20916,7 @@ AbstractTypePtr AbstractType::UpdateParentFunctionType(
     Heap::Space space,
     TrailPtr trail) const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 AbstractTypePtr AbstractType::Canonicalize(Thread* thread,
@@ -20924,7 +20926,7 @@ AbstractTypePtr AbstractType::Canonicalize(Thread* thread,
   ASSERT(IsNull());
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void AbstractType::EnumerateURIs(URIs* uris) const {
@@ -20936,7 +20938,7 @@ void AbstractType::EnumerateURIs(URIs* uris) const {
 }
 
 AbstractTypePtr AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
-  if (trail == NULL) {
+  if (trail == nullptr) {
     return AbstractType::null();
   }
   const intptr_t len = trail->length();
@@ -20954,7 +20956,7 @@ AbstractTypePtr AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
 
 void AbstractType::AddOnlyBuddyToTrail(TrailPtr* trail,
                                        const AbstractType& buddy) const {
-  if (*trail == NULL) {
+  if (*trail == nullptr) {
     *trail = new Trail(Thread::Current()->zone(), 4);
   } else {
     ASSERT(OnlyBuddyInTrail(*trail) == AbstractType::null());
@@ -20964,7 +20966,7 @@ void AbstractType::AddOnlyBuddyToTrail(TrailPtr* trail,
 }
 
 bool AbstractType::TestAndAddToTrail(TrailPtr* trail) const {
-  if (*trail == NULL) {
+  if (*trail == nullptr) {
     *trail = new Trail(Thread::Current()->zone(), 4);
   } else {
     const intptr_t len = (*trail)->length();
@@ -20980,7 +20982,7 @@ bool AbstractType::TestAndAddToTrail(TrailPtr* trail) const {
 
 bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
                                           const AbstractType& buddy) const {
-  if (*trail == NULL) {
+  if (*trail == nullptr) {
     *trail = new Trail(Thread::Current()->zone(), 4);
   } else {
     const intptr_t len = (*trail)->length();
@@ -20998,7 +21000,7 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
 }
 
 void AbstractType::AddURI(URIs* uris, const String& name, const String& uri) {
-  ASSERT(uris != NULL);
+  ASSERT(uris != nullptr);
   const intptr_t len = uris->length();
   ASSERT((len % 3) == 0);
   bool print_uri = false;
@@ -21024,7 +21026,7 @@ void AbstractType::AddURI(URIs* uris, const String& name, const String& uri) {
 }
 
 StringPtr AbstractType::PrintURIs(URIs* uris) {
-  ASSERT(uris != NULL);
+  ASSERT(uris != nullptr);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const intptr_t len = uris->length();
@@ -23279,7 +23281,7 @@ const char* Number::ToCString() const {
 const char* Integer::ToCString() const {
   // Integer is an interface. No instances of Integer should exist except null.
   ASSERT(IsNull());
-  return "NULL Integer";
+  return "nullptr Integer";
 }
 
 IntegerPtr Integer::New(const String& str, Heap::Space space) {
@@ -23907,7 +23909,7 @@ bool String::Equals(const String& str,
 }
 
 bool String::Equals(const char* cstr) const {
-  ASSERT(cstr != NULL);
+  ASSERT(cstr != nullptr);
   CodePointIterator it(*this);
   intptr_t len = strlen(cstr);
   while (it.Next()) {
@@ -24048,7 +24050,7 @@ bool String::CheckIsCanonical(Thread* thread) const {
 #endif  // DEBUG
 
 StringPtr String::New(const char* cstr, Heap::Space space) {
-  ASSERT(cstr != NULL);
+  ASSERT(cstr != nullptr);
   intptr_t array_len = strlen(cstr);
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
   return String::FromUTF8(utf8_array, array_len, space);
@@ -24418,7 +24420,7 @@ StringPtr String::NewFormattedV(const char* format,
                                 Heap::Space space) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
@@ -24810,7 +24812,7 @@ OneByteStringPtr ExternalOneByteString::EscapeSpecialCharacters(
 
 OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
   ASSERT((IsolateGroup::Current() == Dart::vm_isolate_group()) ||
-         ((IsolateGroup::Current()->object_store() != NULL) &&
+         ((IsolateGroup::Current()->object_store() != nullptr) &&
           (IsolateGroup::Current()->object_store()->one_byte_string_class() !=
            Class::null())));
   if (len < 0 || len > kMaxElements) {
@@ -25386,7 +25388,7 @@ void Array::MakeImmutable() const {
 
 const char* Array::ToCString() const {
   if (IsNull()) {
-    return IsImmutable() ? "_ImmutableList NULL" : "_List NULL";
+    return IsImmutable() ? "_ImmutableList nullptr" : "_List nullptr";
   }
   Zone* zone = Thread::Current()->zone();
   const char* format =
@@ -25641,8 +25643,8 @@ MapPtr Map::NewDefault(intptr_t class_id, Heap::Space space) {
   const TypedData& index = TypedData::Handle(
       TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
   // On 32-bit, the top bits are wasted to avoid Mint allocation.
-  static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
-  static const intptr_t kInitialHashMask =
+  const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
+  const intptr_t kInitialHashMask =
       (1 << (kAvailableBits - kInitialIndexBits)) - 1;
   return Map::New(class_id, data, index, kInitialHashMask, 0, 0, space);
 }
@@ -25825,8 +25827,8 @@ SetPtr Set::NewDefault(intptr_t class_id, Heap::Space space) {
   const TypedData& index = TypedData::Handle(
       TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
   // On 32-bit, the top bits are wasted to avoid Mint allocation.
-  static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
-  static const intptr_t kInitialHashMask =
+  const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
+  const intptr_t kInitialHashMask =
       (1 << (kAvailableBits - kInitialIndexBits)) - 1;
   return Set::New(class_id, data, index, kInitialHashMask, 0, 0, space);
 }
@@ -27501,7 +27503,7 @@ const char* MirrorReference::ToCString() const {
 
 UserTagPtr UserTag::MakeActive() const {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != nullptr);
   UserTag& old = UserTag::Handle(isolate->current_tag());
   isolate->set_current_tag(*this);
 
@@ -27555,7 +27557,7 @@ UserTagPtr UserTag::DefaultTag() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != nullptr);
   if (isolate->default_tag() != UserTag::null()) {
     // Already created.
     return isolate->default_tag();

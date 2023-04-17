@@ -85,7 +85,7 @@ class Message {
 
   intptr_t Size() const {
     intptr_t size = snapshot_length_;
-    if (finalizable_data_ != NULL) {
+    if (finalizable_data_ != nullptr) {
       size += finalizable_data_->external_size();
     }
     return size;
@@ -163,11 +163,11 @@ class MessageQueue {
 
   void Enqueue(std::unique_ptr<Message> msg, bool before_events);
 
-  // Gets the next message from the message queue or NULL if no
+  // Gets the next message from the message queue or nullptr if no
   // message is available.  This function will not block.
   std::unique_ptr<Message> Dequeue();
 
-  bool IsEmpty() { return head_ == NULL; }
+  bool IsEmpty() { return head_ == nullptr; }
 
   // Clear all messages from the message queue.
   void Clear();
@@ -192,7 +192,7 @@ class MessageQueue {
 
   intptr_t Length() const;
 
-  // Returns the message with id or NULL.
+  // Returns the message with id or nullptr.
   Message* FindMessageById(intptr_t id);
 
   void PrintJSON(JSONStream* stream);

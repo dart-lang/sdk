@@ -549,8 +549,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     for (var element in node.parameterElements) {
       if (!_isUsedElement(element!)) {
-        _reportErrorForElement(
-            HintCode.UNUSED_ELEMENT_PARAMETER, element, [element.displayName]);
+        _reportErrorForElement(WarningCode.UNUSED_ELEMENT_PARAMETER, element,
+            [element.displayName]);
       }
     }
     super.visitFormalParameterList(node);
@@ -890,7 +890,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitClassElement(InterfaceElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -902,7 +902,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element.enclosingElement.constructors.length > 1 &&
         !_isUsedMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -916,7 +916,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitFunctionElement(FunctionElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -937,28 +937,28 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   void _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   void _visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   void _visitTypeAliasElement(TypeAliasElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 

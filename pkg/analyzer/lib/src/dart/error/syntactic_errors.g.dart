@@ -11,6 +11,10 @@
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
 
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import "package:analyzer/error/error.dart";
 
 final fastaAnalyzerErrorCodes = <ErrorCode?>[
@@ -168,6 +172,11 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION,
   ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION,
+  ParserErrorCode.MIXIN_WITH_CLAUSE,
+  ParserErrorCode.BASE_ENUM,
+  ParserErrorCode.FINAL_ENUM,
+  ParserErrorCode.INTERFACE_ENUM,
+  ParserErrorCode.SEALED_ENUM,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -265,6 +274,12 @@ class ParserErrorCode extends ErrorCode {
     'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
     "The keywords 'await' and 'yield' can't be used as identifiers in an "
         "asynchronous or generator function.",
+  );
+
+  static const ParserErrorCode BASE_ENUM = ParserErrorCode(
+    'BASE_ENUM',
+    "Enums can't be declared to be 'base'.",
+    correctionMessage: "Try removing the keyword 'base'.",
   );
 
   static const ParserErrorCode BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
@@ -932,6 +947,12 @@ class ParserErrorCode extends ErrorCode {
         "Try removing the initializer, or using a different kind of loop.",
   );
 
+  static const ParserErrorCode INTERFACE_ENUM = ParserErrorCode(
+    'INTERFACE_ENUM',
+    "Enums can't be declared to be 'interface'.",
+    correctionMessage: "Try removing the keyword 'interface'.",
+  );
+
   static const ParserErrorCode INTERFACE_MIXIN = ParserErrorCode(
     'INTERFACE_MIXIN',
     "A mixin can't be declared 'interface'.",
@@ -1367,6 +1388,11 @@ class ParserErrorCode extends ErrorCode {
     "Mixins can't declare constructors.",
   );
 
+  static const ParserErrorCode MIXIN_WITH_CLAUSE = ParserErrorCode(
+    'MIXIN_WITH_CLAUSE',
+    "A mixin can't have a with clause.",
+  );
+
   static const ParserErrorCode MODIFIER_OUT_OF_ORDER = ParserErrorCode(
     'MODIFIER_OUT_OF_ORDER',
     "The modifier '{0}' should be before the modifier '{1}'.",
@@ -1631,6 +1657,12 @@ class ParserErrorCode extends ErrorCode {
     "Only factory constructor can specify '=' redirection.",
     correctionMessage:
         "Try making this a factory constructor, or remove the redirection.",
+  );
+
+  static const ParserErrorCode SEALED_ENUM = ParserErrorCode(
+    'SEALED_ENUM',
+    "Enums can't be declared to be 'sealed'.",
+    correctionMessage: "Try removing the keyword 'sealed'.",
   );
 
   static const ParserErrorCode SEALED_MIXIN = ParserErrorCode(

@@ -5,6 +5,7 @@
 /// This file contains tests written in a deprecated way. Please do not add any
 /// tests to this file. Instead, add tests to the files in `declaration`,
 /// `location`, or `relevance`.
+library;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

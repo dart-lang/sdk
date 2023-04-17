@@ -547,9 +547,10 @@ class Parser {
           optional('late', next) ||
           (optional('final', next) &&
               (!optional('class', next.next!) &&
-                  !optional('mixin', next.next!))) ||
-          // Ignore using 'final' as a modifier for a class or a mixin, but
-          // allow in other contexts.
+                  !optional('mixin', next.next!) &&
+                  !optional('enum', next.next!))) ||
+          // Ignore using 'final' as a modifier for a class, a mixin, or an
+          // enum, but allow in other contexts.
           (optional('const', next) && !optional('class', next.next!))) {
         // Ignore `const class` so that it is reported below as an invalid
         // modifier on a class.
@@ -578,7 +579,9 @@ class Parser {
       next = next.next!;
     } else if (next.isIdentifier && optional('sealed', next)) {
       sealedToken = next;
-      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+      if (optional('class', next.next!) ||
+          optional('mixin', next.next!) ||
+          optional('enum', next.next!)) {
         next = next.next!;
       } else if (optional('abstract', next.next!) &&
           optional('class', next.next!.next!)) {
@@ -589,12 +592,16 @@ class Parser {
       }
     } else if (next.isIdentifier && optional('base', next)) {
       baseToken = next;
-      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+      if (optional('class', next.next!) ||
+          optional('mixin', next.next!) ||
+          optional('enum', next.next!)) {
         next = next.next!;
       }
     } else if (next.isIdentifier && optional('interface', next)) {
       interfaceToken = next;
-      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+      if (optional('class', next.next!) ||
+          optional('mixin', next.next!) ||
+          optional('enum', next.next!)) {
         next = next.next!;
       }
       // TODO(kallentu): Handle incorrect ordering of modifiers.
@@ -666,6 +673,19 @@ class Parser {
       directiveState?.checkDeclaration();
       ModifierContext context = new ModifierContext(this);
       context.parseEnumModifiers(start, keyword);
+      // Enums can't declare any explicit modifier.
+      if (baseToken != null) {
+        reportRecoverableError(baseToken, codes.messageBaseEnum);
+      }
+      if (context.finalToken != null) {
+        reportRecoverableError(context.finalToken!, codes.messageFinalEnum);
+      }
+      if (interfaceToken != null) {
+        reportRecoverableError(interfaceToken, codes.messageInterfaceEnum);
+      }
+      if (sealedToken != null) {
+        reportRecoverableError(sealedToken, codes.messageSealedEnum);
+      }
       return parseEnum(keyword);
     } else {
       // The remaining top level keywords are built-in keywords
@@ -2926,6 +2946,13 @@ class Parser {
         } else {
           hasImplements = true;
         }
+      }
+
+      if (optional("with", token.next!)) {
+        Token withKeyword = token.next!;
+        reportRecoverableError(token.next!, codes.messageMixinWithClause);
+        token = parseTypeList(withKeyword);
+        listener.handleMixinWithClause(withKeyword);
       }
 
       listener.handleRecoverMixinHeader();

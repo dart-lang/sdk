@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io' show Directory, File, Platform, FileSystemException;
 import 'dart:math';
 
+import 'package:async/async.dart';
 import 'package:browser_launcher/browser_launcher.dart' as browser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/compiler/shared_command.dart'
@@ -555,23 +556,23 @@ class TestDriver {
     var location = await _jsLocationFromDartLine(script, dartLine);
 
     var bp = await debugger.setBreakpoint(location);
+    final pauseQueue = StreamQueue(pauseController.stream);
     try {
       // Continue to the next breakpoint, ignoring the first pause event
       // since it corresponds to the preemptive URI breakpoint made prior
       // to page navigation.
       await debugger.resume();
-      final event = await pauseController.stream
-          .skip(1)
-          .timeout(Duration(seconds: 5),
-              onTimeout: (event) => throw Exception(
-                  'Unable to find JS preemptive pause event in $output.'))
-          .first
-          .timeout(Duration(seconds: 5),
-              onTimeout: (() => throw Exception(
-                  'Unable to find JS pause event corresponding to line '
-                  '($dartLine -> $location) in $output.')));
+      await pauseQueue.next.timeout(Duration(seconds: 5),
+          onTimeout: () => throw Exception(
+              'Unable to find JS preemptive pause event in $output.'));
+      final event = await pauseQueue.next.timeout(Duration(seconds: 5),
+          onTimeout: () => throw Exception(
+              'Unable to find JS pause event corresponding to line '
+              '($dartLine -> $location) in $output.'));
+
       return await onPause(event);
     } finally {
+      await pauseQueue.cancel();
       await pauseSub.cancel();
       await pauseController.close();
       await consoleSub.cancel();

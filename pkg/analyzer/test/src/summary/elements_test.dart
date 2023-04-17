@@ -7159,6 +7159,61 @@ library
 ''');
   }
 
+  test_class_mixins_genericMixin_tooManyArguments() async {
+    var library = await buildLibrary('''
+mixin M<T> {}
+class A extends Object with M<int, String> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @20
+        supertype: Object
+        mixins
+          M<dynamic>
+        constructors
+          synthetic @-1
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_class_mixins_typeParameter() async {
+    var library = await buildLibrary('''
+mixin M1 {}
+mixin M2 {}
+class A<T> extends Object with M1, T<int>, M2 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          M1
+          M2
+        constructors
+          synthetic @-1
+    mixins
+      mixin M1 @6
+        superclassConstraints
+          Object
+      mixin M2 @18
+        superclassConstraints
+          Object
+''');
+  }
+
   test_class_mixins_unresolved() async {
     var library = await buildLibrary(
         'class C extends Object with X, Y, Z {} class X {} class Z {}',
@@ -8444,25 +8499,35 @@ library
 
   test_class_supertype() async {
     var library = await buildLibrary('''
-class C extends D {}
-class D {}
+class A {}
+class B extends A {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class B @17
+        supertype: A
+''');
+  }
+
+  test_class_supertype_dynamic() async {
+    var library = await buildLibrary('''
+class A extends dynamic {}
 ''');
     checkElementText(library, r'''
 library
   definingUnit
     classes
-      class C @6
-        supertype: D
-        constructors
-          synthetic @-1
-            superConstructor: self::@class::D::@constructor::new
-      class D @27
+      class A @6
         constructors
           synthetic @-1
 ''');
   }
 
-  test_class_supertype_typeArguments() async {
+  test_class_supertype_genericClass() async {
     var library = await buildLibrary('''
 class C extends D<int, double> {}
 class D<T1, T2> {}
@@ -8489,6 +8554,25 @@ library
 ''');
   }
 
+  test_class_supertype_genericClass_tooManyArguments() async {
+    var library = await buildLibrary('''
+class A<T> {}
+class B extends A<int, String> {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+      class B @20
+        supertype: A<dynamic>
+''');
+  }
+
   test_class_supertype_typeArguments_self() async {
     var library = await buildLibrary('''
 class A<T> {}
@@ -8511,6 +8595,23 @@ library
             superConstructor: ConstructorMember
               base: self::@class::A::@constructor::new
               substitution: {T: B}
+''');
+  }
+
+  test_class_supertype_typeParameter() async {
+    var library = await buildLibrary('''
+class A<T> extends T<int> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -13399,6 +13500,41 @@ const int x = 0;
 ''');
   }
 
+  test_const_invalid_methodInvocation() async {
+    var library = await buildLibrary(r'''
+const a = 'abc'.codeUnitAt(0);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          MethodInvocation
+            target: SimpleStringLiteral
+              literal: 'abc' @10
+            operator: . @15
+            methodName: SimpleIdentifier
+              token: codeUnitAt @16
+              staticElement: dart:core::@class::String::@method::codeUnitAt
+              staticType: int Function(int)
+            argumentList: ArgumentList
+              leftParenthesis: ( @26
+              arguments
+                IntegerLiteral
+                  literal: 0 @27
+                  staticType: int
+              rightParenthesis: ) @28
+            staticInvokeType: int Function(int)
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
   test_const_invalid_topLevel() async {
     var library = await buildLibrary(r'''
 const v = 1 + foo();
@@ -15311,7 +15447,7 @@ library
                   literal: true @38
                   staticType: bool
                 rightParenthesis: ) @42
-                thenElement: SetOrMapLiteral
+                thenElement: MapLiteralEntry
                   key: IntegerLiteral
                     literal: 1 @44
                     staticType: int
@@ -15347,7 +15483,7 @@ library
             constKeyword: const @17
             leftBracket: { @23
             elements
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -15417,7 +15553,7 @@ library
                     rightBracket: > @46
                   leftBracket: { @47
                   elements
-                    SetOrMapLiteral
+                    MapLiteralEntry
                       key: IntegerLiteral
                         literal: 1 @48
                         staticType: int
@@ -15490,7 +15626,7 @@ library
                     rightBracket: > @47
                   leftBracket: { @48
                   elements
-                    SetOrMapLiteral
+                    MapLiteralEntry
                       key: IntegerLiteral
                         literal: 1 @49
                         staticType: int
@@ -18897,21 +19033,21 @@ library
             constKeyword: const @10
             leftBracket: { @16
             elements
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 0 @17
                   staticType: int
                 separator: : @18
                 value: SimpleStringLiteral
                   literal: 'aaa' @20
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 1 @27
                   staticType: int
                 separator: : @28
                 value: SimpleStringLiteral
                   literal: 'bbb' @30
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 2 @37
                   staticType: int
@@ -24187,6 +24323,39 @@ library
 ''');
   }
 
+  test_extension_typeParameters_hasBound() async {
+    var library = await buildLibrary('''
+extension E<T extends num> on int {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+            bound: num
+            defaultType: num
+        extendedType: int
+''');
+  }
+
+  test_extension_typeParameters_noBound() async {
+    var library = await buildLibrary('''
+extension E<T> on int {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        extendedType: int
+''');
+  }
+
   test_function_async() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
@@ -24505,6 +24674,25 @@ library
 ''');
   }
 
+  test_function_parameter_type_typeParameter() async {
+    var library = await buildLibrary('''
+void f<T>(T a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
+''');
+  }
+
   test_function_parameters() async {
     var library = await buildLibrary('f(x, y) {}');
     checkElementText(library, r'''
@@ -24518,17 +24706,6 @@ library
           requiredPositional y @5
             type: dynamic
         returnType: dynamic
-''');
-  }
-
-  test_function_return_type() async {
-    var library = await buildLibrary('int f() => null;');
-    checkElementText(library, r'''
-library
-  definingUnit
-    functions
-      f @4
-        returnType: int
 ''');
   }
 
@@ -24554,8 +24731,23 @@ library
 ''');
   }
 
-  test_function_type_parameter() async {
-    var library = await buildLibrary('T f<T, U>(U u) => null;');
+  test_function_returnType() async {
+    var library = await buildLibrary('''
+int f() => 0;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @4
+        returnType: int
+''');
+  }
+
+  test_function_returnType_typeParameter() async {
+    var library = await buildLibrary('''
+T f<T>() => throw 0;
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -24564,11 +24756,6 @@ library
         typeParameters
           covariant T @4
             defaultType: dynamic
-          covariant U @7
-            defaultType: dynamic
-        parameters
-          requiredPositional u @12
-            type: U
         returnType: T
 ''');
   }
@@ -24601,6 +24788,39 @@ library
         library
             .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
         isFalse);
+  }
+
+  test_function_typeParameters_hasBound() async {
+    var library = await buildLibrary('''
+void f<T extends num>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            bound: num
+            defaultType: num
+        returnType: void
+''');
+  }
+
+  test_function_typeParameters_noBound() async {
+    var library = await buildLibrary('''
+void f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        returnType: void
+''');
   }
 
   test_functions() async {
@@ -32030,6 +32250,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @38
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @33
@@ -33650,6 +33871,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @38
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @33
@@ -36251,6 +36473,7 @@ library
       E @10
         typeParameters
           covariant T @12
+            defaultType: dynamic
         extendedType: int
 ''');
   }

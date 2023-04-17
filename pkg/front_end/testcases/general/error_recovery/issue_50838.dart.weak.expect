@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_50838.dart:6:9: Error: A mixin can't have a with clause.
+// mixin N with M {}
+//         ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class N extends core::Object /*isMixinDeclaration*/  {
+}

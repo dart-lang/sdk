@@ -20,8 +20,8 @@ enum ExperimentalFlag {
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   constantUpdate2018(
       name: 'constant-update-2018',
@@ -62,8 +62,8 @@ enum ExperimentalFlag {
       name: 'extension-types',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   genericMetadata(
       name: 'generic-metadata',
@@ -83,22 +83,22 @@ enum ExperimentalFlag {
       name: 'inference-update-2',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   inlineClass(
       name: 'inline-class',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   macros(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   namedArgumentsAnywhere(
       name: 'named-arguments-anywhere',
@@ -167,8 +167,8 @@ enum ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   tripleShift(
       name: 'triple-shift',
@@ -180,7 +180,7 @@ enum ExperimentalFlag {
   unnamedLibraries(
       name: 'unnamed-libraries',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19)),
 
@@ -188,15 +188,15 @@ enum ExperimentalFlag {
       name: 'value-class',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
 
   variance(
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
+      experimentEnabledVersion: const Version(3, 1),
+      experimentReleasedVersion: const Version(3, 1)),
   ;
 
   final String name;

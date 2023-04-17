@@ -206,6 +206,16 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to switch expression',
   );
+  static const DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT = AssistKind(
+    'dart.assist.destructureLocalVariableAssignment',
+    DartAssistKindPriority.DEFAULT,
+    'Destructure variable assignment',
+  );
+  static const CONVERT_TO_SWITCH_STATEMENT = AssistKind(
+    'dart.assist.convert.switchStatement',
+    DartAssistKindPriority.DEFAULT,
+    'Convert to switch statement',
+  );
   static const ENCAPSULATE_FIELD = AssistKind(
     'dart.assist.encapsulateField',
     DartAssistKindPriority.DEFAULT,
@@ -421,6 +431,11 @@ class DartAssistKind {
     'dart.assist.surround.while',
     DartAssistKindPriority.SURROUND_WITH_WHILE,
     "Surround with 'while'",
+  );
+  static const UNWRAP_IF_BODY = AssistKind(
+    'dart.assist.unwrap.if',
+    DartAssistKindPriority.DEFAULT,
+    "Unwrap 'if' body",
   );
   static const USE_CURLY_BRACES = AssistKind(
     'dart.assist.surround.curlyBraces',

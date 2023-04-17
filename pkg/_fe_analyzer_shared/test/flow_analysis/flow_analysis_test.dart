@@ -7481,15 +7481,65 @@ main() {
     });
 
     group('List pattern:', () {
-      test('Not guaranteed to match', () {
-        h.run([
-          switch_(expr('Object'), [
-            listPattern([]).then([break_()]),
-            default_.then([
-              checkReachable(true),
+      group('Not guaranteed to match:', () {
+        test('Empty list', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([]).then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ]),
             ]),
-          ]),
-        ]);
+          ]);
+        });
+
+        test('Single non-rest element', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([wildcard()]).then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Rest pattern with subpattern that may fail to match', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement(listPattern([]))])
+                  .then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ])
+            ])
+          ]);
+        });
+      });
+
+      group('Guaranteed to match:', () {
+        test('Rest pattern with no subpattern', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement()]).then([break_()]),
+              default_.then([
+                checkReachable(false),
+              ])
+            ])
+          ]);
+        });
+
+        test('Rest pattern with subpattern that always matches', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement(wildcard())])
+                  .then([break_()]),
+              default_.then([
+                checkReachable(false),
+              ])
+            ])
+          ]);
+        });
       });
 
       test('Promotes', () {

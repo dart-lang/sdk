@@ -64,27 +64,27 @@ DECLARE_FLAG(bool, code_comments);
 // invoke perf-report.
 class PerfCodeObserver : public CodeObserver {
  public:
-  PerfCodeObserver() : out_file_(NULL) {
+  PerfCodeObserver() : out_file_(nullptr) {
     Dart_FileOpenCallback file_open = Dart::file_open_callback();
-    if (file_open == NULL) {
+    if (file_open == nullptr) {
       return;
     }
     intptr_t pid = getpid();
-    char* filename = OS::SCreate(NULL, "/tmp/perf-%" Pd ".map", pid);
+    char* filename = OS::SCreate(nullptr, "/tmp/perf-%" Pd ".map", pid);
     out_file_ = (*file_open)(filename, true);
     free(filename);
   }
 
   ~PerfCodeObserver() {
     Dart_FileCloseCallback file_close = Dart::file_close_callback();
-    if ((file_close == NULL) || (out_file_ == NULL)) {
+    if ((file_close == nullptr) || (out_file_ == nullptr)) {
       return;
     }
     (*file_close)(out_file_);
   }
 
   virtual bool IsActive() const {
-    return FLAG_generate_perf_events_symbols && (out_file_ != NULL);
+    return FLAG_generate_perf_events_symbols && (out_file_ != nullptr);
   }
 
   virtual void Notify(const char* name,
@@ -94,7 +94,7 @@ class PerfCodeObserver : public CodeObserver {
                       bool optimized,
                       const CodeComments* comments) {
     Dart_FileWriteCallback file_write = Dart::file_write_callback();
-    if ((file_write == NULL) || (out_file_ == NULL)) {
+    if ((file_write == nullptr) || (out_file_ == nullptr)) {
       return;
     }
     const char* marker = optimized ? "*" : "";
@@ -273,11 +273,11 @@ class JitDumpCodeObserver : public CodeObserver {
 
   // ELF machine architectures
   // From linux/include/uapi/linux/elf-em.h
-  static const uint32_t EM_386 = 3;
-  static const uint32_t EM_X86_64 = 62;
-  static const uint32_t EM_ARM = 40;
-  static const uint32_t EM_AARCH64 = 183;
-  static const uint32_t EM_RISCV = 243;
+  static constexpr uint32_t EM_386 = 3;
+  static constexpr uint32_t EM_X86_64 = 62;
+  static constexpr uint32_t EM_ARM = 40;
+  static constexpr uint32_t EM_AARCH64 = 183;
+  static constexpr uint32_t EM_RISCV = 243;
 
   static uint32_t GetElfMachineArchitecture() {
 #if TARGET_ARCH_IA32
@@ -297,9 +297,9 @@ class JitDumpCodeObserver : public CodeObserver {
   }
 
 #if ARCH_IS_64_BIT
-  static const int kElfHeaderSize = 0x40;
+  static constexpr int kElfHeaderSize = 0x40;
 #else
-  static const int kElfHeaderSize = 0x34;
+  static constexpr int kElfHeaderSize = 0x34;
 #endif
 
   void WriteDebugInfo(uword base, const CodeComments* comments) {
@@ -418,14 +418,15 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
   struct tm* error_code = localtime_r(&seconds, tm_result);
-  return error_code != NULL;
+  return error_code != nullptr;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
   // If unsuccessful, return an empty string like V8 does.
-  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
+  return (succeeded && (decomposed.tm_zone != nullptr)) ? decomposed.tm_zone
+                                                        : "";
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -443,7 +444,7 @@ int64_t OS::GetCurrentTimeMillis() {
 int64_t OS::GetCurrentTimeMicros() {
   // gettimeofday has microsecond resolution.
   struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+  if (gettimeofday(&tv, nullptr) < 0) {
     UNREACHABLE();
     return 0;
   }
@@ -578,7 +579,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -587,7 +588,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
   }
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   // Print.
   va_list print_args;
@@ -598,7 +599,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
 }
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
   int32_t base = 10;
   char* endptr;
   int i = 0;

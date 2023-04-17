@@ -4,6 +4,7 @@
 
 /// This file gathers constant strings from the Kythe Schema:
 /// kythe.io/docs/schema/
+library;
 
 /// Dart specific facts, labels, and kinds
 const DART_LANG = 'dart';

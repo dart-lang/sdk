@@ -1837,7 +1837,7 @@ class B extends A {
   _m() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 41, 2),
+      error(WarningCode.UNUSED_ELEMENT, 41, 2),
     ]);
   }
 
@@ -1854,7 +1854,7 @@ class B extends A {
   _m() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 41, 2),
+      error(WarningCode.UNUSED_ELEMENT, 41, 2),
     ]);
   }
 
@@ -2877,7 +2877,7 @@ f() {
 }
 h(x) {}
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 8, 1),
+      error(WarningCode.UNUSED_ELEMENT, 8, 1),
     ]);
   }
 
@@ -3099,7 +3099,7 @@ main() {
   };
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 1),
+      error(WarningCode.UNUSED_ELEMENT, 11, 1),
     ]);
   }
 

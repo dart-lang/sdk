@@ -16,6 +16,9 @@ import 'package:collection/collection.dart';
 
 class MoveDocCommentToLibraryDirective extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
   FixKind get fixKind => DartFixKind.MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE;
 
   @override

@@ -27,8 +27,8 @@ struct mach_header {
   uint32_t flags;
 };
 
-static const uint32_t MH_MAGIC = 0xfeedface;
-static const uint32_t MH_CIGAM = 0xcefaedfe;
+static constexpr uint32_t MH_MAGIC = 0xfeedface;
+static constexpr uint32_t MH_CIGAM = 0xcefaedfe;
 
 struct mach_header_64 {
   uint32_t magic;
@@ -41,15 +41,15 @@ struct mach_header_64 {
   uint32_t reserved;
 };
 
-static const uint32_t MH_MAGIC_64 = 0xfeedfacf;
-static const uint32_t MH_CIGAM_64 = 0xcffaedfe;
+static constexpr uint32_t MH_MAGIC_64 = 0xfeedfacf;
+static constexpr uint32_t MH_CIGAM_64 = 0xcffaedfe;
 
 struct load_command {
   uint32_t cmd;
   uint32_t cmdsize;
 };
 
-static const uint32_t LC_NOTE = 0x31;
+static constexpr uint32_t LC_NOTE = 0x31;
 struct note_command {
   uint32_t cmd;
   uint32_t cmdsize;

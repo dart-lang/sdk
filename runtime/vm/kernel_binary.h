@@ -175,9 +175,9 @@ static const uint32_t kSupportedKernelFormatVersion = 101;
   V(SpecializedVariableSet, 232)                                               \
   V(SpecializedIntLiteral, 240)
 
-static const intptr_t kSpecializedTagHighBits = 0xe0;
-static const intptr_t kSpecializedTagMask = 0xf8;
-static const intptr_t kSpecializedPayloadMask = 0x7;
+static constexpr intptr_t kSpecializedTagHighBits = 0xe0;
+static constexpr intptr_t kSpecializedTagMask = 0xf8;
+static constexpr intptr_t kSpecializedPayloadMask = 0x7;
 
 enum Tag {
 #define DECLARE(Name, value) k##Name = value,
@@ -264,12 +264,12 @@ enum class FunctionAccessKind {
   kNullable,
 };
 
-static const int SpecializedIntLiteralBias = 3;
-static const int LibraryCountFieldCountFromEnd = 1;
-static const int KernelFormatVersionOffset = 4;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 9;
+static constexpr int SpecializedIntLiteralBias = 3;
+static constexpr int LibraryCountFieldCountFromEnd = 1;
+static constexpr int KernelFormatVersionOffset = 4;
+static constexpr int SourceTableFieldCountFromFirstLibraryOffset = 9;
 
-static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
+static constexpr int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
 class Reader : public ValueObject {
  public:
@@ -282,7 +282,7 @@ class Reader : public ValueObject {
 
   explicit Reader(const ExternalTypedData& typed_data)
       : thread_(Thread::Current()),
-        raw_buffer_(NULL),
+        raw_buffer_(nullptr),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()) {}
 
@@ -300,7 +300,7 @@ class Reader : public ValueObject {
   uint32_t ReadUInt32At(intptr_t offset) const {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
     uint32_t value;
-    if (raw_buffer_ != NULL) {
+    if (raw_buffer_ != nullptr) {
       value = LoadUnaligned(
           reinterpret_cast<const uint32_t*>(raw_buffer_ + offset));
     } else {
@@ -401,12 +401,12 @@ class Reader : public ValueObject {
 
   static const char* TagName(Tag tag);
 
-  Tag ReadTag(uint8_t* payload = NULL) {
+  Tag ReadTag(uint8_t* payload = nullptr) {
     uint8_t byte = ReadByte();
     bool has_payload =
         (byte & kSpecializedTagHighBits) == kSpecializedTagHighBits;
     if (has_payload) {
-      if (payload != NULL) {
+      if (payload != nullptr) {
         *payload = byte & kSpecializedPayloadMask;
       }
       return static_cast<Tag>(byte & kSpecializedTagMask);
@@ -415,12 +415,12 @@ class Reader : public ValueObject {
     }
   }
 
-  Tag PeekTag(uint8_t* payload = NULL) {
+  Tag PeekTag(uint8_t* payload = nullptr) {
     uint8_t byte = PeekByte();
     bool has_payload =
         (byte & kSpecializedTagHighBits) == kSpecializedTagHighBits;
     if (has_payload) {
-      if (payload != NULL) {
+      if (payload != nullptr) {
         *payload = byte & kSpecializedPayloadMask;
       }
       return static_cast<Tag>(byte & kSpecializedTagMask);
@@ -503,10 +503,13 @@ class Reader : public ValueObject {
 
  private:
   Reader(const uint8_t* buffer, intptr_t size)
-      : thread_(NULL), raw_buffer_(buffer), typed_data_(NULL), size_(size) {}
+      : thread_(nullptr),
+        raw_buffer_(buffer),
+        typed_data_(nullptr),
+        size_(size) {}
 
   const uint8_t* buffer() const {
-    if (raw_buffer_ != NULL) {
+    if (raw_buffer_ != nullptr) {
       return raw_buffer_;
     }
     NoSafepointScope no_safepoint(thread_);

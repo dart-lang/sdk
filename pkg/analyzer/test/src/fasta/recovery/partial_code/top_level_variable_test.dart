@@ -128,6 +128,7 @@ class TopLevelVariableTest extends PartialCodeTest {
             "final _s_;",
             failing: [
               'class',
+              'enum',
               'functionVoid',
               'functionNonVoid',
               'getter',

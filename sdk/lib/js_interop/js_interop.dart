@@ -22,10 +22,11 @@ import 'dart:_js_types' as js_types;
 import 'dart:typed_data';
 
 /// Export the `dart:_js_annotations` version of the `@JS` annotation. This is
-/// mostly identical to the `package:js` version, except this is meant to be used
-/// for sound top-level external members and inline classes instead of the
-/// `package:js` classes.
-export 'dart:_js_annotations' show JS;
+/// mostly identical to the `package:js` version, except this is meant to be
+/// used for sound top-level external members and inline classes instead of the
+/// `package:js` classes. Also allow use of `@staticInterop` classes with JS
+/// types as well as export functionality.
+export 'dart:_js_annotations' show JS, staticInterop, anonymous, JSExport;
 
 /// The annotation for object literal constructors.
 ///

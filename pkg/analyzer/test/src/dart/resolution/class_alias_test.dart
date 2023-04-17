@@ -15,6 +15,15 @@ main() {
 
 @reflectiveTest
 class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
+//   solo_test_X() async {
+//     await assertNoErrorsInCode(r'''
+// ''');
+//
+//     final node = findNode.singleListLiteral;
+//     assertResolvedNodeText(node, r'''
+// ''');
+//   }
+
   test_element() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -24,15 +33,39 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    var x = findElement.class_('X');
-
-    assertNamedType(findNode.namedType('A with'), findElement.class_('A'), 'A');
-    assertNamedType(findNode.namedType('B impl'), findElement.class_('B'), 'B');
-    assertNamedType(findNode.namedType('C;'), findElement.class_('C'), 'C');
-
-    assertType(x.supertype, 'A');
-    assertElementTypes(x.mixins, ['B']);
-    assertElementTypes(x.interfaces, ['C']);
+    final node = findNode.classTypeAlias('X =');
+    assertResolvedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: X
+  equals: =
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: B
+          staticElement: self::@class::B
+          staticType: null
+        type: B
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+  semicolon: ;
+  declaredElement: self::@class::X
+''');
   }
 
   test_element_typeFunction_extends() async {

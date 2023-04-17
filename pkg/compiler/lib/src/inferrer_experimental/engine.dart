@@ -820,9 +820,8 @@ class InferrerEngine {
     if (callee.name == Identifiers.noSuchMethod_) return false;
     if (callee is FieldEntity) {
       if (selector!.isSetter) {
-        ElementTypeInformation info = virtualCall
-            ? types.getInferredTypeOfVirtualMember(callee)
-            : types.getInferredTypeOfMember(callee);
+        ElementTypeInformation info =
+            types.getInferredTypeOfMember(callee, virtual: virtualCall);
         if (remove) {
           info.removeInput(arguments!.positional[0]);
         } else {
@@ -835,11 +834,10 @@ class InferrerEngine {
     } else if (selector != null && selector.isGetter) {
       // We are tearing a function off and thus create a closure.
       assert(callee.isFunction);
-      final memberInfo = virtualCall
-          ? types.getInferredTypeOfVirtualMember(callee)
-          : types.getInferredTypeOfMember(callee);
+      final memberInfo =
+          types.getInferredTypeOfMember(callee, virtual: virtualCall);
       _markForClosurization(memberInfo, callSiteType,
-          remove: remove, addToQueue: addToQueue);
+          remove: remove, addToQueue: addToQueue, isVirtualCall: virtualCall);
       return true;
     } else {
       final method = callee as FunctionEntity;
@@ -856,9 +854,8 @@ class InferrerEngine {
           type = localArguments.positional[parameterIndex];
         }
         if (type == null) type = getDefaultTypeOfParameter(parameter);
-        TypeInformation info = virtualCall
-            ? types.getInferredTypeOfVirtualParameter(parameter)
-            : types.getInferredTypeOfParameter(parameter);
+        TypeInformation info =
+            types.getInferredTypeOfParameter(parameter, virtual: virtualCall);
         if (remove) {
           info.removeInput(type);
         } else {
@@ -908,7 +905,7 @@ class InferrerEngine {
       types.strategy.forEachParameter(member as FunctionEntity,
           (Local parameter) {
         final virtualParamInfo =
-            types.getInferredTypeOfVirtualParameter(parameter);
+            types.getInferredTypeOfParameter(parameter, virtual: true);
         final realParamInfo = types.getInferredTypeOfParameter(parameter);
         realParamInfo.addInput(virtualParamInfo);
       });
@@ -926,7 +923,8 @@ class InferrerEngine {
     final List<TypeInformation> positional = [];
     final Map<String, TypeInformation> named = {};
     types.strategy.forEachParameter(parent, (Local parameter) {
-      TypeInformation type = types.getInferredTypeOfVirtualParameter(parameter);
+      TypeInformation type =
+          types.getInferredTypeOfParameter(parameter, virtual: true);
       if (parameterIndex < parameterStructure.requiredPositionalParameters) {
         positional.add(type);
       } else if (parameterStructure.namedParameters.isNotEmpty) {
@@ -955,14 +953,14 @@ class InferrerEngine {
       // default value will be used within the body of the override.
       parentParamInfo ??= getDefaultTypeOfParameter(parameter);
       TypeInformation overrideParamInfo =
-          types.getInferredTypeOfVirtualParameter(parameter);
+          types.getInferredTypeOfParameter(parameter, virtual: true);
       overrideParamInfo.addInput(parentParamInfo);
       parameterIndex++;
     });
   }
 
   MemberTypeInformation _getAndSetupVirtualMember(MemberEntity member) {
-    final memberType = types.getInferredTypeOfVirtualMember(member);
+    final memberType = types.getInferredTypeOfMember(member, virtual: true);
     if (_initializedVirtualMembers!.add(member)) {
       _setupVirtualCall(memberType, member);
     }
@@ -977,7 +975,8 @@ class InferrerEngine {
       } else if (override.isSetter) {
         types.strategy.forEachParameter(override as FunctionEntity,
             (Local parameter) {
-          final paramInfo = types.getInferredTypeOfVirtualParameter(parameter);
+          final paramInfo =
+              types.getInferredTypeOfParameter(parameter, virtual: true);
           paramInfo.addInput(parentType);
         });
       } else {
@@ -999,7 +998,8 @@ class InferrerEngine {
         assert(override is FieldEntity);
         types.strategy.forEachParameter(parent as FunctionEntity,
             (Local parameter) {
-          final paramInfo = types.getInferredTypeOfVirtualParameter(parameter);
+          final paramInfo =
+              types.getInferredTypeOfParameter(parameter, virtual: true);
           overrideType.addInput(paramInfo);
         });
       }
@@ -1012,7 +1012,9 @@ class InferrerEngine {
 
   void _markForClosurization(
       MemberTypeInformation memberInfo, TypeInformation callSiteType,
-      {required bool remove, required bool addToQueue}) {
+      {required bool remove,
+      required bool addToQueue,
+      required bool isVirtualCall}) {
     final member = memberInfo.member;
     if (remove) {
       memberInfo.closurizedCount--;
@@ -1028,7 +1030,7 @@ class InferrerEngine {
       types.strategy.forEachParameter(member as FunctionEntity,
           (Local parameter) {
         ParameterTypeInformation info =
-            types.getInferredTypeOfParameter(parameter);
+            types.getInferredTypeOfParameter(parameter, virtual: isVirtualCall);
         info.tagAsTearOffClosureParameter(this);
         if (addToQueue) _workQueue.add(info);
       });
@@ -1041,8 +1043,9 @@ class InferrerEngine {
   void _processDynamicTarget(
       DynamicCallTarget target, DynamicCallSiteTypeInformation callSiteType,
       {required bool shouldMarkCalled}) {
-    final needsClosurization =
-        types.getInferredTypeOfVirtualMember(target.member).closurizedCount > 0;
+    final virtualType =
+        types.getInferredTypeOfMember(target.member, virtual: true);
+    final needsClosurization = virtualType.closurizedCount > 0;
 
     // There is nothing to do so no need to iterate over target members.
     if (!needsClosurization && !shouldMarkCalled) return;
@@ -1054,7 +1057,9 @@ class InferrerEngine {
 
         if (needsClosurization) {
           _markForClosurization(info, callSiteType,
-              remove: false, addToQueue: false);
+              remove: false,
+              addToQueue: false,
+              isVirtualCall: target.isVirtual);
         }
       }
       return true;
@@ -1091,7 +1096,7 @@ class InferrerEngine {
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       TypeInformation virtualInfo =
-          types.getInferredTypeOfVirtualParameter(parameter);
+          types.getInferredTypeOfParameter(parameter, virtual: true);
       // Replace references to [existing] to use [type] instead.
       info.inputs.replace(existing, type);
       virtualInfo.inputs.replace(existing, type);
@@ -1123,9 +1128,7 @@ class InferrerEngine {
 
   MemberTypeInformation _inferredTypeOfMember(MemberEntity element,
       {required bool isVirtual}) {
-    return isVirtual
-        ? types.getInferredTypeOfVirtualMember(element)
-        : types.getInferredTypeOfMember(element);
+    return types.getInferredTypeOfMember(element, virtual: isVirtual);
   }
 
   MemberTypeInformation inferredTypeOfTarget(DynamicCallTarget target) {

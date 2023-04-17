@@ -61,7 +61,7 @@ enum _MyEnum {A, B, C}
 ''');
     await assertHasFix(r'''
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode == HintCode.UNUSED_ELEMENT;
+      return error.errorCode == WarningCode.UNUSED_ELEMENT;
     });
   }
 

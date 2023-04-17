@@ -284,8 +284,6 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random? random = #C2]) → void {
       random == null ?{dart.math::Random} random = dart.math::Random::•() : null;
-      if(random{dart.math::Random} == null)
-        throw "!";
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       while (length.{dart.core::num::>}(1){(dart.core::num) → dart.core::bool}) {
         dart.core::int pos = random{dart.math::Random}.{dart.math::Random::nextInt}(length){(dart.core::int) → dart.core::int};
@@ -306,8 +304,6 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(dart.core::int start, [dart.core::int? end = #C2]) → dart.core::List<dart.core::int> {
       dart.core::int listLength = this.{dart.core::List::length}{dart.core::int};
       end == null ?{dart.core::int} end = listLength : null;
-      if(end{dart.core::int} == null)
-        throw "!";
       dart.core::RangeError::checkValidRange(start, end{dart.core::int}, listLength);
       return dart.core::List::from<dart.core::int>(this.{dart.collection::ListBase::getRange}(start, end{dart.core::int}){(dart.core::int, dart.core::int) → dart.core::Iterable<dart.core::int>});
     }
@@ -429,8 +425,6 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexOf(covariant-by-class dart.core::Object? element, [dart.core::int? start = #C2]) → dart.core::int {
       if(start == null || start{dart.core::int}.{dart.core::num::>=}(this.{dart.core::List::length}{dart.core::int}){(dart.core::num) → dart.core::bool})
         start = this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int};
-      if(start{dart.core::int} == null)
-        throw "!";
       for (dart.core::int i = start{dart.core::int}; i.{dart.core::num::>=}(0){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}) {
         if(this.{dart.core::List::[]}(i){(dart.core::int) → dart.core::int} =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} element)
           return i;
@@ -440,8 +434,6 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexWhere((dart.core::int) → dart.core::bool test, [dart.core::int? start = #C2]) → dart.core::int {
       if(start == null || start{dart.core::int}.{dart.core::num::>=}(this.{dart.core::List::length}{dart.core::int}){(dart.core::num) → dart.core::bool})
         start = this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int};
-      if(start{dart.core::int} == null)
-        throw "!";
       for (dart.core::int i = start{dart.core::int}; i.{dart.core::num::>=}(0){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}) {
         if(test(this.{dart.core::List::[]}(i){(dart.core::int) → dart.core::int}){(dart.core::int) → dart.core::bool})
           return i;

@@ -23,7 +23,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   Uri cwd = Uri.base;
   int dartCharactersRead = 0;
   SourceFileByteReader byteReader;
-  final Set<Uri> _readableUris = {};
+  final Set<Uri> _registeredUris = {};
   final Map<Uri, Uri> _mappedUris = {};
 
   SourceFileProvider(this.byteReader);
@@ -56,12 +56,14 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
+    // Do not register URIs with schemes other than 'file' as these are internal
+    // libraries that we cannot read later.
     registerUri(resourceUri);
   }
 
   /// Registers the URI and returns true if the URI is new.
   bool registerUri(Uri uri) {
-    return _readableUris.add(uri);
+    return _registeredUris.add(uri);
   }
 
   api.Input<List<int>> _readFromFileSync(Uri uri, api.InputKind inputKind) {
@@ -82,8 +84,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (resourceUri != uri) {
       registerUri(uri);
     }
-    return _sourceToFile(
-        Uri.parse(relativizeUri(resourceUri)), source, inputKind);
+    return _sourceToFile(Uri.parse(relativizeUri(uri)), source, inputKind);
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
@@ -111,9 +112,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
   /// Get the bytes for a previously accessed UTF-8 [Uri].
   api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
-    // Only access files we've previously processed and therefore know exist.
-    // This is less expensive than performing an IO exists operation.
-    return _readableUris.contains(resourceUri)
+    if (!resourceUri.isAbsolute) {
+      resourceUri = cwd.resolveUri(resourceUri);
+    }
+    return resourceUri.isScheme('file')
         ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
         : null;
   }
@@ -123,7 +125,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   // Note: this includes also indirect sources that were used to create
   // `.dill` inputs to the compiler. This is OK, since this API is only
   // used to calculate DEPS for gn build systems.
-  Iterable<Uri> getSourceUris() => [..._readableUris, ..._mappedUris.keys];
+  Iterable<Uri> getSourceUris() => [..._registeredUris, ..._mappedUris.keys];
 }
 
 class MemoryCopySourceFileByteReader implements SourceFileByteReader {

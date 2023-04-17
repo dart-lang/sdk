@@ -7,6 +7,7 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
+import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
@@ -327,6 +328,7 @@ class Compiler {
   // suitably maintained static reference to the current compiler.
   void clearState() {
     Selector.canonicalizedValues.clear();
+    StaticUse.clearCache();
 
     // The selector objects held in static fields must remain canonical.
     for (Selector selector in Selectors.ALL) {
@@ -630,7 +632,8 @@ class Compiler {
       closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
-            closedWorld!.elementMap.programEnv.mainComponent);
+            closedWorld!.elementMap.programEnv.mainComponent,
+            includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld);
       }
     } else {

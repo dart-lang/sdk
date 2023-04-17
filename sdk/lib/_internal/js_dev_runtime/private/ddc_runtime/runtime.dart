@@ -233,7 +233,9 @@ void hotRestart() {
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
-  JS('', '#.clear()', deferredImports);
+  if (!_realDeferredLoading) {
+    JS('', '#.clear()', deferredImports);
+  }
 }
 
 /// Marks enqueuing an async operation.

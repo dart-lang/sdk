@@ -104,14 +104,14 @@ static void* ThreadStart(void* data_ptr) {
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
-  if (thread != NULL) {
+  if (thread != nullptr) {
     OSThread::SetCurrent(thread);
     thread->SetName(name);
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int OSThread::Start(const char* name,
@@ -183,7 +183,7 @@ char* OSThread::GetCurrentThreadName() {
 }
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   // Make sure we're filling in the join id for the current thread.
   ASSERT(thread->id() == GetCurrentThreadId());
   // Make sure the join_id_ hasn't been set, yet.
@@ -196,7 +196,7 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
 }
 
 void OSThread::Join(ThreadJoinId id) {
-  int result = pthread_join(id, NULL);
+  int result = pthread_join(id, nullptr);
   ASSERT(result == 0);
 }
 

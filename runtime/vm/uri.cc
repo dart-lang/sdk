@@ -146,13 +146,13 @@ static void StringLower(char* str) {
 }
 
 static void ClearParsedUri(ParsedUri* parsed_uri) {
-  parsed_uri->scheme = NULL;
-  parsed_uri->userinfo = NULL;
-  parsed_uri->host = NULL;
-  parsed_uri->port = NULL;
-  parsed_uri->path = NULL;
-  parsed_uri->query = NULL;
-  parsed_uri->fragment = NULL;
+  parsed_uri->scheme = nullptr;
+  parsed_uri->userinfo = nullptr;
+  parsed_uri->host = nullptr;
+  parsed_uri->port = nullptr;
+  parsed_uri->path = nullptr;
+  parsed_uri->query = nullptr;
+  parsed_uri->fragment = nullptr;
 }
 
 static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
@@ -167,7 +167,7 @@ static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
     current += userinfo_len + 1;
     len += userinfo_len + 1;
   } else {
-    parsed_uri->userinfo = NULL;
+    parsed_uri->userinfo = nullptr;
   }
 
   size_t host_len = strcspn(current, ":/");
@@ -183,7 +183,7 @@ static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
     parsed_uri->port = zone->MakeCopyOfStringN(port_start, port_len);
     len += 1 + port_len;  // +1 for ':'
   } else {
-    parsed_uri->port = NULL;
+    parsed_uri->port = nullptr;
   }
   return len;
 }
@@ -203,7 +203,7 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
     parsed_uri->scheme = scheme;
     rest = uri + scheme_len + 1;
   } else {
-    parsed_uri->scheme = NULL;
+    parsed_uri->scheme = nullptr;
   }
 
   // The first '#' separates the optional fragment
@@ -214,7 +214,7 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
     parsed_uri->fragment =
         NormalizeEscapes(fragment_start, strlen(fragment_start));
   } else {
-    parsed_uri->fragment = NULL;
+    parsed_uri->fragment = nullptr;
   }
 
   // The first '?' or '#' separates the hierarchical part from the
@@ -225,7 +225,7 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
     const char* query_start = question_pos + 1;
     parsed_uri->query = NormalizeEscapes(query_start, (hash_pos - query_start));
   } else {
-    parsed_uri->query = NULL;
+    parsed_uri->query = nullptr;
   }
 
   const char* path_start = rest;
@@ -240,9 +240,9 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
     }
     path_start = authority_start + authority_len;
   } else {
-    parsed_uri->userinfo = NULL;
-    parsed_uri->host = NULL;
-    parsed_uri->port = NULL;
+    parsed_uri->userinfo = nullptr;
+    parsed_uri->host = nullptr;
+    parsed_uri->port = nullptr;
   }
 
   // The path is the substring between the authority and the query.
@@ -350,7 +350,7 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
 
   // We need to find the last '/' in base_path.
   const char* last_slash = strrchr(base_path, '/');
-  if (last_slash == NULL) {
+  if (last_slash == nullptr) {
     // There is no slash in the base_path.  Return the ref_path unchanged.
     return ref_path;
   }
@@ -376,34 +376,35 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
 
 static char* BuildUri(const ParsedUri& uri) {
   Zone* zone = ThreadState::Current()->zone();
-  ASSERT(uri.path != NULL);
+  ASSERT(uri.path != nullptr);
 
-  const char* fragment = uri.fragment == NULL ? "" : uri.fragment;
-  const char* fragment_separator = uri.fragment == NULL ? "" : "#";
-  const char* query = uri.query == NULL ? "" : uri.query;
-  const char* query_separator = uri.query == NULL ? "" : "?";
+  const char* fragment = uri.fragment == nullptr ? "" : uri.fragment;
+  const char* fragment_separator = uri.fragment == nullptr ? "" : "#";
+  const char* query = uri.query == nullptr ? "" : uri.query;
+  const char* query_separator = uri.query == nullptr ? "" : "?";
 
   // If there is no scheme for this uri, just build a relative uri of
   // the form: "path[?query][#fragment]".  This occurs when we resolve
   // relative urls inside a "dart:" library.
-  if (uri.scheme == NULL) {
-    ASSERT(uri.userinfo == NULL && uri.host == NULL && uri.port == NULL);
+  if (uri.scheme == nullptr) {
+    ASSERT(uri.userinfo == nullptr && uri.host == nullptr &&
+           uri.port == nullptr);
     return zone->PrintToString("%s%s%s%s%s", uri.path, query_separator, query,
                                fragment_separator, fragment);
   }
 
   // Uri with no authority: "scheme:path[?query][#fragment]"
-  if (uri.host == NULL) {
-    ASSERT(uri.userinfo == NULL && uri.port == NULL);
+  if (uri.host == nullptr) {
+    ASSERT(uri.userinfo == nullptr && uri.port == nullptr);
     return zone->PrintToString("%s:%s%s%s%s%s", uri.scheme, uri.path,
                                query_separator, query, fragment_separator,
                                fragment);
   }
 
-  const char* user = uri.userinfo == NULL ? "" : uri.userinfo;
-  const char* user_separator = uri.userinfo == NULL ? "" : "@";
-  const char* port = uri.port == NULL ? "" : uri.port;
-  const char* port_separator = uri.port == NULL ? "" : ":";
+  const char* user = uri.userinfo == nullptr ? "" : uri.userinfo;
+  const char* user_separator = uri.userinfo == nullptr ? "" : "@";
+  const char* port = uri.port == nullptr ? "" : uri.port;
+  const char* port_separator = uri.port == nullptr ? "" : ":";
 
   // If the path doesn't start with a '/', add one.  We need it to
   // separate the path from the authority.
@@ -426,12 +427,12 @@ bool ResolveUri(const char* ref_uri,
   // Parse the reference uri.
   ParsedUri ref;
   if (!ParseUri(ref_uri, &ref)) {
-    *target_uri = NULL;
+    *target_uri = nullptr;
     return false;
   }
 
   ParsedUri target;
-  if (ref.scheme != NULL) {
+  if (ref.scheme != nullptr) {
     if (strcmp(ref.scheme, "dart") == 0) {
       Zone* zone = ThreadState::Current()->zone();
       *target_uri = zone->MakeCopyOfString(ref_uri);
@@ -453,17 +454,17 @@ bool ResolveUri(const char* ref_uri,
   // Parse the base uri.
   ParsedUri base;
   if (!ParseUri(base_uri, &base)) {
-    *target_uri = NULL;
+    *target_uri = nullptr;
     return false;
   }
 
-  if ((base.scheme != NULL) && strcmp(base.scheme, "dart") == 0) {
+  if ((base.scheme != nullptr) && strcmp(base.scheme, "dart") == 0) {
     Zone* zone = ThreadState::Current()->zone();
     *target_uri = zone->MakeCopyOfString(ref_uri);
     return true;
   }
 
-  if (ref.host != NULL) {
+  if (ref.host != nullptr) {
     // When the ref_uri specifies an authority, we only use the base scheme.
     target.scheme = base.scheme;
     target.userinfo = ref.userinfo;
@@ -483,7 +484,7 @@ bool ResolveUri(const char* ref_uri,
     target.host = base.host;
     target.port = base.port;
     target.path = base.path;
-    target.query = ((ref.query == NULL) ? base.query : ref.query);
+    target.query = ((ref.query == nullptr) ? base.query : ref.query);
     target.fragment = ref.fragment;
     *target_uri = BuildUri(target);
     return true;
@@ -503,13 +504,13 @@ bool ResolveUri(const char* ref_uri,
   } else {
     // Relative path.  We need to merge the base path and the ref path.
 
-    if (base.scheme == NULL && base.host == NULL && base.path[0] != '/') {
+    if (base.scheme == nullptr && base.host == nullptr && base.path[0] != '/') {
       // The dart:core Uri class handles resolving a relative uri
       // against a second relative uri specially, in a way not
       // described in the RFC.  We do not need to support this for
       // library resolution.  If we need to implement this later, we
       // can.
-      *target_uri = NULL;
+      *target_uri = nullptr;
       return false;
     }
 

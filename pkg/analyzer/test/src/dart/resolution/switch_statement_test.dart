@@ -1110,7 +1110,7 @@ void f(Object? x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 55, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 55, 4),
       error(WarningCode.DEAD_CODE, 71, 7),
       error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
           86, 1),

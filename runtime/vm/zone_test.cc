@@ -16,11 +16,11 @@ VM_UNIT_TEST_CASE(AllocateZone) {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   {
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
-    EXPECT(thread->zone() != NULL);
+    EXPECT(thread->zone() != nullptr);
     Zone* zone = stack_zone.GetZone();
     uintptr_t allocated_size = 0;
 
@@ -45,29 +45,29 @@ VM_UNIT_TEST_CASE(AllocateZone) {
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
     // Test corner cases of kSegmentSize.
-    uint8_t* buffer = NULL;
+    uint8_t* buffer = nullptr;
     buffer =
         reinterpret_cast<uint8_t*>(zone->AllocUnsafe(kSegmentSize - kWordSize));
-    EXPECT(buffer != NULL);
+    EXPECT(buffer != nullptr);
     buffer[(kSegmentSize - kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize - kWordSize);
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
     buffer = reinterpret_cast<uint8_t*>(
         zone->AllocUnsafe(kSegmentSize - (2 * kWordSize)));
-    EXPECT(buffer != NULL);
+    EXPECT(buffer != nullptr);
     buffer[(kSegmentSize - (2 * kWordSize)) - 1] = 0;
     allocated_size += (kSegmentSize - (2 * kWordSize));
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
     buffer =
         reinterpret_cast<uint8_t*>(zone->AllocUnsafe(kSegmentSize + kWordSize));
-    EXPECT(buffer != NULL);
+    EXPECT(buffer != nullptr);
     buffer[(kSegmentSize + kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize + kWordSize);
     EXPECT_LE(allocated_size, zone->SizeInBytes());
   }
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   Dart_ShutdownIsolate();
 }
 
@@ -77,11 +77,11 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    EXPECT(thread->zone() != NULL);
+    EXPECT(thread->zone() != nullptr);
     uintptr_t allocated_size = 0;
 
     const intptr_t kNumElements = 1000;
@@ -89,7 +89,7 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
     allocated_size += sizeof(uint32_t) * kNumElements;
     EXPECT_LE(allocated_size, zone.SizeInBytes());
   }
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   Dart_ShutdownIsolate();
 }
 
@@ -100,10 +100,10 @@ VM_UNIT_TEST_CASE_WITH_EXPECTATION(AllocGeneric_Overflow, "Crash") {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   {
     StackZone zone(thread);
-    EXPECT(thread->zone() != NULL);
+    EXPECT(thread->zone() != nullptr);
 
     const intptr_t kNumElements = (kIntptrMax / sizeof(uint32_t)) + 1;
     zone.GetZone()->Alloc<uint32_t>(kNumElements);
@@ -139,7 +139,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   static int marker;
 
   class SimpleZoneObject : public ZoneAllocated {
@@ -159,9 +159,9 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
     StackZone zone(thread);
     EXPECT_EQ(0UL, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
-    EXPECT(first != NULL);
+    EXPECT(first != nullptr);
     SimpleZoneObject* second = new SimpleZoneObject();
-    EXPECT(second != NULL);
+    EXPECT(second != nullptr);
     EXPECT(first != second);
     uintptr_t expected_size = (2 * sizeof(SimpleZoneObject));
     EXPECT_LE(expected_size, zone.SizeInBytes());
@@ -176,7 +176,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
     EXPECT_EQ(42, first->slot);
     EXPECT_EQ(87, second->slot);
   }
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   Dart_ShutdownIsolate();
 }
 
@@ -189,7 +189,7 @@ TEST_CASE(PrintToString) {
 
 #if !defined(PRODUCT)
 // Allow for pooling in the malloc implementation.
-static const int64_t kRssSlack = 20 * MB;
+static constexpr int64_t kRssSlack = 20 * MB;
 #endif  // !defined(PRODUCT)
 
 // clang-format off

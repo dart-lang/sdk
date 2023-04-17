@@ -1242,13 +1242,13 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
       }
     }
 
-    void VisitObject(ObjectPtr obj) {
+    void VisitObject(ObjectPtr obj) override {
       if (!obj->IsInstructions()) return;
       instructions_ = Instructions::RawCast(obj);
       AddCanonical(instructions_);
     }
 
-    void VisitFunction(const Function& function) {
+    void VisitFunction(const Function& function) override {
       if (!function.HasCode()) return;
       code_ = function.CurrentCode();
       // This causes the code to be visited once here and once directly in the
@@ -1258,7 +1258,7 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
       function.SetInstructionsSafe(code_);  // Update cached entry point.
     }
 
-    void VisitCode(const Code& code) {
+    void VisitCode(const Code& code) override {
       instructions_ = code.instructions();
       instructions_ = Dedup(instructions_);
       code.set_instructions(instructions_);
@@ -1447,7 +1447,7 @@ class AssignLoadingUnitsCodeVisitor : public ObjectVisitor {
         unit_(LoadingUnit::Handle(zone)),
         obj_(Object::Handle(zone)) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsCode()) {
       code_ ^= obj;
       VisitCode(code_);

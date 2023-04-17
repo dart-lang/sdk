@@ -921,7 +921,7 @@ class Assembler : public MicroAssembler {
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kEntryPointToPcMarkerOffset = 0;
+  static constexpr intptr_t kEntryPointToPcMarkerOffset = 0;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }

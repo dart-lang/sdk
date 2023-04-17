@@ -473,7 +473,7 @@ TEST_CASE(FailSerializeLargeArray) {
   Dart_CObject root;
   root.type = Dart_CObject_kArray;
   root.value.as_array.length = Array::kMaxElements + 1;
-  root.value.as_array.values = NULL;
+  root.value.as_array.values = nullptr;
   ApiNativeScope scope;
   ExpectEncodeFail(scope.zone(), &root);
 }
@@ -549,7 +549,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyArray) {
   Dart_CObject* root = ReadApiMessage(scope.zone(), message.get());
   EXPECT_EQ(Dart_CObject_kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
-  EXPECT(root->value.as_array.values == NULL);
+  EXPECT(root->value.as_array.values == nullptr);
   CheckEncodeDecodeMessage(scope.zone(), root);
 }
 
@@ -702,7 +702,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
   EXPECT_EQ(Dart_CObject_kTypedData, root->type);
   EXPECT_EQ(Dart_TypedData_kUint8, root->value.as_typed_data.type);
   EXPECT_EQ(kTypedDataLength, root->value.as_typed_data.length);
-  EXPECT(root->value.as_typed_data.values == NULL);
+  EXPECT(root->value.as_typed_data.values == nullptr);
   CheckEncodeDecodeMessage(scope.zone(), root);
 }
 
@@ -747,7 +747,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
-    TestCase::LoadTestScript(kScriptChars.get(), NULL);
+    TestCase::LoadTestScript(kScriptChars.get(), nullptr);
 
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
@@ -785,7 +785,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
 
     // Invoke a function which returns an object.
     Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("FieldsTest"));
-    result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+    result = Dart_Invoke(cls, NewString("testMain"), 0, nullptr);
     EXPECT_VALID(result);
     Dart_ExitScope();
   }
@@ -799,7 +799,7 @@ static std::unique_ptr<Message> GetSerialized(Dart_Handle lib,
   Dart_Handle result;
   {
     TransitionVMToNative transition(Thread::Current());
-    result = Dart_Invoke(lib, NewString(dart_function), 0, NULL);
+    result = Dart_Invoke(lib, NewString(dart_function), 0, nullptr);
     EXPECT_VALID(result);
   }
   Object& obj = Object::Handle(Api::UnwrapHandle(result));
@@ -872,53 +872,55 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
 
   TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
+  EXPECT(isolate != nullptr);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars, NULL);
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kCustomIsolateScriptChars, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle smi_result;
-  smi_result = Dart_Invoke(lib, NewString("getSmi"), 0, NULL);
+  smi_result = Dart_Invoke(lib, NewString("getSmi"), 0, nullptr);
   EXPECT_VALID(smi_result);
 
   Dart_Handle ascii_string_result;
-  ascii_string_result = Dart_Invoke(lib, NewString("getAsciiString"), 0, NULL);
+  ascii_string_result =
+      Dart_Invoke(lib, NewString("getAsciiString"), 0, nullptr);
   EXPECT_VALID(ascii_string_result);
   EXPECT(Dart_IsString(ascii_string_result));
 
   Dart_Handle non_ascii_string_result;
   non_ascii_string_result =
-      Dart_Invoke(lib, NewString("getNonAsciiString"), 0, NULL);
+      Dart_Invoke(lib, NewString("getNonAsciiString"), 0, nullptr);
   EXPECT_VALID(non_ascii_string_result);
   EXPECT(Dart_IsString(non_ascii_string_result));
 
   Dart_Handle non_bmp_string_result;
   non_bmp_string_result =
-      Dart_Invoke(lib, NewString("getNonBMPString"), 0, NULL);
+      Dart_Invoke(lib, NewString("getNonBMPString"), 0, nullptr);
   EXPECT_VALID(non_bmp_string_result);
   EXPECT(Dart_IsString(non_bmp_string_result));
 
   Dart_Handle lead_surrogate_string_result;
   lead_surrogate_string_result =
-      Dart_Invoke(lib, NewString("getLeadSurrogateString"), 0, NULL);
+      Dart_Invoke(lib, NewString("getLeadSurrogateString"), 0, nullptr);
   EXPECT_VALID(lead_surrogate_string_result);
   EXPECT(Dart_IsString(lead_surrogate_string_result));
 
   Dart_Handle trail_surrogate_string_result;
   trail_surrogate_string_result =
-      Dart_Invoke(lib, NewString("getTrailSurrogateString"), 0, NULL);
+      Dart_Invoke(lib, NewString("getTrailSurrogateString"), 0, nullptr);
   EXPECT_VALID(trail_surrogate_string_result);
   EXPECT(Dart_IsString(trail_surrogate_string_result));
 
   Dart_Handle surrogates_string_result;
   surrogates_string_result =
-      Dart_Invoke(lib, NewString("getSurrogatesString"), 0, NULL);
+      Dart_Invoke(lib, NewString("getSurrogatesString"), 0, nullptr);
   EXPECT_VALID(surrogates_string_result);
   EXPECT(Dart_IsString(surrogates_string_result));
 
   Dart_Handle crappy_string_result;
   crappy_string_result =
-      Dart_Invoke(lib, NewString("getCrappyString"), 0, NULL);
+      Dart_Invoke(lib, NewString("getCrappyString"), 0, nullptr);
   EXPECT_VALID(crappy_string_result);
   EXPECT(Dart_IsString(crappy_string_result));
 
@@ -961,7 +963,7 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "final int kArrayLength = 10;\n"
       "getList() {\n"
       "  return List.filled(kArrayLength, null);\n"
@@ -987,10 +989,10 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->isolate() != NULL);
+  EXPECT(thread->isolate() != nullptr);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   {
@@ -1071,7 +1073,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "final int kArrayLength = 10;\n"
       "getList() {\n"
       "  return [null, null, null, null, null, null, null, null, null, null];\n"
@@ -1111,10 +1113,10 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->isolate() != NULL);
+  EXPECT(thread->isolate() != nullptr);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   {
@@ -1291,7 +1293,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -1344,10 +1346,10 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->isolate() != NULL);
+  EXPECT(thread->isolate() != nullptr);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   {
@@ -1484,7 +1486,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
 VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -1543,10 +1545,10 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->isolate() != NULL);
+  EXPECT(thread->isolate() != nullptr);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   {
@@ -1784,10 +1786,10 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->isolate() != NULL);
+  EXPECT(thread->isolate() != nullptr);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   {
@@ -1936,10 +1938,10 @@ VM_UNIT_TEST_CASE(PostCObject) {
       "  };\n"
       "  return sendPort;\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_EnterScope();
 
-  Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(send_port);
   Dart_Port port_id;
   Dart_Handle result = Dart_SendPortGetId(send_port, &port_id);
@@ -1983,7 +1985,7 @@ VM_UNIT_TEST_CASE(PostCObject) {
   object.value.as_array.length = 0;
   EXPECT(Dart_PostCObject(port_id, &object));
 
-  static const int kArrayLength = 10;
+  const int kArrayLength = 10;
   Dart_CObject* array = reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(
       sizeof(Dart_CObject) + sizeof(Dart_CObject*) * kArrayLength));  // NOLINT
   array->type = Dart_CObject_kArray;
@@ -2038,7 +2040,7 @@ VM_UNIT_TEST_CASE(PostCObject) {
 }
 
 TEST_CASE(IsKernelNegative) {
-  EXPECT(!Dart_IsKernel(NULL, 0));
+  EXPECT(!Dart_IsKernel(nullptr, 0));
 
   uint8_t buffer[4] = {0, 0, 0, 0};
   EXPECT(!Dart_IsKernel(buffer, ARRAY_SIZE(buffer)));
@@ -2058,7 +2060,7 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
     TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
     EXPECT_VALID(lib);
 
     Thread* thread = Thread::Current();
@@ -2076,7 +2078,7 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
 
       // Invoke a function so that the constant is evaluated.
       cls = Dart_GetClass(TestCase::lib(), NewString("Generic"));
-      result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+      result = Dart_Invoke(cls, NewString("testMain"), 0, nullptr);
       EXPECT_VALID(result);
     }
     // Verify that legacy erasure is required in strong mode.

@@ -112,7 +112,7 @@ const char* CPU::Id() {
 bool HostCPUFeatures::integer_division_supported_ = false;
 bool HostCPUFeatures::neon_supported_ = false;
 bool HostCPUFeatures::hardfp_supported_ = false;
-const char* HostCPUFeatures::hardware_ = NULL;
+const char* HostCPUFeatures::hardware_ = nullptr;
 intptr_t HostCPUFeatures::store_pc_read_offset_ = 8;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
@@ -160,15 +160,15 @@ void HostCPUFeatures::Init() {
       CpuInfo::FieldContains(kCpuInfoModel, "aarch64") ||
       CpuInfo::FieldContains(kCpuInfoArchitecture, "8") ||
       CpuInfo::FieldContains(kCpuInfoArchitecture, "AArch64") ||
-      (ret_ == 0 && (strstr(uname_.machine, "aarch64") != NULL ||
-                     strstr(uname_.machine, "arm64") != NULL ||
-                     strstr(uname_.machine, "armv8") != NULL))) {
+      (ret_ == 0 && (strstr(uname_.machine, "aarch64") != nullptr ||
+                     strstr(uname_.machine, "arm64") != nullptr ||
+                     strstr(uname_.machine, "armv8") != nullptr))) {
     // pretend that this arm64 cpu is really an ARMv7
     is_arm64 = true;
   } else if (!CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") &&
              !CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") &&
              !CpuInfo::FieldContains(kCpuInfoArchitecture, "7") &&
-             !(ret_ == 0 && strstr(uname_.machine, "armv7") != NULL)) {
+             !(ret_ == 0 && strstr(uname_.machine, "armv7") != nullptr)) {
     FATAL("Unrecognized ARM CPU architecture.");
   }
 
@@ -231,9 +231,9 @@ void HostCPUFeatures::Cleanup() {
 #if defined(DEBUG)
   initialized_ = false;
 #endif
-  ASSERT(hardware_ != NULL);
+  ASSERT(hardware_ != nullptr);
   free(const_cast<char*>(hardware_));
-  hardware_ = NULL;
+  hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
 
@@ -256,9 +256,9 @@ void HostCPUFeatures::Cleanup() {
 #if defined(DEBUG)
   initialized_ = false;
 #endif
-  ASSERT(hardware_ != NULL);
+  ASSERT(hardware_ != nullptr);
   free(const_cast<char*>(hardware_));
-  hardware_ = NULL;
+  hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
 #endif  // !defined(TARGET_HOST_MISMATCH)

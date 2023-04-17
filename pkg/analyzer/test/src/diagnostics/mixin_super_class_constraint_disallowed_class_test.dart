@@ -31,15 +31,18 @@ mixin M on Enum {}
           27, 4),
     ]);
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['Enum']);
-
-    var typeRef = findNode.namedType('Enum {}');
-    assertNamedType(
-      typeRef,
-      findElement.importFind('dart:core').class_('Enum'),
-      'Enum',
-    );
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: Enum
+        staticElement: dart:core::@class::Enum
+        staticType: null
+      type: Enum
+''');
   }
 
   test_int() async {
@@ -50,10 +53,17 @@ mixin M on int {}
           11, 3),
     ]);
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['int']);
-
-    var typeRef = findNode.namedType('int {}');
-    assertNamedType(typeRef, intElement, 'int');
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
+''');
   }
 }

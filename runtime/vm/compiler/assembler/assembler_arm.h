@@ -353,8 +353,8 @@ class Address : public ValueObject {
   uint32_t encoding_;
 
   OffsetKind kind_;
-  Register base_;
-  int32_t offset_;
+  Register base_ = kNoRegister;
+  int32_t offset_ = 0;
 
   friend class Assembler;
 };

@@ -626,8 +626,9 @@ class TypeParameterReplacer extends ReplacementVisitor {
     if (_variance == Variance.contravariant) {
       return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
     } else {
-      return _replaceTypeParameterTypes(
-          (node.element as TypeParameterElementImpl).defaultType!);
+      final element = node.element as TypeParameterElementImpl;
+      final defaultType = element.defaultType!;
+      return _replaceTypeParameterTypes(defaultType);
     }
   }
 

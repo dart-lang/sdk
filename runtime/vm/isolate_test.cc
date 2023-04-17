@@ -17,7 +17,7 @@ VM_UNIT_TEST_CASE(IsolateCurrent) {
   Dart_Isolate isolate = TestCase::CreateTestIsolate();
   EXPECT_EQ(isolate, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT_EQ(static_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
+  EXPECT_EQ(static_cast<Dart_Isolate>(nullptr), Dart_CurrentIsolate());
 }
 
 // Test to ensure that an exception is thrown if no isolate creation
@@ -40,7 +40,7 @@ void IsolateSpawn(const char* platform_script_value) {
       "}\n",
       platform_script_value);
 
-  Dart_Handle test_lib = TestCase::LoadTestScript(scriptChars, NULL);
+  Dart_Handle test_lib = TestCase::LoadTestScript(scriptChars, nullptr);
 
   free(scriptChars);
 
@@ -72,8 +72,9 @@ void IsolateSpawn(const char* platform_script_value) {
   EXPECT_VALID(url);
   Dart_Handle isolate_lib = Dart_LookupLibrary(url);
   EXPECT_VALID(isolate_lib);
-  Dart_Handle schedule_immediate_closure = Dart_Invoke(
-      isolate_lib, NewString("_getIsolateScheduleImmediateClosure"), 0, NULL);
+  Dart_Handle schedule_immediate_closure =
+      Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
+                  0, nullptr);
   Dart_Handle args[1];
   args[0] = schedule_immediate_closure;
   url = NewString("dart:async");
@@ -83,7 +84,7 @@ void IsolateSpawn(const char* platform_script_value) {
   EXPECT_VALID(Dart_Invoke(async_lib, NewString("_setScheduleImmediateClosure"),
                            1, args));
 
-  result = Dart_Invoke(test_lib, NewString("testMain"), 0, NULL);
+  result = Dart_Invoke(test_lib, NewString("testMain"), 0, nullptr);
   EXPECT_VALID(result);
   // Run until all ports to isolate are closed.
   result = Dart_RunLoop();
@@ -105,8 +106,8 @@ TEST_CASE(IsolateSpawn_PackageUri) {
 
 class InterruptChecker : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
-  static const intptr_t kIterations;
+  static constexpr intptr_t kTaskCount = 5;
+  static constexpr intptr_t kIterations = 10;
 
   InterruptChecker(Thread* thread, ThreadBarrier* barrier)
       : thread_(thread), barrier_(barrier) {}
@@ -137,9 +138,6 @@ class InterruptChecker : public ThreadPool::Task {
   Thread* thread_;
   ThreadBarrier* barrier_;
 };
-
-const intptr_t InterruptChecker::kTaskCount = 5;
-const intptr_t InterruptChecker::kIterations = 10;
 
 // Test and document usage of Isolate::HasInterruptsScheduled.
 //

@@ -154,7 +154,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     // with an isolate. It is safe to call 'os_thread->thread()'
     // here as the thread which is being queried is suspended.
     Thread* thread = static_cast<Thread*>(os_thread->thread());
-    if (thread != NULL) {
+    if (thread != nullptr) {
       ThreadInterruptScope signal_handler_scope;
       Profiler::SampleThread(thread, its);
     }
@@ -192,7 +192,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
       zx_info_thread_t thread_info;
       zx_status_t status =
           zx_object_get_info(thread_handle, ZX_INFO_THREAD, &thread_info,
-                             sizeof(thread_info), NULL, NULL);
+                             sizeof(thread_info), nullptr, nullptr);
       poll_tries++;
       if (status != ZX_OK) {
         if (FLAG_trace_thread_interrupter) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,7 +15,59 @@ main() {
 
 @reflectiveTest
 class AsExpressionResolutionTest extends PubPackageResolutionTest {
-  test_expression_switchExpression() async {
+  test_constVariable() async {
+    await assertErrorsInCode('''
+const num a = 1.2;
+const int b = a as int;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 33, 8),
+    ]);
+
+    var node = findNode.asExpression('as int');
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@getter::a
+    staticType: num
+  asOperator: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: int
+''');
+  }
+
+  test_localVariable() async {
+    await assertNoErrorsInCode('''
+void f() {
+  num v = 42;
+  v as int;
+}
+''');
+
+    var node = findNode.singleAsExpression;
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression: SimpleIdentifier
+    token: v
+    staticElement: v@17
+    staticType: num
+  asOperator: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: int
+''');
+  }
+
+  test_switchExpression_expression() async {
     await assertNoErrorsInCode('''
 void f(Object? x) {
   (switch (x) {

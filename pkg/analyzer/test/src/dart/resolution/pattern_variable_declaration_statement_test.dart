@@ -283,6 +283,60 @@ PatternVariableDeclarationStatement
 ''');
   }
 
+  test_var_untyped_recordPattern() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (a,) = g((0,));
+}
+
+T g<T>(T a) => throw 0;
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
+    final node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        PatternField
+          pattern: DeclaredVariablePattern
+            name: a
+            declaredElement: hasImplicitType a@18
+              type: int
+            matchedValueType: int
+          element: <null>
+      rightParenthesis: )
+      matchedValueType: (int)
+    equals: =
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>(T)
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          RecordLiteral
+            leftParenthesis: (
+            fields
+              IntegerLiteral
+                literal: 0
+                staticType: int
+            rightParenthesis: )
+            staticType: (int)
+        rightParenthesis: )
+      staticInvokeType: (int) Function((int))
+      staticType: (int)
+      typeArgumentTypes
+        (int)
+    patternTypeSchema: (_)
+  semicolon: ;
+''');
+  }
+
   test_var_withKeyword_final() async {
     await assertErrorsInCode(r'''
 void f() {

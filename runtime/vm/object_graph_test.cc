@@ -175,7 +175,7 @@ ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
   {
     TransitionVMToNative transition(thread);
     Dart_DeletePersistentHandle(persistent_handle);
-    persistent_handle = NULL;
+    persistent_handle = nullptr;
   }
   result = graph.RetainingPath(&path, path);
   EXPECT_STREQ(result.gc_root_type, "weak persistent handle");
@@ -184,7 +184,7 @@ ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
   {
     TransitionVMToNative transition(thread);
     Dart_DeleteWeakPersistentHandle(weak_persistent_handle);
-    weak_persistent_handle = NULL;
+    weak_persistent_handle = nullptr;
   }
   result = graph.RetainingPath(&path, path);
   EXPECT_STREQ(result.gc_root_type, "local handle");

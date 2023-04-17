@@ -55,7 +55,7 @@ struct ExtraLoopInfo;
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a fpu register spill slot.
-  static const intptr_t kDoubleSpillFactor =
+  static constexpr intptr_t kDoubleSpillFactor =
       kDoubleSize / compiler::target::kWordSize;
 
   explicit FlowGraphAllocator(const FlowGraph& flow_graph,
@@ -141,7 +141,7 @@ class FlowGraphAllocator : public ValueObject {
                              Instruction* instr,
                              BitVector* interference_set);
 
-  static const intptr_t kNormalEntryPos = 2;
+  static constexpr intptr_t kNormalEntryPos = 2;
 
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,

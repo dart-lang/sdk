@@ -448,7 +448,6 @@ void foo() {
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 38, 3),
     ]);
 
-    assertImportPrefix(findNode.simple('a.E'), findElement.prefix('a'));
     var reference = findNode.functionReference('E<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -865,7 +864,7 @@ extension on double {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 24, 3),
+      error(WarningCode.UNUSED_ELEMENT, 24, 3),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3,
           messageContains: ["for the type 'double'"]),
     ]);
@@ -2326,8 +2325,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -2381,9 +2378,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3),
     ]);
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -2705,6 +2701,38 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: dynamic
+''');
+  }
+
+  test_loadLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as prefix;
+
+void f() {
+  prefix.loadLibrary;
+}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
+    ]);
+
+    final node = findNode.expressionStatement('prefix.loadLibrary');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: loadLibrary
+      staticElement: loadLibrary@-1
+      staticType: Future<dynamic> Function()
+    staticElement: loadLibrary@-1
+    staticType: Future<dynamic> Function()
+  semicolon: ;
 ''');
   }
 
@@ -3286,8 +3314,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3341,8 +3367,6 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3549,7 +3573,6 @@ void bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3596,7 +3619,6 @@ void bar() {
 }
 ''');
 
-    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>');
     assertResolvedNodeText(reference, r'''
 FunctionReference
@@ -3744,9 +3766,8 @@ bar() {
 }
 ''');
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3790,9 +3811,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
     ]);
 
-    assertImportPrefix(
-        findNode.simple('prefix.'), findElement.prefix('prefix'));
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    final node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier

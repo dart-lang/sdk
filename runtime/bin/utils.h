@@ -23,7 +23,7 @@ class OSError {
   OSError(int code, const char* message, SubSystem sub_system) {
     sub_system_ = sub_system;
     code_ = code;
-    message_ = NULL;  // SetMessage will free existing message.
+    message_ = nullptr;  // SetMessage will free existing message.
     SetMessage(message);
   }
   virtual ~OSError() { free(message_); }
@@ -41,8 +41,8 @@ class OSError {
   void set_code(int code) { code_ = code; }
   void SetMessage(const char* message) {
     free(message_);
-    if (message == NULL) {
-      message_ = NULL;
+    if (message == nullptr) {
+      message_ = nullptr;
     } else {
       message_ = Utils::StrDup(message);
     }
@@ -71,16 +71,16 @@ class StringUtils {
   // which is true on all platforms other than Windows.
   static const char* ConsoleStringToUtf8(const char* str,
                                          intptr_t len = -1,
-                                         intptr_t* result_len = NULL);
+                                         intptr_t* result_len = nullptr);
   static char* ConsoleStringToUtf8(char* str,
                                    intptr_t len = -1,
-                                   intptr_t* result_len = NULL);
+                                   intptr_t* result_len = nullptr);
   static const char* Utf8ToConsoleString(const char* utf8,
                                          intptr_t len = -1,
-                                         intptr_t* result_len = NULL);
+                                         intptr_t* result_len = nullptr);
   static char* Utf8ToConsoleString(char* utf8,
                                    intptr_t len = -1,
-                                   intptr_t* result_len = NULL);
+                                   intptr_t* result_len = nullptr);
 
  private:
   DISALLOW_ALLOCATION();

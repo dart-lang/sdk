@@ -20,33 +20,34 @@ class IntSet {
       : hash_(hash), map_(SimpleHashMap::SamePointerValue, kInitialSize) {}
 
   void Insert(int x) {
-    EXPECT_NE(0, x);  // 0 corresponds to (void*)NULL - illegal key value
+    EXPECT_NE(0, x);  // 0 corresponds to (void*)nullptr - illegal key value
     SimpleHashMap::Entry* p =
         map_.Lookup(reinterpret_cast<void*>(x), hash_(x), true);
-    EXPECT(p != NULL);  // insert is set!
+    EXPECT(p != nullptr);  // insert is set!
     EXPECT_EQ(reinterpret_cast<void*>(x), p->key);
     // We don't care about p->value.
   }
 
   void Remove(int x) {
-    EXPECT_NE(0, x);  // 0 corresponds to (void*)NULL - illegal key value
+    EXPECT_NE(0, x);  // 0 corresponds to (void*)nullptr - illegal key value
     map_.Remove(reinterpret_cast<void*>(x), hash_(x));
   }
 
   bool Present(int x) {
     SimpleHashMap::Entry* p =
         map_.Lookup(reinterpret_cast<void*>(x), hash_(x), false);
-    if (p != NULL) {
+    if (p != nullptr) {
       EXPECT_EQ(reinterpret_cast<void*>(x), p->key);
     }
-    return p != NULL;
+    return p != nullptr;
   }
 
   void Clear() { map_.Clear(); }
 
   uint32_t occupancy() const {
     uint32_t count = 0;
-    for (SimpleHashMap::Entry* p = map_.Start(); p != NULL; p = map_.Next(p)) {
+    for (SimpleHashMap::Entry* p = map_.Start(); p != nullptr;
+         p = map_.Next(p)) {
       count++;
     }
     EXPECT_EQ(map_.occupancy_, count);

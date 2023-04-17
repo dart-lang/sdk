@@ -37,7 +37,7 @@ class FixedCache {
 
     intptr_t i = LowerBound(key);
     if (i != length_ && pairs_[i].key == key) return &pairs_[i].value;
-    return NULL;
+    return nullptr;
   }
 
   void Insert(K key, V value) {

@@ -21,7 +21,7 @@ void f(void Function() x) {
   if (x case int _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 5),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3),
     ]);
   }
 
@@ -47,6 +47,16 @@ void f(void Function() x) {
   if (x case Object? _) {}
 }
 ''');
+  }
+
+  test_functionType_recordType() async {
+    await assertErrorsInCode('''
+void f(void Function() x) {
+  if (x case (int,) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 6),
+    ]);
   }
 
   test_functionTypeQuestion_interfaceType_object() async {
@@ -85,7 +95,7 @@ void f(List<A> x) {
 final class A {}
 final class B {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 9),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 7),
     ]);
   }
 
@@ -100,7 +110,7 @@ final class A2 extends A {}
 final class A3 implements A {}
 class R {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
   }
 
@@ -173,7 +183,7 @@ void f(A x) {
 final class A extends R<num> {}
 class R<T> {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 8),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6),
     ]);
   }
 
@@ -208,7 +218,7 @@ void f(A x) {
 final class A {}
 class R {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
   }
 
@@ -280,7 +290,7 @@ final class A<T> {}
 final class B {}
 final class C {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
     ]);
   }
 
@@ -306,7 +316,7 @@ final class B extends A<C> {}
 final class C {}
 final class D {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4),
     ]);
   }
 
@@ -344,7 +354,7 @@ final class B extends A<C> {}
 final class C {}
 final class D {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1),
     ]);
   }
 
@@ -368,7 +378,7 @@ void f(A x) {
 class A {}
 final class B {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
   }
 
@@ -378,7 +388,7 @@ void f(int x) {
   if (x case void Function() _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 29, 17),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 29, 15),
     ]);
   }
 
@@ -398,6 +408,34 @@ void f(Object x) {
 ''');
   }
 
+  test_interfaceType_recordType() async {
+    await assertErrorsInCode('''
+void f(A x) {
+  if (x case (A,) _) {}
+}
+
+class A {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4),
+    ]);
+  }
+
+  test_interfaceType_recordType_object() async {
+    await assertNoErrorsInCode('''
+void f(Object x) {
+  if (x case (int,) _) {}
+}
+''');
+  }
+
+  test_interfaceType_recordType_record() async {
+    await assertNoErrorsInCode('''
+void f(Record x) {
+  if (x case (int,) _) {}
+}
+''');
+  }
+
   test_matchedEnum_requiredDifferentEnum() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -407,7 +445,7 @@ void f(A x) {
 enum A { v }
 enum R { v }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
   }
 
@@ -420,7 +458,7 @@ void f(A x) {
 enum A { v }
 class R {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
   }
 
@@ -470,7 +508,7 @@ void f(A x) {
 enum A implements R<num> { v }
 class R<T> {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 8),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6),
     ]);
   }
 
@@ -487,7 +525,7 @@ enum A<T> implements R<T> {
 
 class R<T> {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 11),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 9),
     ]);
   }
 
@@ -530,7 +568,7 @@ void f<T>(E<T>? x) {
 
 enum E<T> { v1<int>(), v2<double>() }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 11),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 9),
     ]);
   }
 
@@ -542,7 +580,7 @@ void f(Null x) {
 
 class A {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 3),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1),
     ]);
   }
 
@@ -560,8 +598,113 @@ void f(Null x) {
   if (x case Object _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 8),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6),
     ]);
+  }
+
+  test_recordType2_named_differentCount() async {
+    await assertErrorsInCode('''
+void f(({int f1,}) x) {
+  if (x case ({int f1, int f2,}) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 19),
+    ]);
+  }
+
+  test_recordType2_named_differentNames() async {
+    await assertErrorsInCode('''
+void f(({int a, int b}) x) {
+  if (x case ({int f1, int f2,}) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 19),
+    ]);
+  }
+
+  test_recordType2_named_unrelated() async {
+    await assertErrorsInCode('''
+void f(({A f1,}) x) {
+  if (x case ({R f1,}) _) {}
+}
+
+final class A {}
+class R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 9),
+    ]);
+  }
+
+  test_recordType2_positional_canMatch() async {
+    await assertNoErrorsInCode('''
+void f((A,) x) {
+  if (x case (B,) _) {}
+}
+
+class A {}
+class B {}
+''');
+  }
+
+  test_recordType2_positional_differentCount() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  if (x case (int, String) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 13),
+    ]);
+  }
+
+  test_recordType2_positional_unrelated() async {
+    await assertErrorsInCode('''
+void f((A,) x) {
+  if (x case (R,) _) {}
+}
+
+final class A {}
+class R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
+    ]);
+  }
+
+  test_recordType_functionType() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  if (x case void Function() _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 15),
+    ]);
+  }
+
+  test_recordType_interfaceType() async {
+    await assertErrorsInCode('''
+void f((A,) x) {
+  if (x case A _) {}
+}
+
+class A {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1),
+    ]);
+  }
+
+  test_recordType_interfaceType_object() async {
+    await assertNoErrorsInCode('''
+void f((int,)? x) {
+  if (x case Object _) {}
+}
+''');
+  }
+
+  test_recordType_interfaceType_record() async {
+    await assertNoErrorsInCode('''
+void f((int,)? x) {
+  if (x case Record _) {}
+}
+''');
   }
 
   test_refutable_pattern_castPattern_match() async {
@@ -578,7 +721,7 @@ void f(String x) {
   if (x case _ as int) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 8),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 3),
     ]);
   }
 
@@ -598,7 +741,7 @@ void f(String x) {
   if (x case int a) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 5),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
   }
@@ -653,7 +796,7 @@ void f(String x) {
   if (x case int()) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 5),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3),
     ]);
   }
 
@@ -671,7 +814,7 @@ void f(String x) {
   if (x case int _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 5),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3),
     ]);
   }
 
@@ -683,7 +826,7 @@ void f(A x) {
 
 class A {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4),
     ]);
   }
 
@@ -693,7 +836,7 @@ void f(void Function() x) {
   if (x case Null _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 4),
     ]);
   }
 
@@ -703,7 +846,7 @@ void f(Object x) {
   if (x case Null _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 4),
     ]);
   }
 
@@ -713,7 +856,7 @@ void f<T extends num>(T x) {
   if (x case Null _) {}
 }
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
     ]);
   }
 
@@ -773,7 +916,7 @@ void f(A x) {
 final class A {}
 final class B {}
 ''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 2),
     ]);
   }
 

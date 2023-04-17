@@ -19786,6 +19786,7 @@ HintCode:
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
+    deprecatedMessage: Use 'WarningCode.UNNECESSARY_CAST' instead.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -19821,6 +19822,7 @@ HintCode:
   UNNECESSARY_FINAL:
     problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
     correctionMessage: Try removing the 'final'.
+    deprecatedMessage: Use 'WarningCode.UNNECESSARY_FINAL' instead.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -19930,6 +19932,7 @@ HintCode:
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
+    deprecatedMessage: Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -19972,6 +19975,7 @@ HintCode:
   UNUSED_ELEMENT:
     problemMessage: "The declaration '{0}' isn't referenced."
     correctionMessage: "Try removing the declaration of '{0}'."
+    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT' instead.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -20034,6 +20038,7 @@ HintCode:
     sharedName: UNUSED_ELEMENT
     problemMessage: "A value for optional parameter '{0}' isn't ever given."
     correctionMessage: Try removing the unused parameter.
+    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -20273,9 +20278,6 @@ ParserErrorCode:
     correctionMessage: "Try removing the keyword 'final'."
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
-  FINAL_ENUM:
-    problemMessage: "Enums can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."

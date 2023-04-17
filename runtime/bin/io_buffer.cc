@@ -11,7 +11,7 @@ namespace bin {
 
 Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t** buffer) {
   uint8_t* data = Allocate(size);
-  if (data == NULL) {
+  if (data == nullptr) {
     return Dart_Null();
   }
   Dart_Handle result = Dart_NewExternalTypedDataWithFinalizer(
@@ -21,7 +21,7 @@ Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t** buffer) {
     Free(data);
     Dart_PropagateError(result);
   }
-  if (buffer != NULL) {
+  if (buffer != nullptr) {
     *buffer = data;
   }
   return result;

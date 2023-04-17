@@ -17,8 +17,12 @@ FOR_EACH_REG_EXP_TREE_TYPE(MAKE_ACCEPT)
 #undef MAKE_ACCEPT
 
 #define MAKE_TYPE_CASE(Name)                                                   \
-  RegExp##Name* RegExpTree::As##Name() { return NULL; }                        \
-  bool RegExpTree::Is##Name() const { return false; }
+  RegExp##Name* RegExpTree::As##Name() {                                       \
+    return nullptr;                                                            \
+  }                                                                            \
+  bool RegExpTree::Is##Name() const {                                          \
+    return false;                                                              \
+  }
 FOR_EACH_REG_EXP_TREE_TYPE(MAKE_TYPE_CASE)
 #undef MAKE_TYPE_CASE
 
@@ -140,7 +144,7 @@ void* RegExpUnparser::VisitDisjunction(RegExpDisjunction* that, void* data) {
     (*that->alternatives())[i]->Accept(this, data);
   }
   OS::PrintErr(")");
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitAlternative(RegExpAlternative* that, void* data) {
@@ -150,7 +154,7 @@ void* RegExpUnparser::VisitAlternative(RegExpAlternative* that, void* data) {
     (*that->nodes())[i]->Accept(this, data);
   }
   OS::PrintErr(")");
-  return NULL;
+  return nullptr;
 }
 
 void RegExpUnparser::VisitCharacterRange(CharacterRange that) {
@@ -170,7 +174,7 @@ void* RegExpUnparser::VisitCharacterClass(RegExpCharacterClass* that,
     VisitCharacterRange((*that->ranges())[i]);
   }
   OS::PrintErr("]");
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitAssertion(RegExpAssertion* that, void* data) {
@@ -194,7 +198,7 @@ void* RegExpUnparser::VisitAssertion(RegExpAssertion* that, void* data) {
       OS::PrintErr("@B");
       break;
   }
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitAtom(RegExpAtom* that, void* data) {
@@ -204,7 +208,7 @@ void* RegExpUnparser::VisitAtom(RegExpAtom* that, void* data) {
     PrintUtf16(chardata->At(i));
   }
   OS::PrintErr("'");
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitText(RegExpText* that, void* data) {
@@ -218,7 +222,7 @@ void* RegExpUnparser::VisitText(RegExpText* that, void* data) {
     }
     OS::PrintErr(")");
   }
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitQuantifier(RegExpQuantifier* that, void* data) {
@@ -231,14 +235,14 @@ void* RegExpUnparser::VisitQuantifier(RegExpQuantifier* that, void* data) {
   OS::PrintErr(that->is_greedy() ? "g " : that->is_possessive() ? "p " : "n ");
   that->body()->Accept(this, data);
   OS::PrintErr(")");
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitCapture(RegExpCapture* that, void* data) {
   OS::PrintErr("(^ ");
   that->body()->Accept(this, data);
   OS::PrintErr(")");
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitLookaround(RegExpLookaround* that, void* data) {
@@ -248,22 +252,22 @@ void* RegExpUnparser::VisitLookaround(RegExpLookaround* that, void* data) {
                (that->is_positive() ? "+ " : "- "));
   that->body()->Accept(this, data);
   OS::PrintErr(")");
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitBackReference(RegExpBackReference* that, void*) {
   OS::PrintErr("(<- %" Pd ")", that->index());
-  return NULL;
+  return nullptr;
 }
 
 void* RegExpUnparser::VisitEmpty(RegExpEmpty*, void*) {
   OS::PrintErr("%%");
-  return NULL;
+  return nullptr;
 }
 
 void RegExpTree::Print() {
   RegExpUnparser unparser;
-  Accept(&unparser, NULL);
+  Accept(&unparser, nullptr);
 }
 
 RegExpDisjunction::RegExpDisjunction(

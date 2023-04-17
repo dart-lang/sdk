@@ -23,17 +23,17 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   LocalVariable* var_c = new LocalVariable(
       TokenPosition::kNoSource, TokenPosition::kNoSource, c, dynamic_type);
 
-  LocalScope* outer_scope = new LocalScope(NULL, 0, 0);
+  LocalScope* outer_scope = new LocalScope(nullptr, 0, 0);
   LocalScope* inner_scope1 = new LocalScope(outer_scope, 0, 0);
   LocalScope* inner_scope2 = new LocalScope(outer_scope, 0, 0);
 
-  EXPECT(outer_scope->parent() == NULL);
+  EXPECT(outer_scope->parent() == nullptr);
   EXPECT_EQ(outer_scope, inner_scope1->parent());
   EXPECT_EQ(outer_scope, inner_scope2->parent());
   EXPECT_EQ(inner_scope2, outer_scope->child());
   EXPECT_EQ(inner_scope1, inner_scope2->sibling());
-  EXPECT(inner_scope1->child() == NULL);
-  EXPECT(inner_scope2->child() == NULL);
+  EXPECT(inner_scope1->child() == nullptr);
+  EXPECT(inner_scope2->child() == nullptr);
 
   // Populate the local scopes as follows:
   // {  // outer_scope
@@ -56,9 +56,9 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   EXPECT_EQ(var_a, inner_scope1->LookupVariable(
                        a, LocalVariable::kNoKernelOffset, true));
   EXPECT(outer_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
   EXPECT(inner_scope1->LocalLookupVariable(c, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
 
   // Modify the local scopes to contain shadowing:
   // {  // outer_scope
@@ -91,7 +91,7 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   //   }
   // }
   EXPECT(inner_scope2->LocalLookupVariable(a, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
   EXPECT(inner_scope2->AddVariable(var_a));
   EXPECT_EQ(var_a, inner_scope2->LocalLookupVariable(
                        a, LocalVariable::kNoKernelOffset));

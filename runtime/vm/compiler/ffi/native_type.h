@@ -443,7 +443,7 @@ class NativeFunctionType : public ZoneAllocated {
   const char* ToCString() const;
 #endif
 
-  static const intptr_t kNoVariadicArguments = INTPTR_MAX;
+  static constexpr intptr_t kNoVariadicArguments = INTPTR_MAX;
 
  private:
   const NativeTypes& argument_types_;

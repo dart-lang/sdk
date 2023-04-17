@@ -72,9 +72,9 @@ Object f(int x) {
 ''', [
       error(WarningCode.DEAD_CODE, 50, 4),
       error(WarningCode.DEAD_CODE, 65, 10),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 71, 2),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 71, 2),
       error(WarningCode.DEAD_CODE, 81, 6),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 83, 2),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 83, 2),
     ]);
   }
 
@@ -104,7 +104,7 @@ void f(int x) {
 ''', [
       error(WarningCode.DEAD_CODE, 46, 4),
       error(WarningCode.DEAD_CODE, 56, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 56, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 56, 4),
       error(WarningCode.DEAD_CODE, 68, 7),
     ]);
   }
@@ -122,9 +122,9 @@ void f(int x) {
 ''', [
       error(WarningCode.DEAD_CODE, 46, 5),
       error(WarningCode.DEAD_CODE, 57, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 57, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 57, 4),
       error(WarningCode.DEAD_CODE, 78, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 78, 4),
     ]);
   }
 

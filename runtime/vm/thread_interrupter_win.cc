@@ -68,7 +68,7 @@ class ThreadInterrupterWin : public AllStatic {
     HANDLE handle = OpenThread(
         THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION | THREAD_SUSPEND_RESUME,
         false, os_thread->id());
-    ASSERT(handle != NULL);
+    ASSERT(handle != nullptr);
     DWORD result = SuspendThread(handle);
     if (result == kThreadError) {
       if (FLAG_trace_thread_interrupter) {
@@ -93,7 +93,7 @@ class ThreadInterrupterWin : public AllStatic {
     // with an isolate. It is safe to call 'os_thread->thread()'
     // here as the thread which is being queried is suspended.
     Thread* thread = static_cast<Thread*>(os_thread->thread());
-    if (thread != NULL) {
+    if (thread != nullptr) {
       ThreadInterruptScope signal_handler_scope;
       Profiler::SampleThread(thread, its);
     }

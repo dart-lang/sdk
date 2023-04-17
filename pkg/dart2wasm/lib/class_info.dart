@@ -452,6 +452,11 @@ class ClassInfoCollector {
     // parameters.
     _initialize(translator.typeClass);
 
+    // Initialize value classes to make sure they have low class IDs.
+    for (Class cls in translator.valueClasses.keys) {
+      _initialize(cls);
+    }
+
     // Initialize masquerade classes to make sure they have low class IDs.
     for (Class cls in _masquerades.values) {
       _initialize(cls);

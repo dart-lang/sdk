@@ -180,7 +180,7 @@ class JSONStream : ValueObject {
 
   void PostNullReply(Dart_Port port);
 
-  void OpenObject(const char* property_name = NULL) {
+  void OpenObject(const char* property_name = nullptr) {
     if (ignore_object_depth_ > 0 ||
         (property_name != nullptr && !IsAllowableKey(property_name))) {
       ignore_object_depth_++;
@@ -201,7 +201,7 @@ class JSONStream : ValueObject {
     writer_.UncloseObject();
   }
 
-  void OpenArray(const char* property_name = NULL) {
+  void OpenArray(const char* property_name = nullptr) {
     if (ignore_object_depth_ > 0 ||
         (property_name != nullptr && !IsAllowableKey(property_name))) {
       ignore_object_depth_++;

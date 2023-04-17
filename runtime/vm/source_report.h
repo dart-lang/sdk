@@ -105,7 +105,7 @@ class SourceReport {
   void VisitClosures(JSONArray* jsarr);
   // An entry in the script table.
   struct ScriptTableEntry {
-    ScriptTableEntry() : key(NULL), index(-1), script(NULL) {}
+    ScriptTableEntry() : key(nullptr), index(-1), script(nullptr) {}
 
     const String* key;
     intptr_t index;

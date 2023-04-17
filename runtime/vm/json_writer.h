@@ -33,11 +33,11 @@ class JSONWriter : ValueObject {
   void AppendSerializedObject(const char* property_name,
                               const char* serialized_object);
 
-  void OpenObject(const char* property_name = NULL);
+  void OpenObject(const char* property_name = nullptr);
   void CloseObject();
   void UncloseObject();
 
-  void OpenArray(const char* property_name = NULL);
+  void OpenArray(const char* property_name = nullptr);
   void CloseArray();
 
   void Clear();

@@ -20,7 +20,7 @@ DECLARE_FLAG(int, code_heap_size);
 DECLARE_FLAG(int, old_gen_growth_space_ratio);
 
 namespace bin {
-// Snapshot pieces if we link in a snapshot, otherwise initialized to NULL.
+// Snapshot pieces if we link in a snapshot, otherwise initialized to nullptr.
 extern const uint8_t* vm_snapshot_data;
 extern const uint8_t* vm_snapshot_instructions;
 extern const uint8_t* core_isolate_snapshot_data;
@@ -60,9 +60,9 @@ class Benchmark {
         name_(name),
         score_kind_(score_kind),
         score_(0),
-        isolate_(NULL),
-        next_(NULL) {
-    if (first_ == NULL) {
+        isolate_(nullptr),
+        next_(nullptr) {
+    if (first_ == nullptr) {
       first_ = this;
     } else {
       tail_->next_ = this;
@@ -86,7 +86,7 @@ class Benchmark {
 
   void CreateIsolate() {
     isolate_ = TestCase::CreateTestIsolate();
-    EXPECT(isolate_ != NULL);
+    EXPECT(isolate_ != nullptr);
   }
 
  private:
@@ -114,7 +114,7 @@ class BenchmarkIsolateScope {
     Dart_ExitScope();  // Exit the Dart API scope created for unit tests.
     ASSERT(benchmark_->isolate() == Isolate::Current());
     Dart_ShutdownIsolate();
-    benchmark_ = NULL;
+    benchmark_ = nullptr;
   }
   Benchmark* benchmark() const { return benchmark_; }
 

@@ -167,7 +167,7 @@ class ReturnPattern : public ValueObject {
   explicit ReturnPattern(uword pc);
 
   // ret = 1 compressed instruction
-  static const intptr_t kLengthInBytes = 2;
+  static constexpr intptr_t kLengthInBytes = 2;
 
   int pattern_length_in_bytes() const { return kLengthInBytes; }
 

@@ -83,7 +83,7 @@ class NamespaceImpl {
 };
 
 Namespace* Namespace::Create(intptr_t namespc) {
-  NamespaceImpl* namespc_impl = NULL;
+  NamespaceImpl* namespc_impl = nullptr;
   if (namespc != kNone) {
     namespc_impl = new NamespaceImpl(namespc);
   }
@@ -105,8 +105,8 @@ intptr_t Namespace::Default() {
 const char* Namespace::GetCurrent(Namespace* namespc) {
   if (Namespace::IsDefault(namespc)) {
     char buffer[PATH_MAX];
-    if (getcwd(buffer, PATH_MAX) == NULL) {
-      return NULL;
+    if (getcwd(buffer, PATH_MAX) == nullptr) {
+      return nullptr;
     }
     return DartUtils::ScopedCopyCString(buffer);
   }
@@ -125,8 +125,8 @@ void Namespace::ResolvePath(Namespace* namespc,
                             const char* path,
                             intptr_t* dirfd,
                             const char** resolved_path) {
-  ASSERT(dirfd != NULL);
-  ASSERT(resolved_path != NULL);
+  ASSERT(dirfd != nullptr);
+  ASSERT(resolved_path != nullptr);
   if (Namespace::IsDefault(namespc)) {
     *dirfd = AT_FDCWD;
     *resolved_path = path;

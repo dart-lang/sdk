@@ -137,38 +137,23 @@ protocol.Notification createExistingImportsNotification(
 /// includedDeclarationKinds and then just map that list to ElementKinds once in
 /// domain_completion for the original protocol?
 protocol.ElementKind protocolElementKind(DeclarationKind kind) {
-  switch (kind) {
-    case DeclarationKind.CLASS:
-      return protocol.ElementKind.CLASS;
-    case DeclarationKind.CLASS_TYPE_ALIAS:
-      return protocol.ElementKind.CLASS_TYPE_ALIAS;
-    case DeclarationKind.CONSTRUCTOR:
-      return protocol.ElementKind.CONSTRUCTOR;
-    case DeclarationKind.ENUM:
-      return protocol.ElementKind.ENUM;
-    case DeclarationKind.ENUM_CONSTANT:
-      return protocol.ElementKind.ENUM_CONSTANT;
-    case DeclarationKind.EXTENSION:
-      return protocol.ElementKind.EXTENSION;
-    case DeclarationKind.FIELD:
-      return protocol.ElementKind.FIELD;
-    case DeclarationKind.FUNCTION:
-      return protocol.ElementKind.FUNCTION;
-    case DeclarationKind.FUNCTION_TYPE_ALIAS:
-      return protocol.ElementKind.TYPE_ALIAS;
-    case DeclarationKind.GETTER:
-      return protocol.ElementKind.GETTER;
-    case DeclarationKind.METHOD:
-      return protocol.ElementKind.METHOD;
-    case DeclarationKind.MIXIN:
-      return protocol.ElementKind.MIXIN;
-    case DeclarationKind.SETTER:
-      return protocol.ElementKind.SETTER;
-    case DeclarationKind.TYPE_ALIAS:
-      return protocol.ElementKind.TYPE_ALIAS;
-    case DeclarationKind.VARIABLE:
-      return protocol.ElementKind.TOP_LEVEL_VARIABLE;
-  }
+  return switch (kind) {
+    DeclarationKind.CLASS => protocol.ElementKind.CLASS,
+    DeclarationKind.CLASS_TYPE_ALIAS => protocol.ElementKind.CLASS_TYPE_ALIAS,
+    DeclarationKind.CONSTRUCTOR => protocol.ElementKind.CONSTRUCTOR,
+    DeclarationKind.ENUM => protocol.ElementKind.ENUM,
+    DeclarationKind.ENUM_CONSTANT => protocol.ElementKind.ENUM_CONSTANT,
+    DeclarationKind.EXTENSION => protocol.ElementKind.EXTENSION,
+    DeclarationKind.FIELD => protocol.ElementKind.FIELD,
+    DeclarationKind.FUNCTION => protocol.ElementKind.FUNCTION,
+    DeclarationKind.FUNCTION_TYPE_ALIAS => protocol.ElementKind.TYPE_ALIAS,
+    DeclarationKind.GETTER => protocol.ElementKind.GETTER,
+    DeclarationKind.METHOD => protocol.ElementKind.METHOD,
+    DeclarationKind.MIXIN => protocol.ElementKind.MIXIN,
+    DeclarationKind.SETTER => protocol.ElementKind.SETTER,
+    DeclarationKind.TYPE_ALIAS => protocol.ElementKind.TYPE_ALIAS,
+    DeclarationKind.VARIABLE => protocol.ElementKind.TOP_LEVEL_VARIABLE
+  };
 }
 
 /// Computes the best URI to import [what] into the [unit] library.

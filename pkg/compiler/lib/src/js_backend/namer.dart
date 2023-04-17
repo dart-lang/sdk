@@ -20,6 +20,7 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/indexed.dart' show IndexedLibrary;
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -238,11 +239,6 @@ class Namer extends ModularNamer {
   /// Maps private names to a library that may use that name without prefixing
   /// itself. Used for building proposed names.
   final Map<String, LibraryEntity> shortPrivateNameOwners = {};
-
-  /// Used to store unique keys for library names. Keys are not used as names,
-  /// nor are they visible in the output. The only serve as an internal
-  /// key into maps.
-  final Map<LibraryEntity, String> _libraryKeys = {};
 
   late final _TypeConstantRepresentationVisitor _typeConstantRepresenter =
       _TypeConstantRepresentationVisitor(this);
@@ -617,16 +613,8 @@ class Namer extends ModularNamer {
   /// Generates a unique key for [library].
   ///
   /// Keys are meant to be used in maps and should not be visible in the output.
-  String _generateLibraryKey(LibraryEntity library) {
-    return _libraryKeys.putIfAbsent(library, () {
-      String keyBase = library.name!;
-      int counter = 0;
-      String key = keyBase;
-      while (_libraryKeys.values.contains(key)) {
-        key = "$keyBase${counter++}";
-      }
-      return key;
-    });
+  int _generateLibraryKey(LibraryEntity library) {
+    return (library as IndexedLibrary).libraryIndex;
   }
 
   jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
@@ -675,7 +663,8 @@ class Namer extends ModularNamer {
     // Build a string encoding the library name, if the name is private.
     String libraryKey = originalName.isPrivate
         ? _generateLibraryKey(_elementEnvironment
-            .lookupLibrary(originalName.uri!, required: true)!)
+                .lookupLibrary(originalName.uri!, required: true)!)
+            .toString()
         : '';
 
     // In the unique key, separate the name parts by '@'.

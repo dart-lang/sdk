@@ -928,6 +928,27 @@ ConstructorDeclaration
 ''');
   }
 
+  void test_enum_base() {
+    var parseResult = parseStringWithErrors(r'''
+base enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.BASE_ENUM, 0, 4),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
+''');
+  }
+
   void test_enum_constant_name_dot() {
     var parseResult = parseStringWithErrors(r'''
 enum E {
@@ -1099,6 +1120,69 @@ EnumConstantDeclaration
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
       rightParenthesis: ) <synthetic>
+''');
+  }
+
+  void test_enum_final() {
+    var parseResult = parseStringWithErrors(r'''
+final enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.FINAL_ENUM, 0, 5),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
+''');
+  }
+
+  void test_enum_interface() {
+    var parseResult = parseStringWithErrors(r'''
+interface enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INTERFACE_ENUM, 0, 9),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
+''');
+  }
+
+  void test_enum_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+sealed enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.SEALED_ENUM, 0, 6),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
 ''');
   }
 

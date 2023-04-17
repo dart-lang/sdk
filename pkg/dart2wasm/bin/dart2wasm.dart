@@ -64,6 +64,8 @@ final List<Option> options = [
   StringOption("multi-root-scheme", (o, value) => o.multiRootScheme = value),
   UriMultiOption("multi-root", (o, values) => o.multiRoots = values),
   StringOption("depfile", (o, value) => o.depFile = value),
+  StringOption(
+      "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
@@ -135,7 +137,10 @@ Future<int> main(List<String> args) async {
   }
 
   await File(options.outputFile).writeAsBytes(output.wasmModule);
-  await File(options.outputJSRuntimeFile).writeAsString(output.jsRuntime);
+
+  final String outputJSRuntimeFile = options.outputJSRuntimeFile ??
+      '${options.outputFile.substring(0, options.outputFile.lastIndexOf('.'))}.mjs';
+  await File(outputJSRuntimeFile).writeAsString(output.jsRuntime);
 
   return 0;
 }

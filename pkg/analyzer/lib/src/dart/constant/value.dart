@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The implementation of the class [DartObject].
+library;
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';

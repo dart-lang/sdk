@@ -57,7 +57,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
     list_events |= IN_MOVE;
   }
   const char* resolved_path = File::GetCanonicalPath(namespc, path);
-  path = resolved_path != NULL ? resolved_path : path;
+  path = resolved_path != nullptr ? resolved_path : path;
   int path_id =
       NO_RETRY_EXPECTED(inotify_add_watch(id, resolved_path, list_events));
   if (path_id < 0) {

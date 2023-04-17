@@ -28,13 +28,13 @@ static struct NativeEntries {
 Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
                                           int argument_count,
                                           bool* auto_setup_scope) {
-  const char* function_name = NULL;
+  const char* function_name = nullptr;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
-  ASSERT(function_name != NULL);
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(function_name != nullptr);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = true;
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -63,7 +63,7 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t length = 0;
-  uint8_t* chars = NULL;
+  uint8_t* chars = nullptr;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
   if (Dart_IsError(result)) {

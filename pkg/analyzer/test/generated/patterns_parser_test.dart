@@ -2199,7 +2199,7 @@ ConstantPattern
       rightBracket: >
     leftBracket: {
     elements
-      SetOrMapLiteral
+      MapLiteralEntry
         key: IntegerLiteral
           literal: 1
         separator: :
@@ -2237,7 +2237,7 @@ CastPattern
         rightBracket: >
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 1
           separator: :
@@ -2278,7 +2278,7 @@ CaseClause
           rightBracket: >
         leftBracket: {
         elements
-          SetOrMapLiteral
+          MapLiteralEntry
             key: IntegerLiteral
               literal: 1
             separator: :
@@ -2316,7 +2316,7 @@ NullAssertPattern
         rightBracket: >
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 1
           separator: :
@@ -2355,7 +2355,7 @@ NullCheckPattern
         rightBracket: >
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 1
           separator: :
@@ -2383,7 +2383,7 @@ ConstantPattern
   expression: SetOrMapLiteral
     leftBracket: {
     elements
-      SetOrMapLiteral
+      MapLiteralEntry
         key: IntegerLiteral
           literal: 1
         separator: :
@@ -2411,7 +2411,7 @@ CastPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 1
           separator: :
@@ -2442,7 +2442,7 @@ CaseClause
       expression: SetOrMapLiteral
         leftBracket: {
         elements
-          SetOrMapLiteral
+          MapLiteralEntry
             key: IntegerLiteral
               literal: 1
             separator: :
@@ -2470,7 +2470,7 @@ NullAssertPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 1
           separator: :
@@ -2499,7 +2499,7 @@ NullCheckPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 1
           separator: :

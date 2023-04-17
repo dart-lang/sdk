@@ -40,6 +40,8 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_switch_expression.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_switch_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/destructure_local_variable_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
@@ -70,6 +72,7 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/dart/split_variable_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
+import 'package:analysis_server/src/services/correction/dart/unwrap_if_body.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -122,6 +125,8 @@ class AssistProcessor extends BaseProcessor {
     ConvertToSingleQuotes.new,
     ConvertToSuperParameters.new,
     ConvertToSwitchExpression.new,
+    ConvertToSwitchStatement.new,
+    DestructureLocalVariableAssignment.new,
     EncapsulateField.new,
     ExchangeOperands.new,
     FlutterConvertToChildren.new,
@@ -150,6 +155,7 @@ class AssistProcessor extends BaseProcessor {
     SortChildPropertyLast.new,
     SplitAndCondition.new,
     SplitVariableDeclaration.new,
+    UnwrapIfBody.new,
     UseCurlyBraces.new,
   ];
 

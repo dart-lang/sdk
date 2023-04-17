@@ -800,7 +800,8 @@ mixin TypeAnalyzer<
     flow.promoteForPattern(
         matchedType: matchedType,
         knownType: requiredType,
-        matchMayFailEvenIfCorrectType: true);
+        matchMayFailEvenIfCorrectType:
+            !(elements.length == 1 && isRestPatternElement(elements[0])));
     // Stack: ()
     Node? previousRestPattern;
     Map<int, Error>? duplicateRestPatternErrors;

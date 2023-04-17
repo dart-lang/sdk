@@ -119,7 +119,7 @@ abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 mixin DirectoryAddOnsMixin implements Directory {}
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 96, 15),
+      error(WarningCode.UNUSED_ELEMENT, 96, 15),
     ]);
     var mixins =
         result.unit.declaredElement!.getClass('_LocalDirectory')!.mixins;

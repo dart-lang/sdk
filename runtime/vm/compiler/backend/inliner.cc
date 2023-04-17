@@ -708,7 +708,7 @@ static bool IsSmallLeafOrReduction(int inlining_depth,
         // never very large).
         if (always_inline || function.IsRecognized()) {
           if (!always_inline) {
-            static constexpr intptr_t kAvgListedMethodSize = 20;
+            const intptr_t kAvgListedMethodSize = 20;
             instruction_count +=
                 (inl_size == 0 ? kAvgListedMethodSize : inl_size);
           }

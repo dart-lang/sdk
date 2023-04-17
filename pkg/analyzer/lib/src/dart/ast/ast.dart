@@ -1748,6 +1748,10 @@ class CatchClauseParameterImpl extends AstNodeImpl
   Token get endToken => name;
 
   @override
+  ChildEntities get _childEntities =>
+      super._childEntities..addToken('name', name);
+
+  @override
   E? accept<E>(AstVisitor<E> visitor) {
     return visitor.visitCatchClauseParameter(this);
   }
@@ -3634,7 +3638,7 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  Token get beginToken => type?.beginToken ?? name;
+  Token get beginToken => keyword ?? type?.beginToken ?? name;
 
   @override
   Token get endToken => name;
@@ -5119,6 +5123,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('period', period)
     ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters);
 
   @override
@@ -14136,6 +14141,10 @@ abstract class VariablePatternImpl extends DartPatternImpl
     implements VariablePattern {
   @override
   final Token name;
+
+  /// If this variable was used to resolve an implicitly named field, the
+  /// implicit name node is recorded here for a future use.
+  PatternFieldNameImpl? fieldNameWithImplicitName;
 
   VariablePatternImpl({
     required this.name,

@@ -27,7 +27,7 @@ class MaybeOnStackBuffer {
   char* p() { return p_; }
 
  private:
-  static const intptr_t kOnStackBufferCapacity = 4096;
+  static constexpr intptr_t kOnStackBufferCapacity = 4096;
   char* p_;
   char buffer_[kOnStackBufferCapacity];
 };
@@ -60,7 +60,7 @@ void JSONWriter::Clear() {
 void JSONWriter::OpenObject(const char* property_name) {
   PrintCommaIfNeeded();
   open_objects_++;
-  if (property_name != NULL) {
+  if (property_name != nullptr) {
     PrintPropertyName(property_name);
   }
   buffer_.AddChar('{');
@@ -82,7 +82,7 @@ void JSONWriter::CloseObject() {
 
 void JSONWriter::OpenArray(const char* property_name) {
   PrintCommaIfNeeded();
-  if (property_name != NULL) {
+  if (property_name != nullptr) {
     PrintPropertyName(property_name);
   }
   open_objects_++;
@@ -195,7 +195,7 @@ void JSONWriter::VPrintfValue(const char* format, va_list args) {
 
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   MaybeOnStackBuffer mosb(len + 1);
@@ -271,7 +271,7 @@ void JSONWriter::VPrintfProperty(const char* name,
 
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   MaybeOnStackBuffer mosb(len + 1);
@@ -289,14 +289,14 @@ void JSONWriter::VPrintfProperty(const char* name,
 }
 
 void JSONWriter::Steal(char** buffer, intptr_t* buffer_length) {
-  ASSERT(buffer != NULL);
-  ASSERT(buffer_length != NULL);
+  ASSERT(buffer != nullptr);
+  ASSERT(buffer_length != nullptr);
   *buffer_length = buffer_.length();
   *buffer = buffer_.Steal();
 }
 
 void JSONWriter::PrintPropertyName(const char* name) {
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
   AddEscapedUTF8String(name);
@@ -337,7 +337,7 @@ void JSONWriter::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
 }
 
 void JSONWriter::AddEscapedUTF8String(const char* s) {
-  if (s == NULL) {
+  if (s == nullptr) {
     return;
   }
   intptr_t len = strlen(s);
@@ -345,7 +345,7 @@ void JSONWriter::AddEscapedUTF8String(const char* s) {
 }
 
 void JSONWriter::AddEscapedUTF8String(const char* s, intptr_t len) {
-  if (s == NULL) {
+  if (s == nullptr) {
     return;
   }
   buffer_.AddEscapedUTF8(s, len);

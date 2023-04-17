@@ -11,7 +11,7 @@ import '../js_interop.dart'
     show
         getJSName,
         hasAnonymousAnnotation,
-        hasInternalJSInteropAnnotation,
+        hasJSAnnotationsJSAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
         hasObjectLiteralAnnotation,
@@ -233,8 +233,8 @@ class JsUtilOptimizer extends Transformer {
 
     if (!node.isInlineClassMember &&
         node.enclosingClass == null &&
-        ((hasInternalJSInteropAnnotation(node) ||
-                hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
+        ((hasJSAnnotationsJSAnnotation(node) ||
+                hasJSAnnotationsJSAnnotation(node.enclosingLibrary)) &&
             !_existingJsAnnotationsUsers
                 .contains(node.enclosingLibrary.importUri.toString()))) {
       // Top-level external member. We only lower top-levels if we're using the
@@ -892,24 +892,24 @@ class InlineExtensionIndex {
   }
 
   bool isJSInteropMember(Procedure node) {
-    if (hasInternalJSInteropAnnotation(node) ||
-        hasInternalJSInteropAnnotation(node.enclosingLibrary) ||
+    if (hasJSAnnotationsJSAnnotation(node) ||
+        hasJSAnnotationsJSAnnotation(node.enclosingLibrary) ||
         (node.enclosingClass != null &&
-            hasInternalJSInteropAnnotation(node.enclosingClass!))) {
+            hasJSAnnotationsJSAnnotation(node.enclosingClass!))) {
       return true;
     }
 
     if (node.isExtensionMember) {
       final annotatable = getExtensionAnnotatable(node.reference);
       if (annotatable != null) {
-        return hasInternalJSInteropAnnotation(annotatable);
+        return hasJSAnnotationsJSAnnotation(annotatable);
       }
     }
 
     if (node.isInlineClassMember) {
       final cls = getInlineClass(node.reference);
       if (cls != null) {
-        return hasInternalJSInteropAnnotation(cls);
+        return hasJSAnnotationsJSAnnotation(cls);
       }
     }
 

@@ -22,7 +22,8 @@ class JSONArray;
 // Unordered collection of threads relating to a particular isolate.
 class ThreadRegistry {
  public:
-  ThreadRegistry() : threads_lock_(), active_list_(NULL), free_list_(NULL) {}
+  ThreadRegistry()
+      : threads_lock_(), active_list_(nullptr), free_list_(nullptr) {}
   ~ThreadRegistry();
 
   void VisitObjectPointers(IsolateGroup* isolate_group_of_interest,

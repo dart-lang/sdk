@@ -19,6 +19,7 @@ class ObjectVisitor;
 class ObjectPointerVisitor;
 class FindObjectVisitor;
 class Thread;
+class UnwindingRecords;
 
 // Pages are allocated with kPageSize alignment so that the Page of any object
 // can be computed by masking the object with kPageMask. This does not apply to
@@ -91,6 +92,8 @@ class Page {
   intptr_t used() const { return object_end() - object_start(); }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
+  void RegisterUnwindingRecords();
+  void UnregisterUnwindingRecords();
   void AllocateForwardingPage();
 
   PageType type() const { return type_; }
@@ -163,8 +166,8 @@ class Page {
   }
 
   // 1 card = 128 slots.
-  static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 =
+  static constexpr intptr_t kSlotsPerCardLog2 = 7;
+  static constexpr intptr_t kBytesPerCardLog2 =
       kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
   intptr_t card_table_size() const {
@@ -333,6 +336,7 @@ class Page {
   friend class SemiSpace;
   friend class PageSpace;
   friend class GCCompactor;
+  friend class UnwindingRecords;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Page);

@@ -11,35 +11,35 @@ TEST_CASE(ParseUri_WithScheme_NoQueryNoUser) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042/over/there", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/over/there", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_WithScheme_WithQuery) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042/over/there?name=ferret", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/over/there", uri.path);
   EXPECT_STREQ("name=ferret", uri.query);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_WithScheme_WithFragment) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042/over/there#fragment", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/over/there", uri.path);
-  EXPECT(uri.query == NULL);
+  EXPECT(uri.query == nullptr);
   EXPECT_STREQ("fragment", uri.fragment);
 }
 
@@ -48,7 +48,7 @@ TEST_CASE(ParseUri_WithScheme_WithQueryWithFragment) {
   EXPECT(
       ParseUri("foo://example.com:8042/over/there?name=ferret#fragment", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/over/there", uri.path);
@@ -64,151 +64,151 @@ TEST_CASE(ParseUri_WithScheme_WithUser) {
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/over/there", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_WithScheme_ShortPath) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042/", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_WithScheme_EmptyPath) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_WithScheme_Rootless1) {
   ParsedUri uri;
   EXPECT(ParseUri("foo:here", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("here", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_WithScheme_Rootless2) {
   ParsedUri uri;
   EXPECT(ParseUri("foo:or/here", &uri));
   EXPECT_STREQ("foo", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("or/here", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_AbsPath_WithAuthority) {
   ParsedUri uri;
   EXPECT(ParseUri("//example.com:8042/over/there", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("example.com", uri.host);
   EXPECT_STREQ("8042", uri.port);
   EXPECT_STREQ("/over/there", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_AbsPath_NoAuthority) {
   ParsedUri uri;
   EXPECT(ParseUri("/over/there", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("/over/there", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 // Colons are permitted in path segments, in many cases.
 TEST_CASE(ParseUri_NoScheme_AbsPath_StrayColon) {
   ParsedUri uri;
   EXPECT(ParseUri("/ov:er/there", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("/ov:er/there", uri.path);
-  EXPECT(uri.query == NULL);
+  EXPECT(uri.query == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_Rootless1) {
   ParsedUri uri;
   EXPECT(ParseUri("here", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("here", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_Rootless2) {
   ParsedUri uri;
   EXPECT(ParseUri("or/here", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("or/here", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_Empty) {
   ParsedUri uri;
   EXPECT(ParseUri("", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_QueryOnly) {
   ParsedUri uri;
   EXPECT(ParseUri("?name=ferret", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("", uri.path);
   EXPECT_STREQ("name=ferret", uri.query);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NoScheme_FragmentOnly) {
   ParsedUri uri;
   EXPECT(ParseUri("#fragment", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.scheme == nullptr);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("", uri.path);
-  EXPECT(uri.query == NULL);
+  EXPECT(uri.query == nullptr);
   EXPECT_STREQ("fragment", uri.fragment);
 }
 
@@ -216,12 +216,12 @@ TEST_CASE(ParseUri_LowerCaseScheme) {
   ParsedUri uri;
   EXPECT(ParseUri("ScHeMe:path", &uri));
   EXPECT_STREQ("scheme", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("path", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NormalizeEscapes_PathQueryFragment) {
@@ -229,9 +229,9 @@ TEST_CASE(ParseUri_NormalizeEscapes_PathQueryFragment) {
   EXPECT(ParseUri("scheme:/This%09Is A P%61th?This%09Is A Qu%65ry#A Fr%61gment",
                   &uri));
   EXPECT_STREQ("scheme", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("/This%09Is%20A%20Path", uri.path);
   EXPECT_STREQ("This%09Is%20A%20Query", uri.query);
   EXPECT_STREQ("A%20Fragment", uri.fragment);
@@ -241,12 +241,12 @@ TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapesPreferred) {
   ParsedUri uri;
   EXPECT(ParseUri("scheme:/%1b%1B", &uri));
   EXPECT_STREQ("scheme", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("/%1B%1B", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NormalizeEscapes_Authority) {
@@ -257,32 +257,32 @@ TEST_CASE(ParseUri_NormalizeEscapes_Authority) {
   EXPECT_STREQ("host.com", uri.host);         // Normalized, lower-cased.
   EXPECT_STREQ("80", uri.port);
   EXPECT_STREQ("/", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapeInHost) {
   ParsedUri uri;
   EXPECT(ParseUri("scheme://tEst%1b/", &uri));
   EXPECT_STREQ("scheme", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
+  EXPECT(uri.userinfo == nullptr);
   EXPECT_STREQ("test%1B", uri.host);  // Notice that %1B is upper-cased.
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("/", uri.path);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ParseUri_BrokenEscapeSequence) {
   ParsedUri uri;
   EXPECT(ParseUri("scheme:/%1g", &uri));
   EXPECT_STREQ("scheme", uri.scheme);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
+  EXPECT(uri.userinfo == nullptr);
+  EXPECT(uri.host == nullptr);
+  EXPECT(uri.port == nullptr);
   EXPECT_STREQ("/%1g", uri.path);  // Broken sequence is unchanged.
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
+  EXPECT(uri.query == nullptr);
+  EXPECT(uri.fragment == nullptr);
 }
 
 TEST_CASE(ResolveUri_WithScheme_NoAuthorityNoQuery) {
@@ -481,25 +481,25 @@ TEST_CASE(ResolveUri_DataUri) {
 TEST_CASE(ResolveUri_RelativeBase_NotImplemented) {
   const char* target_uri;
   EXPECT(!ResolveUri("../r1", "b1/b2", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 
   EXPECT(!ResolveUri("..", "b1/b2", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 
   EXPECT(!ResolveUri("../..", "b1/b2", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 
   EXPECT(!ResolveUri("../../..", "b1/b2", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 
   EXPECT(!ResolveUri("../../../r1", "b1/b2", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 
   EXPECT(!ResolveUri("../r1", "../../b1/b2/b3", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 
   EXPECT(!ResolveUri("../../../r1", "../../b1/b2/b3", &target_uri));
-  EXPECT(target_uri == NULL);
+  EXPECT(target_uri == nullptr);
 }
 
 static const char* TestResolve(const char* base_uri, const char* uri) {

@@ -7,6 +7,8 @@
 // "pkg/analysis_server/tool/spec/generate_files".
 
 /// Convenience methods for running integration tests.
+library;
+
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -2738,113 +2740,91 @@ abstract class IntegrationTest {
         outOfTestExpect(params, isServerConnectedParams);
         _onServerConnected
             .add(ServerConnectedParams.fromJson(decoder, 'params', params));
-        break;
       case 'server.error':
         outOfTestExpect(params, isServerErrorParams);
         _onServerError
             .add(ServerErrorParams.fromJson(decoder, 'params', params));
-        break;
       case 'server.log':
         outOfTestExpect(params, isServerLogParams);
         _onServerLog.add(ServerLogParams.fromJson(decoder, 'params', params));
-        break;
       case 'server.status':
         outOfTestExpect(params, isServerStatusParams);
         _onServerStatus
             .add(ServerStatusParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.analyzedFiles':
         outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
         _onAnalysisAnalyzedFiles.add(
             AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.closingLabels':
         outOfTestExpect(params, isAnalysisClosingLabelsParams);
         _onAnalysisClosingLabels.add(
             AnalysisClosingLabelsParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.errors':
         outOfTestExpect(params, isAnalysisErrorsParams);
         _onAnalysisErrors
             .add(AnalysisErrorsParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.flushResults':
         outOfTestExpect(params, isAnalysisFlushResultsParams);
         _onAnalysisFlushResults.add(
             AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.folding':
         outOfTestExpect(params, isAnalysisFoldingParams);
         _onAnalysisFolding
             .add(AnalysisFoldingParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.highlights':
         outOfTestExpect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights
             .add(AnalysisHighlightsParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.implemented':
         outOfTestExpect(params, isAnalysisImplementedParams);
         _onAnalysisImplemented
             .add(AnalysisImplementedParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.invalidate':
         outOfTestExpect(params, isAnalysisInvalidateParams);
         _onAnalysisInvalidate
             .add(AnalysisInvalidateParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.navigation':
         outOfTestExpect(params, isAnalysisNavigationParams);
         _onAnalysisNavigation
             .add(AnalysisNavigationParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.occurrences':
         outOfTestExpect(params, isAnalysisOccurrencesParams);
         _onAnalysisOccurrences
             .add(AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.outline':
         outOfTestExpect(params, isAnalysisOutlineParams);
         _onAnalysisOutline
             .add(AnalysisOutlineParams.fromJson(decoder, 'params', params));
-        break;
       case 'analysis.overrides':
         outOfTestExpect(params, isAnalysisOverridesParams);
         _onAnalysisOverrides
             .add(AnalysisOverridesParams.fromJson(decoder, 'params', params));
-        break;
       case 'completion.results':
         outOfTestExpect(params, isCompletionResultsParams);
         _onCompletionResults
             .add(CompletionResultsParams.fromJson(decoder, 'params', params));
-        break;
       case 'completion.availableSuggestions':
         outOfTestExpect(params, isCompletionAvailableSuggestionsParams);
         _onCompletionAvailableSuggestions.add(
             CompletionAvailableSuggestionsParams.fromJson(
                 decoder, 'params', params));
-        break;
       case 'completion.existingImports':
         outOfTestExpect(params, isCompletionExistingImportsParams);
         _onCompletionExistingImports.add(
             CompletionExistingImportsParams.fromJson(
                 decoder, 'params', params));
-        break;
       case 'search.results':
         outOfTestExpect(params, isSearchResultsParams);
         _onSearchResults
             .add(SearchResultsParams.fromJson(decoder, 'params', params));
-        break;
       case 'execution.launchData':
         outOfTestExpect(params, isExecutionLaunchDataParams);
         _onExecutionLaunchData
             .add(ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
-        break;
       case 'flutter.outline':
         outOfTestExpect(params, isFlutterOutlineParams);
         _onFlutterOutline
             .add(FlutterOutlineParams.fromJson(decoder, 'params', params));
-        break;
       default:
         fail('Unexpected notification: $event');
     }

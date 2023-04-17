@@ -58,9 +58,9 @@ void HostCPUFeatures::Cleanup() {
 #if defined(DEBUG)
   initialized_ = false;
 #endif
-  ASSERT(hardware_ != NULL);
+  ASSERT(hardware_ != nullptr);
   free(const_cast<char*>(hardware_));
-  hardware_ = NULL;
+  hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
 

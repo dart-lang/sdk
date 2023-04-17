@@ -1778,8 +1778,8 @@ class _VariableBinderErrors
       DiagnosticFactory().duplicateDefinitionForNodes(
         visitor._errorReporter.source,
         CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
-        duplicate.node,
-        original.node,
+        duplicate.node.name,
+        original.node.name,
         [name],
       ),
     );

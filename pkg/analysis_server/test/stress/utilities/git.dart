@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Support for interacting with a git repository.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

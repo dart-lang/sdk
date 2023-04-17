@@ -43,6 +43,9 @@ import 'convert_to_single_quoted_string_test.dart'
 import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_switch_expression_test.dart' as convert_to_switch_expression;
+import 'convert_to_switch_statement_test.dart' as convert_to_switch_statement;
+import 'destructure_local_variable_assignment_test.dart'
+    as destructure_local_variable_assignment;
 import 'encapsulate_field_test.dart' as encapsulate_field;
 import 'exchange_operands_test.dart' as exchange_operands;
 import 'flutter_convert_to_children_test.dart' as flutter_convert_to_children;
@@ -90,6 +93,7 @@ import 'surround_with_if_test.dart' as surround_with_if;
 import 'surround_with_try_catch_test.dart' as surround_with_try_catch;
 import 'surround_with_try_finally_test.dart' as surround_with_try_finally;
 import 'surround_with_while_test.dart' as surround_with_while;
+import 'unwrap_if_body_test.dart' as unwrap_if_body;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 
 void main() {
@@ -128,6 +132,8 @@ void main() {
     convert_to_spread.main();
     convert_to_super_parameters.main();
     convert_to_switch_expression.main();
+    convert_to_switch_statement.main();
+    destructure_local_variable_assignment.main();
     encapsulate_field.main();
     exchange_operands.main();
     flutter_convert_to_children.main();
@@ -171,6 +177,7 @@ void main() {
     surround_with_try_catch.main();
     surround_with_try_finally.main();
     surround_with_while.main();
+    unwrap_if_body.main();
     use_curly_braces.main();
   }, name: 'assist');
 }

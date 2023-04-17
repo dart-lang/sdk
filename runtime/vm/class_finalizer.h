@@ -29,7 +29,7 @@ class ClassFinalizer : public AllStatic {
   static AbstractTypePtr FinalizeType(
       const AbstractType& type,
       FinalizationKind finalization = kCanonicalize,
-      PendingTypes* pending_types = NULL);
+      PendingTypes* pending_types = nullptr);
 
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
@@ -84,14 +84,14 @@ class ClassFinalizer : public AllStatic {
       Zone* zone,
       const TypeArguments& type_args,
       FinalizationKind finalization = kCanonicalize,
-      PendingTypes* pending_types = NULL);
+      PendingTypes* pending_types = nullptr);
 
   // Finalize the types in the signature and the signature itself.
   static AbstractTypePtr FinalizeSignature(
       Zone* zone,
       const FunctionType& signature,
       FinalizationKind finalization = kCanonicalize,
-      PendingTypes* pending_types = NULL);
+      PendingTypes* pending_types = nullptr);
 
   static AbstractTypePtr FinalizeRecordType(
       Zone* zone,
@@ -104,7 +104,7 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const FunctionType& signature,
       FinalizationKind finalization = kCanonicalize,
-      PendingTypes* pending_types = NULL);
+      PendingTypes* pending_types = nullptr);
 
   static intptr_t ExpandAndFinalizeTypeArguments(Zone* zone,
                                                  const AbstractType& type,

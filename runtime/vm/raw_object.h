@@ -174,9 +174,9 @@ class UntaggedObject {
     kHashTagSize = 32,
   };
 
-  static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-  static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
-  static const intptr_t kBarrierOverlapShift = 2;
+  static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
+  static constexpr intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
@@ -1048,7 +1048,7 @@ class UntaggedClass : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
@@ -1122,7 +1122,7 @@ class UntaggedPatchClass : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
   NOT_IN_PRECOMPILED(intptr_t library_kernel_offset_);
@@ -1312,7 +1312,7 @@ class UntaggedFunction : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   // ICData of unoptimized code.
   COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
@@ -1463,7 +1463,7 @@ class UntaggedField : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_TO(dependent_code);
@@ -1536,7 +1536,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1627,7 +1627,7 @@ class UntaggedLibrary : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   // Cache of resolved names in library scope.
   COMPRESSED_POINTER_FIELD(ArrayPtr, resolved_names);
@@ -1679,7 +1679,7 @@ class UntaggedNamespace : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 };
 
@@ -1997,9 +1997,10 @@ class UntaggedPcDescriptors : public UntaggedObject {
     }
 
    private:
-    static const intptr_t kKindShiftSize = 3;
-    static const intptr_t kTryIndexSize = 10;
-    static const intptr_t kYieldIndexSize = 32 - kKindShiftSize - kTryIndexSize;
+    static constexpr intptr_t kKindShiftSize = 3;
+    static constexpr intptr_t kTryIndexSize = 10;
+    static constexpr intptr_t kYieldIndexSize =
+        32 - kKindShiftSize - kTryIndexSize;
 
     class KindShiftBits
         : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};
@@ -2470,7 +2471,7 @@ class UntaggedICData : public UntaggedCallSiteData {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
   // Number of arguments tested in IC, deopt reasons.
@@ -2592,7 +2593,7 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;

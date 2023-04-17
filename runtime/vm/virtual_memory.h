@@ -49,7 +49,7 @@ class VirtualMemory {
   static void DontNeed(void* address, intptr_t size);
 
   // Reserves and commits a virtual memory segment with size. If a segment of
-  // the requested size cannot be allocated, NULL is returned.
+  // the requested size cannot be allocated, nullptr is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
                                  bool is_compressed,
@@ -77,7 +77,7 @@ class VirtualMemory {
   // False for a part of a snapshot added directly to the Dart heap, which
   // belongs to the embedder and must not be deallocated or have its
   // protection status changed by the VM.
-  bool vm_owns_region() const { return reserved_.pointer() != NULL; }
+  bool vm_owns_region() const { return reserved_.pointer() != nullptr; }
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 

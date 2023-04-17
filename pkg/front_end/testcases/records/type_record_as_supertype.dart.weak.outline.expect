@@ -58,8 +58,8 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: 'RR' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
 //                ^
-// sdk/lib/core/record.dart:11:22: Context: This is the type denoted by the type alias.
-// abstract final class Record {}
+// sdk/lib/core/record.dart:82:22: Context: This is the type denoted by the type alias.
+// abstract final class Record {
 //                      ^
 //
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:24: Error: The class 'Record' can't be used as a mixin because it isn't a mixin class nor a mixin.
@@ -119,6 +119,10 @@ abstract final class _C1&Object&Record = core::Object with core::Record /*isAnon
   const synthetic constructor •() → self::_C1&Object&Record
     : super core::Object::•()
     ;
+  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
+  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
+  abstract mixin-stub method toString() → core::String; -> core::Record::toString
 }
 abstract class C1 extends self::_C1&Object&Record {
   synthetic constructor •() → self::C1
@@ -128,6 +132,10 @@ abstract final class _C2&Object&RR = core::Object with core::Record /*isAnonymou
   const synthetic constructor •() → self::_C2&Object&RR
     : super core::Object::•()
     ;
+  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
+  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
+  abstract mixin-stub method toString() → core::String; -> core::Record::toString
 }
 abstract class C2 extends self::_C2&Object&RR {
   synthetic constructor •() → self::C2

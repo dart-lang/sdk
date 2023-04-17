@@ -359,7 +359,7 @@ void ClassFinalizer::FinalizeTypeParameters(Zone* zone,
 void ClassFinalizer::CheckRecursiveType(const AbstractType& type,
                                         PendingTypes* pending_types) {
   ASSERT(!type.IsFunctionType());
-  ASSERT(pending_types != NULL);
+  ASSERT(pending_types != nullptr);
   Zone* zone = Thread::Current()->zone();
   if (FLAG_trace_type_finalization) {
     THR_Print("Checking recursive type '%s': %s\n",
@@ -744,7 +744,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
                                              PendingTypes* pending_types) {
   // Only the 'root' type of the graph can be canonicalized, after all depending
   // types have been bound checked.
-  ASSERT((pending_types == NULL) || (finalization < kCanonicalize));
+  ASSERT((pending_types == nullptr) || (finalization < kCanonicalize));
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested.
     if ((finalization >= kCanonicalize) && !type.IsCanonical() &&
@@ -845,7 +845,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
 
   // This type is the root type of the type graph if no pending types queue is
   // allocated yet. A function type is a collection of types, but not a root.
-  const bool is_root_type = pending_types == NULL;
+  const bool is_root_type = pending_types == nullptr;
   if (is_root_type) {
     pending_types = new PendingTypes(zone, 4);
   }
@@ -1315,7 +1315,7 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   }
   const AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (super_type.IsNull()) {
-    THR_Print("  Super: NULL");
+    THR_Print("  Super: nullptr");
   } else {
     const String& super_name = String::Handle(super_type.Name());
     THR_Print("  Super: %s", super_name.ToCString());
@@ -1499,7 +1499,7 @@ class CidRewriteVisitor : public ObjectVisitor {
     return old_to_new_cids_[cid];
   }
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
       const classid_t old_cid = cls->untag()->id_;
@@ -1621,7 +1621,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
         record_type_(RecordType::Handle(zone)),
         type_args_(TypeArguments::Handle(zone)) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsTypeParameter()) {
       type_param_ ^= obj;
       type_param_.SetHash(0);

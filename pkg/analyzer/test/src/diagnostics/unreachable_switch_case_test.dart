@@ -27,7 +27,7 @@ Object f(bool x) {
   };
 }
 ''', [
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 82, 2),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 82, 2),
     ]);
   }
 
@@ -42,9 +42,9 @@ Object f(bool x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 57, 9),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 62, 2),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 62, 2),
       error(WarningCode.DEAD_CODE, 72, 10),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 78, 2),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 78, 2),
     ]);
   }
 }
@@ -63,7 +63,7 @@ void f(bool x) {
   }
 }
 ''', [
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 67, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 67, 4),
     ]);
   }
 
@@ -80,9 +80,9 @@ void f(int x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 64, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 64, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 64, 4),
       error(WarningCode.DEAD_CODE, 80, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 80, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 80, 4),
       error(WarningCode.DEAD_CODE, 98, 6),
     ]);
   }

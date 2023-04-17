@@ -123,6 +123,138 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_listLiteral() async {
+    await resolveTestCode('''
+class A {
+  List<int> a = [0];
+}
+''');
+    await assertHasFix('''
+class A {
+  List<int> a = <int>[0];
+}
+''');
+  }
+
+  Future<void> test_listPattern_destructured() async {
+    await resolveTestCode('''
+f() {
+  var [a] = <int>[1];
+  print(a);
+}
+''');
+    await assertHasFix('''
+f() {
+  var [int a] = <int>[1];
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_listPattern_destructured_listLiteral() async {
+    await resolveTestCode('''
+f() {
+  var [int a] = [1];
+  print(a);
+}
+''');
+    await assertHasFix('''
+f() {
+  var [int a] = <int>[1];
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_mapPattern_destructured() async {
+    await resolveTestCode('''
+f() {
+  var {'a': a} = <String, int>{'a': 1};
+  print(a);
+}
+''');
+    await assertHasFix('''
+f() {
+  var {'a': int a} = <String, int>{'a': 1};
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_mapPattern_destructured_mapLiteral() async {
+    await resolveTestCode('''
+f() {
+  var {'a': int a} = {'a': 1};
+  print(a);
+}
+''');
+    await assertHasFix('''
+f() {
+  var {'a': int a} = <String, int>{'a': 1};
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_objectPattern_switch_final() async {
+    await resolveTestCode('''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  switch (A(1)) {
+    case A(a: >0 && final b): print(b);
+  }
+ }
+''');
+    await assertHasFix('''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  switch (A(1)) {
+    case A(a: >0 && final int b): print(b);
+  }
+ }
+''');
+  }
+
+  Future<void> test_recordPattern_switch() async {
+    await resolveTestCode('''
+f() {
+  switch ((1, 2)) {
+    case (final a, int b): print(a); print(b);
+  }
+}
+''');
+    await assertHasFix('''
+f() {
+  switch ((1, 2)) {
+    case (final int a, int b): print(a); print(b);
+  }
+}
+''');
+  }
+
+  Future<void> test_recordPattern_switch_var() async {
+    await resolveTestCode('''
+f() {
+  switch ((1, 2)) {
+    case (int a, var b): print(a); print(b);
+  }
+}
+''');
+    await assertHasFix('''
+f() {
+  switch ((1, 2)) {
+    case (int a, int b): print(a); print(b);
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

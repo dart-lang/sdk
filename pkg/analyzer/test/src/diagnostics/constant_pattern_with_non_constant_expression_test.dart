@@ -343,7 +343,7 @@ GuardedPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 0
             staticType: int
@@ -374,7 +374,7 @@ GuardedPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: SimpleIdentifier
             token: a
             staticElement: a@20
@@ -419,7 +419,7 @@ GuardedPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 0
             staticType: int

@@ -514,7 +514,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -523,7 +523,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
   }
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   // Print.
   va_list print_args;
@@ -534,7 +534,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
 }
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
   int32_t base = 10;
   char* endptr;
   int i = 0;

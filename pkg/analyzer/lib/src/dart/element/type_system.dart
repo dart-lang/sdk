@@ -238,6 +238,51 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
+    if (left is RecordType) {
+      if (right is FunctionType) {
+        return false;
+      }
+      if (right is InterfaceType) {
+        return right.isDartCoreObject || right.isDartCoreRecord;
+      }
+    }
+
+    if (right is RecordType) {
+      if (left is FunctionType) {
+        return false;
+      }
+      if (left is InterfaceType) {
+        return left.isDartCoreObject || left.isDartCoreRecord;
+      }
+    }
+
+    if (left is RecordType && right is RecordType) {
+      if (left.positionalFields.length != right.positionalFields.length) {
+        return false;
+      }
+      for (var i = 0; i < left.positionalFields.length; i++) {
+        final leftField = left.positionalFields[i];
+        final rightField = right.positionalFields[i];
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
+          return false;
+        }
+      }
+
+      if (left.namedFields.length != right.namedFields.length) {
+        return false;
+      }
+      for (var i = 0; i < left.namedFields.length; i++) {
+        final leftField = left.namedFields[i];
+        final rightField = right.namedFields[i];
+        if (leftField.name != rightField.name) {
+          return false;
+        }
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 

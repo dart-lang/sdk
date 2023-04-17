@@ -109,7 +109,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.0.0'
+current-version: '3.1.0'
 
 features:
   variance:
@@ -315,6 +315,7 @@ features:
   unnamed-libraries:
     help: "Unnamed libraries"
     enabledIn: '2.19.0'
+    expired: true
     validation: |
       library;
       void main() => print('feature enabled');

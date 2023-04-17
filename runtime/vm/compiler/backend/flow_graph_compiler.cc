@@ -2112,7 +2112,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   EmitTestAndCallLoadReceiver(args_info.count_without_type_args,
                               arguments_descriptor);
 
-  static const int kNoCase = -1;
+  const int kNoCase = -1;
   int smi_case = kNoCase;
   int which_case_to_skip = kNoCase;
 

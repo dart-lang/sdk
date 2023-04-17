@@ -77,15 +77,15 @@ DEFINE_FLAG(int,
             "Compute debugger stacktrace on every N stack overflow checks");
 DEFINE_FLAG(charp,
             stacktrace_filter,
-            NULL,
+            nullptr,
             "Compute stacktrace in named function on stack overflow checks");
 DEFINE_FLAG(charp,
             deoptimize_filter,
-            NULL,
+            nullptr,
             "Deoptimize in named function on stack overflow checks");
 DEFINE_FLAG(charp,
             deoptimize_on_runtime_call_name_filter,
-            NULL,
+            nullptr,
             "Runtime call name filter for --deoptimize-on-runtime-call-every.");
 
 DEFINE_FLAG(bool,
@@ -453,7 +453,7 @@ static TokenPosition GetCallerLocation() {
   DartFrameIterator iterator(Thread::Current(),
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
   return caller_frame->GetTokenPos();
 }
 
@@ -605,7 +605,7 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
   DartFrameIterator iterator(Thread::Current(),
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
 
   LogBlock lb;
   THR_Print("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
@@ -814,7 +814,7 @@ static void PrintTypeCheck(const char* message,
   DartFrameIterator iterator(Thread::Current(),
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
 
   const AbstractType& instance_type =
       AbstractType::Handle(instance.GetType(Heap::kNew));
@@ -1335,7 +1335,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   ASSERT(caller_code.is_optimized());
@@ -1380,7 +1380,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
   Code& orig_stub = Code::Handle(zone);
   orig_stub =
       isolate->group()->debugger()->GetPatchedStubAddress(caller_frame->pc());
@@ -1627,7 +1627,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
+    ASSERT(caller_frame != nullptr);
     OS::PrintErr("StaticCallMissHandler at %#" Px " target %s (%" Pd ")\n",
                  caller_frame->pc(), target.ToCString(), arg.GetClassId());
   }
@@ -1655,7 +1655,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
+    ASSERT(caller_frame != nullptr);
     OS::PrintErr("StaticCallMissHandler at %#" Px " target %s (%" Pd ", %" Pd
                  ")\n",
                  caller_frame->pc(), target.ToCString(), cids[0], cids[1]);
@@ -2677,14 +2677,14 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
         function = Resolver::ResolveDynamicFunction(zone, cls, target_name);
       }
       if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(args_desc, NULL));
+        ASSERT(!function.AreValidArguments(args_desc, nullptr));
         break;  // mismatch, invoke noSuchMethod
       }
       if (is_dynamic_call) {
         function =
             Resolver::ResolveDynamicFunction(zone, cls, demangled_target_name);
         if (!function.IsNull()) {
-          ASSERT(!function.AreValidArguments(args_desc, NULL));
+          ASSERT(!function.AreValidArguments(args_desc, nullptr));
           break;  // mismatch, invoke noSuchMethod
         }
       }
@@ -2927,7 +2927,7 @@ static void HandleOSRRequest(Thread* thread) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
   const Code& code = Code::ZoneHandle(frame->LookupDartCode());
   ASSERT(!code.IsNull());
   ASSERT(!code.is_optimized());
@@ -3009,7 +3009,7 @@ DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
                                 StackFrameIterator::kNoCrossThreadIteration);
       uword fp = stack_pos;
       StackFrame* frame = frames.NextFrame();
-      while (frame != NULL) {
+      while (frame != nullptr) {
         uword delta = (frame->fp() - fp);
         fp = frame->fp();
         OS::PrintErr("%4" Pd " %s\n", delta, frame->ToCString());
@@ -3050,7 +3050,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
   OS::PrintErr(
       "IC call @%#" Px ": ICData: %#" Px " cnt:%" Pd " nchecks: %" Pd " %s\n",
       frame->pc(), static_cast<uword>(ic_data.ptr()), function.usage_counter(),
@@ -3107,10 +3107,10 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
   while (frame->IsStubFrame() || frame->IsExitFrame()) {
     frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
+    ASSERT(frame != nullptr);
   }
   if (frame->IsEntryFrame()) {
     // Since function's current code is always unpatched, the entry frame always
@@ -3175,10 +3175,10 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
   while (frame->IsStubFrame() || frame->IsExitFrame()) {
     frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
+    ASSERT(frame != nullptr);
   }
   if (frame->IsEntryFrame()) {
     // There must be a valid Dart frame.
@@ -3347,8 +3347,8 @@ static void DeoptimizeLastDartFrameIfOptimized() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static const intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
-static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
+static constexpr intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
+static constexpr intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
 
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
@@ -3364,7 +3364,7 @@ static void CopySavedRegisters(uword saved_registers_address,
   ASSERT(sizeof(fpu_register_t) == kFpuRegisterSize);
   fpu_register_t* fpu_registers_copy =
       new fpu_register_t[kNumberOfSavedFpuRegisters];
-  ASSERT(fpu_registers_copy != NULL);
+  ASSERT(fpu_registers_copy != nullptr);
   for (intptr_t i = 0; i < kNumberOfSavedFpuRegisters; i++) {
     fpu_registers_copy[i] =
         *reinterpret_cast<fpu_register_t*>(saved_registers_address);
@@ -3374,7 +3374,7 @@ static void CopySavedRegisters(uword saved_registers_address,
 
   ASSERT(sizeof(intptr_t) == kWordSize);
   intptr_t* cpu_registers_copy = new intptr_t[kNumberOfSavedCpuRegisters];
-  ASSERT(cpu_registers_copy != NULL);
+  ASSERT(cpu_registers_copy != nullptr);
   for (intptr_t i = 0; i < kNumberOfSavedCpuRegisters; i++) {
     cpu_registers_copy[i] =
         *reinterpret_cast<intptr_t*>(saved_registers_address);
@@ -3422,7 +3422,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                              StackFrameIterator::kNoCrossThreadIteration);
 
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(optimized_code.is_optimized());
   const Function& top_function =
@@ -3486,7 +3486,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   DartFrameIterator iterator(last_fp, thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  ASSERT(caller_frame != nullptr);
 
 #if defined(DEBUG)
   {
@@ -3531,7 +3531,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 #endif
   DeoptContext* deopt_context = isolate->deopt_context();
   intptr_t deopt_arg_count = deopt_context->MaterializeDeferredObjects();
-  isolate->set_deopt_context(NULL);
+  isolate->set_deopt_context(nullptr);
   delete deopt_context;
 
   // Return value tells deoptimization stub to remove the given number of bytes
@@ -3607,7 +3607,8 @@ void OnEveryRuntimeEntryCall(Thread* thread,
   if (IsolateGroup::IsSystemIsolateGroup(thread->isolate_group())) {
     return;
   }
-  const bool is_deopt_related = strstr(runtime_call_name, "Deoptimize") != 0;
+  const bool is_deopt_related =
+      strstr(runtime_call_name, "Deoptimize") != nullptr;
   if (is_deopt_related) {
     return;
   }
@@ -3618,7 +3619,7 @@ void OnEveryRuntimeEntryCall(Thread* thread,
         (strlen(runtime_call_name) !=
              strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
          strstr(runtime_call_name,
-                FLAG_deoptimize_on_runtime_call_name_filter) == 0)) {
+                FLAG_deoptimize_on_runtime_call_name_filter) == nullptr)) {
       return;
     }
     const uint32_t count = thread->IncrementAndGetRuntimeCallCount();

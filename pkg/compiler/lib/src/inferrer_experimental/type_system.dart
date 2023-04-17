@@ -321,18 +321,11 @@ class TypeSystem {
     return newType;
   }
 
-  ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {
-    return parameterTypeInformations.putIfAbsent(parameter, () {
-      ParameterTypeInformation typeInformation =
-          strategy.createParameterTypeInformation(
-              _abstractValueDomain, parameter, this);
-      _orderedTypeInformations.add(typeInformation);
-      return typeInformation;
-    });
-  }
-
-  ParameterTypeInformation getInferredTypeOfVirtualParameter(Local parameter) {
-    return virtualParameterTypeInformations.putIfAbsent(parameter, () {
+  ParameterTypeInformation getInferredTypeOfParameter(Local parameter,
+      {bool virtual = false}) {
+    final typeInformations =
+        virtual ? virtualParameterTypeInformations : parameterTypeInformations;
+    return typeInformations.putIfAbsent(parameter, () {
       ParameterTypeInformation typeInformation =
           strategy.createParameterTypeInformation(
               _abstractValueDomain, parameter, this);
@@ -346,13 +339,15 @@ class TypeSystem {
     parameterTypeInformations.forEach(f);
   }
 
-  MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
-    return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
-  }
-
-  MemberTypeInformation getInferredTypeOfVirtualMember(MemberEntity member) {
-    return virtualCallTypeInformations[member] ??=
-        strategy.createMemberTypeInformation(_abstractValueDomain, member);
+  MemberTypeInformation getInferredTypeOfMember(MemberEntity member,
+      {bool virtual = false}) {
+    if (virtual) {
+      return virtualCallTypeInformations[member] ??=
+          strategy.createMemberTypeInformation(_abstractValueDomain, member);
+    } else {
+      return memberTypeInformations[member] ??=
+          _getInferredTypeOfMember(member);
+    }
   }
 
   void forEachMemberType(

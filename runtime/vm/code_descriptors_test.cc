@@ -123,7 +123,7 @@ class A {
 
 ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
   DescriptorList* descriptors = new DescriptorList(thread->zone());
-  ASSERT(descriptors != NULL);
+  ASSERT(descriptors != nullptr);
   const int32_t token_positions[] = {
       kMinInt32,
       5,

@@ -1740,6 +1740,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Replace type annotations with 'var' everywhere in file",
   );
+  static const REPLACE_WITH_WILDCARD = FixKind(
+    'dart.fix.replace.withWildcard',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '_'",
+  );
+  static const REPLACE_WITH_WILDCARD_MULTI = FixKind(
+    'dart.fix.replace.withWildcard.multi',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '_' everywhere in file",
+  );
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
     'dart.fix.sort.childPropertyLast',
     DartFixKindPriority.DEFAULT,

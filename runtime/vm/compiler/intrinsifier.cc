@@ -204,7 +204,7 @@ void Intrinsifier::InitializeState() {
   String& str2 = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-  static const intptr_t kNumLibs = 4;
+  const intptr_t kNumLibs = 4;
   const LibraryIntrinsicsDesc intrinsics[kNumLibs] = {
       {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
       {Library::Handle(zone, Library::TypedDataLibrary()),

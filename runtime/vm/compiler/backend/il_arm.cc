@@ -1882,8 +1882,8 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register decoder_temp_reg = start_reg;
   const Register flags_temp_reg = end_reg;
 
-  static const intptr_t kSizeMask = 0x03;
-  static const intptr_t kFlagsMask = 0x3C;
+  const intptr_t kSizeMask = 0x03;
+  const intptr_t kFlagsMask = 0x3C;
 
   compiler::Label loop, loop_in;
 

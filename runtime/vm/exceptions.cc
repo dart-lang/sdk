@@ -56,7 +56,7 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   void AddFrame(const Object& code, uword pc_offset) override;
 
  private:
-  static const int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
+  static constexpr int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
 
   const StackTrace& stacktrace_;
   intptr_t cur_index_;
@@ -103,9 +103,9 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
+  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
-  for (; frame != NULL; frame = frames.NextFrame()) {
+  for (; frame != nullptr; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
@@ -130,13 +130,13 @@ class ExceptionHandlerFinder : public StackResource {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = frames.NextFrame();
-    if (frame == NULL) return false;  // No Dart frame.
+    if (frame == nullptr) return false;  // No Dart frame.
     handler_pc_set_ = false;
     needs_stacktrace = false;
     bool is_catch_all = false;
     uword temp_handler_pc = kUwordMax;
     bool is_optimized = false;
-    code_ = NULL;
+    code_ = nullptr;
     catch_entry_moves_cache_ = thread_->isolate()->catch_entry_moves_cache();
 
     while (!frame->IsEntryFrame()) {
@@ -156,7 +156,7 @@ class ExceptionHandlerFinder : public StackResource {
               code_ = &Code::Handle(frame->LookupDartCode());
               CatchEntryMovesRefPtr* cached_catch_entry_moves =
                   catch_entry_moves_cache_->Lookup(pc_);
-              if (cached_catch_entry_moves != NULL) {
+              if (cached_catch_entry_moves != nullptr) {
                 cached_catch_entry_moves_ = *cached_catch_entry_moves;
               }
               if (cached_catch_entry_moves_.IsEmpty()) {
@@ -184,7 +184,7 @@ class ExceptionHandlerFinder : public StackResource {
         }
       }  // if frame->IsDartFrame
       frame = frames.NextFrame();
-      ASSERT(frame != NULL);
+      ASSERT(frame != nullptr);
     }  // while !frame->IsEntryFrame
     ASSERT(frame->IsEntryFrame());
     if (!handler_pc_set_) {
@@ -292,7 +292,7 @@ class ExceptionHandlerFinder : public StackResource {
       StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                                 StackFrameIterator::kNoCrossThreadIteration);
       bool found = false;
-      for (StackFrame* frame = frames.NextFrame(); frame != NULL;
+      for (StackFrame* frame = frames.NextFrame(); frame != nullptr;
            frame = frames.NextFrame()) {
         if (frame->fp() == handler_fp) {
           ASSERT_EQUAL(frame->pc(), static_cast<uword>(pc_));
@@ -319,13 +319,13 @@ class ExceptionHandlerFinder : public StackResource {
   void GetCatchEntryMovesFromDeopt(intptr_t num_vars, StackFrame* frame) {
     Isolate* isolate = thread_->isolate();
     DeoptContext* deopt_context =
-        new DeoptContext(frame, *code_, DeoptContext::kDestIsAllocated, NULL,
-                         NULL, true, false /* deoptimizing_code */);
+        new DeoptContext(frame, *code_, DeoptContext::kDestIsAllocated, nullptr,
+                         nullptr, true, false /* deoptimizing_code */);
     isolate->set_deopt_context(deopt_context);
 
     catch_entry_moves_ = deopt_context->ToCatchEntryMoves(num_vars);
 
-    isolate->set_deopt_context(NULL);
+    isolate->set_deopt_context(nullptr);
     delete deopt_context;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -548,10 +548,10 @@ static void FindErrorHandler(uword* handler_pc,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);
+  ASSERT(frame != nullptr);
   while (!frame->IsEntryFrame()) {
     frame = frames.NextFrame();
-    ASSERT(frame != NULL);
+    ASSERT(frame != nullptr);
   }
   ASSERT(frame->IsEntryFrame());
   *handler_pc = frame->pc();
@@ -844,7 +844,7 @@ static void ThrowExceptionHelper(Thread* thread,
 // runtime entry. The frame iterator points to the callee.
 ScriptPtr Exceptions::GetCallerScript(DartFrameIterator* iterator) {
   StackFrame* caller_frame = iterator->NextFrame();
-  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
+  ASSERT(caller_frame != nullptr && caller_frame->IsDartFrame());
   const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (caller.IsNull()) return Script::null();
@@ -863,7 +863,7 @@ InstancePtr Exceptions::NewInstance(const char* class_name) {
   const String& cls_name =
       String::Handle(zone, Symbols::New(thread, class_name));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  // No ambiguity error expected: passing NULL.
+  // No ambiguity error expected: passing nullptr.
   Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
   ASSERT(!cls.IsNull());
   // There are no parameterized error types, so no need to set type arguments.
@@ -1099,7 +1099,7 @@ void Exceptions::ThrowLateFieldAssignedDuringInitialization(
 
 ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
-  const String* class_name = NULL;
+  const String* class_name = nullptr;
   const String* constructor_name = &Symbols::Dot();
   switch (type) {
     case kNone:

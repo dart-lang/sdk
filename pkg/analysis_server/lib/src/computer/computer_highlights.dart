@@ -1520,7 +1520,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
           computer._addRegion(node.offset + offset, length,
               HighlightRegionType.VALID_STRING_ESCAPE);
         });
-        break;
       case Quote.RawSingle:
       case Quote.RawDouble:
       case Quote.RawMultiLineSingle:

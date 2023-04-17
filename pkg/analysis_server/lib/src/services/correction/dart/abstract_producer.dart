@@ -45,8 +45,9 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
       return true;
     }
     // field initializer cannot reference "this"
-    if (node.thisOrAncestorOfType<FieldDeclaration>() != null) {
-      return true;
+    final fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
+    if (fieldDeclaration != null) {
+      return fieldDeclaration.isStatic || !fieldDeclaration.fields.isLate;
     }
     // static method
     var method = node.thisOrAncestorOfType<MethodDeclaration>();

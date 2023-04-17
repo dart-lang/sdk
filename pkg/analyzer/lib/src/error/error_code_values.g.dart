@@ -11,6 +11,10 @@
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
 
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
@@ -631,6 +635,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+  ParserErrorCode.BASE_ENUM,
   ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
   ParserErrorCode.CATCH_SYNTAX,
@@ -727,6 +732,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
   ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
   ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH,
+  ParserErrorCode.INTERFACE_ENUM,
   ParserErrorCode.INTERFACE_MIXIN,
   ParserErrorCode.INTERFACE_MIXIN_CLASS,
   ParserErrorCode.INVALID_AWAIT_IN_FOR,
@@ -791,6 +797,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH,
   ParserErrorCode.MIXED_PARAMETER_GROUPS,
   ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+  ParserErrorCode.MIXIN_WITH_CLAUSE,
   ParserErrorCode.MODIFIER_OUT_OF_ORDER,
   ParserErrorCode.MULTIPLE_CLAUSES,
   ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES,
@@ -826,6 +833,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
   ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
   ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+  ParserErrorCode.SEALED_ENUM,
   ParserErrorCode.SEALED_MIXIN,
   ParserErrorCode.SEALED_MIXIN_CLASS,
   ParserErrorCode.SETTER_CONSTRUCTOR,

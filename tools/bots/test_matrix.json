@@ -26,6 +26,7 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
+      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dartdevc_2/",
       "tests/ffi_2/",
@@ -219,6 +220,12 @@
       "pkg/",
       "samples/",
       "tools/",
+      "buildtools/linux-x64/clang/bin/llvm-strip",
+      "buildtools/linux-x64/clang/bin/llvm-symbolizer",
+      "buildtools/mac-x64/clang/bin/llvm-strip",
+      "buildtools/mac-x64/clang/bin/llvm-symbolizer",
+      "buildtools/win-x64/clang/bin/llvm-strip.exe",
+      "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
       "third_party/android_tools/sdk/platform-tools/adb",
       "third_party/android_tools/ndk/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-strip",
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
@@ -1176,7 +1183,7 @@
           "shards": 10
         },
         {
-         "name": "vm nnbd tests in weak mode with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
@@ -1230,7 +1237,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         },
         {
           "name": "vm co19 tests",
@@ -1239,7 +1246,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         }
       ]
     },
@@ -1274,7 +1281,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 8
         },
         {
           "name": "vm co19 tests",
@@ -1283,7 +1290,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 12
         }
       ]
     },
@@ -1318,7 +1325,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 8
         }
       ]
     },
@@ -1488,7 +1495,7 @@
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         }
       ]
     },
@@ -1545,7 +1552,7 @@
             "standalone"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         }
       ]
     },
@@ -1586,10 +1593,10 @@
       },
       "steps": [
         {
-          "name": "build dart ia32",
+          "name": "build dart debug ia32",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=all",
+            "--mode=debug",
             "--arch=ia32",
             "--no-clang",
             "--no-goma",
@@ -1597,47 +1604,86 @@
           ]
         },
         {
-          "name": "build dart x64",
+          "name": "build dart debug x64",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=all",
+            "--mode=debug",
             "--arch=x64",
             "--no-clang",
             "--no-goma",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
-          "name": "build dart simarm",
+          "name": "build dart debug arm",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=all",
-            "--arch=simarm",
+            "--mode=debug",
+            "--arch=arm",
+            "--no-clang",
+            "--no-goma",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart debug riscv64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--arch=riscv64",
+            "--no-clang",
+            "--no-goma",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart release ia32",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=ia32",
             "--no-clang",
             "--no-goma",
             "runtime"
           ]
         },
         {
-          "name": "build dart simarm64",
+          "name": "build dart release x64",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=all",
-            "--arch=simarm64",
+            "--mode=release",
+            "--arch=x64",
             "--no-clang",
             "--no-goma",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
-          "name": "build dart simriscv64",
+          "name": "build dart release arm",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=all",
-            "--arch=simriscv64",
+            "--mode=release",
+            "--arch=arm",
             "--no-clang",
             "--no-goma",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart release riscv64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=riscv64",
+            "--no-clang",
+            "--no-goma",
+            "runtime",
+            "runtime_precompiled"
           ]
         }
       ]
@@ -1658,9 +1704,8 @@
             "--arch=arm64",
             "--no-clang",
             "--no-goma",
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -1671,9 +1716,8 @@
             "--arch=arm64",
             "--no-clang",
             "--no-goma",
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -1684,9 +1728,8 @@
             "--arch=arm64",
             "--no-clang",
             "--no-goma",
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -1697,9 +1740,8 @@
             "--arch=x64",
             "--no-clang",
             "--no-goma",
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -1710,9 +1752,8 @@
             "--arch=x64",
             "--no-clang",
             "--no-goma",
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -1723,9 +1764,8 @@
             "--arch=x64",
             "--no-clang",
             "--no-goma",
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         }
       ]
@@ -1853,7 +1893,7 @@
             "-nvm-checked-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
         }
       ]
     },

@@ -83,7 +83,7 @@ class ObjectCounter : public ObjectPointerVisitor {
   explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
       : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; ++current) {
       if (*current == obj_->ptr()) {
         ++count_;
@@ -91,15 +91,17 @@ class ObjectCounter : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* current = first; current <= last; ++current) {
       if (current->Decompress(heap_base) == obj_->ptr()) {
         ++count_;
       }
     }
   }
+#endif
 
   intptr_t count() const { return count_; }
 
@@ -367,7 +369,7 @@ TEST_CASE(ThreadRegistry) {
 // A helper thread that repeatedly reads ICData
 class ICDataTestTask : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
+  static constexpr intptr_t kTaskCount = 1;
 
   ICDataTestTask(Isolate* isolate,
                  const Array& ic_datas,
@@ -445,8 +447,6 @@ static Function* CreateFunction(const char* name) {
   return &function;
 }
 
-const intptr_t ICDataTestTask::kTaskCount = 1;
-
 // Test that checks that other threads only see a fully initialized ICData
 // whenever ICData is updated.
 ISOLATE_UNIT_TEST_CASE(ICDataTest) {
@@ -509,7 +509,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
 // not happen in the first rendezvous, since tasks are still starting up).
 class SafepointTestTask : public ThreadPool::Task {
  public:
-  static const intptr_t kTaskCount;
+  static constexpr intptr_t kTaskCount = 5;
 
   SafepointTestTask(Isolate* isolate,
                     Monitor* monitor,
@@ -590,8 +590,6 @@ class SafepointTestTask : public ThreadPool::Task {
   bool local_done_;           // this task has successfully safepointed >= once.
 };
 
-const intptr_t SafepointTestTask::kTaskCount = 5;
-
 // Test rendezvous of:
 // - helpers in VM code,
 // - main thread in pure Dart,
@@ -628,9 +626,9 @@ TEST_CASE(SafepointTestDart) {
                  "  }\n"
                  "}\n",
                  kLoopCount);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   // Ensure we looped long enough to allow all helpers to succeed and exit.
   {
@@ -693,7 +691,7 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
     OSThreadIterator ti;
     while (ti.HasNext()) {
       OSThread* thread = ti.Next();
-      EXPECT(thread != NULL);
+      EXPECT(thread != nullptr);
       thread_count_0++;
     }
   }
@@ -702,7 +700,7 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
     OSThreadIterator ti;
     while (ti.HasNext()) {
       OSThread* thread = ti.Next();
-      EXPECT(thread != NULL);
+      EXPECT(thread != nullptr);
       thread_count_1++;
     }
   }
@@ -727,7 +725,7 @@ void ThreadIteratorTestMain(uword parameter) {
   ThreadIteratorTestParams* params =
       reinterpret_cast<ThreadIteratorTestParams*>(parameter);
   OSThread* thread = OSThread::Current();
-  EXPECT(thread != NULL);
+  EXPECT(thread != nullptr);
 
   MonitorLocker ml(params->monitor);
   params->spawned_thread_id = thread->id();

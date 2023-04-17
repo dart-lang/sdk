@@ -38,7 +38,7 @@ void ThreadInterruptSignalHandler(int signal, siginfo_t* info, void* context_) {
     return;
   }
   Thread* thread = Thread::Current();
-  if (thread == NULL) {
+  if (thread == nullptr) {
     return;
   }
   ThreadInterruptScope signal_handler_scope;

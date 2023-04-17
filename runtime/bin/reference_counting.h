@@ -98,7 +98,7 @@ template <class Target>
 class RefCntReleaseScope {
  public:
   explicit RefCntReleaseScope(ReferenceCounted<Target>* t) : target_(t) {
-    ASSERT(target_ != NULL);
+    ASSERT(target_ != nullptr);
     ASSERT(target_->ref_count() > 0);
   }
   ~RefCntReleaseScope() { target_->Release(); }
@@ -135,30 +135,30 @@ class RefCntReleaseScope {
 // This Retains foo on entry and Releases foo at every exit from the scope.
 //
 // The underlying pointer can be accessed with the get() and set() methods.
-// Overwriting a non-NULL pointer with set causes that pointer to be Released.
+// Overwriting a non-null pointer with set causes that pointer to be Released.
 template <class Target>
 class RetainedPointer {
  public:
-  RetainedPointer() : target_(NULL) {}
+  RetainedPointer() : target_(nullptr) {}
 
   explicit RetainedPointer(ReferenceCounted<Target>* t) : target_(t) {
-    if (target_ != NULL) {
+    if (target_ != nullptr) {
       target_->Retain();
     }
   }
 
   ~RetainedPointer() {
-    if (target_ != NULL) {
+    if (target_ != nullptr) {
       target_->Release();
     }
   }
 
   void set(ReferenceCounted<Target>* t) {
-    if (target_ != NULL) {
+    if (target_ != nullptr) {
       target_->Release();
     }
     target_ = t;
-    if (target_ != NULL) {
+    if (target_ != nullptr) {
       target_->Retain();
     }
   }

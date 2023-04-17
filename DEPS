@@ -50,7 +50,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "ad6c7258ca40aab2a08f56cb726483b47de896d8",
+  "co19_rev": "c01fbd751c060650b6582523a7751b83777026c3",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "ae846ed2a987a2d2dbe4b9e9c68448a21f91ef5b",
 
@@ -74,7 +74,7 @@ vars = {
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
   "clang_version": "git_revision:fa3cb517e4a569ff075c98bb6d037abf38b88202",
-  "gn_version": "git_revision:41fef642de70ecdcaaa26be96d56a0398f95abd4",
+  "gn_version": "git_revision:ffeea1b1fd070cb6a8d47154a03f8523486b50a7",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   "fuchsia_sdk_version": "version:12.20230314.2.1",
@@ -145,7 +145,7 @@ vars = {
   "http_parser_rev": "bbe37dd228ec59f58a73df4b328ef747757165c7",
   "intl_rev": "a958db01c90d041f0cd357d1732ae9813b620ee0",
   "json_rpc_2_rev": "5da270592006e4d43fd5a6ac736829f955881240",
-  "linter_rev": "c0942721fcc1feeff278f95626cb5d27a654301e", # disable rev_sdk_deps.dart
+  "linter_rev": "eb0ca501f48deaa034e07e6dd1ff9ad6ff3519c6", # disable rev_sdk_deps.dart
   "lints_rev": "f09399a2574eb4e3f485881cf977fca72628f443",
   "logging_rev": "787030a2b3d0d5d53ce57f1c7dc74f27ecb07b0b",
   "markdown_rev": "d437c85188806fe2bfa4f3616159300ba9dc6d2a",
@@ -172,14 +172,14 @@ vars = {
   "test_descriptor_rev": "aa11162f55a93fc6cefc927c5189b5f74decb957",
   "test_process_rev": "946bc27abd9726c4dadb9afae7c56f55df5945ed",
   "test_reflective_loader_rev": "a85a930ad3736f93b96f6cc104d3576c1ae19e0e",
-  "tools_rev": "cd799be6a124b8c8d0490f81a816a6b34d0a0031",
+  "tools_rev": "2308c672e0d7446f5bfdba96594b41f26fa24a2e",
   "typed_data_rev": "d85363d2efb333afce07ec409a529ec32986e1a2",
   "usage_rev": "0698711985b332432ce9a901bbbd3b1ed227b090",
   "vector_math_rev": "7dec98433b3e016fbe49107ad4320b31f519eb70",
   "watcher_rev": "00aa79b0ff5562c9dafb0525891e2e69c51be06d",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_rev": "40eb2360e10595c2eab33cf61439c45708eb8d29",
-  "webdev_rev": "22b34e35ddf5d9580c34c3ae85ba72d2551914e2",
+  "web_socket_channel_rev": "b28bae62886edc090d3317edd197c4c3b121cd3a",
+  "webdev_rev": "75462913fba9756e9ddae33bfd73fe96f5199c34",
   "webdriver_rev": "562aa06353d513586b806ce1c9655dac3971879f",
   "webkit_inspection_protocol_rev": "8401098ace995e4dcd9855a2741c2dacccaa780b",
   "yaml_rev": "56dfaf4fb021ac1c0f1a469e7c8e71ea4f7add2f",

@@ -232,7 +232,7 @@ int RunAnalyzer(int argc, char** argv) {
       vm_snapshot_data, vm_snapshot_instructions, vm_isolate_data,
       vm_isolate_instructions};
 
-  char* out = NULL;
+  char* out = nullptr;
   intptr_t out_len = 0;
 
   Dart_EnterScope();

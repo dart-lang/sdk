@@ -12,7 +12,7 @@
 namespace dart {
 
 static void* Allocate(uword size, Zone* zone) {
-  ASSERT(zone != NULL);
+  ASSERT(zone != nullptr);
   if (size > static_cast<uword>(kIntptrMax)) {
     FATAL("ZoneAllocated object has unexpectedly large size %" Pu "", size);
   }
@@ -28,13 +28,13 @@ void* ZoneAllocated::operator new(uword size, Zone* zone) {
 }
 
 StackResource::~StackResource() {
-  if (thread_ != NULL) {
+  if (thread_ != nullptr) {
     StackResource* top = thread_->top_resource();
     ASSERT(top == this);
     thread_->set_top_resource(previous_);
   }
 #if defined(DEBUG)
-  if (thread_ != NULL) {
+  if (thread_ != nullptr) {
     ASSERT(Thread::Current() == thread_);
   }
 #endif
@@ -45,11 +45,11 @@ void StackResource::Init(ThreadState* thread) {
   // thread and isolate.  If there is no current thread, we don't need to
   // protect this case.
   // TODO(23807): Eliminate this special case.
-  if (thread != NULL) {
+  if (thread != nullptr) {
     ASSERT(Thread::Current() == thread);
     thread_ = thread;
     previous_ = thread_->top_resource();
-    ASSERT((previous_ == NULL) || (previous_->thread_ == thread));
+    ASSERT((previous_ == nullptr) || (previous_->thread_ == thread));
     thread_->set_top_resource(this);
   }
 }

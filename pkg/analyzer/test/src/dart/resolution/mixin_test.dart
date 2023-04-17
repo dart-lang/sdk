@@ -19,16 +19,21 @@ class MixinDeclarationResolutionTest extends PubPackageResolutionTest {
   test_classDeclaration_with() async {
     await assertNoErrorsInCode(r'''
 mixin M {}
-class A extends Object with M {} // A
+class A extends Object with M {}
 ''');
 
-    var mElement = findElement.mixin('M');
-
-    var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, ['M']);
-
-    var mRef = findNode.namedType('M {} // A');
-    assertNamedType(mRef, mElement, 'M');
+    final node = findNode.singleWithClause;
+    assertResolvedNodeText(node, r'''
+WithClause
+  withKeyword: with
+  mixinTypes
+    NamedType
+      name: SimpleIdentifier
+        token: M
+        staticElement: self::@mixin::M
+        staticType: null
+      type: M
+''');
   }
 
   test_classTypeAlias_with() async {
@@ -37,13 +42,18 @@ mixin M {}
 class A = Object with M;
 ''');
 
-    var mElement = findElement.mixin('M');
-
-    var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, ['M']);
-
-    var mRef = findNode.namedType('M;');
-    assertNamedType(mRef, mElement, 'M');
+    final node = findNode.singleWithClause;
+    assertResolvedNodeText(node, r'''
+WithClause
+  withKeyword: with
+  mixinTypes
+    NamedType
+      name: SimpleIdentifier
+        token: M
+        staticElement: self::@mixin::M
+        staticType: null
+      type: M
+''');
   }
 
   test_commentReference() async {
@@ -180,17 +190,27 @@ MethodDeclaration
 class A {}
 class B {}
 
-mixin M implements A, B {} // M
+mixin M implements A, B {}
 ''');
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, ['A', 'B']);
-
-    var aRef = findNode.namedType('A, ');
-    assertNamedType(aRef, findElement.class_('A'), 'A');
-
-    var bRef = findNode.namedType('B {} // M');
-    assertNamedType(bRef, findElement.class_('B'), 'B');
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@class::B
+        staticType: null
+      type: B
+''');
   }
 
   test_invalid_unresolved_before_mixin() async {
@@ -288,8 +308,23 @@ mixin M<T> on C<T> {}
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
-    var fInvocation = findNode.functionExpressionInvocation('f()');
-    assertInvokeType(fInvocation, 'M<int> Function()');
+
+    final node = findNode.functionExpressionInvocation('f()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: f
+    staticElement: self::@function::g::@parameter::f
+    staticType: M<T> Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: M<int> Function()
+  staticType: M<int>
+  typeArgumentTypes
+    int
+''');
   }
 
   test_onClause() async {
@@ -297,17 +332,27 @@ mixin M<T> on C<T> {}
 class A {}
 class B {}
 
-mixin M on A, B {} // M
+mixin M on A, B {}
 ''');
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['A', 'B']);
-
-    var aRef = findNode.namedType('A, ');
-    assertNamedType(aRef, findElement.class_('A'), 'A');
-
-    var bRef = findNode.namedType('B {} // M');
-    assertNamedType(bRef, findElement.class_('B'), 'B');
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@class::B
+        staticType: null
+      type: B
+''');
   }
 
   test_recursiveInterfaceInheritance_implements() async {
@@ -411,10 +456,28 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var invocation = findNode.methodInvocation('foo(42)');
-    assertElement(invocation, findElement.method('foo'));
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
+    final node = findNode.methodInvocation('foo(42)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: self::@class::A::@method::foo::@parameter::x
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_superInvocation_setter() async {

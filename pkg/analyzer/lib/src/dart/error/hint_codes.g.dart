@@ -11,6 +11,10 @@
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
 
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 import "package:analyzer/src/error/codes.g.dart";
@@ -144,6 +148,7 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  @Deprecated("Use 'WarningCode.UNNECESSARY_CAST' instead.")
   static const HintCode UNNECESSARY_CAST = HintCode(
     'UNNECESSARY_CAST',
     "Unnecessary cast.",
@@ -152,6 +157,7 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  @Deprecated("Use 'WarningCode.UNNECESSARY_FINAL' instead.")
   static const HintCode UNNECESSARY_FINAL = HintCode(
     'UNNECESSARY_FINAL',
     "The keyword 'final' isn't necessary because the parameter is implicitly "
@@ -183,6 +189,7 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  @Deprecated("Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.")
   static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
     'UNREACHABLE_SWITCH_CASE',
     "This case is covered by the previous cases.",
@@ -194,6 +201,7 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name that is declared but not referenced
+  @Deprecated("Use 'WarningCode.UNUSED_ELEMENT' instead.")
   static const HintCode UNUSED_ELEMENT = HintCode(
     'UNUSED_ELEMENT',
     "The declaration '{0}' isn't referenced.",
@@ -203,6 +211,7 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the parameter that is declared but not used
+  @Deprecated("Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.")
   static const HintCode UNUSED_ELEMENT_PARAMETER = HintCode(
     'UNUSED_ELEMENT',
     "A value for optional parameter '{0}' isn't ever given.",

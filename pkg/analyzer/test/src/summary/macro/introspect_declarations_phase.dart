@@ -25,7 +25,7 @@ const introspectMacroX = IntrospectDeclarationsPhaseMacro(
   @override
   Future<void> buildDeclarationsForClass(
     IntrospectableClassDeclaration declaration,
-    ClassMemberDeclarationBuilder builder,
+    MemberDeclarationBuilder builder,
   ) async {
     final printer = _DeclarationPrinter(
       withDetailsFor: withDetailsFor.cast(),
@@ -106,8 +106,8 @@ class _DeclarationPrinter {
     });
   }
 
-  void _assertEnclosingClass(ClassMemberDeclaration e) {
-    if (e.definingClass != _enclosingDeclarationIdentifier) {
+  void _assertEnclosingClass(MemberDeclaration e) {
+    if (e.definingType != _enclosingDeclarationIdentifier) {
       throw StateError('Mismatch: definingClass');
     }
   }

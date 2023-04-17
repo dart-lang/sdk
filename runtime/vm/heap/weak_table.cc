@@ -150,8 +150,7 @@ void WeakTable::ReportSurvivingAllocations(
     if (IsValidEntryAtExclusive(i)) {
       ObjectPtr obj = static_cast<ObjectPtr>(data_[ObjectIndex(i)]);
       void* data = reinterpret_cast<void*>(data_[ValueIndex(i)]);
-      callback(context, obj->untag()->HeapSize(),
-               table->UserVisibleNameFor(obj->GetClassId()), data);
+      callback(context, table->UserVisibleNameFor(obj->GetClassId()), data);
     }
   }
 }

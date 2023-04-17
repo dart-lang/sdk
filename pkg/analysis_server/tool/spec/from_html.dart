@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code for reading an HTML API description.
+library;
+
 import 'dart:io';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;
@@ -539,10 +541,8 @@ class ApiReader {
       switch (optionalString) {
         case 'true':
           optional = true;
-          break;
         case 'false':
           optional = false;
-          break;
         default:
           throw Exception(
               '$context: field contains invalid "optional" attribute: "$optionalString"');

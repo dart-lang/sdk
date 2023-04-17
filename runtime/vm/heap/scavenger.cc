@@ -149,9 +149,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   constexpr static const char* const kName = "Scavenger";
 #endif
 
-  virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                          CompressedObjectPtr* first,
-                                          CompressedObjectPtr* last) {
+  void VisitTypedDataViewPointers(TypedDataViewPtr view,
+                                  CompressedObjectPtr* first,
+                                  CompressedObjectPtr* last) override {
     // TypedDataViews require extra processing to update their
     // PointerBase::data_ pointer. If the underlying typed data is external, no
     // update is needed. If the underlying typed data is internal, the pointer
@@ -218,7 +218,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (ObjectPtr* current = first; current <= last; current++) {
@@ -226,15 +226,17 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (CompressedObjectPtr* current = first; current <= last; current++) {
       ScavengeCompressedPointer(heap_base, current);
     }
   }
+#endif
 
   void VisitingOldObject(ObjectPtr obj) {
     ASSERT((obj == nullptr) || obj->IsOldObject());
@@ -584,7 +586,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
  public:
   explicit ScavengerWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     ObjectPtr* p = handle->ptr_addr();
@@ -749,7 +751,7 @@ void SemiSpace::AddList(Page* head, Page* tail) {
 // before / scavenge time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first scavenge, we instead use a value based
 // on the device's actual speed.
-static const intptr_t kConservativeInitialScavengeSpeed = 40;
+static constexpr intptr_t kConservativeInitialScavengeSpeed = 40;
 
 Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
     : heap_(heap),
@@ -820,7 +822,7 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
       : ObjectPointerVisitor(IsolateGroup::Current()),
         in_store_buffer_(in_store_buffer) {}
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
       RELEASE_ASSERT(raw_obj->untag()->IsRemembered());
@@ -836,11 +838,13 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     UNREACHABLE();  // Store buffer blocks are not compressed.
   }
+#endif
 
  private:
   ObjectSet* const in_store_buffer_;
@@ -855,7 +859,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
         in_store_buffer_(in_store_buffer),
         to_(to) {}
 
-  void VisitObject(ObjectPtr raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsPseudoObject()) return;
     RELEASE_ASSERT(raw_obj->IsOldObject());
 
@@ -871,7 +875,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     raw_obj->untag()->VisitPointers(this);
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
@@ -900,9 +904,10 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = ptr->Decompress(heap_base);
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
@@ -930,6 +935,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       }
     }
   }
+#endif
 
  private:
   const ObjectSet* const in_store_buffer_;
@@ -1426,11 +1432,11 @@ void Scavenger::MournWeakTables() {
           auto replacement =
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
-        }
-      } else {
-        // The object has been collected.
-        if (cleanup != nullptr) {
-          cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+        } else {
+          // The object has been collected.
+          if (cleanup != nullptr) {
+            cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
+          }
         }
       }
     }
@@ -1868,7 +1874,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ReverseScavenge");
 
   class ReverseFromForwardingVisitor : public ObjectVisitor {
-    void VisitObject(ObjectPtr from_obj) {
+    void VisitObject(ObjectPtr from_obj) override {
       uword from_header = ReadHeaderRelaxed(from_obj);
       if (IsForwarding(from_header)) {
         ObjectPtr to_obj = ForwardedObj(from_header);
