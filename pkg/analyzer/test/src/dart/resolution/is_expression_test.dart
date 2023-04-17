@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,6 +15,34 @@ main() {
 
 @reflectiveTest
 class IsExpressionResolutionTest extends PubPackageResolutionTest {
+  test_expression_super() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void f() {
+    super is T;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
+    ]);
+
+    final node = findNode.singleIsExpression;
+    assertResolvedNodeText(node, r'''
+IsExpression
+  expression: SuperExpression
+    superKeyword: super
+    staticType: A<T>
+  isOperator: is
+  type: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@8
+      staticType: null
+    type: T
+  staticType: bool
+''');
+  }
+
   test_expression_switchExpression() async {
     await assertNoErrorsInCode('''
 void f(Object? x) {

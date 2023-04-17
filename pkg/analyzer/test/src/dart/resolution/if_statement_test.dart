@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1135,6 +1136,33 @@ IfStatement
           staticElement: <null>
           staticType: dynamic
         semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_expression_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    if (super) {}
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
+    ]);
+
+    final node = findNode.singleIfStatement;
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
     rightBracket: }
 ''');
   }

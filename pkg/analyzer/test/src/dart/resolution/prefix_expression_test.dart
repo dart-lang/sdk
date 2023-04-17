@@ -209,6 +209,33 @@ PrefixExpression
 ''');
   }
 
+  test_plusPlus_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    ++super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
+    ]);
+
+    final node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_plusPlus_switchExpression() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {

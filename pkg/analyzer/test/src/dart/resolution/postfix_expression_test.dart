@@ -181,6 +181,33 @@ PostfixExpression
     assertType(findNode.simple('x; // ref'), 'Object');
   }
 
+  test_inc_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    super++;
+  }
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 32, 2),
+    ]);
+
+    final node = findNode.singlePostfixExpression;
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_inc_switchExpression() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {

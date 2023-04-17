@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,35 @@ main() {
 @reflectiveTest
 class ConditionalExpressionResolutionTest extends PubPackageResolutionTest
     with ConditionalExpressionTestCases {
+  test_condition_super() async {
+    await assertErrorsInCode('''
+class A {
+  void f() {
+    super ? 0 : 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 27, 5),
+    ]);
+
+    final node = findNode.singleConditionalExpression;
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SuperExpression
+    superKeyword: super
+    staticType: A
+  question: ?
+  thenExpression: IntegerLiteral
+    literal: 0
+    staticType: int
+  colon: :
+  elseExpression: IntegerLiteral
+    literal: 1
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_downward_condition() async {
     await resolveTestCode('''
 void f(int b, int c) {
@@ -41,6 +71,36 @@ MethodInvocation
   staticType: bool
   typeArgumentTypes
     bool
+''');
+  }
+
+  test_else_super() async {
+    await assertErrorsInCode('''
+class A {
+  void f(bool c) {
+    c ? 0 : super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 5),
+    ]);
+
+    final node = findNode.singleConditionalExpression;
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: c
+    staticElement: self::@class::A::@method::f::@parameter::c
+    staticType: bool
+  question: ?
+  thenExpression: IntegerLiteral
+    literal: 0
+    staticType: int
+  colon: :
+  elseExpression: SuperExpression
+    superKeyword: super
+    staticType: A
+  staticType: Object
 ''');
   }
 
@@ -131,6 +191,36 @@ ConditionalExpression
     staticElement: self::@function::f::@parameter::r2
     staticType: ({double a})
   staticType: ({num a})
+''');
+  }
+
+  test_then_super() async {
+    await assertErrorsInCode('''
+class A {
+  void f(bool c) {
+    c ? super : 0;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
+    ]);
+
+    final node = findNode.singleConditionalExpression;
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: c
+    staticElement: self::@class::A::@method::f::@parameter::c
+    staticType: bool
+  question: ?
+  thenExpression: SuperExpression
+    superKeyword: super
+    staticType: A
+  colon: :
+  elseExpression: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticType: Object
 ''');
   }
 

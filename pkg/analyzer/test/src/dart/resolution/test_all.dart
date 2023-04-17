@@ -79,6 +79,7 @@ import 'null_assert_pattern_test.dart' as null_assert_pattern;
 import 'null_check_pattern_test.dart' as null_check_pattern;
 import 'object_pattern_test.dart' as object_pattern;
 import 'optional_const_test.dart' as optional_const;
+import 'parenthesized_expression_test.dart' as parenthesized_expression;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
 import 'part_test.dart' as part_;
 import 'pattern_assignment_test.dart' as pattern_assignment;
@@ -108,6 +109,8 @@ import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
+import 'variable_declaration_statement_test.dart'
+    as variable_declaration_statement;
 import 'variance_test.dart' as variance_test;
 import 'while_statement_test.dart' as while_statement;
 import 'wildcard_pattern_test.dart' as wildcard_pattern;
@@ -183,6 +186,7 @@ main() {
     null_check_pattern.main();
     object_pattern.main();
     optional_const.main();
+    parenthesized_expression.main();
     parenthesized_pattern.main();
     part_.main();
     pattern_assignment.main();
@@ -210,6 +214,7 @@ main() {
     type_inference.main();
     type_literal.main();
     type_name.main();
+    variable_declaration_statement.main();
     variance_test.main();
     while_statement.main();
     wildcard_pattern.main();
