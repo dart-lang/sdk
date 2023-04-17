@@ -4918,6 +4918,11 @@ FfiAbiSpecificIntegerMappingInvalid:
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
   external: test/ffi_test.dart
 
+FfiCreateOfStructOrUnion:
+  # Used by dart:ffi
+  problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'."
+  external: test/ffi_test.dart
+
 FfiTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."

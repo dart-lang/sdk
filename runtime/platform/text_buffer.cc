@@ -54,6 +54,7 @@ void BaseTextBuffer::AddChar(char ch) {
 }
 
 void BaseTextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
+  ASSERT(buffer != nullptr);
   if (!EnsureCapacity(buffer_length)) {
     buffer_length = capacity_ - length_ - 1;  // Copy what fits.
   }

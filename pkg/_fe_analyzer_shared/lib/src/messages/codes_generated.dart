@@ -4644,6 +4644,15 @@ Message _withArgumentsFfiCompoundImplementsFinalizable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiCreateOfStructOrUnion = messageFfiCreateOfStructOrUnion;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
+    "FfiCreateOfStructOrUnion",
+    problemMessage:
+        r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

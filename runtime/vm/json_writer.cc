@@ -35,14 +35,43 @@ class MaybeOnStackBuffer {
 JSONWriter::JSONWriter(intptr_t buf_size)
     : open_objects_(0), buffer_(buf_size) {}
 
+void JSONWriter::AppendBytes(const uint8_t* buffer, intptr_t buffer_length) {
+  buffer_.AddRaw(buffer, buffer_length);
+}
+
+static const char base64_digits[65] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_pad = '=';
+
+void JSONWriter::AppendBytesInBase64(const uint8_t* bytes, intptr_t length) {
+  ASSERT(bytes != nullptr);
+  intptr_t odd_bits = length % 3;
+  intptr_t even_bits = length - odd_bits;
+  for (intptr_t i = 0; i < even_bits; i += 3) {
+    intptr_t triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_digits[triplet & 63]);
+  }
+  if (odd_bits == 1) {
+    intptr_t triplet = bytes[even_bits] << 16;
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_pad);
+    buffer_.AddChar(base64_pad);
+  } else if (odd_bits == 2) {
+    intptr_t triplet = (bytes[even_bits] << 16) | (bytes[even_bits + 1] << 8);
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_pad);
+  }
+}
+
 void JSONWriter::AppendSerializedObject(const char* serialized_object) {
   PrintCommaIfNeeded();
   buffer_.AddString(serialized_object);
-}
-
-void JSONWriter::AppendSerializedObject(const uint8_t* buffer,
-                                        intptr_t buffer_length) {
-  buffer_.AddRaw(buffer, buffer_length);
 }
 
 void JSONWriter::AppendSerializedObject(const char* property_name,
@@ -127,37 +156,10 @@ void JSONWriter::PrintValue(double d) {
   buffer_.Printf("%s", buffer);
 }
 
-static const char base64_digits[65] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static const char base64_pad = '=';
-
 void JSONWriter::PrintValueBase64(const uint8_t* bytes, intptr_t length) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
-
-  intptr_t odd_bits = length % 3;
-  intptr_t even_bits = length - odd_bits;
-  for (intptr_t i = 0; i < even_bits; i += 3) {
-    intptr_t triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
-    buffer_.AddChar(base64_digits[triplet >> 18]);
-    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
-    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
-    buffer_.AddChar(base64_digits[triplet & 63]);
-  }
-  if (odd_bits == 1) {
-    intptr_t triplet = bytes[even_bits] << 16;
-    buffer_.AddChar(base64_digits[triplet >> 18]);
-    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
-    buffer_.AddChar(base64_pad);
-    buffer_.AddChar(base64_pad);
-  } else if (odd_bits == 2) {
-    intptr_t triplet = (bytes[even_bits] << 16) | (bytes[even_bits + 1] << 8);
-    buffer_.AddChar(base64_digits[triplet >> 18]);
-    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
-    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
-    buffer_.AddChar(base64_pad);
-  }
-
+  AppendBytesInBase64(bytes, length);
   buffer_.AddChar('"');
 }
 
