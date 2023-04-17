@@ -129,8 +129,10 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
 void Assembler::EnterFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, to simplify GenerateJitCallbackTrampolines.
+  // For TSAN, we always go to the runtime so TSAN is aware of the release
+  // semantics of entering the safepoint.
   Label done, slow_path;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     jmp(&slow_path);
   }
 
@@ -144,7 +146,7 @@ void Assembler::EnterFullSafepoint() {
   popq(RAX);
   cmpq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     j(EQUAL, &done);
   }
 
@@ -184,8 +186,10 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
+  // For TSAN, we always go to the runtime so TSAN is aware of the acquire
+  // semantics of leaving the safepoint.
   Label done, slow_path;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     jmp(&slow_path);
   }
 
@@ -201,7 +205,7 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   popq(RAX);
   cmpq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     j(EQUAL, &done);
   }
 

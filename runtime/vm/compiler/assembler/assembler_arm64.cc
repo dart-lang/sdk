@@ -1643,12 +1643,14 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
+  // For TSAN, we always go to the runtime so TSAN is aware of the release
+  // semantics of entering the safepoint.
 
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1663,7 +1665,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     b(&retry);
   }
 
@@ -1701,11 +1703,13 @@ void Assembler::ExitFullSafepoint(Register state,
                                   bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
+  // For TSAN, we always go to the runtime so TSAN is aware of the acquire
+  // semantics of leaving the safepoint.
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1720,7 +1724,7 @@ void Assembler::ExitFullSafepoint(Register state,
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     b(&retry);
   }
 
