@@ -39,11 +39,9 @@ class DestructureLocalVariableAssignment extends CorrectionProducer {
       var varName = '\$$i';
       if (excluded.contains(varName)) {
         varName = getIndexedVariableName(i, excluded) ?? varName;
-        variables.add(PositionalField(varName));
-        excluded.add(varName);
-      } else {
-        variables.add(PositionalField(varName));
       }
+      variables.add(PositionalField(varName));
+      excluded.add(varName);
     }
 
     for (var namedField in type.namedFields) {
@@ -54,7 +52,6 @@ class DestructureLocalVariableAssignment extends CorrectionProducer {
         var suggestions = getVariableNameSuggestionsForText(name, excluded);
         if (suggestions.isEmpty) return;
         var suggestion = suggestions.first;
-        excluded.add(suggestion);
         variables.add(NamedField(field: name, variable: suggestion));
       }
     }
@@ -62,11 +59,11 @@ class DestructureLocalVariableAssignment extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.entity(node.name), (builder) {
         builder.write('(');
-        for (var i = 0; i < variables.length; i++) {
+        for (var (i, variable) in variables.indexed) {
           if (i > 0) {
             builder.write(', ');
           }
-          variables[i].write(builder, 'VAR_$i');
+          variable.write(builder, 'VAR_$i');
         }
         builder.write(')');
       });
@@ -90,13 +87,18 @@ class NamedField extends RecordField {
   @override
   void write(EditBuilder builder, String groupName) {
     var variable = this.variable;
+    var suggestions = <String>[];
     if (variable == null) {
       variable = ':$field';
+      suggestions.add('$field: $wildCard');
     } else {
       builder.write('$field: ');
+      suggestions.add(wildCard);
     }
+    // Make sure the variable proposal is first.
+    suggestions.insert(0, variable);
     builder.addSimpleLinkedEdit(groupName, variable,
-        kind: LinkedEditSuggestionKind.VARIABLE, suggestions: [variable]);
+        kind: LinkedEditSuggestionKind.VARIABLE, suggestions: suggestions);
   }
 }
 
@@ -107,10 +109,12 @@ class PositionalField extends RecordField {
   @override
   void write(EditBuilder builder, String groupName) {
     builder.addSimpleLinkedEdit(groupName, variable,
-        kind: LinkedEditSuggestionKind.VARIABLE, suggestions: [variable]);
+        kind: LinkedEditSuggestionKind.VARIABLE,
+        suggestions: [variable, wildCard]);
   }
 }
 
 abstract class RecordField {
+  final wildCard = '_';
   void write(EditBuilder builder, String groupName);
 }
