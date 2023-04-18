@@ -62,6 +62,10 @@ abstract final class _A3&Object&Record extends core::Object implements core::Rec
   const synthetic constructor •() → self::_A3&Object&Record
     : super core::Object::•()
     ;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ runtimeType() → core::Type;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ hashCode() → core::int;
+  abstract operator /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ ==(core::Object other) → core::bool;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ toString() → core::String;
 }
 abstract class A3 extends self::_A3&Object&Record {
   synthetic constructor •() → self::A3

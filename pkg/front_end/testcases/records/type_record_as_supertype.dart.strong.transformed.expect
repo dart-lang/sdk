@@ -58,8 +58,8 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: 'RR' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
 //                ^
-// sdk/lib/core/record.dart:11:22: Context: This is the type denoted by the type alias.
-// abstract final class Record {}
+// sdk/lib/core/record.dart:82:22: Context: This is the type denoted by the type alias.
+// abstract final class Record {
 //                      ^
 //
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:24: Error: The class 'Record' can't be used as a mixin because it isn't a mixin class nor a mixin.
@@ -128,6 +128,10 @@ abstract final class _C1&Object&Record extends core::Object implements core::Rec
   const synthetic constructor •() → self::_C1&Object&Record
     : super core::Object::•()
     ;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ runtimeType() → core::Type;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ hashCode() → core::int;
+  abstract operator /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ ==(core::Object other) → core::bool;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ toString() → core::String;
 }
 abstract class C1 extends self::_C1&Object&Record {
   synthetic constructor •() → self::C1
@@ -138,6 +142,10 @@ abstract final class _C2&Object&RR extends core::Object implements core::Record 
   const synthetic constructor •() → self::_C2&Object&RR
     : super core::Object::•()
     ;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ runtimeType() → core::Type;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ hashCode() → core::int;
+  abstract operator /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ ==(core::Object other) → core::bool;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ toString() → core::String;
 }
 abstract class C2 extends self::_C2&Object&RR {
   synthetic constructor •() → self::C2

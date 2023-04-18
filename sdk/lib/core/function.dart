@@ -4,10 +4,11 @@
 
 part of dart.core;
 
-/// The supertype of all function types.
+/// A function value.
 ///
-/// The run-time type of a function object is a function type,
-/// and as such, a subtype of [Function].
+/// The `Function` class is a supertype of all *function types*, and contains
+/// no values itself. All objects that implement `Function`
+/// have a function type as their runtime type.
 ///
 /// The `Function` type does not carry information about the
 /// parameter signatures or return type of a function.
@@ -89,7 +90,7 @@ part of dart.core;
 /// Like every function type has a `call` method with its own function type,
 /// the `Function` type has a special `call` member
 /// which acts as if it is a method with a function type of `Function`
-/// (which is not a method signature which can be expression in normal
+/// (which is not a method signature which can be expressed in normal
 /// Dart code).
 /// ```dart
 /// Function fun = (int x) => "$x";
