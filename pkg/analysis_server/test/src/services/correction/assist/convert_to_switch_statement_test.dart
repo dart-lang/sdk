@@ -10,12 +10,203 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToSwitchStatementTest);
+    defineReflectiveTests(ConvertIfStatementToSwitchStatementTest);
+    defineReflectiveTests(ConvertSwitchExpressionToSwitchStatementTest);
   });
 }
 
 @reflectiveTest
-class ConvertToSwitchStatementTest extends AssistProcessorTest {
+class ConvertIfStatementToSwitchStatementTest extends AssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
+
+  Future<void> test_chain2_case_case_differentIdentifier() async {
+    await resolveTestCode('''
+void f(Object? x, Object? y) {
+  if (x case int()) {
+    0;
+  } else if (y case double()) {
+    1;
+  }
+}
+''');
+    await assertNoAssistAt('if');
+  }
+
+  Future<void> test_chain2_case_case_elseBlock() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else if (x case double()) {
+    1;
+  } else {
+    2;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+      1;
+    default:
+      2;
+  }
+}
+''');
+  }
+
+  Future<void> test_chain2_case_case_noElse() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else if (x case double()) {
+    1;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+      1;
+  }
+}
+''');
+  }
+
+  Future<void> test_chain2_case_case_notIdentifier() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else if (x != null case true) {
+    1;
+  }
+}
+''');
+    await assertNoAssistAt('if');
+  }
+
+  Future<void> test_single_case_thenBlock() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_case_thenBlock_elseBlock() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    default:
+      1;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_case_thenBlock_elseBlockEmpty() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else {}
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    default:
+  }
+}
+''');
+  }
+
+  Future<void> test_single_case_thenBlock_elseStatement() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else
+    1;
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    default:
+      1;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_case_thenStatement() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int())
+    0;
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_expression_notSupported() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (validate(x)) {
+    0;
+  }
+}
+
+bool validate(Object? x) => false;
+''');
+    await assertNoAssistAt('if');
+  }
+}
+
+@reflectiveTest
+class ConvertSwitchExpressionToSwitchStatementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 

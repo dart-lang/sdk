@@ -270,6 +270,13 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 }
 
+extension StatementExtension on Statement {
+  List<Statement> get selfOrBlockStatements {
+    final self = this;
+    return self is Block ? self.statements : [self];
+  }
+}
+
 extension TokenQuestionExtension on Token? {
   Token? get asFinalKeyword {
     final self = this;
