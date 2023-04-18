@@ -156,27 +156,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  @Deprecated("Use 'WarningCode.UNNECESSARY_FINAL' instead.")
-  static const HintCode UNNECESSARY_FINAL = HintCode(
-    'UNNECESSARY_FINAL',
-    "The keyword 'final' isn't necessary because the parameter is implicitly "
-        "'final'.",
-    correctionMessage: "Try removing the 'final'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the diagnostic being ignored
-  static const HintCode UNNECESSARY_IGNORE = HintCode(
-    'UNNECESSARY_IGNORE',
-    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
-        "to be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
-  );
-
   ///  Parameters:
   ///  0: the URI that is not necessary
   ///  1: the URI that makes it unnecessary

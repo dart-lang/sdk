@@ -1771,12 +1771,6 @@ HintCode.UNIGNORABLE_IGNORE:
     Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_CAST:
   status: hasFix
-HintCode.UNNECESSARY_FINAL:
-  status: hasFix
-HintCode.UNNECESSARY_IGNORE:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
@@ -3665,6 +3659,12 @@ WarningCode.UNNECESSARY_CAST_PATTERN:
   notes: |-
     The fix is to remove the cast pattern, assuming that doing so won't produce
     invalid code.
+WarningCode.UNNECESSARY_FINAL:
+  status: hasFix
+WarningCode.UNNECESSARY_IGNORE:
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE:
   status: hasFix
   notes: |-
