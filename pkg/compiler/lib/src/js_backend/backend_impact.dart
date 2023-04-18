@@ -122,10 +122,8 @@ class BackendImpacts {
   );
 
   late final BackendImpact syncStarBody = BackendImpact(
-    staticUses: [
-      _commonElements.endOfIteration,
-      _commonElements.yieldStar,
-      _commonElements.syncStarUncaughtError,
+    dynamicUses: [
+      Selector.fromElement(_commonElements.syncStarIteratorYieldStarMethod),
     ],
   );
 

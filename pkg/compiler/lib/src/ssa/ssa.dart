@@ -250,15 +250,15 @@ class SsaFunctionCompiler implements FunctionCompiler {
         _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
     SyncStarRewriter rewriter = SyncStarRewriter(_reporter, element,
-        endOfIteration:
-            emitter.staticFunctionAccess(commonElements.endOfIteration),
         iterableFactory: emitter
             .staticFunctionAccess(commonElements.syncStarIterableFactory),
         iterableFactoryTypeArguments: itemTypeExpression,
-        yieldStarExpression:
-            emitter.staticFunctionAccess(commonElements.yieldStar),
-        uncaughtErrorExpression:
-            emitter.staticFunctionAccess(commonElements.syncStarUncaughtError),
+        iteratorCurrentValueProperty: namer.instanceFieldPropertyName(
+            commonElements.syncStarIteratorCurrentField),
+        iteratorDatumProperty: namer.instanceFieldPropertyName(
+            commonElements.syncStarIteratorDatumField),
+        yieldStarSelector: namer
+            .instanceMethodName(commonElements.syncStarIteratorYieldStarMethod),
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
 

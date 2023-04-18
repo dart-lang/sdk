@@ -496,6 +496,18 @@ abstract class CommonElements {
   ClassEntity get syncStarIterable =>
       _findAsyncHelperClass("_SyncStarIterable");
 
+  late final ClassEntity _syncStarIteratorClass =
+      _findAsyncHelperClass('_SyncStarIterator');
+
+  late final FieldEntity syncStarIteratorCurrentField =
+      _findClassMember(_syncStarIteratorClass, '_current');
+
+  late final FieldEntity syncStarIteratorDatumField =
+      _findClassMember(_syncStarIteratorClass, '_datum');
+
+  late final FunctionEntity syncStarIteratorYieldStarMethod =
+      _findClassMember(_syncStarIteratorClass, '_yieldStar');
+
   ClassEntity get futureImplementation => _findAsyncHelperClass('_Future');
 
   ClassEntity get controllerStream =>

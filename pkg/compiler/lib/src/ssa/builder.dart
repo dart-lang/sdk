@@ -4522,6 +4522,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleForeignGetInterceptor(invocation);
     } else if (name == 'getJSArrayInteropRti') {
       _handleForeignGetJSArrayInteropRti(invocation);
+    } else if (name == 'JS_RAW_EXCEPTION') {
+      _handleJsRawException(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
       _handleJsStringConcat(invocation);
     } else if (name == '_createInvocationMirror') {
@@ -4839,6 +4841,27 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         {'text': "'$name' $problem."});
     stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
+  }
+
+  void _handleJsRawException(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 0, maxPositional: 0)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+
+    if (_rethrowableException != null) {
+      stack.add(_rethrowableException!);
+      return;
+    }
+
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, invocation),
+        MessageKind.GENERIC,
+        {'text': "Error: JS_RAW_EXCEPTION() must be in a 'catch' block."});
+    // Result expected on stack.
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   void _handleForeignJsGetName(ir.StaticInvocation invocation) {
