@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+//
+// v0.33 This commit does not change the derived language at all. It just
+// changes several rules to use the regexp-like grammar operators to simplify
+// onParts, recordLiteralNoConst, functionTypeTails, and functionType.
+//
 // v0.32 Remove unused non-terminal `patterns`.
 //
 // v0.31 Inline `identifierNotFUNCTION` into `identifier`. Replace all
@@ -673,7 +678,7 @@ recordLiteralNoConst
     :    '(' ')'
     |    '(' expression ',' ')'
     |    '(' label expression ','? ')'
-    |    '(' recordField ',' recordField (',' recordField)* ','? ')'
+    |    '(' recordField (',' recordField)+ ','? ')'
     ;
 
 recordField
@@ -1139,7 +1144,7 @@ recordPattern
     ;
 
 patternFields
-    :    patternField ( ',' patternField )* ','?
+    :    patternField (',' patternField)* ','?
     ;
 
 patternField
@@ -1274,17 +1279,12 @@ rethrowStatement
     ;
 
 tryStatement
-    :    TRY block (onParts finallyPart? | finallyPart)
+    :    TRY block (onPart+ finallyPart? | finallyPart)
     ;
 
 onPart
     :    catchPart block
     |    ON typeNotVoid catchPart? block
-    ;
-
-onParts
-    :    onPart onParts
-    |    onPart
     ;
 
 catchPart
@@ -1469,13 +1469,11 @@ functionTypeTail
     ;
 
 functionTypeTails
-    :    functionTypeTail '?'? functionTypeTails
-    |    functionTypeTail
+    :    (functionTypeTail '?'?)* functionTypeTail
     ;
 
 functionType
-    :    functionTypeTails
-    |    typeNotFunction functionTypeTails
+    :    typeNotFunction? functionTypeTails
     ;
 
 parameterTypeList

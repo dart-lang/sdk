@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -113,6 +114,33 @@ WhileStatement
           staticElement: <null>
           staticType: null
         semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_condition_super() async {
+    await assertErrorsInCode('''
+class A {
+  void f() {
+    while (super) {}
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 34, 5),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 34, 5),
+    ]);
+
+    final node = findNode.singleWhileStatement;
+    assertResolvedNodeText(node, r'''
+WhileStatement
+  whileKeyword: while
+  leftParenthesis: (
+  condition: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
     rightBracket: }
 ''');
   }

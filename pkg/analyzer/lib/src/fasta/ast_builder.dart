@@ -850,6 +850,10 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<ExpressionImpl>(count);
+    for (final expression in expressions) {
+      reportErrorIfSuper(expression);
+    }
+
     final arguments = ArgumentListImpl(
       leftParenthesis: leftParenthesis,
       arguments: expressions,
@@ -1830,6 +1834,7 @@ class AstBuilder extends StackListener {
 
     var initializer = pop() as ExpressionImpl;
     var name = pop() as SimpleIdentifierImpl;
+    reportErrorIfSuper(initializer);
     push(
       VariableDeclarationImpl(
         name: name.token,
@@ -2842,6 +2847,8 @@ class AstBuilder extends StackListener {
     debugEvent("ParenthesizedExpression");
 
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       ParenthesizedExpressionImpl(
         leftParenthesis: leftParenthesis,
@@ -3515,6 +3522,7 @@ class AstBuilder extends StackListener {
 
     var initializer = pop() as ExpressionImpl;
     var identifier = pop() as SimpleIdentifierImpl;
+    reportErrorIfSuper(initializer);
     // TODO(ahe): Don't push initializers, instead install them.
     push(
       VariableDeclarationImpl(
@@ -3601,6 +3609,8 @@ class AstBuilder extends StackListener {
 
     var type = pop() as TypeAnnotationImpl;
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       AsExpressionImpl(
         expression: expression,
@@ -3634,6 +3644,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
           messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
     }
+    reportErrorIfSuper(rhs);
     push(
       AssignmentExpressionImpl(
         leftHandSide: lhs,
@@ -4235,6 +4246,7 @@ class AstBuilder extends StackListener {
 
     var iterable = pop() as ExpressionImpl;
     var variableOrDeclaration = pop()!;
+    reportErrorIfSuper(iterable);
 
     ForEachPartsImpl forLoopParts;
     if (patternKeyword != null) {
@@ -4290,6 +4302,10 @@ class AstBuilder extends StackListener {
     var updates = popTypedList2<ExpressionImpl>(updateExpressionCount);
     var conditionStatement = pop() as StatementImpl;
     var initializerPart = pop();
+
+    for (final update in updates) {
+      reportErrorIfSuper(update);
+    }
 
     ExpressionImpl? condition;
     Token rightSeparator;
@@ -4432,6 +4448,7 @@ class AstBuilder extends StackListener {
 
     var index = pop() as ExpressionImpl;
     var target = pop() as ExpressionImpl?;
+    reportErrorIfSuper(index);
     if (target == null) {
       var receiver = pop() as CascadeExpressionImpl;
       var token = peek() as Token;
@@ -4548,6 +4565,8 @@ class AstBuilder extends StackListener {
 
     var type = pop() as TypeAnnotationImpl;
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       IsExpressionImpl(
         expression: expression,
@@ -5027,6 +5046,7 @@ class AstBuilder extends StackListener {
       );
     }
     condition = pop() as ExpressionImpl;
+    reportErrorIfSuper(condition);
     push(_ParenthesizedCondition(leftParenthesis, condition, caseClause));
   }
 

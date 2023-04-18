@@ -1167,13 +1167,9 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
-  status: needsFix
-  notes: |-
-    Add the missing cases.
+  status: hasFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
-  status: needsFix
-  notes: |-
-    Add the missing cases.
+  status: hasFix
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
   status: hasFix
   since: 2.17
@@ -3235,9 +3231,7 @@ ParserErrorCode.UNEXPECTED_TOKEN:
 ParserErrorCode.UNEXPECTED_TOKENS:
   status: noFix
 ParserErrorCode.VAR_AND_TYPE:
-  status: needsFix
-  notes: |-
-    Remove `var`. Remove the type.
+  status: hasFix
 ParserErrorCode.VAR_AS_TYPE_NAME:
   status: hasFix
 ParserErrorCode.VAR_CLASS:

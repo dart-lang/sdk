@@ -199,4 +199,24 @@ void main() {
       error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 29, 2),
     ]);
   }
+
+  test_topLevelVariable_list() async {
+    await assertErrorsInCode(r'''
+var x = [];
+''', [
+      error(WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, 8, 2),
+    ]);
+  }
+
+  test_topLevelVariable_listWithInferredType() async {
+    await assertNoErrorsInCode(r'''
+List<int> x = [];
+''');
+  }
+
+  test_topLevelVariable_listWithTypeArgument() async {
+    await assertNoErrorsInCode(r'''
+var x = <int>[];
+''');
+  }
 }

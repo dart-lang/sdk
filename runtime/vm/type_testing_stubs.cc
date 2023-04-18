@@ -1397,81 +1397,9 @@ void RegisterTypeArgumentsUse(const Function& function,
 
 #undef __
 
-const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
-    const Class& klass,
-    const TypeArguments& type_arguments) {
-  const intptr_t len = klass.NumTypeArguments();
-  ScopedHandle<TypeArguments> instantiated_type_arguments(
-      &type_arguments_handles_);
-  *instantiated_type_arguments = TypeArguments::New(len);
-  for (intptr_t i = 0; i < len; ++i) {
-    type_ = type_arguments.TypeAt(i);
-    type_ = InstantiateType(type_);
-    instantiated_type_arguments->SetTypeAt(i, type_);
-    ASSERT(type_.IsCanonical() ||
-           (type_.IsTypeRef() &&
-            AbstractType::Handle(TypeRef::Cast(type_).type()).IsCanonical()));
-  }
-  *instantiated_type_arguments =
-      instantiated_type_arguments->Canonicalize(Thread::Current(), nullptr);
-  return *instantiated_type_arguments;
-}
-
-AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
-    const AbstractType& type) {
-  if (type.IsTypeParameter()) {
-    const TypeParameter& parameter = TypeParameter::Cast(type);
-    ASSERT(parameter.IsClassTypeParameter());
-    ASSERT(parameter.IsFinalized());
-    if (instantiator_type_arguments_.IsNull()) {
-      return Type::DynamicType();
-    }
-    AbstractType& result = AbstractType::Handle(
-        instantiator_type_arguments_.TypeAt(parameter.index()));
-    result = result.SetInstantiatedNullability(TypeParameter::Cast(type),
-                                               Heap::kOld);
-    return result.NormalizeFutureOrType(Heap::kOld);
-  } else if (type.IsFunctionType()) {
-    // No support for function types yet.
-    UNREACHABLE();
-    return nullptr;
-  } else if (type.IsRecordType()) {
-    // No support for record types yet.
-    UNREACHABLE();
-    return nullptr;
-  } else if (type.IsTypeRef()) {
-    // No support for recursive types.
-    UNREACHABLE();
-    return nullptr;
-  } else if (type.IsType()) {
-    if (type.IsInstantiated() || type.arguments() == TypeArguments::null()) {
-      return type.ptr();
-    }
-
-    const Type& from = Type::Cast(type);
-    klass_ = from.type_class();
-
-    ScopedHandle<Type> to(&type_handles_);
-    ScopedHandle<TypeArguments> to_type_arguments(&type_arguments_handles_);
-
-    *to_type_arguments = TypeArguments::null();
-    *to = Type::New(klass_, *to_type_arguments);
-
-    *to_type_arguments = from.arguments();
-    to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
-    to->SetIsFinalized();
-    *to ^= to->Canonicalize(Thread::Current(), nullptr);
-
-    return to->ptr();
-  }
-  UNREACHABLE();
-  return nullptr;
-}
-
 TypeUsageInfo::TypeUsageInfo(Thread* thread)
     : ThreadStackResource(thread),
       zone_(thread->zone()),
-      finder_(zone_),
       assert_assignable_types_(),
       instance_creation_arguments_(
           new TypeArgumentsSet
@@ -1512,8 +1440,7 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
     // If this is a non-instantiated [TypeArguments] object, then it refers to
     // type parameters.  We need to ensure the type parameters in [ta] only
     // refer to type parameters in the class.
-    if (!ta.IsNull() && !ta.IsInstantiated() &&
-        finder_.FindClass(ta).IsNull()) {
+    if (!ta.IsNull() && !ta.IsInstantiated()) {
       return;
     }
 
@@ -1533,10 +1460,7 @@ void TypeUsageInfo::BuildTypeUsageInformation() {
   ClassTable* class_table = thread()->isolate_group()->class_table();
   const intptr_t cid_count = class_table->NumCids();
 
-  // Step 1) Propagate instantiated type argument vectors.
-  PropagateTypeArguments(class_table, cid_count);
-
-  // Step 2) Collect the type parameters we're interested in.
+  // Step 1) Collect the type parameters we're interested in.
   TypeParameterSet parameters_tested_against;
   CollectTypeParametersUsedInAssertAssignable(&parameters_tested_against);
 
@@ -1544,96 +1468,6 @@ void TypeUsageInfo::BuildTypeUsageInformation() {
   // the set of types tested against.
   UpdateAssertAssignableTypes(class_table, cid_count,
                               &parameters_tested_against);
-}
-
-void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
-                                           intptr_t cid_count) {
-  // See comment in .h file for what this method does.
-
-  Class& klass = Class::Handle(zone_);
-  TypeArguments& temp_type_arguments = TypeArguments::Handle(zone_);
-
-  // We cannot modify a set while we are iterating over it, so we delay the
-  // addition to the set to the point when iteration has finished and use this
-  // list as temporary storage.
-  GrowableObjectArray& delayed_type_argument_set =
-      GrowableObjectArray::Handle(zone_, GrowableObjectArray::New());
-
-  TypeArgumentInstantiator instantiator(zone_);
-
-  const intptr_t kPropagationRounds = 2;
-  for (intptr_t round = 0; round < kPropagationRounds; ++round) {
-    for (intptr_t cid = 0; cid < cid_count; ++cid) {
-      if (!class_table->IsValidIndex(cid) ||
-          !class_table->HasValidClassAt(cid)) {
-        continue;
-      }
-
-      klass = class_table->At(cid);
-      bool null_in_delayed_type_argument_set = false;
-      delayed_type_argument_set.SetLength(0);
-
-      auto it = instance_creation_arguments_[cid].GetIterator();
-      for (const TypeArguments** type_arguments = it.Next();
-           type_arguments != nullptr; type_arguments = it.Next()) {
-        // We have a "type allocation" with "klass<type_arguments[0:N]>".
-        if (!(*type_arguments)->IsNull() &&
-            !(*type_arguments)->IsInstantiated()) {
-          const Class& enclosing_class = finder_.FindClass(**type_arguments);
-          if (!klass.IsNull()) {
-            // We know that "klass<type_arguments[0:N]>" happens inside
-            // [enclosing_class].
-            if (enclosing_class.ptr() != klass.ptr()) {
-              // Now we try to instantiate [type_arguments] with all the known
-              // instantiator type argument vectors of the [enclosing_class].
-              const intptr_t enclosing_class_cid = enclosing_class.id();
-              TypeArgumentsSet& instantiator_set =
-                  instance_creation_arguments_[enclosing_class_cid];
-              auto it2 = instantiator_set.GetIterator();
-              for (const TypeArguments** instantiator_type_arguments =
-                       it2.Next();
-                   instantiator_type_arguments != nullptr;
-                   instantiator_type_arguments = it2.Next()) {
-                // We have also a "type allocation" with
-                // "enclosing_class<instantiator_type_arguments[0:M]>".
-                if ((*instantiator_type_arguments)->IsNull() ||
-                    (*instantiator_type_arguments)->IsInstantiated()) {
-                  temp_type_arguments = instantiator.Instantiate(
-                      klass, **type_arguments, **instantiator_type_arguments);
-                  if (temp_type_arguments.IsNull() &&
-                      !null_in_delayed_type_argument_set) {
-                    null_in_delayed_type_argument_set = true;
-                    delayed_type_argument_set.Add(temp_type_arguments);
-                  } else {
-                    delayed_type_argument_set.Add(temp_type_arguments);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // Now we add the [delayed_type_argument_set] elements to the set of
-      // instantiator type arguments of [klass] (and its superclasses).
-      if (delayed_type_argument_set.Length() > 0) {
-        while (klass.NumTypeArguments() > 0) {
-          TypeArgumentsSet& type_argument_set =
-              instance_creation_arguments_[klass.id()];
-          const intptr_t len = delayed_type_argument_set.Length();
-          for (intptr_t i = 0; i < len; ++i) {
-            temp_type_arguments =
-                TypeArguments::RawCast(delayed_type_argument_set.At(i));
-            if (!type_argument_set.HasKey(&temp_type_arguments)) {
-              type_argument_set.Insert(
-                  &TypeArguments::ZoneHandle(zone_, temp_type_arguments.ptr()));
-            }
-          }
-          klass = klass.SuperClass();
-        }
-      }
-    }
-  }
 }
 
 void TypeUsageInfo::CollectTypeParametersUsedInAssertAssignable(

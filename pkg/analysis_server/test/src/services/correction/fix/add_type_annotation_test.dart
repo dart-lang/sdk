@@ -126,13 +126,13 @@ class A {
 
   Future<void> test_listLiteral() async {
     await resolveTestCode('''
-class A {
-  List<int> a = [0];
+void f() {
+  [0];
 }
 ''');
     await assertHasFix('''
-class A {
-  List<int> a = <int>[0];
+void f() {
+  <int>[0];
 }
 ''');
   }
@@ -252,6 +252,43 @@ f() {
   switch ((1, 2)) {
     case (int a, int b): print(a); print(b);
   }
+}
+''');
+  }
+
+  Future<void> test_setOrMapLiteral_ambiguous() async {
+    await resolveTestCode('''
+void f() {
+  ({0, 1:2});
+}
+''');
+    await assertNoFix(
+      errorFilter: lintNameFilter(LintNames.always_specify_types),
+    );
+  }
+
+  Future<void> test_setOrMapLiteral_map() async {
+    await resolveTestCode('''
+void f() {
+  ({0: true});
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  (<int, bool>{0: true});
+}
+''');
+  }
+
+  Future<void> test_setOrMapLiteral_set() async {
+    await resolveTestCode('''
+void f() {
+  ({0, 1, 2});
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  (<int>{0, 1, 2});
 }
 ''');
   }

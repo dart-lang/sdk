@@ -677,6 +677,38 @@ AssignmentExpression
 ''');
   }
 
+  test_left_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    super = 0;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_notLValue_binaryExpression_compound() async {
     await assertErrorsInCode(r'''
 void f(int a, int b, double c) {
@@ -3110,6 +3142,37 @@ AssignmentExpression
   writeType: dynamic
   staticElement: <null>
   staticType: int
+''');
+  }
+
+  test_right_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f(Object a) {
+    a = super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@class::A::@method::f::@parameter::a
+    staticType: null
+  operator: =
+  rightHandSide: SuperExpression
+    superKeyword: super
+    staticType: A
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::f::@parameter::a
+  writeType: Object
+  staticElement: <null>
+  staticType: A
 ''');
   }
 

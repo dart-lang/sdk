@@ -59,13 +59,16 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
 
     if (node is TypedLiteral) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(node.offset, (builder) {
-          builder.write('<');
-          builder.writeTypes((node.staticType as InterfaceType).typeArguments);
-          builder.write('>');
+      final type = node.staticType;
+      if (type is InterfaceType) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addInsertion(node.offset, (builder) {
+            builder.write('<');
+            builder.writeTypes(type.typeArguments);
+            builder.write('>');
+          });
         });
-      });
+      }
       return;
     }
 

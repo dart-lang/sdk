@@ -34,6 +34,8 @@ class FindNode {
 
   AssertStatement get singleAssertStatement => _single();
 
+  AssignmentExpression get singleAssignmentExpression => _single();
+
   BinaryExpression get singleBinaryExpression => _single();
 
   Block get singleBlock => _single();
@@ -82,6 +84,8 @@ class FindNode {
 
   ImportDirective get singleImportDirective => _single();
 
+  IndexExpression get singleIndexExpression => _single();
+
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
   IsExpression get singleIsExpression => _single();
@@ -98,6 +102,8 @@ class FindNode {
 
   OnClause get singleOnClause => _single();
 
+  ParenthesizedExpression get singleParenthesizedExpression => _single();
+
   PatternAssignment get singlePatternAssignment => _single();
 
   PatternVariableDeclaration get singlePatternVariableDeclaration => _single();
@@ -105,7 +111,11 @@ class FindNode {
   PatternVariableDeclarationStatement
       get singlePatternVariableDeclarationStatement => _single();
 
+  PostfixExpression get singlePostfixExpression => _single();
+
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
+
+  PrefixExpression get singlePrefixExpression => _single();
 
   PropertyAccess get singlePropertyAccess => _single();
 
@@ -123,6 +133,9 @@ class FindNode {
   SwitchPatternCase get singleSwitchPatternCase => _single();
 
   TryStatement get singleTryStatement => _single();
+
+  VariableDeclarationStatement get singleVariableDeclarationStatement =>
+      _single();
 
   WhileStatement get singleWhileStatement => _single();
 

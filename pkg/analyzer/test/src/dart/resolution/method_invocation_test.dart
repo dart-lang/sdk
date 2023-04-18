@@ -21,6 +21,38 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest
     with MethodInvocationResolutionTestCases {
+  test_arguments_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    g(super);
+  }
+}
+
+void g(Object a) {}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
+    ]);
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: self::@function::g
+    staticType: void Function(Object)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SuperExpression
+        superKeyword: super
+        staticType: A
+    rightParenthesis: )
+  staticInvokeType: void Function(Object)
+  staticType: void
+''');
+  }
+
   test_arguments_synthetics() async {
     await assertErrorsInCode(r'''
 void f() {

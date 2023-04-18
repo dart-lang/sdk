@@ -223,6 +223,11 @@ class DartFixKind {
     70,
     "Add required argument '{0}'",
   );
+  static const ADD_MISSING_SWITCH_CASES = FixKind(
+    'dart.fix.add.missingSwitchCases',
+    DartFixKindPriority.DEFAULT,
+    'Add missing switch cases',
+  );
   static const ADD_NE_NULL = FixKind(
     'dart.fix.add.neNull',
     DartFixKindPriority.DEFAULT,

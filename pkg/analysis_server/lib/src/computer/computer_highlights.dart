@@ -178,6 +178,12 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
+      if (parent is ConstructorDeclaration) {
+        semanticModifiers = {
+          CustomSemanticTokenModifiers.constructor,
+          SemanticTokenModifiers.declaration
+        };
+      }
     }
 
     if (_isAnnotationIdentifier(node)) {
@@ -704,7 +710,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.finalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name, HighlightRegionType.CLASS);
+    computer._addRegion_token(node.name, HighlightRegionType.CLASS,
+        semanticTokenModifiers: {SemanticTokenModifiers.declaration});
     super.visitClassDeclaration(node);
   }
 
@@ -740,6 +747,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       semanticTokenType: SemanticTokenTypes.method,
       semanticTokenModifiers: {
         CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
       },
     );
     super.visitConstructorDeclaration(node);

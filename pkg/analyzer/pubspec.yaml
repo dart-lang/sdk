@@ -34,3 +34,9 @@ dev_dependencies:
   matcher: any
   test: any
   test_reflective_loader: any
+
+dependency_overrides:
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  analyzer_utilities:
+    path: ../analyzer_utilities

@@ -103,7 +103,7 @@ vars = {
   "protobuf_gn_rev": "f872f05cb0378eef9a7a2609076929f0f35b4141",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
+  "zlib_rev": "14dd4c4455602c9b71a1a89b5cafd1f4030d2e3f",
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
