@@ -104,6 +104,7 @@ import 'rules/no_default_cases.dart';
 import 'rules/no_duplicate_case_values.dart';
 import 'rules/no_leading_underscores_for_library_prefixes.dart';
 import 'rules/no_leading_underscores_for_local_identifiers.dart';
+import 'rules/no_literal_bool_comparisons.dart';
 import 'rules/no_logic_in_create_state.dart';
 import 'rules/no_runtimeType_toString.dart';
 import 'rules/non_constant_identifier_names.dart';
@@ -331,6 +332,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(NoAdjacentStringsInList())
     ..register(NoDefaultCases())
     ..register(NoDuplicateCaseValues())
+    ..register(NoLiteralBoolComparisons())
     ..register(NonConstantIdentifierNames())
     ..register(NoLeadingUnderscoresForLibraryPrefixes())
     ..register(NoLeadingUnderscoresForLocalIdentifiers())
