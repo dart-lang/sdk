@@ -46,6 +46,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
+#include "vm/unwinding_records.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
@@ -333,6 +334,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Api::Init();
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
+  UnwindingRecords::Init();
   Page::Init();
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -765,6 +767,7 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   Page::Cleanup();
+  UnwindingRecords::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {

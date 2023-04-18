@@ -9,6 +9,8 @@
 
 namespace dart {
 
+void UnwindingRecords::Init() {}
+void UnwindingRecords::Cleanup() {}
 intptr_t UnwindingRecords::SizeInBytes() {
   return 0;
 }

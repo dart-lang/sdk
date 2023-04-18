@@ -152,6 +152,7 @@ vars = {
   "matcher_rev": "cb6b68c603d2c57a51bbddfff08fa211bba7dcd3",
   "mime_rev": "2d8496df6a6e851816610c3f99eae0d9663f54c4",
   "mockito_rev": "28e8eda2ef16f2e9c5e2e8fef48a834afd33ce44",
+  "native_rev": "a547d0cb57699fce5e0940b593c673f310c56a0c",
   "package_config_rev": "7e09db12e968482ef81e309de3ce233463b4cd7e",
   "path_rev": "23e33194c4073c0fdd818a70dd944afd5ad206e6",
   "pool_rev": "650e5d3eff10529c65ef45b5fcb4bca270c7ea8f",
@@ -172,7 +173,7 @@ vars = {
   "test_descriptor_rev": "aa11162f55a93fc6cefc927c5189b5f74decb957",
   "test_process_rev": "946bc27abd9726c4dadb9afae7c56f55df5945ed",
   "test_reflective_loader_rev": "a85a930ad3736f93b96f6cc104d3576c1ae19e0e",
-  "tools_rev": "2308c672e0d7446f5bfdba96594b41f26fa24a2e",
+  "tools_rev": "545d7e1c73ce21b8c91f638021f9d487d324a501",
   "typed_data_rev": "d85363d2efb333afce07ec409a529ec32986e1a2",
   "usage_rev": "0698711985b332432ce9a901bbbd3b1ed227b090",
   "vector_math_rev": "7dec98433b3e016fbe49107ad4320b31f519eb70",
@@ -405,6 +406,8 @@ deps = {
       Var("dart_git") + "mime.git" + "@" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
+  Var("dart_root") + "/third_party/pkg/native":
+      Var("dart_git") + "native.git" + "@" + Var("native_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_rev"),
