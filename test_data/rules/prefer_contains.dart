@@ -82,3 +82,9 @@ testOperators() {
   0 > [].indexOf(1); // LINT
   0 >= [].indexOf(1); // OK
 }
+
+bool f<T extends List<int>>(T list) =>
+  list.indexOf(1) < 0; // LINT
+
+bool g<T>(T list) =>
+  list is List<int> && list.indexOf(1) < 0; // LINT

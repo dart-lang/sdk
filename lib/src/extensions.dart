@@ -187,11 +187,14 @@ extension DartTypeExtension on DartType? {
     bool isAnyInterface(InterfaceType i) =>
         definitions.any((d) => i.isSameAs(d.name, d.library));
 
-    var self = this;
-    if (self is InterfaceType) {
-      return isAnyInterface(self) ||
-          !self.element.isSynthetic &&
-              self.element.allSupertypes.any(isAnyInterface);
+    var typeToCheck = this;
+    if (typeToCheck is TypeParameterType) {
+      typeToCheck = typeToCheck.typeForInterfaceCheck;
+    }
+    if (typeToCheck is InterfaceType) {
+      return isAnyInterface(typeToCheck) ||
+          !typeToCheck.element.isSynthetic &&
+              typeToCheck.element.allSupertypes.any(isAnyInterface);
     } else {
       return false;
     }
