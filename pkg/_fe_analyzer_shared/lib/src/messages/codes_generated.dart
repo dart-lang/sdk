@@ -8346,6 +8346,34 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropStrictModeForbiddenLibrary =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Library '#name' is forbidden when strict mode is enabled.""",
+        correctionMessageTemplate:
+            r"""Remove the import of a forbidden library.""",
+        withArguments: _withArgumentsJsInteropStrictModeForbiddenLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStrictModeForbiddenLibrary =
+    const Code<Message Function(String name)>(
+  "JsInteropStrictModeForbiddenLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStrictModeForbiddenLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStrictModeForbiddenLibrary,
+      problemMessage:
+          """Library '${name}' is forbidden when strict mode is enabled.""",
+      correctionMessage: """Remove the import of a forbidden library.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(

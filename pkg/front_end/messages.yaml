@@ -5583,6 +5583,10 @@ JsInteropStrictModeViolation:
   problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
   correctionMessage: "Use a JS type instead."
 
+JsInteropStrictModeForbiddenLibrary:
+  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
+  correctionMessage: "Remove the import of a forbidden library."
+
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING

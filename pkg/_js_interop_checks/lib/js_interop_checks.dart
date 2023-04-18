@@ -32,7 +32,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
-        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
+        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
+        templateJsInteropStrictModeForbiddenLibrary;
 import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
@@ -326,10 +327,12 @@ class JsInteropChecks extends RecursiveVisitor {
     _inlineExtensionIndex = InlineExtensionIndex(node);
     // Allow only Flutter and package:test to opt out from strict mode on
     // Dart2Wasm.
+    final isSDKLibrary = node.importUri.isScheme('dart');
     final importUriString = node.importUri.toString();
     _nonStrictModeIsAllowed = !enableStrictMode ||
-        node.importUri.isScheme('dart') ||
+        isSDKLibrary ||
         importUriString.startsWith('package:ui') ||
+        importUriString.startsWith('package:js') ||
         importUriString.startsWith('package:flutter') ||
         importUriString.startsWith('package:flute') ||
         importUriString.startsWith('package:engine') ||
@@ -338,6 +341,27 @@ class JsInteropChecks extends RecursiveVisitor {
         (node.fileUri.toString().contains(RegExp(r'(?<!generated_)tests/')) &&
             !node.fileUri.toString().contains(RegExp(
                 r'(?<!generated_)tests/lib/js/static_interop_test/strict_mode_test.dart')));
+
+    // Disallow importing some libraries in non-SDK code when in strict mode.
+    if (!_nonStrictModeIsAllowed && !isSDKLibrary) {
+      for (final dependency in node.dependencies) {
+        final dependencyUriString =
+            dependency.targetLibrary.importUri.toString();
+        if (dependencyUriString == 'package:js/js.dart' ||
+            dependencyUriString == 'package:js/js_util.dart' ||
+            dependencyUriString == 'dart:html' ||
+            dependencyUriString == 'dart:js_util' ||
+            dependencyUriString == 'dart:js') {
+          _diagnosticsReporter.report(
+              templateJsInteropStrictModeForbiddenLibrary
+                  .withArguments(dependencyUriString),
+              dependency.fileOffset,
+              dependencyUriString.length,
+              node.fileUri);
+        }
+      }
+    }
+
     if (_libraryHasJSAnnotation) {
       var libraryAnnotation = getJSName(node);
       var globalRegexp = RegExp(r'^(self|window)(\.(self|window))*$');

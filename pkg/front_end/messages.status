@@ -640,6 +640,8 @@ JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specif
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeViolation/example: Fail # Web compiler specific
+JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
+JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
