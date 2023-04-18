@@ -40,8 +40,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 class ScopedIsolateStackLimits : public ValueObject {
  public:
   NO_SANITIZE_SAFE_STACK
-  explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
-      : thread_(thread) {
+  explicit ScopedIsolateStackLimits(Thread* thread) : thread_(thread) {
     ASSERT(thread != nullptr);
     // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
@@ -113,8 +112,13 @@ typedef uword /*ObjectPtr*/ (*invokestub_bare_instructions)(
 
 ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments,
-                                    const Array& arguments_descriptor,
-                                    uword current_sp) {
+                                    const Array& arguments_descriptor) {
+#if defined(DART_PRECOMPILER)
+  if (FLAG_precompiled_mode) {
+    FATAL("Should never invoke Dart code during AOT compilation");
+  }
+#endif
+
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   ASSERT(!function.IsNull());
@@ -139,7 +143,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 
   ASSERT(function.HasCode());
 
-  ScopedIsolateStackLimits stack_limit(thread, current_sp);
+  ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
 
@@ -177,6 +181,12 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
+#if defined(DART_PRECOMPILER)
+  if (FLAG_precompiled_mode) {
+    FATAL("Should never invoke Dart code during AOT compilation");
+  }
+#endif
+
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!thread->isolate_group()->null_safety_not_set());

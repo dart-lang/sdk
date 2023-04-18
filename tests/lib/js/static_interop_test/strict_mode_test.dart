@@ -6,7 +6,13 @@
 library strict_mode_test;
 
 import 'dart:js_interop';
-import 'package:js/js.dart' hide JS;
+   import 'dart:js';
+// ^
+// [web] Library 'dart:js' is forbidden when strict mode is enabled.
+
+   import 'dart:js_util';
+// ^
+// [web] Library 'dart:js_util' is forbidden when strict mode is enabled.
 
 @JS()
 @staticInterop

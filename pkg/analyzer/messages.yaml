@@ -19819,65 +19819,6 @@ HintCode:
         }
       }
       ```
-  UNNECESSARY_FINAL:
-    problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
-    correctionMessage: Try removing the 'final'.
-    deprecatedMessage: Use 'WarningCode.UNNECESSARY_FINAL' instead.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when either a field initializing
-      parameter or a super parameter in a constructor has the keyword `final`.
-      In both cases the keyword is unnecessary because the parameter is
-      implicitly `final`.
-
-      #### Examples
-
-      The following code produces this diagnostic because the field initializing
-      parameter has the keyword `final`:
-
-      ```dart
-      class A {
-        int value;
-
-        A([!final!] this.value);
-      }
-      ```
-
-      The following code produces this diagnostic because the super parameter in
-      `B` has the keyword `final`:
-
-      ```dart
-      class A {
-        A(int value);
-      }
-
-      class B extends A {
-        B([!final!] super.value);
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary `final` keyword:
-
-      ```dart
-      class A {
-        A(int value);
-      }
-
-      class B extends A {
-        B(super.value);
-      }
-      ```
-  UNNECESSARY_IGNORE:
-    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    comment: |-
-      Parameters:
-      0: the name of the diagnostic being ignored
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -24838,8 +24779,63 @@ WarningCode:
     correctionMessage: Try removing the cast pattern.
     comment: No parameters.
   UNNECESSARY_FINAL:
-    aliasFor: HintCode.UNNECESSARY_FINAL
-    comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+    problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
+    correctionMessage: Try removing the 'final'.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either a field initializing
+      parameter or a super parameter in a constructor has the keyword `final`.
+      In both cases the keyword is unnecessary because the parameter is
+      implicitly `final`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the field initializing
+      parameter has the keyword `final`:
+
+      ```dart
+      class A {
+        int value;
+
+        A([!final!] this.value);
+      }
+      ```
+
+      The following code produces this diagnostic because the super parameter in
+      `B` has the keyword `final`:
+
+      ```dart
+      class A {
+        A(int value);
+      }
+
+      class B extends A {
+        B([!final!] super.value);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `final` keyword:
+
+      ```dart
+      class A {
+        A(int value);
+      }
+
+      class B extends A {
+        B(super.value);
+      }
+      ```
+  UNNECESSARY_IGNORE:
+    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    comment: |-
+      Parameters:
+      0: the name of the diagnostic being ignored
   UNNECESSARY_NAN_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NAN_COMPARISON
     problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
