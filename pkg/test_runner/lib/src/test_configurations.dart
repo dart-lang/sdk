@@ -51,6 +51,8 @@ final testSuiteDirectories = [
   Path('tests/web_2'),
   Path('third_party/pkg/dart_style'),
   Path('third_party/pkg/dartdoc'),
+  Path('third_party/pkg/native/pkgs/c_compiler'),
+  Path('third_party/pkg/native/pkgs/native_assets_cli'),
   Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
 ];

@@ -3224,7 +3224,9 @@
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
+            "c_compiler",
             "dart_style",
+            "native_assets_cli",
             "package_config"
           ]
         },
@@ -3274,7 +3276,9 @@
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-arm64",
+            "c_compiler",
             "dart_style",
+            "native_assets_cli",
             "package_config"
           ]
         },
@@ -3315,7 +3319,9 @@
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
+            "c_compiler",
             "dart_style",
+            "native_assets_cli",
             "package_config"
           ]
         },
