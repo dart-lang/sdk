@@ -371,6 +371,7 @@ _nightly_builder(
     "vm-gcc-linux",
     category = "vm|misc|g",
     channels = ["try"],
+    dimensions = focal,
     execution_timeout = 5 * time.hour,
     goma = False,
     properties = {
