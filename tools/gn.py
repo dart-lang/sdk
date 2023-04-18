@@ -228,14 +228,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     gn_args['bssl_use_clang_integrated_as'] = True
 
-    # Use tcmalloc only when targeting Linux and when not using ASAN.
-    # TODO(51111): Re-enable for riscv64.
-    gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
-                                    (gn_args['target_cpu'] != 'arm') and
-                                    (gn_args['target_cpu'] != 'riscv32') and
-                                    (gn_args['target_cpu'] != 'riscv64') and
-                                    sanitizer == 'none')
-
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're

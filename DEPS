@@ -93,7 +93,6 @@ vars = {
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "devtools_rev": "026f0adf03725fbab24d601ac74c811808f258e5",
-  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
@@ -333,10 +332,6 @@ deps = {
   Var("dart_root") + "/third_party/mdn/browser-compat-data/src":
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
-
-  Var("dart_root") + "/third_party/tcmalloc/gperftools":
-      Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
-      "@" + Var("gperftools_revision"),
 
   Var("dart_root") + "/third_party/pkg/args":
       Var("dart_git") + "args.git" + "@" + Var("args_rev"),
