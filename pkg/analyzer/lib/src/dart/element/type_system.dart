@@ -205,10 +205,10 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       if (leftElement is ClassElementImpl) {
-        // If the left is final, we know all subtypes, and can check them.
-        final finalSubtypes = leftElement.subtypesOfFinal;
-        if (finalSubtypes != null) {
-          for (final candidate in [left, ...finalSubtypes]) {
+        // If we know all subtypes, only they can implement the right.
+        final allSubtypes = leftElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [left, ...allSubtypes]) {
             final asRight = candidate.asInstanceOf(rightElement);
             if (asRight != null) {
               if (_canBeEqualArguments(asRight, right)) {
@@ -221,11 +221,10 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       if (rightElement is ClassElementImpl) {
-        // If the right is final, then it or one of its subtypes must
-        // implement the left.
-        final finalSubtypes = rightElement.subtypesOfFinal;
-        if (finalSubtypes != null) {
-          for (final candidate in [right, ...finalSubtypes]) {
+        // If we know all subtypes, only they can implement the left.
+        final allSubtypes = rightElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [right, ...allSubtypes]) {
             final asLeft = candidate.asInstanceOf(leftElement);
             if (asLeft != null) {
               if (canBeSubtypeOfInterfaces(left, asLeft)) {
