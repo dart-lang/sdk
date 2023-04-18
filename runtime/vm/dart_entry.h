@@ -210,11 +210,9 @@ class DartEntry : public AllStatic {
 
   // Invokes the specified instance, static, or closure function.
   // On success, returns an InstancePtr.  On failure, an ErrorPtr.
-  static ObjectPtr InvokeFunction(
-      const Function& function,
-      const Array& arguments,
-      const Array& arguments_descriptor,
-      uword current_sp = OSThread::GetCurrentStackPointer());
+  static ObjectPtr InvokeFunction(const Function& function,
+                                  const Array& arguments,
+                                  const Array& arguments_descriptor);
 
   // Invokes the first argument in the provided arguments array as a callable
   // object, performing any needed dynamic checks if the callable cannot receive
