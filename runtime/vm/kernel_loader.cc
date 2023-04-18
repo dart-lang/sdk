@@ -1275,7 +1275,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (type_tag == kSomething) {
     AbstractType& super_type =
         T.BuildTypeWithoutFinalization();  // read super class type (part 2).
-    klass->set_super_type(super_type);
+    klass->set_super_type(Type::Cast(super_type));
   }
 
   class_helper->SetJustRead(ClassHelper::kSuperClass);
