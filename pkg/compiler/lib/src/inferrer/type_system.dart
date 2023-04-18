@@ -61,6 +61,11 @@ class TypeSystem {
   /// [MemberTypeInformation]s for members.
   final Map<MemberEntity, MemberTypeInformation> memberTypeInformations = {};
 
+  final Map<Local, ParameterTypeInformation> virtualParameterTypeInformations =
+      {};
+  final Map<MemberEntity, MemberTypeInformation> virtualCallTypeInformations =
+      {};
+
   /// [ListTypeInformation] for allocated lists.
   final Map<ir.TreeNode, ListTypeInformation> allocatedLists = {};
 
@@ -316,8 +321,11 @@ class TypeSystem {
     return newType;
   }
 
-  ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {
-    return parameterTypeInformations.putIfAbsent(parameter, () {
+  ParameterTypeInformation getInferredTypeOfParameter(Local parameter,
+      {bool virtual = false}) {
+    final typeInformations =
+        virtual ? virtualParameterTypeInformations : parameterTypeInformations;
+    return typeInformations.putIfAbsent(parameter, () {
       ParameterTypeInformation typeInformation =
           strategy.createParameterTypeInformation(
               _abstractValueDomain, parameter, this);
@@ -331,10 +339,15 @@ class TypeSystem {
     parameterTypeInformations.forEach(f);
   }
 
-  MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
-    assert(!member.isAbstract,
-        failedAt(member, "Unexpected abstract member $member."));
-    return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
+  MemberTypeInformation getInferredTypeOfMember(MemberEntity member,
+      {bool virtual = false}) {
+    if (virtual) {
+      return virtualCallTypeInformations[member] ??=
+          strategy.createMemberTypeInformation(_abstractValueDomain, member);
+    } else {
+      return memberTypeInformations[member] ??=
+          _getInferredTypeOfMember(member);
+    }
   }
 
   void forEachMemberType(
