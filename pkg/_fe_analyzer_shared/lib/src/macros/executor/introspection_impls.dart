@@ -487,10 +487,10 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   final bool isStatic;
 
   MethodDeclarationImpl({
-    // Declaration fields
+    // Declaration fields.
     required super.id,
     required super.identifier,
-    // Function fields
+    // Function fields.
     required super.isAbstract,
     required super.isExternal,
     required super.isGetter,
@@ -500,7 +500,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.positionalParameters,
     required super.returnType,
     required super.typeParameters,
-    // Method fields
+    // Method fields.
     required this.definingType,
     required this.isStatic,
   });
@@ -525,10 +525,10 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.constructorDeclaration;
 
   ConstructorDeclarationImpl({
-    // Declaration fields
+    // Declaration fields.
     required super.id,
     required super.identifier,
-    // Function fields
+    // Function fields.
     required super.isAbstract,
     required super.isExternal,
     required super.isGetter,
@@ -538,9 +538,9 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.positionalParameters,
     required super.returnType,
     required super.typeParameters,
-    // Method fields
+    // Method fields.
     required super.definingType,
-    // Constructor fields
+    // Constructor fields.
     required this.isFactory,
   }) : super(
           isStatic: true,
@@ -605,15 +605,15 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   final bool isStatic;
 
   FieldDeclarationImpl({
-    // Declaration fields
+    // Declaration fields.
     required super.id,
     required super.identifier,
-    // Variable fields
+    // Variable fields.
     required super.isExternal,
     required super.isFinal,
     required super.isLate,
     required super.type,
-    // Field fields
+    // Field fields.
     required this.definingType,
     required this.isStatic,
   });
@@ -699,12 +699,12 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
       : RemoteInstanceKind.classDeclaration;
 
   ClassDeclarationImpl({
-    // Declaration fields
+    // Declaration fields.
     required super.id,
     required super.identifier,
-    // TypeDeclaration fields
+    // TypeDeclaration fields.
     required super.typeParameters,
-    // ClassDeclaration fields
+    // ClassDeclaration fields.
     required this.interfaces,
     required this.hasAbstract,
     required this.hasBase,
@@ -763,12 +763,12 @@ class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
       : RemoteInstanceKind.enumDeclaration;
 
   EnumDeclarationImpl({
-    // Declaration fields
+    // Declaration fields.
     required super.id,
     required super.identifier,
-    // TypeDeclaration fields
+    // TypeDeclaration fields.
     required super.typeParameters,
-    // EnumDeclaration fields
+    // EnumDeclaration fields.
     required this.interfaces,
     required this.mixins,
   });
@@ -817,6 +817,60 @@ class EnumValueDeclarationImpl extends DeclarationImpl
   }
 }
 
+class IntrospectableMixinDeclarationImpl = MixinDeclarationImpl
+    with IntrospectableType
+    implements IntrospectableMixinDeclaration;
+
+class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
+    implements MixinDeclaration {
+  @override
+  final bool hasBase;
+
+  @override
+  final List<NamedTypeAnnotationImpl> interfaces;
+
+  @override
+  final List<NamedTypeAnnotationImpl> superclassConstraints;
+
+  @override
+  RemoteInstanceKind get kind => this is IntrospectableMixinDeclaration
+      ? RemoteInstanceKind.introspectableMixinDeclaration
+      : RemoteInstanceKind.mixinDeclaration;
+
+  MixinDeclarationImpl({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    // TypeDeclaration fields.
+    required super.typeParameters,
+    // MixinDeclaration fields.
+    required this.hasBase,
+    required this.interfaces,
+    required this.superclassConstraints,
+  });
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode.isClient) return;
+
+    serializer
+      ..addBool(hasBase)
+      ..startList();
+    for (NamedTypeAnnotationImpl interface in interfaces) {
+      interface.serialize(serializer);
+    }
+    serializer
+      ..endList()
+      ..startList();
+    for (NamedTypeAnnotationImpl constraint in superclassConstraints) {
+      constraint.serialize(serializer);
+    }
+    serializer..endList();
+  }
+}
+
 class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements TypeAliasDeclaration {
   /// The type being aliased.
@@ -827,12 +881,12 @@ class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.typeAliasDeclaration;
 
   TypeAliasDeclarationImpl({
-    // Declaration fields
+    // Declaration fields.
     required super.id,
     required super.identifier,
-    // TypeDeclaration fields
+    // TypeDeclaration fields.
     required super.typeParameters,
-    // TypeAlias fields
+    // TypeAlias fields.
     required this.aliasedType,
   });
 

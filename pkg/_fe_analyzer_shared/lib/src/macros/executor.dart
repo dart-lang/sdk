@@ -312,11 +312,14 @@ abstract class MacroExecutionResult implements Serializable {
 
 /// Each of the possible types of declarations a macro can be applied to
 enum DeclarationKind {
-  clazz,
+  classType,
   constructor,
+  enumType,
+  enumValue,
   field,
   function,
   method,
+  mixinType,
   variable,
 }
 

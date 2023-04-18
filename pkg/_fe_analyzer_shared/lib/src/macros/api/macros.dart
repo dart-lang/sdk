@@ -178,3 +178,24 @@ abstract class ConstructorDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForConstructor(
       ConstructorDeclaration constructor, ConstructorDefinitionBuilder builder);
 }
+
+/// The interface for [Macro]s that can be applied to any mixin declaration, and
+/// want to contribute new type declarations to the program.
+abstract class MixinTypesMacro implements Macro {
+  FutureOr<void> buildTypesForMixin(
+      MixinDeclaration mixin, TypeBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any mixin declaration, and
+/// want to contribute new non-type declarations to the program.
+abstract class MixinDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForMixin(
+      IntrospectableMixinDeclaration mixin, MemberDeclarationBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any mixin declaration, and
+/// want to augment the definitions of the members of that mixin.
+abstract class MixinDefinitionMacro implements Macro {
+  FutureOr<void> buildDefinitionForMixin(
+      IntrospectableMixinDeclaration clazz, TypeDefinitionBuilder builder);
+}

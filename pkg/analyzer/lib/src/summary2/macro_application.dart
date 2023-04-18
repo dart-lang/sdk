@@ -67,7 +67,7 @@ class LibraryMacroApplier {
             await _buildApplications(
               targetElement,
               targetNode.metadata,
-              macro.DeclarationKind.clazz,
+              macro.DeclarationKind.classType,
               () => declarationBuilder.fromNode.classDeclaration(targetNode),
               performance: performance,
             );

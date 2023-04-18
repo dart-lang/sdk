@@ -176,12 +176,11 @@ augment class Class7d {
 @SequenceMacro(0)
 class Class7d extends Class7b with Class7c {}
 
-// TODO: we should produce a mixin declaration
 @SequenceMacro(0)
 /*class: Class7c:
 declarations:
 
-augment abstract class Class7c {
+augment mixin Class7c {
   method() {}
 }
 */
@@ -197,12 +196,11 @@ augment class Class7b {
 */
 class Class7b with Class7a {}
 
-// TODO: we should produce a mixin declaration
 @SequenceMacro(0)
 /*class: Class7a:
 declarations:
 
-augment abstract class Class7a {
+augment mixin Class7a {
   method() {}
 }
 */

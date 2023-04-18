@@ -360,6 +360,21 @@ void main() {
           expectSerializationEquality(entry, mode);
         });
 
+        test('MixinDeclaration', () {
+          for (var base in [true, false]) {
+            var mixin = MixinDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
+              hasBase: base,
+              interfaces: [barType],
+              superclassConstraints: [serializableType],
+              typeParameters: [zapTypeParam],
+            );
+            expectSerializationEquality(mixin, mode);
+          }
+        });
+
         test('TypeAliasDeclaration', () {
           var typeAlias = TypeAliasDeclarationImpl(
             id: RemoteInstance.uniqueId,

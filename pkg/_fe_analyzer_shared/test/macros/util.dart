@@ -451,20 +451,6 @@ class Fixtures {
       typeParameters: [],
       definingType: myClassType.identifier,
       isStatic: false);
-  static final myMixin = ClassDeclarationImpl(
-      id: RemoteInstance.uniqueId,
-      identifier: myMixinType.identifier,
-      typeParameters: [],
-      interfaces: [],
-      hasAbstract: false,
-      hasBase: false,
-      hasExternal: false,
-      hasFinal: false,
-      hasInterface: false,
-      hasMixin: true,
-      hasSealed: false,
-      mixins: [],
-      superclass: null);
   static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
@@ -525,6 +511,30 @@ class Fixtures {
       definingType: myEnum.identifier,
       isFactory: false);
 
+  static final myMixin = IntrospectableMixinDeclarationImpl(
+    id: RemoteInstance.uniqueId,
+    identifier: myMixinType.identifier,
+    typeParameters: [],
+    hasBase: false,
+    interfaces: [],
+    superclassConstraints: [myClassType],
+  );
+  static final myMixinMethod = MethodDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMixinMethod'),
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isOperator: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: recordType,
+      typeParameters: [],
+      definingType: myMixinType.identifier,
+      isStatic: false);
+
   static final testTypeResolver = TestTypeResolver({
     stringType.identifier:
         TestNamedStaticType(stringType.identifier, 'dart:core', []),
@@ -534,16 +544,19 @@ class Fixtures {
     constructors: {
       myClass: [myConstructor],
       myEnum: [myEnumConstructor],
+      myMixin: [],
     },
     enumValues: {
       myEnum: myEnumValues,
     },
     fields: {
       myClass: [myField],
+      myMixin: [],
       myEnum: [],
     },
     methods: {
       myClass: [myMethod],
+      myMixin: [myMixinMethod],
       myEnum: [],
     },
   );
