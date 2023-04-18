@@ -11,12 +11,54 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DestructureLocalVariableAssignmentTest);
+    defineReflectiveTests(DestructureLocalVariableAssignmentObjectTest);
+    defineReflectiveTests(DestructureLocalVariableAssignmentRecordTest);
   });
 }
 
 @reflectiveTest
-class DestructureLocalVariableAssignmentTest extends AssistProcessorTest {
+class DestructureLocalVariableAssignmentObjectTest extends AssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+
+  Future<void> test_object() async {
+    await resolveTestCode('''
+class A { }
+
+A f() => A();
+
+m() {
+  var obj = f();
+}
+''');
+    await assertHasAssistAt('obj', r'''
+class A { }
+
+A f() => A();
+
+m() {
+  var A() = f();
+}
+''');
+  }
+
+  Future<void> test_object_referenced_noAssist() async {
+    await resolveTestCode('''
+class A { }
+
+A f() => A();
+
+m() {
+  var obj = f();
+  print(obj);
+}
+''');
+    await assertNoAssistAt('obj');
+  }
+}
+
+@reflectiveTest
+class DestructureLocalVariableAssignmentRecordTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
 
