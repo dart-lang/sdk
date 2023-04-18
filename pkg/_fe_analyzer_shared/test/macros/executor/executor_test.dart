@@ -239,6 +239,17 @@ void main() {
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('class GeneratedByMyEnum_A {}'));
               });
+
+              test('on mixins', () async {
+                var result = await executor.executeTypesPhase(
+                    instanceId, Fixtures.myMixin, FakeIdentifierResolver());
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
+                    equalsIgnoringWhitespace(
+                        'class GeneratedByMyMixinOnMyClass {}'));
+              });
             });
 
             group('in the declaration phase', () {
@@ -423,6 +434,27 @@ void main() {
                         .toString(),
                     equalsIgnoringWhitespace('''
                 MyEnum aToString() => a.toString();
+              '''));
+                expect(result.libraryAugmentations, isEmpty);
+              });
+
+              test('on mixins', () async {
+                var result = await executor.executeDeclarationsPhase(
+                    instanceId,
+                    Fixtures.myMixin,
+                    FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector);
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, hasLength(1));
+                expect(
+                    result
+                        .typeAugmentations[Fixtures.myMixin.identifier]!.single
+                        .debugString()
+                        .toString(),
+                    equalsIgnoringWhitespace('''
+                static const List<String> methodNames = ['myMixinMethod',];
               '''));
                 expect(result.libraryAugmentations, isEmpty);
               });
@@ -676,6 +708,28 @@ void main() {
                     augmentationStrings, unorderedEquals(["a('myField', ),"]));
                 expect(definitionResult.typeAugmentations, isEmpty);
               });
+
+              test('on mixins', () async {
+                var definitionResult = await executor.executeDefinitionsPhase(
+                    instanceId,
+                    Fixtures.myMixin,
+                    FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
+                    Fixtures.testTypeInferrer);
+                expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.typeAugmentations, hasLength(1));
+                var augmentationStrings = definitionResult
+                    .typeAugmentations[Fixtures.myMixin.identifier]!
+                    .map((a) => a.debugString().toString())
+                    .toList();
+                expect(
+                    augmentationStrings,
+                    unorderedEquals(
+                      mixinMethodDefinitionMatchers,
+                    ));
+              });
             });
           });
         });
@@ -741,6 +795,33 @@ final methodDefinitionMatchers = [
       print('field: myField');
       print('method: myMethod');
       print('constructor: myConstructor');
+      return augment super();
+    }'''),
+];
+
+final mixinMethodDefinitionMatchers = [
+  equalsIgnoringWhitespace('''
+    augment (String, bool? hello, {String world}) myMixinMethod() {
+      print('definingClass: MyMixin');
+      print('isAbstract: false');
+      print('isExternal: false');
+      print('isGetter: false');
+      print('isSetter: false');
+      print('returnType: (String, bool? hello, {String world})');
+      return augment super();
+    }'''),
+  equalsIgnoringWhitespace('''
+    augment (String, bool? hello, {String world}) myMixinMethod() {
+      print('myBool: true');
+      print('myDouble: 1.0');
+      print('myInt: 1');
+      print('myList: [1, 2, 3]');
+      print('mySet: {true, null, {a: 1.0}}');
+      print('myMap: {x: 1}');
+      print('myString: a');
+      print('parentClass: MyMixin');
+      print('superClass: null');
+      print('method: myMixinMethod');
       return augment super();
     }'''),
 ];

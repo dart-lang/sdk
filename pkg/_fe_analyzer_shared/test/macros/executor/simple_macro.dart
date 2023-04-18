@@ -35,6 +35,9 @@ class SimpleMacro
         MethodTypesMacro,
         MethodDeclarationsMacro,
         MethodDefinitionMacro,
+        MixinTypesMacro,
+        MixinDeclarationsMacro,
+        MixinDefinitionMacro,
         VariableTypesMacro,
         VariableDeclarationsMacro,
         VariableDefinitionMacro {
@@ -147,6 +150,17 @@ class SimpleMacro
     builder.declareInLibrary(DeclarationCode.fromParts([
       method.returnType.code,
       ' delegateMember${methodName.capitalize()}() => $methodName();',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
+      MemberDeclarationBuilder builder) async {
+    var methods = await builder.methodsOf(mixin);
+    builder.declareInType(DeclarationCode.fromParts([
+      'static const List<String> methodNames = [',
+      for (var method in methods) "'${method.identifier.name}',",
+      '];',
     ]));
   }
 
@@ -285,19 +299,36 @@ class SimpleMacro
     await buildDefinitionForFunction(method, builder);
 
     // Test the type declaration resolver
-    var parentClass = await builder.declarationOf(method.definingType)
-        as IntrospectableClassDeclaration;
+    var parentClass =
+        await builder.declarationOf(method.definingType) as IntrospectableType;
     // Should be able to find ourself in the methods of the parent class.
     (await builder.methodsOf(parentClass))
         .singleWhere((m) => m.identifier == method.identifier);
 
+    TypeDeclaration? superClass;
+    final interfaces = <TypeDeclaration>[];
+    final mixins = <TypeDeclaration>[];
+    final superclassConstraints = <TypeDeclaration>[];
     // Test the class introspector
-    var superClass =
-        (await builder.declarationOf(parentClass.superclass!.identifier));
-    var interfaces = await Future.wait(parentClass.interfaces
-        .map((interface) => builder.declarationOf(interface.identifier)));
-    var mixins = await Future.wait(parentClass.mixins
-        .map((mixins) => builder.declarationOf(mixins.identifier)));
+    if (parentClass is IntrospectableClassDeclaration) {
+      superClass =
+          (await builder.declarationOf(parentClass.superclass!.identifier));
+      interfaces.addAll(await Future.wait(parentClass.interfaces
+          .map((interface) => builder.declarationOf(interface.identifier))));
+      mixins.addAll(await Future.wait(parentClass.mixins
+          .map((mixins) => builder.declarationOf(mixins.identifier))));
+    } else if (parentClass is IntrospectableMixinDeclaration) {
+      superclassConstraints.addAll(await Future.wait(parentClass
+          .superclassConstraints
+          .map((interface) => builder.declarationOf(interface.identifier))));
+      interfaces.addAll(await Future.wait(parentClass.interfaces
+          .map((interface) => builder.declarationOf(interface.identifier))));
+    } else if (parentClass is IntrospectableEnumDeclaration) {
+      interfaces.addAll(await Future.wait(parentClass.interfaces
+          .map((interface) => builder.declarationOf(interface.identifier))));
+      mixins.addAll(await Future.wait(parentClass.mixins
+          .map((mixins) => builder.declarationOf(mixins.identifier))));
+    }
     var fields = (await builder.fieldsOf(parentClass));
     var methods = (await builder.methodsOf(parentClass));
     var constructors = (await builder.constructorsOf(parentClass));
@@ -314,14 +345,16 @@ class SimpleMacro
     }
 
     // TODO: Use `builder.instantiateCode` instead once implemented.
-    var classType = await builder.resolve(constructors.first.returnType.code);
-    if (await staticReturnType.isExactly(classType)) {
-      throw StateError(
-          'The return type should not be exactly equal to the class type');
-    }
-    if (await staticReturnType.isSubtypeOf(classType)) {
-      throw StateError(
-          'The return type should not be a subtype of the class type!');
+    if (constructors.isNotEmpty) {
+      var classType = await builder.resolve(constructors.first.returnType.code);
+      if (await staticReturnType.isExactly(classType)) {
+        throw StateError(
+            'The return type should not be exactly equal to the class type');
+      }
+      if (await staticReturnType.isSubtypeOf(classType)) {
+        throw StateError(
+            'The return type should not be a subtype of the class type!');
+      }
     }
 
     builder.augment(FunctionBodyCode.fromParts([
@@ -334,7 +367,7 @@ class SimpleMacro
       print('myMap: $myMap');
       print('myString: $myString');
       print('parentClass: ${parentClass.identifier.name}');
-      print('superClass: ${superClass.identifier.name}');''',
+      print('superClass: ${superClass?.identifier.name}');''',
       for (var interface in interfaces)
         "\n      print('interface: ${interface.identifier.name}');",
       for (var mixin in mixins)
@@ -349,6 +382,22 @@ class SimpleMacro
 \n      return augment super();
     }''',
     ]));
+  }
+
+  @override
+  Future<void> buildDefinitionForMixin(IntrospectableMixinDeclaration mixin,
+      TypeDefinitionBuilder builder) async {
+    // Apply ourself to all our members
+    var fields = (await builder.fieldsOf(mixin));
+    for (var field in fields) {
+      await buildDefinitionForField(
+          field, await builder.buildField(field.identifier));
+    }
+    var methods = (await builder.methodsOf(mixin));
+    for (var method in methods) {
+      await buildDefinitionForMethod(
+          method, await builder.buildMethod(method.identifier));
+    }
   }
 
   @override
@@ -465,6 +514,16 @@ class SimpleMacro
   FutureOr<void> buildTypesForMethod(
       MethodDeclaration method, TypeBuilder builder) {
     var name = 'GeneratedBy${method.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  FutureOr<void> buildTypesForMixin(
+      MixinDeclaration mixin, TypeBuilder builder) {
+    final onNames = mixin.superclassConstraints
+        .map((type) => type.identifier.name.capitalize())
+        .join('');
+    final name = 'GeneratedBy${mixin.identifier.name.capitalize()}On$onNames';
     builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 

@@ -21,7 +21,7 @@ augment prefix0.String getSuperClass() {
     return "A";
   }
 }
-augment abstract class M {
+augment mixin M {
 augment prefix0.String getSuperClass() {
     return "null";
   }

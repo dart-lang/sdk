@@ -198,6 +198,25 @@ abstract class EnumValueDeclaration implements Declaration {
 abstract class IntrospectableEnumDeclaration
     implements EnumDeclaration, IntrospectableEnum {}
 
+/// Mixin introspection information.
+///
+/// Information about fields and methods must be retrieved from the `builder`
+/// objects.
+abstract class MixinDeclaration implements ParameterizedTypeDeclaration {
+  /// Whether this mixin has a `base` modifier.
+  bool get hasBase;
+
+  /// All the `implements` type annotations.
+  Iterable<NamedTypeAnnotation> get interfaces;
+
+  /// All the `on` clause type annotations.
+  Iterable<NamedTypeAnnotation> get superclassConstraints;
+}
+
+/// An introspectable mixin declaration.
+abstract class IntrospectableMixinDeclaration
+    implements MixinDeclaration, IntrospectableType {}
+
 /// Type alias introspection information.
 abstract class TypeAliasDeclaration implements ParameterizedTypeDeclaration {
   /// The type annotation this is an alias for.

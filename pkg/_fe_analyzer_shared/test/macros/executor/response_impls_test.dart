@@ -67,7 +67,7 @@ void main() {
 
 final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
     instancesByKindAndPhase = {
-  DeclarationKind.clazz: {
+  DeclarationKind.classType: {
     Phase.types: MacroInstanceIdentifierImpl(
         FakeClassTypesMacro(), RemoteInstance.uniqueId),
     Phase.declarations: MacroInstanceIdentifierImpl(
@@ -82,6 +82,22 @@ final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
         FakeConstructorDeclarationsMacro(), RemoteInstance.uniqueId),
     Phase.definitions: MacroInstanceIdentifierImpl(
         FakeConstructorDefinitionMacro(), RemoteInstance.uniqueId),
+  },
+  DeclarationKind.enumType: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeEnumTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeEnumDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeEnumDefinitionMacro(), RemoteInstance.uniqueId),
+  },
+  DeclarationKind.enumValue: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeEnumValueTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeEnumValueDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeEnumValueDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.field: {
     Phase.types: MacroInstanceIdentifierImpl(
@@ -106,6 +122,14 @@ final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
         FakeMethodDeclarationsMacro(), RemoteInstance.uniqueId),
     Phase.definitions: MacroInstanceIdentifierImpl(
         FakeMethodDefinitionMacro(), RemoteInstance.uniqueId),
+  },
+  DeclarationKind.mixinType: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeMixinTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeMixinDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeMixinDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.variable: {
     Phase.types: MacroInstanceIdentifierImpl(
@@ -161,3 +185,24 @@ class FakeVariableDeclarationsMacro extends Fake
 
 class FakeVariableDefinitionMacro extends Fake
     implements VariableDefinitionMacro {}
+
+class FakeMixinTypesMacro extends Fake implements MixinTypesMacro {}
+
+class FakeMixinDeclarationsMacro extends Fake
+    implements MixinDeclarationsMacro {}
+
+class FakeMixinDefinitionMacro extends Fake implements MixinDefinitionMacro {}
+
+class FakeEnumTypesMacro extends Fake implements EnumTypesMacro {}
+
+class FakeEnumDeclarationsMacro extends Fake implements EnumDeclarationsMacro {}
+
+class FakeEnumDefinitionMacro extends Fake implements EnumDefinitionMacro {}
+
+class FakeEnumValueTypesMacro extends Fake implements EnumValueTypesMacro {}
+
+class FakeEnumValueDeclarationsMacro extends Fake
+    implements EnumValueDeclarationsMacro {}
+
+class FakeEnumValueDefinitionMacro extends Fake
+    implements EnumValueDefinitionMacro {}

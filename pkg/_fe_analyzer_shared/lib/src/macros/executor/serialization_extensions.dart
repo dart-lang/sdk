@@ -34,6 +34,9 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.enumValueDeclaration:
         moveNext();
         return _expectEnumValueDeclaration(id) as T;
+      case RemoteInstanceKind.mixinDeclaration:
+        moveNext();
+        return _expectMixinDeclaration(id) as T;
       case RemoteInstanceKind.constructorDeclaration:
         moveNext();
         return _expectConstructorDeclaration(id) as T;
@@ -58,6 +61,9 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.introspectableEnumDeclaration:
         moveNext();
         return _expectIntrospectableEnumDeclaration(id) as T;
+      case RemoteInstanceKind.introspectableMixinDeclaration:
+        moveNext();
+        return _expectIntrospectableMixinDeclaration(id) as T;
       case RemoteInstanceKind.methodDeclaration:
         moveNext();
         return _expectMethodDeclaration(id) as T;
@@ -296,6 +302,26 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  MixinDeclaration _expectMixinDeclaration(int id) => new MixinDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        hasBase: (this..moveNext()).expectBool(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        superclassConstraints: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  IntrospectableMixinDeclaration _expectIntrospectableMixinDeclaration(
+          int id) =>
+      new IntrospectableMixinDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        hasBase: (this..moveNext()).expectBool(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        superclassConstraints: (this..moveNext())._expectRemoteInstanceList(),
       );
 
   EnumValueDeclaration _expectEnumValueDeclaration(int id) =>

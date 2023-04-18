@@ -127,8 +127,10 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
           ? 'class'
           : typeDeclaration is EnumDeclaration
               ? 'enum'
-              : throw new UnsupportedError(
-                  'Unsupported augmentation type $typeDeclaration');
+              : typeDeclaration is MixinDeclaration
+                  ? 'mixin'
+                  : throw new UnsupportedError(
+                      'Unsupported augmentation type $typeDeclaration');
       final List<String> keywords = [
         if (typeDeclaration is ClassDeclaration) ...[
           if (typeDeclaration.hasAbstract) 'abstract',
@@ -138,7 +140,9 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
           if (typeDeclaration.hasInterface) 'interface',
           if (typeDeclaration.hasMixin) 'mixin',
           if (typeDeclaration.hasSealed) 'sealed',
-        ],
+        ] else if (typeDeclaration is MixinDeclaration &&
+            typeDeclaration.hasBase)
+          'base',
       ];
       // Has the effect of adding a space after the keywords
       if (keywords.isNotEmpty) keywords.add('');
