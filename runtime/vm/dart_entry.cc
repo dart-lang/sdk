@@ -115,6 +115,12 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments,
                                     const Array& arguments_descriptor,
                                     uword current_sp) {
+#if defined(DART_PRECOMPILER)
+  if (FLAG_precompiled_mode) {
+    FATAL("Should never invoke Dart code during AOT compilation");
+  }
+#endif
+
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   ASSERT(!function.IsNull());
@@ -177,6 +183,12 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
+#if defined(DART_PRECOMPILER)
+  if (FLAG_precompiled_mode) {
+    FATAL("Should never invoke Dart code during AOT compilation");
+  }
+#endif
+
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!thread->isolate_group()->null_safety_not_set());
