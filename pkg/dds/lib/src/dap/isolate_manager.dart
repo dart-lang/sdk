@@ -363,14 +363,20 @@ class IsolateManager {
   /// Configures a new isolate, setting it's exception-pause mode, which
   /// libraries are debuggable, and sending all breakpoints.
   Future<void> _configureIsolate(ThreadInfo thread) async {
-    // Libraries must be set as debuggable _before_ sending breakpoints, or
-    // they may fail for SDK sources.
-    await Future.wait([
-      _sendLibraryDebuggables(thread),
-      _sendExceptionPauseMode(thread),
-    ], eagerError: true);
+    try {
+      // Libraries must be set as debuggable _before_ sending breakpoints, or
+      // they may fail for SDK sources.
+      await Future.wait([
+        _sendLibraryDebuggables(thread),
+        _sendExceptionPauseMode(thread),
+      ], eagerError: true);
 
-    await _sendBreakpoints(thread);
+      await _sendBreakpoints(thread);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // configuring it. State will be cleaned up by the IsolateExit event.
+    }
   }
 
   /// Evaluates an expression, returning the result if it is a [vm.InstanceRef]
