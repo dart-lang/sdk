@@ -313,7 +313,10 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
     status = SecTrustGetTrustResult(trust.get(), &trust_result);
   } else {
     // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated"
     status = SecTrustEvaluate(trust.get(), &trust_result);
+#pragma clang diagnostic pop
   }
 
   postReply(reply_port_id,

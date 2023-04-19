@@ -258,6 +258,61 @@ void f(Object? x) {
 ''');
   }
 
+  test_interfaceType2_matchedSealed_hasNonFinalSubtype() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+sealed class A {}
+final class A2 extends A {}
+class A3 implements A {}
+class R {}
+''');
+  }
+
+  test_interfaceType2_matchedSealed_onlyFinalSubtypes_noneImplementsRequired() async {
+    await assertErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+sealed class A {}
+final class A2 extends A {}
+final class A3 implements A {}
+class R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
+    ]);
+  }
+
+  test_interfaceType2_matchedSealed_onlyFinalSubtypes_noneImplementsRequired2() async {
+    await assertErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+sealed class A {}
+sealed class A2 extends A {}
+final class A3 implements A {}
+class R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
+    ]);
+  }
+
+  test_interfaceType2_matchedSealed_onlyFinalSubtypes_oneImplementsRequired() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+sealed class A {}
+final class A2 extends A implements R {}
+class R {}
+''');
+  }
+
   test_interfaceType2_requiredFinal_matchedSelf() async {
     await assertNoErrorsInCode('''
 void f(A x) {
@@ -380,6 +435,47 @@ final class B {}
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
     ]);
+  }
+
+  test_interfaceType2_requiredSealed_hasNonFinalSubtype() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+class A {}
+sealed class R {}
+final class R1 extends R {}
+class R2 extends R {}
+''');
+  }
+
+  test_interfaceType2_requiredSealed_onlyFinalSubtypes_noneImplementsMatched() async {
+    await assertErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+class A {}
+sealed class R {}
+final class R1 extends R {}
+final class R2 extends R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
+    ]);
+  }
+
+  test_interfaceType2_requiredSealed_onlyFinalSubtypes_oneImplementsMatched() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case R _) {}
+}
+
+class A {}
+sealed class R {}
+final class R1 extends R {}
+final class R2 extends R implements A {}
+''');
   }
 
   test_interfaceType_functionType() async {

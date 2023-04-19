@@ -766,6 +766,9 @@ class LspAnalysisServer extends AnalysisServer {
       // Only send analysis analytics after analysis is complete.
       reportAnalysisAnalytics();
     }
+    if (isAnalyzing && !wasAnalyzing) {
+      wasAnalyzing = true;
+    }
 
     if (clientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(

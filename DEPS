@@ -93,7 +93,6 @@ vars = {
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "devtools_rev": "026f0adf03725fbab24d601ac74c811808f258e5",
-  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
@@ -145,7 +144,7 @@ vars = {
   "http_parser_rev": "bbe37dd228ec59f58a73df4b328ef747757165c7",
   "intl_rev": "a958db01c90d041f0cd357d1732ae9813b620ee0",
   "json_rpc_2_rev": "5da270592006e4d43fd5a6ac736829f955881240",
-  "linter_rev": "eb0ca501f48deaa034e07e6dd1ff9ad6ff3519c6", # disable rev_sdk_deps.dart
+  "linter_rev": "ca2a9fe07b399138b1f9d44e9e11e5198e0d8c05", # disable rev_sdk_deps.dart
   "lints_rev": "f09399a2574eb4e3f485881cf977fca72628f443",
   "logging_rev": "787030a2b3d0d5d53ce57f1c7dc74f27ecb07b0b",
   "markdown_rev": "d437c85188806fe2bfa4f3616159300ba9dc6d2a",
@@ -333,10 +332,6 @@ deps = {
   Var("dart_root") + "/third_party/mdn/browser-compat-data/src":
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
-
-  Var("dart_root") + "/third_party/tcmalloc/gperftools":
-      Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
-      "@" + Var("gperftools_revision"),
 
   Var("dart_root") + "/third_party/pkg/args":
       Var("dart_git") + "args.git" + "@" + Var("args_rev"),

@@ -445,14 +445,14 @@ void ObjectStore::LazyInitCoreMembers() {
     list_class_.store(cls.ptr());
 
     auto& type = Type::Handle(zone);
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_list_rare_type_.store(type.ptr());
 
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
     map_class_.store(cls.ptr());
 
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
 
     cls = core_lib.LookupClass(Symbols::Set());
@@ -522,7 +522,7 @@ void ObjectStore::LazyInitAsyncMembers() {
     type ^= type.Canonicalize(thread, nullptr);
     nullable_future_null_type_.store(type.ptr());
 
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_future_rare_type_.store(type.ptr());
   }
 }

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -12,7 +13,138 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToSwitchStatement extends CorrectionProducer {
+class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
+  @override
+  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    final ifStatement = node;
+    if (ifStatement is! IfStatement) {
+      return;
+    }
+
+    final cases = _buildCases(ifStatement);
+    if (cases == null) {
+      return;
+    }
+
+    final firstThen = cases.firstOrNull;
+    if (firstThen is! _IfCaseThen) {
+      return;
+    }
+
+    final indent = utils.getLinePrefix(ifStatement.offset);
+    final singleIndent = utils.getIndent(1);
+    final caseIndent = '$indent$singleIndent';
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(ifStatement), (builder) {
+        final expressionCode = firstThen.identifier;
+        builder.writeln('switch ($expressionCode) {');
+
+        for (final case_ in cases) {
+          switch (case_) {
+            case _IfCaseThen():
+              final patternCode = case_.patternCode;
+              builder.writeln('${caseIndent}case $patternCode:');
+              _writeStatement(
+                builder: builder,
+                statement: case_.statement,
+                ifStatementIndent: indent,
+              );
+            case _IfCaseElse():
+              builder.writeln('${caseIndent}default:');
+              _writeStatement(
+                builder: builder,
+                statement: case_.statement,
+                ifStatementIndent: indent,
+              );
+          }
+        }
+
+        builder.write('$indent}');
+      });
+    });
+  }
+
+  List<_IfCase>? _buildCases(IfStatement ifStatement) {
+    final expression = ifStatement.expression;
+    if (expression is! SimpleIdentifier) {
+      return null;
+    }
+
+    final String patternCode;
+    final caseClause = ifStatement.caseClause;
+    if (caseClause != null) {
+      patternCode = utils.getNodeText(caseClause.guardedPattern);
+    } else {
+      // TODO(scheglov) support converting conditions to patterns
+      return null;
+    }
+
+    final thenCase = _IfCaseThen(
+      identifier: expression.token,
+      patternCode: patternCode,
+      statement: ifStatement.thenStatement,
+    );
+
+    final cases = <_IfCase>[];
+    cases.add(thenCase);
+
+    final elseStatement = ifStatement.elseStatement;
+    if (elseStatement is IfStatement) {
+      final elseCases = _buildCases(elseStatement);
+      if (elseCases == null) {
+        return null;
+      }
+      for (final elseCase in elseCases) {
+        if (elseCase is _IfCaseThen) {
+          if (elseCase.identifier.lexeme != thenCase.identifier.lexeme) {
+            return null;
+          }
+        }
+        cases.add(elseCase);
+      }
+    } else if (elseStatement != null) {
+      cases.add(
+        _IfCaseElse(
+          statement: elseStatement,
+        ),
+      );
+    }
+
+    return cases;
+  }
+
+  /// Writes [statement], if it is a [Block], inlines it.
+  void _writeStatement({
+    required DartEditBuilder builder,
+    required Statement statement,
+    required String ifStatementIndent,
+  }) {
+    final statements = statement.selfOrBlockStatements;
+    final range = utils.getLinesRangeStatements(statements);
+
+    // if
+    //   statement
+    // switch
+    //   case
+    //     statement
+    final singleIndent = utils.getIndent(1);
+    final newIndent = '$ifStatementIndent$singleIndent';
+
+    final code = utils.replaceSourceRangeIndent(
+      range,
+      ifStatementIndent,
+      newIndent,
+    );
+
+    builder.write(code);
+  }
+}
+
+class ConvertSwitchExpressionToSwitchStatement extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 
@@ -207,6 +339,31 @@ class ConvertToSwitchStatement extends CorrectionProducer {
       );
     });
   }
+}
+
+sealed class _IfCase {
+  final Statement statement;
+
+  _IfCase({
+    required this.statement,
+  });
+}
+
+class _IfCaseElse extends _IfCase {
+  _IfCaseElse({
+    required super.statement,
+  });
+}
+
+class _IfCaseThen extends _IfCase {
+  final Token identifier;
+  final String patternCode;
+
+  _IfCaseThen({
+    required this.identifier,
+    required this.patternCode,
+    required super.statement,
+  });
 }
 
 extension on GuardedPattern {

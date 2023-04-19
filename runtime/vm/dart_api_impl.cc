@@ -4362,7 +4362,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
 
   TypeArguments& type_arguments =
-      TypeArguments::Handle(Z, type_obj.arguments());
+      TypeArguments::Handle(Z, type_obj.GetInstanceTypeArguments(T));
 
   const String& base_constructor_name = String::Handle(Z, cls.Name());
 
@@ -4508,7 +4508,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
 
   const Class& cls = Class::Handle(Z, type_obj.type_class());
   const TypeArguments& type_arguments =
-      TypeArguments::Handle(Z, type_obj.arguments());
+      TypeArguments::Handle(Z, type_obj.GetInstanceTypeArguments(T));
 
   CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
 #if defined(DEBUG)
@@ -4621,8 +4621,10 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
     strings.SetAt(2, constructor_name);
   }
   const String& dot_name = String::Handle(Z, String::ConcatAll(strings));
-  const TypeArguments& type_arguments =
-      TypeArguments::Handle(Z, type_obj.arguments());
+  TypeArguments& type_arguments = TypeArguments::Handle(Z);
+  if (type_obj.IsType()) {
+    type_arguments = Type::Cast(type_obj).GetInstanceTypeArguments(T);
+  }
   const Function& constructor =
       Function::Handle(Z, cls.LookupFunctionAllowPrivate(dot_name));
   const int kTypeArgsLen = 0;

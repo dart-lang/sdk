@@ -30,7 +30,7 @@ mixin M1 {
 /*member: A2.:[exact=A2]*/
 class A2 {
   /*member: A2.foo:[null]*/
-  void foo(/*Value([exact=JSString], value: "")*/ x) => print(x);
+  void foo(/*[empty]*/ x) => print(x);
 }
 
 /*member: B2.:[exact=B2]*/

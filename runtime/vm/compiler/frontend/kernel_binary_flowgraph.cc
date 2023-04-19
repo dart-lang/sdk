@@ -567,7 +567,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
         (Class::Handle(Z, result_type.type_class()).IsFutureClass() ||
          result_type.IsFutureOrType())) {
       ASSERT(result_type.IsFinalized());
-      type_args = result_type.arguments();
+      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
     }
 
     body += TranslateInstantiatedTypeArguments(type_args);
@@ -581,7 +581,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     if (result_type.IsType() &&
         (result_type.type_class() == IG->object_store()->stream_class())) {
       ASSERT(result_type.IsFinalized());
-      type_args = result_type.arguments();
+      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
     }
 
     body += TranslateInstantiatedTypeArguments(type_args);
@@ -599,7 +599,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     if (result_type.IsType() &&
         (result_type.type_class() == IG->object_store()->iterable_class())) {
       ASSERT(result_type.IsFinalized());
-      type_args = result_type.arguments();
+      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
     }
 
     body += TranslateInstantiatedTypeArguments(type_args);
@@ -3496,15 +3496,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
 
   if (klass.NumTypeArguments() > 0) {
     if (!klass.IsGeneric()) {
-      Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).ptr());
-
-      // TODO(27590): Can we move this code into [ReceiverType]?
-      type ^= ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize);
-      TypeArguments& canonicalized_type_arguments =
-          TypeArguments::ZoneHandle(Z, type.arguments());
-      canonicalized_type_arguments =
-          canonicalized_type_arguments.Canonicalize(thread(), nullptr);
-      instructions += Constant(canonicalized_type_arguments);
+      const TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+          Z, klass.GetDeclarationInstanceTypeArguments());
+      instructions += Constant(type_arguments);
     } else {
       const TypeArguments& type_arguments =
           PeekArgumentsInstantiatedType(klass);
@@ -4471,7 +4465,8 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
       FATAL("Unexpected type for runtime check in await: %s", type.ToCString());
     }
     ASSERT(type.IsFinalized());
-    const auto& type_args = TypeArguments::ZoneHandle(Z, type.arguments());
+    const auto& type_args =
+        TypeArguments::ZoneHandle(Z, Type::Cast(type).arguments());
     if (!type_args.IsNull()) {
       const auto& type_arg = AbstractType::Handle(Z, type_args.TypeAt(0));
       if (!type_arg.IsTopTypeForSubtyping()) {

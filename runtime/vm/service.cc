@@ -2910,8 +2910,8 @@ static void CollectStringifiedType(Zone* zone,
     output.Add(instance);
     return;
   }
-  if (type.IsTypeParameter() && type.IsAbstractType()) {
-    // Calling type_class on an abstract type parameter will crash the VM.
+  if (type.IsTypeParameter()) {
+    // Calling type_class on a type parameter will crash the VM.
     // We use null instead.
     output.Add(instance);
     return;
@@ -2923,6 +2923,8 @@ static void CollectStringifiedType(Zone* zone,
     output.Add(instance);
     return;
   }
+  ASSERT(type.IsType());
+
   const Class& cls = Class::Handle(type.type_class());
   const Library& lib = Library::Handle(zone, cls.library());
 
@@ -2935,7 +2937,8 @@ static void CollectStringifiedType(Zone* zone,
   instance ^= Smi::New((intptr_t)type.nullability());
   output.Add(instance);
 
-  const TypeArguments& srcArguments = TypeArguments::Handle(type.arguments());
+  const TypeArguments& srcArguments =
+      TypeArguments::Handle(Type::Cast(type).arguments());
   instance ^= Smi::New(srcArguments.Length());
   output.Add(instance);
   for (int i = 0; i < srcArguments.Length(); i++) {

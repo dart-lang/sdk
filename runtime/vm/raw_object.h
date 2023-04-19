@@ -993,7 +993,7 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(LibraryPtr, library)
   COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, super_type)
+  COMPRESSED_POINTER_FIELD(TypePtr, super_type)
   // Canonicalized const instances of this class.
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
   // Declaration type for this class.
@@ -1008,6 +1008,11 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)
 #endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
 
+  // Cached declaration instance type arguments for this class.
+  // Not preserved in AOT snapshots.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr,
+                           declaration_instance_type_arguments)
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Stub code for allocation of instances.
   COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
@@ -1016,11 +1021,7 @@ class UntaggedClass : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-#if defined(PRODUCT)
-  VISIT_TO(invocation_dispatcher_cache)
-#else
-  VISIT_TO(direct_subclasses)
-#endif  // defined(PRODUCT)
+  VISIT_TO(declaration_instance_type_arguments)
 #else
   VISIT_TO(dependent_code)
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

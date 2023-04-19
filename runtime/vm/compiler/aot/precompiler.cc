@@ -1191,7 +1191,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
     const Type& type = Type::Cast(abstype);
     const Class& cls = Class::Handle(Z, type.type_class());
     AddTypesOf(cls);
-    const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
+    const TypeArguments& vector = TypeArguments::Handle(Z, type.arguments());
     AddTypeArguments(vector);
   } else if (abstype.IsTypeRef()) {
     AbstractType& type = AbstractType::Handle(Z);

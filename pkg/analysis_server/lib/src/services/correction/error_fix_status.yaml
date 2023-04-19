@@ -45,7 +45,7 @@
 #
 # Stats:
 # -   0 "needsEvaluation"
-# - 379 "needsFix"
+# - 381 "needsFix"
 # - 352 "hasFix"
 # - 490 "noFix"
 
@@ -2111,6 +2111,14 @@ LintCode.list_remove_unrelated_type:
   status: noFix
 LintCode.literal_only_boolean_expressions:
   status: noFix
+LintCode.matching_super_parameters:
+  status: needsFix
+  notes: |-
+    A little tricky, but two (non-conflicting) ideas:
+    1. Rename the super-parameter if it doesn't conflict with any other
+       parameter name.
+    2. Transpose two super parameters if doing so would match up their
+       super-constructor parameters.
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
@@ -2131,6 +2139,9 @@ LintCode.no_leading_underscores_for_library_prefixes:
   status: hasFix
 LintCode.no_leading_underscores_for_local_identifiers:
   status: hasFix
+LintCode.no_literal_bool_comparisons:
+  status: needsFix
+  notes: The fix is to remove `== true` etc.
 LintCode.no_logic_in_create_state:
   status: noFix
 LintCode.no_runtimeType_toString:
