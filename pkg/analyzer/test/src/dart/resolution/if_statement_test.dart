@@ -28,7 +28,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -61,7 +61,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -144,7 +144,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -228,7 +228,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -313,7 +313,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -397,7 +397,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -476,7 +476,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -559,7 +559,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -650,7 +650,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -736,7 +736,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -815,7 +815,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -912,7 +912,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -1006,7 +1006,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -1082,7 +1082,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -1157,7 +1157,7 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SuperExpression
+  expression: SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -1183,7 +1183,7 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -1225,7 +1225,7 @@ void f(bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -1255,7 +1255,7 @@ void f(int Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -1293,7 +1293,7 @@ void f(x, bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -1337,7 +1337,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic

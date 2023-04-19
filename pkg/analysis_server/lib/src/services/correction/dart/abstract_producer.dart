@@ -195,7 +195,7 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
       // if ( myFunction() ) {}
       if (parent is IfStatement) {
         var statement = parent;
-        if (statement.condition == expression) {
+        if (statement.expression == expression) {
           return coreTypeBool;
         }
       }

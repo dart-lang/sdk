@@ -100,53 +100,6 @@ Instead of using `[List[T], T, T]`, the last overlapping `T` is collapsed and th
 Class `B` has 2 type parameters and 2 type arguments, whereas class `C` has 1 type parameter and 2 type arguments.
 
 
-## TypeRef
-
-Consider the following example:
-```dart
-class B<T> { }
-class D extends B<D> { }
-```
-Flattening the type argument vector of instances of class `D` poses a problem. Indeed, the type argument at index 0 must represent type `D`, which is the type argument of class `B`. Therefore, type `D` would need to be represented by `D[D[D[D[...]]]]` ad infinitum. To solve this problem, the `TypeRef` object extending `AbstractType` is introduced. It contains a single field `type`, which points to an `AbstractType`. Basically, `TypeRef` references another type and it is used to break cycles in type graphs. In this example, type `D` is represented as `D[TypeRef -> D]`, or graphically:
-```
-D:    D[TypeRef]
-      ^    |
-      |    |
-      +----+
-```
-
-Another example:
-```dart
-class D1 extends B<D2> { }
-class D2 extends B<D1> { }
-```
-Corresponding types and their internal representation:
-```
-D1:    D1[TypeRef -> D2]
-D2:    D2[TypeRef -> D1]
-```
-
-Note that not all declarations of types can be represented this way, but only what is called *contractive* types:
-```dart
-class D<T> extends B<D<D<int>> { }
-```
-```
-D<T>:       D[D<D<int>>, T]
-D<D<int>>:  D[TypeRef -> D<D<int>>, D<int>]
-D<int>:     D[D<D<int>>, int]
-```
-Here however is the example of a *non-contractive* type:
-```dart
-class D<T> extends B<D<D<T>> { }
-```
-```
-D<T>:       D[D<D<T>>, T]
-D<D<T>>:    D[D<D<D<T>>>, D<T>]
-D<D<D<T>>>: D[D<D<D<D<T>>>>, D<D<T>>]
-...
-```
-The representation is divergent and therefore not possible. The VM detects non-contractive types (search for `ClassFinalizer::CheckRecursiveType` in the [class finalizer](https://github.com/dart-lang/sdk/blob/main/runtime/vm/class_finalizer.cc)) and reports an error. These non-contractive types make no sense in real programs and rejecting them is not an issue at all.
-
 ## Compile Time Type
 
 The VM classes described so far are not only used to represent the runtime type of instances in the heap, but they are also used to describe types at compile time. For example, the right handside of an *instance of* type test is represented by a concrete instance of `AbstractType`. Note that the type may still be *uninstantiated* at compile time, e.g. `List<T>` still contains the `TypeParameter` `T` of a generic class in its type argument vector:
@@ -216,7 +169,7 @@ Instead of implementing three different traversals, the kind of type equality is
 
 ## Finalization
 
-Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization consists in flattening type argument vectors and in assigning indices to type parameters. A generic type provided by CFE will always have as many type arguments as the number of type parameters declared by the type’s class. As explained above, type arguments get prepended to the type argument vector, so that the vector can be used unchanged in any super class of the type’s class. This is done by methods of the [class finalizer](https://github.com/dart-lang/sdk/blob/main/runtime/vm/class_finalizer.h) called `ExpandAndFinalizeTypeArguments` and `FillAndFinalizeTypeArguments`.
+Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization currently assigns indices to type parameters.
 
 The index of function type parameters can be assigned immediately upon loading of the type parameter from the kernel file. This is possible because enclosing generic functions are always loaded prior to inner generic functions. Therefore the number of type parameters declared in the  enclosing scope is known. The picture is more complicated with class type parameters. Classes can reference each other and a clear order is not defined in the kernel file. Clusters of classes must be fully loaded before type arguments can be flattened, which in turn determines the indices of class type parameters.
 

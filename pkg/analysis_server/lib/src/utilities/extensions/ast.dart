@@ -122,6 +122,12 @@ extension AstNodeExtensions on AstNode {
   }
 }
 
+extension BinaryExpressionExtensions on BinaryExpression {
+  bool get isNotEqNull {
+    return operator.type == TokenType.BANG_EQ && rightOperand is NullLiteral;
+  }
+}
+
 extension CompilationUnitExtension on CompilationUnit {
   /// Return the list of tokens that comprise the file header comment for this
   /// compilation unit.

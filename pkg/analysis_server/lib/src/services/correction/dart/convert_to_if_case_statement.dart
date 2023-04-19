@@ -68,7 +68,7 @@ class ConvertToIfCaseStatement extends CorrectionProducer {
     required IfStatement ifStatement,
     required bool Function() hasReferencesAfterThen,
   }) async {
-    final isExpression = ifStatement.condition;
+    final isExpression = ifStatement.expression;
     if (isExpression is! IsExpression) {
       return;
     }
@@ -106,7 +106,7 @@ class ConvertToIfCaseStatement extends CorrectionProducer {
     required IfStatement ifStatement,
     required bool Function() hasReferencesAfterThen,
   }) async {
-    final notEqNull = ifStatement.condition;
+    final notEqNull = ifStatement.expression;
     if (notEqNull is! BinaryExpression) {
       return;
     }
@@ -158,7 +158,7 @@ class ConvertToIfCaseStatement extends CorrectionProducer {
       final initializerCode = utils.getNodeText(initializer);
 
       builder.addSimpleReplacement(
-        range.node(ifStatement.condition),
+        range.node(ifStatement.expression),
         '$initializerCode case $patternCode',
       );
     });

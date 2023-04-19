@@ -65,14 +65,10 @@ void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
     buffer->AddString("_");
     buffer->AddString(klass_.ScrubbedNameCString());
 
-    const intptr_t type_parameters = klass_.NumTypeParameters();
-    auto& type_arguments = TypeArguments::Handle(type.arguments());
-    if (!type_arguments.IsNull() && type_parameters > 0) {
-      type_arguments = type.arguments();
-      ASSERT(type_arguments.Length() >= type_parameters);
-      const intptr_t length = type_arguments.Length();
-      for (intptr_t i = 0; i < type_parameters; ++i) {
-        type_ = type_arguments.TypeAt(length - type_parameters + i);
+    auto& type_arguments = TypeArguments::Handle(Type::Cast(type).arguments());
+    if (!type_arguments.IsNull()) {
+      for (intptr_t i = 0, n = type_arguments.Length(); i < n; ++i) {
+        type_ = type_arguments.TypeAt(i);
         buffer->AddString("__");
         StringifyTypeTo(buffer, type_);
       }
@@ -503,7 +499,7 @@ static CheckType SubtypeChecksForClass(Zone* zone,
                : CheckType::kCannotBeChecked;
   }
   auto& calculated_type =
-      AbstractType::Handle(zone, to_check.GetInstantiationOf(zone, type_class));
+      Type::Handle(zone, to_check.GetInstantiationOf(zone, type_class));
   if (calculated_type.IsInstantiated()) {
     if (type.IsInstantiated()) {
       return calculated_type.IsSubtypeOf(type, Heap::kNew)
@@ -526,9 +522,10 @@ static CheckType SubtypeChecksForClass(Zone* zone,
   // arguments, then we can just treat the instance type arguments as if they
   // were used to instantiate the type class during checking.
   const auto& decl_type_args = TypeArguments::Handle(
-      zone, Type::Handle(zone, to_check.DeclarationType()).arguments());
-  const auto& calculated_type_args =
-      TypeArguments::Handle(zone, calculated_type.arguments());
+      zone, to_check.GetDeclarationInstanceTypeArguments());
+  const auto& calculated_type_args = TypeArguments::Handle(
+      zone, calculated_type.GetInstanceTypeArguments(Thread::Current(),
+                                                     /*canonicalize=*/false));
   const bool type_args_consistent = calculated_type_args.IsSubvectorEquivalent(
       decl_type_args, 0, type_class.NumTypeArguments(),
       TypeEquality::kCanonical);
@@ -639,7 +636,7 @@ void TypeTestingStubGenerator::
     // uncommon because most Dart code in 2.0 will be strongly typed)!
     __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
                      Object::null_object());
-    const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
+    const Type& rare_type = Type::Handle(type_class.RareType());
     if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
       compiler::Label process_done;
       __ BranchIf(NOT_EQUAL, &process_done, compiler::Assembler::kNearJump);
@@ -659,12 +656,12 @@ void TypeTestingStubGenerator::
     const TypeArguments& ta = TypeArguments::Handle(type.arguments());
     const intptr_t num_type_parameters = type_class.NumTypeParameters();
     const intptr_t num_type_arguments = type_class.NumTypeArguments();
-    ASSERT(ta.Length() >= num_type_arguments);
+    ASSERT(ta.Length() == num_type_parameters);
     for (intptr_t i = 0; i < num_type_parameters; ++i) {
       const intptr_t type_param_value_offset_i =
           num_type_arguments - num_type_parameters + i;
 
-      type_arg = ta.TypeAt(type_param_value_offset_i);
+      type_arg = ta.TypeAt(i);
       ASSERT(type_arg.IsTypeParameter() ||
              hi->CanUseSubtypeRangeCheckFor(type_arg));
 
@@ -1347,10 +1344,8 @@ void RegisterTypeArgumentsUse(const Function& function,
         //
         // We use the declaration type arguments for the instance creation,
         // which is a non-instantiated, expanded, type arguments vector.
-        const Type& declaration_type =
-            Type::Handle(instance_klass.DeclarationType());
-        TypeArguments& declaration_type_args =
-            TypeArguments::Handle(declaration_type.arguments());
+        TypeArguments& declaration_type_args = TypeArguments::Handle(
+            instance_klass.GetDeclarationInstanceTypeArguments());
         type_usage_info->UseTypeArgumentsInInstanceCreation(
             klass, declaration_type_args);
       }
@@ -1365,10 +1360,8 @@ void RegisterTypeArgumentsUse(const Function& function,
     // vector passed in by the caller.
     if (function.IsFactory()) {
       const Class& enclosing_class = Class::Handle(function.Owner());
-      const Type& declaration_type =
-          Type::Handle(enclosing_class.DeclarationType());
-      TypeArguments& declaration_type_args =
-          TypeArguments::Handle(declaration_type.arguments());
+      TypeArguments& declaration_type_args = TypeArguments::Handle(
+          enclosing_class.GetDeclarationInstanceTypeArguments());
       type_usage_info->UseTypeArgumentsInInstanceCreation(
           klass, declaration_type_args);
     }

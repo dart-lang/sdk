@@ -98,6 +98,64 @@ class CoreTypesUtil {
           VariableDeclaration variable, Constant constant) =>
       StaticInvocation(coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
+
+  /// Cast the [invocation] if needed to conform to the expected [returnType].
+  Expression castInvocationForReturn(
+      Expression invocation, DartType returnType) {
+    if (returnType is VoidType) {
+      // `undefined` may be returned for `void` external members. It, however,
+      // is an extern ref, and therefore needs to be made a Dart type before
+      // we can finish the invocation.
+      return invokeOneArg(dartifyRawTarget, invocation);
+    } else {
+      Expression expression;
+      if (returnType.isStaticInteropType) {
+        // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
+        // code after migrating existing users of js interop on Dart2Wasm.
+        // expression = _createJSValue(invocation);
+        expression = invokeOneArg(jsValueBoxTarget, invocation);
+      } else {
+        // Because we simply don't have enough information, we leave all JS
+        // numbers as doubles. However, in cases where we know the user expects
+        // an `int` we insert a cast. We also let static interop types flow
+        // through without conversion, both as arguments, and as the return
+        // type.
+        final returnTypeOverride = returnType == coreTypes.intNullableRawType
+            ? coreTypes.doubleNullableRawType
+            : returnType == coreTypes.intNonNullableRawType
+                ? coreTypes.doubleNonNullableRawType
+                : returnType;
+        expression = AsExpression(
+            convertReturnType(returnType, returnTypeOverride,
+                invokeOneArg(dartifyRawTarget, invocation)),
+            returnType);
+      }
+      return expression;
+    }
+  }
+
+  // Handles any necessary return type conversions. Today this is just for
+  // handling the case where a user wants us to coerce a JS number to an int
+  // instead of a double.
+  Expression convertReturnType(
+      DartType returnType, DartType returnTypeOverride, Expression expression) {
+    if (returnType == coreTypes.intNullableRawType ||
+        returnType == coreTypes.intNonNullableRawType) {
+      VariableDeclaration v = VariableDeclaration('#var',
+          initializer: expression,
+          type: returnTypeOverride,
+          isSynthesized: true);
+      return Let(
+          v,
+          ConditionalExpression(
+              variableCheckConstant(v, NullConstant()),
+              ConstantExpression(NullConstant()),
+              invokeMethod(v, numToIntTarget),
+              returnType));
+    } else {
+      return expression;
+    }
+  }
 }
 
 extension DartTypeExtension on DartType {

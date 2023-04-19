@@ -19,7 +19,7 @@ class InvertIfStatement extends CorrectionProducer {
     if (ifStatement is! IfStatement) {
       return;
     }
-    var condition = ifStatement.condition;
+    var condition = ifStatement.expression;
     // should have both "then" and "else"
     var thenStatement = ifStatement.thenStatement;
     var elseStatement = ifStatement.elseStatement;

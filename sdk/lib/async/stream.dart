@@ -2177,7 +2177,7 @@ abstract interface class EventSink<T> implements Sink<T> {
 }
 
 /// [Stream] wrapper that only exposes the [Stream] interface.
-base class StreamView<T> extends Stream<T> {
+class StreamView<T> extends Stream<T> {
   final Stream<T> _stream;
 
   const StreamView(Stream<T> stream) : _stream = stream;

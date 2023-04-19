@@ -648,7 +648,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     } else if (entity == node.thenElement || entity == node.elseElement) {
       _addCollectionElementKeywords();
       _addExpressionKeywords(node);
-    } else if (entity == node.condition) {
+    } else if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
     return super.visitIfElement(node);
@@ -675,7 +675,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
-    } else if (entity == node.condition) {
+    } else if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
   }

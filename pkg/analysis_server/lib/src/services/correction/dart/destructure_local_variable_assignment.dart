@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -45,16 +46,64 @@ class DestructureLocalVariableAssignment extends CorrectionProducer {
     var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function == null) return;
 
-    var references = variableElement.findReferencesIn(function);
-    // todo(pq): convert references
-    if (references.isNotEmpty) return;
+    var (:objectReferences, :propertyReferences) =
+        variableElement.findReferencesIn(function);
+    if (objectReferences.isNotEmpty) return;
+
+    var scopedNameFinder = ScopedNameFinder(node.offset);
+    node.accept(scopedNameFinder);
+    var namesInScope = <String>{};
+    namesInScope.addAll(scopedNameFinder.locals);
+
+    var correctionUtils = CorrectionUtils(resolvedResult);
+    var varMap = <ObjectFieldName, List<AstNode>>{};
+
+    for (var propertyReference in propertyReferences.entries) {
+      var excludes =
+          correctionUtils.findPossibleLocalVariableConflicts(node.offset);
+      excludes.addAll(namesInScope);
+
+      var references = propertyReference.value;
+      for (var reference in references) {
+        if (reference.isAssignedTo) return;
+        excludes.addAll(correctionUtils
+            .findPossibleLocalVariableConflicts(reference.offset));
+      }
+
+      var fieldName = ObjectFieldName.forName(propertyReference.key, excludes);
+      if (fieldName == null) return;
+
+      varMap[fieldName] = references;
+    }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.entity(node.name), (builder) {
         builder.write('${type.element.name}(');
-        builder.selectHere();
+        if (varMap.isEmpty) {
+          builder.selectHere();
+        } else {
+          for (var (i, entry) in varMap.entries.indexed) {
+            if (i > 0) {
+              builder.write(', ');
+            }
+            var fieldName = entry.key;
+            fieldName.write(builder);
+          }
+        }
         builder.write(')');
       });
+
+      for (var entry in varMap.entries) {
+        var varName = entry.key.varName;
+        var references = entry.value;
+        for (var reference in references) {
+          builder.addReplacement(range.entity(reference), (builder) {
+            builder.addLinkedEdit(varName, (builder) {
+              builder.write(varName);
+            });
+          });
+        }
+      }
     });
   }
 
@@ -135,6 +184,33 @@ class NamedField extends RecordField {
   }
 }
 
+class ObjectFieldName {
+  final String varName;
+  final String fieldName;
+  ObjectFieldName._(this.varName, this.fieldName);
+
+  bool get isDefault => varName == fieldName;
+
+  void write(EditBuilder builder) {
+    var suggestions = <String>[];
+    if (isDefault) {
+      builder.write(':');
+    } else {
+      builder.write('$fieldName: ');
+    }
+    suggestions.add(varName);
+    builder.addSimpleLinkedEdit(varName, varName,
+        kind: LinkedEditSuggestionKind.VARIABLE, suggestions: suggestions);
+  }
+
+  static ObjectFieldName? forName(String name, Set<String> excludes) {
+    var suggestions = getVariableNameSuggestionsForText(name, excludes);
+    var suggestion = suggestions.firstOrNull;
+    if (suggestion == null) return null;
+    return ObjectFieldName._(suggestion, name);
+  }
+}
+
 class PositionalField extends RecordField {
   final String variable;
   PositionalField(this.variable);
@@ -153,25 +229,52 @@ abstract class RecordField {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
-  final List<SimpleIdentifier> references = <SimpleIdentifier>[];
+  final objectReferences = <AstNode>[];
+  final propertyReferences = <String, List<AstNode>>{};
+
   final VariableElement? element;
   _ReferenceFinder(this.element);
 
-  List<SimpleIdentifier> findReferences(FunctionBody target) {
+  ({
+    List<AstNode> objectReferences,
+    Map<String, List<AstNode>> propertyReferences
+  }) findReferences(FunctionBody target) {
     target.accept(this);
-    return references;
+    return (
+      objectReferences: objectReferences,
+      propertyReferences: propertyReferences
+    );
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.staticElement == element) {
-      references.add(node);
+      var parent = node.parent;
+      if (parent is PrefixedIdentifier) {
+        propertyReferences.update(
+            parent.identifier.name, (nodes) => nodes..add(parent),
+            ifAbsent: () => [parent]);
+      } else {
+        objectReferences.add(node);
+      }
     }
     super.visitSimpleIdentifier(node);
   }
 }
 
 extension on VariableElement {
-  List<SimpleIdentifier> findReferencesIn(FunctionBody target) =>
+  ({
+    List<AstNode> objectReferences,
+    Map<String, List<AstNode>> propertyReferences
+  }) findReferencesIn(FunctionBody target) =>
       _ReferenceFinder(this).findReferences(target);
+}
+
+extension on AstNode {
+  bool get isAssignedTo {
+    var node = this;
+    var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
+    if (assignment == null) return false;
+    return assignment.leftHandSide == node;
+  }
 }

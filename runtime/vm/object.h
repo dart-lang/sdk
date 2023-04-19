@@ -1196,24 +1196,30 @@ class Class : public Object {
   uint32_t Hash() const;
   int32_t SourceFingerprint() const;
 
-  // Return the Type with type parameters declared by this class filled in with
-  // dynamic and type parameters declared in superclasses filled in as declared
-  // in superclass clauses.
-  AbstractTypePtr RareType() const;
+  // Return the Type with type arguments filled in with dynamic.
+  TypePtr RareType() const;
 
-  // Return the Type whose arguments are the type parameters declared by this
-  // class preceded by the type arguments declared for superclasses, etc.
-  // e.g. given
-  // class B<T, S>
-  // class C<R> extends B<R, int>
-  // C.DeclarationType() --> C [R, int, R]
-  // The declaration type's nullability is either legacy or non-nullable when
-  // the non-nullable experiment is enabled.
+  // Return the non-nullable Type whose arguments are the type parameters
+  // declared by this class.
   TypePtr DeclarationType() const;
 
   static intptr_t declaration_type_offset() {
     return OFFSET_OF(UntaggedClass, declaration_type_);
   }
+
+  // Returns flattened instance type arguments vector for
+  // instance of this class, parameterized with declared
+  // type parameters of this class.
+  TypeArgumentsPtr GetDeclarationInstanceTypeArguments() const;
+
+  // Returns flattened instance type arguments vector for
+  // instance of this type, parameterized with given type arguments.
+  //
+  // Length of [type_arguments] should match number of type parameters
+  // returned by [NumTypeParameters].
+  TypeArgumentsPtr GetInstanceTypeArguments(Thread* thread,
+                                            const TypeArguments& type_arguments,
+                                            bool canonicalize = true) const;
 
   LibraryPtr library() const { return untag()->library(); }
   void set_library(const Library& value) const;
@@ -1235,8 +1241,8 @@ class Class : public Object {
       intptr_t index,
       Nullability nullability = Nullability::kNonNullable) const;
 
-  // The type argument vector is flattened and includes the type arguments of
-  // the super class.
+  // Length of the flattened instance type arguments vector.
+  // Includes type arguments of the super class.
   intptr_t NumTypeArguments() const;
 
   // Return true if this class declares type parameters.
@@ -1310,11 +1316,11 @@ class Class : public Object {
   }
 
   // The super type of this class, Object type if not explicitly specified.
-  AbstractTypePtr super_type() const {
+  TypePtr super_type() const {
     ASSERT(is_declaration_loaded());
     return untag()->super_type();
   }
-  void set_super_type(const AbstractType& value) const;
+  void set_super_type(const Type& value) const;
   static intptr_t super_type_offset() {
     return OFFSET_OF(UntaggedClass, super_type_);
   }
@@ -1345,7 +1351,7 @@ class Class : public Object {
   // path must be equal to the other results.
   bool FindInstantiationOf(Zone* zone,
                            const Class& cls,
-                           GrowableArray<const AbstractType*>* path,
+                           GrowableArray<const Type*>* path,
                            bool consider_only_super_classes = false) const;
   bool FindInstantiationOf(Zone* zone,
                            const Class& cls,
@@ -1368,7 +1374,7 @@ class Class : public Object {
   // applying each path must be equal to the other results.
   bool FindInstantiationOf(Zone* zone,
                            const Type& type,
-                           GrowableArray<const AbstractType*>* path,
+                           GrowableArray<const Type*>* path,
                            bool consider_only_super_classes = false) const;
   bool FindInstantiationOf(Zone* zone,
                            const Type& type,
@@ -1883,6 +1889,13 @@ class Class : public Object {
 
   // Caches the declaration type of this class.
   void set_declaration_type(const Type& type) const;
+
+  TypeArgumentsPtr declaration_instance_type_arguments() const {
+    return untag()
+        ->declaration_instance_type_arguments<std::memory_order_acquire>();
+  }
+  void set_declaration_instance_type_arguments(
+      const TypeArguments& value) const;
 
   bool CanReloadFinalized(const Class& replacement,
                           ProgramReloadContext* context) const;
@@ -7745,9 +7758,9 @@ class Instance : public Object {
 
   AbstractTypePtr GetType(Heap::Space space) const;
 
-  // Access the arguments of the [Type] of this [Instance].
-  // Note: for [Type]s instead of [Instance]s with a [Type] attached, use
-  // [arguments()] and [set_arguments()]
+  // Access the type arguments vector of this [Instance].
+  // This vector includes type arguments corresponding to type parameters of
+  // instance's class and all its superclasses.
   virtual TypeArgumentsPtr GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
 
@@ -8227,6 +8240,20 @@ class TypeArguments : public Instance {
   // Canonicalize only if instantiated, otherwise returns 'this'.
   TypeArgumentsPtr Canonicalize(Thread* thread, TrailPtr trail = nullptr) const;
 
+  // Shrinks flattened instance type arguments to ordinary type arguments.
+  TypeArgumentsPtr FromInstanceTypeArguments(Thread* thread,
+                                             const Class& cls) const;
+
+  // Expands type arguments to a vector suitable as instantiator type
+  // arguments.
+  //
+  // Only fills positions corresponding to type parameters of [cls], leave
+  // all positions of superclass type parameters blank.
+  // Use [GetInstanceTypeArguments] on a class or a type if full vector is
+  // needed.
+  TypeArgumentsPtr ToInstantiatorTypeArguments(Thread* thread,
+                                               const Class& cls) const;
+
   // Add the class name and URI of each type argument of this vector to the uris
   // list and mark ambiguous triplets to be printed.
   void EnumerateURIs(URIs* uris) const;
@@ -8563,7 +8590,6 @@ class AbstractType : public Instance {
   virtual classid_t type_class_id() const;
   virtual ClassPtr type_class() const;
   virtual TypeArgumentsPtr arguments() const;
-  virtual void set_arguments(const TypeArguments& value) const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = nullptr) const;
@@ -8881,7 +8907,13 @@ class Type : public AbstractType {
   virtual ClassPtr type_class() const;
   void set_type_class(const Class& value) const;
   virtual TypeArgumentsPtr arguments() const { return untag()->arguments(); }
-  virtual void set_arguments(const TypeArguments& value) const;
+  void set_arguments(const TypeArguments& value) const;
+
+  // Returns flattened instance type arguments vector for
+  // instance of this type.
+  TypeArgumentsPtr GetInstanceTypeArguments(Thread* thread,
+                                            bool canonicalize = true) const;
+
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = nullptr) const;

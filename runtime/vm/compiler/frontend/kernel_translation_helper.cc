@@ -3606,16 +3606,8 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
     return type_arguments;
   }
 
-  // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
-  // finalize the argument types.
-  // (This can for example make the [type_arguments] vector larger)
-  Type& type = Type::Handle(Z, Type::New(receiver_class, type_arguments));
-  if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(type);
-  }
-
-  const TypeArguments& instantiated_type_arguments =
-      TypeArguments::ZoneHandle(Z, type.arguments());
+  const TypeArguments& instantiated_type_arguments = TypeArguments::ZoneHandle(
+      Z, receiver_class.GetInstanceTypeArguments(H.thread(), type_arguments));
   return instantiated_type_arguments;
 }
 

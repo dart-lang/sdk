@@ -92,7 +92,7 @@ class ExtractLocalVariable extends CorrectionProducer {
           return;
         }
         if (enclosingNode is IfStatement) {
-          var condition = enclosingNode.condition;
+          var condition = enclosingNode.expression;
           if (condition is BinaryExpression &&
               condition.rightOperand is NullLiteral &&
               condition.operator.type == TokenType.BANG_EQ) {

@@ -28,7 +28,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -62,7 +62,7 @@ final y = [ if (x case var a) a ];
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@getter::x
     staticType: int
@@ -112,7 +112,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -191,7 +191,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -254,7 +254,7 @@ class A {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SuperExpression
+  expression: SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -284,7 +284,7 @@ class A {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -326,7 +326,7 @@ void f(bool Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -356,7 +356,7 @@ void f(int Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -394,7 +394,7 @@ void f(Object x, bool Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -438,7 +438,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object

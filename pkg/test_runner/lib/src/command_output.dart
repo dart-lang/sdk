@@ -897,9 +897,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
-  // Note that in https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/sanitizer_common/sanitizer_flags.inc `exitcode` defaults to 1.
-  // Older versions had various per-sanitizer exit codes.
-  static const _sanitizerFailureExitCode = 1;
+  static const _adbFailureExitCode = 3;
   static const _frontEndTestExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
@@ -960,29 +958,21 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
-    if (exitCode == _sanitizerFailureExitCode &&
-        testCase.configuration.sanitizer != Sanitizer.none) {
-      return Expectation.fail;
-    }
     if (exitCode == _frontEndTestExitCode &&
         testCase.displayName.startsWith('pkg/front_end/test/')) {
       return Expectation.runtimeError;
     }
-    if (exitCode != 0) {
-      var ourExit = 5;
-      // Unknown nonzero exit code from vm command.
-      // Consider this a failure of testing, and exit the test script.
-      if (testCase.configuration.system == System.android &&
-          _adbInfraFailureCodes.contains(exitCode)) {
-        print('Android device failed to run test');
-        ourExit = 3;
-      } else {
-        print('Unexpected exit code $exitCode');
-      }
+    if (testCase.configuration.system == System.android &&
+        _adbInfraFailureCodes.contains(exitCode)) {
+      print('Android device failed to run test');
       print(command);
       print(decodeUtf8(stdout));
       print(decodeUtf8(stderr));
-      io.exit(ourExit);
+      io.exit(_adbFailureExitCode);
+    }
+    if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      return Expectation.fail;
     }
     var testOutput = decodeUtf8(stdout);
     if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {

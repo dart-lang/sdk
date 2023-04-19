@@ -20,7 +20,7 @@ class ConvertIfStatementToSwitchStatementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 
-  Future<void> test_chain2_case_case_differentIdentifier() async {
+  Future<void> test_chain_case2_differentIdentifier() async {
     await resolveTestCode('''
 void f(Object? x, Object? y) {
   if (x case int()) {
@@ -33,7 +33,7 @@ void f(Object? x, Object? y) {
     await assertNoAssistAt('if');
   }
 
-  Future<void> test_chain2_case_case_elseBlock() async {
+  Future<void> test_chain_case2_elseBlock() async {
     await resolveTestCode('''
 void f(Object? x) {
   if (x case int()) {
@@ -59,7 +59,7 @@ void f(Object? x) {
 ''');
   }
 
-  Future<void> test_chain2_case_case_noElse() async {
+  Future<void> test_chain_case2_noElse() async {
     await resolveTestCode('''
 void f(Object? x) {
   if (x case int()) {
@@ -81,7 +81,7 @@ void f(Object? x) {
 ''');
   }
 
-  Future<void> test_chain2_case_case_notIdentifier() async {
+  Future<void> test_chain_case2_notIdentifier() async {
     await resolveTestCode('''
 void f(Object? x) {
   if (x case int()) {
@@ -92,6 +92,50 @@ void f(Object? x) {
 }
 ''');
     await assertNoAssistAt('if');
+  }
+
+  Future<void> test_chain_case_expression() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else if (x is double) {
+    1;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+      1;
+  }
+}
+''');
+  }
+
+  Future<void> test_chain_expression2() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x is int) {
+    0;
+  } else if (x is double) {
+    1;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+      1;
+  }
+}
+''');
   }
 
   Future<void> test_single_case_thenBlock() async {
@@ -185,6 +229,42 @@ void f(Object? x) {
 void f(Object? x) {
   switch (x) {
     case int():
+      0;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_expression_isType() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x is List<int>) {
+    0;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case List<int>():
+      0;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_expression_notEqNull() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x != null) {
+    0;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case _?:
       0;
   }
 }

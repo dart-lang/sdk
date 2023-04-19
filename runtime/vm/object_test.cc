@@ -7797,7 +7797,7 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& decl_type_args_a2 =
         TypeArguments::Handle(zone, decl_type_a2.arguments());
     const auto& type_arg_a2_x =
-        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(1));
+        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(0));
     auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
     tav_a2_x.SetTypeAt(0, type_arg_a2_x);
     tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);

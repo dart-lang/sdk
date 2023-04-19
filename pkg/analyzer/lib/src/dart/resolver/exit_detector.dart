@@ -322,7 +322,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitIfElement(IfElement node) {
-    var conditionExpression = node.condition;
+    var conditionExpression = node.expression;
     var thenElement = node.thenElement;
     var elseElement = node.elseElement;
     if (_nodeExits(conditionExpression)) {
@@ -346,7 +346,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitIfStatement(IfStatement node) {
-    var conditionExpression = node.condition;
+    var conditionExpression = node.expression;
     var thenStatement = node.thenStatement;
     var elseStatement = node.elseStatement;
     if (_nodeExits(conditionExpression)) {

@@ -1,5 +1,6 @@
 ## 5.11.0-dev
 * Removed `@experimental` from AST nodes and elements for records and patterns.
+* Deprecated `IfStatement.condition`, use `expression` instead.
 
 ## 5.10.0
 * Added `DartType.isDartCoreType`.

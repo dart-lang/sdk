@@ -1004,7 +1004,7 @@ class _ConstLiteralVerifier {
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
-      var conditionValue = verifier._validate(element.condition, errorCode);
+      var conditionValue = verifier._validate(element.expression, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
       // The errors have already been reported.

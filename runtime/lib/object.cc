@@ -85,8 +85,9 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
   } else if (IsArrayClassId(instance.GetClassId())) {
     const auto& cls = Class::Handle(
         zone, thread->isolate_group()->object_store()->list_class());
-    const auto& type_arguments =
+    auto& type_arguments =
         TypeArguments::Handle(zone, instance.GetTypeArguments());
+    type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
     const auto& type = Type::Handle(
         zone,
         Type::New(cls, type_arguments, Nullability::kNonNullable, Heap::kNew));
@@ -359,10 +360,11 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const TypeArguments& instance_type_args,
                                      const Class& interface_cls,
                                      TypeArguments* interface_type_args) {
+  Thread* thread = Thread::Current();
   Class& cur_cls = Class::Handle(zone, instance_cls.ptr());
   // The following code is a specialization of Class::IsSubtypeOf().
   Array& interfaces = Array::Handle(zone);
-  AbstractType& interface = AbstractType::Handle(zone);
+  Type& interface = Type::Handle(zone);
   Class& cur_interface_cls = Class::Handle(zone);
   TypeArguments& cur_interface_type_args = TypeArguments::Handle(zone);
   while (true) {
@@ -376,7 +378,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       interface ^= interfaces.At(i);
       ASSERT(interface.IsFinalized());
       cur_interface_cls = interface.type_class();
-      cur_interface_type_args = interface.arguments();
+      cur_interface_type_args =
+          interface.GetInstanceTypeArguments(thread, /*canonicalize=*/false);
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
@@ -409,7 +412,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
     const AbstractType& function_type_arg =
         AbstractType::Handle(zone, arguments->NativeTypeArgAt(0));
     if (function_type_arg.IsType() &&
-        (function_type_arg.arguments() == TypeArguments::null())) {
+        (Type::Cast(function_type_arg).arguments() == TypeArguments::null())) {
       interface_cls = function_type_arg.type_class();
       num_type_args = interface_cls.NumTypeParameters();
     }

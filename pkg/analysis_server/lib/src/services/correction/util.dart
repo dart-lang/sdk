@@ -1038,6 +1038,26 @@ class CorrectionUtils {
     return InsertionLocation(prefix, offset, suffix);
   }
 
+  ExpressionCasePattern? patternOfBoolCondition(Expression node) {
+    if (node is BinaryExpression) {
+      if (node.isNotEqNull) {
+        final expressionCode = getNodeText(node.leftOperand);
+        return ExpressionCasePattern(
+          expressionCode: expressionCode,
+          patternCode: '_?',
+        );
+      }
+    } else if (node is IsExpression) {
+      final expressionCode = getNodeText(node.expression);
+      final typeCode = getNodeText(node.type);
+      return ExpressionCasePattern(
+        expressionCode: expressionCode,
+        patternCode: '$typeCode()',
+      );
+    }
+    return null;
+  }
+
   InsertionLocation? prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
@@ -1500,6 +1520,16 @@ class CorrectionUtils_InsertDesc {
   int offset = 0;
   String prefix = '';
   String suffix = '';
+}
+
+class ExpressionCasePattern {
+  final String expressionCode;
+  final String patternCode;
+
+  ExpressionCasePattern({
+    required this.expressionCode,
+    required this.patternCode,
+  });
 }
 
 class InsertionLocation {

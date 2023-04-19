@@ -795,8 +795,11 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   js.Expression visitAccess(js.PropertyAccess node) {
-    return withExpression2(node.receiver, node.selector,
-        (receiver, selector) => js.js('#[#]', [receiver, selector]));
+    return withExpression2(
+        node.receiver,
+        node.selector,
+        (receiver, selector) =>
+            js.PropertyAccess(receiver, selector).withInformationFrom(node));
   }
 
   @override

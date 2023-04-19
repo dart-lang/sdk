@@ -13,7 +13,6 @@ import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
 import 'package:dart2wasm/js/method_collector.dart';
 import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
 /// A general config class for an interop method.
@@ -21,17 +20,27 @@ import 'package:kernel/type_environment.dart';
 /// dart2wasm needs to create a trampoline method in JS that then calls the
 /// interop member in question. In order to do so, we need information on things
 /// like the name of the member, how many parameters it takes in, and more.
-abstract class LoweringConfig {
+abstract class _Specializer {
+  final InteropSpecializerFactory factory;
   final Procedure interopMethod;
   final String jsString;
-  final InlineExtensionIndex _inlineExtensionIndex;
   late final bool firstParameterIsObject =
-      _inlineExtensionIndex.isInstanceInteropMember(interopMethod);
+      factory._inlineExtensionIndex.isInstanceInteropMember(interopMethod);
 
-  LoweringConfig(this.interopMethod, this.jsString, this._inlineExtensionIndex);
+  _Specializer(this.factory, this.interopMethod, this.jsString);
 
+  StatefulStaticTypeContext get _staticTypeContext =>
+      factory._staticTypeContext;
+  CoreTypesUtil get _util => factory._util;
+  MethodCollector get _methodCollector => factory._methodCollector;
+  Map<Procedure, Map<int, Procedure>> get _overloadedProcedures =>
+      factory._overloadedProcedures;
+  Map<Procedure, Map<String, Procedure>> get _jsObjectLiteralMethods =>
+      factory._jsObjectLiteralMethods;
   FunctionNode get function => interopMethod.function;
   Uri get fileUri => interopMethod.fileUri;
+  bool get hasOptionalPositionalParameters =>
+      function.requiredParameterCount < function.positionalParameters.length;
 
   /// Whether this config is associated with a constructor or factory.
   bool get isConstructor;
@@ -67,20 +76,84 @@ abstract class LoweringConfig {
       return '$functionParameters => $body';
     }
   }
+
+  /// Returns an [Expression] representing the specialization of a given
+  /// [StaticInvocation] or [Procedure].
+  Expression specialize();
+
+  Procedure _getRawInteropProcedure() {
+    // Initialize variable declarations.
+    List<String> jsParameterStrings = [];
+    List<VariableDeclaration> dartPositionalParameters = [];
+    for (int j = 0; j < parameters.length; j++) {
+      String parameterString = 'x$j';
+      dartPositionalParameters.add(VariableDeclaration(parameterString,
+          type: _util.nullableWasmExternRefType, isSynthesized: true));
+      jsParameterStrings.add(parameterString);
+    }
+
+    // Create Dart procedure stub for JS method.
+    String jsMethodName = _methodCollector.generateMethodName();
+    final dartProcedure = _methodCollector.addInteropProcedure(
+        '|$jsMethodName',
+        'dart2wasm.$jsMethodName',
+        FunctionNode(null,
+            positionalParameters: dartPositionalParameters,
+            returnType: _util.nullableWasmExternRefType),
+        fileUri,
+        AnnotationType.import,
+        isExternal: true);
+    _methodCollector.addMethod(
+        dartProcedure, jsMethodName, generateJS(jsParameterStrings));
+    return dartProcedure;
+  }
+
+  /// Creates a Dart procedure that calls out to a specialized JS method for the
+  /// given [config] and returns the created procedure.
+  Procedure _getOrCreateInteropProcedure() {
+    // Procedures with optional arguments are specialized at the
+    // invocation-level, so we cache if we've already created an interop
+    // procedure for the given number of parameters.
+    Procedure? cachedProcedure =
+        _overloadedProcedures[interopMethod]?[parameters.length];
+    if (cachedProcedure != null) return cachedProcedure;
+    final dartProcedure = _getRawInteropProcedure();
+    _overloadedProcedures.putIfAbsent(
+        interopMethod, () => {})[parameters.length] = dartProcedure;
+    return dartProcedure;
+  }
+
+  Procedure _getInteropProcedure() => hasOptionalPositionalParameters
+      ? _getOrCreateInteropProcedure()
+      : _getRawInteropProcedure();
 }
 
 /// Config class for interop members that get lowered on the procedure side.
-abstract class ProcedureLoweringConfig extends LoweringConfig {
-  ProcedureLoweringConfig(
-      super.interopMethod, super.jsString, super._inlineExtensionIndex);
+abstract class _ProcedureSpecializer extends _Specializer {
+  _ProcedureSpecializer(super.context, super.interopMethod, super.jsString);
 
   @override
   List<VariableDeclaration> get parameters => function.positionalParameters;
+
+  /// Returns an invocation of a specialized JS method meant to be used in a
+  /// procedure-level lowering.
+  @override
+  Expression specialize() {
+    // Return the replacement body.
+    Expression invocation = StaticInvocation(
+        _getInteropProcedure(),
+        Arguments(parameters
+            .map<Expression>((value) => StaticInvocation(
+                _util.jsifyTarget(value.type), Arguments([VariableGet(value)])))
+            .toList()));
+    return _util.castInvocationForReturn(invocation, function.returnType);
+  }
 }
 
-class ConstructorLoweringConfig extends ProcedureLoweringConfig {
-  ConstructorLoweringConfig(
-      super.interopMethod, super.jsString, super._inlineExtensionIndex);
+class _ConstructorSpecializer extends _ProcedureSpecializer {
+  _ConstructorSpecializer(InteropSpecializerFactory factory,
+      Procedure interopMethod, String jsString)
+      : super(factory, interopMethod, jsString);
 
   @override
   bool get isConstructor => true;
@@ -90,9 +163,8 @@ class ConstructorLoweringConfig extends ProcedureLoweringConfig {
       "new $jsString(${callArguments.join(',')})";
 }
 
-class GetterLoweringConfig extends ProcedureLoweringConfig {
-  GetterLoweringConfig(
-      super.interopMethod, super.jsString, super._inlineExtensionIndex);
+class _GetterSpecializer extends _ProcedureSpecializer {
+  _GetterSpecializer(super.factory, super.interopMethod, super.jsString);
 
   @override
   bool get isConstructor => false;
@@ -102,9 +174,8 @@ class GetterLoweringConfig extends ProcedureLoweringConfig {
       '$object.$jsString';
 }
 
-class SetterLoweringConfig extends ProcedureLoweringConfig {
-  SetterLoweringConfig(
-      super.interopMethod, super.jsString, super._inlineExtensionIndex);
+class _SetterSpecializer extends _ProcedureSpecializer {
+  _SetterSpecializer(super.factory, super.interopMethod, super.jsString);
 
   @override
   bool get isConstructor => false;
@@ -114,9 +185,8 @@ class SetterLoweringConfig extends ProcedureLoweringConfig {
       '$object.$jsString = ${callArguments[0]}';
 }
 
-class MethodLoweringConfig extends ProcedureLoweringConfig {
-  MethodLoweringConfig(
-      super.interopMethod, super.jsString, super._inlineExtensionIndex);
+class _MethodSpecializer extends _ProcedureSpecializer {
+  _MethodSpecializer(super.factory, super.interopMethod, super.jsString);
 
   @override
   bool get isConstructor => false;
@@ -126,9 +196,8 @@ class MethodLoweringConfig extends ProcedureLoweringConfig {
       "$object.$jsString(${callArguments.join(',')})";
 }
 
-class OperatorLoweringConfig extends ProcedureLoweringConfig {
-  OperatorLoweringConfig(
-      super.interopMethod, super.jsString, super._inlineExtensionIndex);
+class _OperatorSpecializer extends _ProcedureSpecializer {
+  _OperatorSpecializer(super.factory, super.interopMethod, super.jsString);
 
   @override
   bool get isConstructor => false;
@@ -146,39 +215,43 @@ class OperatorLoweringConfig extends ProcedureLoweringConfig {
 }
 
 /// Config class for interop members that get lowered on the invocation side.
-abstract class InvocationLoweringConfig extends LoweringConfig {
+abstract class _InvocationSpecializer extends _Specializer {
   final StaticInvocation invocation;
-  InvocationLoweringConfig(super.interopMethod, super.jsString,
-      super._inlineExtensionIndex, this.invocation);
-
-  /// The parameters of the given `interopMethod` that were given a correspondig
-  /// argument in the `invocation`.
-  @override
-  List<VariableDeclaration> get parameters;
-
-  /// The expressions that were passed in the `invocation`.
-  List<Expression> get arguments;
+  _InvocationSpecializer(
+      super.factory, super.interopMethod, super.jsString, this.invocation);
 }
 
 /// Config class for procedures that are lowered on the invocation-side, but
 /// only contain positional parameters.
-abstract class PositionalInvocationLoweringConfig
-    extends InvocationLoweringConfig {
-  PositionalInvocationLoweringConfig(super.interopMethod, super.jsString,
-      super._inlineExtensionIndex, super.invocation);
+abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
+  _PositionalInvocationSpecializer(
+      super.factory, super.interopMethod, super.jsString, super.invocation);
 
   @override
   List<VariableDeclaration> get parameters => function.positionalParameters
       .sublist(0, invocation.arguments.positional.length);
 
+  /// Returns an invocation of a specialized JS method meant to be used in an
+  /// invocation-level lowering.
   @override
-  List<Expression> get arguments => invocation.arguments.positional;
+  Expression specialize() {
+    // Create or get the specialized procedure for the invoked number of
+    // arguments. Cast as needed and return the final invocation.
+    final staticInvocation = StaticInvocation(
+        _getInteropProcedure(),
+        Arguments(invocation.arguments.positional
+            .map<Expression>((expr) => StaticInvocation(
+                _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
+                Arguments([expr])))
+            .toList()));
+    return _util.castInvocationForReturn(staticInvocation, function.returnType);
+  }
 }
 
-class ConstructorInvocationLoweringConfig
-    extends PositionalInvocationLoweringConfig {
-  ConstructorInvocationLoweringConfig(super.interopMethod, super.jsString,
-      super._inlineExtensionIndex, super.invocation);
+class _ConstructorInvocationSpecializer
+    extends _PositionalInvocationSpecializer {
+  _ConstructorInvocationSpecializer(
+      super.factory, super.interopMethod, super.jsString, super.invocation);
 
   @override
   bool get isConstructor => true;
@@ -188,10 +261,9 @@ class ConstructorInvocationLoweringConfig
       "new $jsString(${callArguments.join(',')})";
 }
 
-class MethodInvocationLoweringConfig
-    extends PositionalInvocationLoweringConfig {
-  MethodInvocationLoweringConfig(super.interopMethod, super.jsString,
-      super._inlineExtensionIndex, super.invocation);
+class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
+  _MethodInvocationSpecializer(
+      super.factory, super.interopMethod, super.jsString, super.invocation);
 
   @override
   bool get isConstructor => false;
@@ -203,10 +275,10 @@ class MethodInvocationLoweringConfig
 
 /// Config class for object literals, which only use named arguments and are
 /// only lowered at the invocation-level.
-class ObjectLiteralLoweringConfig extends InvocationLoweringConfig {
-  ObjectLiteralLoweringConfig(Procedure interopMethod,
-      InlineExtensionIndex _inlineExtensionIndex, StaticInvocation invocation)
-      : super(interopMethod, '', _inlineExtensionIndex, invocation);
+class _ObjectLiteralSpecializer extends _InvocationSpecializer {
+  _ObjectLiteralSpecializer(InteropSpecializerFactory factory,
+      Procedure interopMethod, StaticInvocation invocation)
+      : super(factory, interopMethod, '', invocation);
 
   @override
   bool get isConstructor => true;
@@ -234,23 +306,41 @@ class ObjectLiteralLoweringConfig extends InvocationLoweringConfig {
     return '({${keyValuePairs.join(',')}})';
   }
 
+  /// Returns an invocation of a specialized JS method that creates an object
+  /// literal using the arguments from the invocation.
   @override
-  List<Expression> get arguments {
+  Expression specialize() {
+    // To avoid one method for every invocation, we optimize and compute one
+    // method per invocation shape. For example, `Cons(a: 0, b: 0)`,
+    // `Cons(a: 0)`, and `Cons(a: 1, b: 1)` only create two shapes:
+    // `{a: value, b: value}` and `{a: value}`. Therefore, we only need two
+    // methods to handle the `Cons` invocations.
+    final shape =
+        parameters.map((VariableDeclaration decl) => decl.name).join('|');
+    final interopProcedure = _jsObjectLiteralMethods
+        .putIfAbsent(interopMethod, () => {})
+        .putIfAbsent(shape, () => _getRawInteropProcedure());
+
     // Return the args in the order of the procedure's parameters and not
     // the invocation.
     final namedArgs = <String, Expression>{};
     for (NamedExpression expr in invocation.arguments.named) {
       namedArgs[expr.name] = expr.value;
     }
-    return parameters
-        .map<Expression>((decl) => namedArgs[decl.name!]!)
+    final arguments =
+        parameters.map<Expression>((decl) => namedArgs[decl.name!]!).toList();
+    final positionalArgs = arguments
+        .map<Expression>((expr) => StaticInvocation(
+            _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
+            Arguments([expr])))
         .toList();
+    assert(function.returnType.isStaticInteropType);
+    return invokeOneArg(_util.jsValueBoxTarget,
+        StaticInvocation(interopProcedure, Arguments(positionalArgs)));
   }
 }
 
-// TODO(joshualitt): Have a factory that returns specializers and merge the
-// specialization logic with the configuration logic.
-class InteropSpecializer {
+class InteropSpecializerFactory {
   final StatefulStaticTypeContext _staticTypeContext;
   final CoreTypesUtil _util;
   final MethodCollector _methodCollector;
@@ -259,10 +349,8 @@ class InteropSpecializer {
   late String _libraryJSString;
   late InlineExtensionIndex _inlineExtensionIndex;
 
-  InteropSpecializer(
+  InteropSpecializerFactory(
       this._staticTypeContext, this._util, this._methodCollector);
-
-  CoreTypes get _coreTypes => _util.coreTypes;
 
   void enterLibrary(Library library) {
     _inlineExtensionIndex = InlineExtensionIndex(library);
@@ -283,63 +371,68 @@ class InteropSpecializer {
   String _getTopLevelJSString(Annotatable a, String initial) =>
       '$_libraryJSString${_getJSString(a, initial)}';
 
-  /// Get the `LoweringConfig` for the non-constructor [node] with its
+  /// Get the `_Specializer` for the non-constructor [node] with its
   /// associated [jsString] name, and the [invocation] it's used in if this is
   /// an invocation-level lowering.
-  LoweringConfig? _getConfigForMember(Procedure node, String jsString,
+  _Specializer? _getSpecializerForMember(Procedure node, String jsString,
       [StaticInvocation? invocation]) {
-    if (_inlineExtensionIndex.isGetter(node)) {
-      return GetterLoweringConfig(node, jsString, _inlineExtensionIndex);
-    } else if (_inlineExtensionIndex.isSetter(node)) {
-      return SetterLoweringConfig(node, jsString, _inlineExtensionIndex);
-    } else if (_inlineExtensionIndex.isOperator(node)) {
-      return OperatorLoweringConfig(node, jsString, _inlineExtensionIndex);
-    } else if (_inlineExtensionIndex.isMethod(node)) {
-      return invocation != null
-          ? MethodInvocationLoweringConfig(
-              node, jsString, _inlineExtensionIndex, invocation)
-          : MethodLoweringConfig(node, jsString, _inlineExtensionIndex);
+    if (invocation == null) {
+      if (_inlineExtensionIndex.isGetter(node)) {
+        return _GetterSpecializer(this, node, jsString);
+      } else if (_inlineExtensionIndex.isSetter(node)) {
+        return _SetterSpecializer(this, node, jsString);
+      } else if (_inlineExtensionIndex.isOperator(node)) {
+        return _OperatorSpecializer(this, node, jsString);
+      } else if (_inlineExtensionIndex.isMethod(node)) {
+        return _MethodSpecializer(this, node, jsString);
+      }
+    } else {
+      if (_inlineExtensionIndex.isMethod(node)) {
+        return _MethodInvocationSpecializer(this, node, jsString, invocation);
+      }
     }
     return null;
   }
 
-  /// Get the `LoweringConfig` for the constructor [node], whether it
+  /// Get the `_Specializer` for the constructor [node], whether it
   /// [isObjectLiteral] or not, with its associated [jsString] name, and the
   /// [invocation] it's used in if this is an invocation-level lowering.
-  LoweringConfig? _getConfigForConstructor(
+  _Specializer? _getSpecializerForConstructor(
       bool isObjectLiteral, Procedure node, String jsString,
       [StaticInvocation? invocation]) {
-    if (invocation != null) {
-      if (isObjectLiteral) {
-        return ObjectLiteralLoweringConfig(
-            node, _inlineExtensionIndex, invocation);
-      } else {
-        return ConstructorInvocationLoweringConfig(
-            node, jsString, _inlineExtensionIndex, invocation);
+    if (invocation == null) {
+      if (!isObjectLiteral) {
+        return _ConstructorSpecializer(this, node, jsString);
       }
-    } else if (!isObjectLiteral) {
-      return ConstructorLoweringConfig(node, jsString, _inlineExtensionIndex);
+    } else {
+      if (isObjectLiteral) {
+        return _ObjectLiteralSpecializer(this, node, invocation);
+      } else {
+        return _ConstructorInvocationSpecializer(
+            this, node, jsString, invocation);
+      }
     }
     return null;
   }
 
   /// Given a procedure [node], determines if it's an interop procedure that
-  /// needs to be lowered, and if so, returns the config associated with it.
+  /// needs to be specialized, and if so, returns the specializer associated
+  /// with it.
   ///
   /// If [invocation] is not null, returns an invocation-level config for the
   /// [node] if it exists.
-  LoweringConfig? getLoweringConfig(Procedure node,
+  _Specializer? _getSpecializer(Procedure node,
       [StaticInvocation? invocation]) {
     if (node.enclosingClass != null &&
         hasJSInteropAnnotation(node.enclosingClass!)) {
       final cls = node.enclosingClass!;
       final clsString = _getTopLevelJSString(cls, cls.name);
       if (node.isFactory) {
-        return _getConfigForConstructor(
+        return _getSpecializerForConstructor(
             hasAnonymousAnnotation(cls), node, clsString, invocation);
       } else {
         final memberSelectorString = _getJSString(node, node.name.text);
-        return _getConfigForMember(
+        return _getSpecializerForMember(
             node, '$clsString.$memberSelectorString', invocation);
       }
     } else if (node.isInlineClassMember) {
@@ -351,16 +444,17 @@ class InteropSpecializer {
         final kind = nodeDescriptor.kind;
         if ((kind == InlineClassMemberKind.Constructor ||
             kind == InlineClassMemberKind.Factory)) {
-          return _getConfigForConstructor(
+          return _getSpecializerForConstructor(
               hasObjectLiteralAnnotation(node), node, clsString, invocation);
         } else {
           final memberSelectorString =
               _getJSString(node, nodeDescriptor.name.text);
           if (nodeDescriptor.isStatic) {
-            return _getConfigForMember(
+            return _getSpecializerForMember(
                 node, '$clsString.$memberSelectorString', invocation);
           } else {
-            return _getConfigForMember(node, memberSelectorString, invocation);
+            return _getSpecializerForMember(
+                node, memberSelectorString, invocation);
           }
         }
       }
@@ -368,201 +462,33 @@ class InteropSpecializer {
       final nodeDescriptor =
           _inlineExtensionIndex.getExtensionDescriptor(node.reference);
       if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
-        return _getConfigForMember(
+        return _getSpecializerForMember(
             node, _getJSString(node, nodeDescriptor.name.text), invocation);
       }
     } else if (hasJSInteropAnnotation(node)) {
-      return _getConfigForMember(
+      return _getSpecializerForMember(
           node, _getTopLevelJSString(node, node.name.text), invocation);
     }
     return null;
   }
 
-  /// Creates a Dart procedure that calls out to a specialized JS method for the
-  /// given [config] and returns the created procedure.
-  ///
-  /// TODO(srujzs): This and the specialization logic should be moved to the
-  /// configs themselves with some virtual method like `specialize`.
-  Procedure _getInteropProcedure(LoweringConfig config) {
-    // Procedures with optional arguments are specialized at the
-    // invocation-level, so we cache if we've already created an interop
-    // procedure for the given number of parameters.
-    Procedure? cachedProcedure =
-        _overloadedProcedures[config.interopMethod]?[config.parameters.length];
-    if (cachedProcedure != null) return cachedProcedure;
-
-    // Initialize variable declarations.
-    List<String> jsParameterStrings = [];
-    List<VariableDeclaration> dartPositionalParameters = [];
-    for (int j = 0; j < config.parameters.length; j++) {
-      String parameterString = 'x$j';
-      dartPositionalParameters.add(VariableDeclaration(parameterString,
-          type: _util.nullableWasmExternRefType, isSynthesized: true));
-      jsParameterStrings.add(parameterString);
-    }
-
-    // Create Dart procedure stub for JS method.
-    String jsMethodName = _methodCollector.generateMethodName();
-    final dartProcedure = _methodCollector.addInteropProcedure(
-        '|$jsMethodName',
-        'dart2wasm.$jsMethodName',
-        FunctionNode(null,
-            positionalParameters: dartPositionalParameters,
-            returnType: _util.nullableWasmExternRefType),
-        config.fileUri,
-        AnnotationType.import,
-        isExternal: true);
-    _methodCollector.addMethod(
-        dartProcedure, jsMethodName, config.generateJS(jsParameterStrings));
-
-    if (config is PositionalInvocationLoweringConfig ||
-        config is MethodLoweringConfig ||
-        config is ConstructorLoweringConfig) {
-      // For now, these are the only configs that are cached in
-      // `_overloadedProcedures` since they may contain optionals.
-      _overloadedProcedures.putIfAbsent(
-              config.interopMethod, () => {})[config.parameters.length] =
-          dartProcedure;
-    }
-
-    return dartProcedure;
-  }
-
-  /// Given a [config], returns an invocation of a specialized JS method that
-  /// creates an object literal using the arguments from the [config].
-  Expression _specializeJSObjectLiteral(ObjectLiteralLoweringConfig config) {
-    // To avoid one method for every invocation, we optimize and compute one
-    // method per invocation shape. For example, `Cons(a: 0, b: 0)`,
-    // `Cons(a: 0)`, and `Cons(a: 1, b: 1)` only create two shapes:
-    // `{a: value, b: value}` and `{a: value}`. Therefore, we only need two
-    // methods to handle the `Cons` invocations.
-    final shape = config.parameters
-        .map((VariableDeclaration decl) => decl.name)
-        .join('|');
-    final interopProcedure = _jsObjectLiteralMethods
-        .putIfAbsent(config.interopMethod, () => {})
-        .putIfAbsent(shape, () => _getInteropProcedure(config));
-    final positionalArgs = config.arguments
-        .map<Expression>((expr) => StaticInvocation(
-            _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
-            Arguments([expr])))
-        .toList();
-    final invocation =
-        StaticInvocation(interopProcedure, Arguments(positionalArgs));
-    assert(config.function.returnType.isStaticInteropType);
-    return invokeOneArg(_util.jsValueBoxTarget, invocation);
-  }
-
-  /// Given a [config], returns an invocation of a specialized JS method meant
-  /// to be used in an invocation-level lowering.
-  Expression _specializeJSInvocation(
-      PositionalInvocationLoweringConfig config) {
-    // Create or get the specialized procedure for the invoked number of
-    // arguments. Cast as needed and return the final invocation.
-    final invocation = StaticInvocation(
-        _getInteropProcedure(config),
-        Arguments(config.arguments
-            .map<Expression>((expr) => StaticInvocation(
-                _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
-                Arguments([expr])))
-            .toList()));
-    return _castInvocationForReturn(invocation, config.function.returnType);
-  }
-
-  /// Given a [config], returns an invocation of a specialized JS method meant
-  /// to be used in a procedure-level lowering.
-  Statement _specializeJSProcedure(ProcedureLoweringConfig config) {
-    // Return the replacement body.
-    final returnType = config.function.returnType;
-    Expression invocation = StaticInvocation(
-        _getInteropProcedure(config),
-        Arguments(config.parameters
-            .map<Expression>((value) => StaticInvocation(
-                _util.jsifyTarget(value.type), Arguments([VariableGet(value)])))
-            .toList()));
-    invocation = _castInvocationForReturn(invocation, returnType);
-    return returnType is VoidType
-        ? ExpressionStatement(invocation)
-        : ReturnStatement(invocation);
-  }
-
-  /// Cast the [invocation] if needed to conform to the expected [returnType].
-  Expression _castInvocationForReturn(
-      Expression invocation, DartType returnType) {
-    if (returnType is VoidType) {
-      // `undefined` may be returned for `void` external members. It, however,
-      // is an extern ref, and therefore needs to be made a Dart type before
-      // we can finish the invocation.
-      return invokeOneArg(_util.dartifyRawTarget, invocation);
-    } else {
-      Expression expression;
-      if (returnType.isStaticInteropType) {
-        // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
-        // code after migrating existing users of js interop on Dart2Wasm.
-        // expression = _createJSValue(invocation);
-        expression = invokeOneArg(_util.jsValueBoxTarget, invocation);
-      } else {
-        // Because we simply don't have enough information, we leave all JS
-        // numbers as doubles. However, in cases where we know the user expects
-        // an `int` we insert a cast. We also let static interop types flow
-        // through without conversion, both as arguments, and as the return
-        // type.
-        final returnTypeOverride = returnType == _coreTypes.intNullableRawType
-            ? _coreTypes.doubleNullableRawType
-            : returnType == _coreTypes.intNonNullableRawType
-                ? _coreTypes.doubleNonNullableRawType
-                : returnType;
-        expression = AsExpression(
-            _convertReturnType(returnType, returnTypeOverride,
-                invokeOneArg(_util.dartifyRawTarget, invocation)),
-            returnType);
-      }
-      return expression;
-    }
-  }
-
-  // Handles any necessary return type conversions. Today this is just for
-  // handling the case where a user wants us to coerce a JS number to an int
-  // instead of a double.
-  Expression _convertReturnType(
-      DartType returnType, DartType returnTypeOverride, Expression expression) {
-    if (returnType == _coreTypes.intNullableRawType ||
-        returnType == _coreTypes.intNonNullableRawType) {
-      VariableDeclaration v = VariableDeclaration('#var',
-          initializer: expression,
-          type: returnTypeOverride,
-          isSynthesized: true);
-      return Let(
-          v,
-          ConditionalExpression(
-              _util.variableCheckConstant(v, NullConstant()),
-              ConstantExpression(NullConstant()),
-              invokeMethod(v, _util.numToIntTarget),
-              returnType));
-    } else {
-      return expression;
-    }
-  }
-
   Expression? maybeSpecializeInvocation(
       Procedure target, StaticInvocation node) {
     if (target.isExternal || _overloadedProcedures.containsKey(target)) {
-      final config = getLoweringConfig(target, node);
-      if (config is PositionalInvocationLoweringConfig) {
-        // These types may contain optionals. Therefore, we do invocation-level
-        // lowering to support passing fewer than the max arguments.
-        return _specializeJSInvocation(config);
-      } else if (config is ObjectLiteralLoweringConfig) {
-        return _specializeJSObjectLiteral(config);
-      }
+      return _getSpecializer(target, node)?.specialize();
     }
     return null;
   }
 
   bool maybeSpecializeProcedure(Procedure node) {
     if (node.isExternal) {
-      final config = getLoweringConfig(node);
-      if (config != null && config is ProcedureLoweringConfig) {
+      final specializer = _getSpecializer(node);
+      if (specializer != null) {
+        final expression = specializer.specialize();
+        final transformedBody = specializer.function.returnType is VoidType
+            ? ExpressionStatement(expression)
+            : ReturnStatement(expression);
+
         // For the time being to support tearoffs we simply replace the body of
         // the original procedure, but leave all the optional arguments intact.
         // This unfortunately results in inconsistent behavior between the
@@ -570,7 +496,6 @@ class InteropSpecializer {
         // TODO(joshualitt): Decide if we should disallow tearoffs of external
         // functions, and if so we can clean this up.
         FunctionNode function = node.function;
-        Statement transformedBody = _specializeJSProcedure(config);
         function.body = transformedBody..parent = function;
         node.isExternal = false;
         return true;

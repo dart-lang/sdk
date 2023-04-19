@@ -31,7 +31,7 @@ void f(int x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: int

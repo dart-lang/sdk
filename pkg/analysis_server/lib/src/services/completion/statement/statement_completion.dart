@@ -795,7 +795,7 @@ class StatementCompletionProcessor {
     var stmt = _KeywordConditionBlockStructure(
         node.ifKeyword,
         node.leftParenthesis,
-        node.condition,
+        node.expression,
         node.rightParenthesis,
         node.thenStatement);
     return _complete_ifOrWhileStatement(

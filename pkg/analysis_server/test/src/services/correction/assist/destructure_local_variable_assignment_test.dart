@@ -42,6 +42,75 @@ m() {
 ''');
   }
 
+  Future<void> test_object_propertyWritten_noAssist() async {
+    await resolveTestCode('''
+class A { 
+  set a(int a) {}
+}
+
+A f() => A();
+
+m() {
+  var obj = f();
+  obj.a = 1;
+}
+''');
+    await assertNoAssistAt('obj');
+  }
+
+  Future<void> test_object_reassigned_noAssist() async {
+    await resolveTestCode('''
+class A { }
+
+A f() => A();
+
+m() {
+  var obj = f();
+  obj = A();
+}
+''');
+    await assertNoAssistAt('obj');
+  }
+
+  Future<void> test_object_referenced() async {
+    await resolveTestCode('''
+class A { 
+  String get a => '';
+  String get b => '';
+  String get c => '';
+}
+
+A f() => A();
+
+m(var c) {
+  var obj = f();
+  var b = 0;
+  print(obj.a);
+  print(obj.b);
+  print(obj.c);
+  print(obj.c);
+}
+''');
+    await assertHasAssistAt('obj', r'''
+class A { 
+  String get a => '';
+  String get b => '';
+  String get c => '';
+}
+
+A f() => A();
+
+m(var c) {
+  var A(:a, b: b2, c: c2) = f();
+  var b = 0;
+  print(a);
+  print(b2);
+  print(c2);
+  print(c2);
+}
+''');
+  }
+
   Future<void> test_object_referenced_noAssist() async {
     await resolveTestCode('''
 class A { }

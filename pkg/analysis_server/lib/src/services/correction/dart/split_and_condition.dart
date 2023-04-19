@@ -46,7 +46,7 @@ class SplitAndCondition extends CorrectionProducer {
             TokenType.AMPERSAND_AMPERSAND) {
       condition = condition.parent as BinaryExpression;
     }
-    if (ifStatement.condition != condition) {
+    if (ifStatement.expression != condition) {
       return;
     }
     // prepare environment

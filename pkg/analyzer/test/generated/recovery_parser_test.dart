@@ -1077,7 +1077,7 @@ class C {
     MethodDeclaration method = declaration.members[0] as MethodDeclaration;
     BlockFunctionBody body = method.body as BlockFunctionBody;
     IfStatement ifStatement = body.block.statements[1] as IfStatement;
-    IsExpression expression = ifStatement.condition as IsExpression;
+    IsExpression expression = ifStatement.expression as IsExpression;
     expect(expression.expression, isNotNull);
     expect(expression.isOperator, isNotNull);
     expect(expression.notOperator, isNotNull);

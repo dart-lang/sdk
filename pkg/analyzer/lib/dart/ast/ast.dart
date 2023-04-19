@@ -3011,12 +3011,12 @@ abstract class Identifier implements Expression, CommentReferableExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IfElement implements CollectionElement {
-  /// Return the `case` clause used to match a pattern against the [condition].
+  /// Return the `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
   /// Return the condition used to determine which of the statements is executed
   /// next.
-  // TODO(brianwilkerson) Deprecate this when the patterns feature is released.
+  @Deprecated('Use expression instead')
   Expression get condition;
 
   /// Return the statement that is executed if the condition evaluates to
@@ -3054,12 +3054,12 @@ abstract class IfElement implements CollectionElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IfStatement implements Statement {
-  /// Return the `case` clause used to match a pattern against the [condition].
+  /// Return the `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
   /// Return the condition used to determine which of the statements is executed
   /// next.
-  // TODO(brianwilkerson) Deprecate this when the patterns feature is released.
+  @Deprecated('Use expression instead')
   Expression get condition;
 
   /// Return the token representing the 'else' keyword, or `null` if there is no
