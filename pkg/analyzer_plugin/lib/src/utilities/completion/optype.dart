@@ -1718,6 +1718,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return 'operator';
     } else if (node is IndexExpression) {
       return 'index';
+    } else if (node is RecordLiteral) {
+      return 'recordLiteral';
     }
     throw ArgumentError(
         'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}');
