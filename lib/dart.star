@@ -16,7 +16,7 @@ _GOMA_RBE = {
 }
 
 _RELEASE_CHANNELS = ["beta", "dev", "stable"]
-_CHANNELS = _RELEASE_CHANNELS + ["try"]
+_CHANNELS = ["beta", "stable", "try"]
 _BRANCHES = ["main"] + _RELEASE_CHANNELS
 
 _DART_GIT = "https://dart.googlesource.com/sdk"
