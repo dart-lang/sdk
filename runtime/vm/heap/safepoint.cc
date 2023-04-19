@@ -84,10 +84,13 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
 
     // Allow recursive deopt safepoint operation.
     if (handlers_[level]->owner_ == T) {
-      handlers_[level]->operation_count_++;
       // If we own this safepoint level already we have to own the lower levels
       // as well.
       AssertWeOwnLowerLevelSafepoints(T, level);
+
+      for (intptr_t i = 0; i <= level; ++i) {
+        handlers_[i]->operation_count_++;
+      }
       return;
     }
 
@@ -98,7 +101,11 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
     // Mark this thread at safepoint and possibly notify waiting threads.
     {
       MonitorLocker tl(T->thread_lock());
-      EnterSafepointLocked(T, &tl);
+      // We only enter [level] here. That means a higher level that is waiting
+      // for us to check-in will not consider us as not parked. This is required
+      // since we are not actually parked (we can finish running this method and
+      // then caller continues).
+      EnterSafepointLocked(T, &tl, level);
     }
 
     // Wait until other safepoint operations are done & mark us as owning
@@ -115,6 +122,10 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
   // Now wait for all threads that are not already at a safepoint to check-in.
   handlers_[level]->WaitUntilThreadsReachedSafepointLevel();
 
+  // No other mutator is running at this point. We'll set ourselves as owners of
+  // all the lower levels as well - since higher levels provide even more
+  // guarantees that lower levels (e.g. others being stopped at places where
+  // one can deopt also implies one can gc)
   AcquireLowerLevelSafepoints(T, level);
 }
 
@@ -163,16 +174,25 @@ void SafepointHandler::ResumeThreads(Thread* T, SafepointLevel level) {
 
     // We allow recursive safepoints.
     if (handlers_[level]->operation_count_ > 1) {
-      handlers_[level]->operation_count_--;
+      for (intptr_t i = 0; i <= level; ++i) {
+        handlers_[i]->operation_count_--;
+      }
       return;
     }
 
     ReleaseLowerLevelSafepoints(T, level);
-    handlers_[level]->NotifyThreadsToContinue(T);
     handlers_[level]->ResetSafepointInProgress(T);
+    handlers_[level]->NotifyThreadsToContinue(T);
     sl.NotifyAll();
   }
-  ExitSafepointUsingLock(T);
+  {
+    MonitorLocker tl(T->thread_lock());
+    // We only enter [level] here. That means a higher level that is waiting
+    // for us to check-in will not consider us as not parked. This is required
+    // since we are not actually parked (we can finish running this method and
+    // then caller continues).
+    ExitSafepointLocked(T, &tl, level);
+  }
 }
 
 void SafepointHandler::LevelHandler::WaitUntilThreadsReachedSafepointLevel() {
@@ -200,9 +220,7 @@ void SafepointHandler::AcquireLowerLevelSafepoints(Thread* T,
   MonitorLocker tl(threads_lock());
   ASSERT(handlers_[level]->owner_ == T);
   for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
-    while (handlers_[lower_level]->SafepointInProgress()) {
-      tl.Wait();
-    }
+    ASSERT(!handlers_[lower_level]->SafepointInProgress());
     handlers_[lower_level]->SetSafepointInProgress(T);
     ASSERT(handlers_[lower_level]->owner_ == T);
   }
@@ -236,34 +254,37 @@ void SafepointHandler::LevelHandler::NotifyThreadsToContinue(Thread* T) {
 
 void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
-  EnterSafepointLocked(T, &tl);
+  EnterSafepointLocked(T, &tl, T->current_safepoint_level());
 }
 
 void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   ASSERT(T->IsAtSafepoint());
-  ExitSafepointLocked(T, &tl);
-  ASSERT(!T->IsSafepointRequestedLocked());
+  ExitSafepointLocked(T, &tl, T->current_safepoint_level());
+  ASSERT(!T->IsSafepointRequestedLocked(T->current_safepoint_level()));
 }
 
 void SafepointHandler::BlockForSafepoint(Thread* T) {
   ASSERT(!T->BypassSafepoints());
   MonitorLocker tl(T->thread_lock());
   // This takes into account the safepoint level the thread can participate in.
-  if (T->IsSafepointRequestedLocked()) {
-    EnterSafepointLocked(T, &tl);
-    ExitSafepointLocked(T, &tl);
-    ASSERT(!T->IsSafepointRequestedLocked());
+  const SafepointLevel level = T->current_safepoint_level();
+  if (T->IsSafepointRequestedLocked(level)) {
+    EnterSafepointLocked(T, &tl, level);
+    ExitSafepointLocked(T, &tl, level);
+    ASSERT(!T->IsSafepointRequestedLocked(level));
   }
 }
 
-void SafepointHandler::EnterSafepointLocked(Thread* T, MonitorLocker* tl) {
-  T->SetAtSafepoint(true);
-
-  for (intptr_t level = T->current_safepoint_level(); level >= 0; --level) {
-    if (T->IsSafepointLevelRequestedLocked(
-            static_cast<SafepointLevel>(level))) {
-      handlers_[level]->NotifyWeAreParked(T);
+void SafepointHandler::EnterSafepointLocked(Thread* T,
+                                            MonitorLocker* tl,
+                                            SafepointLevel level) {
+  T->SetAtSafepoint(true, level);
+  // Several safepointing operations (at different) levels may happen at same
+  // time. Ensure we notify all of them that we are parked now.
+  for (intptr_t i = 0; i <= level; ++i) {
+    if (T->IsSafepointLevelRequestedLocked(static_cast<SafepointLevel>(i))) {
+      handlers_[i]->NotifyWeAreParked(T);
     }
   }
 }
@@ -278,13 +299,15 @@ void SafepointHandler::LevelHandler::NotifyWeAreParked(Thread* T) {
   }
 }
 
-void SafepointHandler::ExitSafepointLocked(Thread* T, MonitorLocker* tl) {
-  while (T->IsSafepointRequestedLocked()) {
+void SafepointHandler::ExitSafepointLocked(Thread* T,
+                                           MonitorLocker* tl,
+                                           SafepointLevel level) {
+  while (T->IsSafepointRequestedLocked(level)) {
     T->SetBlockedForSafepoint(true);
     tl->Wait();
     T->SetBlockedForSafepoint(false);
   }
-  T->SetAtSafepoint(false);
+  T->SetAtSafepoint(false, level);
 }
 
 }  // namespace dart

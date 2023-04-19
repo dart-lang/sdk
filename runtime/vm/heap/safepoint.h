@@ -75,7 +75,7 @@ class SafepointHandler {
   void ExitSafepointUsingLock(Thread* T);
   void BlockForSafepoint(Thread* T);
 
-  bool IsOwnedByTheThread(Thread* thread) {
+  bool IsOwnedByTheThread(const Thread* thread) {
     MonitorLocker ml(threads_lock());
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
       if (handlers_[level]->owner_ == thread) {
@@ -83,6 +83,31 @@ class SafepointHandler {
       }
     }
     return false;
+  }
+
+#if defined(DEBUG) || defined(TESTING)
+  SafepointLevel InnermostSafepointOperation(const Thread* thread) const {
+    MonitorLocker ml(threads_lock());
+    ASSERT(handlers_[SafepointLevel::kGC]->owner_ == thread);
+    intptr_t last_count = -1;
+    SafepointLevel last_level = SafepointLevel::kGC;
+    for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
+      if (handlers_[level]->owner_ == thread) {
+        const intptr_t count = handlers_[level]->operation_count_;
+        if (count < last_count) return last_level;
+        last_count = count;
+        last_level = static_cast<SafepointLevel>(level);
+      } else {
+        return last_level;
+      }
+    }
+    return last_level;
+  }
+#endif  // defined(DEBUG) || defined(TESTING)
+
+  bool IsOwnedByTheThread(const Thread* thread, SafepointLevel level) {
+    MonitorLocker ml(threads_lock());
+    return (handlers_[level]->owner_ == thread);
   }
 
   bool AnySafepointInProgress() {
@@ -116,6 +141,7 @@ class SafepointHandler {
       ASSERT(threads_lock()->IsOwnedByCurrentThread());
       ASSERT(owner_ == T);
       ASSERT(operation_count_ == 1);
+      ASSERT(num_threads_not_parked_ == 0);
       operation_count_ = 0;
       owner_ = nullptr;
     }
@@ -165,8 +191,8 @@ class SafepointHandler {
   // Helper methods for [ResumeThreads]
   void ReleaseLowerLevelSafepoints(Thread* T, SafepointLevel level);
 
-  void EnterSafepointLocked(Thread* T, MonitorLocker* tl);
-  void ExitSafepointLocked(Thread* T, MonitorLocker* tl);
+  void EnterSafepointLocked(Thread* T, MonitorLocker* tl, SafepointLevel level);
+  void ExitSafepointLocked(Thread* T, MonitorLocker* tl, SafepointLevel level);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
   Monitor* threads_lock() const { return isolate_group_->threads_lock(); }

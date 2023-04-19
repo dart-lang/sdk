@@ -120,7 +120,7 @@ void ClassTable::UnregisterTopLevel(intptr_t cid) {
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(Thread::Current()->IsAtSafepoint());
   classes_.Remap(old_to_new_cid);
 }
 

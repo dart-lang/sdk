@@ -527,15 +527,36 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_StressTest) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_DeoptAndNonDeoptNesting) {
+  auto safepoint_handler = thread->isolate_group()->safepoint_handler();
   {
     DeoptSafepointOperationScope safepoint_scope(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     DeoptSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     GcSafepointOperationScope safepoint_scope3(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
     GcSafepointOperationScope safepoint_scope4(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
   }
   {
     DeoptSafepointOperationScope safepoint_scope(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     GcSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
+  }
+  {
+    GcSafepointOperationScope safepoint_scope1(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
+    GcSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
   }
 }
 
