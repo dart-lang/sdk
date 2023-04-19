@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class /*@compile-error=unspecified*/ A<X extends B> {}
+class A<X extends B> {}
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.NOT_INSTANTIATED_BOUND
 
-class /*@compile-error=unspecified*/ B<X extends C> {}
+class B<X extends C> {}
+//    ^
+// [cfe] Generic type 'B' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'C'.
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.NOT_INSTANTIATED_BOUND
 
-class /*@compile-error=unspecified*/ C<X extends A<B>> {}
+class C<X extends A<B>> {}
+//                  ^
+// [analyzer] COMPILE_TIME_ERROR.NOT_INSTANTIATED_BOUND
 
 main() {}

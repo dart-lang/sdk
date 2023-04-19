@@ -8,8 +8,14 @@ class C<T extends dynamic> {
   T? field;
 
   test() {
-    field = 0; /*@compile-error=unspecified*/
-    int i = field; /*@compile-error=unspecified*/
+    field = 0;
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [cfe] A value of type 'int' can't be assigned to a variable of type 'T?'.
+    int i = field;
+    //      ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [cfe] A value of type 'T?' can't be assigned to a variable of type 'int'.
   }
 }
 

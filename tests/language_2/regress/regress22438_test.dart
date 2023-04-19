@@ -12,7 +12,10 @@ main() async {
   try {
     try {
       await new Future.error("error");
-    } on MissingType catch (e) {} /*@compile-error=unspecified*/
+    } on MissingType catch (e) {}
+    //   ^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+    // [cfe] 'MissingType' isn't a type.
   } catch (e) {
     error = e;
   }
