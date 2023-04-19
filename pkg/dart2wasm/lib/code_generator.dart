@@ -1412,9 +1412,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
-      nonNullableType = w.RefType.eq(nullable: false);
-      nullableType = w.RefType.eq(nullable: true);
-      compare = () => b.ref_eq();
+      nonNullableType = translator.topInfo.nonNullableType;
+      nullableType = translator.topInfo.nullableType;
+      compare = () => b.call(translator.functions
+          .getFunction(translator.coreTypes.identicalProcedure.reference));
     }
 
     bool isNullable = dartTypeOf(node.expression).isPotentiallyNullable;

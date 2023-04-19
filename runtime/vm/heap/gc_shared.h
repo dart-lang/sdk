@@ -217,7 +217,7 @@ void MournFinalized(GCVisitorType* visitor) {
         // The main scavenger worker is at safepoint, the other scavenger
         // workers are not, but they bypass safepoint because the main
         // worker is at a safepoint already.
-        ASSERT(Thread::Current()->IsAtSafepoint() ||
+        ASSERT(Thread::Current()->OwnsGCSafepoint() ||
                Thread::Current()->BypassSafepoints());
 
         if (finalizer.IsNativeFinalizer()) {

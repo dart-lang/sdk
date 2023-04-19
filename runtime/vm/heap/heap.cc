@@ -608,7 +608,7 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
 }
 
 void Heap::CheckCatchUp(Thread* thread) {
-  ASSERT(thread->CanCollectGarbage());
+  ASSERT(!thread->force_growth());
   if (old_space()->ReachedHardThreshold()) {
     CollectGarbage(thread, GCType::kMarkSweep, GCReason::kCatchUp);
   } else {
@@ -693,7 +693,7 @@ void Heap::WaitForMarkerTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while (old_space_.tasks() > 0) {
     ml.WaitWithSafepointCheck(thread);
@@ -701,7 +701,7 @@ void Heap::WaitForSweeperTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
-  ASSERT(thread->IsAtSafepoint());
+  ASSERT(thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while (old_space_.tasks() > 0) {
     ml.Wait();
@@ -747,7 +747,7 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
 
 void Heap::CollectForDebugging(Thread* thread) {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
-  if (thread->IsAtSafepoint()) {
+  if (thread->OwnsGCSafepoint()) {
     // CollectAllGarbage is not supported when we are at a safepoint.
     // Allocating when at a safepoint is not a common case.
     return;

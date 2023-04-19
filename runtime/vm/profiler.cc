@@ -1790,9 +1790,9 @@ class StreamableSampleFilter : public SampleFilter {
   }
 };
 
-void Profiler::ProcessCompletedBlocks(Thread* thread) {
+void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
   if (!Service::profiler_stream.enabled()) return;
-  Isolate* isolate = thread->isolate();
+  auto thread = Thread::Current();
   if (Isolate::IsSystemIsolate(isolate)) return;
 
   TIMELINE_DURATION(thread, Isolate, "Profiler::ProcessCompletedBlocks")
@@ -1809,7 +1809,7 @@ void Profiler::ProcessCompletedBlocks(Thread* thread) {
 
 void Profiler::IsolateShutdown(Thread* thread) {
   FlushSampleBlocks(thread->isolate());
-  ProcessCompletedBlocks(thread);
+  ProcessCompletedBlocks(thread->isolate());
 }
 
 class SampleBlockProcessorVisitor : public IsolateVisitor {
@@ -1819,9 +1819,11 @@ class SampleBlockProcessorVisitor : public IsolateVisitor {
 
   void VisitIsolate(Isolate* isolate) {
     if (isolate->TakeHasCompletedBlocks()) {
-      Thread::EnterIsolateAsHelper(isolate, Thread::kSampleBlockTask);
-      Profiler::ProcessCompletedBlocks(Thread::Current());
-      Thread::ExitIsolateAsHelper();
+      const bool kBypassSafepoint = false;
+      Thread::EnterIsolateGroupAsHelper(
+          isolate->group(), Thread::kSampleBlockTask, kBypassSafepoint);
+      Profiler::ProcessCompletedBlocks(isolate);
+      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     }
   }
 };

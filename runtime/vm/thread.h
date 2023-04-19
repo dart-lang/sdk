@@ -290,6 +290,9 @@ enum SafepointLevel {
   kGCAndDeopt,
   // Number of levels.
   kNumLevels,
+
+  // No safepoint.
+  kNoSafepoint,
 };
 
 // Accessed from generated code.
@@ -358,15 +361,6 @@ class Thread : public ThreadState {
   static bool EnterIsolate(Isolate* isolate, bool is_nested_reenter = false);
   // Makes the current thread exit its isolate.
   static void ExitIsolate(bool is_nested_exit = false);
-
-  // A VM thread other than the main mutator thread can enter an isolate as a
-  // "helper" to gain limited concurrent access to the isolate. One example is
-  // SweeperTask (which uses the class table, which is copy-on-write).
-  // TODO(koda): Properly synchronize heap access to expand allowed operations.
-  static bool EnterIsolateAsHelper(Isolate* isolate,
-                                   TaskKind kind,
-                                   bool bypass_safepoint = false);
-  static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
   static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                         TaskKind kind,
@@ -545,8 +539,6 @@ class Thread : public ThreadState {
 #if defined(DEBUG)
   bool IsInsideCompiler() const { return inside_compiler_; }
 #endif
-
-  bool CanCollectGarbage() const;
 
   // Offset of Dart TimelineStream object.
   static intptr_t dart_stream_offset() {
@@ -907,28 +899,35 @@ class Thread : public ThreadState {
     const uword mask = AtSafepointBits(level);
     return (state & mask) == mask;
   }
+
+  // Whether the current thread is owning any safepoint level.
   bool IsAtSafepoint() const {
-    return IsAtSafepoint(current_safepoint_level());
+    // Owning a higher level safepoint implies owning the lower levels as well.
+    return IsAtSafepoint(SafepointLevel::kGC);
   }
   bool IsAtSafepoint(SafepointLevel level) const {
     return IsAtSafepoint(level, safepoint_state_.load());
   }
-  void SetAtSafepoint(bool value) {
+  void SetAtSafepoint(bool value, SafepointLevel level) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    ASSERT(level <= current_safepoint_level());
     if (value) {
-      safepoint_state_ |= AtSafepointBits(current_safepoint_level());
+      safepoint_state_ |= AtSafepointBits(level);
     } else {
-      safepoint_state_ &= ~AtSafepointBits(current_safepoint_level());
+      safepoint_state_ &= ~AtSafepointBits(level);
     }
   }
-  bool IsSafepointRequestedLocked() const {
+  bool IsSafepointRequestedLocked(SafepointLevel level) const {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    return IsSafepointRequested();
+    return IsSafepointRequested(level);
   }
   bool IsSafepointRequested() const {
+    return IsSafepointRequested(current_safepoint_level());
+  }
+  bool IsSafepointRequested(SafepointLevel level) const {
     const uword state = safepoint_state_.load();
-    for (intptr_t level = current_safepoint_level(); level >= 0; --level) {
-      if (IsSafepointLevelRequested(state, static_cast<SafepointLevel>(level)))
+    for (intptr_t i = level; i >= 0; --i) {
+      if (IsSafepointLevelRequested(state, static_cast<SafepointLevel>(i)))
         return true;
     }
     return false;
@@ -995,6 +994,11 @@ class Thread : public ThreadState {
       safepoint_state_.fetch_and(~mask);
     }
   }
+
+  bool OwnsGCSafepoint() const;
+  bool OwnsDeoptSafepoint() const;
+  bool OwnsSafepoint() const;
+  bool CanAcquireSafepointLocks() const;
 
   uword safepoint_state() { return safepoint_state_; }
 

@@ -109,9 +109,7 @@ bool SafepointRwLock::EnterRead() {
   auto thread = Thread::Current();
   // Attempt to acquire a lock while owning a safepoint could lead to a deadlock
   // (some other thread might be forced to a safepoint while holding this lock).
-  ASSERT(thread == nullptr ||
-         !thread->isolate_group()->safepoint_handler()->IsOwnedByTheThread(
-             thread));
+  ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks());
 
   const bool can_block_without_safepoint = thread == nullptr;
 

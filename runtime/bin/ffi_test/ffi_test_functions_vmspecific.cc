@@ -288,7 +288,8 @@ DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
 
 DART_EXPORT intptr_t TestCallbackLeaf(void (*fn)()) {
 #if defined(DEBUG)
-  // Calling a callback from a leaf call will crash on T->IsAtSafepoint().
+  // Calling a callback from a leaf call will crash when trying to leave the
+  // safepoint.
   return ExpectAbort(fn);
 #else
   // The above will only crash in debug as ASSERTS are disabled in all other

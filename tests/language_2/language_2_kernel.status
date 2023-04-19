@@ -36,6 +36,7 @@ mixin/mixin3_test: SkipByDesign # Prints type names
 mixin/mixin5_test: SkipByDesign # Prints type names
 mixin/mixin6_test: SkipByDesign # Prints type names
 mixin/mixin_bound2_test: SkipByDesign # Prints type names
+unsorted/cyclic_type2_test: SkipByDesign # Prints type names
 unsorted/many_named_arguments_test: SkipByDesign # Checks names of arguments
 unsorted/symbol_literal_test/02: SkipByDesign # We don't obfuscate const Symbol constructor
 vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
