@@ -793,13 +793,17 @@ ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
 
 class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
  public:
-  ConcurrentForceGrowthScopeTask(Isolate* isolate,
+  ConcurrentForceGrowthScopeTask(IsolateGroup* isolate_group,
                                  Monitor* monitor,
                                  intptr_t* done_count)
-      : isolate_(isolate), monitor_(monitor), done_count_(done_count) {}
+      : isolate_group_(isolate_group),
+        monitor_(monitor),
+        done_count_(done_count) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
@@ -819,7 +823,7 @@ class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
         accumulate.Add(element);
       }
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     // Notify the main thread that this thread has exited.
     {
       MonitorLocker ml(monitor_);
@@ -829,7 +833,7 @@ class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Monitor* monitor_;
   intptr_t* done_count_;
 };
@@ -841,7 +845,7 @@ ISOLATE_UNIT_TEST_CASE(ConcurrentForceGrowthScope) {
 
   for (intptr_t i = 0; i < task_count; i++) {
     Dart::thread_pool()->Run<ConcurrentForceGrowthScopeTask>(
-        thread->isolate(), &monitor, &done_count);
+        thread->isolate_group(), &monitor, &done_count);
   }
 
   {

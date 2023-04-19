@@ -362,15 +362,6 @@ class Thread : public ThreadState {
   // Makes the current thread exit its isolate.
   static void ExitIsolate(bool is_nested_exit = false);
 
-  // A VM thread other than the main mutator thread can enter an isolate as a
-  // "helper" to gain limited concurrent access to the isolate. One example is
-  // SweeperTask (which uses the class table, which is copy-on-write).
-  // TODO(koda): Properly synchronize heap access to expand allowed operations.
-  static bool EnterIsolateAsHelper(Isolate* isolate,
-                                   TaskKind kind,
-                                   bool bypass_safepoint = false);
-  static void ExitIsolateAsHelper(bool bypass_safepoint = false);
-
   static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                         TaskKind kind,
                                         bool bypass_safepoint);

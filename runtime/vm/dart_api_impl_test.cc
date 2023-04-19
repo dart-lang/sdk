@@ -2653,14 +2653,16 @@ static void TestDirectAccess(Dart_Handle lib,
 
 class BackgroundGCTask : public ThreadPool::Task {
  public:
-  BackgroundGCTask(Isolate* isolate, Monitor* monitor, bool* done)
-      : isolate_(isolate), monitor_(monitor), done_(done) {}
+  BackgroundGCTask(IsolateGroup* isolate_group, Monitor* monitor, bool* done)
+      : isolate_group_(isolate_group), monitor_(monitor), done_(done) {}
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     for (intptr_t i = 0; i < 10; i++) {
       GCTestHelper::CollectAllGarbage();
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     {
       MonitorLocker ml(monitor_);
       *done_ = true;
@@ -2669,7 +2671,7 @@ class BackgroundGCTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Monitor* monitor_;
   bool* done_;
 };
@@ -2704,7 +2706,7 @@ static void TestTypedDataDirectAccess1() {
 
   Monitor monitor;
   bool done = false;
-  Dart::thread_pool()->Run<BackgroundGCTask>(Isolate::Current(), &monitor,
+  Dart::thread_pool()->Run<BackgroundGCTask>(IsolateGroup::Current(), &monitor,
                                              &done);
 
   for (intptr_t i = 0; i < 10; i++) {

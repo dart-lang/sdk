@@ -113,7 +113,9 @@ class InterruptChecker : public ThreadPool::Task {
       : thread_(thread), barrier_(barrier) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(thread_->isolate(), Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(thread_->isolate_group(),
+                                      Thread::kUnknownTask, kBypassSafepoint);
     // Tell main thread that we are ready.
     barrier_->Sync();
     for (intptr_t i = 0; i < kIterations; ++i) {
@@ -129,7 +131,7 @@ class InterruptChecker : public ThreadPool::Task {
       // Tell main thread that we observed the interrupt.
       barrier_->Sync();
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     barrier_->Sync();
     barrier_->Release();
   }

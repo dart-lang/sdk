@@ -300,15 +300,18 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
         reinterpret_cast<RunInSafepointAndRWCodeArgs*>(arg);
     Isolate* const isolate = args->isolate;
     CHECK_ISOLATE(isolate);
-    Thread::EnterIsolateAsHelper(isolate, Thread::TaskKind::kUnknownTask);
+    auto isolate_group = isolate->group();
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     Thread* const thread = Thread::Current();
     {
       GcSafepointOperationScope scope(thread);
-      args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/false);
+      isolate_group->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();
-      args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/true);
+      isolate_group->heap()->WriteProtectCode(/*read_only=*/true);
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     return nullptr;
 
   } else {

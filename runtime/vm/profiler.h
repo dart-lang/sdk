@@ -94,7 +94,7 @@ class Profiler : public AllStatic {
   }
   inline static intptr_t Size();
 
-  static void ProcessCompletedBlocks(Thread* thread);
+  static void ProcessCompletedBlocks(Isolate* isolate);
   static void IsolateShutdown(Thread* thread);
 
  private:

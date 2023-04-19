@@ -272,15 +272,11 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
 }
 
 bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
-  const bool kIsMutatorThread = true;
-  const bool kBypassSafepoint = false;
-
   is_nested_reenter = is_nested_reenter ||
                       (isolate->mutator_thread() != nullptr &&
                        isolate->mutator_thread()->top_exit_frame_info() != 0);
 
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, is_nested_reenter,
-                                           kBypassSafepoint);
+  Thread* thread = isolate->ScheduleThread(is_nested_reenter);
   if (thread != nullptr) {
     ASSERT(thread->store_buffer_block_ == nullptr);
     ASSERT(thread->isolate() == isolate);
@@ -304,48 +300,10 @@ void Thread::ExitIsolate(bool is_nested_exit) {
   Isolate* isolate = thread->isolate();
   thread->set_vm_tag(isolate->is_runnable() ? VMTag::kIdleTagId
                                             : VMTag::kLoadWaitTagId);
-  const bool kIsMutatorThread = true;
-  const bool kBypassSafepoint = false;
   is_nested_exit =
       is_nested_exit || (isolate->mutator_thread() != nullptr &&
                          isolate->mutator_thread()->top_exit_frame_info() != 0);
-  isolate->UnscheduleThread(thread, kIsMutatorThread, is_nested_exit,
-                            kBypassSafepoint);
-}
-
-bool Thread::EnterIsolateAsHelper(Isolate* isolate,
-                                  TaskKind kind,
-                                  bool bypass_safepoint) {
-  ASSERT(kind != kMutatorTask);
-  const bool kIsMutatorThread = false;
-  const bool kIsNestedReenter = false;
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, kIsNestedReenter,
-                                           bypass_safepoint);
-  if (thread != nullptr) {
-    ASSERT(!thread->IsMutatorThread());
-    ASSERT(thread->isolate() == isolate);
-    ASSERT(thread->isolate_group() == isolate->group());
-    thread->FinishEntering(kind);
-    return true;
-  }
-  return false;
-}
-
-void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != nullptr);
-  ASSERT(!thread->IsMutatorThread());
-  ASSERT(thread->isolate() != nullptr);
-  ASSERT(thread->isolate_group() != nullptr);
-
-  thread->PrepareLeaving();
-
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != nullptr);
-  const bool kIsMutatorThread = false;
-  const bool kIsNestedExit = false;
-  isolate->UnscheduleThread(thread, kIsMutatorThread, kIsNestedExit,
-                            bypass_safepoint);
+  isolate->UnscheduleThread(thread, is_nested_exit);
 }
 
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
@@ -452,7 +410,7 @@ ErrorPtr Thread::HandleInterrupts() {
 
 #if !defined(PRODUCT)
     if (isolate()->TakeHasCompletedBlocks()) {
-      Profiler::ProcessCompletedBlocks(this);
+      Profiler::ProcessCompletedBlocks(isolate());
     }
 #endif  // !defined(PRODUCT)
 
