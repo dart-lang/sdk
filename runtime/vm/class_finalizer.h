@@ -17,6 +17,8 @@ namespace dart {
 // finalized.
 class ClassFinalizer : public AllStatic {
  public:
+  typedef ZoneGrowableHandlePtrArray<const AbstractType> PendingTypes;
+
   // Modes for finalization. The ordering is relevant.
   enum FinalizationKind {
     kFinalize,     // Finalize type and type arguments.
@@ -26,7 +28,8 @@ class ClassFinalizer : public AllStatic {
   // Finalize given type.
   static AbstractTypePtr FinalizeType(
       const AbstractType& type,
-      FinalizationKind finalization = kCanonicalize);
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = nullptr);
 
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
@@ -80,24 +83,40 @@ class ClassFinalizer : public AllStatic {
   static TypeArgumentsPtr FinalizeTypeArguments(
       Zone* zone,
       const TypeArguments& type_args,
-      FinalizationKind finalization = kCanonicalize);
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = nullptr);
 
   // Finalize the types in the signature and the signature itself.
   static AbstractTypePtr FinalizeSignature(
       Zone* zone,
       const FunctionType& signature,
-      FinalizationKind finalization = kCanonicalize);
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = nullptr);
 
   static AbstractTypePtr FinalizeRecordType(
       Zone* zone,
       const RecordType& record,
-      FinalizationKind finalization = kCanonicalize);
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = nullptr);
 
   static void FinalizeTypeParameters(
       Zone* zone,
       const Class& cls,
       const FunctionType& signature,
-      FinalizationKind finalization = kCanonicalize);
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = nullptr);
+
+  static intptr_t ExpandAndFinalizeTypeArguments(Zone* zone,
+                                                 const AbstractType& type,
+                                                 PendingTypes* pending_types);
+  static void FillAndFinalizeTypeArguments(Zone* zone,
+                                           const Class& cls,
+                                           const TypeArguments& arguments,
+                                           intptr_t num_uninitialized_arguments,
+                                           PendingTypes* pending_types,
+                                           TrailPtr trail);
+  static void CheckRecursiveType(const AbstractType& type,
+                                 PendingTypes* pending_types);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void FinalizeMemberTypes(const Class& cls);

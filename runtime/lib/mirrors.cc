@@ -625,28 +625,20 @@ static AbstractTypePtr InstantiateType(const AbstractType& type,
   // i.e. all function type parameters are free with a null vector.
   ASSERT(type.IsFinalized());
   ASSERT(type.IsCanonical());
-  Thread* thread = Thread::Current();
 
   if (type.IsInstantiated()) {
-    return type.Canonicalize(thread, nullptr);
+    return type.Canonicalize(Thread::Current(), nullptr);
   }
   TypeArguments& instantiator_type_args = TypeArguments::Handle();
   if (!instantiator.IsNull() && instantiator.IsType()) {
     ASSERT(instantiator.IsFinalized());
-    if (instantiator.type_class_id() == kInstanceCid) {
-      // Handle types created in ClosureMirror_function.
-      instantiator_type_args = instantiator.arguments();
-    } else {
-      instantiator_type_args =
-          Type::Cast(instantiator)
-              .GetInstanceTypeArguments(thread, /*canonicalize=*/false);
-    }
+    instantiator_type_args = instantiator.arguments();
   }
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
       instantiator_type_args, Object::null_type_arguments(), kAllFree,
       Heap::kOld));
   ASSERT(result.IsFinalized());
-  return result.Canonicalize(thread, nullptr);
+  return result.Canonicalize(Thread::Current(), nullptr);
 }
 
 DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0, 0) {
@@ -1191,8 +1183,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 0, 1) {
   const Array& result = Array::Handle(Array::New(num_params));
   AbstractType& arg_type = AbstractType::Handle();
   Instance& type_mirror = Instance::Handle();
-  const TypeArguments& args =
-      TypeArguments::Handle(Type::Cast(type).arguments());
+  const TypeArguments& args = TypeArguments::Handle(type.arguments());
 
   // Handle argument lists that have been optimized away, because either no
   // arguments have been provided, or all arguments are dynamic. Return a list
@@ -1206,9 +1197,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 0, 1) {
     return result.ptr();
   }
 
-  ASSERT(args.Length() == num_params);
+  ASSERT(args.Length() >= num_params);
+  const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
-    arg_type = args.TypeAt(i);
+    arg_type = args.TypeAt(i + num_inherited_args);
     type_mirror = CreateTypeMirror(arg_type);
     result.SetAt(i, type_mirror);
   }
@@ -1399,14 +1391,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   }
 
   ASSERT(!type.IsNull());
-  TypeArguments& type_arguments = TypeArguments::Handle();
+  TypeArguments& type_arguments = TypeArguments::Handle(type.arguments());
   if (!type.IsInstantiated()) {
     // Must have been a declaration type.
-    const Type& rare_type = Type::Handle(klass.RareType());
+    AbstractType& rare_type = AbstractType::Handle(klass.RareType());
     ASSERT(rare_type.IsInstantiated());
-    type_arguments = rare_type.GetInstanceTypeArguments(thread);
-  } else {
-    type_arguments = type.GetInstanceTypeArguments(thread);
+    type_arguments = rare_type.arguments();
   }
 
   Class& redirected_klass = Class::Handle(klass.ptr());

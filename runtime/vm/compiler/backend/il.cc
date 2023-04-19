@@ -329,9 +329,10 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   if (type_class.IsGeneric()) {
     // TODO(kustermann): We might want to consider extending this when the type
     // arguments are not "dynamic" but instantiated-to-bounds.
-    const Type& rare_type = Type::Handle(zone, type_class.RareType());
+    const Type& rare_type =
+        Type::Handle(zone, Type::RawCast(type_class.RareType()));
     if (!rare_type.IsSubtypeOf(type, Heap::kNew)) {
-      ASSERT(Type::Cast(type).arguments() != TypeArguments::null());
+      ASSERT(type.arguments() != TypeArguments::null());
       return false;
     }
   }
@@ -366,20 +367,22 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
+  const intptr_t num_type_arguments = type_class.NumTypeArguments();
 
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&
-         Type::Cast(type).arguments() != TypeArguments::null());
+         type.arguments() != TypeArguments::null());
 
   const TypeArguments& ta =
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
-  ASSERT(ta.Length() == num_type_parameters);
+  ASSERT(ta.Length() == num_type_arguments);
 
-  // Ensure we can handle all type arguments
+  // The last [num_type_parameters] entries in the [TypeArguments] vector [ta]
+  // are the values we have to check against.  Ensure we can handle all of them
   // via [CidRange]-based checks or that it is a type parameter.
   AbstractType& type_arg = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < num_type_parameters; ++i) {
-    type_arg = ta.TypeAt(i);
+    type_arg = ta.TypeAt(num_type_arguments - num_type_parameters + i);
     if (!CanUseSubtypeRangeCheckFor(type_arg) && !type_arg.IsTypeParameter()) {
       return false;
     }
@@ -2872,8 +2875,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
             const Field& field = slot.field();
             if (field.static_type_exactness_state().IsTriviallyExact()) {
               return flow_graph->GetConstant(TypeArguments::Handle(
-                  Type::Cast(AbstractType::Handle(field.type()))
-                      .GetInstanceTypeArguments(flow_graph->thread())));
+                  AbstractType::Handle(field.type()).arguments()));
             }
             break;
           }
@@ -2965,8 +2967,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // be located in the unreachable part of the graph (e.g.
   // it might be dominated by CheckClass that always fails).
   // This means that the code below must guard against such possibility.
-  Thread* thread = Thread::Current();
-  Zone* Z = thread->zone();
+  Zone* Z = Thread::Current()->zone();
 
   const TypeArguments* instantiator_type_args = nullptr;
   const TypeArguments* function_type_args = nullptr;
@@ -3008,9 +3009,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
                   .static_type_exactness_state()
                   .IsHasExactSuperClass()) {
             instantiator_type_args = &TypeArguments::Handle(
-                Z, Type::Cast(AbstractType::Handle(
-                                  Z, load_field->slot().field().type()))
-                       .GetInstanceTypeArguments(thread));
+                Z, AbstractType::Handle(Z, load_field->slot().field().type())
+                       .arguments());
           }
         }
       }

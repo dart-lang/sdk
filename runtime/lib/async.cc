@@ -37,17 +37,23 @@ DEFINE_NATIVE_ENTRY(SuspendState_instantiateClosureWithFutureTypeArgument,
   ASSERT(future_class.NumTypeArguments() == 1);
 
   const auto& cls = Class::Handle(zone, future.clazz());
-  auto& type = Type::Handle(zone, cls.GetInstantiationOf(zone, future_class));
+  auto& type =
+      AbstractType::Handle(zone, cls.GetInstantiationOf(zone, future_class));
   ASSERT(!type.IsNull());
   if (!type.IsInstantiated()) {
     const auto& instance_type_args =
         TypeArguments::Handle(zone, future.GetTypeArguments());
-    type ^=
+    type =
         type.InstantiateFrom(instance_type_args, Object::null_type_arguments(),
-                             kNoneFree, Heap::kOld);
+                             kNoneFree, Heap::kNew);
   }
   auto& type_args = TypeArguments::Handle(zone, type.arguments());
-  ASSERT(type_args.IsNull() || type_args.Length() == 1);
+  if (type_args.Length() != 1) {
+    // Create a new TypeArguments vector of length 1.
+    type = type_args.TypeAtNullSafe(0);
+    type_args = TypeArguments::New(1);
+    type_args.SetTypeAt(0, type);
+  }
   type_args = type_args.Canonicalize(thread, nullptr);
 
   ASSERT(closure.delayed_type_arguments() ==

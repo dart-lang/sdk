@@ -1049,10 +1049,12 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type
     // arguments.
+    const intptr_t num_type_params = type_class.NumTypeParameters();
+    const intptr_t from_index = num_type_args - num_type_params;
     const TypeArguments& type_arguments =
-        TypeArguments::Handle(Z, Type::Cast(type).arguments());
+        TypeArguments::Handle(Z, type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
-                             type_arguments.IsRaw(0, type_arguments.Length());
+                             type_arguments.IsRaw(from_index, num_type_params);
     if (!is_raw_type) {
       // Unknown result.
       return Bool::null();
@@ -1118,10 +1120,12 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type,
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type
     // arguments.
+    const intptr_t num_type_params = type_class.NumTypeParameters();
+    const intptr_t from_index = num_type_args - num_type_params;
     const TypeArguments& type_arguments =
-        TypeArguments::Handle(Type::Cast(type).arguments());
+        TypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
-                             type_arguments.IsRaw(0, type_arguments.Length());
+                             type_arguments.IsRaw(from_index, num_type_params);
     if (!is_raw_type) {
       return false;
     }

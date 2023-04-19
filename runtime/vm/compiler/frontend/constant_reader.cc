@@ -315,8 +315,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       AbstractType& type = type_translator.BuildType();
       type_arguments.SetTypeAt(0, type);
       // Instantiate class.
-      type_arguments =
-          list_class.GetInstanceTypeArguments(H.thread(), type_arguments);
+      type = Type::New(list_class, type_arguments);
+      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
+      type_arguments = type.arguments();
       // Fill array with constant elements.
       const intptr_t length = reader.ReadUInt();
       const Array& array =
@@ -353,8 +354,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments.SetTypeAt(1, type);
 
       // Instantiate class.
-      type_arguments =
-          map_class.GetInstanceTypeArguments(H.thread(), type_arguments);
+      type = Type::New(map_class, type_arguments);
+      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
+      type_arguments = type.arguments();
 
       // Fill map with constant elements.
       const auto& map = Map::Handle(Z, ConstMap::NewUninitialized(Heap::kOld));
@@ -443,8 +445,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments.SetTypeAt(0, type);
 
       // Instantiate class.
-      type_arguments =
-          set_class.GetInstanceTypeArguments(H.thread(), type_arguments);
+      type = Type::New(set_class, type_arguments);
+      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
+      type_arguments = type.arguments();
 
       // Fill set with constant elements.
       const auto& set = Set::Handle(Z, ConstSet::NewUninitialized(Heap::kOld));
@@ -500,8 +503,10 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
           type_arguments.SetTypeAt(j, type_translator.BuildType());
         }
         // Instantiate class.
-        type_arguments =
-            klass.GetInstanceTypeArguments(H.thread(), type_arguments);
+        auto& type = AbstractType::Handle(Z, Type::New(klass, type_arguments));
+        type =
+            ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
+        type_arguments = type.arguments();
         instance.SetTypeArguments(type_arguments);
       } else {
         ASSERT(number_of_type_arguments == 0);

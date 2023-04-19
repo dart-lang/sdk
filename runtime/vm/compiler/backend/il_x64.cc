@@ -2572,11 +2572,9 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // At this point temp is known to be type arguments offset in words.
   __ movq(temp, compiler::FieldAddress(value_reg, temp,
                                        TIMES_COMPRESSED_WORD_SIZE, 0));
-  __ CompareObject(
-      temp,
-      TypeArguments::ZoneHandle(
-          compiler->zone(), Type::Cast(AbstractType::Handle(field().type()))
-                                .GetInstanceTypeArguments(compiler->thread())));
+  __ CompareObject(temp, TypeArguments::ZoneHandle(
+                             compiler->zone(),
+                             AbstractType::Handle(field().type()).arguments()));
   if (deopt != nullptr) {
     __ j(NOT_EQUAL, deopt);
   } else {
