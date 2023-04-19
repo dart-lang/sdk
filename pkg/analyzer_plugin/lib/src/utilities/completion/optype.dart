@@ -927,7 +927,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    if (identical(entity, node.condition)) {
+    if (identical(entity, node.expression)) {
       optype.completionLocation = 'IfElement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
@@ -949,7 +949,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: if (var v i^)
       // Parsed: if (v) i^;
-    } else if (identical(entity, node.condition)) {
+    } else if (identical(entity, node.expression)) {
       optype.completionLocation = 'IfStatement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;

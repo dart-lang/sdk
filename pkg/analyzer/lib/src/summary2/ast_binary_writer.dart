@@ -341,7 +341,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     _writeByte(Tag.IfElement);
-    _writeNode(node.condition);
+    _writeNode(node.expression);
     _writeNode(node.thenElement);
     _writeOptionalNode(node.elseElement);
   }

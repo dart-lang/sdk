@@ -187,12 +187,12 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(body, isBlockFunctionBody);
     Statement statement = (body as BlockFunctionBody).block.statements[0];
     expect(statement, isIfStatement);
-    Expression expression = (statement as IfStatement).condition;
+    Expression expression = (statement as IfStatement).expression;
     expect(expression, isAwaitExpression);
     expect(statement.elseStatement, isNotNull);
     Statement elseStatement = statement.elseStatement!;
     expect(elseStatement, isIfStatement);
-    expression = (elseStatement as IfStatement).condition;
+    expression = (elseStatement as IfStatement).expression;
     expect(expression, isPrefixExpression);
     expect((expression as PrefixExpression).operator.lexeme, '!');
     expression = expression.operand;

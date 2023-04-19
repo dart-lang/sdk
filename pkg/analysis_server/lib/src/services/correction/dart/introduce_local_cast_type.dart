@@ -89,14 +89,14 @@ class IntroduceLocalCastType extends CorrectionProducer {
 
   static Expression? _getCondition(AstNode node) {
     if (node is IfStatement) {
-      return node.condition;
+      return node.expression;
     } else if (node is WhileStatement) {
       return node.condition;
     }
 
     if (node is Expression) {
       var parent = node.parent;
-      if (parent is IfStatement && parent.condition == node) {
+      if (parent is IfStatement && parent.expression == node) {
         return node;
       } else if (parent is WhileStatement && parent.condition == node) {
         return node;

@@ -1286,7 +1286,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // NULL_AWARE_IN_CONDITION
-    if (parent is IfStatement && parent.condition == childOfParent ||
+    if (parent is IfStatement && parent.expression == childOfParent ||
         parent is ForPartsWithDeclarations &&
             parent.condition == childOfParent ||
         parent is DoStatement && parent.condition == childOfParent ||

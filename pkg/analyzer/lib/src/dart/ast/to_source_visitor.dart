@@ -674,7 +674,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     sink.write('if (');
-    _visitNode(node.condition);
+    _visitNode(node.expression);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenElement);
@@ -684,7 +684,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
-    _visitNode(node.condition);
+    _visitNode(node.expression);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenStatement);

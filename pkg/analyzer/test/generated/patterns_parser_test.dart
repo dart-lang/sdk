@@ -61,7 +61,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -90,7 +90,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -122,7 +122,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -152,7 +152,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -215,7 +215,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -240,7 +240,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -268,7 +268,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -319,7 +319,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -353,7 +353,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -390,7 +390,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -459,7 +459,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -489,7 +489,7 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -522,7 +522,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -3243,7 +3243,7 @@ f(x, y) => [if (x case _ when y + () => 0) 0];
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case
@@ -3281,7 +3281,7 @@ f(x, y) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
   caseClause: CaseClause
     caseKeyword: case

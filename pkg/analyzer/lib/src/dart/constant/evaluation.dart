@@ -1185,7 +1185,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.condition);
+      var conditionValue = _evaluateCondition(element.expression);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1222,7 +1222,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.condition);
+      var conditionValue = _evaluateCondition(element.expression);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1259,7 +1259,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.condition);
+      var conditionValue = _evaluateCondition(element.expression);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1512,7 +1512,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         } else if (current is DefaultFormalParameter) {
           return CompileTimeErrorCode
               .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY;
-        } else if (current is IfElement && current.condition == node) {
+        } else if (current is IfElement && current.expression == node) {
           return CompileTimeErrorCode
               .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY;
         } else if (current is ListLiteral) {

@@ -2248,7 +2248,7 @@ class AstBuilder extends StackListener {
       IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        expression: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenElement: thenElement,
@@ -2269,7 +2269,7 @@ class AstBuilder extends StackListener {
       IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        expression: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenElement: thenElement,
@@ -2291,7 +2291,7 @@ class AstBuilder extends StackListener {
       IfStatementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        expression: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenStatement: thenPart,

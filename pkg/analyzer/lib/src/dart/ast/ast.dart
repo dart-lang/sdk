@@ -6792,7 +6792,7 @@ class IfElementImpl extends CollectionElementImpl
   @override
   final Token leftParenthesis;
 
-  ExpressionImpl _condition;
+  ExpressionImpl _expression;
 
   @override
   final CaseClauseImpl? caseClause;
@@ -6814,16 +6814,16 @@ class IfElementImpl extends CollectionElementImpl
   IfElementImpl({
     required this.ifKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl condition,
+    required ExpressionImpl expression,
     required this.caseClause,
     required this.rightParenthesis,
     required CollectionElementImpl thenElement,
     required this.elseKeyword,
     required CollectionElementImpl? elseElement,
-  })  : _condition = condition,
+  })  : _expression = expression,
         _thenElement = thenElement,
         _elseElement = elseElement {
-    _becomeParentOf(_condition);
+    _becomeParentOf(_expression);
     _becomeParentOf(caseClause);
     _becomeParentOf(_thenElement);
     _becomeParentOf(_elseElement);
@@ -6832,11 +6832,12 @@ class IfElementImpl extends CollectionElementImpl
   @override
   Token get beginToken => ifKeyword;
 
+  @Deprecated('Use expression instead')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => _expression;
 
   set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+    _expression = _becomeParentOf(condition);
   }
 
   @override
@@ -6850,7 +6851,7 @@ class IfElementImpl extends CollectionElementImpl
   Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
 
   @override
-  ExpressionImpl get expression => _condition;
+  ExpressionImpl get expression => _expression;
 
   @override
   CollectionElementImpl? get ifFalse => elseElement;
@@ -6869,7 +6870,7 @@ class IfElementImpl extends CollectionElementImpl
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('condition', condition)
+    ..addNode('expression', expression)
     ..addNode('caseClause', caseClause)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addNode('thenElement', thenElement)
@@ -6888,7 +6889,7 @@ class IfElementImpl extends CollectionElementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    condition.accept(visitor);
+    expression.accept(visitor);
     caseClause?.accept(visitor);
     _thenElement.accept(visitor);
     _elseElement?.accept(visitor);
@@ -6926,7 +6927,7 @@ class IfStatementImpl extends StatementImpl
   final Token leftParenthesis;
 
   /// The condition used to determine which of the branches is executed next.
-  ExpressionImpl _condition;
+  ExpressionImpl _expression;
 
   @override
   final CaseClauseImpl? caseClause;
@@ -6949,16 +6950,16 @@ class IfStatementImpl extends StatementImpl
   IfStatementImpl({
     required this.ifKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl condition,
+    required ExpressionImpl expression,
     required this.caseClause,
     required this.rightParenthesis,
     required StatementImpl thenStatement,
     required this.elseKeyword,
     required StatementImpl? elseStatement,
-  })  : _condition = condition,
+  })  : _expression = expression,
         _thenStatement = thenStatement,
         _elseStatement = elseStatement {
-    _becomeParentOf(_condition);
+    _becomeParentOf(_expression);
     _becomeParentOf(caseClause);
     _becomeParentOf(_thenStatement);
     _becomeParentOf(_elseStatement);
@@ -6967,11 +6968,12 @@ class IfStatementImpl extends StatementImpl
   @override
   Token get beginToken => ifKeyword;
 
+  @Deprecated('Use expression instead')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => _expression;
 
   set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+    _expression = _becomeParentOf(condition);
   }
 
   @override
@@ -6990,7 +6992,7 @@ class IfStatementImpl extends StatementImpl
   }
 
   @override
-  ExpressionImpl get expression => _condition;
+  ExpressionImpl get expression => _expression;
 
   @override
   StatementImpl? get ifFalse => elseStatement;
@@ -7009,7 +7011,7 @@ class IfStatementImpl extends StatementImpl
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('condition', condition)
+    ..addNode('expression', expression)
     ..addNode('caseClause', caseClause)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addNode('thenStatement', thenStatement)
@@ -7021,7 +7023,7 @@ class IfStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _condition.accept(visitor);
+    _expression.accept(visitor);
     caseClause?.accept(visitor);
     _thenStatement.accept(visitor);
     _elseStatement?.accept(visitor);

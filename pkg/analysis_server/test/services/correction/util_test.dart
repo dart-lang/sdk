@@ -35,7 +35,7 @@ void f(bool? b4, bool? b5) {
 }
 ''');
     var ifStatement = findNode.ifStatement('if (');
-    var condition = ifStatement.condition;
+    var condition = ifStatement.expression;
     var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
     // For compactness we put multiple cases into one test method.
