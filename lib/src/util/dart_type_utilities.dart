@@ -288,8 +288,16 @@ extension on TypeSystem {
       // Otherwise, they might be related.
       return false;
     } else {
+      var sameSupertypes = leftElement.supertype == rightElement.supertype;
+
+      // Unrelated Enums have the same supertype, but they are not the same element, so
+      // they are unrelated.
+      if (sameSupertypes && leftElement is EnumElement) {
+        return true;
+      }
+
       return (leftElement.supertype?.isDartCoreObject ?? false) ||
-          leftElement.supertype != rightElement.supertype;
+          !sameSupertypes;
     }
   }
 }
