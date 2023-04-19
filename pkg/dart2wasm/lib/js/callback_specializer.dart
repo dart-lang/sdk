@@ -130,8 +130,10 @@ class CallbackSpecializer {
   }
 
   /// Returns a JS method that wraps a Dart callback in a JS wrapper.
-  Procedure _getJSWrapperFunction(
-      FunctionType type, String functionTrampolineName, Uri fileUri) {
+  Procedure _getJSWrapperFunction(Procedure node, FunctionType type,
+      {required bool boxExternRef}) {
+    final functionTrampolineName =
+        _createFunctionTrampoline(node, type, boxExternRef: boxExternRef);
     List<String> jsParameters = [];
     for (int i = 0; i < type.positionalParameters.length; i++) {
       jsParameters.add('x$i');
@@ -157,7 +159,7 @@ class CallbackSpecializer {
                   type: _util.nonNullableWasmExternRefType, isSynthesized: true)
             ],
             returnType: _util.nonNullableWasmExternRefType),
-        fileUri,
+        node.fileUri,
         AnnotationType.import,
         isExternal: true);
 
@@ -201,14 +203,11 @@ class CallbackSpecializer {
   /// the wrapper should ever flow back into Dart then it will be replaced by
   /// the original Dart function.
   Expression allowInterop(StaticInvocation staticInvocation) {
-    final node = staticInvocation.target;
-    final positional = staticInvocation.arguments.positional;
-    final argument = positional.single;
+    final argument = staticInvocation.arguments.positional.single;
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;
-    final functionTrampolineName =
-        _createFunctionTrampoline(node, type, boxExternRef: false);
-    final jsWrapperFunction =
-        _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
+    final jsWrapperFunction = _getJSWrapperFunction(
+        staticInvocation.target, type,
+        boxExternRef: false);
     final v = VariableDeclaration('#var',
         initializer: argument, type: type, isSynthesized: true);
     return Let(
@@ -240,15 +239,11 @@ class CallbackSpecializer {
   ///
   ///   JSValue(jsWrapperFunction(<Function>))
   Expression functionToJS(StaticInvocation staticInvocation) {
-    // TODO let's share this logic with `allowInterop`
-    final node = staticInvocation.target;
-    final positional = staticInvocation.arguments.positional;
-    final argument = positional.single;
+    final argument = staticInvocation.arguments.positional.single;
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;
-    final functionTrampolineName =
-        _createFunctionTrampoline(node, type, boxExternRef: true);
-    final jsWrapperFunction =
-        _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
+    final jsWrapperFunction = _getJSWrapperFunction(
+        staticInvocation.target, type,
+        boxExternRef: true);
     return _createJSValue(StaticInvocation(
         jsWrapperFunction,
         Arguments([

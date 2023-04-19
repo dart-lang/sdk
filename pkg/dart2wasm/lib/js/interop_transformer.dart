@@ -27,7 +27,7 @@ class InteropTransformer extends Transformer {
   final StatefulStaticTypeContext _staticTypeContext;
   final CallbackSpecializer _callbackSpecializer;
   final InlineExpander _inlineExpander;
-  final InteropSpecializer _interopSpecializer;
+  final InteropSpecializerFactory _interopSpecializerFactory;
   final MethodCollector _methodCollector;
   final CoreTypesUtil _util;
 
@@ -37,8 +37,8 @@ class InteropTransformer extends Transformer {
             CallbackSpecializer(_staticTypeContext, _util, _methodCollector),
         _inlineExpander =
             InlineExpander(_staticTypeContext, _util, _methodCollector),
-        _interopSpecializer =
-            InteropSpecializer(_staticTypeContext, _util, _methodCollector) {}
+        _interopSpecializerFactory = InteropSpecializerFactory(
+            _staticTypeContext, _util, _methodCollector) {}
 
   factory InteropTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     final util = CoreTypesUtil(coreTypes);
@@ -51,7 +51,7 @@ class InteropTransformer extends Transformer {
 
   @override
   Library visitLibrary(Library lib) {
-    _interopSpecializer.enterLibrary(lib);
+    _interopSpecializerFactory.enterLibrary(lib);
     _methodCollector.enterLibrary(lib);
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
@@ -78,7 +78,8 @@ class InteropTransformer extends Transformer {
     } else if (target == _util.inlineJSTarget) {
       return _inlineExpander.expand(node);
     } else {
-      return _interopSpecializer.maybeSpecializeInvocation(target, node) ??
+      return _interopSpecializerFactory.maybeSpecializeInvocation(
+              target, node) ??
           node;
     }
   }
@@ -86,7 +87,7 @@ class InteropTransformer extends Transformer {
   @override
   Procedure visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
-    if (!_interopSpecializer.maybeSpecializeProcedure(node)) {
+    if (!_interopSpecializerFactory.maybeSpecializeProcedure(node)) {
       _inlineExpander.enterProcedure();
       node.transformChildren(this);
       _inlineExpander.exitProcedure(node);
