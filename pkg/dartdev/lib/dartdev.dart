@@ -172,6 +172,11 @@ class DartdevRunner extends CommandRunner<int> {
     } else if (topLevelResults['enable-analytics']) {
       analytics.enabled = true;
 
+      // Enable sending data via the unified analytics package.
+      var unifiedAnalytics = createUnifiedAnalytics();
+      await unifiedAnalytics.setTelemetry(true);
+      unifiedAnalytics.close();
+
       // Alert the user again that data will be collected.
       print(analyticsNoticeOnFirstRunMessage);
       return 0;
