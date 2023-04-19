@@ -25,8 +25,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
   SourceFileByteReader byteReader;
   final Set<Uri> _registeredUris = {};
   final Map<Uri, Uri> _mappedUris = {};
+  final bool disableByteCache;
+  final Map<Uri, List<int>> _byteCache = {};
 
-  SourceFileProvider(this.byteReader);
+  SourceFileProvider(this.byteReader, {this.disableByteCache = true});
 
   Future<api.Input<List<int>>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
@@ -56,9 +58,11 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    // Do not register URIs with schemes other than 'file' as these are internal
-    // libraries that we cannot read later.
+
     registerUri(resourceUri);
+    if (!disableByteCache) {
+      _byteCache[resourceUri] = source;
+    }
   }
 
   /// Registers the URI and returns true if the URI is new.
@@ -115,6 +119,11 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
+
+    if (_byteCache.containsKey(resourceUri)) {
+      return _sourceToFile(
+          resourceUri, _byteCache[resourceUri]!, api.InputKind.UTF8);
+    }
     return resourceUri.isScheme('file')
         ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
         : null;
@@ -152,8 +161,8 @@ Uint8List readAll(String filename, {bool zeroTerminated = true}) {
 
 class CompilerSourceFileProvider extends SourceFileProvider {
   CompilerSourceFileProvider(
-      {SourceFileByteReader byteReader =
-          const MemoryCopySourceFileByteReader()})
+      {SourceFileByteReader byteReader = const MemoryCopySourceFileByteReader(),
+      super.disableByteCache})
       : super(byteReader);
 
   @override
@@ -541,7 +550,8 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
 class BazelInputProvider extends SourceFileProvider {
   final List<Uri> dirs;
 
-  BazelInputProvider(List<String> searchPaths, super.byteReader)
+  BazelInputProvider(List<String> searchPaths, super.byteReader,
+      {super.disableByteCache})
       : dirs = searchPaths.map(_resolve).toList();
 
   static Uri _resolve(String path) => Uri.base.resolve(path);
@@ -588,7 +598,8 @@ class MultiRootInputProvider extends SourceFileProvider {
   final List<Uri> roots;
   final String markerScheme;
 
-  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader);
+  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader,
+      {super.disableByteCache});
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,

@@ -599,6 +599,9 @@ class CompilerOptions implements DiagnosticOptions {
   // Whether or not to dump a list of unused libraries.
   bool dumpUnusedLibraries = false;
 
+  // Whether or not to disable byte cache for sources loaded from Kernel dill.
+  bool disableDiagnosticByteCache = false;
+
   late FeatureOptions features;
 
   // -------------------------------------------------
@@ -737,6 +740,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(
               options, '${Flags.verbosity}=', fe.Verbosity.defaultValue)!,
           onError: onError)
+      ..disableDiagnosticByteCache =
+          _hasOption(options, Flags.disableDiagnosticByteCache)
       ..features = featureOptions;
   }
 
