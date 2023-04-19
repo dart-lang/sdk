@@ -40,7 +40,7 @@ class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(ifStatement), (builder) {
-        final expressionCode = firstThen.identifier;
+        final expressionCode = firstThen.expressionCode;
         builder.writeln('switch ($expressionCode) {');
 
         for (final case_ in cases) {
@@ -69,25 +69,10 @@ class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
   }
 
   List<_IfCase>? _buildCases(IfStatement ifStatement) {
-    final expression = ifStatement.expression;
-    if (expression is! SimpleIdentifier) {
+    final thenCase = _buildThenCase(ifStatement);
+    if (thenCase == null) {
       return null;
     }
-
-    final String patternCode;
-    final caseClause = ifStatement.caseClause;
-    if (caseClause != null) {
-      patternCode = utils.getNodeText(caseClause.guardedPattern);
-    } else {
-      // TODO(scheglov) support converting conditions to patterns
-      return null;
-    }
-
-    final thenCase = _IfCaseThen(
-      identifier: expression.token,
-      patternCode: patternCode,
-      statement: ifStatement.thenStatement,
-    );
 
     final cases = <_IfCase>[];
     cases.add(thenCase);
@@ -100,7 +85,7 @@ class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
       }
       for (final elseCase in elseCases) {
         if (elseCase is _IfCaseThen) {
-          if (elseCase.identifier.lexeme != thenCase.identifier.lexeme) {
+          if (elseCase.expressionCode != thenCase.expressionCode) {
             return null;
           }
         }
@@ -115,6 +100,36 @@ class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
     }
 
     return cases;
+  }
+
+  _IfCaseThen? _buildThenCase(IfStatement ifStatement) {
+    final expression = ifStatement.expression;
+    final caseClause = ifStatement.caseClause;
+
+    if (caseClause != null) {
+      if (expression is! SimpleIdentifier) {
+        return null;
+      }
+      final guardedPattern = caseClause.guardedPattern;
+      final patternCode = utils.getNodeText(guardedPattern);
+      return _IfCaseThen(
+        expressionCode: expression.token.lexeme,
+        patternCode: patternCode,
+        statement: ifStatement.thenStatement,
+      );
+    }
+
+    // The expression is the bool condition.
+    final result = utils.patternOfBoolCondition(expression);
+    if (result == null) {
+      return null;
+    }
+
+    return _IfCaseThen(
+      expressionCode: result.expressionCode,
+      patternCode: result.patternCode,
+      statement: ifStatement.thenStatement,
+    );
   }
 
   /// Writes [statement], if it is a [Block], inlines it.
@@ -356,11 +371,11 @@ class _IfCaseElse extends _IfCase {
 }
 
 class _IfCaseThen extends _IfCase {
-  final Token identifier;
+  final String expressionCode;
   final String patternCode;
 
   _IfCaseThen({
-    required this.identifier,
+    required this.expressionCode,
     required this.patternCode,
     required super.statement,
   });
