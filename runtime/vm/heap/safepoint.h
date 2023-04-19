@@ -75,40 +75,23 @@ class SafepointHandler {
   void ExitSafepointUsingLock(Thread* T);
   void BlockForSafepoint(Thread* T);
 
-  bool IsOwnedByTheThread(const Thread* thread) {
-    MonitorLocker ml(threads_lock());
-    for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
-      if (handlers_[level]->owner_ == thread) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-#if defined(DEBUG) || defined(TESTING)
-  SafepointLevel InnermostSafepointOperation(const Thread* thread) const {
-    MonitorLocker ml(threads_lock());
-    ASSERT(handlers_[SafepointLevel::kGC]->owner_ == thread);
-    intptr_t last_count = -1;
-    SafepointLevel last_level = SafepointLevel::kGC;
-    for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
-      if (handlers_[level]->owner_ == thread) {
-        const intptr_t count = handlers_[level]->operation_count_;
-        if (count < last_count) return last_level;
-        last_count = count;
-        last_level = static_cast<SafepointLevel>(level);
-      } else {
-        return last_level;
-      }
-    }
-    return last_level;
-  }
-#endif  // defined(DEBUG) || defined(TESTING)
-
-  bool IsOwnedByTheThread(const Thread* thread, SafepointLevel level) {
-    MonitorLocker ml(threads_lock());
-    return (handlers_[level]->owner_ == thread);
-  }
+  // The innermost safepoint operation this thread owns
+  //
+  // Returns `SafepointLevel::kNone` if the current thread doesn't own any
+  // safepoint. Otherwise returns the innermost safepoint level of the current
+  // thread.
+  //
+  // * Will return SafepointLevel::kDeoptAndGC for
+  //
+  //   DeoptSafepointOperationScope sp;
+  //
+  // * Will return SafepointLevel::kGC for
+  //
+  //   DeoptSafepointOperationScope sp1;
+  //   GcSafepointOperationScope sp2;
+  //
+  SafepointLevel InnermostSafepointOperation(
+      const Thread* current_thread) const;
 
   bool AnySafepointInProgress() {
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
@@ -170,10 +153,10 @@ class SafepointHandler {
     // If a safepoint operation is currently in progress, this field contains
     // the thread that initiated the safepoint operation, otherwise it is
     // nullptr.
-    Thread* owner_ = nullptr;
+    std::atomic<Thread*> owner_ = nullptr;
 
     // The number of nested safepoint operations currently held.
-    int32_t operation_count_ = 0;
+    std::atomic<int32_t> operation_count_ = 0;
 
     // Count the number of threads the currently in-progress safepoint operation
     // is waiting for to check-in.
@@ -326,7 +309,7 @@ class TransitionGeneratedToNative : public TransitionSafepointState {
 class TransitionVMToBlocked : public TransitionSafepointState {
  public:
   explicit TransitionVMToBlocked(Thread* T) : TransitionSafepointState(T) {
-    ASSERT(!T->isolate_group()->safepoint_handler()->IsOwnedByTheThread(T));
+    ASSERT(!T->OwnsSafepoint());
     // A thread blocked on a monitor is considered to be at a safepoint.
     ASSERT(T->execution_state() == Thread::kThreadInVM);
     T->set_execution_state(Thread::kThreadInBlockedState);

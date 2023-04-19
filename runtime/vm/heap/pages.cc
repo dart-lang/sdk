@@ -644,7 +644,7 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
 
   // Wait for the sweeper to finish mutating the large page list.
@@ -993,7 +993,7 @@ void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
 void PageSpace::CollectGarbageHelper(Thread* thread,
                                      bool compact,
                                      bool finalize) {
-  ASSERT(thread->IsAtSafepoint());
+  ASSERT(thread->OwnsGCSafepoint());
   auto isolate_group = heap_->isolate_group();
   ASSERT(isolate_group == IsolateGroup::Current());
 

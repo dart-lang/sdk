@@ -380,7 +380,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     function.SetWasCompiled(true);
   } else if (optimized()) {
     // We cannot execute generated code while installing code.
-    ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt) ||
+    ASSERT(Thread::Current()->OwnsGCSafepoint() ||
            (Thread::Current()->IsMutatorThread() &&
             IsolateGroup::Current()->ContainsOnlyOneIsolate()));
     // We are validating our CHA / field guard / ... assumptions. To prevent
@@ -1177,7 +1177,7 @@ void BackgroundCompiler::Run() {
 bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   if (disabled_depth_ > 0) return false;
@@ -1212,7 +1212,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 void BackgroundCompiler::Stop() {
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   StopLocked(thread, &ml);
@@ -1230,7 +1230,7 @@ void BackgroundCompiler::StopLocked(Thread* thread,
 void BackgroundCompiler::Enable() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   disabled_depth_--;
@@ -1242,7 +1242,7 @@ void BackgroundCompiler::Enable() {
 void BackgroundCompiler::Disable() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+  ASSERT(thread->CanAcquireSafepointLocks());
 
   SafepointMonitorLocker ml(&monitor_);
   disabled_depth_++;

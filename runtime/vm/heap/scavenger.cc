@@ -1576,7 +1576,7 @@ bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
 }
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
@@ -1585,7 +1585,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
     page->VisitObjects(visitor);
@@ -1714,7 +1714,7 @@ uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
 void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   int64_t start = OS::GetCurrentMonotonicMicros();
 
-  ASSERT(thread->IsAtSafepoint());
+  ASSERT(thread->OwnsGCSafepoint());
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);

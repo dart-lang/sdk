@@ -160,7 +160,7 @@ void Page::Deallocate(bool can_use_cache) {
 }
 
 void Page::VisitObjects(ObjectVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->OwnsGCSafepoint());
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -173,7 +173,7 @@ void Page::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask) ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
   NoSafepointScope no_safepoint;
@@ -187,7 +187,7 @@ void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
   NoSafepointScope no_safepoint;
 

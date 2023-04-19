@@ -290,6 +290,9 @@ enum SafepointLevel {
   kGCAndDeopt,
   // Number of levels.
   kNumLevels,
+
+  // No safepoint.
+  kNoSafepoint,
 };
 
 // Accessed from generated code.
@@ -545,8 +548,6 @@ class Thread : public ThreadState {
 #if defined(DEBUG)
   bool IsInsideCompiler() const { return inside_compiler_; }
 #endif
-
-  bool CanCollectGarbage() const;
 
   // Offset of Dart TimelineStream object.
   static intptr_t dart_stream_offset() {
@@ -1002,6 +1003,11 @@ class Thread : public ThreadState {
       safepoint_state_.fetch_and(~mask);
     }
   }
+
+  bool OwnsGCSafepoint() const;
+  bool OwnsDeoptSafepoint() const;
+  bool OwnsSafepoint() const;
+  bool CanAcquireSafepointLocks() const;
 
   uword safepoint_state() { return safepoint_state_; }
 

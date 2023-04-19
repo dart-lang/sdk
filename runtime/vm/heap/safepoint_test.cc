@@ -338,6 +338,7 @@ class CheckinTask : public StateMachineTask {
           break;
         }
         case SafepointLevel::kNumLevels:
+        case SafepointLevel::kNoSafepoint:
           UNREACHABLE();
       }
 
@@ -468,6 +469,7 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
           EXPECT_EQ(0, timeout_checkins[i]);
           break;
         case SafepointLevel::kNumLevels:
+        case SafepointLevel::kNoSafepoint:
           UNREACHABLE();
       }
     }

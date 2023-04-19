@@ -127,6 +127,13 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
   // guarantees that lower levels (e.g. others being stopped at places where
   // one can deopt also implies one can gc)
   AcquireLowerLevelSafepoints(T, level);
+
+  // The current thread owns the safepoint, but it will continue to run and as
+  // such is not at any "point" that can be considered safe.
+  {
+    MonitorLocker tl(T->thread_lock());
+    ExitSafepointLocked(T, &tl, level);
+  }
 }
 
 void SafepointHandler::AssertWeOwnLowerLevelSafepoints(Thread* T,
@@ -184,14 +191,6 @@ void SafepointHandler::ResumeThreads(Thread* T, SafepointLevel level) {
     handlers_[level]->ResetSafepointInProgress(T);
     handlers_[level]->NotifyThreadsToContinue(T);
     sl.NotifyAll();
-  }
-  {
-    MonitorLocker tl(T->thread_lock());
-    // We only enter [level] here. That means a higher level that is waiting
-    // for us to check-in will not consider us as not parked. This is required
-    // since we are not actually parked (we can finish running this method and
-    // then caller continues).
-    ExitSafepointLocked(T, &tl, level);
   }
 }
 
@@ -262,6 +261,39 @@ void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   ASSERT(T->IsAtSafepoint());
   ExitSafepointLocked(T, &tl, T->current_safepoint_level());
   ASSERT(!T->IsSafepointRequestedLocked(T->current_safepoint_level()));
+}
+
+SafepointLevel SafepointHandler::InnermostSafepointOperation(
+    const Thread* current_thread) const {
+  // The [current_thread] may not own the active safepoint.
+  intptr_t last_count = -1;
+  SafepointLevel last_level = SafepointLevel::kNoSafepoint;
+
+  // Notice: We access SafepointLevel::{owner_,operation_count_} fields
+  // without lock. This is ok since:
+  //
+  //   * If the current thread is the owner, then it will be the one that has
+  //     last written `Thread::Current()` to the `owner_` field (as well as
+  //     updated the `operation_count_`) - nobody else can update those fields
+  //     in the meantime. Once the current thread exits we set it to `nullptr`.
+  //
+  //   * If there's no owner or another thread is the owner the value cannot be
+  //     `Thread::Current()`: only our thread can write that particular value.
+  //
+  //   => Even if there's racy writes by another thread, the logic is still
+  //      safe.
+  //
+  for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
+    if (handlers_[level]->owner_ == current_thread) {
+      const intptr_t count = handlers_[level]->operation_count_;
+      if (count < last_count) return last_level;
+      last_count = count;
+      last_level = static_cast<SafepointLevel>(level);
+    } else {
+      return last_level;
+    }
+  }
+  return last_level;
 }
 
 void SafepointHandler::BlockForSafepoint(Thread* T) {

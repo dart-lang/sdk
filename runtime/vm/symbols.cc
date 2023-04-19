@@ -352,7 +352,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
     ObjectStore* object_store = group->object_store();
-    RELEASE_ASSERT(!thread->IsAtSafepoint());
+    RELEASE_ASSERT(thread->CanAcquireSafepointLocks());
 
     // Most common case: The symbol is already in the table.
     {
@@ -399,8 +399,7 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
     ObjectStore* object_store = group->object_store();
     // See `Symbols::NewSymbol` for more information why we separate the two
     // cases.
-    if (thread->IsAtSafepoint()) {
-      RELEASE_ASSERT(group->safepoint_handler()->IsOwnedByTheThread(thread));
+    if (thread->OwnsSafepoint()) {
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);

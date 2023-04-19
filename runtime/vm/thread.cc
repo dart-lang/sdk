@@ -378,7 +378,7 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 }
 
 void Thread::ReleaseStoreBuffer() {
-  ASSERT(IsAtSafepoint());
+  ASSERT(IsAtSafepoint() || OwnsSafepoint());
   if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
     return;  // Nothing to release.
   }
@@ -568,16 +568,6 @@ void Thread::DeferredMarkingStackAcquire() {
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
 
-bool Thread::CanCollectGarbage() const {
-  // We grow the heap instead of triggering a garbage collection when a
-  // thread is at a safepoint in the following situations :
-  //   - background compiler thread finalizing and installing code
-  //   - disassembly of the generated code is done after compilation
-  // So essentially we state that garbage collection is possible only
-  // when we are not at a safepoint.
-  return !IsAtSafepoint();
-}
-
 bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
@@ -738,7 +728,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 // Dart frames preceding an exit frame to the store buffer or deferred
 // marking stack.
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
-  ASSERT(IsAtSafepoint());
+  ASSERT(IsAtSafepoint() || OwnsGCSafepoint());
   ASSERT(IsMutatorThread());
 
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
@@ -983,6 +973,30 @@ void Thread::ExitSafepointUsingLock() {
 
 void Thread::BlockForSafepoint() {
   isolate_group()->safepoint_handler()->BlockForSafepoint(this);
+}
+
+bool Thread::OwnsGCSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) <= SafepointLevel::kGCAndDeopt;
+}
+
+bool Thread::OwnsDeoptSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) == SafepointLevel::kGCAndDeopt;
+}
+
+bool Thread::OwnsSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) != SafepointLevel::kNoSafepoint;
+}
+
+bool Thread::CanAcquireSafepointLocks() const {
+  // A thread may acquire locks and then enter a safepoint operation (e.g.
+  // holding program lock, allocating objects which triggers GC).
+  //
+  // So it's generally not safe to acquire locks while we are inside a GC
+  // safepoint operation scope.
+  return !OwnsGCSafepoint();
 }
 
 void Thread::FinishEntering(TaskKind kind) {

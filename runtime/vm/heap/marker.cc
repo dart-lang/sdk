@@ -508,7 +508,7 @@ enum RootSlices {
 };
 
 void GCMarker::ResetSlices() {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->OwnsGCSafepoint());
 
   root_slices_started_ = 0;
   root_slices_finished_ = 0;

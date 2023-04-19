@@ -2789,7 +2789,7 @@ void IsolateGroup::ForEachIsolate(
     bool at_safepoint) {
   auto thread = Thread::Current();
   if (at_safepoint) {
-    ASSERT(thread->IsAtSafepoint() ||
+    ASSERT(thread->OwnsSafepoint() ||
            (thread->task_kind() == Thread::kMutatorTask) ||
            (thread->task_kind() == Thread::kMarkerTask) ||
            (thread->task_kind() == Thread::kCompactorTask) ||
@@ -2799,7 +2799,7 @@ void IsolateGroup::ForEachIsolate(
     }
     return;
   }
-  if (thread != nullptr && thread->IsAtSafepoint()) {
+  if (thread != nullptr && thread->OwnsSafepoint()) {
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
@@ -2827,8 +2827,8 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
-  if (thread->IsAtSafepoint()) {
-    RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));
+  if (thread->OwnsSafepoint()) {
+    RELEASE_ASSERT(thread->OwnsSafepoint());
     single_current_mutator->Call();
     return;
   }

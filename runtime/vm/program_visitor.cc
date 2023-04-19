@@ -521,7 +521,6 @@ class StackMapEntry : public ZoneAllocated {
     return Utils::RoundUp(Length(), kBitsPerByte) >> kBitsPerByteLog2;
   }
   const uint8_t* PayloadData() const {
-    ASSERT(!Thread::Current()->IsAtSafepoint());
     return bits_container_.ptr()->untag()->payload()->data() + bits_offset_;
   }
 

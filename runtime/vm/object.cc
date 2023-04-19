@@ -4340,8 +4340,7 @@ void Class::Finalize() const {
 #if defined(DEBUG)
 static bool IsMutatorOrAtDeoptSafepoint() {
   Thread* thread = Thread::Current();
-  return thread->IsMutatorThread() ||
-         thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt);
+  return thread->IsMutatorThread() || thread->OwnsDeoptSafepoint();
 }
 #endif
 
@@ -18206,7 +18205,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
 
 void Code::NotifyCodeObservers(const Code& code, bool optimized) {
 #if !defined(PRODUCT)
-  ASSERT(!Thread::Current()->IsAtSafepoint());
+  ASSERT(!Thread::Current()->OwnsSafepoint());
   if (CodeObservers::AreActive()) {
     if (code.IsFunctionCode()) {
       const auto& function = Function::Handle(code.function());
@@ -18224,7 +18223,7 @@ void Code::NotifyCodeObservers(const Function& function,
                                bool optimized) {
 #if !defined(PRODUCT)
   ASSERT(!function.IsNull());
-  ASSERT(!Thread::Current()->IsAtSafepoint());
+  ASSERT(!Thread::Current()->OwnsSafepoint());
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
   if (CodeObservers::AreActive()) {
@@ -18240,7 +18239,7 @@ void Code::NotifyCodeObservers(const char* name,
 #if !defined(PRODUCT)
   ASSERT(name != nullptr);
   ASSERT(!code.IsNull());
-  ASSERT(!Thread::Current()->IsAtSafepoint());
+  ASSERT(!Thread::Current()->OwnsSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),

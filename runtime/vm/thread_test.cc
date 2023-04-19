@@ -541,7 +541,7 @@ class SafepointTestTask : public ThreadPool::Task {
       } else {
         // But occasionally, organize a rendezvous.
         HeapIterationScope iteration(thread);  // Establishes a safepoint.
-        ASSERT(thread->IsAtSafepoint());
+        ASSERT(thread->OwnsSafepoint());
         ObjectCounter counter(isolate_->group(), &smi);
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
