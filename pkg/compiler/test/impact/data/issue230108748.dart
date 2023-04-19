@@ -1,3 +1,5 @@
+// @dart = 2.19
+
 class B {
   /*member: B.x:
    static=[
