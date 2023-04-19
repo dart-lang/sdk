@@ -661,7 +661,6 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 /// A variable pattern in [PatternAssignment].
 ///
 ///    variablePattern ::= identifier
-@experimental
 class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
@@ -1462,7 +1461,6 @@ class CascadeExpressionImpl extends ExpressionImpl
 ///        'case' [DartPattern] [WhenClause]?
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   @override
   final Token caseKeyword;
@@ -1501,7 +1499,6 @@ class CaseClauseImpl extends AstNodeImpl implements CaseClause {
 ///
 ///    castPattern ::=
 ///        [DartPattern] 'as' [TypeAnnotation]
-@experimental
 class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   final Token asToken;
@@ -2857,7 +2854,6 @@ class ConstantContextForExpressionImpl extends AstNodeImpl {
 ///
 ///    constantPattern ::=
 ///        'const'? [Expression]
-@experimental
 class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   @override
   final Token? constKeyword;
@@ -3458,7 +3454,6 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///      | [ParenthesizedPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-@experimental
 abstract class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
   @override
@@ -3617,7 +3612,6 @@ class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
 ///
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
-@experimental
 class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
@@ -5267,7 +5261,6 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 ///
 ///    forEachPartsWithPattern ::=
 ///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
-@experimental
 class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     implements ForEachPartsWithPattern {
   /// The annotations associated with this node.
@@ -6703,7 +6696,6 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
 ///        'case' [DartPattern] [WhenClause]?
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @override
   final DartPatternImpl pattern;
@@ -8308,7 +8300,6 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 }
 
-@experimental
 abstract class ListPatternElementImpl
     implements AstNodeImpl, ListPatternElement {}
 
@@ -8316,7 +8307,6 @@ abstract class ListPatternElementImpl
 ///
 ///    listPattern ::=
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
-@experimental
 class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
@@ -8421,7 +8411,6 @@ class LocalVariableInfo {
 ///
 ///    logicalAndPattern ::=
 ///        [DartPattern] '&&' [DartPattern]
-@experimental
 class LogicalAndPatternImpl extends DartPatternImpl
     implements LogicalAndPattern {
   @override
@@ -8486,7 +8475,6 @@ class LogicalAndPatternImpl extends DartPatternImpl
 ///
 ///    logicalOrPattern ::=
 ///        [DartPattern] '||' [DartPattern]
-@experimental
 class LogicalOrPatternImpl extends DartPatternImpl implements LogicalOrPattern {
   @override
   final DartPatternImpl leftOperand;
@@ -8617,7 +8605,6 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   }
 }
 
-@experimental
 abstract class MapPatternElementImpl
     implements AstNodeImpl, MapPatternElement {}
 
@@ -8625,7 +8612,6 @@ abstract class MapPatternElementImpl
 ///
 ///    mapPatternEntry ::=
 ///        [Expression] ':' [DartPattern]
-@experimental
 class MapPatternEntryImpl extends AstNodeImpl
     implements MapPatternEntry, MapPatternElementImpl {
   ExpressionImpl _key;
@@ -8679,7 +8665,6 @@ class MapPatternEntryImpl extends AstNodeImpl
 ///    mapPattern ::=
 ///        [TypeArgumentList]? '{' [MapPatternEntry] (',' [MapPatternEntry])*
 ///        ','? '}'
-@experimental
 class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
@@ -9777,7 +9762,6 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 ///
 ///    nullAssertPattern ::=
 ///        [DartPattern] '!'
-@experimental
 class NullAssertPatternImpl extends DartPatternImpl
     implements NullAssertPattern {
   @override
@@ -9840,7 +9824,6 @@ class NullAssertPatternImpl extends DartPatternImpl
 ///
 ///    nullCheckPattern ::=
 ///        [DartPattern] '?'
-@experimental
 class NullCheckPatternImpl extends DartPatternImpl implements NullCheckPattern {
   @override
   final DartPatternImpl pattern;
@@ -9967,7 +9950,6 @@ mixin NullShortableExpressionImpl implements NullShortableExpression {
 ///
 ///    objectPattern ::=
 ///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
-@experimental
 class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
@@ -10167,7 +10149,6 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
 ///
 ///    parenthesizedPattern ::=
 ///        '(' [DartPattern] ')'
-@experimental
 class ParenthesizedPatternImpl extends DartPatternImpl
     implements ParenthesizedPattern {
   @override
@@ -10374,7 +10355,6 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 ///
 /// When used as the condition in an `if`, the pattern is always a
 /// [PatternVariable] whose type is not `null`.
-@experimental
 class PatternAssignmentImpl extends ExpressionImpl
     implements PatternAssignment {
   @override
@@ -10441,7 +10421,6 @@ class PatternAssignmentImpl extends ExpressionImpl
 ///
 ///    patternField ::=
 ///        [PatternFieldName]? [DartPattern]
-@experimental
 class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @override
   Element? element;
@@ -10492,7 +10471,6 @@ class PatternFieldImpl extends AstNodeImpl implements PatternField {
 ///
 ///    patternFieldName ::=
 ///        [Token]? ':'
-@experimental
 class PatternFieldNameImpl extends AstNodeImpl implements PatternFieldName {
   @override
   final Token colon;
@@ -10526,7 +10504,6 @@ class PatternFieldNameImpl extends AstNodeImpl implements PatternFieldName {
 ///
 ///    patternDeclaration ::=
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
-@experimental
 class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     implements PatternVariableDeclaration {
   @override
@@ -10603,7 +10580,6 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 ///
 ///    patternDeclarationStatement ::=
 ///        [PatternVariableDeclaration] ';'
-@experimental
 class PatternVariableDeclarationStatementImpl extends StatementImpl
     implements PatternVariableDeclarationStatement {
   @override
@@ -11089,7 +11065,6 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 ///
 ///    recordPattern ::=
 ///        '(' [PatternField] (',' [PatternField])* ')'
-@experimental
 class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
@@ -11416,7 +11391,6 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
 ///
 ///    relationalPattern ::=
 ///        (equalityOperator | relationalOperator) [Expression]
-@experimental
 class RelationalPatternImpl extends DartPatternImpl
     implements RelationalPattern {
   ExpressionImpl _operand;
@@ -11478,7 +11452,6 @@ class RelationalPatternImpl extends DartPatternImpl
   }
 }
 
-@experimental
 class RestPatternElementImpl extends AstNodeImpl
     implements
         RestPatternElement,
@@ -12811,7 +12784,6 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
 ///
 ///    switchExpressionCase ::=
 ///        [GuardedPattern] '=>' [Expression]
-@experimental
 class SwitchExpressionCaseImpl extends AstNodeImpl
     implements SwitchExpressionCase {
   @override
@@ -12866,7 +12838,6 @@ class SwitchExpressionCaseImpl extends AstNodeImpl
 ///    switchExpression ::=
 ///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
 ///        (',' [SwitchExpressionCase])* ','? '}'
-@experimental
 class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
   @override
   final Token switchKeyword;
@@ -13006,7 +12977,6 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 ///
 ///    switchPatternCase ::=
 ///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
-@experimental
 class SwitchPatternCaseImpl extends SwitchMemberImpl
     implements SwitchPatternCase {
   @override
@@ -14136,7 +14106,6 @@ class VariableDeclarationStatementImpl extends StatementImpl
   }
 }
 
-@experimental
 abstract class VariablePatternImpl extends DartPatternImpl
     implements VariablePattern {
   @override
@@ -14159,7 +14128,6 @@ abstract class VariablePatternImpl extends DartPatternImpl
 ///
 ///    switchCase ::=
 ///        'when' [Expression]
-@experimental
 class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   ExpressionImpl _expression;
 
@@ -14278,7 +14246,6 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
 ///
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
-@experimental
 class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
   @override
   final Token? keyword;

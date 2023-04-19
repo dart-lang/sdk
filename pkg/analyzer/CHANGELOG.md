@@ -1,3 +1,6 @@
+## 5.11.0-dev
+* Removed `@experimental` from AST nodes and elements for records and patterns.
+
 ## 5.10.0
 * Added `DartType.isDartCoreType`.
 

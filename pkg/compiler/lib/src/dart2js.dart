@@ -685,6 +685,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption('${Flags.cfeInvocationModes}=.+', passThrough),
     _OneOption('${Flags.invoker}=.+', setInvoker),
     _OneOption('${Flags.verbosity}=.+', passThrough),
+    _OneOption(Flags.disableDiagnosticByteCache, passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -979,12 +980,16 @@ Future<api.CompilationResult> compile(List<String> argv,
           'The options --bazel-root and --multi-root cannot be supplied '
           'together, please choose one or the other.');
     }
-    inputProvider = BazelInputProvider(bazelPaths!, byteReader);
+    inputProvider = BazelInputProvider(bazelPaths!, byteReader,
+        disableByteCache: compilerOptions.disableDiagnosticByteCache);
   } else if (multiRoots != null) {
-    inputProvider =
-        MultiRootInputProvider(multiRootScheme!, multiRoots!, byteReader);
+    inputProvider = MultiRootInputProvider(
+        multiRootScheme!, multiRoots!, byteReader,
+        disableByteCache: compilerOptions.disableDiagnosticByteCache);
   } else {
-    inputProvider = CompilerSourceFileProvider(byteReader: byteReader);
+    inputProvider = CompilerSourceFileProvider(
+        byteReader: byteReader,
+        disableByteCache: compilerOptions.disableDiagnosticByteCache);
   }
 
   diagnostic.registerFileProvider(inputProvider);
