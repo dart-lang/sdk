@@ -3483,7 +3483,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
           Function::ZoneHandle(Z, function.parent_function());
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
-      type = Type::New(owner, TypeArguments::Handle(Z));
+      type = Type::New(owner, Object::null_type_arguments());
       type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {
@@ -3740,8 +3740,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // TranslateInstantiatedTypeArguments is smart enough to
       // avoid instantiation and reuse passed function type arguments
       // if there are no extra type arguments in the flattened vector.
-      const auto& instantiated_type_arguments =
-          TypeArguments::ZoneHandle(Z, result_type.arguments());
+      const auto& instantiated_type_arguments = TypeArguments::ZoneHandle(
+          Z, Type::Cast(result_type).GetInstanceTypeArguments(H.thread()));
       closure +=
           TranslateInstantiatedTypeArguments(instantiated_type_arguments);
     } else {
@@ -3760,8 +3760,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Class& cls = Class::ZoneHandle(Z, target.Owner());
     if (cls.NumTypeArguments() > 0) {
       if (!function.IsGeneric()) {
-        Type& cls_type = Type::Handle(Z, cls.DeclarationType());
-        closure += Constant(TypeArguments::ZoneHandle(Z, cls_type.arguments()));
+        closure += Constant(TypeArguments::ZoneHandle(
+            Z, cls.GetDeclarationInstanceTypeArguments()));
       }
       closure += AllocateObject(function.token_pos(), cls, 1);
     } else {
