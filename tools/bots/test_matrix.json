@@ -624,6 +624,15 @@
         ]
       }
     },
+    "vm-aot-dwarf-linux-(debug|release|product)-x64": {
+      "options": {
+        "builder-tag": "dwarf",
+        "vm-options": [
+          "--dwarf_stack_traces"
+        ],
+        "use-elf": true
+      }
+    },
     "dartkp-dwarf-(linux|win|mac)-product-(arm64|arm64c|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "dwarf",
@@ -644,6 +653,14 @@
         ],
         "gen-kernel-options": [
           "--no-sound-null-safety"
+        ]
+      }
+    },
+    "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
+      "options": {
+        "builder-tag": "obfuscated",
+        "vm-options": [
+          "--obfuscate"
         ]
       }
     },
@@ -1415,6 +1432,32 @@
     },
     {
       "builders": [
+        "vm-aot-dwarf-linux-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders with dwarf stack traces."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-dwarf-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-dwarf-linux-product-x64"
       ],
       "meta": {
@@ -1433,6 +1476,32 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-dwarf-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-obfuscate-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the obfuscated vm kernel precomp builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-obfuscate-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
