@@ -1300,7 +1300,7 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != nullptr);
-  if (thread->IsMutatorThread()) {
+  if (thread->IsDartMutatorThread()) {
     counters->Increment(sample->vm_tag());
   }
 
@@ -1375,7 +1375,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (thread->IsMutatorThread()) {
+  if (thread->IsDartMutatorThread()) {
     if (isolate->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
@@ -1399,7 +1399,7 @@ void Profiler::SampleThread(Thread* thread,
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != nullptr);
-  if (thread->IsMutatorThread()) {
+  if (thread->IsDartMutatorThread()) {
     counters->Increment(sample->vm_tag());
   }
 

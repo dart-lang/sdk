@@ -30,7 +30,6 @@
 #include "vm/stack_frame.h"
 #include "vm/tagged_pointer.h"
 #include "vm/thread_barrier.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/visitor.h"
 

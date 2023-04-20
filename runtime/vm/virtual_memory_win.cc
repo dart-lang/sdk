@@ -209,7 +209,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsDartMutatorThread() ||
          thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif

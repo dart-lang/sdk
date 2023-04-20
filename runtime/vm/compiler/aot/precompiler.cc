@@ -3429,7 +3429,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
 
   if (optimized()) {
     // Installs code while at safepoint.
-    ASSERT(thread()->IsMutatorThread());
+    ASSERT(thread()->IsDartMutatorThread());
     function.InstallOptimizedCode(code);
   } else {  // not optimized.
     function.set_unoptimized_code(code);
@@ -3574,7 +3574,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
-        ASSERT(thread()->IsMutatorThread());
+        ASSERT(thread()->IsDartMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);
       }

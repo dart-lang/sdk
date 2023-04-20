@@ -224,21 +224,21 @@ class Heap {
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
   void SetObjectId(ObjectPtr raw_obj, intptr_t object_id) {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     SetWeakEntry(raw_obj, kObjectIds, object_id);
   }
   intptr_t GetObjectId(ObjectPtr raw_obj) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
 
   void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     SetWeakEntry(raw_obj, kLoadingUnits, unit_id);
   }
   intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(Thread::Current()->IsDartMutatorThread());
     return GetWeakEntry(raw_obj, kLoadingUnits);
   }
 

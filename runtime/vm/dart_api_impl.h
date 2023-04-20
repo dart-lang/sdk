@@ -11,7 +11,6 @@
 #include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 
 namespace dart {

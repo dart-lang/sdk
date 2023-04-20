@@ -30,7 +30,7 @@ ArrayPtr ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
   const Array& arguments_descriptor = Array::Handle(
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, arguments.Length()));
@@ -120,7 +120,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 #endif
 
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(!function.IsNull());
 
 #if defined(DART_PRECOMPILED_RUNTIME)

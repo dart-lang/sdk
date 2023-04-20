@@ -3290,7 +3290,7 @@ void Class::SetFunctions(const Array& value) const {
 void Class::AddFunction(const Function& function) const {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized() ||
          FunctionType::Handle(function.signature()).IsFinalized());
@@ -4340,7 +4340,7 @@ void Class::Finalize() const {
 #if defined(DEBUG)
 static bool IsMutatorOrAtDeoptSafepoint() {
   Thread* thread = Thread::Current();
-  return thread->IsMutatorThread() || thread->OwnsDeoptSafepoint();
+  return thread->IsDartMutatorThread() || thread->OwnsDeoptSafepoint();
 }
 #endif
 
@@ -4748,7 +4748,7 @@ ObjectPtr Class::EvaluateCompiledExpression(
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   if (IsInternalOnlyClassId(id()) || (id() == kTypeArgumentsCid)) {
     const Instance& exception = Instance::Handle(String::New(
         "Expressions can be evaluated only with regular Dart instances"));
@@ -7868,7 +7868,7 @@ void Function::ClearCodeSafe() const {
 void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
@@ -7913,7 +7913,7 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
 
   const Code& current_code = Code::Handle(zone, CurrentCode());
   TIR_Print("Disabling optimized code for %s\n", ToCString());
@@ -10915,7 +10915,7 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
 CodePtr Function::EnsureHasCode() const {
   if (HasCode()) return CurrentCode();
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
   const Object& result =
@@ -12024,7 +12024,7 @@ void Field::SetStaticConstFieldValue(const Instance& value,
 }
 
 ObjectPtr Field::EvaluateInitializer() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
@@ -12330,7 +12330,7 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 
 void Field::SetStaticValue(const Object& value) const {
   auto thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
 
   ASSERT(is_static());  // Valid only for static dart fields.
@@ -13390,7 +13390,7 @@ bool Library::LookupResolvedNamesCache(const String& name, Object* obj) const {
 // change 'resolved_names()' while running a background compilation;
 // ASSERT that 'resolved_names()' has not changed only in mutator.
 #if defined(DEBUG)
-  if (Thread::Current()->IsMutatorThread()) {
+  if (Thread::Current()->IsDartMutatorThread()) {
     ASSERT(cache.Release().ptr() == resolved_names());
   } else {
     // Release must be called in debug mode.
@@ -13428,7 +13428,7 @@ bool Library::LookupExportedNamesCache(const String& name, Object* obj) const {
 // change 'exported_names()' while running a background compilation;
 // do not ASSERT that 'exported_names()' has not changed.
 #if defined(DEBUG)
-  if (Thread::Current()->IsMutatorThread()) {
+  if (Thread::Current()->IsDartMutatorThread()) {
     ASSERT(cache.Release().ptr() == exported_names());
   } else {
     // Release must be called in debug mode.
@@ -13525,7 +13525,7 @@ void Library::RehashDictionary(const Array& old_dict,
 }
 
 void Library::AddObject(const Object& obj, const String& name) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   ASSERT(obj.IsClass() || obj.IsFunction() || obj.IsField() ||
          obj.IsLibraryPrefix());
   ASSERT(name.Equals(String::Handle(obj.DictionaryName())));
@@ -14069,7 +14069,7 @@ static ArrayPtr NewDictionary(intptr_t initial_size) {
 
 void Library::InitResolvedNamesCache() const {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& cache = thread->ArrayHandle();
   cache = HashTables::New<ResolvedNamesMap>(64);
@@ -14077,13 +14077,13 @@ void Library::InitResolvedNamesCache() const {
 }
 
 void Library::ClearResolvedNamesCache() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   untag()->set_resolved_names(Array::null());
 }
 
 void Library::InitExportedNamesCache() const {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& cache = thread->ArrayHandle();
   cache = HashTables::New<ResolvedNamesMap>(16);
@@ -14096,7 +14096,7 @@ void Library::ClearExportedNamesCache() const {
 
 void Library::InitClassDictionary() const {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& dictionary = thread->ArrayHandle();
   // TODO(iposva): Find reasonable initial size.
@@ -14123,7 +14123,7 @@ LibraryPtr Library::New() {
 LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   // Force the url to have a hash code.
   url.Hash();
   const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
@@ -15201,7 +15201,7 @@ ErrorPtr Library::CompileAll(bool ignore_error /* = false */) {
 
 ErrorPtr Library::FinalizeAllClasses() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -18918,7 +18918,7 @@ ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
   auto thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
   auto zone = thread->zone();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
 
   const auto& backing_array = Array::Handle(zone, buckets());
@@ -18997,7 +18997,7 @@ void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
   auto isolate_group = thread->isolate_group();
   ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
 
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));
   const Array& backing_array = Array::Handle(buckets());
@@ -25555,7 +25555,7 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 
     // The backing array may be a shared instance, or may not have correct
     // type parameters. Create a new empty array.
-    Heap::Space space = thread->IsMutatorThread() ? Heap::kNew : Heap::kOld;
+    Heap::Space space = thread->IsDartMutatorThread() ? Heap::kNew : Heap::kOld;
     Array& array = Array::Handle(zone, Array::New(0, space));
     array.SetTypeArguments(type_arguments);
     return array.ptr();
