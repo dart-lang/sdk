@@ -1046,7 +1046,7 @@ class _Cookie implements Cookie {
         } else if (name == "secure") {
           secure = true;
         } else if (name == "samesite") {
-          sameSite = SameSite.byName(value);
+          sameSite = SameSite._byName(value);
         }
         if (!done()) index++; // Skip the ; character
       }

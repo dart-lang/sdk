@@ -219,6 +219,7 @@
 [#43638]: https://github.com/dart-lang/sdk/issues/43638
 [#50868]: https://github.com/dart-lang/sdk/issues/50868
 [#51035]: https://github.com/dart-lang/sdk/issues/51035
+[#51486]: https://github.com/dart-lang/sdk/issues/51486
 
 #### `dart:js_util`
 

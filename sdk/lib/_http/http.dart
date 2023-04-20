@@ -7,7 +7,6 @@ library dart._http;
 import 'dart:_internal'
     show
         checkNotNullable,
-        IterableElementError,
         Since,
         valueOfNonNullableParamWithDefault,
         HttpStatus;
@@ -736,19 +735,20 @@ abstract interface class ContentType implements HeaderValue {
   String? get charset;
 }
 
-/// Value of [Cookie.sameSite], which defines whether the cookie is available
-/// from other sites.
-
+/// Value of [Cookie.sameSite], which defines whether an HTTP cookie is
+/// available from other sites.
 class SameSite {
-  /// Default value, cookie with this value will generally not be sent on
-  /// cross-site requests, unless the user is navigated to the original site.
+  /// The [Cookie] will generally not be sent on cross-site requests, unless
+  /// the user is navigated to the original site. This is the default value.
   static const lax = SameSite._internal(0);
 
-  /// This cookie will never be sent on cross-site requests.
+  /// This [Cookie] will never be sent on cross-site requests.
   static const strict = SameSite._internal(1);
 
-  /// this cookie will be sent in all requests. [Cookies.secure] must also be
-  /// set to true, otherwise the `none` value will have no effect.
+  /// The [Cookie] will be sent in all requests.
+  ///
+  /// [Cookies.secure] must also be set to `true`, otherwise the [none] value
+  /// will have no effect.
   static const none = SameSite._internal(2);
 
   static List<SameSite> get values => const <SameSite>[
@@ -757,7 +757,7 @@ class SameSite {
     none,
   ];
 
-  static SameSite byName(String name) {
+  static SameSite _byName(String name) {
     final index = _names.indexWhere(
             (value) => value.toLowerCase() == name.toLowerCase());
 

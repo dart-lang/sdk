@@ -112,15 +112,25 @@ void testValidatePath() {
 
 void testCookieSameSite() {
   Cookie cookie1 = Cookie.fromSetCookieValue(
-      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; HttpOnly; Path=/; SameSite=None");
-  expect(cookie1.sameSite == SameSite.none, isTrue);
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; "
+      "HttpOnly; Path=/; SameSite=None");
+  Expect.equals(cookie1.sameSite, SameSite.none);
   Cookie cookie2 = Cookie.fromSetCookieValue(
-      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; Path=/; SameSite=Lax");
-  expect(cookie2.sameSite == SameSite.lax, isTrue);
-  expect(
-          () => Cookie.fromSetCookieValue(
-          "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; Path=/; SameSite=Relax"),
-      throwsA(TypeMatcher<HttpException>()));
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+      "Path=/; SameSite=Lax");
+  Expect.equals(cookie2.sameSite, SameSite.lax);
+  Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
+          "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=Relax"),
+      (e) e.message == "SameSite value should be one of Lax, Strict or None.");
+  Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite="),
+      (e) e.message == "SameSite value should be one of Lax, Strict or None.");
+  Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=无"),
+      (e) e.message == "SameSite value should be one of Lax, Strict or None.");
 }
 
 void main() {
