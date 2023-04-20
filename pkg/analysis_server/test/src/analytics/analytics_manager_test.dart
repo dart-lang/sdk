@@ -20,7 +20,6 @@ import 'package:http/src/response.dart' as http;
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unified_analytics/src/config_handler.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
