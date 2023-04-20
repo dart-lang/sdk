@@ -416,7 +416,10 @@ class FunctionReferenceResolver {
     }
 
     function.prefix.staticElement = prefixElement;
-    function.prefix.staticType = prefixElement.referenceType;
+    function.prefix.staticType = prefixElement is PromotableElement
+        ? _resolver.localVariableTypeProvider
+            .getType(function.prefix, isRead: true)
+        : prefixElement.referenceType;
     var functionName = function.identifier.name;
 
     if (prefixElement is PrefixElement) {

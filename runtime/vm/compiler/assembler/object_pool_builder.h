@@ -101,7 +101,7 @@ class ObjIndexPair {
   typedef intptr_t Value;
   typedef ObjIndexPair Pair;
 
-  static const intptr_t kNoIndex = -1;
+  static constexpr intptr_t kNoIndex = -1;
 
   ObjIndexPair()
       : key_(reinterpret_cast<uword>(nullptr),
@@ -254,8 +254,8 @@ class ObjectPoolBuilder : public ValueObject {
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
 
   // The zone used for allocating the handles we keep in the map and array (or
-  // NULL, in which case allocations happen using the zone active at the point
-  // of insertion).
+  // nullptr, in which case allocations happen using the zone active at the
+  // point of insertion).
   Zone* zone_;
 };
 

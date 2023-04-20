@@ -11,15 +11,15 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiCompoundImplementsFinalizable,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
-        templateFfiFieldNull,
         templateFfiFieldCyclic,
-        templateFfiFieldNoAnnotation,
-        templateFfiTypeMismatch,
         templateFfiFieldInitializer,
+        templateFfiFieldNoAnnotation,
+        templateFfiFieldNull,
         templateFfiPackedAnnotation,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
-        templateFfiStructGeneric;
+        templateFfiStructGeneric,
+        templateFfiTypeMismatch;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -442,6 +442,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           success = false;
         }
         if (isArrayType(type)) {
+          try {
+            ensureNativeTypeValid(type, f, allowInlineArray: true);
+          } on FfiStaticTypeError {
+            // It's OK to swallow the exception because the diagnostics issued will
+            // cause compilation to fail. By continuing, we can report more
+            // diagnostics before compilation ends.
+            success = false;
+          }
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
             final singleElementType = arraySingleElementType(type);
@@ -461,7 +469,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                     f.fileUri);
               }
               for (var dimension in dimensions) {
-                if (dimension < 0) {
+                if (dimension <= 0) {
                   diagnosticReporter.report(messageNonPositiveArrayDimensions,
                       f.fileOffset, f.name.text.length, f.fileUri);
                   success = false;

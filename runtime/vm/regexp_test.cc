@@ -72,7 +72,7 @@ ISOLATE_UNIT_TEST_CASE(RegExp_ExternalOneByteString) {
   uint8_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(ExternalOneByteString::New(
-      chars, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      chars, len, nullptr, 0, NoopFinalizer, Heap::kNew));
 
   const String& pat =
       String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
@@ -94,7 +94,7 @@ ISOLATE_UNIT_TEST_CASE(RegExp_ExternalTwoByteString) {
   uint16_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(ExternalTwoByteString::New(
-      chars, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      chars, len, nullptr, 0, NoopFinalizer, Heap::kNew));
 
   const String& pat =
       String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));

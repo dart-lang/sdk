@@ -32,6 +32,8 @@
 /// When an AST is resolved, the identifiers in the AST will be associated with
 /// the elements that they refer to and every expression in the AST will have a
 /// type associated with it.
+library;
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -223,7 +225,6 @@ abstract class AssertStatement implements Assertion, Statement {
 ///    variablePattern ::= identifier
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class AssignedVariablePattern implements VariablePattern {
   /// Return the element referenced by this pattern, or `null` if either
   /// [name] does not resolve to an element, or the AST structure has not
@@ -868,7 +869,6 @@ abstract class CascadeExpression
 ///        'case' [GuardedPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class CaseClause implements AstNode {
   /// Return the token representing the 'case' keyword.
   Token get caseKeyword;
@@ -883,7 +883,6 @@ abstract class CaseClause implements AstNode {
 ///        [DartPattern] 'as' [TypeAnnotation]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class CastPattern implements DartPattern {
   /// The `as` token.
   Token get asToken;
@@ -1478,7 +1477,6 @@ abstract class Configuration implements AstNode {
 ///        'const'? [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class ConstantPattern implements DartPattern {
   /// Return the `const` keyword, or `null` if the expression is not preceded by
   /// the keyword `const`.
@@ -1707,7 +1705,6 @@ abstract class ContinueStatement implements Statement {
 ///      | [RelationalPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class DartPattern implements AstNode, ListPatternElement {
   /// The matched value type, or `null` if the node is not resolved yet.
   DartType? get matchedValueType;
@@ -1783,7 +1780,6 @@ abstract class DeclaredIdentifier implements Declaration {
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class DeclaredVariablePattern implements VariablePattern {
   /// Return the element associated with this declaration, or `null` if the AST
   /// structure has not been resolved.
@@ -2374,7 +2370,6 @@ abstract class ForEachPartsWithIdentifier implements ForEachParts {
 ///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class ForEachPartsWithPattern implements ForEachParts {
   /// Return the `var` or `final` keyword introducing the pattern.
   Token get keyword;
@@ -2967,7 +2962,6 @@ abstract class GenericTypeAlias implements TypeAlias {
 ///        [DartPattern] [WhenClause]?
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class GuardedPattern implements AstNode {
   /// Return the pattern controlling whether the statements will be executed.
   DartPattern get pattern;
@@ -3017,13 +3011,12 @@ abstract class Identifier implements Expression, CommentReferableExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IfElement implements CollectionElement {
-  /// Return the `case` clause used to match a pattern against the [condition].
-  @experimental
+  /// Return the `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
   /// Return the condition used to determine which of the statements is executed
   /// next.
-  // TODO(brianwilkerson) Deprecate this when the patterns feature is released.
+  @Deprecated('Use expression instead')
   Expression get condition;
 
   /// Return the statement that is executed if the condition evaluates to
@@ -3061,13 +3054,12 @@ abstract class IfElement implements CollectionElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IfStatement implements Statement {
-  /// Return the `case` clause used to match a pattern against the [condition].
-  @experimental
+  /// Return the `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
   /// Return the condition used to determine which of the statements is executed
   /// next.
-  // TODO(brianwilkerson) Deprecate this when the patterns feature is released.
+  @Deprecated('Use expression instead')
   Expression get condition;
 
   /// Return the token representing the 'else' keyword, or `null` if there is no
@@ -3509,7 +3501,6 @@ abstract class ListLiteral implements TypedLiteral {
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class ListPattern implements DartPattern {
   /// Return the elements in this pattern.
   NodeList<ListPatternElement> get elements;
@@ -3532,7 +3523,6 @@ abstract class ListPattern implements DartPattern {
 /// An element of a list pattern.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class ListPatternElement implements AstNode {}
 
 /// A node that represents a literal expression.
@@ -3555,7 +3545,6 @@ abstract class Literal implements Expression {}
 ///        [DartPattern] '&&' [DartPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class LogicalAndPattern implements DartPattern {
   /// The left sub-pattern.
   DartPattern get leftOperand;
@@ -3573,7 +3562,6 @@ abstract class LogicalAndPattern implements DartPattern {
 ///        [DartPattern] '||' [DartPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class LogicalOrPattern implements DartPattern {
   /// The left sub-pattern.
   DartPattern get leftOperand;
@@ -3611,7 +3599,6 @@ abstract class MapLiteralEntry implements CollectionElement {
 ///        ','? '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class MapPattern implements DartPattern {
   /// Return the elements in this pattern.
   NodeList<MapPatternElement> get elements;
@@ -3633,7 +3620,6 @@ abstract class MapPattern implements DartPattern {
 /// An element of a map pattern.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class MapPatternElement implements AstNode {}
 
 /// An entry in a map pattern.
@@ -3642,7 +3628,6 @@ abstract class MapPatternElement implements AstNode {}
 ///        [Expression] ':' [DartPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class MapPatternEntry implements AstNode, MapPatternElement {
   /// Return the expression computing the key of the entry to be matched.
   Expression get key;
@@ -3818,10 +3803,8 @@ abstract class MixinAugmentationDeclaration
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        mixinModifiers? 'mixin' name [TypeParameterList]?
+///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-///
-///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
@@ -3872,15 +3855,9 @@ abstract class MixinOrAugmentationDeclaration
   @override
   MixinOrAugmentationElement? get declaredElement2;
 
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
-  Token? get finalKeyword;
-
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
-
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
-  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
@@ -3897,9 +3874,6 @@ abstract class MixinOrAugmentationDeclaration
 
   /// Returns the right curly bracket.
   Token get rightBracket;
-
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
-  Token? get sealedKeyword;
 
   /// Returns the type parameters for the mixin, or `null` if the mixin does
   /// not have any type parameters.
@@ -4086,7 +4060,6 @@ abstract class NormalFormalParameter implements FormalParameter {
 ///        [DartPattern] '!'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class NullAssertPattern implements DartPattern {
   /// The `!` token.
   Token get operator;
@@ -4101,7 +4074,6 @@ abstract class NullAssertPattern implements DartPattern {
 ///        [DartPattern] '?'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class NullCheckPattern implements DartPattern {
   /// The `?` token.
   Token get operator;
@@ -4145,7 +4117,6 @@ abstract class NullShortableExpression implements Expression {
 ///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class ObjectPattern implements DartPattern {
   /// Return the patterns matching the properties of the object.
   NodeList<PatternField> get fields;
@@ -4197,7 +4168,6 @@ abstract class ParenthesizedExpression implements Expression {
 ///        '(' [DartPattern] ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class ParenthesizedPattern implements DartPattern {
   /// Return the left parenthesis.
   Token get leftParenthesis;
@@ -4262,7 +4232,6 @@ abstract class PartOfDirective implements Directive {
 ///        [DartPattern] '=' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class PatternAssignment implements Expression {
   /// Return the equal sign separating the pattern from the expression.
   Token get equals;
@@ -4280,7 +4249,6 @@ abstract class PatternAssignment implements Expression {
 ///        [PatternFieldName]? [DartPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class PatternField implements AstNode {
   /// The name specified explicitly by [name], or implied by the variable
   /// pattern inside [pattern]. Always `null` if [name] is `null`. Can be `null`
@@ -4306,7 +4274,6 @@ abstract class PatternField implements AstNode {
 ///        [Token]? ':'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class PatternFieldName implements AstNode {
   /// The colon following the name.
   Token get colon;
@@ -4321,7 +4288,6 @@ abstract class PatternFieldName implements AstNode {
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class PatternVariableDeclaration implements AnnotatedNode {
   /// Return the equal sign separating the pattern from the expression.
   Token get equals;
@@ -4342,7 +4308,6 @@ abstract class PatternVariableDeclaration implements AnnotatedNode {
 ///        [PatternVariableDeclaration] ';'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class PatternVariableDeclarationStatement implements Statement {
   /// The pattern declaration.
   PatternVariableDeclaration get declaration;
@@ -4465,7 +4430,6 @@ abstract class PropertyAccess
 ///    recordField  ::= (identifier ':')? [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordLiteral implements Literal {
   /// Return the token representing the 'const' keyword, or `null` if the
   /// literal is not a constant.
@@ -4492,7 +4456,6 @@ abstract class RecordLiteral implements Literal {
 ///        '(' [PatternField] (',' [PatternField])* ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordPattern implements DartPattern {
   /// Return the fields of the record pattern.
   NodeList<PatternField> get fields;
@@ -4522,7 +4485,6 @@ abstract class RecordPattern implements DartPattern {
 /// recordTypeNamedField ::= metadata type identifier
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeAnnotation implements TypeAnnotation {
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -4540,7 +4502,6 @@ abstract class RecordTypeAnnotation implements TypeAnnotation {
 /// A field in a [RecordTypeAnnotation].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeAnnotationField implements AstNode {
   /// The annotations associated with the field.
   NodeList<Annotation> get metadata;
@@ -4555,7 +4516,6 @@ abstract class RecordTypeAnnotationField implements AstNode {
 /// A named field in a [RecordTypeAnnotation].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeAnnotationNamedField
     implements RecordTypeAnnotationField {
   @override
@@ -4565,7 +4525,6 @@ abstract class RecordTypeAnnotationNamedField
 /// The portion of a [RecordTypeAnnotation] with named fields.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeAnnotationNamedFields implements AstNode {
   /// The fields contained in the block.
   NodeList<RecordTypeAnnotationNamedField> get fields;
@@ -4580,7 +4539,6 @@ abstract class RecordTypeAnnotationNamedFields implements AstNode {
 /// A positional field in a [RecordTypeAnnotation].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RecordTypeAnnotationPositionalField
     implements RecordTypeAnnotationField {}
 
@@ -4614,7 +4572,6 @@ abstract class RedirectingConstructorInvocation
 ///        (equalityOperator | relationalOperator) [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RelationalPattern implements DartPattern {
   /// The element of the [operator] for the matched type.
   MethodElement? get element;
@@ -4631,7 +4588,6 @@ abstract class RelationalPattern implements DartPattern {
 ///    restPatternElement ::= '...' [DartPattern]?
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class RestPatternElement
     implements ListPatternElement, MapPatternElement {
   /// The operator token '...'.
@@ -5064,7 +5020,6 @@ abstract class SwitchDefault implements SwitchMember {}
 ///        (',' [SwitchExpressionCase])* ','? '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class SwitchExpression implements Expression {
   /// Return the cases that can be selected by the expression.
   NodeList<SwitchExpressionCase> get cases;
@@ -5095,7 +5050,6 @@ abstract class SwitchExpression implements Expression {
 ///        [GuardedPattern] '=>' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class SwitchExpressionCase implements AstNode {
   /// Return the arrow separating the pattern from the expression.
   Token get arrow;
@@ -5149,7 +5103,6 @@ abstract class SwitchMember implements AstNode {
 ///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class SwitchPatternCase implements SwitchMember {
   /// Return the pattern controlling whether the statements will be executed.
   GuardedPattern get guardedPattern;
@@ -5543,7 +5496,6 @@ abstract class VariableDeclarationStatement implements Statement {
 /// [DeclaredVariablePattern].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class VariablePattern implements DartPattern {
   /// The name of the variable declared or referenced by the pattern.
   Token get name;
@@ -5556,7 +5508,6 @@ abstract class VariablePattern implements DartPattern {
 ///        'when' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class WhenClause implements AstNode {
   /// Return the condition that is evaluated when the [pattern] matches, that
   /// must evaluate to `true` in order for the [expression] to be executed.
@@ -5596,7 +5547,6 @@ abstract class WhileStatement implements Statement {
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
 abstract class WildcardPattern implements DartPattern {
   /// The 'var' or 'final' keyword.
   Token? get keyword;

@@ -15,14 +15,14 @@ main() {
 
 @reflectiveTest
 class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
-  test_defaultConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-mixin class M {}
-class X = A with M;
-''');
-    assertConstructors(findElement.class_('X'), ['X X()']);
-  }
+//   solo_test_X() async {
+//     await assertNoErrorsInCode(r'''
+// ''');
+//
+//     final node = findNode.singleListLiteral;
+//     assertResolvedNodeText(node, r'''
+// ''');
+//   }
 
   test_element() async {
     await assertNoErrorsInCode(r'''
@@ -33,15 +33,39 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    var x = findElement.class_('X');
-
-    assertNamedType(findNode.namedType('A with'), findElement.class_('A'), 'A');
-    assertNamedType(findNode.namedType('B impl'), findElement.class_('B'), 'B');
-    assertNamedType(findNode.namedType('C;'), findElement.class_('C'), 'C');
-
-    assertType(x.supertype, 'A');
-    assertElementTypes(x.mixins, ['B']);
-    assertElementTypes(x.interfaces, ['C']);
+    final node = findNode.classTypeAlias('X =');
+    assertResolvedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: X
+  equals: =
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: B
+          staticElement: self::@class::B
+          staticType: null
+        type: B
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+  semicolon: ;
+  declaredElement: self::@class::X
+''');
   }
 
   test_element_typeFunction_extends() async {
@@ -145,58 +169,5 @@ class C = A with M;
 
 const x = const C();
 ''');
-  }
-
-  test_implicitConstructors_dependencies() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A(int i);
-}
-mixin class M1 {}
-mixin class M2 {}
-
-class C2 = C1 with M2;
-class C1 = A with M1;
-''');
-
-    assertConstructors(findElement.class_('C1'), ['C1 C1(int i)']);
-    assertConstructors(findElement.class_('C2'), ['C2 C2(int i)']);
-  }
-
-  test_implicitConstructors_optionalParameters() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A.c1(int a);
-  A.c2(int a, [int? b, int c = 0]);
-  A.c3(int a, {int? b, int c = 0});
-}
-
-mixin M {}
-
-class C = A with M;
-''');
-
-    assertConstructors(
-      findElement.class_('C'),
-      [
-        'C C.c1(int a)',
-        'C C.c2(int a, [int b, int c = 0])',
-        'C C.c3(int a, {int b, int c = 0})'
-      ],
-    );
-  }
-
-  test_implicitConstructors_requiredParameters() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends num> {
-  A(T x, T y);
-}
-
-mixin M {}
-
-class B<E extends num> = A<E> with M;
-''');
-
-    assertConstructors(findElement.class_('B'), ['B<E> B(E x, E y)']);
   }
 }

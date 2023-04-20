@@ -309,7 +309,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
 /// Base class for scanner tests that examine the token stream in Fasta format.
 abstract class ScannerTest_Fasta_Base {
-  Token scan(String source);
+  Token scan(String source, {bool? enableTripleShift});
 
   void expectToken(Token token, TokenType type, int offset, int length,
       {bool isSynthetic = false, String? lexeme}) {
@@ -547,6 +547,23 @@ abstract class ScannerTest_Fasta_Base {
     expect(lessThan2.endGroup, isNull);
   }
 
+  void test_match_angle_brackets_gt_gt_gt() {
+    // When a ">>>" appears in the token stream, Fasta's scanner matches it to
+    // the outer "<".  The inner "<" are left unmatched.
+    var a = scan('a<b<c<d>>>', enableTripleShift: true);
+    BeginToken lessThan1 = a.next as BeginToken;
+    var b = lessThan1.next!;
+    BeginToken lessThan2 = b.next as BeginToken;
+    var c = lessThan2.next!;
+    BeginToken lessThan3 = c.next as BeginToken;
+    var d = lessThan3.next!;
+    var greaterThans = d.next!;
+    expect(greaterThans.next!.isEof, isTrue);
+    expect(lessThan1.endGroup, same(greaterThans));
+    expect(lessThan2.endGroup, isNull);
+    expect(lessThan3.endGroup, isNull);
+  }
+
   void test_match_angle_brackets_interrupted_by_close_brace() {
     // A "}" appearing in the token stream interrupts matching of "<" and ">".
     BeginToken openBrace = scan('{x<y}>z') as BeginToken;
@@ -681,11 +698,18 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   @override
-  ScannerResult scanSource(source, {includeComments = true}) {
+  ScannerResult scanSource(source,
+      {bool includeComments = true, bool? enableTripleShift}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner
+
+    ScannerConfiguration? configuration;
+    if (enableTripleShift == true) {
+      configuration = new ScannerConfiguration(enableTripleShift: true);
+    }
     return usedForFuzzTesting.scan(encoded,
         includeComments: includeComments,
+        configuration: configuration,
         languageVersionChanged: languageVersionChanged);
   }
 }
@@ -700,14 +724,22 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
     this.languageVersion = languageVersion;
   }
 
-  ScannerResult scanSource(source, {includeComments = true}) =>
-      scanString(source,
-          includeComments: includeComments,
-          languageVersionChanged: languageVersionChanged);
+  ScannerResult scanSource(source,
+      {bool includeComments = true, bool? enableTripleShift}) {
+    ScannerConfiguration? configuration;
+    if (enableTripleShift == true) {
+      configuration = new ScannerConfiguration(enableTripleShift: true);
+    }
+    return scanString(source,
+        includeComments: includeComments,
+        configuration: configuration,
+        languageVersionChanged: languageVersionChanged);
+  }
 
   @override
-  Token scan(String source) {
-    var result = scanSource(source, includeComments: true);
+  Token scan(String source, {bool? enableTripleShift}) {
+    var result = scanSource(source,
+        includeComments: true, enableTripleShift: enableTripleShift);
     final Token first = result.tokens;
     Token token = first;
     while (!token.isEof) {

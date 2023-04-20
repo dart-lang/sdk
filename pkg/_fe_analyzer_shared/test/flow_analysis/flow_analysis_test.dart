@@ -7481,15 +7481,65 @@ main() {
     });
 
     group('List pattern:', () {
-      test('Not guaranteed to match', () {
-        h.run([
-          switch_(expr('Object'), [
-            listPattern([]).then([break_()]),
-            default_.then([
-              checkReachable(true),
+      group('Not guaranteed to match:', () {
+        test('Empty list', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([]).then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ]),
             ]),
-          ]),
-        ]);
+          ]);
+        });
+
+        test('Single non-rest element', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([wildcard()]).then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Rest pattern with subpattern that may fail to match', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement(listPattern([]))])
+                  .then([break_()]),
+              default_.then([
+                checkReachable(true),
+              ])
+            ])
+          ]);
+        });
+      });
+
+      group('Guaranteed to match:', () {
+        test('Rest pattern with no subpattern', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement()]).then([break_()]),
+              default_.then([
+                checkReachable(false),
+              ])
+            ])
+          ]);
+        });
+
+        test('Rest pattern with subpattern that always matches', () {
+          h.run([
+            switch_(expr('List<Object>'), [
+              listPattern([listPatternRestElement(wildcard())])
+                  .then([break_()]),
+              default_.then([
+                checkReachable(false),
+              ])
+            ])
+          ]);
+        });
       });
 
       test('Promotes', () {
@@ -7599,11 +7649,17 @@ main() {
 
       test('Match failure reachable', () {
         h.run([
-          ifCase(expr('Object?'), mapPattern([]), [
-            checkReachable(true),
-          ], [
-            checkReachable(true),
-          ]),
+          ifCase(
+              expr('Object?'),
+              mapPattern([
+                mapPatternEntry(expr('Object'), wildcard()),
+              ]),
+              [
+                checkReachable(true),
+              ],
+              [
+                checkReachable(true),
+              ]),
         ]);
       });
 
@@ -7616,7 +7672,9 @@ main() {
               x.expr,
               wildcard()
                   .as_('Map<int, int>')
-                  .and(mapPattern([], keyType: 'num', valueType: 'num'))
+                  .and(mapPattern([
+                    mapPatternEntry(expr('Object'), wildcard()),
+                  ], keyType: 'num', valueType: 'num'))
                   .and(y.pattern(expectInferredType: 'Map<int, int>')),
               [
                 checkPromoted(x, 'Map<int, int>'),
@@ -7628,11 +7686,17 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('Map<int, int>')),
-          ifCase(x.expr, mapPattern([], keyType: 'int', valueType: 'int'), [
-            checkReachable(true),
-          ], [
-            checkReachable(true),
-          ]),
+          ifCase(
+              x.expr,
+              mapPattern([
+                mapPatternEntry(expr('Object'), wildcard()),
+              ], keyType: 'int', valueType: 'int'),
+              [
+                checkReachable(true),
+              ],
+              [
+                checkReachable(true),
+              ]),
         ]);
       });
 
@@ -9114,6 +9178,106 @@ main() {
                 checkAssigned(x, true),
               ])
             ]),
+          ]);
+        });
+      });
+
+      group('Trivial exhaustiveness:', () {
+        // Although flow analysis doesn't attempt to do full exhaustiveness
+        // checking on switch statements, it understands that if any single case
+        // fully covers the matched value type, the switch statement is
+        // exhaustive.  (Such a switch is called "trivially exhaustive").
+        //
+        // Note that we don't test all possible patterns, because the flow
+        // analysis logic for detecting trivial exhaustiveness builds on the
+        // logic for tracking the "unmatched" state, which is tested elsewhere.
+        test('exhaustive', () {
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('exhaustive but a reachable switch case completes', () {
+          // In this case, even though the switch is trivially exhaustive, the
+          // code after the switch is reachable because one of the reachable
+          // switch cases completes normally.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(true),
+              ]),
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+
+        test('exhaustive but an unreachable switch case completes', () {
+          // In this case, even though the `int` case completes normally, that
+          // case is unreachable, so the code after the switch is unreachable.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(false),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('exhaustive but a reachable switch case breaks', () {
+          // In this case, even though the switch is trivially exhaustive, the
+          // code after the switch is reachable because one of the reachable
+          // switch cases ends in a break.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(true),
+                break_(),
+              ]),
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
+          ]);
+        });
+
+        test('exhaustive but an unreachable switch case breaks', () {
+          // In this case, even though the `int` case breaks, that case is
+          // unreachable, so the code after the switch is unreachable.
+          h.run([
+            switch_(expr('Object'), [
+              wildcard().switchCase.then([
+                return_(),
+              ]),
+              wildcard(type: 'int').switchCase.then([
+                checkReachable(false),
+                break_(),
+              ]),
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('not exhaustive', () {
+          h.run([
+            switch_(expr('Object'), [
+              wildcard(type: 'int').switchCase.then([
+                return_(),
+              ]),
+            ]),
+            checkReachable(true),
           ]);
         });
       });

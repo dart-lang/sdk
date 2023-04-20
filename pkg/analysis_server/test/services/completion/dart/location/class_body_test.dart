@@ -8,7 +8,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_printer.dart' as printer;
-import '../completion_printer.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -94,7 +93,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         if (isProtocolVersion2) {
           _printKeywordsOrClass();
-          assertResponse('''
+          assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -361,17 +360,15 @@ mixin M {
   void _printKeywordsOrClass({
     String sampleClassName = 'Object',
   }) {
-    printerConfiguration
-      ..filter = (suggestion) {
-        final completion = suggestion.completion;
-        if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
-          return true;
-        } else if (completion == sampleClassName) {
-          return true;
-        }
-        return false;
+    printerConfiguration.filter = (suggestion) {
+      final completion = suggestion.completion;
+      if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
+        return true;
+      } else if (completion == sampleClassName) {
+        return true;
       }
-      ..sorting = Sorting.completion;
+      return false;
+    };
   }
 }
 
@@ -417,7 +414,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -451,7 +448,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -471,7 +468,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -499,7 +496,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -527,7 +524,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -553,7 +550,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -585,7 +582,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -615,7 +612,7 @@ class C extends B {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -655,7 +652,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -682,7 +679,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -722,7 +719,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -749,7 +746,7 @@ class B extends A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -774,7 +771,7 @@ class B implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -799,7 +796,7 @@ class A with M {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -825,7 +822,7 @@ class A {
       return suggestion.completion.contains('==(');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -855,7 +852,7 @@ class B extends A {
       return suggestion.completion.contains('+(');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
@@ -881,7 +878,7 @@ extension E on A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -901,7 +898,7 @@ mixin M on A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -927,7 +924,7 @@ mixin M implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -952,7 +949,7 @@ mixin M on A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions

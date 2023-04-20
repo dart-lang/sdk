@@ -581,8 +581,8 @@ class Types {
   /// Test value against a Dart type. Expects the value on the stack as a
   /// (ref null #Top) and leaves the result on the stack as an i32.
   /// TODO(joshualitt): Remove dependency on [CodeGenerator]
-  void emitTypeTest(CodeGenerator codeGen, DartType type, DartType operandType,
-      TreeNode node) {
+  void emitTypeTest(
+      CodeGenerator codeGen, DartType type, DartType operandType) {
     w.Instructions b = codeGen.b;
     if (type is! InterfaceType) {
       makeType(codeGen, type);

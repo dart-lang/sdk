@@ -744,13 +744,10 @@ class ContextManagerImpl implements ContextManager {
             } else {
               analysisContext.driver.changeFile(path);
             }
-            break;
           case ChangeType.MODIFY:
             analysisContext.driver.changeFile(path);
-            break;
           case ChangeType.REMOVE:
             analysisContext.driver.removeFile(path);
-            break;
         }
       }
     }
@@ -760,10 +757,8 @@ class ContextManagerImpl implements ContextManager {
       case ChangeType.MODIFY:
         _checkForAndroidManifestXmlUpdate(path);
         _checkForFixDataYamlUpdate(path);
-        break;
       case ChangeType.REMOVE:
         callbacks.applyFileRemoved(path);
-        break;
     }
   }
 

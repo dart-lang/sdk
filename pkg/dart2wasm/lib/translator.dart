@@ -151,6 +151,17 @@ class Translator with KernelNodes {
     w.NumType.f64: boxedDoubleClass,
   };
 
+  /// Classes whose identity hash code is their hash code rather than the
+  /// identity hash code field in the struct. Each implementation class maps to
+  /// the class containing the implementation of its `hashCode` getter.
+  late final Map<Class, Class> valueClasses = {
+    boxedIntClass: boxedIntClass,
+    boxedDoubleClass: boxedDoubleClass,
+    boxedBoolClass: coreTypes.boolClass,
+    oneByteStringClass: stringBaseClass,
+    twoByteStringClass: stringBaseClass,
+  };
+
   /// Type for vtable entries for dynamic calls. These entries are used in
   /// dynamic invocations and `Function.apply`.
   late final w.FunctionType dynamicCallVtableEntryFunctionType =
@@ -462,43 +473,26 @@ class Translator with KernelNodes {
 
   bool isFfiCompound(Class cls) => _hasSuperclass(cls, ffiCompoundClass);
 
-  w.StorageType typeForInfo(ClassInfo info, bool nullable,
-      {bool ensureBoxed = false}) {
-    Class? cls = info.cls;
-    if (cls != null) {
-      w.StorageType? builtin = builtinTypes[cls];
-      if (builtin != null) {
-        if (!nullable && (!ensureBoxed || cls == ffiPointerClass)) {
-          return builtin;
-        }
-        if (isWasmType(cls)) {
-          if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
-          return (builtin as w.RefType).withNullability(nullable);
-        }
-        if (cls == ffiPointerClass) throw "FFI types can't be nullable";
-        Class? boxedClass = boxedClasses[builtin];
-        if (boxedClass != null) {
-          info = classInfo[boxedClass]!;
-        }
-      } else if (isFfiCompound(cls)) {
-        if (nullable) throw "FFI types can't be nullable";
-        return w.NumType.i32;
-      } else if (cls == coreTypes.functionClass) {
+  w.StorageType translateStorageType(DartType type) {
+    bool nullable = type.isPotentiallyNullable;
+    if (type is InterfaceType) {
+      Class cls = type.classNode;
+
+      // Abstract `Function`?
+      if (cls == coreTypes.functionClass) {
         return w.RefType.def(closureLayouter.closureBaseStruct,
             nullable: nullable);
       }
-    }
-    return w.RefType.def(info.repr.struct, nullable: nullable);
-  }
 
-  w.StorageType translateStorageType(DartType type) {
-    if (type is InterfaceType) {
-      if (type.classNode.superclass == wasmArrayRefClass) {
+      // Wasm array?
+      if (cls.superclass == wasmArrayRefClass) {
         DartType elementType = type.typeArguments.single;
         return w.RefType.def(arrayTypeForDartType(elementType),
-            nullable: false);
+            nullable: nullable);
       }
-      if (type.classNode == wasmFunctionClass) {
+
+      // Wasm function?
+      if (cls == wasmFunctionClass) {
         DartType functionType = type.typeArguments.single;
         if (functionType is! FunctionType) {
           throw "The type argument of a WasmFunction must be a function type";
@@ -520,10 +514,31 @@ class Translator with KernelNodes {
           if (!voidReturn) translateType(functionType.returnType)
         ];
         w.FunctionType wasmType = m.addFunctionType(inputs, outputs);
-        return w.RefType.def(wasmType, nullable: type.isPotentiallyNullable);
+        return w.RefType.def(wasmType, nullable: nullable);
       }
-      return typeForInfo(
-          classInfo[type.classNode]!, type.isPotentiallyNullable);
+
+      // FFI compound?
+      if (isFfiCompound(cls)) {
+        if (nullable) throw "FFI types can't be nullable";
+        return w.NumType.i32;
+      }
+
+      // Other built-in type?
+      w.StorageType? builtin = builtinTypes[cls];
+      if (builtin != null) {
+        if (!nullable) {
+          return builtin;
+        }
+        if (isWasmType(cls)) {
+          if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
+          return (builtin as w.RefType).withNullability(nullable);
+        }
+        if (cls == ffiPointerClass) throw "FFI types can't be nullable";
+        return classInfo[boxedClasses[builtin]!]!.nullableType;
+      }
+
+      // Regular class.
+      return classInfo[cls]!.repr.typeWithNullability(nullable);
     }
     if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
@@ -532,7 +547,7 @@ class Translator with KernelNodes {
       return const w.RefType.none(nullable: true);
     }
     if (type is TypeParameterType) {
-      return translateStorageType(type.isPotentiallyNullable
+      return translateStorageType(nullable
           ? type.bound.withDeclaredNullability(type.nullability)
           : type.bound);
     }
@@ -540,7 +555,7 @@ class Translator with KernelNodes {
       return translateStorageType(type.left);
     }
     if (type is FutureOrType) {
-      return topInfo.typeWithNullability(type.isPotentiallyNullable);
+      return topInfo.typeWithNullability(nullable);
     }
     if (type is FunctionType) {
       ClosureRepresentation? representation =
@@ -552,13 +567,13 @@ class Translator with KernelNodes {
           representation != null
               ? representation.closureStruct
               : classInfo[typeClass]!.struct,
-          nullable: type.isPotentiallyNullable);
+          nullable: nullable);
     }
     if (type is InlineType) {
       return translateStorageType(type.instantiatedRepresentationType);
     }
     if (type is RecordType) {
-      return typeForInfo(getRecordClassInfo(type), type.isPotentiallyNullable);
+      return getRecordClassInfo(type).typeWithNullability(nullable);
     }
     throw "Unsupported type ${type.runtimeType}";
   }

@@ -10,8 +10,8 @@ static method test(dynamic x) → dynamic {
     late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     dynamic #t1;
     {
-      lowered final core::int a#case#0;
-      lowered final core::int a#case#1;
+      lowered final hoisted core::int a#case#0;
+      lowered final hoisted core::int a#case#1;
       if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = a#case#1 = #0#0{core::int} in true) && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
         final core::int a = #t1{core::int};
         {
@@ -20,7 +20,7 @@ static method test(dynamic x) → dynamic {
       }
     }
     {
-      final core::String a;
+      final hoisted core::String a;
       if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t6 = a = #0#6{core::String} in true)) || #0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t7 = a = #0#0{core::String} in true)) {
         {
           return a;

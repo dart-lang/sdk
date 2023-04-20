@@ -497,15 +497,22 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 }
 
-class KernelSourceLocation extends AbstractSourceLocation {
+class KernelSourceLocation extends SourceLocation {
   @override
   final int offset;
   @override
   final String? sourceName;
-  @override
-  final Uri sourceUri;
 
-  KernelSourceLocation(super.location, this.offset, this.sourceName)
-      : sourceUri = location.file,
-        super.fromLocation();
+  final ir.Location location;
+
+  KernelSourceLocation(this.location, this.offset, this.sourceName);
+
+  @override
+  int get column => location.column;
+
+  @override
+  int get line => location.line;
+
+  @override
+  Uri? get sourceUri => location.file;
 }

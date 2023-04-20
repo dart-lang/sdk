@@ -12,7 +12,7 @@ ISOLATE_UNIT_TEST_CASE(Utf8Encode) {
   const intptr_t kInputLen = 3;
   const uint16_t kInput[kInputLen] = {0xe6, 0xe7, 0xe8};  // æøå
   const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
-  static const uintptr_t kBufferLength = 10;
+  const uintptr_t kBufferLength = 10;
   unsigned char buffer[kBufferLength];
   for (uintptr_t i = 0; i < kBufferLength; i++) {
     buffer[i] = 42;

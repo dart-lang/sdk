@@ -22,7 +22,7 @@ namespace dart {
 Simulator* Simulator::Current() {
   Isolate* isolate = Isolate::Current();
   Simulator* simulator = isolate->simulator();
-  if (simulator == NULL) {
+  if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
     isolate->set_simulator(simulator);
@@ -36,8 +36,8 @@ Simulator::Simulator() {}
 
 Simulator::~Simulator() {
   Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate->set_simulator(NULL);
+  if (isolate != nullptr) {
+    isolate->set_simulator(nullptr);
   }
 }
 

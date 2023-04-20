@@ -100,7 +100,7 @@ compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
 // them immediately before the call instruction and right before
 // register allocation.
 void CompilerDeoptInfo::AllocateOutgoingArguments(Environment* env) {
-  if (env == NULL) return;
+  if (env == nullptr) return;
   for (Environment::ShallowIterator it(env); !it.Done(); it.Advance()) {
     if (it.CurrentLocation().IsInvalid()) {
       if (auto move_arg = it.CurrentValue()->definition()->AsMoveArgument()) {
@@ -116,7 +116,7 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
     if (it.CurrentLocation().IsInvalid()) {
       MaterializeObjectInstr* mat =
           it.CurrentValue()->definition()->AsMaterializeObject();
-      ASSERT(mat != NULL);
+      ASSERT(mat != nullptr);
       builder->AddMaterialization(mat);
     }
   }
@@ -132,7 +132,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id,
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-    CodeStatistics* stats /* = NULL */)
+    CodeStatistics* stats /* = nullptr */)
     : thread_(Thread::Current()),
       zone_(Thread::Current()->zone()),
       assembler_(assembler),
@@ -166,7 +166,7 @@ FlowGraphCompiler::FlowGraphCompiler(
           Class::ZoneHandle(isolate_group()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(Library::Handle(Library::CoreLibrary())
                                         .LookupClass(Symbols::List()))),
-      pending_deoptimization_env_(NULL),
+      pending_deoptimization_env_(nullptr),
       deopt_id_to_ic_data_(deopt_id_to_ic_data),
       edge_counters_array_(Array::ZoneHandle()) {
   ASSERT(flow_graph->parsed_function().function().ptr() ==
@@ -178,7 +178,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const intptr_t len = thread()->compiler_state().deopt_id();
     deopt_id_to_ic_data_->EnsureLength(len, nullptr);
   }
-  ASSERT(assembler != NULL);
+  ASSERT(assembler != nullptr);
   ASSERT(!list_class_.IsNull());
 
 #if defined(PRODUCT)
@@ -272,14 +272,14 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
       return true;
     }
   }
-  if (FLAG_stacktrace_filter != NULL &&
+  if (FLAG_stacktrace_filter != nullptr &&
       strstr(parsed_function().function().ToFullyQualifiedCString(),
-             FLAG_stacktrace_filter) != NULL) {
+             FLAG_stacktrace_filter) != nullptr) {
     return true;
   }
-  if (is_optimizing() && FLAG_deoptimize_filter != NULL &&
+  if (is_optimizing() && FLAG_deoptimize_filter != nullptr &&
       strstr(parsed_function().function().ToFullyQualifiedCString(),
-             FLAG_deoptimize_filter) != NULL) {
+             FLAG_deoptimize_filter) != nullptr) {
     return true;
   }
 #endif  // !defined(PRODUCT)
@@ -318,7 +318,7 @@ void FlowGraphCompiler::CompactBlocks() {
   // This algorithm does not garbage collect blocks in place, but merely
   // records forwarding label information.  In this way it avoids having to
   // change join and target entries.
-  compiler::Label* nonempty_label = NULL;
+  compiler::Label* nonempty_label = nullptr;
   for (intptr_t i = block_order().length() - 1; i >= 1; --i) {
     BlockEntryInstr* block = block_order()[i];
 
@@ -701,14 +701,14 @@ void FlowGraphCompiler::VisitBlocks() {
     }
 
     BeginCodeSourceRange(entry->source());
-    ASSERT(pending_deoptimization_env_ == NULL);
+    ASSERT(pending_deoptimization_env_ == nullptr);
     pending_deoptimization_env_ = entry->env();
     set_current_instruction(entry);
     StatsBegin(entry);
     entry->EmitNativeCode(this);
     StatsEnd(entry);
     set_current_instruction(nullptr);
-    pending_deoptimization_env_ = NULL;
+    pending_deoptimization_env_ = nullptr;
     EndCodeSourceRange(entry->source());
 
     if (skip_body_compilation()) {
@@ -739,12 +739,12 @@ void FlowGraphCompiler::VisitBlocks() {
 
       BeginCodeSourceRange(instr->source());
       EmitInstructionPrologue(instr);
-      ASSERT(pending_deoptimization_env_ == NULL);
+      ASSERT(pending_deoptimization_env_ == nullptr);
       pending_deoptimization_env_ = instr->env();
       DEBUG_ONLY(current_instruction_ = instr);
       instr->EmitNativeCode(this);
       DEBUG_ONLY(current_instruction_ = nullptr);
-      pending_deoptimization_env_ = NULL;
+      pending_deoptimization_env_ = nullptr;
       if (IsPeephole(instr)) {
         ASSERT(top_of_stack_ == nullptr);
         top_of_stack_ = instr->AsDefinition();
@@ -771,7 +771,7 @@ void FlowGraphCompiler::VisitBlocks() {
 #endif
   }
 
-  set_current_block(NULL);
+  set_current_block(nullptr);
 }
 
 void FlowGraphCompiler::Bailout(const char* reason) {
@@ -1016,7 +1016,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
         is_optimizing() ? flow_graph_.graph_entry()->spill_slot_count() : 0;
 
     RegisterSet* registers = locs->live_registers();
-    ASSERT(registers != NULL);
+    ASSERT(registers != nullptr);
     const intptr_t kFpuRegisterSpillFactor =
         kFpuRegisterSize / compiler::target::kWordSize;
     const bool using_shared_stub = locs->call_on_shared_slow_path();
@@ -1239,14 +1239,14 @@ compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
 }
 
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
-  ASSERT(exception_handlers_list_ != NULL);
+  ASSERT(exception_handlers_list_ != nullptr);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
       exception_handlers_list_->FinalizeExceptionHandlers(code.PayloadStart()));
   code.set_exception_handlers(handlers);
 }
 
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
-  ASSERT(pc_descriptors_list_ != NULL);
+  ASSERT(pc_descriptors_list_ != nullptr);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.PayloadStart()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
@@ -1286,7 +1286,7 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
 }
 
 void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
-  ASSERT(compressed_stackmaps_builder_ != NULL);
+  ASSERT(compressed_stackmaps_builder_ != nullptr);
   // Finalize the compressed stack maps and add it to the code object.
   const auto& maps =
       CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
@@ -1858,8 +1858,8 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t num_args_tested,
     const AbstractType& receiver_type,
     const Function& binary_smi_target) {
-  if ((deopt_id_to_ic_data_ != NULL) &&
-      ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
+  if ((deopt_id_to_ic_data_ != nullptr) &&
+      ((*deopt_id_to_ic_data_)[deopt_id] != nullptr)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target_name.ptr());
@@ -1888,7 +1888,7 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
                           ICData::kInstance, receiver_type);
   }
 
-  if (deopt_id_to_ic_data_ != NULL) {
+  if (deopt_id_to_ic_data_ != nullptr) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
   ASSERT(!ic_data.is_static_call());
@@ -1901,8 +1901,8 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     const Array& arguments_descriptor,
     intptr_t num_args_tested,
     ICData::RebindRule rebind_rule) {
-  if ((deopt_id_to_ic_data_ != NULL) &&
-      ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
+  if ((deopt_id_to_ic_data_ != nullptr) &&
+      ((*deopt_id_to_ic_data_)[deopt_id] != nullptr)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target.name());
@@ -1917,7 +1917,7 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
       zone(), ICData::NewForStaticCall(parsed_function().function(), target,
                                        arguments_descriptor, deopt_id,
                                        num_args_tested, rebind_rule));
-  if (deopt_id_to_ic_data_ != NULL) {
+  if (deopt_id_to_ic_data_ != nullptr) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
   return &ic_data;
@@ -1996,7 +1996,7 @@ const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
   ArgumentsDescriptor args_desc(args_desc_array);
 
   Function& fn = Function::ZoneHandle(zone);
-  if (!LookupMethodFor(cid, selector, args_desc, &fn)) return NULL;
+  if (!LookupMethodFor(cid, selector, args_desc, &fn)) return nullptr;
 
   CallTargets* targets = new (zone) CallTargets(zone);
   targets->Add(new (zone) TargetInfo(cid, cid, &fn, /* count = */ 1,
@@ -2023,7 +2023,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   if (!cls.is_finalized()) return false;
   if (Array::Handle(cls.current_functions()).IsNull()) return false;
 
-  if (class_is_abstract_return != NULL) {
+  if (class_is_abstract_return != nullptr) {
     *class_is_abstract_return = cls.is_abstract();
   }
   const bool allow_add = false;
@@ -2060,8 +2060,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     if (complete) {
       compiler::Label ok;
       EmitTestAndCall(targets, call->function_name(), args_info,
-                      NULL,  // No cid match.
-                      &ok,   // Found cid.
+                      nullptr,  // No cid match.
+                      &ok,      // Found cid.
                       deopt_id, source, locs, true, total_ic_calls,
                       call->entry_kind());
       assembler()->Bind(&ok);
@@ -2112,7 +2112,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   EmitTestAndCallLoadReceiver(args_info.count_without_type_args,
                               arguments_descriptor);
 
-  static const int kNoCase = -1;
+  const int kNoCase = -1;
   int smi_case = kNoCase;
   int which_case_to_skip = kNoCase;
 
@@ -2155,7 +2155,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                            UntaggedPcDescriptors::kOther, locs, function,
                            entry_kind);
     EmitDropArguments(args_info.size_with_type_args);
-    if (match_found != NULL) {
+    if (match_found != nullptr) {
       __ Jump(match_found);
     }
     __ Bind(&after_smi_test);
@@ -2221,7 +2221,7 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
                                                   const Class& type_class,
                                                   compiler::Label* is_subtype) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
-  if (hi != NULL) {
+  if (hi != nullptr) {
     const CidRangeVector& ranges =
         hi->SubtypeRangesForClass(type_class,
                                   /*include_abstract=*/false,
@@ -2492,6 +2492,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
   ASSERT(!type.IsRecordType());
+  ASSERT(type.IsType());
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() > 0);
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
@@ -2499,13 +2500,10 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ BranchIfSmi(TypeTestABI::kInstanceReg,
                  smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
 
-  const intptr_t num_type_args = type_class.NumTypeArguments();
-  const intptr_t num_type_params = type_class.NumTypeParameters();
-  const intptr_t from_index = num_type_args - num_type_params;
   const TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(zone(), type.arguments());
+      TypeArguments::ZoneHandle(zone(), Type::Cast(type).arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
-                           type_arguments.IsRaw(from_index, num_type_params);
+                           type_arguments.IsRaw(0, type_arguments.Length());
   // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
   // Instead, we use the subtype test cache register, as it is clobbered by the
   // subtype test cache stub call anyway.
@@ -3037,7 +3035,7 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
 
   FrameStatePop(instr->ArgumentCount());
   Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->HasTemp()) {
+  if ((defn != nullptr) && defn->HasTemp()) {
     FrameStatePush(defn);
   }
 }

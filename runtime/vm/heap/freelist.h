@@ -156,8 +156,8 @@ class FreeList {
   void AddUnaccountedSize(intptr_t size) { unaccounted_size_ += size; }
 
  private:
-  static const int kNumLists = 128;
-  static const intptr_t kInitialFreeListSearchBudget = 1000;
+  static constexpr int kNumLists = 128;
+  static constexpr intptr_t kInitialFreeListSearchBudget = 1000;
 
   static intptr_t IndexForSize(intptr_t size) {
     ASSERT(size >= kObjectAlignment);
@@ -176,7 +176,7 @@ class FreeList {
   FreeListElement* DequeueElement(intptr_t index) {
     FreeListElement* result = free_lists_[index];
     FreeListElement* next = result->next();
-    if (next == NULL && index != kNumLists) {
+    if (next == nullptr && index != kNumLists) {
       intptr_t size = index << kObjectAlignmentLog2;
       if (size == last_free_small_size_) {
         // Note: This is -1 * kObjectAlignment if no other small sizes remain.

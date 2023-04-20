@@ -526,22 +526,31 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   List<SharedPatternField> buildSharedPatternFields(
-    List<PatternFieldImpl> fields,
-  ) {
+    List<PatternFieldImpl> fields, {
+    required bool mustBeNamed,
+  }) {
     return fields.map((field) {
       Token? nameToken;
       var fieldName = field.name;
       if (fieldName != null) {
         nameToken = fieldName.name;
         if (nameToken == null) {
-          nameToken = field.pattern.variablePattern?.name;
-          if (nameToken == null) {
+          final variablePattern = field.pattern.variablePattern;
+          if (variablePattern != null) {
+            variablePattern.fieldNameWithImplicitName = fieldName;
+            nameToken = variablePattern.name;
+          } else {
             errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
+              CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
               field,
             );
           }
         }
+      } else if (mustBeNamed) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN,
+          field,
+        );
       }
       return shared.RecordPatternField(
         node: field,
@@ -655,6 +664,36 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// temporary resolver state has been properly cleaned up.
   void checkIdle() {
     assert(_rewriteStack.isEmpty);
+  }
+
+  /// Reports an error if the [pattern] with the [requiredType] cannot
+  /// match the [DartPatternImpl.matchedValueType].
+  void checkPatternNeverMatchesValueType({
+    required SharedMatchContext context,
+    required DartPatternImpl pattern,
+    required DartType requiredType,
+  }) {
+    if (context.irrefutableContext == null) {
+      final matchedType = pattern.matchedValueType!;
+      if (!typeSystem.canBeSubtypeOf(matchedType, requiredType)) {
+        AstNodeImpl? errorNode;
+        if (pattern is CastPatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is DeclaredVariablePatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is ObjectPatternImpl) {
+          errorNode = pattern.type;
+        } else if (pattern is WildcardPatternImpl) {
+          errorNode = pattern.type;
+        }
+        errorNode ??= pattern;
+        errorReporter.reportErrorForNode(
+          WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
+          errorNode,
+          [matchedType, requiredType],
+        );
+      }
+    }
   }
 
   void checkReadOfNotAssignedLocalVariable(
@@ -1562,12 +1601,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
 
-    node.requiredType = analyzeMapPattern(
+    final result = analyzeMapPattern(
       context,
       node,
       typeArguments: typeArguments,
       elements: node.elements,
-    ).requiredType;
+    );
+    node.requiredType = result.requiredType;
+
+    checkPatternNeverMatchesValueType(
+      context: context,
+      pattern: node,
+      requiredType: result.requiredType,
+    );
   }
 
   @override
@@ -1579,10 +1625,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var nameToken = fieldNode.name?.name;
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME,
-        fieldNode,
-      );
       return typeProvider.dynamicType;
     }
 

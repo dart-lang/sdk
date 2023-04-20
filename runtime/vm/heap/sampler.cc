@@ -203,7 +203,8 @@ void* HeapProfileSampler::InvokeCallbackForLastSample() {
   ReadRwLocker locker(thread_, lock_);
   void* result = create_callback_(
       reinterpret_cast<Dart_Isolate>(thread_->isolate()),
-      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()));
+      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()),
+      last_sample_size_);
   last_sample_size_ = kUninitialized;
   return result;
 }

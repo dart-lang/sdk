@@ -4,11 +4,11 @@
 
 library masks;
 
-import 'package:compiler/src/common/metrics.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements;
+import '../../common/metrics.dart';
 import '../../common/names.dart';
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
@@ -983,7 +983,8 @@ class CommonMasks with AbstractValueDomain {
   @override
   Iterable<DynamicCallTarget> findRootsOfTargets(covariant TypeMask receiver,
       Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
-    return const [];
+    return receiver.findRootsOfTargets(
+        selector, memberHierarchyBuilder, _closedWorld);
   }
 
   @override

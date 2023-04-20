@@ -54,7 +54,7 @@ class DartCompilationPipeline : public CompilationPipeline {
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
  public:
-  IrregexpCompilationPipeline() : backtrack_goto_(NULL) {}
+  IrregexpCompilationPipeline() : backtrack_goto_(nullptr) {}
 
   void ParseFunction(ParsedFunction* parsed_function) override;
 
@@ -70,7 +70,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
 
 class Compiler : public AllStatic {
  public:
-  static const intptr_t kNoOSRDeoptId = DeoptId::kNone;
+  static constexpr intptr_t kNoOSRDeoptId = DeoptId::kNone;
 
   static bool IsBackgroundCompilation();
   // The result for a function may change if debugging gets turned on/off.

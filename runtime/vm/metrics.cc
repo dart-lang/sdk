@@ -18,7 +18,7 @@ DEFINE_FLAG(bool,
             false,
             "Print metrics when isolates (and the VM) are shutdown.");
 
-Metric* Metric::vm_list_head_ = NULL;
+Metric* Metric::vm_list_head_ = nullptr;
 
 Metric::Metric() : unit_(kCounter), value_(0) {}
 Metric::~Metric() {}
@@ -28,7 +28,7 @@ void Metric::InitInstance(IsolateGroup* isolate_group,
                           const char* description,
                           Unit unit) {
   // Only called once.
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   isolate_group_ = isolate_group;
   name_ = name;
   description_ = description;
@@ -41,7 +41,7 @@ void Metric::InitInstance(Isolate* isolate,
                           const char* description,
                           Unit unit) {
   // Only called once.
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   isolate_ = isolate;
   name_ = name;
   description_ = description;
@@ -52,7 +52,7 @@ void Metric::InitInstance(const char* name,
                           const char* description,
                           Unit unit) {
   // Only called once.
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   name_ = name;
   description_ = description;
   unit_ = unit;
@@ -70,7 +70,7 @@ static const char* UnitString(intptr_t unit) {
       UNREACHABLE();
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void Metric::PrintJSON(JSONStream* stream) {
@@ -92,9 +92,9 @@ void Metric::PrintJSON(JSONStream* stream) {
 
 char* Metric::ValueToString(int64_t value, Unit unit) {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Zone* zone = thread->zone();
-  ASSERT(zone != NULL);
+  ASSERT(zone != nullptr);
   switch (unit) {
     case kCounter:
       return zone->PrintToString("%" Pd64 "", value);
@@ -129,15 +129,15 @@ char* Metric::ValueToString(int64_t value, Unit unit) {
     }
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
 char* Metric::ToString() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Zone* zone = thread->zone();
-  ASSERT(zone != NULL);
+  ASSERT(zone != nullptr);
   return zone->PrintToString("%s %s", name(), ValueToString(Value(), unit()));
 }
 
@@ -189,36 +189,6 @@ int64_t MetricCurrentRSS::Value() const {
 int64_t MetricPeakRSS::Value() const {
   return Service::MaxRSS();
 }
-#endif  // !defined(PRODUCT)
-
-#if !defined(PRODUCT)
-
-#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  type vm_metric_##variable;
-VM_METRIC_LIST(VM_METRIC_VARIABLE);
-#undef VM_METRIC_VARIABLE
-
-void Metric::Init() {
-#define VM_METRIC_INIT(type, variable, name, unit)                             \
-  vm_metric_##variable.InitInstance(name, NULL, Metric::unit);
-  VM_METRIC_LIST(VM_METRIC_INIT);
-#undef VM_METRIC_INIT
-}
-
-void Metric::Cleanup() {
-  if (FLAG_print_metrics) {
-    // Create a zone to allocate temporary strings in.
-    StackZone sz(Thread::Current());
-    OS::PrintErr("Printing metrics for VM\n");
-
-#define VM_METRIC_INIT(type, variable, name, unit)                             \
-  OS::PrintErr("%s\n", vm_metric_##variable.ToString());
-    VM_METRIC_LIST(VM_METRIC_INIT);
-#undef VM_METRIC_INIT
-    OS::PrintErr("\n");
-  }
-}
-
 #endif  // !defined(PRODUCT)
 
 MaxMetric::MaxMetric() : Metric() {

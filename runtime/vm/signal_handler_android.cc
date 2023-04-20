@@ -108,14 +108,14 @@ void SignalHandler::Install(SignalAction action) {
   ss.ss_size = SIGSTKSZ;
   ss.ss_sp = malloc(ss.ss_size);
   ss.ss_flags = 0;
-  int r = sigaltstack(&ss, NULL);
+  int r = sigaltstack(&ss, nullptr);
   ASSERT(r == 0);
 
   struct sigaction act = {};
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
   act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
-  r = sigaction(SIGPROF, &act, NULL);
+  r = sigaction(SIGPROF, &act, nullptr);
   ASSERT(r == 0);
 }
 
@@ -125,7 +125,7 @@ void SignalHandler::Remove() {
   struct sigaction act = {};
   act.sa_handler = SIG_IGN;
   sigemptyset(&act.sa_mask);
-  int r = sigaction(SIGPROF, &act, NULL);
+  int r = sigaction(SIGPROF, &act, nullptr);
   ASSERT(r == 0);
 
   // Disable and delete alternative signal stack.

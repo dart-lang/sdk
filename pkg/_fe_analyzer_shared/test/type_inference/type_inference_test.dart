@@ -1934,10 +1934,12 @@ main() {
           test('No elements', () {
             h.run([
               match(
-                mapPattern([]),
+                mapPattern([])..errorId = 'PATTERN',
                 expr('dynamic').checkContext('Map<?, ?>'),
               ),
-            ]);
+            ], expectedErrors: {
+              'emptyMapPattern(pattern: PATTERN)',
+            });
           });
 
           test('Variable patterns', () {
@@ -1948,19 +1950,6 @@ main() {
                 mapPattern([
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int?')),
                   mapPatternEntry(expr('bool'), y.pattern(type: 'num')),
-                ]),
-                expr('dynamic').checkContext('Map<?, int>'),
-              ),
-            ]);
-          });
-
-          test('Rest pattern', () {
-            var x = Var('x');
-            h.run([
-              match(
-                mapPattern([
-                  mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
-                  mapPatternRestElement(),
                 ]),
                 expr('dynamic').checkContext('Map<?, int>'),
               ),
@@ -2058,12 +2047,18 @@ main() {
               mapPatternWithTypeArguments(
                 keyType: 'Object',
                 valueType: 'num',
-                elements: [],
+                elements: [
+                  mapPatternEntry(
+                    expr('Object').checkContext('Object'),
+                    wildcard(),
+                  ),
+                ],
               ),
               expr('Map<bool, int>'),
-            ).checkIr('match(expr(Map<bool, int>), mapPattern('
-                'matchedType: Map<bool, int>, requiredType: '
-                'Map<Object, num>))'),
+            ).checkIr('match(expr(Map<bool, int>), mapPattern(mapPatternEntry('
+                'expr(Object), wildcardPattern(matchedType: num)), '
+                'matchedType: Map<bool, int>, '
+                'requiredType: Map<Object, num>))'),
           ]);
         });
 
@@ -2073,11 +2068,17 @@ main() {
               mapPatternWithTypeArguments(
                 keyType: 'Object',
                 valueType: 'num',
-                elements: [],
+                elements: [
+                  mapPatternEntry(
+                    expr('Object').checkContext('Object'),
+                    wildcard(),
+                  ),
+                ],
               ),
               expr('dynamic'),
-            ).checkIr('match(expr(dynamic), mapPattern(matchedType: '
-                'dynamic, requiredType: Map<Object, num>))'),
+            ).checkIr('match(expr(dynamic), mapPattern(mapPatternEntry('
+                'expr(Object), wildcardPattern(matchedType: num)), '
+                'matchedType: dynamic, requiredType: Map<Object, num>))'),
           ]);
         });
 
@@ -2087,7 +2088,12 @@ main() {
               mapPatternWithTypeArguments(
                 keyType: 'bool',
                 valueType: 'int',
-                elements: [],
+                elements: [
+                  mapPatternEntry(
+                    expr('Object').checkContext('bool'),
+                    wildcard(),
+                  ),
+                ],
               )..errorId = 'PATTERN',
               expr('String'),
             )..errorId = 'CONTEXT',
@@ -2100,7 +2106,7 @@ main() {
       });
 
       group('Errors:', () {
-        test('Rest pattern not last element', () {
+        test('Rest pattern first', () {
           var x = Var('x');
           h.run([
             match(
@@ -2112,7 +2118,22 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'restPatternNotLastInMap(node: MAP_PATTERN, element: REST_ELEMENT)'
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT)'
+          });
+        });
+        test('Rest pattern last', () {
+          var x = Var('x');
+          h.run([
+            match(
+              mapPattern([
+                mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
+                mapPatternRestElement()..errorId = 'REST_ELEMENT',
+              ])
+                ..errorId = 'MAP_PATTERN',
+              expr('dynamic'),
+            ),
+          ], expectedErrors: {
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT)'
           });
         });
         test('Two rest elements at the end', () {
@@ -2128,9 +2149,8 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'duplicateRestPattern(mapOrListPattern: MAP_PATTERN, '
-                'original: REST_ELEMENT1, '
-                'duplicate: REST_ELEMENT2)'
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT1)',
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT2)',
           });
         });
         test('Two rest elements not at the end', () {
@@ -2146,9 +2166,8 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'duplicateRestPattern(mapOrListPattern: MAP_PATTERN, '
-                'original: REST_ELEMENT1, '
-                'duplicate: REST_ELEMENT2)'
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT1)',
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT2)',
           });
         });
         test('Rest pattern with subpattern', () {
@@ -2163,8 +2182,7 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'restPatternWithSubPatternInMap(node: MAP_PATTERN, '
-                'element: REST_ELEMENT)'
+            'restPatternInMap(node: MAP_PATTERN, element: REST_ELEMENT)',
           });
         });
       });

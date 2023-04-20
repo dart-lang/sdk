@@ -9,7 +9,7 @@ part of dart.io;
 ///
 /// These constants are used by the [FileSystemEntity] class
 /// to indicate the object's type.
-class FileSystemEntityType {
+final class FileSystemEntityType {
   static const file = const FileSystemEntityType._internal(0);
 
   static const directory = const FileSystemEntityType._internal(1);
@@ -51,7 +51,7 @@ class FileSystemEntityType {
 ///
 /// This is an immutable object, representing the snapshotted values returned
 /// by the `stat()` call.
-class FileStat {
+interface class FileStat {
   // These must agree with enum FileStat in file.h.
   static const _type = 0;
   static const _changedTime = 1;
@@ -876,7 +876,7 @@ abstract class FileSystemEntity {
 }
 
 /// Base event class emitted by [FileSystemEntity.watch].
-class FileSystemEvent {
+final class FileSystemEvent {
   /// Bitfield for [FileSystemEntity.watch], to enable [FileSystemCreateEvent]s.
   static const int create = 1 << 0;
 
@@ -917,20 +917,22 @@ class FileSystemEvent {
 }
 
 /// File system event for newly created file system objects.
-class FileSystemCreateEvent extends FileSystemEvent {
-  FileSystemCreateEvent._(path, isDirectory)
+final class FileSystemCreateEvent extends FileSystemEvent {
+  /// Constructs a new [FileSystemCreateEvent].
+  FileSystemCreateEvent(String path, bool isDirectory)
       : super._(FileSystemEvent.create, path, isDirectory);
 
   String toString() => "FileSystemCreateEvent('$path')";
 }
 
 /// File system event for modifications of file system objects.
-class FileSystemModifyEvent extends FileSystemEvent {
+final class FileSystemModifyEvent extends FileSystemEvent {
   /// If the content was changed and not only the attributes, [contentChanged]
   /// is `true`.
   final bool contentChanged;
 
-  FileSystemModifyEvent._(path, isDirectory, this.contentChanged)
+  /// Constructs a new [FileSystemModifyEvent].
+  FileSystemModifyEvent(String path, bool isDirectory, this.contentChanged)
       : super._(FileSystemEvent.modify, path, isDirectory);
 
   String toString() =>
@@ -938,15 +940,16 @@ class FileSystemModifyEvent extends FileSystemEvent {
 }
 
 /// File system event for deletion of file system objects.
-class FileSystemDeleteEvent extends FileSystemEvent {
-  FileSystemDeleteEvent._(path, isDirectory)
+final class FileSystemDeleteEvent extends FileSystemEvent {
+  /// Constructs a new [FileSystemDeleteEvent].
+  FileSystemDeleteEvent(String path, bool isDirectory)
       : super._(FileSystemEvent.delete, path, isDirectory);
 
   String toString() => "FileSystemDeleteEvent('$path')";
 }
 
 /// File system event for moving of file system objects.
-class FileSystemMoveEvent extends FileSystemEvent {
+final class FileSystemMoveEvent extends FileSystemEvent {
   /// The destination path of the file being moved.
   ///
   /// The destination is `null` if the underlying implementation
@@ -955,7 +958,8 @@ class FileSystemMoveEvent extends FileSystemEvent {
   /// The source path is available as [path].
   final String? destination;
 
-  FileSystemMoveEvent._(path, isDirectory, this.destination)
+  /// Constructs a new [FileSystemMoveEvent].
+  FileSystemMoveEvent(String path, bool isDirectory, this.destination)
       : super._(FileSystemEvent.move, path, isDirectory);
 
   String toString() {

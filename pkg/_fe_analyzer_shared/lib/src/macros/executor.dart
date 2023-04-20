@@ -57,6 +57,10 @@ abstract class MacroExecutor {
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
   ///
+  /// The [resolveDeclaration] argument should return the [TypeDeclaration] for
+  /// an [Identifier] pointing at a named type in the library being augmented
+  /// (note this could be a type that was added in the "types" phase).
+  ///
   /// The [resolveIdentifier] argument should return the import uri to be used
   /// for that identifier.
   ///
@@ -72,6 +76,7 @@ abstract class MacroExecutor {
   /// generation of fresh names for import prefixes and omitted types.
   String buildAugmentationLibrary(
       Iterable<MacroExecutionResult> macroResults,
+      TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
       {Map<OmittedTypeAnnotation, String>? omittedTypes});
@@ -289,9 +294,9 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
-  /// Any augmentations that should be applied to a class as a result of
-  /// executing a macro, indexed by the name of the class.
-  Map<String, Iterable<DeclarationCode>> get classAugmentations;
+  /// Any augmentations to enum values that should be applied to an enum as a
+  /// result of executing a macro, indexed by the identifier of the enum.
+  Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;
 
   /// Any augmentations that should be applied to the library as a result of
   /// executing a macro.
@@ -299,15 +304,22 @@ abstract class MacroExecutionResult implements Serializable {
 
   /// The names of any new types declared in [augmentations].
   Iterable<String> get newTypeNames;
+
+  /// Any augmentations that should be applied to a class as a result of
+  /// executing a macro, indexed by the identifier of the class.
+  Map<Identifier, Iterable<DeclarationCode>> get typeAugmentations;
 }
 
 /// Each of the possible types of declarations a macro can be applied to
 enum DeclarationKind {
-  clazz,
+  classType,
   constructor,
+  enumType,
+  enumValue,
   field,
   function,
   method,
+  mixinType,
   variable,
 }
 

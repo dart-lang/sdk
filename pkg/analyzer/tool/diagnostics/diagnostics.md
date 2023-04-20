@@ -4980,7 +4980,7 @@ matched twice in the same object pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
-  switch (0) {
+  switch (o) {
     case C(f: 1, [!f!]: 2):
       return;
   }
@@ -5132,6 +5132,45 @@ void f((int, int) r) {
   if (r case (var a, 0) && (0, _)) {
     print(a);
   }
+}
+{% endprettify %}
+
+### empty_map_pattern
+
+_A map pattern must have at least one entry._
+
+#### Description
+
+The analyzer produces this diagnostic when a map pattern is empty.
+
+#### Example
+
+The following code produces this diagnostic because the map pattern
+is empty:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case [!{}!]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the pattern should match any map, then replace it with an object
+pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case Map()) {}
+}
+{% endprettify %}
+
+If the pattern should only match an empty map, then check the length
+in the pattern:
+
+{% prettify dart tag=pre+code %}
+void f(Map<int, String> x) {
+  if (x case Map(isEmpty: true)) {}
 }
 {% endprettify %}
 
@@ -5772,7 +5811,7 @@ The following code produces this diagnostic because the map pattern
 
 {% prettify dart tag=pre+code %}
 void f(Object x) {
-  if (x case [!<int>!]{}) {}
+  if (x case [!<int>!]{0: _}) {}
 }
 {% endprettify %}
 
@@ -5782,7 +5821,7 @@ Add or remove type arguments until there are two, or none:
 
 {% prettify dart tag=pre+code %}
 void f(Object x) {
-  if (x case <int, int>{}) {}
+  if (x case <int, int>{0: _}) {}
 }
 {% endprettify %}
 
@@ -10827,20 +10866,11 @@ class._
 _The class '{0}' can't be implemented outside of its library because it's a
 final class._
 
+_The class '{0}' can't be used as a mixin superclass constraint outside of its
+library because it's a final class._
+
 _The mixin '{0}' can't be implemented outside of its library because it's a base
 mixin._
-
-_The mixin '{0}' can't be implemented outside of its library because it's a
-final mixin._
-
-_The mixin '{0}' can't be mixed in outside of its library because it's a sealed
-mixin._
-
-_The mixin '{0}' can't be mixed-in outside of its library because it's a final
-mixin._
-
-_The mixin '{0}' can't be mixed-in outside of its library because it's an
-interface mixin._
 
 #### Description
 
@@ -12124,7 +12154,7 @@ dependencies:
   meta: ^1.0.2
 ```
 
-### missing_object_pattern_getter_name
+### missing_named_pattern_field_name
 
 _The getter name is not specified explicitly, and the pattern is not a
 variable._
@@ -14247,9 +14277,66 @@ enum E {
 }
 {% endprettify %}
 
-### non_exhaustive_switch
+### non_exhaustive_switch_expression
 
-_The type '{0}' is not exhaustively matched by the switch cases._
+_The type '{0}' is not exhaustively matched by the switch cases since it doesn't
+match '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `switch` expression is
+missing a case for one or more of the possible values that could flow
+through it.
+
+#### Example
+
+The following code produces this diagnostic because the switch expression
+doesn't have a case for the value `E.three`:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => [!switch!] (e) {
+    E.one => 'one',
+    E.two => 'two',
+  };
+{% endprettify %}
+
+#### Common fixes
+
+Add a case for each of the constants that aren't currently being matched:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => switch (e) {
+    E.one => 'one',
+    E.two => 'two',
+    E.three => 'three',
+  };
+{% endprettify %}
+
+If the missing values don't need to be matched, then add  a wildcard
+pattern:
+
+{% prettify dart tag=pre+code %}
+enum E { one, two, three }
+
+String f(E e) => switch (e) {
+    E.one => 'one',
+    E.two => 'two',
+    _ => 'unknown',
+  };
+{% endprettify %}
+
+But be aware that adding a wildcard pattern will cause any future values
+of the type to also be handled, so you will have lost the ability for the
+compiler to warn you if the `switch` needs to be updated.
+
+### non_exhaustive_switch_statement
+
+_The type '{0}' is not exhaustively matched by the switch cases since it doesn't
+match '{1}'._
 
 #### Description
 
@@ -14292,7 +14379,7 @@ void f(E e) {
 {% endprettify %}
 
 If the missing values don't need to be matched, then add a `default`
-clause (or a wildcard pattern in a `switch` expression):
+clause or a wildcard pattern:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -16225,6 +16312,40 @@ void f(int x) {
 }
 {% endprettify %}
 
+### positional_field_in_object_pattern
+
+_Object patterns can only use named fields._
+
+#### Description
+
+The analyzer produces this diagnostic when an object pattern contains a
+field that doesn't have a getter name. The fields provide a pattern to
+match against the value returned by a getter, and not specifying the name
+of the getter means that there's no way to access the value that the
+pattern is intended to match against.
+
+#### Example
+
+The following code produces this diagnostic because the object pattern
+`String(1)` doesn't say which value to compare with `1`:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  if (o case String([!1!])) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add both the name of the getter to use to access the value and a colon
+before the value:
+
+{% prettify dart tag=pre+code %}
+void f(Object o) {
+  if (o case String(length: 1)) {}
+}
+{% endprettify %}
+
 ### positional_super_formal_parameter_with_positional_argument
 
 _Positional super parameters can't be used when the super constructor invocation
@@ -17450,73 +17571,35 @@ void f(C c1) {
 }
 {% endprettify %}
 
-### rest_element_not_last_in_map_pattern
+### rest_element_in_map_pattern
 
-_A rest element in a map pattern must be the last element._
+_A map pattern can't contain a rest pattern._
 
 #### Description
 
-The analyzer produces this diagnostic when a map pattern contains entries
-after a rest pattern. The rest pattern will match map entries whose keys
-aren't matched by any of the entries in the pattern. To make those
-semantics clear, the language requires that the rest pattern be the last
-entry in the list.
+The analyzer produces this diagnostic when a map pattern contains a rest
+pattern. The matching for map patterns already allows the map to have
+more keys than those explicitly given in the pattern, so a rest pattern
+wouldn't add anything.
 
 #### Example
 
-The following code produces this diagnostic because the rest pattern is
-followed by another map pattern entry (`0: _`):
+The following code produces this diagnostic because there's a rest
+pattern in a map pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
-  if (x case {[!...!], 0: _}) {}
+  if (x case {0: _, [!...!]}) {}
 }
 {% endprettify %}
 
 #### Common fixes
 
-Move the rest pattern to the end of the map pattern:
+Remove the rest pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
-  if (x case {0: _, ...}) {}
-}
-{% endprettify %}
-
-### rest_element_with_subpattern_in_map_pattern
-
-_A rest element in a map pattern can't have a subpattern._
-
-#### Description
-
-The analyzer produces this diagnostic when a rest pattern in a map pattern
-has a subpattern. In Dart, there is no notion of a subset of a map, so
-there isn't anything to match against the subpattern.
-
-#### Example
-
-The following code produces this diagnostic because the rest pattern has a
-subpattern:
-
-{% prettify dart tag=pre+code %}
-void f(Map<String, int> m) {
-  switch (m) {
-    case {'a': var a, ... [!> 0!]}:
-      print(a);
-  }
-}
-{% endprettify %}
-
-#### Common fixes
-
-Remove the subpattern:
-
-{% prettify dart tag=pre+code %}
-void f(Map<String, int> m) {
-  switch (m) {
-    case {'a': var a, ...}:
-      print(a);
-  }
+  if (x case {0: _}) {}
 }
 {% endprettify %}
 

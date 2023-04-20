@@ -30,7 +30,7 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
       Class::Handle(Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!assert_error_class.IsNull());
   bool hit_assertion_error = false;
-  for (; stack_frame != NULL; stack_frame = iterator->NextFrame()) {
+  for (; stack_frame != nullptr; stack_frame = iterator->NextFrame()) {
     code = stack_frame->LookupDartCode();
     if (code.is_optimized()) {
       InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());

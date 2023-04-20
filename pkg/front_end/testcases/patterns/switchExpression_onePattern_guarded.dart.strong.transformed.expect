@@ -2,8 +2,8 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/switchExpression_onePattern_guarded.dart:5:16: Error: The type 'dynamic' is not exhaustively matched by the switch cases.
-// Try adding a default case or cases that match 'Object()'.
+// pkg/front_end/testcases/patterns/switchExpression_onePattern_guarded.dart:5:16: Error: The type 'dynamic' is not exhaustively matched by the switch cases since it doesn't match 'Object()'.
+// Try adding a wildcard pattern or cases that match 'Object()'.
 // f(x) => switch(x) {
 //                ^
 //

@@ -317,7 +317,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Manages VM Isolates and their events, including fanning out any requests
   /// to set breakpoints etc. from the client to all Isolates.
-  late IsolateManager _isolateManager;
+  @visibleForTesting
+  late IsolateManager isolateManager;
 
   /// A helper that handlers converting to/from DAP and VM Service types.
   late ProtocolConverter _converter;
@@ -369,9 +370,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   final Logger? logger;
 
   /// Whether the current debug session is an attach request (as opposed to a
-  /// launch request). Not available until after launchRequest or attachRequest
-  /// have been called.
-  late final bool isAttach;
+  /// launch request). Only set during [attachRequest] so will always be `false`
+  /// prior to that.
+  bool isAttach = false;
 
   /// A list of evaluateNames for InstanceRef IDs.
   ///
@@ -457,13 +458,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the user would not expect the script to continue to pause on breakpoints
   /// the had set while attached.
   Future<void> preventBreakingAndResume() async {
-    // Remove anything that may cause us to pause again.
-    await Future.wait([
-      _isolateManager.clearAllBreakpoints(),
-      _isolateManager.setExceptionPauseMode('None'),
-    ]);
-    // Once those have completed, it's safe to resume anything paused.
-    await _isolateManager.resumeAll();
+    await _withErrorHandling(() async {
+      // Remove anything that may cause us to pause again.
+      await Future.wait([
+        isolateManager.clearAllBreakpoints(),
+        isolateManager.setExceptionPauseMode('None'),
+      ]);
+      // Once those have completed, it's safe to resume anything paused.
+      await isolateManager.resumeAll();
+    });
   }
 
   DartDebugAdapter(
@@ -480,7 +483,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     dartSdkRoot = path.dirname(path.dirname(vmPath));
     orgDartlangSdkMappings[dartSdkRoot] = Uri.parse('org-dartlang-sdk:///sdk');
 
-    _isolateManager = IsolateManager(this);
+    isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }
 
@@ -542,7 +545,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     // When attaching to a process, suppress auto-resuming isolates until the
     // first time the user resumes anything.
-    _isolateManager.autoResumeStartingIsolates = false;
+    isolateManager.autoResumeStartingIsolates = false;
 
     // Common setup.
     await _prepareForLaunchOrAttach(null);
@@ -745,7 +748,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
       final thread =
-          await _isolateManager.registerIsolate(isolate, pauseEventKind);
+          await isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
@@ -753,16 +756,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // runnable - otherwise we'll handle this when it becomes runnable in an
       // event later).
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
-        await _isolateManager.handleEvent(
+        await isolateManager.handleEvent(
           isolate.pauseEvent!,
         );
       } else if (isolate.runnable == true) {
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
-        if (_isolateManager.autoResumeStartingIsolates) {
-          await _isolateManager.resumeIsolate(isolate);
+        if (isolateManager.autoResumeStartingIsolates) {
+          await isolateManager.resumeIsolate(isolate);
         } else {
-          _isolateManager.sendStoppedOnEntryEvent(thread.threadId);
+          isolateManager.sendStoppedOnEntryEvent(thread.threadId);
         }
       }
     }));
@@ -776,7 +779,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ContinueArguments args,
     void Function(ContinueResponseBody) sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId);
+    await isolateManager.resumeThread(args.threadId);
     sendResponse(ContinueResponseBody(allThreadsContinued: false));
   }
 
@@ -839,7 +842,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // through the run daemon) as it needs to perform additional work to
       // rebuild widgets afterwards.
       case 'hotReload':
-        await _isolateManager.reloadSources();
+        await isolateManager.reloadSources();
         sendResponse(_noResult);
         break;
 
@@ -919,7 +922,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ThreadInfo? thread;
     int? frameIndex;
     if (frameId != null) {
-      final data = _isolateManager.getStoredData(frameId);
+      final data = isolateManager.getStoredData(frameId);
       if (data != null) {
         thread = data.thread;
         frameIndex = (data.data as vm.Frame).index;
@@ -1182,9 +1185,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// by the `updateDebugOptions` custom request.
   Future<bool> libraryIsDebuggable(ThreadInfo thread, Uri uri) async {
     if (isSdkLibrary(uri)) {
-      return _isolateManager.debugSdkLibraries;
+      return isolateManager.debugSdkLibraries;
     } else if (await isExternalPackageLibrary(thread, uri)) {
-      return _isolateManager.debugExternalPackageLibraries;
+      return isolateManager.debugExternalPackageLibraries;
     } else {
       return true;
     }
@@ -1198,7 +1201,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     NextArguments args,
     void Function() sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
+    await isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
     sendResponse();
   }
 
@@ -1227,7 +1230,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ScopesArguments args,
     void Function(ScopesResponseBody) sendResponse,
   ) async {
-    final storedData = _isolateManager.getStoredData(args.frameId);
+    final storedData = isolateManager.getStoredData(args.frameId);
     final thread = storedData?.thread;
     final data = storedData?.data;
     final frameData = data is vm.Frame ? data : null;
@@ -1237,7 +1240,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       scopes.add(Scope(
         name: 'Locals',
         presentationHint: 'locals',
-        variablesReference: _isolateManager.storeData(
+        variablesReference: isolateManager.storeData(
           thread,
           FrameScopeData(frameData, FrameScopeDataKind.locals),
         ),
@@ -1247,7 +1250,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       scopes.add(Scope(
         name: 'Globals',
         presentationHint: 'globals',
-        variablesReference: _isolateManager.storeData(
+        variablesReference: isolateManager.storeData(
           thread,
           FrameScopeData(frameData, FrameScopeDataKind.globals),
         ),
@@ -1325,7 +1328,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the file URI in [args.source.path].
   ///
   /// The VM requires breakpoints to be set per-isolate so these will be passed
-  /// to [_isolateManager] that will fan them out to each isolate.
+  /// to [isolateManager] that will fan them out to each isolate.
   ///
   /// When new isolates are registered, it is [isolateManager]'s responsibility
   /// to ensure all breakpoints are given to them (and like at startup, this
@@ -1342,17 +1345,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final name = args.source.name;
     final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
-    final clientBreakpoints = breakpoints.map(ClientBreakpoint.new).toList();
-    await _isolateManager.setBreakpoints(uri, clientBreakpoints);
+    // Use a completer to track when the response is sent, so any events related
+    // to these breakpoints are not sent before the client has the IDs.
+    final completer = Completer<void>();
+
+    final clientBreakpoints = breakpoints
+        .map((bp) => ClientBreakpoint(bp, completer.future))
+        .toList();
+    await isolateManager.setBreakpoints(uri, clientBreakpoints);
 
     sendResponse(SetBreakpointsResponseBody(
-      // Send breakpoints back as unverified and with our generated IDs so we
-      // can update them with a 'breakpoint' event when we get the
-      // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
       breakpoints: clientBreakpoints
+          // Send breakpoints back as unverified and with our generated IDs so we
+          // can update them with a 'breakpoint' event when we get the
+          // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
           .map((bp) => Breakpoint(id: bp.id, verified: false))
           .toList(),
     ));
+    completer.complete();
   }
 
   /// Handles a request from the client to set exception pause modes.
@@ -1361,7 +1371,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the app is running).
   ///
   /// The VM requires exception modes to be set per-isolate so these will be
-  /// passed to [_isolateManager] that will fan them out to each isolate.
+  /// passed to [isolateManager] that will fan them out to each isolate.
   ///
   /// When new isolates are registered, it is [isolateManager]'s responsibility
   /// to ensure the pause mode is given to them (and like at startup, this
@@ -1378,7 +1388,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             ? 'Unhandled'
             : 'None';
 
-    await _isolateManager.setExceptionPauseMode(mode);
+    await isolateManager.setExceptionPauseMode(mode);
 
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
@@ -1477,7 +1487,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     SourceArguments args,
     void Function(SourceResponseBody) sendResponse,
   ) async {
-    final storedData = _isolateManager.getStoredData(
+    final storedData = isolateManager.getStoredData(
       args.source?.sourceReference ?? args.sourceReference,
     );
     if (storedData == null) {
@@ -1528,7 +1538,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     const stackFrameBatchSize = 20;
 
     final threadId = args.threadId;
-    final thread = _isolateManager.getThread(threadId);
+    final thread = isolateManager.getThread(threadId);
     final topFrame = thread?.pauseEvent?.topFrame;
     final startFrame = args.startFrame ?? 0;
     final numFrames = args.levels ?? 0;
@@ -1625,7 +1635,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     StepInArguments args,
     void Function() sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kInto);
+    await isolateManager.resumeThread(args.threadId, vm.StepOption.kInto);
     sendResponse();
   }
 
@@ -1636,7 +1646,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     StepOutArguments args,
     void Function() sendResponse,
   ) async {
-    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOut);
+    await isolateManager.resumeThread(args.threadId, vm.StepOption.kOut);
     sendResponse();
   }
 
@@ -1687,7 +1697,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(ThreadsResponseBody) sendResponse,
   ) async {
     final threads = [
-      for (final thread in _isolateManager.threads)
+      for (final thread in isolateManager.threads)
         Thread(
           id: thread.threadId,
           name: thread.isolate.name ?? '<unnamed isolate>',
@@ -1716,7 +1726,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ) async {
     final childStart = args.start;
     final childCount = args.count;
-    final storedData = _isolateManager.getStoredData(args.variablesReference);
+    final storedData = isolateManager.getStoredData(args.variablesReference);
     if (storedData == null) {
       throw StateError('variablesReference is no longer valid');
     }
@@ -1741,7 +1751,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         Future<Variable> convert(int index, vm.BoundVariable variable) {
           // Store the expression that gets this object as we may need it to
           // compute evaluateNames for child objects later.
-          storeEvaluateName(variable.value, variable.name);
+          final value = variable.value;
+          if (value is vm.InstanceRef) {
+            storeEvaluateName(value, variable.name);
+          }
           return _converter.convertVmResponseToVariable(
             thread,
             variable.value,
@@ -1819,7 +1832,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         ]);
       }
     } else if (data is vm.ObjRef) {
-      final object = await _isolateManager.getObject(
+      final object = await isolateManager.getObject(
         storedData.thread.isolate,
         data,
         offset: childStart,
@@ -1957,7 +1970,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // isolate printed an error to stderr, we just have to use the first one and
     // hope the packages are available. If one is not available (which should
     // never be the case), we will just skip resolution.
-    final thread = _isolateManager.threads.firstOrNull;
+    final thread = isolateManager.threads.firstOrNull;
 
     // Send a batch request. This will cache the results so we can easily use
     // them in the loop below by calling the method again.
@@ -2028,7 +2041,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     String expression,
     ThreadInfo thread,
   ) async {
-    final exception = _isolateManager.getStoredData(exceptionReference)?.data
+    final exception = isolateManager.getStoredData(exceptionReference)?.data
         as vm.InstanceRef?;
 
     if (exception == null) {
@@ -2060,7 +2073,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // it's doing is own initialization that this may interfere with.
     await debuggerInitialized;
 
-    await _isolateManager.handleEvent(event);
+    await isolateManager.handleEvent(event);
 
     final eventKind = event.kind;
     final isolate = event.isolate;
@@ -2071,7 +2084,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         eventKind == vm.EventKind.kPauseExit &&
         isolate != null) {
       await _waitForPendingOutputEvents();
-      await _isolateManager.resumeIsolate(isolate);
+      await isolateManager.resumeIsolate(isolate);
     }
   }
 
@@ -2093,7 +2106,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await debuggerInitialized;
 
     // Allow IsolateManager to handle any state-related events.
-    await _isolateManager.handleEvent(event);
+    await isolateManager.handleEvent(event);
 
     switch (event.kind) {
       // Pass any Service Extension events on to the client so they can enable
@@ -2143,7 +2156,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   @mustCallSuper
   Future<void> handleLoggingEvent(vm.Event event) async {
     final record = event.logRecord;
-    final thread = _isolateManager.threadForIsolate(event.isolate);
+    final thread = isolateManager.threadForIsolate(event.isolate);
     if (record == null || thread == null) {
       return;
     }
@@ -2196,7 +2209,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     Map<String, Object?> data,
     String field,
   ) async {
-    final thread = _isolateManager.threadForIsolate(isolate);
+    final thread = isolateManager.threadForIsolate(isolate);
     if (thread == null) {
       return;
     }
@@ -2283,9 +2296,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Notify IsolateManager if we'll be debugging so it knows whether to set
     // up breakpoints etc. when isolates are registered.
     final debug = !(noDebug ?? false);
-    _isolateManager.debug = debug;
-    _isolateManager.debugSdkLibraries = args.debugSdkLibraries ?? true;
-    _isolateManager.debugExternalPackageLibraries =
+    isolateManager.debug = debug;
+    isolateManager.debugSdkLibraries = args.debugSdkLibraries ?? true;
+    isolateManager.debugExternalPackageLibraries =
         args.debugExternalPackageLibraries ?? true;
   }
 
@@ -2328,13 +2341,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// in the map will not be updated by this method.
   Future<void> _updateDebugOptions(Map<String, Object?> args) async {
     if (args.containsKey('debugSdkLibraries')) {
-      _isolateManager.debugSdkLibraries = args['debugSdkLibraries'] as bool;
+      isolateManager.debugSdkLibraries = args['debugSdkLibraries'] as bool;
     }
     if (args.containsKey('debugExternalPackageLibraries')) {
-      _isolateManager.debugExternalPackageLibraries =
+      isolateManager.debugExternalPackageLibraries =
           args['debugExternalPackageLibraries'] as bool;
     }
-    await _isolateManager.applyDebugOptions();
+    await isolateManager.applyDebugOptions();
   }
 
   /// A wrapper around the same name function from package:vm_service that

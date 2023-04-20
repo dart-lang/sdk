@@ -7,7 +7,7 @@
 # prefix.
 io/http_close_stack_overflow_test: Skip # The test is heavy loaded. Should be used for manual test.
 io/http_linklocal_ipv6_test: SkipByDesign # This needs manual test.
-io/large_file_read_small_file_test: Slow # Test reads small file 1M times
+io/large_file_read_small_file_test: Slow, Pass # Test reads small file 1M times
 io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
@@ -85,6 +85,9 @@ regress_29350_test: Skip
 io/https_connection_closed_during_handshake_test: SkipByDesign # long_ssl_cert_evaluation needed for long handshake is only supported on mac.
 io/https_nonblocking_trust_evaluation_test: SkipByDesign
 
+[ $simulator ]
+io/socket_sigpipe_test: SkipByDesign # Test uses ffi
+
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
@@ -105,9 +108,6 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 [ $arch == arm || $arch == arm64 || $runtime != vm || $system == android ]
 fragmentation_test: SkipSlow
 fragmentation_typed_data_test: SkipSlow
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-io/socket_sigpipe_test: SkipByDesign # Test uses ffi
 
 [ $compiler == dart2js || $compiler == ddc ]
 *: SkipByDesign

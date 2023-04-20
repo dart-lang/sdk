@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum Enum {a, b}
+enum Enum { a, b }
 
 void exhaustiveSwitch1((Enum, bool) r) {
   /*
@@ -110,6 +110,7 @@ void nonExhaustiveSwitchWithDefault((Enum, bool) r) {
 
 void exhaustiveNullableSwitch((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
@@ -132,6 +133,7 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
 
 void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    error=non-exhaustive:null,
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
@@ -147,6 +149,7 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
 
 void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    error=non-exhaustive:(Enum.a, true),
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
@@ -220,6 +223,7 @@ void unreachableCase2((Enum, bool) r) {
 
 void unreachableCase3((Enum, bool)? r) {
   /*
+   checkingOrder={(Enum, bool)?,(Enum, bool),Null},
    fields={$1:-,$2:-},
    subtypes={(Enum, bool),Null},
    type=(Enum, bool)?
@@ -237,7 +241,7 @@ void unreachableCase3((Enum, bool)? r) {
      error=unreachable,
      space=Null
     */
-      case null:
+    case null:
       print('null2');
       break;
   }

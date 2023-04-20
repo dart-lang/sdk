@@ -32,7 +32,7 @@ mixin CaseClauseTestCases on AbstractCompletionDriverTest {
     await computeSuggestions('''
 var v = [ if (o case ^) ];
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   const
     kind: keyword
@@ -55,7 +55,7 @@ void f(Object o) {
   if (o case ^) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   const
     kind: keyword
@@ -76,7 +76,7 @@ suggestions
     await computeSuggestions('''
 var v = [ if (o case != '' ^) ];
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   when
     kind: keyword
@@ -91,7 +91,7 @@ void f(Object o) {
   if (o case != '' ^ true) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -106,7 +106,7 @@ void f(Object o) {
   if (o case != '' ^ o.length > 3) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -117,7 +117,7 @@ void f(Object o) {
   if (o case != '' ^) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   when
     kind: keyword
@@ -128,7 +128,7 @@ suggestions
     await computeSuggestions('''
 var v = [ if (o case != '' when true ^) ];
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -139,7 +139,7 @@ void f(Object o) {
   if (o case != '' when true ^) {}
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -149,7 +149,7 @@ suggestions
 var v = [ if (o c^) ];
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -157,7 +157,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -176,7 +176,7 @@ void f(Object o) {
 }
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -184,7 +184,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions

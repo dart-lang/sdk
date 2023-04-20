@@ -22,7 +22,7 @@ ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(!iterator.HasNextFrame());
-  EXPECT(iterator.NextFrame() == NULL);
+  EXPECT(iterator.NextFrame() == nullptr);
   VerifyPointersVisitor::VerifyPointers();
 }
 
@@ -30,7 +30,7 @@ ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
 ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
   DartFrameIterator iterator(Thread::Current(),
                              StackFrameIterator::kNoCrossThreadIteration);
-  EXPECT(iterator.NextFrame() == NULL);
+  EXPECT(iterator.NextFrame() == nullptr);
   VerifyPointersVisitor::VerifyPointers();
 }
 
@@ -59,7 +59,7 @@ void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   StackFrameIterator frames(ValidationPolicy::kValidateFrames,
                             arguments->thread(),
                             StackFrameIterator::kNoCrossThreadIteration);
-  while (frames.NextFrame() != NULL) {
+  while (frames.NextFrame() != nullptr) {
     count += 1;  // Count the frame.
   }
   VerifyPointersVisitor::VerifyPointers();
@@ -71,7 +71,7 @@ void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
   int count = 0;
   DartFrameIterator frames(Thread::Current(),
                            StackFrameIterator::kNoCrossThreadIteration);
-  while (frames.NextFrame() != NULL) {
+  while (frames.NextFrame() != nullptr) {
     count += 1;  // Count the dart frame.
   }
   VerifyPointersVisitor::VerifyPointers();
@@ -95,7 +95,7 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
   int count = 0;
   DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  while (frame != NULL) {
+  while (frame != nullptr) {
     if (count == frame_index) {
       // Find the function corresponding to this frame and check if it
       // matches the function name passed in.
@@ -139,13 +139,13 @@ static struct NativeEntries {
 static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count,
                                          bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = false;
   TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();
-  ASSERT(function_name != NULL);
+  ASSERT(function_name != nullptr);
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
@@ -154,7 +154,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 // Unit test case to verify stack frame iteration.
@@ -252,7 +252,7 @@ TEST_CASE(ValidateStackFrameIteration) {
       kScriptChars.get(),
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
-  EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, NULL));
+  EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, nullptr));
 }
 
 // Unit test case to verify stack frame iteration.
@@ -343,7 +343,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrame2Test"));
-  EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, NULL));
+  EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, nullptr));
 }
 
 }  // namespace dart

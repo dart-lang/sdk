@@ -139,6 +139,152 @@ class TypeSystemImpl implements TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
+  /// Checks if an instance of [left] could possibly also be an instance of
+  /// [right]. For example, an instance of `num` could be `int`, so
+  /// canBeSubtypeOf(`num`, `int`) would return `true`, even though `num` is
+  /// not a subtype of `int`. More generally, we check if there could be a
+  /// type that implements both [left] and [right], regardless of whether
+  /// [left] is a subtype of [right], or [right] is a subtype of [left].
+  bool canBeSubtypeOf(DartType left, DartType right) {
+    // If one is `Null`, then the other must be nullable.
+    final leftIsNullable = isPotentiallyNullable(left);
+    final rightIsNullable = isPotentiallyNullable(right);
+    if (left.isDartCoreNull) {
+      return rightIsNullable;
+    } else if (right.isDartCoreNull) {
+      return leftIsNullable;
+    }
+
+    // If none is `Null`, but both are nullable, they match at `Null`.
+    if (leftIsNullable && rightIsNullable) {
+      return true;
+    }
+
+    // Could be `void Function() vs. Object`.
+    // Could be `void Function() vs. Function`.
+    if (left is FunctionTypeImpl && right is InterfaceTypeImpl) {
+      return right.isDartCoreFunction || right.isDartCoreObject;
+    }
+
+    // Could be `Object vs. void Function()`.
+    // Could be `Function vs. void Function()`.
+    if (left is InterfaceTypeImpl && right is FunctionTypeImpl) {
+      return left.isDartCoreFunction || left.isDartCoreObject;
+    }
+
+    if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
+      final leftElement = left.element;
+      final rightElement = right.element;
+
+      bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
+        assert(left.element == right.element);
+        final leftArguments = left.typeArguments;
+        final rightArguments = right.typeArguments;
+        assert(leftArguments.length == rightArguments.length);
+        for (var i = 0; i < leftArguments.length; i++) {
+          if (!canBeSubtypeOf(leftArguments[i], rightArguments[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // If the left is enum, we know types of all its instances.
+      if (leftElement is EnumElementImpl) {
+        for (final constant in leftElement.constants) {
+          final constantType = constant.type;
+          if (isSubtypeOf(constantType, right)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      if (leftElement == rightElement) {
+        return canBeSubtypeOfInterfaces(left, right);
+      }
+
+      if (leftElement is ClassElementImpl) {
+        // If we know all subtypes, only they can implement the right.
+        final allSubtypes = leftElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [left, ...allSubtypes]) {
+            final asRight = candidate.asInstanceOf(rightElement);
+            if (asRight != null) {
+              if (_canBeEqualArguments(asRight, right)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+      }
+
+      if (rightElement is ClassElementImpl) {
+        // If we know all subtypes, only they can implement the left.
+        final allSubtypes = rightElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [right, ...allSubtypes]) {
+            final asLeft = candidate.asInstanceOf(leftElement);
+            if (asLeft != null) {
+              if (canBeSubtypeOfInterfaces(left, asLeft)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+      }
+    }
+
+    if (left is RecordType) {
+      if (right is FunctionType) {
+        return false;
+      }
+      if (right is InterfaceType) {
+        return right.isDartCoreObject || right.isDartCoreRecord;
+      }
+    }
+
+    if (right is RecordType) {
+      if (left is FunctionType) {
+        return false;
+      }
+      if (left is InterfaceType) {
+        return left.isDartCoreObject || left.isDartCoreRecord;
+      }
+    }
+
+    if (left is RecordType && right is RecordType) {
+      if (left.positionalFields.length != right.positionalFields.length) {
+        return false;
+      }
+      for (var i = 0; i < left.positionalFields.length; i++) {
+        final leftField = left.positionalFields[i];
+        final rightField = right.positionalFields[i];
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
+          return false;
+        }
+      }
+
+      if (left.namedFields.length != right.namedFields.length) {
+        return false;
+      }
+      for (var i = 0; i < left.namedFields.length; i++) {
+        final leftField = left.namedFields[i];
+        final rightField = right.namedFields[i];
+        if (leftField.name != rightField.name) {
+          return false;
+        }
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   /// Returns [type] in which all promoted type variables have been replaced
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
@@ -714,9 +860,6 @@ class TypeSystemImpl implements TypeSystem {
         return true;
       }
       if (element is ClassElement && element.isSealed) {
-        return true;
-      }
-      if (element is MixinElement && element.isSealed) {
         return true;
       }
       if (type.isDartAsyncFutureOr) {
@@ -1712,6 +1855,34 @@ class TypeSystemImpl implements TypeSystem {
     this.implicitCasts = implicitCasts;
     this.strictCasts = strictCasts;
     this.strictInference = strictInference;
+  }
+
+  /// Optimistically estimates, if type arguments of [left] can be equal to
+  /// the type arguments of [right]. Both types must be instantiations of the
+  /// same element.
+  bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
+    assert(left.element == right.element);
+    final leftArguments = left.typeArguments;
+    final rightArguments = right.typeArguments;
+    assert(leftArguments.length == rightArguments.length);
+    for (var i = 0; i < leftArguments.length; i++) {
+      final leftArgument = leftArguments[i];
+      final rightArgument = rightArguments[i];
+      if (!_canBeEqualTo(leftArgument, rightArgument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Optimistically estimates, if [left] can be equal to [right].
+  bool _canBeEqualTo(DartType left, DartType right) {
+    if (left is InterfaceType && right is InterfaceType) {
+      if (left.element != right.element) {
+        return false;
+      }
+    }
+    return true;
   }
 
   List<DartType> _defaultTypeArguments(

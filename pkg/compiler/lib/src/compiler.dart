@@ -7,6 +7,7 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
+import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
@@ -42,6 +43,7 @@ import 'inferrer_experimental/types.dart' as experimentalInferrer
 import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
     show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
+import 'io/source_information.dart';
 import 'ir/annotations.dart';
 import 'ir/modular.dart' hide reportLocatedMessage;
 import 'js_backend/codegen_inputs.dart' show CodegenInputs;
@@ -326,6 +328,7 @@ class Compiler {
   // suitably maintained static reference to the current compiler.
   void clearState() {
     Selector.canonicalizedValues.clear();
+    StaticUse.clearCache();
 
     // The selector objects held in static fields must remain canonical.
     for (Selector selector in Selectors.ALL) {
@@ -438,6 +441,9 @@ class Compiler {
     } else {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
+      if (retainDataForTesting) {
+        componentForTesting = component;
+      }
       return load_kernel.Output(component, null, null, null, null);
     }
   }
@@ -529,7 +535,8 @@ class Compiler {
         mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
-  int runCodegenEnqueuer(CodegenResults codegenResults) {
+  int runCodegenEnqueuer(
+      CodegenResults codegenResults, SourceLookup sourceLookup) {
     GlobalTypeInferenceResults globalInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
@@ -539,7 +546,8 @@ class Compiler {
         closedWorld,
         globalInferenceResults,
         codegenInputs,
-        codegenResults)
+        codegenResults,
+        sourceLookup)
       ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;
@@ -624,7 +632,8 @@ class Compiler {
       closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
-            closedWorld!.elementMap.programEnv.mainComponent);
+            closedWorld!.elementMap.programEnv.mainComponent,
+            includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld);
       }
     } else {
@@ -696,8 +705,8 @@ class Compiler {
   }
 
   Future<CodegenResults> produceCodegenResults(
-      DataAndIndices<GlobalTypeInferenceResults>
-          globalTypeInferenceResults) async {
+      DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults,
+      SourceLookup sourceLookup) async {
     final globalTypeInferenceData = globalTypeInferenceResults.data!;
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceData);
     CodegenResults codegenResults;
@@ -714,7 +723,8 @@ class Compiler {
           globalTypeInferenceData,
           codegenInputs,
           globalTypeInferenceResults.indices!,
-          useDeferredSourceReads);
+          useDeferredSourceReads,
+          sourceLookup);
     }
     return codegenResults;
   }
@@ -755,12 +765,13 @@ class Compiler {
     if (shouldStopAfterGlobalTypeInference) return;
 
     // Run codegen.
+    final sourceLookup = SourceLookup(output.component);
     CodegenResults codegenResults =
-        await produceCodegenResults(globalTypeInferenceResults);
+        await produceCodegenResults(globalTypeInferenceResults, sourceLookup);
     if (shouldStopAfterCodegen) return;
 
     // Link.
-    int programSize = runCodegenEnqueuer(codegenResults);
+    int programSize = runCodegenEnqueuer(codegenResults, sourceLookup);
 
     // Dump Info.
     if (options.dumpInfo) {

@@ -96,13 +96,13 @@ class BlockLabel : public ValueObject {
 class RegExpMacroAssembler : public ZoneAllocated {
  public:
   // The implementation must be able to handle at least:
-  static const intptr_t kMaxRegister = (1 << 16) - 1;
-  static const intptr_t kMaxCPOffset = (1 << 15) - 1;
-  static const intptr_t kMinCPOffset = -(1 << 15);
+  static constexpr intptr_t kMaxRegister = (1 << 16) - 1;
+  static constexpr intptr_t kMaxCPOffset = (1 << 15) - 1;
+  static constexpr intptr_t kMinCPOffset = -(1 << 15);
 
-  static const intptr_t kTableSizeBits = 7;
-  static const intptr_t kTableSize = 1 << kTableSizeBits;
-  static const intptr_t kTableMask = kTableSize - 1;
+  static constexpr intptr_t kTableSizeBits = 7;
+  static constexpr intptr_t kTableSize = 1 << kTableSizeBits;
+  static constexpr intptr_t kTableMask = kTableSize - 1;
 
   enum {
     kParamRegExpIndex = 0,
@@ -149,7 +149,7 @@ class RegExpMacroAssembler : public ZoneAllocated {
                                                BlockLabel* on_no_match) = 0;
   // Check the current character for a match with a literal character.  If we
   // fail to match then goto the on_failure label.  End of input always
-  // matches.  If the label is NULL then we should pop a backtrack address off
+  // matches.  If the label is null then we should pop a backtrack address off
   // the stack and go to that.
   virtual void CheckNotCharacter(unsigned c, BlockLabel* on_not_equal) = 0;
   virtual void CheckNotCharacterAfterAnd(unsigned c,
@@ -191,12 +191,12 @@ class RegExpMacroAssembler : public ZoneAllocated {
   }
   virtual void Fail() = 0;
   // Check whether a register is >= a given constant and go to a label if it
-  // is.  Backtracks instead if the label is NULL.
+  // is.  Backtracks instead if the label is nullptr.
   virtual void IfRegisterGE(intptr_t reg,
                             intptr_t comparand,
                             BlockLabel* if_ge) = 0;
   // Check whether a register is < a given constant and go to a label if it is.
-  // Backtracks instead if the label is NULL.
+  // Backtracks instead if the label is nullptr.
   virtual void IfRegisterLT(intptr_t reg,
                             intptr_t comparand,
                             BlockLabel* if_lt) = 0;

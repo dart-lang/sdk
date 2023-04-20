@@ -141,9 +141,7 @@ void main() {
     });
 
     test('pub get dry run', () async {
-      final p = project(logAnalytics: true, pubspec: {
-        'name': 'foo',
-        'environment': {'sdk': '>=2.12.0 <3.0.0'},
+      final p = project(logAnalytics: true, pubspecExtras: {
         'dependencies': {'lints': '2.0.1'}
       });
       final result = await p.run(['pub', 'get', '--dry-run']);
@@ -176,9 +174,7 @@ void main() {
     });
 
     test('pub get', () async {
-      final p = project(logAnalytics: true, pubspec: {
-        'name': 'foo',
-        'environment': {'sdk': '>=2.12.0 <3.0.0'},
+      final p = project(logAnalytics: true, pubspecExtras: {
         'dependencies': {'lints': '2.0.1'}
       });
       final result = await p.run(['pub', 'get']);

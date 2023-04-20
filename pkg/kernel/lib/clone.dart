@@ -1010,7 +1010,10 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         isDefault: node.isDefault,
         hasLabel: node.hasLabel,
         jointVariables:
-            node.jointVariables.map((e) => getVariableClone(e)!).toList());
+            node.jointVariables.map((e) => getVariableClone(e)!).toList(),
+        jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
+            ? null
+            : new List<int>.of(node.jointVariableFirstUseOffsets!));
   }
 
   @override

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +28,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -61,7 +62,7 @@ final y = [ if (x case var a) a ];
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@getter::x
     staticType: int
@@ -111,7 +112,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -190,7 +191,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -236,6 +237,37 @@ IfElement
 ''');
   }
 
+  test_expression_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    [if (super) 0 else 1];
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
+    ]);
+
+    final node = findNode.singleIfElement;
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightParenthesis: )
+  thenElement: IntegerLiteral
+    literal: 0
+    staticType: int
+  elseKeyword: else
+  elseElement: IntegerLiteral
+    literal: 1
+    staticType: int
+''');
+  }
+
   test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
 void f(Object x) {
@@ -252,7 +284,7 @@ class A {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -294,7 +326,7 @@ void f(bool Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -324,7 +356,7 @@ void f(int Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -362,7 +394,7 @@ void f(Object x, bool Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object
@@ -406,7 +438,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object

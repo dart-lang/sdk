@@ -17,16 +17,16 @@ namespace dart {
 namespace bin {
 
 Namespace* Namespace::Create(intptr_t namespc) {
-  return new Namespace(NULL);
+  return new Namespace(nullptr);
 }
 
 Namespace* Namespace::Create(const char* path) {
   UNIMPLEMENTED();
-  return NULL;
+  return nullptr;
 }
 
 Namespace::~Namespace() {
-  ASSERT(namespc_ == NULL);
+  ASSERT(namespc_ == nullptr);
 }
 
 intptr_t Namespace::Default() {
@@ -35,8 +35,8 @@ intptr_t Namespace::Default() {
 
 const char* Namespace::GetCurrent(Namespace* namespc) {
   char buffer[PATH_MAX];
-  if (getcwd(buffer, PATH_MAX) == NULL) {
-    return NULL;
+  if (getcwd(buffer, PATH_MAX) == nullptr) {
+    return nullptr;
   }
   return DartUtils::ScopedCopyCString(buffer);
 }

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
-wasm/*: Skip # dart:wasm is currently behind a Dart SDK build flag.
+wasm/*: Skip # dart:_wasm is currently behind a Dart SDK build flag.
 
 [ $arch == simarm ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
@@ -68,6 +68,9 @@ js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByD
 js/static_interop_test/external_static_member_lowerings_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 
+[ $simulator ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
 [ $compiler != dart2js && $compiler != ddc ]
 web/*: SkipByDesign
 
@@ -83,9 +86,6 @@ html/transition_event_test: Skip # Times out. Issue 22167
 
 [ $runtime != dart_precompiled && ($compiler != dartk || $runtime != vm) ]
 isolate/vm_rehash_test: SkipByDesign
-
-[ $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
-convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
 [ $arch != x64 || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
@@ -105,7 +105,7 @@ async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled || $runtime == vm && $simulator ]
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri

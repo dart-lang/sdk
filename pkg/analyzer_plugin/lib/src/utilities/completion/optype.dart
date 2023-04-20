@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -15,6 +17,27 @@ import 'package:analyzer_plugin/src/utilities/extensions/token.dart';
 import 'package:collection/collection.dart';
 
 typedef SuggestionsFilter = int? Function(DartType dartType, int relevance);
+
+/// We are in a [PatternField] without the getter name specified, e.g.
+/// `if (x case A(: ^))`, we want to start a [PatternVariableDeclaration],
+/// and to do this we want `final` or `var`.
+class NamedPatternFieldWantsFinalOrVar {}
+
+/// We are in a [PatternField], inside a [PatternVariableDeclaration]
+/// `if (x case A(: var ^))`, or in the name of it `if (x case A(^: 0))`.
+/// So, we want a name of a getter from [matchedType].
+class NamedPatternFieldWantsName {
+  /// The type from which getters should be suggested.
+  final DartType matchedType;
+
+  /// The already specified fields, to filter out.
+  final List<PatternField> existingFields;
+
+  NamedPatternFieldWantsName({
+    required this.matchedType,
+    required this.existingFields,
+  });
+}
 
 /// An [AstVisitor] for determining whether top level suggestions or invocation
 /// suggestions should be made based upon the type of node in which the
@@ -50,6 +73,8 @@ class OpType {
 
   /// Indicates whether variable names should be suggested.
   bool includeVarNameSuggestions = false;
+
+  Object? patternLocation;
 
   /// Indicates whether the completion location is in a field declaration.
   bool inFieldDeclaration = false;
@@ -367,6 +392,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    optype.completionLocation = 'CaseClause_pattern';
+    optype.includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.mustBeConst = true;
+  }
+
+  @override
   void visitCastPattern(CastPattern node) {
     if (identical(entity, node.type)) {
       optype.completionLocation = 'CastPattern_type';
@@ -514,6 +547,22 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         node.type == null) {
       // Adding a type before the identifier.
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var identifier = node.name;
+    if (identifier == entity &&
+        offset < identifier.offset &&
+        node.type == null &&
+        node.keyword?.keyword != Keyword.VAR) {
+      // Adding a type before the identifier.
+      optype.includeTypeNameSuggestions = true;
+    }
+    var parent = node.parent;
+    if (parent is PatternFieldImpl) {
+      _extractPatternFieldInfo(parent);
     }
   }
 
@@ -878,7 +927,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    if (identical(entity, node.condition)) {
+    if (identical(entity, node.expression)) {
       optype.completionLocation = 'IfElement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
@@ -900,7 +949,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: if (var v i^)
       // Parsed: if (v) i^;
-    } else if (identical(entity, node.condition)) {
+    } else if (identical(entity, node.expression)) {
       optype.completionLocation = 'IfStatement_condition';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
@@ -1115,6 +1164,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitObjectPattern(ObjectPattern node) {
+    if (node.leftParenthesis.end <= offset &&
+        offset <= node.rightParenthesis.offset) {
+      optype.patternLocation = NamedPatternFieldWantsName(
+        matchedType: node.type.typeOrThrow,
+        existingFields: node.fields,
+      );
+    }
     optype.completionLocation = 'ObjectPattern_fieldName';
   }
 
@@ -1149,10 +1205,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitPatternField(PatternField node) {
-    optype.completionLocation = 'PatternField_pattern';
-    optype.includeTypeNameSuggestions = true;
-    optype.includeReturnValueSuggestions = true;
+  void visitPatternField(covariant PatternFieldImpl node) {
+    _extractPatternFieldInfo(node);
   }
 
   @override
@@ -1244,6 +1298,27 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    if (node.leftParenthesis.end <= offset &&
+        offset <= node.rightParenthesis.offset) {
+      final targetField = node.fields.skipWhile((field) {
+        return field.end < offset;
+      }).firstOrNull;
+      if (targetField != null) {
+        final nameNode = targetField.name;
+        if (nameNode != null && offset <= nameNode.colon.offset) {
+          optype.patternLocation = NamedPatternFieldWantsName(
+            matchedType: node.matchedValueTypeOrThrow,
+            existingFields: node.fields,
+          );
+        }
+      }
+    }
+
+    optype.completionLocation = 'PatternField_pattern';
   }
 
   @override
@@ -1435,6 +1510,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'SwitchExpression_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else {
+      optype.completionLocation = 'SwitchExpression_body';
+      optype.includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.mustBeConst = true;
     }
   }
 
@@ -1645,9 +1725,50 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return 'operator';
     } else if (node is IndexExpression) {
       return 'index';
+    } else if (node is RecordLiteral) {
+      return 'recordLiteral';
     }
     throw ArgumentError(
         'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}');
+  }
+
+  void _extractPatternFieldInfo(PatternFieldImpl node) {
+    optype.completionLocation = 'PatternField_pattern';
+
+    final parent = node.parent;
+    DartType parentMatchedValueType;
+    List<PatternField> existingFields;
+    if (parent is ObjectPattern) {
+      parentMatchedValueType = parent.type.typeOrThrow;
+      existingFields = parent.fields;
+    } else if (parent is RecordPattern) {
+      parentMatchedValueType = parent.matchedValueTypeOrThrow;
+      existingFields = parent.fields;
+    } else {
+      return;
+    }
+
+    final nameNode = node.name;
+    if (nameNode != null && nameNode.name == null) {
+      final pattern = node.pattern;
+      final patternContext = pattern.patternContext;
+      if (pattern is DeclaredVariablePatternImpl ||
+          patternContext is PatternVariableDeclaration) {
+        optype.patternLocation = NamedPatternFieldWantsName(
+          matchedType: parentMatchedValueType,
+          existingFields: existingFields,
+        );
+        return;
+      } else if (patternContext is PatternAssignment) {
+        // fallthrough
+      } else {
+        optype.patternLocation = NamedPatternFieldWantsFinalOrVar();
+        return;
+      }
+    }
+
+    optype.includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
   }
 
   bool _isEntityPrevTokenSynthetic() {

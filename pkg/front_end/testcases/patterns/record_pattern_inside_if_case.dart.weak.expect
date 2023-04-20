@@ -24,7 +24,7 @@ static method test(dynamic x) → dynamic {
     }
   }
   {
-    core::double y;
+    hoisted core::double y;
     final synthesized dynamic #4#0 = x;
     late final synthesized core::Object? #4#3 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$2{core::Object?};
     late final synthesized core::Object? #4#4 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.foo{core::Object?};

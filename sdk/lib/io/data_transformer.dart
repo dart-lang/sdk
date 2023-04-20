@@ -7,7 +7,7 @@ part of dart.io;
 /// Exposes ZLib options for input parameters.
 ///
 /// See http://www.zlib.net/manual.html for more documentation.
-abstract class ZLibOption {
+abstract final class ZLibOption {
   /// Minimal value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
   static const int minWindowBits = 8;
@@ -60,7 +60,7 @@ const ZLibCodec zlib = const ZLibCodec._default();
 
 /// The [ZLibCodec] encodes raw bytes to ZLib compressed bytes and decodes ZLib
 /// compressed bytes to raw bytes.
-class ZLibCodec extends Codec<List<int>, List<int>> {
+final class ZLibCodec extends Codec<List<int>, List<int>> {
   /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
 
@@ -152,7 +152,7 @@ const GZipCodec gzip = const GZipCodec._default();
 ///
 /// The difference between [ZLibCodec] and [GZipCodec] is that the [GZipCodec]
 /// wraps the `ZLib` compressed bytes in `GZip` frames.
-class GZipCodec extends Codec<List<int>, List<int>> {
+final class GZipCodec extends Codec<List<int>, List<int>> {
   /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
 
@@ -240,7 +240,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
 
 /// The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
 /// data.
-class ZLibEncoder extends Converter<List<int>, List<int>> {
+final class ZLibEncoder extends Converter<List<int>, List<int>> {
   /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
 
@@ -328,7 +328,7 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 }
 
 /// The [ZLibDecoder] is used by [ZLibCodec] and [GZipCodec] to decompress data.
-class ZLibDecoder extends Converter<List<int>, List<int>> {
+final class ZLibDecoder extends Converter<List<int>, List<int>> {
   /// Base two logarithm of the window size (the size of the history buffer). It
   /// should be in the range `8..15`. Larger values result in better compression
   /// at the expense of memory usage. The default value is `15`.
@@ -379,7 +379,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
 }
 
 /// The [RawZLibFilter] class provides a low-level interface to zlib.
-abstract class RawZLibFilter {
+abstract interface class RawZLibFilter {
   /// Returns a [RawZLibFilter] whose [process] and [processed] methods
   /// compress data.
   factory RawZLibFilter.deflateFilter({

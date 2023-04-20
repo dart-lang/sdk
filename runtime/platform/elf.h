@@ -157,12 +157,12 @@ struct Note {
 static constexpr intptr_t ELFCLASS32 = 1;
 static constexpr intptr_t ELFCLASS64 = 2;
 
-static const intptr_t EI_DATA = 5;
-static const intptr_t ELFDATA2LSB = 1;
+static constexpr intptr_t EI_DATA = 5;
+static constexpr intptr_t ELFDATA2LSB = 1;
 
-static const intptr_t ELFOSABI_SYSV = 0;
+static constexpr intptr_t ELFOSABI_SYSV = 0;
 
-static const intptr_t ET_DYN = 3;
+static constexpr intptr_t ET_DYN = 3;
 
 static constexpr intptr_t EF_ARM_ABI_FLOAT_HARD = 0x00000400;
 static constexpr intptr_t EF_ARM_ABI_FLOAT_SOFT = 0x00000200;
@@ -174,27 +174,27 @@ static constexpr intptr_t EM_X86_64 = 62;
 static constexpr intptr_t EM_AARCH64 = 183;
 static constexpr intptr_t EM_RISCV = 243;
 
-static const intptr_t EV_CURRENT = 1;
+static constexpr intptr_t EV_CURRENT = 1;
 
-static const intptr_t PF_X = 1;
-static const intptr_t PF_W = 2;
-static const intptr_t PF_R = 4;
+static constexpr intptr_t PF_X = 1;
+static constexpr intptr_t PF_W = 2;
+static constexpr intptr_t PF_R = 4;
 
-static const intptr_t SHF_WRITE = 0x1;
-static const intptr_t SHF_ALLOC = 0x2;
-static const intptr_t SHF_EXECINSTR = 0x4;
+static constexpr intptr_t SHF_WRITE = 0x1;
+static constexpr intptr_t SHF_ALLOC = 0x2;
+static constexpr intptr_t SHF_EXECINSTR = 0x4;
 
-static const intptr_t SHN_UNDEF = 0;
+static constexpr intptr_t SHN_UNDEF = 0;
 
-static const intptr_t STN_UNDEF = 0;
+static constexpr intptr_t STN_UNDEF = 0;
 
-static const intptr_t STB_LOCAL = 0;
-static const intptr_t STB_GLOBAL = 1;
+static constexpr intptr_t STB_LOCAL = 0;
+static constexpr intptr_t STB_GLOBAL = 1;
 
-static const intptr_t STT_NOTYPE = 0;
-static const intptr_t STT_OBJECT = 1;  // I.e., data.
-static const intptr_t STT_FUNC = 2;
-static const intptr_t STT_SECTION = 3;
+static constexpr intptr_t STT_NOTYPE = 0;
+static constexpr intptr_t STT_OBJECT = 1;  // I.e., data.
+static constexpr intptr_t STT_FUNC = 2;
+static constexpr intptr_t STT_SECTION = 3;
 
 static constexpr const char ELF_NOTE_GNU[] = "GNU";
 

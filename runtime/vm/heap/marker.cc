@@ -179,20 +179,22 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return *ptr;
   }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; current++) {
       MarkObject(LoadPointerIgnoreRace(current));
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* current = first; current <= last; current++) {
       MarkObject(
           LoadCompressedPointerIgnoreRace(current).Decompress(heap_base));
     }
   }
+#endif
 
   intptr_t ProcessWeakProperty(WeakPropertyPtr raw_weak) {
     // The fate of the weak property is determined by its key.
@@ -473,7 +475,7 @@ class MarkingWeakVisitor : public HandleVisitor {
  public:
   explicit MarkingWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     ObjectPtr raw_obj = handle->ptr();
@@ -506,7 +508,7 @@ enum RootSlices {
 };
 
 void GCMarker::ResetSlices() {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->OwnsGCSafepoint());
 
   root_slices_started_ = 0;
   root_slices_finished_ = 0;
@@ -593,7 +595,7 @@ void GCMarker::ProcessWeakHandles(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
   MarkingWeakVisitor visitor(thread);
   ApiState* state = isolate_group_->api_state();
-  ASSERT(state != NULL);
+  ASSERT(state != nullptr);
   isolate_group_->VisitWeakPersistentHandles(&visitor);
 }
 
@@ -630,7 +632,7 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
   StoreBuffer* store_buffer = isolate_group_->store_buffer();
   StoreBufferBlock* reading = store_buffer->TakeBlocks();
   StoreBufferBlock* writing = store_buffer->PopNonFullBlock();
-  while (reading != NULL) {
+  while (reading != nullptr) {
     StoreBufferBlock* next = reading->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(reading, sizeof(*reading));
@@ -659,7 +661,7 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
   explicit ObjectIdRingClearPointerVisitor(IsolateGroup* isolate_group)
       : ObjectPointerVisitor(isolate_group) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; current++) {
       ObjectPtr raw_obj = *current;
       ASSERT(raw_obj->IsHeapObject());
@@ -670,11 +672,13 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     UNREACHABLE();  // ObjectIdRing is not compressed.
   }
+#endif
 };
 
 void GCMarker::ProcessObjectIdTable(Thread* thread) {
@@ -886,14 +890,14 @@ GCMarker::GCMarker(IsolateGroup* isolate_group, Heap* heap)
       marked_micros_(0) {
   visitors_ = new SyncMarkingVisitor*[FLAG_marker_tasks];
   for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
-    visitors_[i] = NULL;
+    visitors_[i] = nullptr;
   }
 }
 
 GCMarker::~GCMarker() {
   // Cleanup in case isolate shutdown happens after starting the concurrent
   // marker and before finalizing.
-  if (isolate_group_->marking_stack() != NULL) {
+  if (isolate_group_->marking_stack() != nullptr) {
     isolate_group_->DisableIncrementalBarrier();
     for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
       visitors_[i]->AbandonWork();
@@ -923,7 +927,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
 
   ResetSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
-    ASSERT(visitors_[i] == NULL);
+    ASSERT(visitors_[i] == nullptr);
     SyncMarkingVisitor* visitor = new SyncMarkingVisitor(
         isolate_group_, page_space, &marking_stack_, &deferred_marking_stack_);
     visitors_[i] = visitor;
@@ -1022,13 +1026,13 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
   VerifyAfterMarkingVisitor()
       : ObjectVisitor(), ObjectPointerVisitor(IsolateGroup::Current()) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsNewObject() || obj->untag()->IsMarked()) {
       obj->untag()->VisitPointers(this);
     }
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = *ptr;
       if (obj->IsHeapObject() && obj->IsOldObject() &&
@@ -1039,9 +1043,10 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = ptr->Decompress(heap_base);
       if (obj->IsHeapObject() && obj->IsOldObject() &&
@@ -1051,10 +1056,11 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
       }
     }
   }
+#endif
 };
 
 void GCMarker::MarkObjects(PageSpace* page_space) {
-  if (isolate_group_->marking_stack() != NULL) {
+  if (isolate_group_->marking_stack() != nullptr) {
     isolate_group_->DisableIncrementalBarrier();
   }
 

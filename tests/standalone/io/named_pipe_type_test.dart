@@ -47,6 +47,7 @@ main() async {
         ..addAll(Platform.executableArguments)
         ..add('--sound-null-safety')
         ..add('--verbosity=warning')
+        ..add('--disable-dart-dev')
         ..add(file.path));
   bool stdinWriteFailed = false;
   process.stdout.transform(utf8.decoder).listen(output.write);

@@ -19,7 +19,7 @@ class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 final a = switch (0) {};
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 10, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6),
     ]);
 
     final node = findNode.singleSwitchExpression;
@@ -87,7 +87,9 @@ SwitchExpression
 
   test_location_topLevel() async {
     await assertNoErrorsInCode(r'''
-final a = switch (null) {
+num a = 0;
+
+final b = switch (a) {
   int(:var isEven) when isEven => 1,
   _ => 0,
 };
@@ -98,9 +100,10 @@ final a = switch (null) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: NullLiteral
-    literal: null
-    staticType: Null
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@getter::a
+    staticType: num
   rightParenthesis: )
   leftBracket: {
   cases
@@ -121,17 +124,17 @@ SwitchExpression
               pattern: DeclaredVariablePattern
                 keyword: var
                 name: isEven
-                declaredElement: hasImplicitType isEven@37
+                declaredElement: hasImplicitType isEven@46
                   type: bool
                 matchedValueType: bool
               element: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
-          matchedValueType: Null
+          matchedValueType: num
         whenClause: WhenClause
           whenKeyword: when
           expression: SimpleIdentifier
             token: isEven
-            staticElement: isEven@37
+            staticElement: isEven@46
             staticType: bool
       arrow: =>
       expression: IntegerLiteral
@@ -141,7 +144,7 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: WildcardPattern
           name: _
-          matchedValueType: Null
+          matchedValueType: num
       arrow: =>
       expression: IntegerLiteral
         literal: 0

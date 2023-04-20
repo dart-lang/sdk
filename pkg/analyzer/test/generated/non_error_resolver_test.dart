@@ -295,7 +295,7 @@ main() {
   new N2();
 }
 ''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 44, 1),
+      error(WarningCode.UNUSED_SHOWN_NAME, 44, 1),
     ]);
   }
 
@@ -493,7 +493,7 @@ f() {
   -x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
     ]);
   }
 
@@ -567,7 +567,7 @@ main() {
   F f = (int i) async => i;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
   }
 
@@ -694,7 +694,7 @@ f(list) async {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
   }
 
@@ -705,7 +705,7 @@ f(list) async* {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
   }
 
@@ -788,7 +788,7 @@ f() {
   dynamic x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
     ]);
   }
 
@@ -1054,7 +1054,7 @@ main() {
   const int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
     ]);
   }
 
@@ -1171,7 +1171,7 @@ main() {
   var v = dynamic;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 
@@ -1665,8 +1665,8 @@ library test;
 import 'lib.dart';
 import 'lib.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 21, 10),
-      error(HintCode.UNUSED_IMPORT, 40, 10),
+      error(WarningCode.UNUSED_IMPORT, 21, 10),
+      error(WarningCode.UNUSED_IMPORT, 40, 10),
       error(WarningCode.DUPLICATE_IMPORT, 40, 10),
     ]);
   }
@@ -1680,8 +1680,8 @@ library test;
 import 'lib1.dart';
 import 'lib2.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 21, 11),
-      error(HintCode.UNUSED_IMPORT, 41, 11),
+      error(WarningCode.UNUSED_IMPORT, 21, 11),
+      error(WarningCode.UNUSED_IMPORT, 41, 11),
     ]);
   }
 
@@ -1837,7 +1837,7 @@ class B extends A {
   _m() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 41, 2),
+      error(WarningCode.UNUSED_ELEMENT, 41, 2),
     ]);
   }
 
@@ -1854,7 +1854,7 @@ class B extends A {
   _m() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 41, 2),
+      error(WarningCode.UNUSED_ELEMENT, 41, 2),
     ]);
   }
 
@@ -1992,9 +1992,9 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 5),
     ]);
   }
 
@@ -2188,7 +2188,7 @@ void main() {
   String p = z;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
     var z = result.unit.declaredElement!.topLevelVariables
@@ -2245,7 +2245,7 @@ h(bool b) {
   Map<num, String> m = (b ? f : g)('x');
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 104, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1),
     ]);
     var parameter = findNode.stringLiteral("'x'").staticParameterElement;
     expect(parameter!.library, isNull);
@@ -2466,7 +2466,7 @@ f2() {
   !dynamic;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 7),
     ]);
   }
 
@@ -2598,7 +2598,7 @@ f() {
   var m = {'a' : 0, 'b' : 1};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -2877,7 +2877,7 @@ f() {
 }
 h(x) {}
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 8, 1),
+      error(WarningCode.UNUSED_ELEMENT, 8, 1),
     ]);
   }
 
@@ -2949,7 +2949,7 @@ f() {
   var x = new A.x();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
     ]);
   }
 
@@ -2962,7 +2962,7 @@ f(A a) {
   var x = a.x();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
   }
 
@@ -2975,7 +2975,7 @@ f(A a) {
   var x = a.x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
   }
 
@@ -3099,7 +3099,7 @@ main() {
   };
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 1),
+      error(WarningCode.UNUSED_ELEMENT, 11, 1),
     ]);
   }
 
@@ -3273,7 +3273,7 @@ void testNewSet(Set<C> setEls) {
       newSet: <T>() => customNewSet = new Set<T>());
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 12),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 12),
     ]);
   }
 
@@ -3379,7 +3379,7 @@ main(FuncAtoDyn f) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 115, 1),
     ]);
   }
 
@@ -3394,7 +3394,7 @@ main(FuncDynToVoid f) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
     ]);
   }
 

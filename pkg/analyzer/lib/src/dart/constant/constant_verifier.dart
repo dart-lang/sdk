@@ -403,6 +403,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         mapPatternKeyValues: mapPatternKeyValues,
         constantPatternValues: constantPatternValues,
         mustBeExhaustive: true,
+        isSwitchExpression: true,
       );
     });
   }
@@ -421,6 +422,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           constantPatternValues: constantPatternValues,
           mustBeExhaustive:
               _typeSystem.isAlwaysExhaustive(node.expression.typeOrThrow),
+          isSwitchExpression: false,
         );
       } else if (_currentLibrary.isNonNullableByDefault) {
         _validateSwitchStatement_nullSafety(node);
@@ -768,6 +770,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     required Map<Expression, DartObjectImpl> mapPatternKeyValues,
     required Map<ConstantPattern, DartObjectImpl> constantPatternValues,
     required bool mustBeExhaustive,
+    required bool isSwitchExpression,
   }) {
     final scrutineeType = scrutinee.typeOrThrow;
     final scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
@@ -778,6 +781,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     // Build spaces for cases.
     final patternConverter = PatternConverter(
+      featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
       mapPatternKeyValues: mapPatternKeyValues,
       constantPatternValues: constantPatternValues,
@@ -822,14 +826,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
         }
         _errorReporter.reportErrorForToken(
-          HintCode.UNREACHABLE_SWITCH_CASE,
+          WarningCode.UNREACHABLE_SWITCH_CASE,
           errorToken,
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
         _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+          isSwitchExpression
+              ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+              : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
           switchKeyword,
-          [scrutineeType, error.witness.toString()],
+          [scrutineeType, error.witness.asWitness, error.witness.asCorrection],
         );
       }
     }
@@ -998,7 +1004,7 @@ class _ConstLiteralVerifier {
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
-      var conditionValue = verifier._validate(element.condition, errorCode);
+      var conditionValue = verifier._validate(element.expression, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
       // The errors have already been reported.

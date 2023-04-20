@@ -36,13 +36,13 @@ class MessageHandlerTestPeer {
 class TestMessageHandler : public MessageHandler {
  public:
   TestMessageHandler()
-      : port_buffer_(NULL),
+      : port_buffer_(nullptr),
         port_buffer_size_(0),
         notify_count_(0),
         message_count_(0),
         start_called_(false),
         end_called_(false),
-        results_(NULL),
+        results_(nullptr),
         monitor_() {}
 
   ~TestMessageHandler() {
@@ -63,7 +63,7 @@ class TestMessageHandler : public MessageHandler {
     AddPortToBuffer(message->dest_port());
     message_count_++;
     MessageStatus status = kOK;
-    if (results_ != NULL) {
+    if (results_ != nullptr) {
       status = results_[0];
       results_++;
     }
@@ -95,7 +95,7 @@ class TestMessageHandler : public MessageHandler {
 
  private:
   void AddPortToBuffer(Dart_Port port) {
-    if (port_buffer_ == NULL) {
+    if (port_buffer_ == nullptr) {
       port_buffer_ = new Dart_Port[10];
       port_buffer_size_ = 10;
     } else if (message_count_ == port_buffer_size_) {

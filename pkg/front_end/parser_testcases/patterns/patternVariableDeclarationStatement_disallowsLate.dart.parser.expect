@@ -1,11 +1,9 @@
-NOTICE: Stream was rewritten by parser!
-
 f(x) {
-late var (*synthetic*;_;*synthetic*;) *synthetic*= x;
+late var (_) = x;
 }
 
 
 f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
-late[KeywordToken] var[KeywordToken] ([BeginToken][SyntheticStringToken];[SyntheticToken]_[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken] [SyntheticStringToken]=[SimpleToken] x[StringToken];[SimpleToken]
+late[KeywordToken] var[KeywordToken] ([BeginToken]_[StringToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

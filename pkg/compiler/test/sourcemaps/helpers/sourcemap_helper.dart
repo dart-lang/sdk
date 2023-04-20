@@ -99,11 +99,10 @@ class ProviderSourceFileManager implements SourceFileManager {
   ProviderSourceFileManager(this.sourceFileProvider, this.outputProvider);
 
   @override
-  SourceFile<List<int>>? getSourceFile(covariant Uri? uri) {
+  SourceFile? getSourceFile(covariant Uri? uri) {
     if (uri == null) return null;
-    return (sourceFileProvider.getUtf8SourceFile(uri) ??
-        sourceFileProvider.readUtf8FromFileSyncForTesting(uri) ??
-        outputProvider.getSourceFile(uri)) as SourceFile<List<int>>;
+    return (sourceFileProvider.readUtf8FromFileSyncForTesting(uri) ??
+        outputProvider.getSourceFile(uri)) as SourceFile?;
   }
 }
 

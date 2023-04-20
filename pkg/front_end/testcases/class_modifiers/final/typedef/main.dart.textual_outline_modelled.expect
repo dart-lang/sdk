@@ -6,18 +6,6 @@ enum EnumImplementsFinalClassTypedef2 implements ATypeDef2 { x }
 
 enum EnumImplementsFinalClassTypedefOutside implements AOutsideTypedef { x }
 
-enum EnumImplementsFinalMixinTypeDef implements MTypeDef { x }
-
-enum EnumImplementsFinalMixinTypeDef2 implements MTypeDef2 { x }
-
-enum EnumImplementsFinalMixinTypeDefOutside implements MOutsideTypedef { x }
-
-enum EnumMixInFinalMixinTypeDef with MTypeDef { x }
-
-enum EnumMixInFinalMixinTypeDef2 with MTypeDef2 { x }
-
-enum EnumMixInFinalMixinTypeDefOutside with MOutsideTypedef { x }
-
 final class ExtendsFinalClassTypedef extends ATypeDef {}
 
 final class ExtendsFinalClassTypedef2 extends ATypeDef2 {}
@@ -30,17 +18,4 @@ final class ImplementsFinalClassTypedef2 implements ATypeDef2 {}
 
 final class ImplementsFinalClassTypedefOutside implements AOutsideTypedef {}
 
-final class ImplementsFinalMixinTypeDef implements MTypeDef {}
-
-final class ImplementsFinalMixinTypeDef2 implements MTypeDef2 {}
-
-final class ImplementsFinalMixinTypeDefOutside implements MOutsideTypedef {}
-
-final class MixInFinalMixinTypeDef with MTypeDef {}
-
-final class MixInFinalMixinTypeDef2 with MTypeDef2 {}
-
-final class MixInFinalMixinTypeDefOutside with MOutsideTypedef {}
-
 typedef AOutsideTypedef = A;
-typedef MOutsideTypedef = M;

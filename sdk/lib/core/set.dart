@@ -33,7 +33,7 @@ part of dart.core;
 /// It is generally not allowed to modify the equality of elements (and thus not
 /// their hashcode) while they are in the set. Some specialized subtypes may be
 /// more permissive, in which case they should document this behavior.
-abstract class Set<E> extends EfficientLengthIterable<E> {
+abstract interface class Set<E> extends EfficientLengthIterable<E> {
   /// Creates an empty [Set].
   ///
   /// The created [Set] is a plain [LinkedHashSet].
@@ -42,6 +42,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// [Object.hashCode] implementation.
   ///
   /// The set is equivalent to one created by `LinkedHashSet<E>()`.
+  // TODO: @Deprecated("Use literal <E>{} instead")
   factory Set() = LinkedHashSet<E>;
 
   /// Creates an empty identity [Set].

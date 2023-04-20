@@ -482,7 +482,7 @@ class Operand : public ValueObject {
   // used as an operand in either instruction. The encoded operand is written
   // to op.
   static OperandType CanHold(int64_t imm, uint8_t sz, Operand* op) {
-    ASSERT(op != NULL);
+    ASSERT(op != nullptr);
     ASSERT((sz == kXRegSizeInBits) || (sz == kWRegSizeInBits));
     if (Utils::IsUint(12, imm)) {
       op->encoding_ = imm << kImm12Shift;
@@ -689,7 +689,7 @@ class Assembler : public AssemblerBase {
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kEntryPointToPcMarkerOffset = 0;
+  static constexpr intptr_t kEntryPointToPcMarkerOffset = 0;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }

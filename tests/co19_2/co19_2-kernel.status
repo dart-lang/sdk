@@ -32,7 +32,7 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow, Pass
 LibTest/core/List/List_class_A01_t02: Slow, Pass
 LibTest/core/List/List_class_A01_t03: Slow, Pass
 
-[ $runtime == dart_precompiled && ($arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled && $simulator ]
 LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Issue 43036
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036
 
@@ -40,5 +40,5 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
+[ $runtime == dart_precompiled || $runtime == vm && $simulator ]
 LibTest/isolate/Isolate/spawnUri*: Skip

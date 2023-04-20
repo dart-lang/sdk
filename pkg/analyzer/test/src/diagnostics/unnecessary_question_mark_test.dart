@@ -61,6 +61,7 @@ void f(Object a) {
   }
 }
 ''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 52, 5),
       error(WarningCode.UNNECESSARY_QUESTION_MARK, 56, 1),
     ]);
   }

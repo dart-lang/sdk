@@ -41,7 +41,7 @@ class A02 {}
 class B01 {}
 class G<T> {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -49,9 +49,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -68,7 +68,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -76,9 +76,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -95,7 +95,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -103,9 +103,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -122,7 +122,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -130,9 +130,9 @@ suggestions
     kind: class
   B01
     kind: class
-  void
-    kind: keyword
   dynamic
+    kind: keyword
+  void
     kind: keyword
 ''');
   }

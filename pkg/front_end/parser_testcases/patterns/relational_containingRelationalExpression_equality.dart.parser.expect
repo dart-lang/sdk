@@ -1,0 +1,17 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(x) {
+switch (x) {
+case == 1 :*synthetic*> 0;*synthetic*;:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ==[SimpleToken] 1[StringToken] :[SyntheticToken][SyntheticStringToken]>[SimpleToken] 0[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -58,7 +58,7 @@ part of dart.io;
 ///   }
 /// }
 /// ```
-class Platform {
+abstract final class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
   @pragma("vm:platform-const")
   static final _pathSeparator = _Platform.pathSeparator;

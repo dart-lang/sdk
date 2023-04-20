@@ -4,6 +4,8 @@
 
 /// Support for client code that needs to interact with the requests, responses
 /// and notifications that are part of the analysis server's wire protocol.
+library;
+
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol_generated.dart';

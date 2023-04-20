@@ -194,6 +194,9 @@ class CompilerOptions {
   /// Dumped data is printed in stdout.
   bool debugDump = false;
 
+  /// Whether to show file offsets when [debugDump] is `true`.
+  bool debugDumpShowOffsets = false;
+
   /// Whether to omit the platform when serializing the result from a `fasta
   /// compile` run.
   bool omitPlatform = false;
@@ -350,6 +353,7 @@ class CompilerOptions {
     }
     if (!ignoreDebugDump) {
       if (debugDump != other.debugDump) return false;
+      if (debugDumpShowOffsets != other.debugDumpShowOffsets) return false;
     }
     if (omitPlatform != other.omitPlatform) return false;
     if (setExitCodeOnProblem != other.setExitCodeOnProblem) return false;

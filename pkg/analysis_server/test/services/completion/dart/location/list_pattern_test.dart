@@ -40,28 +40,28 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -79,28 +79,28 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -118,28 +118,28 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');
@@ -157,28 +157,28 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
   c11
     kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  o1
+    kind: parameter
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  o1
-    kind: parameter
-  const
-    kind: keyword
-  final
-    kind: keyword
   var
     kind: keyword
 ''');

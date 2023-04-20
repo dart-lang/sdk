@@ -698,6 +698,18 @@ class ClientTypeIntrospector implements TypeIntrospector {
   }
 
   @override
+  Future<List<EnumValueDeclaration>> valuesOf(
+      IntrospectableEnum enumType) async {
+    InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
+        enumType, remoteInstance, MessageType.valuesOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
+  }
+
+  @override
   Future<List<FieldDeclaration>> fieldsOf(IntrospectableType type) async {
     InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
         type, remoteInstance, MessageType.fieldsOfRequest,
@@ -801,6 +813,7 @@ enum MessageType {
   constructorsOfRequest,
   declarationOfRequest,
   declarationList,
+  valuesOfRequest,
   fieldsOfRequest,
   methodsOfRequest,
   error,

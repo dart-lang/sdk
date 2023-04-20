@@ -4,8 +4,10 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Directory, File, Platform;
+import 'dart:io' show Directory, File, Platform, FileSystemException;
+import 'dart:math';
 
+import 'package:async/async.dart';
 import 'package:browser_launcher/browser_launcher.dart' as browser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/compiler/shared_command.dart'
@@ -455,9 +457,20 @@ class TestDriver {
 
   Future<void> finish() async {
     await chrome.close();
-    // Chrome takes a while to free its claim on chromeDir, so wait a bit.
-    await Future.delayed(Duration(milliseconds: 500));
-    chromeDir.deleteSync(recursive: true);
+    // Attempt to clean up the temporary directory.
+    // On windows sometimes the process has not released the directory yet so
+    // retry with an exponential backoff.
+    var deleteAttempts = 0;
+    while (await chromeDir.exists()) {
+      deleteAttempts++;
+      try {
+        await chromeDir.delete(recursive: true);
+      } on FileSystemException {
+        if (deleteAttempts > 3) rethrow;
+        var delayMs = pow(10, deleteAttempts).floor();
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+    }
   }
 
   Future<void> cleanupTest() async {
@@ -543,23 +556,23 @@ class TestDriver {
     var location = await _jsLocationFromDartLine(script, dartLine);
 
     var bp = await debugger.setBreakpoint(location);
+    final pauseQueue = StreamQueue(pauseController.stream);
     try {
       // Continue to the next breakpoint, ignoring the first pause event
       // since it corresponds to the preemptive URI breakpoint made prior
       // to page navigation.
       await debugger.resume();
-      final event = await pauseController.stream
-          .skip(1)
-          .timeout(Duration(seconds: 5),
-              onTimeout: (event) => throw Exception(
-                  'Unable to find JS preemptive pause event in $output.'))
-          .first
-          .timeout(Duration(seconds: 5),
-              onTimeout: (() => throw Exception(
-                  'Unable to find JS pause event corresponding to line '
-                  '($dartLine -> $location) in $output.')));
+      await pauseQueue.next.timeout(Duration(seconds: 5),
+          onTimeout: () => throw Exception(
+              'Unable to find JS preemptive pause event in $output.'));
+      final event = await pauseQueue.next.timeout(Duration(seconds: 5),
+          onTimeout: () => throw Exception(
+              'Unable to find JS pause event corresponding to line '
+              '($dartLine -> $location) in $output.'));
+
       return await onPause(event);
     } finally {
+      await pauseQueue.cancel();
       await pauseSub.cancel();
       await pauseController.close();
       await consoleSub.cancel();

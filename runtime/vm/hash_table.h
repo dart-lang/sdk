@@ -15,7 +15,7 @@ namespace dart {
 struct ArrayStorageTraits {
   using ArrayHandle = Array;
   using ArrayPtr = dart::ArrayPtr;
-  static const intptr_t ArrayCid = kArrayCid;
+  static constexpr intptr_t ArrayCid = kArrayCid;
 
   static ArrayHandle& PtrToHandle(ArrayPtr ptr) { return Array::Handle(ptr); }
 
@@ -47,7 +47,7 @@ struct ArrayStorageTraits {
 struct WeakArrayStorageTraits {
   using ArrayHandle = WeakArray;
   using ArrayPtr = dart::WeakArrayPtr;
-  static const intptr_t ArrayCid = kWeakArrayCid;
+  static constexpr intptr_t ArrayCid = kWeakArrayCid;
 
   static ArrayHandle& PtrToHandle(ArrayPtr ptr) {
     return WeakArray::Handle(ptr);
@@ -181,30 +181,30 @@ class HashTable : public HashTableBase {
       : key_handle_(key),
         smi_handle_(index),
         data_(data),
-        released_data_(NULL) {}
+        released_data_(nullptr) {}
   // Uses 'zone' for handle allocation. 'Release' must be called at the end
   // to obtain the final table after potential growth/shrinkage.
   HashTable(Zone* zone, typename StorageTraits::ArrayPtr data)
       : key_handle_(&Object::Handle(zone)),
         smi_handle_(&Smi::Handle(zone)),
         data_(&StorageTraits::PtrToHandle(data)),
-        released_data_(NULL) {}
+        released_data_(nullptr) {}
 
   // Returns the final table. The handle is cleared when this HashTable is
   // destroyed.
   typename StorageTraits::ArrayHandle& Release() {
-    ASSERT(data_ != NULL);
-    ASSERT(released_data_ == NULL);
+    ASSERT(data_ != nullptr);
+    ASSERT(released_data_ == nullptr);
     // Ensure that no methods are called after 'Release'.
     released_data_ = data_;
-    data_ = NULL;
+    data_ = nullptr;
     return *released_data_;
   }
 
   ~HashTable() {
     // In DEBUG mode, calling 'Release' is mandatory.
-    ASSERT(data_ == NULL);
-    if (released_data_ != NULL) {
+    ASSERT(data_ == nullptr);
+    if (released_data_ != nullptr) {
       StorageTraits::ClearHandle(*released_data_);
     }
   }
@@ -285,7 +285,7 @@ class HashTable : public HashTableBase {
   template <typename Key>
   bool FindKeyOrDeletedOrUnused(const Key& key, intptr_t* entry) const {
     const intptr_t num_entries = NumEntries();
-    ASSERT(entry != NULL);
+    ASSERT(entry != nullptr);
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
     ASSERT(Utils::IsPowerOfTwo(num_entries));
@@ -458,21 +458,21 @@ class HashTable : public HashTableBase {
   }
 
  protected:
-  static const intptr_t kOccupiedEntriesIndex = 0;
-  static const intptr_t kDeletedEntriesIndex = 1;
+  static constexpr intptr_t kOccupiedEntriesIndex = 0;
+  static constexpr intptr_t kDeletedEntriesIndex = 1;
 #if defined(PRODUCT)
-  static const intptr_t kHeaderSize = kDeletedEntriesIndex + 1;
+  static constexpr intptr_t kHeaderSize = kDeletedEntriesIndex + 1;
 #else
-  static const intptr_t kNumGrowsIndex = 2;
-  static const intptr_t kNumLT5LookupsIndex = 3;
-  static const intptr_t kNumLT25LookupsIndex = 4;
-  static const intptr_t kNumGT25LookupsIndex = 5;
-  static const intptr_t kNumProbesIndex = 6;
-  static const intptr_t kHeaderSize = kNumProbesIndex + 1;
+  static constexpr intptr_t kNumGrowsIndex = 2;
+  static constexpr intptr_t kNumLT5LookupsIndex = 3;
+  static constexpr intptr_t kNumLT25LookupsIndex = 4;
+  static constexpr intptr_t kNumGT25LookupsIndex = 5;
+  static constexpr intptr_t kNumProbesIndex = 6;
+  static constexpr intptr_t kHeaderSize = kNumProbesIndex + 1;
 #endif
-  static const intptr_t kMetaDataIndex = kHeaderSize;
-  static const intptr_t kFirstKeyIndex = kHeaderSize + kMetaDataSize;
-  static const intptr_t kEntrySize = 1 + kPayloadSize;
+  static constexpr intptr_t kMetaDataIndex = kHeaderSize;
+  static constexpr intptr_t kFirstKeyIndex = kHeaderSize + kMetaDataSize;
+  static constexpr intptr_t kEntrySize = 1 + kPayloadSize;
 
   intptr_t KeyIndex(intptr_t entry) const {
     ASSERT(0 <= entry && entry < NumEntries());
@@ -513,7 +513,7 @@ class HashTable : public HashTableBase {
 
   Object* key_handle_;
   Smi* smi_handle_;
-  // Exactly one of these is non-NULL, depending on whether Release was called.
+  // Exactly one of these is non-null, depending on whether Release was called.
   typename StorageTraits::ArrayHandle* data_;
   typename StorageTraits::ArrayHandle* released_data_;
 
@@ -537,7 +537,7 @@ class UnorderedHashTable
   typedef HashTable<KeyTraits, kUserPayloadSize, 0, StorageTraits> BaseTable;
   typedef typename StorageTraits::ArrayPtr ArrayPtr;
   typedef typename StorageTraits::ArrayHandle ArrayHandle;
-  static const intptr_t kPayloadSize = kUserPayloadSize;
+  static constexpr intptr_t kPayloadSize = kUserPayloadSize;
   explicit UnorderedHashTable(ArrayPtr data)
       : BaseTable(Thread::Current()->zone(), data) {}
   UnorderedHashTable(Zone* zone, ArrayPtr data) : BaseTable(zone, data) {}
@@ -697,9 +697,9 @@ class HashMap : public BaseIterTable {
   HashMap(Object* key, Smi* value, Array* data)
       : BaseIterTable(key, value, data) {}
   template <typename Key>
-  ObjectPtr GetOrNull(const Key& key, bool* present = NULL) const {
+  ObjectPtr GetOrNull(const Key& key, bool* present = nullptr) const {
     intptr_t entry = BaseIterTable::FindKey(key);
-    if (present != NULL) {
+    if (present != nullptr) {
       *present = (entry != -1);
     }
     return (entry == -1) ? Object::null() : BaseIterTable::GetPayload(entry, 0);
@@ -837,9 +837,9 @@ class HashSet : public BaseIterTable {
   }
 
   template <typename Key>
-  ObjectPtr GetOrNull(const Key& key, bool* present = NULL) const {
+  ObjectPtr GetOrNull(const Key& key, bool* present = nullptr) const {
     intptr_t entry = BaseIterTable::FindKey(key);
-    if (present != NULL) {
+    if (present != nullptr) {
       *present = (entry != -1);
     }
     return (entry == -1) ? Object::null() : BaseIterTable::GetKey(entry);

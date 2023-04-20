@@ -69,8 +69,12 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateNode] reuses a name
   /// already used by [originalNode].
-  AnalysisError duplicateDefinitionForNodes(Source source, ErrorCode code,
-      AstNode duplicateNode, AstNode originalNode, List<Object> arguments) {
+  AnalysisError duplicateDefinitionForNodes(
+      Source source,
+      ErrorCode code,
+      SyntacticEntity duplicateNode,
+      SyntacticEntity originalNode,
+      List<Object> arguments) {
     return AnalysisError(
       source,
       duplicateNode.offset,

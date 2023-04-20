@@ -81,7 +81,7 @@ abstract class NativeTypeCfe {
       }
       return AbiSpecificNativeTypeCfe(mapping, clazz);
     }
-    throw "Invalid type $dartType";
+    return InvalidNativeTypeCfe("Invalid type $dartType");
   }
 
   /// The size in bytes per [Abi].

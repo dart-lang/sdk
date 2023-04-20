@@ -240,6 +240,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    _writeln('CatchClauseParameter');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredElement(node.declaredElement);
+    });
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _writeln('ClassDeclaration');
     _withIndent(() {
@@ -841,6 +850,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _writeln('LabeledStatement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
     _writeln('LibraryAugmentationDirective');
     _withIndent(() {
@@ -908,7 +925,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    _writeln('SetOrMapLiteral');
+    _writeln('MapLiteralEntry');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -1254,6 +1271,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RestPatternElement');
     _withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitRethrowExpression(RethrowExpression node) {
+    _writeln('RethrowExpression');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
     });
   }
 

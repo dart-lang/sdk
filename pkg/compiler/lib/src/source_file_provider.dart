@@ -21,21 +21,20 @@ abstract class SourceFileByteReader {
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
-  Map<Uri, SourceFile<List<int>>> utf8SourceFiles = {};
-  Map<Uri, api.Input<List<int>>> binarySourceFiles = {};
   int dartCharactersRead = 0;
   SourceFileByteReader byteReader;
+  final Set<Uri> _registeredUris = {};
+  final Map<Uri, Uri> _mappedUris = {};
+  final bool disableByteCache;
+  final Map<Uri, List<int>> _byteCache = {};
 
-  SourceFileProvider(this.byteReader);
+  SourceFileProvider(this.byteReader, {this.disableByteCache = true});
 
   Future<api.Input<List<int>>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    api.Input<List<int>>? input = _loadInputFromCache(resourceUri, inputKind);
-    if (input != null) return Future.value(input);
-
     if (resourceUri.isScheme('file')) {
       return _readFromFile(resourceUri, inputKind);
     } else {
@@ -43,37 +42,14 @@ abstract class SourceFileProvider implements api.CompilerInput {
     }
   }
 
-  /// Fetches any existing value of [resourceUri] in a cache.
-  ///
-  /// For `api.InputKind.UTF8` inputs, this looks up both the cache of
-  /// utf8 source files and binary source files. This is done today because of
-  /// how dart2js binds to the CFE's file system. While dart2js reads sources as
-  /// utf8, the CFE file system may read them as binary inputs. In case the CFE
-  /// needs to report errors, dart2js will only find the location data if it
-  /// checks both caches.
-  api.Input<List<int>>? _loadInputFromCache(
-      Uri resourceUri, api.InputKind inputKind) {
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        api.Input<List<int>>? input = utf8SourceFiles[resourceUri];
-        if (input != null) return input;
-        input = binarySourceFiles[resourceUri];
-        if (input == null) return null;
-        return _storeSourceInCache(resourceUri, input.data, api.InputKind.UTF8);
-      case api.InputKind.binary:
-        return binarySourceFiles[resourceUri];
-    }
-  }
-
   /// Adds [source] to the cache under the [resourceUri] key.
-  api.Input<List<int>> _storeSourceInCache(
+  api.Input<List<int>> _sourceToFile(
       Uri resourceUri, List<int> source, api.InputKind inputKind) {
     switch (inputKind) {
       case api.InputKind.UTF8:
-        return utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
-            resourceUri, relativizeUri(resourceUri), source);
+        return Utf8BytesSourceFile(resourceUri, source);
       case api.InputKind.binary:
-        return binarySourceFiles[resourceUri] = Binary(resourceUri, source);
+        return Binary(resourceUri, source);
     }
   }
 
@@ -82,13 +58,20 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    if (!utf8SourceFiles.containsKey(resourceUri)) {
-      _storeSourceInCache(resourceUri, source, api.InputKind.UTF8);
+
+    registerUri(resourceUri);
+    if (!disableByteCache) {
+      _byteCache[resourceUri] = source;
     }
   }
 
-  api.Input<List<int>> _readFromFileSync(
-      Uri resourceUri, api.InputKind inputKind) {
+  /// Registers the URI and returns true if the URI is new.
+  bool registerUri(Uri uri) {
+    return _registeredUris.add(uri);
+  }
+
+  api.Input<List<int>> _readFromFileSync(Uri uri, api.InputKind inputKind) {
+    final resourceUri = _mappedUris[uri] ?? uri;
     assert(resourceUri.isScheme('file'));
     List<int> source;
     try {
@@ -99,8 +82,13 @@ abstract class SourceFileProvider implements api.CompilerInput {
       String detail = message != null ? ' ($message)' : '';
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
-    dartCharactersRead += source.length;
-    return _storeSourceInCache(resourceUri, source, inputKind);
+    if (registerUri(resourceUri)) {
+      dartCharactersRead += source.length;
+    }
+    if (resourceUri != uri) {
+      registerUri(uri);
+    }
+    return _sourceToFile(Uri.parse(relativizeUri(uri)), source, inputKind);
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
@@ -126,18 +114,27 @@ abstract class SourceFileProvider implements api.CompilerInput {
     return Future.value(input);
   }
 
-  relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
-
+  /// Get the bytes for a previously accessed UTF-8 [Uri].
   api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
-    return _loadInputFromCache(resourceUri, api.InputKind.UTF8);
+    if (!resourceUri.isAbsolute) {
+      resourceUri = cwd.resolveUri(resourceUri);
+    }
+
+    if (_byteCache.containsKey(resourceUri)) {
+      return _sourceToFile(
+          resourceUri, _byteCache[resourceUri]!, api.InputKind.UTF8);
+    }
+    return resourceUri.isScheme('file')
+        ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
+        : null;
   }
 
-  Iterable<Uri> getSourceUris() {
-    // Note: this includes also indirect sources that were used to create
-    // `.dill` inputs to the compiler. This is OK, since this API is only
-    // used to calculate DEPS for gn build systems.
-    return <Uri>{...utf8SourceFiles.keys, ...binarySourceFiles.keys};
-  }
+  String relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
+
+  // Note: this includes also indirect sources that were used to create
+  // `.dill` inputs to the compiler. This is OK, since this API is only
+  // used to calculate DEPS for gn build systems.
+  Iterable<Uri> getSourceUris() => [..._registeredUris, ..._mappedUris.keys];
 }
 
 class MemoryCopySourceFileByteReader implements SourceFileByteReader {
@@ -164,8 +161,8 @@ Uint8List readAll(String filename, {bool zeroTerminated = true}) {
 
 class CompilerSourceFileProvider extends SourceFileProvider {
   CompilerSourceFileProvider(
-      {SourceFileByteReader byteReader =
-          const MemoryCopySourceFileByteReader()})
+      {SourceFileByteReader byteReader = const MemoryCopySourceFileByteReader(),
+      super.disableByteCache})
       : super(byteReader);
 
   @override
@@ -270,8 +267,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else {
       api.Input<List<int>>? file = provider.getUtf8SourceFile(uri);
       if (file is SourceFile && begin != null && end != null) {
-        print((file as SourceFile)
-            .getLocationMessage(color(message), begin, end, colorize: color));
+        print(file.getLocationMessage(color(message), begin, end,
+            colorize: color));
       } else {
         String position = begin != null && end != null && end - begin > 0
             ? '@$begin+${end - begin}'
@@ -553,7 +550,8 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
 class BazelInputProvider extends SourceFileProvider {
   final List<Uri> dirs;
 
-  BazelInputProvider(List<String> searchPaths, super.byteReader)
+  BazelInputProvider(List<String> searchPaths, super.byteReader,
+      {super.disableByteCache})
       : dirs = searchPaths.map(_resolve).toList();
 
   static Uri _resolve(String path) => Uri.base.resolve(path);
@@ -579,14 +577,7 @@ class BazelInputProvider extends SourceFileProvider {
       if (!resolvedUri.isAbsolute) {
         resolvedUri = cwd.resolveUri(resolvedUri);
       }
-      switch (inputKind) {
-        case api.InputKind.UTF8:
-          utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri]!;
-          break;
-        case api.InputKind.binary:
-          binarySourceFiles[uri] = binarySourceFiles[resolvedUri]!;
-          break;
-      }
+      _mappedUris[uri] = resolvedUri;
     }
     return result;
   }
@@ -607,7 +598,8 @@ class MultiRootInputProvider extends SourceFileProvider {
   final List<Uri> roots;
   final String markerScheme;
 
-  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader);
+  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader,
+      {super.disableByteCache});
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
@@ -626,14 +618,7 @@ class MultiRootInputProvider extends SourceFileProvider {
     }
     api.Input<List<int>> result =
         await readBytesFromUri(resolvedUri, inputKind);
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri]!;
-        break;
-      case api.InputKind.binary:
-        binarySourceFiles[uri] = binarySourceFiles[resolvedUri]!;
-        break;
-    }
+    _mappedUris[uri] = resolvedUri;
     return result;
   }
 }

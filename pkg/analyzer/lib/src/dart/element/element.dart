@@ -593,6 +593,46 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     super.accessors = accessors;
   }
 
+  /// If we can find all possible subtypes of this class, return them.
+  ///
+  /// If the class is final, all its subtypes are declared in this library.
+  ///
+  /// If the class is sealed, and all its subtypes are either final or sealed,
+  /// then these subtypes are all subtypes that are possible.
+  List<InterfaceType>? get allSubtypes {
+    if (isFinal) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is InterfaceElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            result.add(elementThis);
+          }
+        }
+      }
+      return result;
+    }
+
+    if (isSealed) {
+      final result = <InterfaceType>[];
+      for (final element in library.topLevelElements) {
+        if (element is ClassElement && element != this) {
+          final elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) != null) {
+            if (element.isFinal || element.isSealed) {
+              result.add(elementThis);
+            } else {
+              return null;
+            }
+          }
+        }
+      }
+      return result;
+    }
+
+    return null;
+  }
+
   @override
   ClassAugmentationElement? get augmentation {
     // TODO(scheglov) implement
@@ -753,6 +793,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   @override
   bool get isExhaustive => isSealed;
 
+  @override
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  @override
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
   bool get isMacro {
     return hasModifier(Modifier.MACRO);
   }
@@ -778,6 +836,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
 
   set isMixinClass(bool isMixinClass) {
     setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
+
+  @override
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -1063,30 +1130,6 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
 
   set isBase(bool isBase) {
     setModifier(Modifier.BASE, isBase);
-  }
-
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  bool get isInterface {
-    return hasModifier(Modifier.INTERFACE);
-  }
-
-  set isInterface(bool isInterface) {
-    setModifier(Modifier.INTERFACE, isInterface);
-  }
-
-  bool get isSealed {
-    return hasModifier(Modifier.SEALED);
-  }
-
-  set isSealed(bool isSealed) {
-    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -4917,9 +4960,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   }
 
   @override
-  bool get isExhaustive => isSealed;
-
-  @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
 
   @override
@@ -4955,15 +4995,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
     if (library == this.library) {
       return true;
     }
-    return !isBase && !isFinal && !isSealed;
-  }
-
-  @override
-  bool isMixableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isInterface && !isFinal && !isSealed;
+    return !isBase;
   }
 }
 

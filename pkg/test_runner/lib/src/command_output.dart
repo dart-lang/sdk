@@ -480,6 +480,13 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     'unnecessary_null_check_pattern',
   };
 
+  /// The set of hints which must be expected in a test. Any hint not specified
+  /// here which is reported by the analyzer does not need to be expected, and
+  /// never causes a test to fail.
+  static const Set<String> _specifiedHints = {
+    'unreachable_switch_case',
+  };
+
   /// Parses all errors from analyzer [stdout] output.
   static List<AnalyzerError> parseStdout(String stdout) {
     var result = <AnalyzerError>[];
@@ -494,8 +501,10 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
       var diagnosticMap = diagnostic as Map<String, dynamic>;
 
+      var code = diagnosticMap['code'] as String;
       var type = diagnosticMap['type'] as String?;
-      if (type == 'HINT') {
+
+      if (type == 'HINT' && !_specifiedHints.contains(code)) {
         // The analyzer can report hints which do not need to be expected in
         // the test source. These can be ignored.
         // TODO(srawlins): Hints will start to change to be warnings. There are
@@ -505,10 +514,12 @@ class AnalyzerError implements Comparable<AnalyzerError> {
         continue;
       }
 
-      var code = diagnosticMap['code'] as String;
       if (type == 'STATIC_WARNING' && !_specifiedWarnings.contains(code)) {
         continue;
       }
+
+      if (type == 'LINT') continue;
+
       var errorCode = '$type.${code.toUpperCase()}';
 
       var error = _parse(
@@ -610,7 +621,8 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     for (var diagnostic in AnalyzerError.parseStdout(stdout)) {
       if (diagnostic.severity == 'ERROR') {
         errors.add(convert(diagnostic));
-      } else if (diagnostic.severity == 'WARNING' && warnings != null) {
+      } else if (warnings != null &&
+          (diagnostic.severity == 'WARNING' || diagnostic.severity == 'INFO')) {
         warnings.add(convert(diagnostic));
       }
     }
@@ -885,7 +897,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
-  static const _ubsanFailureExitCode = 1;
+  static const _adbFailureExitCode = 3;
   static const _frontEndTestExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
@@ -946,29 +958,21 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
-    if (exitCode == _ubsanFailureExitCode &&
-        testCase.configuration.sanitizer == Sanitizer.ubsan) {
-      return Expectation.fail;
-    }
     if (exitCode == _frontEndTestExitCode &&
         testCase.displayName.startsWith('pkg/front_end/test/')) {
       return Expectation.runtimeError;
     }
-    if (exitCode != 0) {
-      var ourExit = 5;
-      // Unknown nonzero exit code from vm command.
-      // Consider this a failure of testing, and exit the test script.
-      if (testCase.configuration.system == System.android &&
-          _adbInfraFailureCodes.contains(exitCode)) {
-        print('Android device failed to run test');
-        ourExit = 3;
-      } else {
-        print('Unexpected exit code $exitCode');
-      }
+    if (testCase.configuration.system == System.android &&
+        _adbInfraFailureCodes.contains(exitCode)) {
+      print('Android device failed to run test');
       print(command);
       print(decodeUtf8(stdout));
       print(decodeUtf8(stderr));
-      io.exit(ourExit);
+      io.exit(_adbFailureExitCode);
+    }
+    if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      return Expectation.fail;
     }
     var testOutput = decodeUtf8(stdout);
     if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {

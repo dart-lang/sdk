@@ -16,7 +16,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // Visit all zone handles.
   HandlesBlock* block = zone_blocks_;
-  while (block != NULL) {
+  while (block != nullptr) {
     block->VisitObjectPointers(visitor);
     block = block->next_block();
   }
@@ -35,7 +35,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
       return;
     }
     block = block->next_block();
-  } while (block != NULL);
+  } while (block != nullptr);
   UNREACHABLE();
 }
 
@@ -44,7 +44,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Visit(
     HandleVisitor* visitor) {
   // Visit all zone handles.
   HandlesBlock* block = zone_blocks_;
-  while (block != NULL) {
+  while (block != nullptr) {
     block->Visit(visitor);
     block = block->next_block();
   }
@@ -54,14 +54,14 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Visit(
   do {
     block->Visit(visitor);
     block = block->next_block();
-  } while (block != NULL);
+  } while (block != nullptr);
 }
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Reset() {
   // Delete all the extra zone handle blocks allocated and reinit the first
   // zone block.
-  if (zone_blocks_ != NULL) {
+  if (zone_blocks_ != nullptr) {
     DeleteHandleBlocks(zone_blocks_->next_block());
     zone_blocks_->ReInit();
   }
@@ -84,7 +84,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(thread->MayAllocateHandles());
 #endif  // DEBUG
   Handles* handles = zone->handles();
-  ASSERT(handles != NULL);
+  ASSERT(handles != nullptr);
   return handles->AllocateScopedHandle();
 }
 
@@ -99,7 +99,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(thread->MayAllocateHandles());
 #endif  // DEBUG
   Handles* handles = zone->handles();
-  ASSERT(handles != NULL);
+  ASSERT(handles != nullptr);
   uword address = handles->AllocateHandleInZone();
   return address;
 }
@@ -113,10 +113,10 @@ bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   // TODO(5411412): Accessing the current thread is a performance problem,
   // consider passing it down as a parameter.
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  ASSERT(thread->zone() != NULL);
+  ASSERT(thread != nullptr);
+  ASSERT(thread->zone() != nullptr);
   Handles* handles = thread->zone()->handles();
-  ASSERT(handles != NULL);
+  ASSERT(handles != nullptr);
   return handles->IsValidZoneHandle(handle);
 }
 #endif
@@ -129,7 +129,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   // since the individual zone deletions will be caught
   // by instrumentation in the BaseZone destructor.
   DeleteHandleBlocks(zone_blocks_);
-  zone_blocks_ = NULL;
+  zone_blocks_ = nullptr;
 
   // Delete all the scoped handle blocks.
   scoped_blocks_ = first_scoped_block_.next_block();
@@ -141,7 +141,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     DeleteHandleBlocks(HandlesBlock* blocks) {
-  while (blocks != NULL) {
+  while (blocks != nullptr) {
     HandlesBlock* block = blocks;
     blocks = blocks->next_block();
     delete block;
@@ -156,8 +156,8 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
                  reinterpret_cast<intptr_t>(this), CountZoneHandles(),
                  CountScopedHandles());
   }
-  if (scoped_blocks_->next_block() == NULL) {
-    HandlesBlock* block = new HandlesBlock(NULL);
+  if (scoped_blocks_->next_block() == nullptr) {
+    HandlesBlock* block = new HandlesBlock(nullptr);
     scoped_blocks_->set_next_block(block);
   }
   scoped_blocks_ = scoped_blocks_->next_block();
@@ -174,7 +174,7 @@ template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     IsValidScopedHandle(uword handle) const {
   const HandlesBlock* iterator = &first_scoped_block_;
-  while (iterator != NULL) {
+  while (iterator != nullptr) {
     if (iterator->IsValidHandle(handle)) {
       return true;
     }
@@ -187,7 +187,7 @@ template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     IsValidZoneHandle(uword handle) const {
   const HandlesBlock* iterator = zone_blocks_;
-  while (iterator != NULL) {
+  while (iterator != nullptr) {
     if (iterator->IsValidHandle(handle)) {
       return true;
     }
@@ -218,7 +218,7 @@ int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
       return count;
     }
     block = block->next_block();
-  } while (block != NULL);
+  } while (block != nullptr);
   UNREACHABLE();
   return 0;
 }
@@ -228,7 +228,7 @@ int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     CountZoneHandles() const {
   int count = 0;
   const HandlesBlock* block = zone_blocks_;
-  while (block != NULL) {
+  while (block != nullptr) {
     count += block->HandleCount();
     block = block->next_block();
   }
@@ -247,7 +247,7 @@ template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     HandlesBlock::ReInit() {
   next_handle_slot_ = 0;
-  next_block_ = NULL;
+  next_block_ = nullptr;
 #if defined(DEBUG)
   ZapFreeHandles();
 #endif
@@ -256,7 +256,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     HandlesBlock::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
     visitor->VisitPointer(
         reinterpret_cast<ObjectPtr*>(&data_[i + kOffsetOfRawPtr / kWordSize]));
@@ -266,7 +266,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     HandlesBlock::Visit(HandleVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
     visitor->VisitHandle(reinterpret_cast<uword>(&data_[i]));
   }

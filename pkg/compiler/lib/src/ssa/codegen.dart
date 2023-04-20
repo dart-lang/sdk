@@ -3175,41 +3175,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     late js.Expression test;
     switch (node.specialization) {
       case IsTestSpecialization.isNull:
-      case IsTestSpecialization.notNull:
+      case IsTestSpecialization.isNotNull:
         // These cases should be lowered using [HIdentity] during optimization.
         failedAt(node, 'Missing lowering');
 
-      case IsTestSpecialization.string:
+      case IsTestSpecialization.isString:
         test = typeof("string");
         break;
 
-      case IsTestSpecialization.bool:
+      case IsTestSpecialization.isBool:
         test = isTest(_commonElements.specializedIsBool);
         break;
 
-      case IsTestSpecialization.num:
+      case IsTestSpecialization.isNum:
         test = typeof("number");
         break;
 
-      case IsTestSpecialization.int:
+      case IsTestSpecialization.isInt:
         test = isTest(_commonElements.specializedIsInt);
         break;
 
-      case IsTestSpecialization.arrayTop:
+      case IsTestSpecialization.isArrayTop:
         test = handleNegative(js.js('Array.isArray(#)', [value]));
         break;
 
-      case IsTestSpecialization.instanceof:
-        DartType dartType = node.dartType;
-        // We don't generate instanceof specializations for Never* and Object*.
-        assert(dartType is InterfaceType ||
-            (dartType is LegacyType &&
-                !dartType.baseType.isObject &&
-                dartType.baseType is! NeverType));
-        InterfaceType type = dartType.withoutNullability as InterfaceType;
-        _registry.registerTypeUse(TypeUse.constructorReference(type));
-        test = handleNegative(js.js('# instanceof #',
-            [value, _emitter.constructorAccess(type.element)]));
+      default:
+        if (node.specialization.isInstanceof) {
+          InterfaceType type = node.specialization.interfaceType;
+          _registry.registerTypeUse(TypeUse.constructorReference(type));
+          test = handleNegative(js.js('# instanceof #',
+              [value, _emitter.constructorAccess(type.element)]));
+        } else {
+          failedAt(node, 'Unknown specialization: ${node.specialization}');
+        }
     }
     push(test.withSourceInformation(node.sourceInformation));
   }

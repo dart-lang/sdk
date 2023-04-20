@@ -742,7 +742,7 @@ class A27 {
 /*member: B27.:[exact=B27]*/
 class B27 extends A27 {
   @override
-  set f27b(/*[exact=JSUInt31]*/ value) {}
+  set f27b(/*[null|exact=JSUInt31]*/ value) {}
 }
 
 /*member: test27:[null]*/

@@ -5,6 +5,8 @@
 /// These classes were copied from `analyzer`. They should be moved into the
 /// `analyzer/lib/src/test_utilities` directory so that they can be shared.
 /// (This version has been converted to a more modern style.)
+library;
+
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';

@@ -32,6 +32,7 @@ late TypeMask potentialArray;
 late TypeMask potentialString;
 late TypeMask jsInterceptor;
 late TypeMask jsInterceptorOrComparable;
+late TypeMask jsTrustedGetRuntimeType;
 
 late TypeMask jsIndexable;
 late TypeMask jsReadableArray;
@@ -49,6 +50,7 @@ late TypeMask jsUnmodifiableArrayOrNull;
 late TypeMask jsIndexableOrNull;
 late TypeMask jsInterceptorOrNull;
 late TypeMask jsInterceptorOrComparableOrNull;
+late TypeMask jsTrustedGetRuntimeTypeOrNull;
 
 class Pair {
   final first;
@@ -168,10 +170,10 @@ void testUnion(JClosedWorld closedWorld) {
 
   rule(jsBoolean, jsBoolean, jsBoolean);
   rule(jsBoolean, jsNumber, jsInterceptor);
-  rule(jsBoolean, jsInteger, jsInterceptor);
-  rule(jsBoolean, jsNumNotInt, jsInterceptor);
+  rule(jsBoolean, jsInteger, jsTrustedGetRuntimeType);
+  rule(jsBoolean, jsNumNotInt, jsTrustedGetRuntimeType);
   rule(jsBoolean, jsIndexable, objectType);
-  rule(jsBoolean, jsString, jsInterceptor);
+  rule(jsBoolean, jsString, jsTrustedGetRuntimeType);
   rule(jsBoolean, jsReadableArray, jsInterceptor);
   rule(jsBoolean, jsMutableArray, jsInterceptor);
   rule(jsBoolean, jsExtendableArray, jsInterceptor);
@@ -182,9 +184,9 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsBoolean, potentialString, dynamicType);
   rule(jsBoolean, jsBooleanOrNull, jsBooleanOrNull);
   rule(jsBoolean, jsNumberOrNull, jsInterceptorOrNull);
-  rule(jsBoolean, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsBoolean, jsNumNotIntOrNull, jsInterceptorOrNull);
-  rule(jsBoolean, jsStringOrNull, jsInterceptorOrNull);
+  rule(jsBoolean, jsIntegerOrNull, jsTrustedGetRuntimeTypeOrNull);
+  rule(jsBoolean, jsNumNotIntOrNull, jsTrustedGetRuntimeTypeOrNull);
+  rule(jsBoolean, jsStringOrNull, jsTrustedGetRuntimeTypeOrNull);
   rule(jsBoolean, nullType, jsBooleanOrNull);
   rule(jsBoolean, jsFixedArray, jsInterceptor);
 
@@ -221,7 +223,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsInteger, nonPrimitive2, objectType);
   rule(jsInteger, potentialArray, dynamicType);
   rule(jsInteger, potentialString, dynamicType);
-  rule(jsInteger, jsBooleanOrNull, jsInterceptorOrNull);
+  rule(jsInteger, jsBooleanOrNull, jsTrustedGetRuntimeTypeOrNull);
   rule(jsInteger, jsNumberOrNull, jsNumberOrNull);
   rule(jsInteger, jsIntegerOrNull, jsIntegerOrNull);
   rule(jsInteger, jsNumNotIntOrNull, jsNumberOrNull);
@@ -240,7 +242,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsNumNotInt, nonPrimitive2, objectType);
   rule(jsNumNotInt, potentialArray, dynamicType);
   rule(jsNumNotInt, potentialString, dynamicType);
-  rule(jsNumNotInt, jsBooleanOrNull, jsInterceptorOrNull);
+  rule(jsNumNotInt, jsBooleanOrNull, jsTrustedGetRuntimeTypeOrNull);
   rule(jsNumNotInt, jsNumberOrNull, jsNumberOrNull);
   rule(jsNumNotInt, jsIntegerOrNull, jsNumberOrNull);
   rule(jsNumNotInt, jsNumNotIntOrNull, jsNumNotIntOrNull);
@@ -275,7 +277,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsString, nonPrimitive2, objectType);
   rule(jsString, potentialArray, dynamicType);
   rule(jsString, potentialString, potentialString);
-  rule(jsString, jsBooleanOrNull, jsInterceptorOrNull);
+  rule(jsString, jsBooleanOrNull, jsTrustedGetRuntimeTypeOrNull);
   rule(jsString, jsNumberOrNull, jsInterceptorOrComparableOrNull);
   rule(jsString, jsIntegerOrNull, jsInterceptorOrComparableOrNull);
   rule(jsString, jsNumNotIntOrNull, jsInterceptorOrComparableOrNull);
@@ -383,9 +385,9 @@ void testUnion(JClosedWorld closedWorld) {
 
   rule(jsBooleanOrNull, jsBooleanOrNull, jsBooleanOrNull);
   rule(jsBooleanOrNull, jsNumberOrNull, jsInterceptorOrNull);
-  rule(jsBooleanOrNull, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsBooleanOrNull, jsNumNotIntOrNull, jsInterceptorOrNull);
-  rule(jsBooleanOrNull, jsStringOrNull, jsInterceptorOrNull);
+  rule(jsBooleanOrNull, jsIntegerOrNull, jsTrustedGetRuntimeTypeOrNull);
+  rule(jsBooleanOrNull, jsNumNotIntOrNull, jsTrustedGetRuntimeTypeOrNull);
+  rule(jsBooleanOrNull, jsStringOrNull, jsTrustedGetRuntimeTypeOrNull);
   rule(jsBooleanOrNull, nullType, jsBooleanOrNull);
   rule(jsBooleanOrNull, jsFixedArray, jsInterceptorOrNull);
 
@@ -782,6 +784,9 @@ runTests() async {
   LibraryEntity coreLibrary = commonElements.coreLibrary;
   patternClass = elementEnvironment.lookupClass(coreLibrary, 'Pattern');
 
+  final trustedGetRuntimeTypeInterface = elementEnvironment.lookupClass(
+      commonElements.rtiLibrary, 'TrustedGetRuntimeType')!;
+
   nonPrimitive1 =
       TypeMask.nonNullSubtype(closedWorld.commonElements.mapClass, closedWorld);
   nonPrimitive2 = TypeMask.nonNullSubtype(
@@ -791,6 +796,8 @@ runTests() async {
   potentialString = TypeMask.subtype(patternClass, closedWorld);
   jsInterceptor = TypeMask.nonNullSubclass(
       closedWorld.commonElements.jsInterceptorClass, closedWorld);
+  jsTrustedGetRuntimeType =
+      TypeMask.nonNullSubtype(trustedGetRuntimeTypeInterface, closedWorld);
   jsArrayOrNull =
       TypeMask.subclass(closedWorld.commonElements.jsArrayClass, closedWorld);
   jsReadableArray = TypeMask.nonNullSubclass(
@@ -817,6 +824,8 @@ runTests() async {
       closedWorld.commonElements.jsIndexableClass, closedWorld);
   jsInterceptorOrNull = TypeMask.subclass(
       closedWorld.commonElements.jsInterceptorClass, closedWorld);
+  jsTrustedGetRuntimeTypeOrNull =
+      TypeMask.subtype(trustedGetRuntimeTypeInterface, closedWorld);
   jsStringOrNull =
       TypeMask.exact(closedWorld.commonElements.jsStringClass, closedWorld);
   jsString = TypeMask.nonNullExact(

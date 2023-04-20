@@ -30,7 +30,7 @@ class ScopedCFType {
   explicit ScopedCFType(T obj) : obj_(obj) {}
 
   ~ScopedCFType() {
-    if (obj_ != NULL) {
+    if (obj_ != nullptr) {
       CFRelease(obj_);
     }
   }
@@ -41,7 +41,7 @@ class ScopedCFType {
 
   DART_WARN_UNUSED_RESULT T release() {
     T temp = obj_;
-    obj_ = NULL;
+    obj_ = nullptr;
     return temp;
   }
 
@@ -64,7 +64,7 @@ static void releaseObjects(const void* val, void* context) {
 
 template <>
 ScopedCFType<CFMutableArrayRef>::~ScopedCFType() {
-  if (obj_ != NULL) {
+  if (obj_ != nullptr) {
     CFIndex count = 0;
     CFArrayApplyFunction(obj_, CFRangeMake(0, CFArrayGetCount(obj_)),
                          releaseObjects, &count);
@@ -82,26 +82,26 @@ typedef ScopedCFType<SecTrustRef> ScopedSecTrustRef;
 const int kNumTrustEvaluateRequestParams = 5;
 
 static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
-  if (cert == NULL) {
-    return NULL;
+  if (cert == nullptr) {
+    return nullptr;
   }
-  int length = i2d_X509(cert, NULL);
+  int length = i2d_X509(cert, nullptr);
   if (length < 0) {
-    return NULL;
+    return nullptr;
   }
   // This can be `std::make_unique<unsigned char[]>(length)` in C++14
   // But the Mac toolchain is still using C++11.
   auto deb_cert = std::unique_ptr<unsigned char[]>(new unsigned char[length]);
   unsigned char* temp = deb_cert.get();
   if (i2d_X509(cert, &temp) != length) {
-    return NULL;
+    return nullptr;
   }
   // TODO(bkonyi): we create a copy of the deb_cert here since it's unclear
   // whether or not SecCertificateCreateWithData takes ownership of the CFData.
   // Implementation here:
   // https://opensource.apple.com/source/libsecurity_keychain/libsecurity_keychain-55050.2/lib/SecCertificate.cpp.auto.html
-  ScopedCFDataRef cert_buf(CFDataCreate(NULL, deb_cert.get(), length));
-  return SecCertificateCreateWithData(NULL, cert_buf.get());
+  ScopedCFDataRef cert_buf(CFDataCreate(nullptr, deb_cert.get(), length));
+  return SecCertificateCreateWithData(nullptr, cert_buf.get());
 }
 
 static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
@@ -132,16 +132,16 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   STACK_OF(X509)* unverified = sk_X509_dup(SSL_get_peer_full_cert_chain(ssl));
 
   // Convert BoringSSL formatted certificates to SecCertificate certificates.
-  ScopedCFMutableArrayRef cert_chain(NULL);
-  X509* root_cert = NULL;
+  ScopedCFMutableArrayRef cert_chain(nullptr);
+  X509* root_cert = nullptr;
   int num_certs = sk_X509_num(unverified);
   int current_cert = 0;
-  cert_chain.set(CFArrayCreateMutable(NULL, num_certs, NULL));
+  cert_chain.set(CFArrayCreateMutable(nullptr, num_certs, nullptr));
   X509* ca;
   // Look for the last certificate in the chain - it's a root certificate.
-  while ((ca = sk_X509_shift(unverified)) != NULL) {
+  while ((ca = sk_X509_shift(unverified)) != nullptr) {
     ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
-    if (cert == NULL) {
+    if (cert == nullptr) {
       return ssl_verify_invalid;
     }
     CFArrayAppendValue(cert_chain.get(), cert.release());
@@ -159,22 +159,23 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   X509_STORE* store = SSL_CTX_get_cert_store(ssl_ctx);
   // Convert all trusted certificates provided by the user via
   // setTrustedCertificatesBytes or the command line into SecCertificates.
-  ScopedCFMutableArrayRef trusted_certs(CFArrayCreateMutable(NULL, 0, NULL));
-  ASSERT(store != NULL);
+  ScopedCFMutableArrayRef trusted_certs(
+      CFArrayCreateMutable(nullptr, 0, nullptr));
+  ASSERT(store != nullptr);
 
   for (const X509_OBJECT* obj : X509_STORE_get0_objects(store)) {
     X509* ca = X509_OBJECT_get0_X509(obj);
     ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
-    if (cert == NULL) {
+    if (cert == nullptr) {
       return ssl_verify_invalid;
     }
     CFArrayAppendValue(trusted_certs.get(), cert.release());
   }
 
   // Generate a policy for validating chains for SSL.
-  CFStringRef cfhostname = NULL;
-  if (filter->hostname() != NULL) {
-    cfhostname = CFStringCreateWithCString(NULL, filter->hostname(),
+  CFStringRef cfhostname = nullptr;
+  if (filter->hostname() != nullptr) {
+    cfhostname = CFStringCreateWithCString(nullptr, filter->hostname(),
                                            kCFStringEncodingUTF8);
   }
   ScopedCFStringRef hostname(cfhostname);
@@ -182,7 +183,7 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
       SecPolicyCreateSSL(filter->is_client(), hostname.get()));
 
   // Create the trust object with the certificates provided by the user.
-  ScopedSecTrustRef trust(NULL);
+  ScopedSecTrustRef trust(nullptr);
   OSStatus status = SecTrustCreateWithCertificates(cert_chain.get(),
                                                    policy.get(), trust.ptr());
   if (status != noErr) {
@@ -307,12 +308,15 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
     // The result is ignored as we get more information from the following call
     // to SecTrustGetTrustResult which also happens to match the information we
     // get from calling SecTrustEvaluate.
-    bool res = SecTrustEvaluateWithError(trust.get(), NULL);
+    bool res = SecTrustEvaluateWithError(trust.get(), nullptr);
     USE(res);
     status = SecTrustGetTrustResult(trust.get(), &trust_result);
   } else {
     // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated"
     status = SecTrustEvaluate(trust.get(), &trust_result);
+#pragma clang diagnostic pop
   }
 
   postReply(reply_port_id,
@@ -331,11 +335,11 @@ TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
-  if (root_certs_file() != NULL) {
+  if (root_certs_file() != nullptr) {
     LoadRootCertFile(root_certs_file());
     return;
   }
-  if (root_certs_cache() != NULL) {
+  if (root_certs_cache() != nullptr) {
     LoadRootCertCache(root_certs_cache());
     return;
   }

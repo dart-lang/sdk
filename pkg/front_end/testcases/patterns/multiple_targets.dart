@@ -28,11 +28,11 @@ test(o) {
       return 1;
     case <int>[2, 3, ...]:
       return 2;
-    case {'foo': 5, ...}:
+    case {'foo': 5}:
       return 3;
-    case {'foo': 6, ...}:
+    case {'foo': 6}:
       return 4;
-    case <String, int>{'foo': 7, ...}:
+    case <String, int>{'foo': 7}:
       return 5;
     case A<dynamic>(foo: 5):
       return 6;

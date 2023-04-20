@@ -268,6 +268,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// [isAborted].
   bool _isReachable = true;
 
+  /// Is the current statement or expression nested in a [ir.BlockExpression]?
+  bool _inBlockExpression = false;
+
   HLocalValue? lastAddedParameter;
 
   Map<Local, HInstruction> parameters = {};
@@ -1319,7 +1322,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void _buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
     if (functionNode.asyncMarker != ir.AsyncMarker.Sync) {
-      _buildGenerator(function, functionNode);
+      if (functionNode.asyncMarker == ir.AsyncMarker.SyncStar) {
+        _buildSyncStarGenerator(function, functionNode);
+      } else {
+        _buildGenerator(function, functionNode);
+      }
       return;
     }
 
@@ -1427,7 +1434,74 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds an SSA graph for a sync*/async/async* generator body.
+  /// Builds an SSA graph for a sync* method.  A sync* method is split into an
+  /// entry function and a body function. The entry function calls the body
+  /// function and wraps the result in an `_SyncStarIterable<T>`. The body
+  /// function is a separate entity (GeneratorBodyEntity) that is compiled via
+  /// SSA and the transformed into a reentrant state-machine.
+  ///
+  /// Here we generate the entry function which is approximately like this:
+  ///
+  ///     Iterable<T> foo(parameters) {
+  ///       return _makeSyncStarIterable<T>(foo$body(parameters));
+  ///     }
+  void _buildSyncStarGenerator(
+      FunctionEntity function, ir.FunctionNode functionNode) {
+    _openFunction(function,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure,
+        checks: _checksForFunction(function));
+
+    // Prepare to call the body generator.
+
+    // Is 'buildAsyncBody' the best location for the entry?
+    var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
+
+    // Forward all the parameters to the body.
+    List<HInstruction> inputs = [];
+    if (graph.thisInstruction != null) {
+      inputs.add(graph.thisInstruction!);
+    }
+    if (graph.explicitReceiverParameter != null) {
+      inputs.add(graph.explicitReceiverParameter!);
+    }
+    for (Local local in parameters.keys) {
+      if (!elidedParameters.contains(local)) {
+        inputs.add(localsHandler.readLocal(local));
+      }
+    }
+    for (Local local in _functionTypeParameterLocals) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+
+    JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    push(HInvokeGeneratorBody(
+        body,
+        inputs,
+        _abstractValueDomain.dynamicType, // Untyped JavaScript thunk.
+        sourceInformation));
+
+    // Call `_makeSyncStarIterable<T>(body)`. This usually gets inlined.
+
+    final elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
+        function.asyncMarker, _returnType!);
+    FunctionEntity method = _commonElements.syncStarIterableFactory;
+    List<HInstruction> arguments = [pop()];
+    List<DartType> typeArguments = const [];
+    if (_rtiNeed.methodNeedsTypeArguments(method)) {
+      typeArguments = [elementType];
+      _addTypeArguments(arguments, typeArguments, sourceInformation);
+    }
+    _pushStaticInvocation(method, arguments,
+        _typeInferenceMap.getReturnTypeOf(method), typeArguments,
+        sourceInformation: sourceInformation);
+
+    _closeAndGotoExit(HReturn(_abstractValueDomain, pop(), sourceInformation));
+
+    _closeFunction();
+  }
+
+  /// Builds an SSA graph for a async/async* generator body.
   void _buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;
@@ -1902,7 +1976,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void visitExpressionStatement(ir.ExpressionStatement node) {
     if (!_isReachable) return;
     ir.Expression expression = node.expression;
-    if (expression is ir.Throw && _inliningStack.isEmpty) {
+
+    // Handle a `throw` expression in statement-position, with control flow to
+    // the exit. (In expression position the throw does not create control-flow
+    // out of CFG region for the expression).
+    if (expression is ir.Throw &&
+        _inliningStack.isEmpty &&
+        !_inBlockExpression) {
       _visitThrowExpression(expression.expression);
       _handleInTryStatement();
       final sourceInformation =
@@ -1966,7 +2046,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         return;
       }
     }
-    _emitReturn(value, sourceInformation);
+    // TODO(43456): Better unreachable code removal. `_isReachable` removes
+    // more code, but also `return`s that pattern-match against more compact
+    // arrow functions. The `return`s also help the JavaScript VM.
+    // TODO(b/276976255): Using `_isReachable` causes a test failure.
+    if (!isAborted()) {
+      _emitReturn(value, sourceInformation);
+    }
   }
 
   @override
@@ -2778,7 +2864,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     body.accept(this);
     SubGraph bodyGraph = SubGraph(newBlock, lastOpenedBlock);
 
-    HBasicBlock joinBlock = graph.addNewBlock();
+    // Create join block only if reached, otherwise it won't have a dominator.
+    late final HBasicBlock joinBlock = graph.addNewBlock();
     List<LocalsHandler> breakHandlers = [];
     handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block!.addSuccessor(joinBlock);
@@ -2790,14 +2877,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       breakHandlers.add(localsHandler);
     }
 
-    open(joinBlock);
-    localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
+    if (breakHandlers.isNotEmpty) {
+      open(joinBlock);
+      localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
 
-    // There was at least one reachable break, so the label is needed.
-    newBlock.setBlockFlow(
-        HLabeledBlockInformation(
-            HSubGraphBlockInformation(bodyGraph), handler.labels),
-        joinBlock);
+      // There was at least one reachable break, so the label is needed.
+      newBlock.setBlockFlow(
+          HLabeledBlockInformation(
+              HSubGraphBlockInformation(bodyGraph), handler.labels),
+          joinBlock);
+    }
     handler.close();
   }
 
@@ -3854,7 +3943,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction initializedValue = pop();
     // TODO(sra): Apply inferred type information.
     _letBindings[variable] = initializedValue;
-    node.body.accept(this);
+    // TODO(43456): Use `!_isReachable` for better dead code removal.
+    if (isAborted()) {
+      stack.add(graph.addConstantUnreachable(closedWorld));
+    } else {
+      node.body.accept(this);
+    }
   }
 
   @override
@@ -3865,7 +3959,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (!_isReachable) {
       stack.add(graph.addConstantUnreachable(closedWorld));
     } else {
-      node.value.accept(this);
+      final previous = _inBlockExpression;
+      try {
+        _inBlockExpression = true;
+        node.value.accept(this);
+      } finally {
+        _inBlockExpression = previous;
+      }
     }
   }
 
@@ -4493,6 +4593,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleForeignGetInterceptor(invocation);
     } else if (name == 'getJSArrayInteropRti') {
       _handleForeignGetJSArrayInteropRti(invocation);
+    } else if (name == 'JS_RAW_EXCEPTION') {
+      _handleJsRawException(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
       _handleJsStringConcat(invocation);
     } else if (name == '_createInvocationMirror') {
@@ -4810,6 +4912,27 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         {'text': "'$name' $problem."});
     stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
+  }
+
+  void _handleJsRawException(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 0, maxPositional: 0)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+
+    if (_rethrowableException != null) {
+      stack.add(_rethrowableException!);
+      return;
+    }
+
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, invocation),
+        MessageKind.GENERIC,
+        {'text': "Error: JS_RAW_EXCEPTION() must be in a 'catch' block."});
+    // Result expected on stack.
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   void _handleForeignJsGetName(ir.StaticInvocation invocation) {

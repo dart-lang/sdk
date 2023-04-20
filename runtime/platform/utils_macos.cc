@@ -20,7 +20,7 @@ char* Utils::StrNDup(const char* s, intptr_t n) {
     __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
   intptr_t len = strlen(s);
   if ((n < 0) || (len < 0)) {
-    return NULL;
+    return nullptr;
   }
   if (n < len) {
     len = n;
@@ -108,10 +108,10 @@ int32_t DarwinMajorVersionInternal() {
   char* dot = strchr(uname_info.release, '.');
   if (dot) {
     errno = 0;
-    char* end_ptr = NULL;
+    char* end_ptr = nullptr;
     darwin_major_version = strtol(uname_info.release, &end_ptr, 10);
     if (errno != 0 || (end_ptr == uname_info.release)) {
-      dot = NULL;
+      dot = nullptr;
     }
   }
 

@@ -783,6 +783,54 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void>
+      test_createChange_patternVariable_ifCase_patternField_explicitName() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case int(sign: var sign)) {
+    sign;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('sign;');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case int(sign: var newName)) {
+    newName;
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_patternVariable_ifCase_patternField_implicitName() async {
+    await indexTestUnit('''
+void f(Object? x) {
+  if (x case int(: var isEven)) {
+    isEven;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('isEven;');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(Object? x) {
+  if (x case int(isEven: var newName)) {
+    newName;
+  }
+}
+''');
+  }
+
   Future<void> test_createChange_patternVariable_patternAssignment() async {
     await indexTestUnit('''
 void f() {
@@ -831,7 +879,7 @@ Object f(Object? x) => switch (x) {
       test_createChange_patternVariable_switchStatement_shared() async {
     await indexTestUnit('''
 void f(Object? x) {
-  switch (0) {
+  switch (x) {
     case int test when test > 0:
     case [int test] when test < 0:
       test;
@@ -847,7 +895,7 @@ void f(Object? x) {
     // validate change
     return assertSuccessfulRefactoring('''
 void f(Object? x) {
-  switch (0) {
+  switch (x) {
     case int newName when newName > 0:
     case [int newName] when newName < 0:
       newName;

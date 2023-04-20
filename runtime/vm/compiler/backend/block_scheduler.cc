@@ -117,7 +117,7 @@ struct Link : public ZoneAllocated {
 // a length to support adding a shorter chain's links to a longer chain.
 struct Chain : public ZoneAllocated {
   explicit Chain(BlockEntryInstr* block)
-      : first(new Link(block, NULL)), last(first), length(1) {}
+      : first(new Link(block, nullptr)), last(first), length(1) {}
 
   Link* first;
   Link* last;
@@ -137,7 +137,7 @@ static void Union(GrowableArray<Chain*>* chains,
                   Chain* source_chain,
                   Chain* target_chain) {
   if (source_chain->length < target_chain->length) {
-    for (Link* link = source_chain->first; link != NULL; link = link->next) {
+    for (Link* link = source_chain->first; link != nullptr; link = link->next) {
       (*chains)[link->block->postorder_number()] = target_chain;
     }
     // Link the chains.
@@ -146,7 +146,7 @@ static void Union(GrowableArray<Chain*>* chains,
     target_chain->first = source_chain->first;
     target_chain->length += source_chain->length;
   } else {
-    for (Link* link = target_chain->first; link != NULL; link = link->next) {
+    for (Link* link = target_chain->first; link != nullptr; link = link->next) {
       (*chains)[link->block->postorder_number()] = source_chain;
     }
     source_chain->last->next = target_chain->first;
@@ -229,7 +229,7 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   // sort of the blocks).
   for (intptr_t i = block_count - 1; i >= 0; --i) {
     if (chains[i]->first->block == flow_graph->postorder()[i]) {
-      for (Link* link = chains[i]->first; link != NULL; link = link->next) {
+      for (Link* link = chains[i]->first; link != nullptr; link = link->next) {
         if ((link->block != checked_entry) && (link->block != graph_entry)) {
           flow_graph->CodegenBlockOrder(true)->Add(link->block);
         }

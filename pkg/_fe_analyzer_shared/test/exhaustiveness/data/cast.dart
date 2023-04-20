@@ -9,13 +9,19 @@ class A {
 }
 
 sealed class B {}
+
 class C extends B {}
+
 class D extends B {}
+
 class E extends B {}
 
 sealed class F<T> {}
+
 class G<T> extends F<T> {}
+
 class H extends F<int> {}
+
 class I<T, S> extends F<T> {}
 
 enum Enum<T> {
@@ -29,21 +35,27 @@ enum Enum<T> {
 
 simpleCast(o1, o2) {
   var a = /*
+   checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */switch (o1) {
-    _ as A /*space=()*/=> 0,
+  */
+      switch (o1) {
+    _ as A /*space=()*/ => 0,
     _ /*
      error=unreachable,
      space=()
-    */=> 1
+    */
+      =>
+      1
   };
 
   var b = /*
+   checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */switch (o2) {
-    _ as A /*space=()*/=> 0,
+  */
+      switch (o2) {
+    _ as A /*space=()*/ => 0,
   };
 }
 
@@ -51,26 +63,31 @@ restrictedCase(o1, o2) {
   // Cast shouldn't match everything, because even though it doesn't throw,
   // it might not match.
   var a = /*
+   checkingOrder={Object?,Object,Null},
    fields={field:-},
    subtypes={Object,Null},
    type=Object?
-  */switch (o1) {
-    A(field: 42) as A /*space=A(field: 42)|Null*/=> 0,
-    _ /*space=()*/=> 1
+  */
+      switch (o1) {
+    A(field: 42) as A /*space=A(field: 42)|Null*/ => 0,
+    _ /*space=()*/ => 1
   };
 
   var b = /*
+   checkingOrder={Object?,Object,Null},
    error=non-exhaustive:Object(),
    fields={field:-},
    subtypes={Object,Null},
    type=Object?
-  */switch (o2) {
-    A(field: 42) as A /*space=A(field: 42)|Null*/=> 0,
+  */
+      switch (o2) {
+    A(field: 42) as A /*space=A(field: 42)|Null*/ => 0,
   };
 }
 
 sealedCast(B b1, B b2) {
   /*
+   checkingOrder={B,C,D,E},
    subtypes={C,D,E},
    type=B
   */
@@ -81,6 +98,7 @@ sealedCast(B b1, B b2) {
     case D() as D:
   }
   /*
+   checkingOrder={B,C,D,E},
    subtypes={C,D,E},
    type=B
   */
@@ -94,6 +112,7 @@ sealedCast(B b1, B b2) {
 
 genericSealedCast<T>(F<T> f1, F<T> f2) {
   /*
+   checkingOrder={F<T>,G<T>,H,I<dynamic, dynamic>},
    error=non-exhaustive:I<dynamic, dynamic>(),
    subtypes={G<T>,H,I<dynamic, dynamic>},
    type=F<T>
@@ -105,6 +124,7 @@ genericSealedCast<T>(F<T> f1, F<T> f2) {
     case H() as H:
   }
   /*
+   checkingOrder={F<T>,G<T>,H,I<dynamic, dynamic>},
    error=non-exhaustive:H(),
    subtypes={G<T>,H,I<dynamic, dynamic>},
    type=F<T>
@@ -117,24 +137,28 @@ genericSealedCast<T>(F<T> f1, F<T> f2) {
   }
 }
 
-
 nullCast(A? a1, A? a2) {
   var b1 = /*
+   checkingOrder={A?,A,Null},
    subtypes={A,Null},
    type=A?
-  */switch (a1) {
-    A() as A /*space=A?*/=> 0,
+  */
+      switch (a1) {
+    A() as A /*space=A?*/ => 0,
   };
   var b2 = /*
+   checkingOrder={A?,A,Null},
    subtypes={A,Null},
    type=A?
-  */switch (a2) {
-    Null _ as Null /*space=A?*/=> 0,
+  */
+      switch (a2) {
+    Null _ as Null /*space=A?*/ => 0,
   };
 }
 
 enumCast(Enum e) {
   /*
+   checkingOrder={Enum<dynamic>,Enum.a1,Enum.a2,Enum.b1,Enum.b2,Enum.c1,Enum.c2},
    subtypes={Enum.a1,Enum.a2,Enum.b1,Enum.b2,Enum.c1,Enum.c2},
    type=Enum<dynamic>
   */
@@ -144,6 +168,7 @@ enumCast(Enum e) {
       return 0;
   }
   /*
+   checkingOrder={Enum<dynamic>,Enum.a1,Enum.a2,Enum.b1,Enum.b2,Enum.c1,Enum.c2},
    subtypes={Enum.a1,Enum.a2,Enum.b1,Enum.b2,Enum.c1,Enum.c2},
    type=Enum<dynamic>
   */
@@ -161,6 +186,7 @@ enumCast(Enum e) {
 
 unrelatedCast(B b1, B? b2) {
   /*
+   checkingOrder={B,C,D,E},
    error=non-exhaustive:C(),
    subtypes={C,D,E},
    type=B
@@ -170,7 +196,8 @@ unrelatedCast(B b1, B? b2) {
     case H() as H:
   }
   /*
-   error=non-exhaustive:C(),
+   checkingOrder={B?,B,Null,C,D,E},
+   error=non-exhaustive:null,
    expandedSubtypes={C,D,E,Null},
    subtypes={B,Null},
    type=B?
@@ -182,59 +209,70 @@ unrelatedCast(B b1, B? b2) {
 }
 
 sealed class J {}
+
 class K extends J {}
+
 sealed class L extends J {}
+
 class M extends L {}
+
 class N extends L {}
+
 class O extends N {}
 
 exhaustiveNested(J j1, J j2, J j3, J j4, J j5, J j6) {
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
   */
   switch (j1) {
-  /*space=J*/
+    /*space=J*/
     case J() as J:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
   */
   switch (j2) {
-  /*space=K|M|N*/
+    /*space=K|M|N*/
     case K() as K:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
   */
   switch (j3) {
-  /*space=L|K*/
+    /*space=L|K*/
     case L() as L:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
   */
   switch (j4) {
-  /*space=M|K|N*/
+    /*space=M|K|N*/
     case M() as M:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
   */
   switch (j5) {
-  /*space=N|K|M*/
+    /*space=N|K|M*/
     case N() as N:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -242,12 +280,13 @@ exhaustiveNested(J j1, J j2, J j3, J j4, J j5, J j6) {
   switch (j6) {
     /*space=O|K|M*/
     case O() as O:
-    /*space=N*/case N():
+    /*space=N*/ case N():
   }
 }
 
 nonExhaustiveNested(J j) {
   /*
+   checkingOrder={J,K,L,M,N},
    error=non-exhaustive:N(),
    expandedSubtypes={K,M,N},
    subtypes={K,L},
@@ -261,6 +300,7 @@ nonExhaustiveNested(J j) {
 
 exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -272,6 +312,7 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
     case J() as J:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -283,6 +324,7 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
     case K() as K:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -294,6 +336,7 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
     case L() as L:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -305,6 +348,7 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
     case M() as M:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
@@ -316,13 +360,15 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
     case N() as N:
   }
   /*
+   checkingOrder={J,K,L,M,N},
    error=non-exhaustive:N(),
    expandedSubtypes={K,M,N},
    subtypes={K,L},
    type=J
-  */switch (j6) {
-    /*space=M*/case M():
-  /*space=O|K|M*/
+  */
+  switch (j6) {
+    /*space=M*/ case M():
+    /*space=O|K|M*/
     case O() as O:
   }
 }

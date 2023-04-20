@@ -59,6 +59,7 @@ import 'package:kernel/target/targets.dart'
 const List<Option> optionSpecification = [
   Options.compileSdk,
   Options.dumpIr,
+  Options.showOffsets,
   Options.enableExperiment,
   Options.enableUnscheduledExperiments,
   Options.excludeSource,
@@ -156,7 +157,9 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool skipPlatformVerification =
       Options.skipPlatformVerification.read(parsedOptions);
 
-  final bool dumpIr = Options.dumpIr.read(parsedOptions);
+  final bool showOffsets = Options.showOffsets.read(parsedOptions);
+
+  final bool dumpIr = Options.dumpIr.read(parsedOptions) || showOffsets;
 
   final bool excludeSource = Options.excludeSource.read(parsedOptions);
 
@@ -256,6 +259,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..skipForDebugging = fatalSkip
     ..embedSourceText = !excludeSource
     ..debugDump = dumpIr
+    ..debugDumpShowOffsets = showOffsets
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify

@@ -175,7 +175,7 @@ class C {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 27, 1),
+      error(WarningCode.UNUSED_ELEMENT, 27, 1),
     ]);
   }
 

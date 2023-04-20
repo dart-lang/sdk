@@ -30,6 +30,7 @@ class _WasmTransformer extends Transformer {
   StaticTypeContext? _cachedTypeContext;
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
+  final Class _wasmBaseClass;
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
   late final controllerNullableObjectType = InterfaceType(
@@ -52,6 +53,7 @@ class _WasmTransformer extends Transformer {
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
+        _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
         _coreLibrary = coreTypes.index.getLibrary('dart:core');
 
   @override
@@ -108,6 +110,7 @@ class _WasmTransformer extends Transformer {
     // `Type` object.
     if (!cls.isAbstract &&
         cls != coreTypes.objectClass &&
+        !env.hierarchy.isSubclassOf(cls, _wasmBaseClass) &&
         !canReuseSuperMethod(cls)) {
       Procedure getTypeArguments = Procedure(
           Name("_typeArguments", _coreLibrary),

@@ -24,26 +24,55 @@ void main() {
         uri: Uri.parse('dart:core'));
 
     test('can combine multiple execution results', () {
+      final classes = <IdentifierImpl, ClassDeclaration>{};
+      for (var i = 0; i < 2; i++) {
+        for (var j = 0; j < 3; j++) {
+          final identifier =
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo$i$j');
+          classes[identifier] = ClassDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier: identifier,
+              typeParameters: [],
+              interfaces: [],
+              hasAbstract: false,
+              hasBase: false,
+              hasExternal: false,
+              hasFinal: false,
+              hasInterface: false,
+              hasMixin: false,
+              hasSealed: false,
+              mixins: [],
+              superclass: null);
+        }
+      }
       var results = [
         for (var i = 0; i < 2; i++)
-          MacroExecutionResultImpl(classAugmentations: {
-            for (var j = 0; j < 3; j++)
-              'Foo$i$j': [
-                DeclarationCode.fromParts([intIdentifier, ' get i => $i;\n']),
-                DeclarationCode.fromParts([intIdentifier, ' get j => $j;\n']),
-              ]
-          }, libraryAugmentations: [
-            for (var j = 0; j < 3; j++)
-              DeclarationCode.fromParts(
-                  [intIdentifier, ' get i${i}j$j => ${i + j};\n']),
-          ], newTypeNames: [
-            'Foo${i}0',
-            'Foo${i}1',
-            'Foo${i}2',
-          ]),
+          MacroExecutionResultImpl(
+              enumValueAugmentations: {},
+              typeAugmentations: {
+                for (var j = 0; j < 3; j++)
+                  classes.keys.firstWhere(
+                      (identifier) => identifier.name == 'Foo$i$j'): [
+                    DeclarationCode.fromParts(
+                        [intIdentifier, ' get i => $i;\n']),
+                    DeclarationCode.fromParts(
+                        [intIdentifier, ' get j => $j;\n']),
+                  ]
+              },
+              libraryAugmentations: [
+                for (var j = 0; j < 3; j++)
+                  DeclarationCode.fromParts(
+                      [intIdentifier, ' get i${i}j$j => ${i + j};\n']),
+              ],
+              newTypeNames: [
+                'Foo${i}0',
+                'Foo${i}1',
+                'Foo${i}2',
+              ]),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
           results,
+          (Identifier i) => classes[i]!,
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
@@ -116,7 +145,8 @@ void main() {
           uri: Uri.parse('package:bar/bar.dart'));
       var results = [
         MacroExecutionResultImpl(
-          classAugmentations: {},
+          enumValueAugmentations: {},
+          typeAugmentations: {},
           libraryAugmentations: [
             DeclarationCode.fromParts([
               'class FooBuilder<T extends ',
@@ -147,6 +177,7 @@ void main() {
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
           results,
+          (_) => throw UnimplementedError(),
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
@@ -166,21 +197,26 @@ void main() {
 
     test('can handle omitted type annotations', () {
       var results = [
-        MacroExecutionResultImpl(classAugmentations: {}, libraryAugmentations: [
-          DeclarationCode.fromParts([
-            OmittedTypeAnnotationCode(
-                TestOmittedTypeAnnotation(NamedTypeAnnotationImpl(
-              id: RemoteInstance.uniqueId,
-              identifier: intIdentifier,
-              isNullable: false,
-              typeArguments: [],
-            ))),
-            ' x = 1;',
-          ]),
-        ], newTypeNames: []),
+        MacroExecutionResultImpl(
+            enumValueAugmentations: {},
+            typeAugmentations: {},
+            libraryAugmentations: [
+              DeclarationCode.fromParts([
+                OmittedTypeAnnotationCode(
+                    TestOmittedTypeAnnotation(NamedTypeAnnotationImpl(
+                  id: RemoteInstance.uniqueId,
+                  identifier: intIdentifier,
+                  isNullable: false,
+                  typeArguments: [],
+                ))),
+                ' x = 1;',
+              ]),
+            ],
+            newTypeNames: []),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
           results,
+          (_) => throw UnimplementedError(),
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
@@ -227,7 +263,8 @@ void main() {
           uri: Uri.parse('package:bar/bar.dart'));
       var results = [
         MacroExecutionResultImpl(
-          classAugmentations: {},
+          enumValueAugmentations: {},
+          typeAugmentations: {},
           libraryAugmentations: [
             DeclarationCode.fromParts([
               'class OmittedType {\n  ',
@@ -261,6 +298,7 @@ void main() {
       var omittedTypes = <OmittedTypeAnnotation, String>{};
       var library = _TestExecutor().buildAugmentationLibrary(
           results,
+          (_) => throw UnimplementedError(),
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType,
@@ -280,6 +318,127 @@ void main() {
       '''));
       expect(omittedTypes[omittedType0], 'OmittedType2_0');
       expect(omittedTypes[omittedType1], 'OmittedType2_1');
+    });
+
+    test('can augment enums and enum values', () async {
+      final myEnum = EnumDeclarationImpl(
+        id: RemoteInstance.uniqueId,
+        identifier: TestIdentifier(
+            id: RemoteInstance.uniqueId,
+            name: 'MyEnum',
+            kind: IdentifierKind.topLevelMember,
+            uri: Uri.parse('a.dart'),
+            staticScope: null),
+        typeParameters: [],
+        interfaces: [],
+        mixins: [],
+      );
+      final myField = FieldDeclarationImpl(
+          id: RemoteInstance.uniqueId,
+          identifier: TestIdentifier(
+              id: RemoteInstance.uniqueId,
+              name: 'value',
+              kind: IdentifierKind.instanceMember,
+              uri: Uri.parse('a.dart'),
+              staticScope: null),
+          definingType: myEnum.identifier,
+          isExternal: false,
+          isFinal: true,
+          isLate: false,
+          isStatic: false,
+          type: NamedTypeAnnotationImpl(
+              id: RemoteInstance.uniqueId,
+              isNullable: false,
+              identifier: intIdentifier,
+              typeArguments: []));
+
+      var results = [
+        MacroExecutionResultImpl(enumValueAugmentations: {
+          myEnum.identifier: [
+            DeclarationCode.fromParts(['a(1),\n']),
+          ],
+        }, typeAugmentations: {
+          myEnum.identifier: [
+            DeclarationCode.fromParts(['MyEnum(', myField.identifier, ');\n']),
+            DeclarationCode.fromParts(
+                ['final ', intIdentifier, ' ', myField.identifier.name, ';\n']),
+          ],
+        }, newTypeNames: [], libraryAugmentations: []),
+      ];
+      var library = _TestExecutor().buildAugmentationLibrary(
+          results,
+          (Identifier i) =>
+              i == myEnum.identifier ? myEnum : throw UnimplementedError(),
+          (Identifier i) => (i as TestIdentifier).resolved,
+          (OmittedTypeAnnotation i) =>
+              (i as TestOmittedTypeAnnotation).inferredType);
+      expect(library, equalsIgnoringWhitespace('''
+        import 'a.dart' as prefix0;
+        import 'dart:core' as prefix1;
+
+        augment enum MyEnum {
+          a(1),
+          ;
+          MyEnum(this.value);
+          final prefix1.int value;
+        }
+      '''));
+    });
+
+    test('copies keywords for classes', () async {
+      for (final hasKeywords in [true, false]) {
+        final clazz = ClassDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
+            typeParameters: [],
+            interfaces: [],
+            hasAbstract: hasKeywords,
+            hasBase: hasKeywords,
+            hasExternal: hasKeywords,
+            hasFinal: hasKeywords,
+            hasInterface: hasKeywords,
+            hasMixin: hasKeywords,
+            hasSealed: hasKeywords,
+            mixins: [],
+            superclass: null);
+
+        var results = [
+          MacroExecutionResultImpl(
+              enumValueAugmentations: {},
+              typeAugmentations: {
+                clazz.identifier: [
+                  DeclarationCode.fromParts(['']),
+                ]
+              },
+              newTypeNames: [],
+              libraryAugmentations: []),
+        ];
+        var library = _TestExecutor().buildAugmentationLibrary(
+            results,
+            (Identifier i) =>
+                i == clazz.identifier ? clazz : throw UnimplementedError(),
+            (Identifier i) => (i as TestIdentifier).resolved,
+            (OmittedTypeAnnotation i) =>
+                (i as TestOmittedTypeAnnotation).inferredType);
+        final expectedKeywords = [
+          if (hasKeywords) ...[
+            'abstract',
+            'base',
+            'external',
+            'final',
+            'interface',
+            'mixin',
+            'sealed'
+          ]
+        ];
+        // Add extra space after, if we have keywords
+        if (expectedKeywords.isNotEmpty) expectedKeywords.add('');
+        expect(library, equalsIgnoringWhitespace('''
+            augment ${expectedKeywords.join(' ')}class MyClass {
+            }
+          '''));
+      }
     });
   });
 }

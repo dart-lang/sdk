@@ -8,27 +8,85 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
 
+/// Handles simple preferences for user prompts to allow the user to opt-out of
+/// seeing prompts in future.
+///
+/// When the supplied resource provider is unable to store state, prompts will
+/// not be persisted and will default to safe values.
+abstract class UserPromptPreferences {
+  factory UserPromptPreferences(
+    ResourceProvider resourceProvider,
+    InstrumentationService instrumentationService,
+  ) {
+    final stateFolder = resourceProvider.getStateLocation('.prompts');
+    if (stateFolder == null) {
+      instrumentationService.logInfo(
+        'No state location is available for saving user prompt preferences. '
+        'Preferences will assumed opt-outs.',
+      );
+      return _NotPersistableUserPromptPreferences();
+    }
+    final preferencesFile =
+        (stateFolder..create()).getChildAssumingFile('preferences.json');
+
+    return _PersistableUserPromptPreferences(
+        preferencesFile, instrumentationService);
+  }
+
+  bool get canPersist;
+
+  @visibleForTesting
+  File? get preferencesFile;
+
+  bool get showDartFixPrompts;
+  set showDartFixPrompts(bool value);
+}
+
+/// An implementation of [UserPromptPreferences] for when no store is available
+/// for saving preferences.
+///
+/// All preferences should return "safe" defaults, such as assuming the user
+/// has opted-out of prompts, to ensure they do not see repeated prompts because
+/// "Don't show again" cannot be saved.
+class _NotPersistableUserPromptPreferences implements UserPromptPreferences {
+  @override
+  bool get canPersist => false;
+
+  @override
+  File? get preferencesFile => null;
+
+  @override
+  bool get showDartFixPrompts => false;
+
+  @override
+  set showDartFixPrompts(bool value) {}
+}
+
 /// Handles reading and writing of simple preferences for user prompts to allow
 /// the user to opt-out of seeing prompts in future.
 ///
 /// All values are read/written real-time (not cached) so that multiple server
 /// instances can see each others values without restarting.
-class UserPromptPreferences {
-  final ResourceProvider resourceProvider;
-  final InstrumentationService instrumentationService;
+class _PersistableUserPromptPreferences implements UserPromptPreferences {
+  final InstrumentationService _instrumentationService;
 
   final _jsonEncoder = JsonEncoder.withIndent('  ');
 
   /// The file for storing preferences.
+  @override
   @visibleForTesting
-  late final File preferencesFile;
+  final File preferencesFile;
 
-  UserPromptPreferences(this.resourceProvider, this.instrumentationService) {
-    preferencesFile = (resourceProvider.getStateLocation('.prompts')!..create())
-        .getChildAssumingFile('preferences.json');
-  }
+  _PersistableUserPromptPreferences(
+      this.preferencesFile, this._instrumentationService);
 
+  @override
+  bool get canPersist => true;
+
+  @override
   bool get showDartFixPrompts => _readBool('showDartFixPrompts', true);
+
+  @override
   set showDartFixPrompts(bool value) => _writeBool('showDartFixPrompts', value);
 
   bool _readBool(String name, bool defaultValue) =>
@@ -46,7 +104,7 @@ class UserPromptPreferences {
       // File did not exist, do nothing.
       return null;
     } on FormatException catch (e) {
-      instrumentationService.logError(
+      _instrumentationService.logError(
         'Failed to parse preferences JSON from ${preferencesFile.path}: $e',
       );
       return null;
@@ -86,7 +144,8 @@ class UserPromptPreferences {
       return true;
     } catch (e) {
       // Don't fail if we can't write (eg. file locked by another process).
-      instrumentationService.logError('Failed to write prompt preferences: $e');
+      _instrumentationService
+          .logError('Failed to write prompt preferences: $e');
       return false;
     }
   }

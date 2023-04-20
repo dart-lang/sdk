@@ -854,6 +854,50 @@ ConstructorDeclaration
 ''');
   }
 
+  void test_constructor_superParamAndSuperInitializer() {
+    var parseResult = parseStringWithErrors(r'''
+abstract class A {
+  final String f1;
+
+  final int f2;
+
+  const A(this.f1, this.f2);
+}
+
+class B extends A {
+  const B(super.f1): super(2);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('B(');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  returnType: SimpleIdentifier
+    token: B
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SuperFormalParameter
+      superKeyword: super
+      period: .
+      name: f1
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 2
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   void test_constructor_wrongName() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -881,6 +925,27 @@ ConstructorDeclaration
         rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  void test_enum_base() {
+    var parseResult = parseStringWithErrors(r'''
+base enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.BASE_ENUM, 0, 4),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
 ''');
   }
 
@@ -1058,6 +1123,69 @@ EnumConstantDeclaration
 ''');
   }
 
+  void test_enum_final() {
+    var parseResult = parseStringWithErrors(r'''
+final enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.FINAL_ENUM, 0, 5),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
+''');
+  }
+
+  void test_enum_interface() {
+    var parseResult = parseStringWithErrors(r'''
+interface enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INTERFACE_ENUM, 0, 9),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
+''');
+  }
+
+  void test_enum_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+sealed enum E { v }
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.SEALED_ENUM, 0, 6),
+    ]);
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      name: v
+  rightBracket: }
+''');
+  }
+
   void test_enum_semicolon_null() {
     var parseResult = parseStringWithErrors(r'''
 enum E {
@@ -1232,18 +1360,15 @@ MixinDeclaration
 
   void test_mixin_final() {
     var parseResult = parseStringWithErrors(r'''
-/// text
 final mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.FINAL_MIXIN, 0, 5),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  finalKeyword: final
   mixinKeyword: mixin
   name: M
   leftBracket: {
@@ -1290,18 +1415,15 @@ MixinDeclaration
 
   void test_mixin_interface() {
     var parseResult = parseStringWithErrors(r'''
-/// text
 interface mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.INTERFACE_MIXIN, 0, 9),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  interfaceKeyword: interface
   mixinKeyword: mixin
   name: M
   leftBracket: {
@@ -1341,18 +1463,15 @@ MixinDeclaration
 
   void test_mixin_sealed() {
     var parseResult = parseStringWithErrors(r'''
-/// text
 sealed mixin M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.SEALED_MIXIN, 0, 6),
+    ]);
 
     final node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  sealedKeyword: sealed
   mixinKeyword: mixin
   name: M
   leftBracket: {

@@ -7,9 +7,3 @@ interface class A {}
 typedef ATypeDef = A;
 
 typedef ATypeDef2 = ATypeDef;
-
-interface mixin M {}
-
-typedef MTypeDef = M;
-
-typedef MTypeDef2 = MTypeDef;

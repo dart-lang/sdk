@@ -67,10 +67,11 @@ main() {
   }
   Expect.isTrue(scriptFile.existsSync());
   test(
-      Process.start(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..addAll([scriptFile.path, "1"])),
+      Process.start(Platform.executable, [
+        ...Platform.executableArguments,
+        "--verbosity=warning", // CFE info/hints pollute the stderr we are trying to test
+        scriptFile.path,
+        "1"
+      ]),
       0);
 }

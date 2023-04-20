@@ -3228,6 +3228,10 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
 #if defined(DART_TARGET_OS_FUCHSIA)
+  // We need to restore the shadow call stack pointer like longjmp would,
+  // effectively popping all the return addresses between the Dart exit frame
+  // and Exceptions::JumpToFrame, otherwise the shadow call stack might
+  // eventually overflow.
   __ ldr(R18, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented

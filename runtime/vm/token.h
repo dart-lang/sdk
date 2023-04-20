@@ -94,7 +94,7 @@ namespace dart {
                                                                                \
   TOK(kNOT, "!", 0, kNoAttribute)                                              \
   TOK(kCONDITIONAL, "?", 3, kNoAttribute)                                      \
-  TOK(kIFNULL, "??", 4, kNoAttribute)                                          \
+  TOK(kIFnullptr, "??", 4, kNoAttribute)                                       \
                                                                                \
   /* Equality operators.                             */                        \
   /* Please update IsEqualityOperator() if you make  */                        \
@@ -178,7 +178,7 @@ namespace dart {
   KW(kIS, "is", 11, kKeyword)                                                  \
   KW(kLIBRARY, "library", 0, kPseudoKeyword)                                   \
   KW(kNEW, "new", 0, kKeyword)                                                 \
-  KW(kNULL, "null", 0, kKeyword)                                               \
+  KW(knullptr, "null", 0, kKeyword)                                            \
   KW(kOPERATOR, "operator", 0, kPseudoKeyword)                                 \
   KW(kPART, "part", 0, kPseudoKeyword)                                         \
   KW(kRETHROW, "rethrow", 0, kKeyword)                                         \
@@ -213,7 +213,7 @@ class Token {
 
   static const Kind kFirstKeyword = kABSTRACT;
   static const Kind kLastKeyword = kWITH;
-  static const int kNumKeywords = kLastKeyword - kFirstKeyword + 1;
+  static constexpr int kNumKeywords = kLastKeyword - kFirstKeyword + 1;
 
   static bool IsAssignmentOperator(Kind tok) {
     return kASSIGN <= tok && tok <= kASSIGN_COND;

@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
+import 'package:analysis_server/src/analytics/context_structure.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
 import 'package:analysis_server/src/analytics/request_data.dart';
@@ -26,6 +29,10 @@ import 'package:unified_analytics/unified_analytics.dart';
 /// required to invoke the [shutdown] method before the server shuts down in
 /// order to send any cached data.
 class AnalyticsManager {
+  /// A flag set during development to allow experimental data to be sent to a
+  /// development-time analytics account.
+  static const bool sendExperimentalData = false;
+
   /// The object used to send analytics.
   final Analytics analytics;
 
@@ -34,6 +41,9 @@ class AnalyticsManager {
   SessionData? _sessionData;
 
   final PluginData _pluginData = PluginData();
+
+  /// The data about analysis, or `null` if no analysis has been performed.
+  ContextStructure? _contextStructure;
 
   /// A map from the id of a request to data about the request.
   final Map<String, ActiveRequestData> _activeRequests = {};
@@ -55,9 +65,53 @@ class AnalyticsManager {
   /// represented by the key.
   final Map<String, Map<String, int>> _severityAdjustments = {};
 
+  /// A periodic timer used to send analytics data. This timer should be
+  /// cancelled at shutdown.
+  Timer? periodicTimer;
+
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
-  AnalyticsManager(this.analytics);
+  AnalyticsManager(this.analytics) {
+    if (analytics is! NoopAnalytics) {
+      periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
+        _sendPeriodicData();
+      });
+    }
+  }
+
+  /// Record information about the number of files and the numer of lines of
+  /// code in those files, for both immediate files, transitive files, and the
+  /// number of unique transitive files.
+  void analysisComplete({
+    required int numberOfContexts,
+    required int contextsWithoutFiles,
+    required int contextsFromPackagesFiles,
+    required int contextsFromOptionsFiles,
+    required int contextsFromBothFiles,
+    required int immediateFileCount,
+    required int immediateFileLineCount,
+    required int transitiveFileCount,
+    required int transitiveFileLineCount,
+    required int transitiveFileUniqueCount,
+    required int transitiveFileUniqueLineCount,
+  }) {
+    // This is currently keeping the first report of completed analysis, but we
+    // might want to consider alternatives, such as keeping the "largest"
+    // analysis or keeping all of the data and sending back percentile.
+    _contextStructure ??= ContextStructure(
+      numberOfContexts: numberOfContexts,
+      contextsWithoutFiles: contextsWithoutFiles,
+      contextsFromPackagesFiles: contextsFromPackagesFiles,
+      contextsFromOptionsFiles: contextsFromOptionsFiles,
+      contextsFromBothFiles: contextsFromBothFiles,
+      immediateFileCount: immediateFileCount,
+      immediateFileLineCount: immediateFileLineCount,
+      transitiveFileCount: transitiveFileCount,
+      transitiveFileLineCount: transitiveFileLineCount,
+      transitiveFileUniqueCount: transitiveFileUniqueCount,
+      transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+    );
+  }
 
   /// Record that the set of plugins known to the [pluginManager] has changed.
   void changedPlugins(PluginManager pluginManager) {
@@ -160,7 +214,10 @@ class AnalyticsManager {
     }
     await _sendSessionData(sessionData);
     await _sendPeriodicData();
+    await _sendAnalysisData();
 
+    periodicTimer?.cancel();
+    periodicTimer = null;
     analytics.close();
   }
 
@@ -320,6 +377,24 @@ class AnalyticsManager {
       buffer.writeln('</ul>');
     }
 
+    var analysisData = _contextStructure;
+    if (analysisData != null) {
+      h3('Analysis data');
+      buffer.writeln('<ul>');
+      li('numberOfContexts: ${json.encode(analysisData.numberOfContexts)}');
+      li('contextsWithoutFiles: ${json.encode(analysisData.contextsWithoutFiles)}');
+      li('contextsFromPackagesFiles: ${json.encode(analysisData.contextsFromPackagesFiles)}');
+      li('contextsFromOptionsFiles: ${json.encode(analysisData.contextsFromOptionsFiles)}');
+      li('contextsFromBothFiles: ${json.encode(analysisData.contextsFromBothFiles)}');
+      li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
+      li('immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}');
+      li('transitiveFileCount: ${json.encode(analysisData.transitiveFileCount)}');
+      li('transitiveFileLineCount: ${json.encode(analysisData.transitiveFileLineCount)}');
+      li('transitiveFileUniqueCount: ${json.encode(analysisData.transitiveFileUniqueCount)}');
+      li('transitiveFileUniqueLineCount: ${json.encode(analysisData.transitiveFileUniqueLineCount)}');
+      buffer.writeln('</ul>');
+    }
+
     return buffer.toString();
   }
 
@@ -351,6 +426,29 @@ class AnalyticsManager {
     requestData.responseTimes.addValue(responseTime);
   }
 
+  /// Send information about the number of files and the numer of lines of code
+  /// in those files.
+  Future<void> _sendAnalysisData() async {
+    var contextStructure = _contextStructure;
+    if (contextStructure != null) {
+      await analytics
+          .sendEvent(eventName: DashEvent.contextStructure, eventData: {
+        'numberOfContexts': contextStructure.numberOfContexts,
+        'contextsWithoutFiles': contextStructure.contextsWithoutFiles,
+        'contextsFromPackagesFiles': contextStructure.contextsFromPackagesFiles,
+        'contextsFromOptionsFiles': contextStructure.contextsFromOptionsFiles,
+        'contextsFromBothFiles': contextStructure.contextsFromBothFiles,
+        'immediateFileCount': contextStructure.immediateFileCount,
+        'immediateFileLineCount': contextStructure.immediateFileLineCount,
+        'transitiveFileCount': contextStructure.transitiveFileCount,
+        'transitiveFileLineCount': contextStructure.transitiveFileLineCount,
+        'transitiveFileUniqueCount': contextStructure.transitiveFileUniqueCount,
+        'transitiveFileUniqueLineCount':
+            contextStructure.transitiveFileUniqueLineCount,
+      });
+    }
+  }
+
   /// Send information about the number of times each lint is enabled in an
   /// analysis options file.
   Future<void> _sendLintUsageCounts() async {
@@ -359,18 +457,22 @@ class AnalyticsManager {
           .sendEvent(eventName: DashEvent.lintUsageCounts, eventData: {
         'usageCounts': json.encode(_lintUsageCounts),
       });
+      _lintUsageCounts.clear();
     }
   }
 
   /// Send information about the notifications handled by the server.
   Future<void> _sendNotificationHandlingTimes() async {
-    for (var data in _completedNotifications.values) {
-      await analytics
-          .sendEvent(eventName: DashEvent.clientNotification, eventData: {
-        'latency': data.latencyTimes.toAnalyticsString(),
-        'method': data.method,
-        'duration': data.handlingTimes.toAnalyticsString(),
-      });
+    if (_completedNotifications.isNotEmpty) {
+      for (var data in _completedNotifications.values) {
+        await analytics
+            .sendEvent(eventName: DashEvent.clientNotification, eventData: {
+          'latency': data.latencyTimes.toAnalyticsString(),
+          'method': data.method,
+          'duration': data.handlingTimes.toAnalyticsString(),
+        });
+      }
+      _completedNotifications.clear();
     }
   }
 
@@ -387,30 +489,37 @@ class AnalyticsManager {
   /// Send information about the response times of plugins.
   Future<void> _sendPluginResponseTimes() async {
     var responseTimes = PluginManager.pluginResponseTimes;
-    for (var pluginEntry in responseTimes.entries) {
-      for (var responseEntry in pluginEntry.value.entries) {
-        await analytics
-            .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
-          'pluginId': pluginEntry.key.pluginId,
-          'method': responseEntry.key,
-          'duration': responseEntry.value.toAnalyticsString(),
-        });
+    if (responseTimes.isNotEmpty) {
+      for (var pluginEntry in responseTimes.entries) {
+        for (var responseEntry in pluginEntry.value.entries) {
+          await analytics
+              .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
+            'pluginId': pluginEntry.key.pluginId,
+            'method': responseEntry.key,
+            'duration': responseEntry.value.toAnalyticsString(),
+          });
+        }
       }
+      PluginManager.pluginResponseTimes.clear();
     }
   }
 
   /// Send information about the response times of server.
   Future<void> _sendServerResponseTimes() async {
-    for (var data in _completedRequests.values) {
-      await analytics.sendEvent(eventName: DashEvent.clientRequest, eventData: {
-        'latency': data.latencyTimes.toAnalyticsString(),
-        'method': data.method,
-        'duration': data.responseTimes.toAnalyticsString(),
-        for (var field in data.additionalPercentiles.entries)
-          field.key: field.value.toAnalyticsString(),
-        for (var field in data.additionalEnumCounts.entries)
-          field.key: json.encode(field.value),
-      });
+    if (_completedRequests.isNotEmpty) {
+      for (var data in _completedRequests.values) {
+        await analytics
+            .sendEvent(eventName: DashEvent.clientRequest, eventData: {
+          'latency': data.latencyTimes.toAnalyticsString(),
+          'method': data.method,
+          'duration': data.responseTimes.toAnalyticsString(),
+          for (var field in data.additionalPercentiles.entries)
+            field.key: field.value.toAnalyticsString(),
+          for (var field in data.additionalEnumCounts.entries)
+            field.key: json.encode(field.value),
+        });
+      }
+      _completedRequests.clear();
     }
   }
 
@@ -436,6 +545,7 @@ class AnalyticsManager {
           .sendEvent(eventName: DashEvent.severityAdjustments, eventData: {
         'adjustmentCounts': json.encode(_severityAdjustments),
       });
+      _severityAdjustments.clear();
     }
   }
 }

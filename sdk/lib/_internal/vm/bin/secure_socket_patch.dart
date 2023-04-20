@@ -60,7 +60,7 @@ class _SecureSocket extends _Socket implements SecureSocket {
  * native code can access the same data.
  */
 @pragma("vm:entry-point")
-class _SecureFilterImpl extends NativeFieldWrapperClass1
+base class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
   // Performance is improved if a full buffer of plaintext fits
   // in the encrypted buffer, when encrypted.
@@ -208,7 +208,7 @@ class SecurityContext {
   static bool get alpnSupported => true;
 }
 
-class _SecurityContext extends NativeFieldWrapperClass1
+base class _SecurityContext extends NativeFieldWrapperClass1
     implements SecurityContext {
   bool _allowLegacyUnsafeRenegotiation = false;
 
@@ -284,7 +284,7 @@ class _SecurityContext extends NativeFieldWrapperClass1
  * _X509CertificateImpl wraps an X509 certificate object held by the BoringSSL
  * library. It exposes the fields of the certificate object.
  */
-class _X509CertificateImpl extends NativeFieldWrapperClass1
+base class _X509CertificateImpl extends NativeFieldWrapperClass1
     implements X509Certificate {
   // The native field must be set manually on a new object, in native code.
   // This is done by WrappedX509Certificate in security_context.cc.

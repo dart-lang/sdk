@@ -54,7 +54,7 @@ TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
 intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
                                                       char* buffer,
                                                       intptr_t buffer_size) {
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
   ASSERT(buffer_size > 0);
   buffer[0] = '\0';
   intptr_t length = 0;
@@ -95,7 +95,7 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
 }
 
 void TimelineEventSystraceRecorder::OnEvent(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
   if (systrace_fd_ < 0) {

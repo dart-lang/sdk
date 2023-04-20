@@ -19,7 +19,9 @@ void main() {
 
 @reflectiveTest
 class SnippetRequestTest extends AbstractSingleUnitTest {
-  SnippetRequestTest() {
+  @override
+  void setUp() {
+    super.setUp();
     verifyNoTestUnitErrors = false;
   }
 
@@ -177,6 +179,14 @@ class A {
 // [!^!]
 class A {}
 ''', SnippetContext.inComment);
+  }
+
+  Future<void> test_enum() async {
+    await testRequest(r'''
+enum A {
+  [!^!]
+}
+''', SnippetContext.inClass);
   }
 
   Future<void> test_expression_constructor() async {
@@ -404,6 +414,22 @@ mixin A {
   [!^!]
 }
 ''', SnippetContext.inClass);
+  }
+
+  Future<void> test_pattern_switch() async {
+    await testRequest(r'''
+f(String a) => switch (a) {
+    [!^!]
+};
+''', SnippetContext.inPattern);
+  }
+
+  Future<void> test_pattern_switch_partialIdentifier() async {
+    await testRequest(r'''
+f(String a) => switch (a) {
+    [!sw^!]
+};
+''', SnippetContext.inPattern);
   }
 
   Future<void> test_statement_forCondition() async {

@@ -3,10 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 base class BaseClass {} /* Ok */
+
 base mixin BaseMixin {} /* Ok */
+
 final class FinalClass extends BaseClass {} /* Ok */
+
 sealed class SubtypeOfBase extends BaseClass {} /* Ok */
+
 class RegularClass {} /* Ok */
+
 base mixin BaseMixin2 {} /* Ok */
 
 class Extends extends BaseClass {} /* Error */
@@ -21,7 +26,8 @@ class With2 with BaseMixin, BaseMixin2 {} /* Error */
 
 mixin On on BaseClass {} /* Error */
 
-class ExtendsExtends extends Extends {} /* Error */
+// Only report errors on the nearest erroneous subtype.
+class ExtendsExtends extends Extends {} /* Ok */
 
 class Multiple extends FinalClass implements BaseMixin {} /* Error */
 

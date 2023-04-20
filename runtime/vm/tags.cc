@@ -19,13 +19,13 @@ Mutex* UserTags::subscribed_tags_lock_ = nullptr;
 const char* VMTag::TagName(uword tag) {
   if (IsNativeEntryTag(tag)) {
     const uint8_t* native_reverse_lookup = NativeEntry::ResolveSymbol(tag);
-    if (native_reverse_lookup != NULL) {
+    if (native_reverse_lookup != nullptr) {
       return reinterpret_cast<const char*>(native_reverse_lookup);
     }
     return "Unknown native entry";
   } else if (IsRuntimeEntryTag(tag)) {
     const char* runtime_entry_name = RuntimeEntryTagName(tag);
-    ASSERT(runtime_entry_name != NULL);
+    ASSERT(runtime_entry_name != nullptr);
     return runtime_entry_name;
   }
   ASSERT(tag != kInvalidTagId);
@@ -79,8 +79,8 @@ const VMTag::TagEntry VMTag::entries_[] = {
 
 VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
     : ThreadStackResource(thread) {
-  if (thread != NULL) {
-    ASSERT(isolate_group() != NULL);
+  if (thread != nullptr) {
+    ASSERT(isolate_group() != nullptr);
     previous_tag_ = thread->vm_tag();
     if (conditional_set) {
       thread->set_vm_tag(tag);
@@ -89,8 +89,8 @@ VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
 }
 
 VMTagScope::~VMTagScope() {
-  if (thread() != NULL) {
-    ASSERT(isolate_group() != NULL);
+  if (thread() != nullptr) {
+    ASSERT(isolate_group() != nullptr);
     thread()->set_vm_tag(previous_tag_);
   }
 }

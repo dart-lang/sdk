@@ -23,8 +23,27 @@ class C<T> {}
 var t = C<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('C<int>;');
-    assertTypeLiteral(typeLiteral, findElement.class_('C'), 'C<int>');
+    final node = findNode.typeLiteral('C<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: C<int>
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: C<int>
+  staticType: Type
+''');
   }
 
   test_class_importPrefix() async {
@@ -36,13 +55,35 @@ import 'a.dart' as a;
 var t = a.C<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('C<int>;');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.importFind('package:test/a.dart').class_('C'),
-      'C<int>',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix?.element,
-    );
+    final node = findNode.typeLiteral('C<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        staticElement: self::@prefix::a
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        staticElement: package:test/a.dart::@class::C
+        staticType: Type
+      staticElement: package:test/a.dart::@class::C
+      staticType: C<int>
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: C<int>
+  staticType: Type
+''');
   }
 
   test_class_tooFewTypeArgs() async {
@@ -53,9 +94,27 @@ var t = C<int>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 26, 5),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('C<int>;');
-    assertTypeLiteral(
-        typeLiteral, findElement.class_('C'), 'C<dynamic, dynamic>');
+    final node = findNode.typeLiteral('C<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: C<dynamic, dynamic>
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: C<dynamic, dynamic>
+  staticType: Type
+''');
   }
 
   test_class_tooManyTypeArgs() async {
@@ -66,8 +125,33 @@ var t = C<int, int>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 23, 10),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('C<int, int>;');
-    assertTypeLiteral(typeLiteral, findElement.class_('C'), 'C<dynamic>');
+    final node = findNode.typeLiteral('C<int, int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: C<dynamic>
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: C<dynamic>
+  staticType: Type
+''');
   }
 
   test_class_typeArgumentDoesNotMatchBound() async {
@@ -79,8 +163,27 @@ var t = C<String>;
           contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('C<String>;');
-    assertTypeLiteral(typeLiteral, findElement.class_('C'), 'C<String>');
+    final node = findNode.typeLiteral('C<String>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: C
+      staticElement: self::@class::C
+      staticType: C<String>
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    type: C<String>
+  staticType: Type
+''');
   }
 
   test_classAlias() async {
@@ -90,8 +193,33 @@ typedef CA<T> = C<T>;
 var t = CA<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('CA<int>;');
-    assertTypeLiteral(typeLiteral, findElement.typeAlias('CA'), 'C<int>');
+    final node = findNode.typeLiteral('CA<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: CA
+      staticElement: self::@typeAlias::CA
+      staticType: C<int>
+        alias: self::@typeAlias::CA
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: C<int>
+      alias: self::@typeAlias::CA
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_classAlias_differentTypeArgCount() async {
@@ -101,9 +229,33 @@ typedef CA<T> = C<T, int>;
 var t = CA<String>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('CA<String>;');
-    assertTypeLiteral(
-        typeLiteral, findElement.typeAlias('CA'), 'C<String, int>');
+    final node = findNode.typeLiteral('CA<String>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: CA
+      staticElement: self::@typeAlias::CA
+      staticType: C<String, int>
+        alias: self::@typeAlias::CA
+          typeArguments
+            String
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    type: C<String, int>
+      alias: self::@typeAlias::CA
+        typeArguments
+          String
+  staticType: Type
+''');
   }
 
   test_classAlias_functionTypeArg() async {
@@ -113,9 +265,43 @@ typedef CA<T> = C<T>;
 var t = CA<void Function()>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('CA<void Function()>;');
-    assertTypeLiteral(
-        typeLiteral, findElement.typeAlias('CA'), 'C<void Function()>');
+    final node = findNode.typeLiteral('CA<void Function()>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: CA
+      staticElement: self::@typeAlias::CA
+      staticType: C<void Function()>
+        alias: self::@typeAlias::CA
+          typeArguments
+            void Function()
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        GenericFunctionType
+          returnType: NamedType
+            name: SimpleIdentifier
+              token: void
+              staticElement: <null>
+              staticType: null
+            type: void
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          declaredElement: GenericFunctionTypeElement
+            parameters
+            returnType: void
+            type: void Function()
+          type: void Function()
+      rightBracket: >
+    type: C<void Function()>
+      alias: self::@typeAlias::CA
+        typeArguments
+          void Function()
+  staticType: Type
+''');
   }
 
   test_classAlias_importPrefix() async {
@@ -128,13 +314,41 @@ import 'a.dart' as a;
 var t = a.CA<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('CA<int>;');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.importFind('package:test/a.dart').typeAlias('CA'),
-      'C<int>',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix?.element,
-    );
+    final node = findNode.typeLiteral('CA<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        staticElement: self::@prefix::a
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: CA
+        staticElement: package:test/a.dart::@typeAlias::CA
+        staticType: Type
+      staticElement: package:test/a.dart::@typeAlias::CA
+      staticType: C<int>
+        alias: package:test/a.dart::@typeAlias::CA
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: C<int>
+      alias: package:test/a.dart::@typeAlias::CA
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_classAlias_typeArgumentDoesNotMatchBound() async {
@@ -147,8 +361,33 @@ var t = CA<String>;
           contextMessages: [message('/home/test/lib/test.dart', 56, 10)]),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('CA<String>;');
-    assertTypeLiteral(typeLiteral, findElement.typeAlias('CA'), 'C<String>');
+    final node = findNode.typeLiteral('CA<String>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: CA
+      staticElement: self::@typeAlias::CA
+      staticType: C<String>
+        alias: self::@typeAlias::CA
+          typeArguments
+            String
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    type: C<String>
+      alias: self::@typeAlias::CA
+        typeArguments
+          String
+  staticType: Type
+''');
   }
 
   test_functionAlias() async {
@@ -157,9 +396,33 @@ typedef Fn<T> = void Function(T);
 var t = Fn<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>;');
-    assertTypeLiteral(
-        typeLiteral, findElement.typeAlias('Fn'), 'void Function(int)');
+    final node = findNode.typeLiteral('Fn<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_importPrefix() async {
@@ -171,13 +434,41 @@ import 'a.dart' as a;
 var t = a.Fn<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>;');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.importFind('package:test/a.dart').typeAlias('Fn'),
-      'void Function(int)',
-      expectedPrefix: findElement.prefix('a'),
-    );
+    final node = findNode.typeLiteral('Fn<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        staticElement: self::@prefix::a
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: Fn
+        staticElement: package:test/a.dart::@typeAlias::Fn
+        staticType: Type
+      staticElement: package:test/a.dart::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: package:test/a.dart::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: package:test/a.dart::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfMethodCall() async {
@@ -195,12 +486,30 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(int)',
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfMethodCall_importPrefix() async {
@@ -221,13 +530,38 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 48, 3),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.importFind('package:test/a.dart').typeAlias('Fn'),
-      'void Function(int)',
-      expectedPrefix: findElement.prefix('a'),
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        staticElement: self::@prefix::a
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: Fn
+        staticElement: package:test/a.dart::@typeAlias::Fn
+        staticType: null
+      staticElement: package:test/a.dart::@typeAlias::Fn
+      staticType: void Function(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: package:test/a.dart::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfMethodCall_parenthesized() async {
@@ -243,12 +577,33 @@ extension E on Type {
 }
 ''');
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(int)',
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfPropertyAccess_getter() async {
@@ -266,12 +621,33 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(int)',
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfPropertyAccess_getter_parenthesized() async {
@@ -287,12 +663,33 @@ extension E on Type {
 }
 ''');
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(int)',
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfPropertyAccess_setter() async {
@@ -310,12 +707,33 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(int)',
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_targetOfPropertyAccess_setter_parenthesized() async {
@@ -331,12 +749,33 @@ extension E on Type {
 }
 ''');
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(int)',
-    );
+    final node = findNode.typeLiteral('Fn<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(int)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(int)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_functionAlias_tooFewTypeArgs() async {
@@ -347,12 +786,35 @@ var t = Fn<int>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<int>;');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(dynamic, dynamic)',
-    );
+    final node = findNode.typeLiteral('Fn<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(dynamic, dynamic)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            dynamic
+            dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: void Function(dynamic, dynamic)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          dynamic
+          dynamic
+  staticType: Type
+''');
   }
 
   test_functionAlias_tooManyTypeArgs() async {
@@ -363,12 +825,39 @@ var t = Fn<int, String>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 13),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<int, String>;');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(dynamic)',
-    );
+    final node = findNode.typeLiteral('Fn<int, String>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(dynamic)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    type: void Function(dynamic)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          dynamic
+  staticType: Type
+''');
   }
 
   test_functionAlias_typeArgumentDoesNotMatchBound() async {
@@ -380,12 +869,33 @@ var t = Fn<String>;
           contextMessages: [message('/home/test/lib/test.dart', 54, 10)]),
     ]);
 
-    var typeLiteral = findNode.typeLiteral('Fn<String>;');
-    assertTypeLiteral(
-      typeLiteral,
-      findElement.typeAlias('Fn'),
-      'void Function(String)',
-    );
+    final node = findNode.typeLiteral('Fn<String>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: Fn
+      staticElement: self::@typeAlias::Fn
+      staticType: void Function(String)
+        alias: self::@typeAlias::Fn
+          typeArguments
+            String
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: String
+            staticElement: dart:core::@class::String
+            staticType: null
+          type: String
+      rightBracket: >
+    type: void Function(String)
+      alias: self::@typeAlias::Fn
+        typeArguments
+          String
+  staticType: Type
+''');
   }
 
   test_mixin() async {
@@ -394,8 +904,27 @@ mixin M<T> {}
 var t = M<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('M<int>;');
-    assertTypeLiteral(typeLiteral, findElement.mixin('M'), 'M<int>');
+    final node = findNode.typeLiteral('M<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: M
+      staticElement: self::@mixin::M
+      staticType: M<int>
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: M<int>
+  staticType: Type
+''');
   }
 
   test_typeVariableTypeAlias() async {
@@ -404,8 +933,33 @@ typedef T<E> = E;
 var t = T<int>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('T<int>;');
-    assertTypeLiteral(typeLiteral, findElement.typeAlias('T'), 'int');
+    final node = findNode.typeLiteral('T<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: self::@typeAlias::T
+      staticType: int
+        alias: self::@typeAlias::T
+          typeArguments
+            int
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    type: int
+      alias: self::@typeAlias::T
+        typeArguments
+          int
+  staticType: Type
+''');
   }
 
   test_typeVariableTypeAlias_functionTypeArgument() async {
@@ -414,9 +968,43 @@ typedef T<E> = E;
 var t = T<void Function()>;
 ''');
 
-    var typeLiteral = findNode.typeLiteral('T<void Function()>;');
-    assertTypeLiteral(
-        typeLiteral, findElement.typeAlias('T'), 'void Function()');
+    final node = findNode.typeLiteral('T<void Function()>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: self::@typeAlias::T
+      staticType: void Function()
+        alias: self::@typeAlias::T
+          typeArguments
+            void Function()
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        GenericFunctionType
+          returnType: NamedType
+            name: SimpleIdentifier
+              token: void
+              staticElement: <null>
+              staticType: null
+            type: void
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          declaredElement: GenericFunctionTypeElement
+            parameters
+            returnType: void
+            type: void Function()
+          type: void Function()
+      rightBracket: >
+    type: void Function()
+      alias: self::@typeAlias::T
+        typeArguments
+          void Function()
+  staticType: Type
+''');
   }
 }
 

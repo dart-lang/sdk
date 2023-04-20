@@ -16,7 +16,7 @@ static method test(dynamic x) → dynamic {
       return #0#0{self::C}.{self::C::f}{core::int?};
     late final synthesized core::int? #0#2 = ##0#2#initializer(){() → core::int?};
     {
-      core::int as;
+      hoisted core::int as;
       if(#0#0 is{ForNonNullableByDefault} self::C && (#0#2 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = as = #0#2{core::int} in true))) {
         {
           break #L1;

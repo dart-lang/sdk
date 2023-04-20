@@ -337,8 +337,8 @@ void InitializeExternalTypedDataWithSafepointChecks(
 
 void InitializeTypedDataView(TypedDataViewPtr obj) {
   obj.untag()->typed_data_ = TypedDataBase::null();
-  obj.untag()->offset_in_bytes_ = 0;
-  obj.untag()->length_ = 0;
+  obj.untag()->offset_in_bytes_ = Smi::New(0);
+  obj.untag()->length_ = Smi::New(0);
 }
 
 void FreeExternalTypedData(void* isolate_callback_data, void* buffer) {
@@ -826,29 +826,17 @@ class ObjectCopyBase {
   DART_FORCE_INLINE
   bool CanCopyObject(uword tags, ObjectPtr object) {
     const auto cid = UntaggedObject::ClassIdTag::decode(tags);
+    if (Class::IsIsolateUnsendable(class_table_->At(cid))) {
+      exception_msg_ = OS::SCreate(
+          zone_,
+          "Illegal argument in isolate message: object is unsendable - %s ("
+          "see restrictions listed at `SendPort.send()` documentation "
+          "for more information)",
+          Class::Handle(class_table_->At(cid)).ToCString());
+      exception_unexpected_object_ = object;
+      return false;
+    }
     if (cid > kNumPredefinedCids) {
-      const bool has_native_fields =
-          Class::NumNativeFieldsOf(class_table_->At(cid)) != 0;
-      if (has_native_fields) {
-        exception_msg_ =
-            OS::SCreate(zone_,
-                        "Illegal argument in isolate message: (object extends "
-                        "NativeWrapper - %s)",
-                        Class::Handle(class_table_->At(cid)).ToCString());
-        exception_unexpected_object_ = object;
-        return false;
-      }
-      const bool implements_finalizable =
-          Class::ImplementsFinalizable(class_table_->At(cid));
-      if (implements_finalizable) {
-        exception_msg_ = OS::SCreate(
-            zone_,
-            "Illegal argument in isolate message: (object implements "
-            "Finalizable - %s)",
-            Class::Handle(class_table_->At(cid)).ToCString());
-        exception_unexpected_object_ = object;
-        return false;
-      }
       return true;
     }
 #define HANDLE_ILLEGAL_CASE(Type)                                              \
@@ -927,6 +915,7 @@ class RetainingPath {
       }
     }
 
+#if defined(DART_COMPRESSED_POINTERS)
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* from,
                                  CompressedObjectPtr* to) override {
@@ -934,6 +923,7 @@ class RetainingPath {
         VisitObject(ptr->Decompress(heap_base));
       }
     }
+#endif
 
     RetainingPath* retaining_path_;
     MallocGrowableArray<ObjectPtr>* const working_list_;
@@ -1030,12 +1020,9 @@ class RetainingPath {
           }
           // These we are not expected to drill into as they can't be on
           // retaining path, they are illegal to send.
-          if (cid >= kNumPredefinedCids) {
-            klass = class_table->At(cid);
-            if ((klass.num_native_fields() != 0) ||
-                (klass.implements_finalizable())) {
-              break;
-            }
+          klass = class_table->At(cid);
+          if (klass.is_isolate_unsendable()) {
+            break;
           }
         } else {
           ASSERT(traversal_rules_ ==
@@ -1863,8 +1850,8 @@ class ObjectCopy : public Base {
       Base::StoreCompressedPointerNoBarrier(
           Types::GetTypedDataViewPtr(to),
           OFFSET_OF(UntaggedTypedDataView, typed_data_), Object::null());
-      raw_to->length_ = 0;
-      raw_to->offset_in_bytes_ = 0;
+      raw_to->length_ = Smi::New(0);
+      raw_to->offset_in_bytes_ = Smi::New(0);
       ASSERT(Base::exception_msg_ != nullptr);
       return;
     }
@@ -2124,7 +2111,8 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
     // uses the information from the header and therefore might visit one slot
     // more than the actual size of the instance).
     *reinterpret_cast<ObjectPtr*>(UntaggedObject::ToAddr(to) +
-                                  from.untag()->HeapSize() - kWordSize) = 0;
+                                  from.untag()->HeapSize() - kWordSize) =
+        nullptr;
     SetNewSpaceTaggingWord(to, cid, size);
 
     // Fall back to virtual variant for predefined classes

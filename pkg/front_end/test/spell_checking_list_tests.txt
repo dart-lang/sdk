@@ -40,6 +40,7 @@ approval
 approximation
 arbitrarily
 area
+arglebargle
 asdf
 asserter
 assure
@@ -508,6 +509,8 @@ pays
 pc
 periodic
 periodically
+perm
+perms
 person
 phrase
 pink
@@ -651,6 +654,7 @@ stupid
 subcommand
 subdir
 subfolder
+subs
 subtool
 subtools
 successes

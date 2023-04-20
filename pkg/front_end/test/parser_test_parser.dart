@@ -770,18 +770,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
-      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
-    doPrint('parseMixin('
-        '$augmentToken, '
-        '$sealedToken, '
-        '$baseToken, '
-        '$interfaceToken, '
-        '$finalToken, '
-        '$mixinKeyword)');
+  Token parseMixin(Token? augmentToken, Token? baseToken, Token mixinKeyword) {
+    doPrint('parseMixin(' '$augmentToken, ' '$baseToken, ' '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, sealedToken, baseToken,
-        interfaceToken, finalToken, mixinKeyword);
+    var result = super.parseMixin(augmentToken, baseToken, mixinKeyword);
     indent--;
     return result;
   }
@@ -2861,6 +2853,15 @@ class TestParser extends Parser {
     doPrint('parseSwitchExpression(' '$token)');
     indent++;
     var result = super.parseSwitchExpression(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? findNextCommaOrSemicolon(Token token, Token limit) {
+    doPrint('findNextCommaOrSemicolon(' '$token, ' '$limit)');
+    indent++;
+    var result = super.findNextCommaOrSemicolon(token, limit);
     indent--;
     return result;
   }

@@ -62,7 +62,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
     ]);
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterDifferent(import.topSet('foo'));
@@ -132,7 +132,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
     ]);
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterRequested(import.topGet('foo'));
@@ -292,7 +292,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
     ]);
     var import = findElement.importFind('package:test/a.dart');
     _checkMethodRequested(import.topFunction('foo'));
@@ -546,7 +546,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 8),
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
     ]);
     var import = findElement.importFind('package:test/a.dart');
     _checkSetterRequested(import.topSet('foo'));
@@ -632,7 +632,7 @@ extension on A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 53, 3),
+      error(WarningCode.UNUSED_ELEMENT, 53, 3),
     ]);
     _checkMethodNone();
   }
@@ -649,7 +649,7 @@ extension on A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 53, 3),
+      error(WarningCode.UNUSED_ELEMENT, 53, 3),
     ]);
     _checkMethodRequested(findElement.parameter('foo'));
   }
@@ -668,7 +668,7 @@ extension on A {
 
 var foo = 0;
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 53, 3),
+      error(WarningCode.UNUSED_ELEMENT, 53, 3),
     ]);
     _checkMethodRequested(findElement.topGet('foo'));
   }
@@ -685,7 +685,7 @@ extension on A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 53, 3),
+      error(WarningCode.UNUSED_ELEMENT, 53, 3),
     ]);
     _checkMethodRequested(findElement.method('foo'));
   }

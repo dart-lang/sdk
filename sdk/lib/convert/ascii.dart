@@ -21,7 +21,7 @@ const int _asciiMask = 0x7F;
 
 /// An [AsciiCodec] allows encoding strings as ASCII bytes
 /// and decoding ASCII bytes to strings.
-class AsciiCodec extends Encoding {
+final class AsciiCodec extends Encoding {
   final bool _allowInvalid;
 
   /// Instantiates a new [AsciiCodec].
@@ -112,13 +112,13 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 /// final asciiValues = asciiEncoder.convert(sample);
 /// print(asciiValues); // [68, 97, 114, 116]
 /// ```
-class AsciiEncoder extends _UnicodeSubsetEncoder {
+final class AsciiEncoder extends _UnicodeSubsetEncoder {
   const AsciiEncoder() : super(_asciiMask);
 }
 
 /// This class encodes chunked strings to bytes (unsigned 8-bit
 /// integers).
-class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
+class _UnicodeSubsetEncoderSink extends StringConversionSink {
   final ByteConversionSink _sink;
   final int _subsetMask;
 
@@ -226,7 +226,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// print(result); // Dart �
 /// print(result.codeUnits.last.toRadixString(16)); // fffd
 /// ```
-class AsciiDecoder extends _UnicodeSubsetDecoder {
+final class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid = false})
       : super(allowInvalid, _asciiMask);
 
@@ -253,7 +253,7 @@ class AsciiDecoder extends _UnicodeSubsetDecoder {
   }
 }
 
-class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
+class _ErrorHandlingAsciiDecoderSink extends ByteConversionSink {
   ByteConversionSink _utf8Sink;
   _ErrorHandlingAsciiDecoderSink(this._utf8Sink);
 
@@ -283,7 +283,7 @@ class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
   }
 }
 
-class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
+class _SimpleAsciiDecoderSink extends ByteConversionSink {
   Sink _sink;
   _SimpleAsciiDecoderSink(this._sink);
 

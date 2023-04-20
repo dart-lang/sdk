@@ -5,11 +5,7 @@
 /*library: scope=[
   A2,
   A3,
-  A4,
-  async.dart.FutureExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+  A4]*/
 
 class A1<T> {}
 

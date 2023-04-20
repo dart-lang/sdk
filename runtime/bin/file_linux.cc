@@ -103,7 +103,7 @@ MappedMemory* File::Map(MapType type,
   }
   void* addr = mmap(hint, length, prot, flags, handle_->fd(), position);
   if (addr == MAP_FAILED) {
-    return NULL;
+    return nullptr;
   }
   return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
@@ -111,7 +111,7 @@ MappedMemory* File::Map(MapType type,
 void MappedMemory::Unmap() {
   int result = munmap(address_, size_);
   ASSERT(result == 0);
-  address_ = 0;
+  address_ = nullptr;
   size_ = 0;
 }
 
@@ -129,7 +129,7 @@ bool File::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
+  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -206,7 +206,7 @@ int64_t File::Length() {
 
 File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 File* File::OpenFD(int fd) {
@@ -221,7 +221,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
     // Only accept regular files, character devices, and pipes.
     if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode) && !S_ISFIFO(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
-      return NULL;
+      return nullptr;
     }
   }
   int flags = O_RDONLY;
@@ -239,13 +239,13 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   flags |= O_CLOEXEC;
   const int fd = TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), flags, 0666));
   if (fd < 0) {
-    return NULL;
+    return nullptr;
   }
   if ((((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) ||
       (((mode & kWriteOnly) != 0) && ((mode & kTruncate) == 0))) {
     int64_t position = NO_RETRY_EXPECTED(lseek64(fd, 0, SEEK_END));
     if (position < 0) {
-      return NULL;
+      return nullptr;
     }
   }
   return OpenFD(fd);
@@ -528,7 +528,7 @@ static int64_t TimespecToMilliseconds(const struct timespec& t) {
 }
 
 static void MillisecondsToTimespec(int64_t millis, struct timespec* t) {
-  ASSERT(t != NULL);
+  ASSERT(t != nullptr);
   t->tv_sec = millis / kMillisecondsPerSecond;
   t->tv_nsec = (millis % kMillisecondsPerSecond) * 1000L;
 }
@@ -619,11 +619,11 @@ const char* File::LinkTarget(Namespace* namespc,
   const int status = TEMP_FAILURE_RETRY(
       fstatat64(ns.fd(), ns.path(), &link_stats, AT_SYMLINK_NOFOLLOW));
   if (status != 0) {
-    return NULL;
+    return nullptr;
   }
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
-    return NULL;
+    return nullptr;
   }
   // Don't rely on the link_stats.st_size for the size of the link
   // target. For some filesystems, e.g. procfs, this value is always
@@ -633,14 +633,14 @@ const char* File::LinkTarget(Namespace* namespc,
   const int target_size =
       TEMP_FAILURE_RETRY(readlinkat(ns.fd(), ns.path(), target, kBufferSize));
   if (target_size <= 0) {
-    return NULL;
+    return nullptr;
   }
-  if (dest == NULL) {
+  if (dest == nullptr) {
     dest = DartUtils::ScopedCString(target_size + 1);
   } else {
     ASSERT(dest_size > 0);
     if (dest_size <= target_size) {
-      return NULL;
+      return nullptr;
     }
   }
   memmove(dest, target, target_size);
@@ -649,13 +649,13 @@ const char* File::LinkTarget(Namespace* namespc,
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
-  return (pathname != NULL) && (pathname[0] == '/');
+  return (pathname != nullptr) && (pathname[0] == '/');
 }
 
 intptr_t File::ReadLinkInto(const char* pathname,
                             char* result,
                             size_t result_size) {
-  ASSERT(pathname != NULL);
+  ASSERT(pathname != nullptr);
   ASSERT(IsAbsolutePath(pathname));
   struct stat64 link_stats;
   if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) {
@@ -686,10 +686,10 @@ const char* File::ReadLink(const char* pathname) {
   char target[kBufferSize];
   size_t target_size = ReadLinkInto(pathname, target, kBufferSize);
   if (target_size <= 0) {
-    return NULL;
+    return nullptr;
   }
   char* target_name = DartUtils::ScopedCString(target_size);
-  ASSERT(target_name != NULL);
+  ASSERT(target_name != nullptr);
   memmove(target_name, target, target_size);
   return target_name;
 }
@@ -698,8 +698,8 @@ const char* File::GetCanonicalPath(Namespace* namespc,
                                    const char* name,
                                    char* dest,
                                    int dest_size) {
-  if (name == NULL) {
-    return NULL;
+  if (name == nullptr) {
+    return nullptr;
   }
   if (!Namespace::IsDefault(namespc)) {
     // TODO(zra): There is no realpathat(). Also chasing a symlink might result
@@ -708,17 +708,17 @@ const char* File::GetCanonicalPath(Namespace* namespc,
     return name;
   }
   char* abs_path;
-  if (dest == NULL) {
+  if (dest == nullptr) {
     dest = DartUtils::ScopedCString(PATH_MAX + 1);
   } else {
     ASSERT(dest_size >= PATH_MAX);
   }
-  ASSERT(dest != NULL);
+  ASSERT(dest != nullptr);
   do {
     abs_path = realpath(name, dest);
-  } while ((abs_path == NULL) && (errno == EINTR));
-  ASSERT(abs_path == NULL || IsAbsolutePath(abs_path));
-  ASSERT(abs_path == NULL || (abs_path == dest));
+  } while ((abs_path == nullptr) && (errno == EINTR));
+  ASSERT(abs_path == nullptr || IsAbsolutePath(abs_path));
+  ASSERT(abs_path == nullptr || (abs_path == dest));
   return abs_path;
 }
 

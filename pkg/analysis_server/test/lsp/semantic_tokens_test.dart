@@ -150,7 +150,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// class docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('T', SemanticTokenTypes.typeParameter),
       _Token('// class comment', SemanticTokenTypes.comment),
       _Token('// Trailing comment', SemanticTokenTypes.comment),
@@ -176,16 +177,30 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('named', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
+      _Token('named', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
       _Token('factory', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('factory', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
+      _Token('factory', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('final', SemanticTokenTypes.keyword),
@@ -242,7 +257,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('/// field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
@@ -302,7 +318,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('/// getter docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
@@ -384,7 +401,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('/// method docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('@', CustomSemanticTokenTypes.annotation),
@@ -455,7 +473,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('] after', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('aaa', SemanticTokenTypes.property, [
         SemanticTokenModifiers.declaration,
@@ -584,14 +603,16 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// class docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('// class comment', SemanticTokenTypes.comment),
     ];
     final expected2 = [
       _Token('/// class docs 2', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass2', SemanticTokenTypes.class_),
+      _Token('MyClass2', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('// class comment 2', SemanticTokenTypes.comment),
     ];
 
@@ -771,7 +792,8 @@ class MyTestClass {
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyTestClass', SemanticTokenTypes.class_),
+      _Token('MyTestClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       for (var i = 1; i <= 6; i++) ...[
         _Token('/// test', SemanticTokenTypes.comment,
             [SemanticTokenModifiers.documentation]),
@@ -847,7 +869,8 @@ class MyClass {}
       _Token(' */', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
     ];
 
     await _verifyTokens(content, expected);
@@ -1042,7 +1065,8 @@ void f() {
     ''';
 
     final expected = [
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('T', SemanticTokenTypes.typeParameter),
       _Token('// class comment', SemanticTokenTypes.comment),
     ];
@@ -1064,7 +1088,8 @@ void f() {
       _Token('/// class docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
       _Token('T', SemanticTokenTypes.typeParameter),
       _Token('// class comment', SemanticTokenTypes.comment),
       _Token('// Trailing comment', SemanticTokenTypes.comment),

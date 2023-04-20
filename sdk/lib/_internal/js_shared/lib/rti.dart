@@ -27,6 +27,36 @@ import 'dart:_js_names'
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
 
+/// A marker interface for classes with 'trustworthy' implementations of `get
+/// runtimeType`.
+///
+/// Generally, overrides of `get runtimeType` are not used in displaying the
+/// types of irritants in TypeErrors or computing the structural `runtimeType`
+/// of records. Instead the Rti (aka 'true') type is used.
+///
+/// The 'true' type is sometimes confusing because it shows implementation
+/// details, e.g. the true type of `42` is `JSInt` and `2.1` is `JSNumNotInt`.
+///
+/// For a limited number of implementation classes we tell a 'white lie' that
+/// the value is of another type, e.g. that `42` is an `int` and `2.1` is
+/// `double`. This is achieved by overriding `get runtimeType` to return the
+/// desired type, and marking the implementation class type with `implements
+/// [TrustedGetRuntimeType]`.
+///
+/// [TrustedGetRuntimeType] is not exposed outside the `dart:` libraries so
+/// users cannot tell lies.
+///
+/// The `Type` returned by a trusted `get runtimeType` must be an instance of
+/// the system `Type`, which is guaranteed by using a type literal. Type
+/// literals can be generic and dependent on type variables, e.g. `List<E>`.
+///
+/// Care needs to taken to ensure that the runtime does not get caught telling
+/// lies. Generally, a class's `runtimeType` lies by returning an abstract
+/// supertype of the class.  Since both the the marker interface and `get
+/// runtimeType` are inherited, there should be no way in which a user can
+/// extend the class or implement interface of the class.
+abstract class TrustedGetRuntimeType {}
+
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
 const constructorRtiCachePropertyName = r'$ccache';
@@ -834,13 +864,64 @@ Rti getTypeFromTypesTable(int index) {
   return _Utils.asRti(type);
 }
 
-/// Called from [Object.runtimeType] and [Interceptor.runtimeType].
-Type getRuntimeType(Object? object) {
-  Rti rti = _instanceFunctionType(object) ?? instanceType(object);
+/// Called from [Object.runtimeType].
+///
+/// [Object.runtimeType] is shadowed by overrides so that [object] is always an
+/// ordinary object and never an Array, Closure or Record.
+@pragma('dart2js:never-inline')
+Type getRuntimeTypeOfDartObject(Object? object) {
+  Rti rti = _instanceType(object);
   return createRuntimeType(rti);
 }
 
-/// Called from [_Record.runtimeType]
+/// Called from [JSArray.runtimeType].
+Type getRuntimeTypeOfArray(Object? array) {
+  Rti rti = _getRuntimeTypeOfArrayAsRti(array);
+  return createRuntimeType(rti);
+}
+
+Rti _getRuntimeTypeOfArrayAsRti(Object? array) {
+  Rti rti = _arrayInstanceType(array);
+
+  // TODO(http://dartbug.com/51894):
+  //
+  // There are two reasonable types: `JSArray<E>` and `List<E>`.
+  //
+  // Either could be achieved by making JSArray implement TrustedGetRuntimeType
+  // and changing the definition of JSArray.runtimeType:
+  //
+  //     Type get runtimeType => JSArray<E>;
+  //     Type get runtimeType => List<E>;
+  //
+  // - `JSArray<E>`, the internal type, is stored on the array. There is an
+  //    SSA-level optimization that recognizes that type expression `JSArray<E>`
+  //    is just reconstructing the value, so we get the same operations as this
+  //    method.
+  //
+  // - `List<E>` would construct a derived type. This would be a little slower,
+  //    but not terrible, since in the steady state, the `List<E>` constructed
+  //    via a recipe is cached in a map on the stored Rti.
+  //
+  // The reason we don't just define a plain and understandable method is that
+  // the presence of type variable `E` defeats the type-erasure optimization
+  // when `.runtimeType` is used.
+  return rti;
+}
+
+/// Called from [Closure.runtimeType].
+Type getRuntimeTypeOfClosure(Object? closure) {
+  // If there is no function type, use the interface type.
+  Rti rti = closureFunctionType(closure) ?? instanceType(closure);
+  return createRuntimeType(rti);
+}
+
+/// Called from [Interceptor.runtimeType].
+Type getRuntimeTypeOfInterceptorNotArray(Object? interceptor, Object? object) {
+  Rti rti = _instanceTypeFromConstructor(interceptor);
+  return createRuntimeType(rti);
+}
+
+/// Called from [_Record.runtimeType].
 Type getRuntimeTypeOfRecord(Object record) {
   Rti recordRti = records.getRtiForRecord(record);
   return createRuntimeType(recordRti);
@@ -850,7 +931,14 @@ Type getRuntimeTypeOfRecord(Object record) {
 /// or interface type of [object].
 Rti _structuralTypeOf(Object? object) {
   if (object is Record) return records.getRtiForRecord(object);
-  return _instanceFunctionType(object) ?? instanceType(object);
+  final functionRti = _instanceFunctionType(object);
+  if (functionRti != null) return functionRti;
+  if (object is TrustedGetRuntimeType) {
+    final type = object.runtimeType;
+    return _Utils.as_Type(type)._rti;
+  }
+  if (_Utils.isArray(object)) return _getRuntimeTypeOfArrayAsRti(object);
+  return instanceType(object);
 }
 
 /// Called from generated code.
@@ -946,6 +1034,10 @@ bool _installSpecializedIsTest(Object? object) {
   if (isTopType(testRti)) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
   }
+  if (Rti._getKind(testRti) == Rti.kindQuestion) {
+    return _finishIsFn(testRti, object,
+        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
+  }
 
   // `o is T*` generally behaves like `o is T`.
   // The exceptions are `Object*` (handled above) and `Never*`
@@ -959,6 +1051,10 @@ bool _installSpecializedIsTest(Object? object) {
   Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
       ? Rti._getStarArgument(testRti)
       : testRti;
+
+  if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
+  }
 
   var isFn = _simpleSpecializedIsTest(unstarred);
   if (isFn != null) {
@@ -987,9 +1083,6 @@ bool _installSpecializedIsTest(Object? object) {
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
     // fall through to general implementation.
-  } else if (Rti._getKind(testRti) == Rti.kindQuestion) {
-    return _finishIsFn(testRti, object,
-        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
   } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
     isFn = _recordSpecializedIsTest(unstarred);
     return _finishIsFn(testRti, object, isFn);
@@ -1211,6 +1304,14 @@ class _TypeError extends _Error implements TypeError {
 //
 // Specializations can be placed on Rti objects as the _as and _is
 // 'methods'. They can also be called directly called from generated code.
+
+/// Specialization for `is FutureOr<T>`.
+/// Called from generated code via Rti `_is` method.
+bool _isFutureOr(Object? object) {
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
+      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
+}
 
 /// Specialization for 'is Object'.
 /// Called from generated code via Rti `_is` method.
@@ -3080,6 +3181,9 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return true;
   }
 
+  // Record Type/Record:
+  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
+
   // Positional Function Types + Named Function Types:
   // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of function
   // types using features inaccessible from JavaScript.
@@ -3120,15 +3224,7 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  // Records
-  //
-  // TODO(50081): Reference rules to updated specification
-  // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-
-  // Record Type/Record:
-  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
-
-  // Record Type/Record Type:
+  // Record Types:
   if (sKind == Rti.kindRecord && tKind == Rti.kindRecord) {
     return _isRecordSubtype(universe, s, sEnv, t, tEnv);
   }
@@ -3401,6 +3497,7 @@ class _Utils {
   static String asString(Object? o) => JS('String', '#', o);
   static Rti asRti(Object? s) => JS('Rti', '#', s);
   static Rti? asRtiOrNull(Object? s) => JS('Rti|Null', '#', s);
+  static _Type as_Type(Object? o) => JS('_Type', '#', o);
 
   static bool isString(Object? o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object? o) => JS('bool', 'typeof # == "number"', o);

@@ -284,11 +284,19 @@ abstract class B extends A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 86, 3),
     ]);
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.getter('foo'),
-      'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_propertyAccess_getter_mixin_implements() async {
@@ -306,11 +314,19 @@ mixin M implements A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
     ]);
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('super.foo'),
-      element: findElement.getter('foo', of: 'A'),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_propertyAccess_getter_mixinHasNoSuchMethod() async {
@@ -328,11 +344,19 @@ class B extends Object with A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 108, 3),
     ]);
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.getter('foo', of: 'A'),
-      'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@mixin::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_propertyAccess_getter_superHasNoSuchMethod() async {
@@ -348,11 +372,19 @@ class B extends A {
 }
 ''');
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.getter('foo', of: 'A'),
-      'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_propertyAccess_getter_superImplements() async {
@@ -371,11 +403,19 @@ class C extends B {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
     ]);
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.getter('foo', of: 'A'),
-      'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_propertyAccess_getter_superSuperHasConcrete() async {
@@ -393,11 +433,19 @@ class C extends B {
 }
 ''');
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.getter('foo', of: 'A'),
-      'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
   }
 
   test_propertyAccess_method_tearOff_abstract() async {
@@ -415,11 +463,19 @@ abstract class B extends A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 90, 3),
     ]);
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.method('foo'),
-      'void Function()',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  staticType: void Function()
+''');
   }
 
   test_propertyAccess_setter() async {
@@ -436,8 +492,6 @@ abstract class B extends A {
 ''', [
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
     ]);
-
-    assertSuperExpression(findNode.super_('super.foo'));
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -480,8 +534,6 @@ mixin M implements A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
     ]);
 
-    assertSuperExpression(findNode.super_('super.foo'));
-
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -523,8 +575,6 @@ class B extends Object with A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
     ]);
 
-    assertSuperExpression(findNode.super_('super.foo'));
-
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -564,8 +614,6 @@ class B extends A {
   noSuchMethod(im) => 2;
 }
 ''');
-
-    assertSuperExpression(findNode.super_('super.foo'));
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -610,8 +658,6 @@ class C extends B {
   }
 }
 ''');
-
-    assertSuperExpression(findNode.super_('super.foo'));
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression

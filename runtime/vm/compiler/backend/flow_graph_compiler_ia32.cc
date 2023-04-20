@@ -66,7 +66,7 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                 DeoptInfoBuilder* builder,
                                                 const Array& deopt_table) {
-  if (deopt_env_ == NULL) {
+  if (deopt_env_ == nullptr) {
     ++builder->current_info_number_;
     return TypedData::null();
   }
@@ -105,7 +105,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Environment* previous = current;
   current = current->outer();
-  while (current != NULL) {
+  while (current != nullptr) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
@@ -133,7 +133,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     current = current->outer();
   }
   // The previous pointer is now the outermost environment.
-  ASSERT(previous != NULL);
+  ASSERT(previous != nullptr);
 
   // For the outermost environment, set caller PC.
   builder->AddCallerPc(slot_ix++);
@@ -158,7 +158,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
     __ int3();
   }
 
-  ASSERT(deopt_env() != NULL);
+  ASSERT(deopt_env() != nullptr);
   __ pushl(CODE_REG);
   __ Call(StubCode::Deoptimize());
   set_pc_offset(assembler->CodeSize());
@@ -244,7 +244,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
 }
 
 // Optimize assignable type check by adding inlined tests for:
-// - NULL -> return NULL.
+// - null -> return null.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
 // Inputs:

@@ -47,7 +47,8 @@ class C {
 @reflectiveTest
 class MiscellaneousTest extends AbstractRecoveryTest {
   void test_classTypeAlias_withBody() {
-    testRecovery('''
+    testRecovery(
+        '''
 class B = Object with A {}
 ''',
         // TODO(danrubel): Consolidate and improve error message.
@@ -109,6 +110,16 @@ List<int> ints = <int>[];
 Map<int, int> map = Map<int, int>{};
 ''', [], '''
 Map<int, int> map = <int, int>{};
+''');
+  }
+
+  void test_mixin_using_with_clause() {
+    testRecovery('''
+mixin M {}
+mixin N with M {}
+''', [ParserErrorCode.MIXIN_WITH_CLAUSE], '''
+mixin M {}
+mixin N {}
 ''');
   }
 

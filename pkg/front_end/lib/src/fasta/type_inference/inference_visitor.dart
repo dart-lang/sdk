@@ -2300,8 +2300,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       patternGuard.guard = guardError..parent = patternGuard;
-    } else if (!identical(patternGuard.guard, rewrite)) {
-      patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+    } else {
+      if (!identical(patternGuard.guard, rewrite)) {
+        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+      }
+      if (analysisResult.guardType is DynamicType) {
+        patternGuard.guard = _createImplicitAs(patternGuard.guard!.fileOffset,
+            patternGuard.guard!, coreTypes.boolNonNullableRawType)
+          ..parent = patternGuard;
+      }
     }
 
     rewrite = popRewrite();
@@ -4217,8 +4224,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       patternGuard.guard = guardError..parent = patternGuard;
-    } else if (!identical(patternGuard.guard, rewrite)) {
-      patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+    } else {
+      if (!identical(patternGuard.guard, rewrite)) {
+        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
+      }
+      if (analysisResult.guardType is DynamicType) {
+        patternGuard.guard = _createImplicitAs(patternGuard.guard!.fileOffset,
+            patternGuard.guard!, coreTypes.boolNonNullableRawType)
+          ..parent = patternGuard;
+      }
     }
 
     rewrite = popRewrite();
@@ -8357,6 +8371,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
       PatternSwitchCase switchCase = node.cases[caseIndex];
+      List<VariableDeclaration> jointVariablesNotInAll = [];
       for (int headIndex = 0;
           headIndex < switchCase.patternGuards.length;
           headIndex++) {
@@ -8384,16 +8399,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         };
         if (headIndex == 0) {
           for (VariableDeclaration jointVariable in switchCase.jointVariables) {
-            jointVariable.type = inferredVariableTypes[jointVariable.name!]!;
+            DartType? inferredType = inferredVariableTypes[jointVariable.name!];
+            if (inferredType != null) {
+              jointVariable.type = inferredType;
+            } else {
+              jointVariable.type = const InvalidType();
+              jointVariablesNotInAll.add(jointVariable);
+            }
           }
         } else {
-          for (VariableDeclaration jointVariable in switchCase.jointVariables) {
-            if (jointVariable.type !=
-                inferredVariableTypes[jointVariable.name!]!) {
+          for (int i = 0; i < switchCase.jointVariables.length; ++i) {
+            VariableDeclaration jointVariable = switchCase.jointVariables[i];
+            // The error on joint variables not present in all case heads is
+            // reported in BodyBuilder.
+            DartType? inferredType = inferredVariableTypes[jointVariable.name!];
+            if (!jointVariablesNotInAll.contains(jointVariable) &&
+                inferredType != null &&
+                jointVariable.type != inferredType) {
               jointVariable.initializer = helper.buildProblem(
-                  templateVariablePatternTypeMismatchInSwitchHeads
+                  templateJointPatternVariablesMismatch
                       .withArguments(jointVariable.name!),
-                  jointVariable.fileOffset,
+                  switchCase.jointVariableFirstUseOffsets?[i] ??
+                      jointVariable.fileOffset,
                   noLength)
                 ..parent = jointVariable;
             }
@@ -8809,7 +8836,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(node.initializer, rewrite)) {
-      node.initializer = rewrite as Expression;
+      node.initializer = rewrite as Expression..parent = node;
     }
 
     return const StatementInferenceResult();
@@ -9338,8 +9365,38 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionTypeAnalysisResult<DartType> dispatchExpression(
       Expression node, DartType context) {
+    // Normally the CFE performs expression coercion in the process of type
+    // inference of the nodes where an assignment is executed. The inference on
+    // the pattern-related nodes is driven by the shared analysis, and some of
+    // such nodes perform assignments. Here we determine if we're inferring the
+    // expressions of one of such nodes, and perform the coercion if needed.
+    TreeNode? parent = node.parent;
+
+    // The case of pattern variable declaration. The initializer expression is
+    // assigned to the pattern, and so the coercion needs to be performed.
+    bool needsCoercion =
+        parent is PatternVariableDeclaration && parent.initializer == node;
+
+    // The case of pattern assignment. The expression is assigned to the
+    // pattern, and so the coercion needs to be performed.
+    needsCoercion = needsCoercion ||
+        parent is PatternAssignment && parent.expression == node;
+
+    // The constant expressions in relational patterns are considered to be
+    // passed into the corresponding operator, and so the coercion needs to be
+    // performed.
+    needsCoercion = needsCoercion ||
+        parent is RelationalPattern && parent.expression == node;
+
     ExpressionInferenceResult expressionResult =
         inferExpression(node, context).stopShorting();
+
+    if (needsCoercion) {
+      expressionResult =
+          coerceExpressionForAssignment(context, expressionResult) ??
+              expressionResult;
+    }
+
     pushRewrite(expressionResult.expression);
     return new SimpleTypeAnalysisResult(type: expressionResult.inferredType);
   }
@@ -9434,7 +9491,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (node as SwitchExpression).cases[caseIndex];
     Object? rewrite = popRewrite();
     if (!identical(switchExpressionCase.expression, rewrite)) {
-      switchExpressionCase.expression = rewrite as Expression;
+      switchExpressionCase.expression = rewrite as Expression
+        ..parent = switchExpressionCase;
     }
   }
 
@@ -9996,6 +10054,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.left = (rewrite as Pattern)..parent = node;
     }
 
+    Map<String, VariableDeclaration> leftDeclaredVariablesByName = {
+      for (VariableDeclaration variable in node.left.declaredVariables)
+        variable.name!: variable
+    };
+    Set<String> jointVariableNames = {
+      for (VariableDeclaration variable in node.orPatternJointVariables)
+        variable.name!
+    };
+    for (VariableDeclaration rightVariable in node.right.declaredVariables) {
+      String rightVariableName = rightVariable.name!;
+      VariableDeclaration? leftVariable =
+          leftDeclaredVariablesByName[rightVariableName];
+      if (leftVariable != null &&
+          jointVariableNames.contains(rightVariableName) &&
+          (leftVariable.type != rightVariable.type ||
+              leftVariable.isFinal != rightVariable.isFinal)) {
+        helper.addProblem(
+            templateJointPatternVariablesMismatch
+                .withArguments(rightVariableName),
+            leftVariable.fileOffset,
+            rightVariableName.length);
+      }
+    }
+
     pushRewrite(replacement ?? node);
 
     assert(checkStack(node, stackBase, [
@@ -10298,18 +10380,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.needsCheck = _needsCheck(
         matchedType: matchedValueType, requiredType: node.requiredType);
 
-    DartType lookupType;
     if (node.needsCheck) {
-      lookupType = node.lookupType = node.requiredType;
+      node.lookupType = node.requiredType;
     } else {
-      lookupType = node.lookupType = matchedValueType;
+      node.lookupType = matchedValueType;
     }
 
     for (NamedPattern field in node.fields) {
       field.fieldName = new Name(field.name, libraryBuilder.library);
 
       ObjectAccessTarget fieldTarget = findInterfaceMember(
-          lookupType, field.fieldName, field.fileOffset,
+          node.requiredType, field.fieldName, field.fileOffset,
           includeExtensionMethods: true,
           callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
@@ -10325,11 +10406,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           field.accessKind = ObjectAccessKind.Object;
           break;
         case ObjectAccessTargetKind.recordNamed:
-          field.recordType = lookupType.resolveTypeParameterType as RecordType;
+          field.recordType =
+              node.requiredType.resolveTypeParameterType as RecordType;
           field.accessKind = ObjectAccessKind.RecordNamed;
           break;
         case ObjectAccessTargetKind.recordIndexed:
-          field.recordType = lookupType.resolveTypeParameterType as RecordType;
+          field.recordType =
+              node.requiredType.resolveTypeParameterType as RecordType;
           field.accessKind = ObjectAccessKind.RecordIndexed;
           field.recordFieldIndex = fieldTarget.recordFieldIndex!;
           break;
@@ -10343,7 +10426,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.ambiguous:
           field.pattern = new InvalidPattern(
               createMissingPropertyGet(
-                  field.fileOffset, lookupType, field.fieldName),
+                  field.fileOffset, node.requiredType, field.fieldName),
               declaredVariables: field.pattern.declaredVariables)
             ..fileOffset = field.fileOffset
             ..parent = field;
@@ -10363,7 +10446,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.extensionMember:
         case ObjectAccessTargetKind.inlineClassMember:
           field.accessKind = ObjectAccessKind.Static;
-          field.functionType = fieldTarget.getFunctionType(this);
+          field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
           field.target = fieldTarget.member;
           break;
@@ -10576,6 +10659,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = error.fileOffset;
     }
 
+    error = analysisResult.emptyMapPatternError;
+    if (error != null) {
+      replacement =
+          new InvalidPattern(error, declaredVariables: node.declaredVariables)
+            ..fileOffset = error.fileOffset;
+    }
+
     // TODO(johnniwinther): The required type computed by the type analyzer
     // isn't trivially `Map<dynamic, dynamic>` in all cases. Does that matter
     // for the lowering?
@@ -10589,51 +10679,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       lookupType = node.lookupType = requiredType;
     } else {
       lookupType = node.lookupType = matchedValueType;
-    }
-
-    ObjectAccessTarget lengthTarget = findInterfaceMember(
-        lookupType, lengthName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-    assert(lengthTarget.isInstanceMember,
-        "Unexpected Map.length target ${lengthTarget}.");
-
-    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
-    node.lengthTarget = lengthTarget.member!;
-
-    // In map patterns the rest pattern can appear only in the end.
-    node.hasRestPattern =
-        node.entries.isNotEmpty && node.entries.last is MapPatternRestEntry;
-
-    if (node.hasRestPattern) {
-      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
-          lengthType, greaterThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(greaterThanOrEqualTarget.isInstanceMember);
-
-      node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
-    } else if (node.entries.isEmpty) {
-      ObjectAccessTarget lessThanOrEqualInvokeTarget = findInterfaceMember(
-          lengthType, lessThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(lessThanOrEqualInvokeTarget.isInstanceMember ||
-          lessThanOrEqualInvokeTarget.isObjectMember);
-
-      node.lengthCheckTarget = lessThanOrEqualInvokeTarget.member as Procedure;
-      node.lengthCheckType = lessThanOrEqualInvokeTarget.getFunctionType(this);
-    } else {
-      ObjectAccessTarget equalInvokeTarget = findInterfaceMember(
-          lengthType, equalsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      assert(equalInvokeTarget.isInstanceMember ||
-          equalInvokeTarget.isObjectMember);
-
-      node.lengthCheckTarget = equalInvokeTarget.member as Procedure;
-      node.lengthCheckType = equalInvokeTarget.getFunctionType(this);
     }
 
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
@@ -10661,19 +10706,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (int i = node.entries.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
-      InvalidExpression? error = analysisResult.duplicateRestPatternErrors?[i];
-      if (error != null) {
-        node.entries[i] = new MapPatternEntry(
-          new NullLiteral(),
-          new InvalidPattern(error,
-              declaredVariables: node.entries[i].value.declaredVariables)
-            ..fileOffset = error.fileOffset,
-        )
-          ..fileOffset = node.entries[i].fileOffset
-          ..parent = node;
-      }
       if (!identical(node.entries[i], rewrite)) {
         node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
+      }
+    }
+
+    Map<int, InvalidExpression>? restPatternErrors =
+        analysisResult.restPatternErrors;
+    if (restPatternErrors != null) {
+      InvalidExpression? firstError;
+      int insertionIndex = 0;
+      for (int readIndex = 0; readIndex < node.entries.length; readIndex++) {
+        InvalidExpression? error = restPatternErrors[readIndex];
+        if (error != null) {
+          firstError ??= error;
+        } else {
+          node.entries[insertionIndex++] = node.entries[readIndex];
+        }
+      }
+      node.entries.length = insertionIndex;
+      if (insertionIndex == 0) {
+        replacement ??= new InvalidPattern(firstError!,
+            declaredVariables: node.declaredVariables)
+          ..fileOffset = node.fileOffset;
       }
     }
 
@@ -11007,12 +11062,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required shared.RecordPatternField<TreeNode, Pattern> field,
   }) {
     String fieldName = field.name!;
-    ObjectAccessTarget fieldAccessTarget = findInterfaceMember(
-        receiverType,
-        new Name(fieldName,
-            fieldName.startsWith("_") ? libraryBuilder.library : null),
-        field.pattern.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    ObjectAccessTarget fieldAccessTarget = findInterfaceMember(receiverType,
+        new Name(fieldName, libraryBuilder.library), field.pattern.fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation,
+        includeExtensionMethods: true);
     return fieldAccessTarget.getGetterType(this);
   }
 

@@ -57,11 +57,14 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
             'The library containing a path did not contain the path.');
       }
       var context = RefactoringContext(
-          server: server,
-          resolvedLibraryResult: library,
-          resolvedUnitResult: unit,
-          selectionOffset: offset,
-          selectionLength: length);
+        server: server,
+        resolvedLibraryResult: library,
+        resolvedUnitResult: unit,
+        selectionOffset: offset,
+        selectionLength: length,
+        includeExperimental:
+            server.clientConfiguration.global.experimentalRefactors,
+      );
       var producer = generator(context);
       var builder = ChangeBuilder(
           workspace: context.workspace, eol: context.utils.endOfLine);

@@ -11,5 +11,8 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 main() {
-  ClassID.GetID(4); /*@compile-error=unspecified*/
+  ClassID.GetID(4);
+//^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [cfe] Undefined name 'ClassID'.
 }

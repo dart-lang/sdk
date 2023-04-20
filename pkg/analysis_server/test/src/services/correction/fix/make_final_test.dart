@@ -235,6 +235,62 @@ class PreferFinalLocalTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_final_locals;
 
+  Future<void> test_listPattern_assignment() async {
+    await resolveTestCode(r'''
+f() {
+  var [a] = [1];
+  print(a);
+}
+''');
+    await assertHasFix(r'''
+f() {
+  final [a] = [1];
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_listPattern_ifCase_noVar() async {
+    await resolveTestCode(r'''
+void f(Object o) {
+  if (o case [int x]) print(x);
+}
+''');
+    await assertHasFix(r'''
+void f(Object o) {
+  if (o case [final int x]) print(x);
+}
+''');
+  }
+
+  Future<void> test_listPattern_ifCase_untyped() async {
+    await resolveTestCode(r'''
+void f(Object o) {
+  if (o case <int>[var x]) print(x);
+}
+''');
+    await assertHasFix(r'''
+void f(Object o) {
+  if (o case <int>[final x]) print(x);
+}
+''');
+  }
+
+  Future<void> test_recordPattern_assignment() async {
+    await resolveTestCode(r'''
+f() {
+  var (a, b) = (1, 2);
+  print('$a$b');
+}
+''');
+    await assertHasFix(r'''
+f() {
+  final (a, b) = (1, 2);
+  print('$a$b');
+}
+''');
+  }
+
   Future<void> test_variableDeclarationStatement_type() async {
     await resolveTestCode('''
 void f() {

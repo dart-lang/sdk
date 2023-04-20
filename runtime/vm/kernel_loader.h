@@ -30,8 +30,10 @@ class BuildingTranslationHelper : public TranslationHelper {
         library_lookup_handle_(Library::Handle(thread->zone())) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
-  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library,
+                                                  bool required = true);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass,
+                                            bool required = true);
 
  private:
   KernelLoader* loader_;
@@ -63,7 +65,7 @@ class Mapping {
  public:
   bool Lookup(intptr_t canonical_name, VmType** handle) {
     typename MapType::Pair* pair = map_.LookupPair(canonical_name);
-    if (pair != NULL) {
+    if (pair != nullptr) {
       *handle = pair->value;
       return true;
     }
@@ -228,6 +230,7 @@ class KernelLoader : public ValueObject {
                          intptr_t annotation_count,
                          String* native_name,
                          bool* is_invisible_function,
+                         bool* is_isolate_unsendable,
                          bool* has_pragma_annotation);
 
   KernelLoader(const Script& script,

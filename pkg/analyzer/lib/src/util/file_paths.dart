@@ -5,6 +5,8 @@
 /// The set of constants and utilities to check file paths.
 ///
 /// The recommended import prefix is `file_paths`.
+library;
+
 import 'package:path/path.dart' as p;
 
 /// The file name used for analysis options files.

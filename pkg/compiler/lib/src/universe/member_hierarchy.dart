@@ -116,47 +116,59 @@ class MemberHierarchyBuilder {
 
   /// Applies [f] to each override of [entity].
   ///
-  /// If [f] returns [IterationStep.CONTINUE] for a given input then that
-  /// member's overrides are also visited. If [f] returns for a member
-  /// [IterationStep.SKIP_SUBCLASSES] then the overrides of that member are
-  /// skipped. If [f] returns [IterationStep.STOP] then iteration is immediately
+  /// If [f] returns `false` for a given input then iteration is immediately
   /// stopped and [f] is not called on any more members.
   void forEachOverride(
-      MemberEntity entity, IterationStep Function(MemberEntity override) f) {
+      MemberEntity entity, bool Function(MemberEntity override) f) {
     _forEachOverrideSkipVisited(entity, f, {entity});
+  }
+
+  /// Returns `true` if every target member represented by [target] satisfies
+  /// the predicate [f].
+  bool everyTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    bool result = true;
+    forEachTargetMember(target, (member) {
+      // We exit early on a false result here.
+      return result = f(member);
+    });
+    return result;
+  }
+
+  /// Returns `true` if any target member represented by [target] satisfies the
+  /// predicate [f].
+  bool anyTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    bool result = false;
+    forEachTargetMember(target, (member) {
+      result = f(member);
+      // We exit early on a true result here.
+      return !result;
+    });
+    return result;
   }
 
   /// Applies [f] to each target represented by [target] including overrides
   /// if the call is virtual.
   ///
-  /// If [f] returns [IterationStep.CONTINUE] for a given input then that
-  /// member's overrides are also visited. If [f] returns for a member
-  /// [IterationStep.SKIP_SUBCLASSES] then the overrides of that member are
-  /// skipped. If [f] returns [IterationStep.STOP] then iteration is immediately
+  /// If [f] returns `false` for a given input then iteration is immediately
   /// stopped and [f] is not called on any more members.
-  void forEachTargetMember(DynamicCallTarget target,
-      IterationStep Function(MemberEntity override) f) {
-    final initialResult = f(target.member);
-    if (initialResult == IterationStep.STOP ||
-        initialResult == IterationStep.SKIP_SUBCLASSES) {
-      return;
-    }
+  void forEachTargetMember(
+      DynamicCallTarget target, bool Function(MemberEntity override) f) {
+    if (!f(target.member)) return;
+
     if (target.isVirtual) {
       forEachOverride(target.member, f);
     }
   }
 
-  void _forEachOverrideSkipVisited(
-      MemberEntity entity,
-      IterationStep Function(MemberEntity override) f,
-      Set<MemberEntity> visited) {
+  void _forEachOverrideSkipVisited(MemberEntity entity,
+      bool Function(MemberEntity override) f, Set<MemberEntity> visited) {
     final overrides = _overrides[entity];
     if (overrides == null) return;
     for (final override in overrides) {
       if (!visited.add(override)) continue;
-      final result = f(override);
-      if (result == IterationStep.SKIP_SUBCLASSES) continue;
-      if (result == IterationStep.STOP) return;
+      if (!f(override)) return;
       _forEachOverrideSkipVisited(override, f, visited);
     }
   }
@@ -170,9 +182,9 @@ class MemberHierarchyBuilder {
       if (classHierarchy.isSubclassOf(override.enclosingClass!, cls) ||
           closedWorld.hasAnySubclassThatMixes(cls, override.enclosingClass!)) {
         needsVirtual = true;
-        return IterationStep.STOP;
+        return false;
       }
-      return IterationStep.CONTINUE;
+      return true;
     });
     return needsVirtual;
   }
@@ -345,16 +357,28 @@ class MemberHierarchyBuilder {
   }
 
   void _handleMember(MemberEntity member, ClassEntity cls, Selector selector,
-      void Function(MemberEntity parent, MemberEntity override) join) {
+      void Function(MemberEntity parent, MemberEntity override) join,
+      {required bool isMixinUse}) {
     final elementEnv = closedWorld.elementEnvironment;
     final name = selector.memberName;
     bool foundSuperclass = false;
 
-    void addParent(MemberEntity child, ClassEntity childCls,
-        MemberEntity parent, ClassEntity parentCls) {
+    void addParent(MemberEntity child, MemberEntity parent) {
       if (child == parent) return;
-      if ((_overrides[parent] ??= Setlet()).add(child)) {
+      if (!isMixinUse && (_overrides[parent] ??= Setlet()).add(child)) {
         join(parent, child);
+      }
+
+      // For mixins defining an abstract member, foo, implementations of foo
+      // (either directly on the mixin target or superclasses of it) should
+      // propagate their types to the abstract foo as they are effectively
+      // overriding it. Calls to foo within the body of the mixin can only
+      // target the abstract foo with a virtual call so that virtual target
+      // needs to reflect the types of all its overrides.
+      if (isMixinUse &&
+          child.isAbstract &&
+          (_overrides[child] ??= Setlet()).add(parent)) {
+        join(child, parent);
       }
     }
 
@@ -363,7 +387,7 @@ class MemberHierarchyBuilder {
     while (current != null) {
       final match = elementEnv.lookupLocalClassMember(current, name);
       if (match != null && !MemberHierarchyBuilder._skipMemberInternal(match)) {
-        addParent(member, cls, match, current);
+        addParent(member, match);
         foundSuperclass = true;
         break;
       }
@@ -372,8 +396,7 @@ class MemberHierarchyBuilder {
 
     closedWorld.classHierarchy.getClassSet(cls).forEachSubtype((subtype) {
       final override = elementEnv.lookupClassMember(subtype, name);
-      if (override == null) return IterationStep.CONTINUE;
-      addParent(override, subtype, member, cls);
+      if (override != null) addParent(override, member);
       return IterationStep.CONTINUE;
     }, ClassHierarchyNode.INSTANTIATED, strict: true);
 
@@ -390,9 +413,11 @@ class MemberHierarchyBuilder {
     // Process each selector matching member separately.
     for (final selector in _selectorsForMember(member)) {
       for (final mixinUse in mixinUses) {
-        _handleMember(member, mixinUse, selector, join);
+        // For mixin uses we treat the mixin's members as if they are part of
+        // the mixin target itself.
+        _handleMember(member, mixinUse, selector, join, isMixinUse: true);
       }
-      _handleMember(member, cls, selector, join);
+      _handleMember(member, cls, selector, join, isMixinUse: false);
     }
   }
 

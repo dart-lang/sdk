@@ -557,8 +557,8 @@ void main() {
   b += 3;
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 19, 6),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 116, 1),
+      error(WarningCode.UNUSED_FIELD, 19, 6),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 116, 1),
     ]);
   }
 

@@ -14,8 +14,9 @@ exhaustiveField(Class c) {
   return /*
    fields={field:num},
    type=Class
-  */switch (c) {
-    Class(:var field) /*space=Class(field: num)*/=> field,
+  */
+      switch (c) {
+    Class(:var field) /*space=Class(field: num)*/ => field,
   };
 }
 
@@ -23,8 +24,9 @@ exhaustiveGetter(Class c) {
   return /*
    fields={getter:num},
    type=Class
-  */switch (c) {
-    Class(:var getter) /*space=Class(getter: num)*/=> getter,
+  */
+      switch (c) {
+    Class(:var getter) /*space=Class(getter: num)*/ => getter,
   };
 }
 
@@ -32,17 +34,19 @@ exhaustiveMethod(Class c) {
   return /*
    fields={method:num Function(num)},
    type=Class
-  */switch (c) {
-    Class(:var method) /*space=Class(method: num Function(num))*/=> method,
+  */
+      switch (c) {
+    Class(:var method) /*space=Class(method: num Function(num))*/ => method,
   };
 }
 
 exhaustiveFieldTyped(Class c) {
-    return /*
+  return /*
      fields={field:num},
      type=Class
-    */switch (c) {
-    Class(:num field) /*space=Class(field: num)*/=> field,
+    */
+      switch (c) {
+    Class(:num field) /*space=Class(field: num)*/ => field,
   };
 }
 
@@ -50,8 +54,9 @@ exhaustiveGetterTyped(Class c) {
   return /*
    fields={getter:num},
    type=Class
-  */switch (c) {
-    Class(:num getter) /*space=Class(getter: num)*/=> getter,
+  */
+      switch (c) {
+    Class(:num getter) /*space=Class(getter: num)*/ => getter,
   };
 }
 
@@ -59,8 +64,12 @@ exhaustiveMethodTyped(Class c) {
   return /*
    fields={method:num Function(num)},
    type=Class
-  */switch (c) {
-    Class(:num Function(num) method) /*space=Class(method: num Function(num))*/=> method,
+  */
+      switch (c) {
+    Class(
+      :num Function(num) method
+    ) /*space=Class(method: num Function(num))*/ =>
+      method,
   };
 }
 
@@ -69,8 +78,9 @@ nonExhaustiveFieldRestrictedValue(Class c) {
    error=non-exhaustive:Class(field: double()),
    fields={field:num},
    type=Class
-  */switch (c) {
-    Class(field: 5) /*space=Class(field: 5)*/=> 5,
+  */
+      switch (c) {
+    Class(field: 5) /*space=Class(field: 5)*/ => 5,
   };
 }
 
@@ -79,18 +89,21 @@ nonExhaustiveGetterRestrictedValue(Class c) {
    error=non-exhaustive:Class(getter: double()),
    fields={getter:num},
    type=Class
-  */switch (c) {
-    Class(getter: 5) /*space=Class(getter: 5)*/=> 5,
+  */
+      switch (c) {
+    Class(getter: 5) /*space=Class(getter: 5)*/ => 5,
   };
 }
 
 nonExhaustiveMethodRestrictedValue(Class c) {
   return /*
-   error=non-exhaustive:Class(method: num Function(num) _),
+   error=non-exhaustive:Class(method: num Function(num) _)/Class(),
    fields={method:num Function(num)},
    type=Class
-  */switch (c) {
-    Class(method:topLevelMethod) /*space=Class(method: topLevelMethod)*/=> topLevelMethod,
+  */
+      switch (c) {
+    Class(method: topLevelMethod) /*space=Class(method: topLevelMethod)*/ =>
+      topLevelMethod,
   };
 }
 
@@ -99,8 +112,9 @@ nonExhaustiveFieldRestrictedType(Class c) {
    error=non-exhaustive:Class(field: double()),
    fields={field:num},
    type=Class
-  */switch (c) {
-    Class(:int field) /*space=Class(field: int)*/=> field,
+  */
+      switch (c) {
+    Class(:int field) /*space=Class(field: int)*/ => field,
   };
 }
 
@@ -109,18 +123,23 @@ exhaustiveGetterRestrictedType(Class c) {
    error=non-exhaustive:Class(getter: double()),
    fields={getter:num},
    type=Class
-  */switch (c) {
-    Class(:int getter) /*space=Class(getter: int)*/=> getter,
+  */
+      switch (c) {
+    Class(:int getter) /*space=Class(getter: int)*/ => getter,
   };
 }
 
 exhaustiveMethodRestrictedType(Class c) {
   return /*
-   error=non-exhaustive:Class(method: num Function(num) _),
+   error=non-exhaustive:Class(method: num Function(num) _)/Class(),
    fields={method:num Function(num)},
    type=Class
-  */switch (c) {
-    Class(:int Function(num) method) /*space=Class(method: int Function(num))*/=> method,
+  */
+      switch (c) {
+    Class(
+      :int Function(num) method
+    ) /*space=Class(method: int Function(num))*/ =>
+      method,
   };
 }
 
@@ -128,11 +147,16 @@ unreachableGetter(Class c) {
   return /*
    fields={field:num,getter:num},
    type=Class
-  */switch (c) {
-    Class(:var field) /*space=Class(field: num)*/=> field,
-    Class(:var getter) /*
+  */
+      switch (c) {
+    Class(:var field) /*space=Class(field: num)*/ => field,
+    Class(
+      :var getter
+    ) /*
      error=unreachable,
      space=Class(getter: num)
-    */=> getter,
+    */
+      =>
+      getter,
   };
 }

@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/empty_map_pattern.dart:6:7: Error: A map pattern must have at least one entry.
+// Try replacing it with an object pattern 'Map()'.
+//       {} => 0,
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method method(core::Map<dynamic, dynamic> m) → dynamic
+  return block {
+    core::int #t1;
+    final synthesized core::Map<dynamic, dynamic> #0#0 = m;
+    #L1:
+    {
+      {
+        if(invalid-expression "pkg/front_end/testcases/patterns/empty_map_pattern.dart:6:7: Error: A map pattern must have at least one entry.
+Try replacing it with an object pattern 'Map()'.
+      {} => 0,
+      ^") {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;

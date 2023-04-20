@@ -282,10 +282,17 @@ mixin M implements int {}
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
     ]);
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, ['int']);
-
-    var typeRef = findNode.namedType('int {}');
-    assertNamedType(typeRef, intElement, 'int');
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
+''');
   }
 }

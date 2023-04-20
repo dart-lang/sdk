@@ -49,11 +49,9 @@ void testSyncStarTransform(String source, String expected) {
       source,
       expected,
       SyncStarRewriter(SimpleErrorReporter(), null,
-          endOfIteration: VariableUse("endOfIteration"),
-          iterableFactory: VariableUse("NewIterable"),
-          iterableFactoryTypeArguments: [VariableUse("IterableType")],
-          yieldStarExpression: VariableUse("yieldStar"),
-          uncaughtErrorExpression: VariableUse("uncaughtError"),
+          iteratorCurrentValueProperty: string('_current'),
+          iteratorDatumProperty: string('_datum'),
+          yieldStarSelector: string('_yieldStar'),
           safeVariableName: (String name) => "__$name",
           bodyName: StringBackedName("body")));
 }
@@ -1295,10 +1293,10 @@ function(a) sync* {
   return foo();
 }""", """
 function(__a) {
-  return NewIterable(function() {
+  return function() {
     var a = __a;
     var __goto = 0, __handler = 2, __currentError;
-    return function body(__errorCode, __result) {
+    return function body(__iterator, __errorCode, __result) {
       if (__errorCode === 1) {
         __currentError = __result;
         __goto = __handler;
@@ -1313,12 +1311,12 @@ function(__a) {
             break;
           case 1:
             // return
-            return endOfIteration();
+            return 0;
           case 2:
             // rethrow
-            return uncaughtError(__currentError);
+            return __iterator._datum = __currentError, 3;
         }
     };
-  }, IterableType);
+  };
 }""");
 }

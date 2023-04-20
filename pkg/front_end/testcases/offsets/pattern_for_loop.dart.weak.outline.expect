@@ -1,0 +1,6 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+[217]static method method([229] core::List<dynamic> list) → dynamic
+[-1]  ;

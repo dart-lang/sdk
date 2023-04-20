@@ -972,7 +972,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       if (emitGuard) {
         b.local_get(thrownException);
         types.emitTypeTest(
-            this, guard, translator.coreTypes.objectNonNullableRawType, node);
+            this, guard, translator.coreTypes.objectNonNullableRawType);
         b.i32_eqz();
         b.br_if(catchBlock);
       }
@@ -1366,12 +1366,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return;
     }
 
+    final switchExprClass =
+        translator.classForType(dartTypeOf(node.expression));
+
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
             e is NullLiteral ||
             (e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant)));
+                (e.constant is C || e.constant is NullConstant) &&
+                (translator.hierarchy.isSubtypeOf(
+                    translator.classForType(dartTypeOf(e)), switchExprClass))));
 
     // Identify kind of switch. One of `nullableType` or `nonNullableType` will
     // be the type for Wasm local that holds the switch value.
@@ -1407,10 +1412,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
-      assert(check<InvalidExpression, Constant>());
-      nonNullableType = w.RefType.eq(nullable: false);
-      nullableType = w.RefType.eq(nullable: true);
-      compare = () => b.ref_eq();
+      nonNullableType = translator.topInfo.nonNullableType;
+      nullableType = translator.topInfo.nullableType;
+      compare = () => b.call(translator.functions
+          .getFunction(translator.coreTypes.identicalProcedure.reference));
     }
 
     bool isNullable = dartTypeOf(node.expression).isPotentiallyNullable;
@@ -2861,7 +2866,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitIsExpression(IsExpression node, w.ValueType expectedType) {
     wrap(node.operand, translator.topInfo.nullableType);
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand), node);
+    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
     return w.NumType.i32;
   }
 
@@ -2878,7 +2883,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // We lower an `as` expression to a type test, throwing a [TypeError] if
     // the type test fails.
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand), node);
+    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
     b.br_if(asCheckBlock);
     b.local_get(operand);
     types.makeType(this, node.type);

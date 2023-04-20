@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 static method guard() → dynamic
   return true;
 static method main() → dynamic {
-  core::int a;
+  hoisted has-declared-initializer core::int a;
   {
     final synthesized dynamic #0#0 = <core::int>[5];
     if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
@@ -14,49 +14,66 @@ static method main() → dynamic {
   }
   core::int b;
   block {
-    final synthesized dynamic #1#0 = <core::int>[5];
-    if(!(#1#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = b = #1#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
+    core::int #t2;
+    final synthesized dynamic #2#0 = block {
+      final core::List<core::int> #t3 = <core::int>[];
+      {
+        final synthesized core::int #1#0 = a;
+        if(#1#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool)
+          #t3.{core::List::add}{Invariant}(5){(core::int) → void};
+      }
+    } =>#t3;
+    if(!(#2#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t4 = #t2 = #2#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
-  } =>#1#0;
+    b = #t2;
+  } =>#2#0;
   {
-    final synthesized core::int #2#0 = a;
-    if(#2#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+    final synthesized core::int #3#0 = a;
+    if(#3#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
       a = 6;
     }
   }
   core::int c = block {
-    core::int #t3;
-    final synthesized core::int #3#0 = a;
+    core::int #t5;
+    final synthesized core::int #4#0 = a;
     #L1:
     {
       {
-        core::int d;
-        if(#3#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = d = #3#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
-          #t3 = d;
+        hoisted core::int d;
+        if(#4#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = d = #4#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+          #t5 = d;
           break #L1;
         }
       }
       {
         if(true) {
-          #t3 = 0;
+          #t5 = 0;
           break #L1;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t3;
+  } =>#t5;
   #L2:
   {
-    final synthesized core::int #4#0 = b;
+    final synthesized core::int #5#0 = b;
     {
-      core::int e;
-      if(#4#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = e = #4#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+      hoisted core::int e;
+      if(#5#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = e = #5#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
         {
           core::print(a);
         }
       }
     }
   }
+  core::Map<core::int, core::int> d = block {
+    final core::Map<core::int, core::int> #t8 = <core::int, core::int>{};
+    {
+      final synthesized core::int #6#0 = a;
+      if(#6#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool)
+        #t8.{core::Map::[]=}{Invariant}(5, 6){(core::int, core::int) → void};
+    }
+  } =>#t8;
 }
 
 constants  {

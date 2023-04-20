@@ -27,7 +27,7 @@ const AstTextStrategy textStrategy = const AstTextStrategy(
 class ExhaustivenessDataForTesting {
   /// Access to interface for looking up `Object` members on non-interface
   /// types.
-  ObjectFieldLookup? objectFieldLookup;
+  ObjectPropertyLookup? objectFieldLookup;
 
   /// Map from switch statement/expression nodes to the results of the
   /// exhaustiveness test.
@@ -233,6 +233,16 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         // TODO(johnniwinther): What about intersection types?
         type is TypeParameterType;
   }
+
+  @override
+  DartType? getTypeVariableBound(DartType type) {
+    if (type is TypeParameterType) {
+      return type.bound;
+    } else if (type is IntersectionType) {
+      return type.right;
+    }
+    return null;
+  }
 }
 
 class CfeEnumOperations
@@ -384,8 +394,11 @@ class CfeSealedClassOperations
 
 class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, Constant> {
+  final TypeEnvironment typeEnvironment;
+
   CfeExhaustivenessCache(ConstantEvaluator constantEvaluator)
-      : super(
+      : typeEnvironment = constantEvaluator.typeEnvironment,
+        super(
             new CfeTypeOperations(constantEvaluator.typeEnvironment),
             new CfeEnumOperations(constantEvaluator),
             new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
@@ -393,35 +406,32 @@ class CfeExhaustivenessCache
 
 class PatternConverter with SpaceCreator<Pattern, DartType> {
   final CfeExhaustivenessCache cache;
-  final Map<ConstantPattern, Constant> constantPatternValues;
-  final Map<MapPatternEntry, Constant> mapPatternKeyValues;
   final StaticTypeContext context;
+  final bool Function(Constant) hasPrimitiveEquality;
 
-  PatternConverter(this.cache, this.constantPatternValues,
-      this.mapPatternKeyValues, this.context);
-
-  Space convertExpressionToSpace(Expression expression, Path path) {
-    Constant? constant = constantPatternValues[expression];
-    return convertConstantToSpace(constant, path: path);
-  }
+  PatternConverter(this.cache, this.context,
+      {required this.hasPrimitiveEquality});
 
   @override
   Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,
       {required bool nonNull}) {
     if (pattern is ObjectPattern) {
-      Map<String, Pattern> fields = {};
+      Map<String, Pattern> properties = {};
+      Map<String, DartType> extensionPropertyTypes = {};
       for (NamedPattern field in pattern.fields) {
-        fields[field.name] = field.pattern;
+        properties[field.name] = field.pattern;
+        if (field.accessKind == ObjectAccessKind.Static) {
+          extensionPropertyTypes[field.name] = field.resultType!;
+        }
       }
-      return createObjectSpace(path, contextType, pattern.lookupType!, fields,
+      return createObjectSpace(path, contextType, pattern.requiredType,
+          properties, extensionPropertyTypes,
           nonNull: nonNull);
     } else if (pattern is VariablePattern) {
       return createVariableSpace(path, contextType, pattern.variable.type,
           nonNull: nonNull);
     } else if (pattern is ConstantPattern) {
-      return convertConstantToSpace(
-          pattern.value ?? constantPatternValues[pattern],
-          path: path);
+      return convertConstantToSpace(pattern.value!, path: path);
     } else if (pattern is RecordPattern) {
       List<Pattern> positional = [];
       Map<String, Pattern> named = {};
@@ -458,7 +468,10 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
-      DartType elementType = pattern.typeArgument ?? const DynamicType();
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.classNode == cache.typeEnvironment.coreTypes.listClass &&
+          type.typeArguments.length == 1);
+      DartType elementType = type.typeArguments[0];
       bool hasRest = false;
       List<Pattern> headPatterns = [];
       Pattern? restPattern;
@@ -474,7 +487,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         }
       }
       return createListSpace(path,
-          type: pattern.lookupType!,
+          type: pattern.requiredType!,
           elementType: elementType,
           headElements: headPatterns,
           restElement: restPattern,
@@ -482,19 +495,17 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           hasRest: hasRest,
           hasExplicitTypeArgument: pattern.typeArgument != null);
     } else if (pattern is MapPattern) {
-      DartType keyType = pattern.keyType ?? const DynamicType();
-      DartType valueType = pattern.valueType ?? const DynamicType();
-      bool hasRest = false;
+      InterfaceType type = pattern.requiredType as InterfaceType;
+      assert(type.classNode == cache.typeEnvironment.coreTypes.mapClass &&
+          type.typeArguments.length == 2);
+      DartType keyType = type.typeArguments[0];
+      DartType valueType = type.typeArguments[1];
       Map<MapKey, Pattern> entries = {};
       for (MapPatternEntry entry in pattern.entries) {
         if (entry is MapPatternRestEntry) {
-          hasRest = true;
+          // Rest patterns are illegal in map patterns, so just skip over it.
         } else {
-          // TODO(johnniwinther): Assert that we have a constant value.
-          Constant? constant = entry.keyValue ?? mapPatternKeyValues[entry];
-          if (constant == null) {
-            return createUnknownSpace(path);
-          }
+          Constant constant = entry.keyValue!;
           MapKey key = new MapKey(constant, constant.toText(textStrategy));
           entries[key] = entry.value;
         }
@@ -504,7 +515,6 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
           keyType: keyType,
           valueType: valueType,
           entries: entries,
-          hasRest: hasRest,
           hasExplicitTypeArguments:
               pattern.keyType != null && pattern.valueType != null);
     }
@@ -522,24 +532,28 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
         return new Space(
             path, cache.getEnumElementStaticType(constant.classNode, constant));
       } else if (constant is RecordConstant) {
-        Map<Key, Space> fields = {};
+        Map<Key, Space> properties = {};
         for (int index = 0; index < constant.positional.length; index++) {
           Key key = new RecordIndexKey(index);
-          fields[key] = convertConstantToSpace(constant.positional[index],
+          properties[key] = convertConstantToSpace(constant.positional[index],
               path: path.add(key));
         }
         for (MapEntry<String, Constant> entry in constant.named.entries) {
           Key key = new RecordNameKey(entry.key);
-          fields[key] =
+          properties[key] =
               convertConstantToSpace(entry.value, path: path.add(key));
         }
         return new Space(path, cache.getStaticType(constant.recordType),
-            fields: fields);
-      } else {
+            properties: properties);
+      } else if (hasPrimitiveEquality(constant)) {
+        // Only if [constant] has primitive equality can we tell if it is equal
+        // to itself.
         return new Space(
             path,
             cache.getUniqueStaticType<Constant>(constant.getType(context),
                 constant, constant.toText(textStrategy)));
+      } else {
+        return new Space(path, cache.getUnknownStaticType());
       }
     } else {
       // TODO(johnniwinther): Assert that constant value is available when the
@@ -560,20 +574,21 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
 
   @override
   StaticType createListType(
-      DartType type, ListTypeIdentity<DartType> identity) {
-    return cache.getListStaticType(type, identity);
+      DartType type, ListTypeRestriction<DartType> restriction) {
+    return cache.getListStaticType(type, restriction);
   }
 
   @override
-  StaticType createMapType(DartType type, MapTypeIdentity<DartType> identity) {
-    return cache.getMapStaticType(type, identity);
+  StaticType createMapType(
+      DartType type, MapTypeRestriction<DartType> restriction) {
+    return cache.getMapStaticType(type, restriction);
   }
 
   @override
   TypeOperations<DartType> get typeOperations => cache.typeOperations;
 
   @override
-  ObjectFieldLookup get objectFieldLookup => cache;
+  ObjectPropertyLookup get objectFieldLookup => cache;
 }
 
 bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {
@@ -605,7 +620,6 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitFutureOrType(FutureOrType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why? This doesn't work if the value is a Future.
     return type.typeArgument.accept1(this, coreTypes);
   }
 
@@ -629,8 +643,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitIntersectionType(IntersectionType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why don't we use the bound?
-    return false;
+    return type.right.accept1(this, coreTypes);
   }
 
   @override
@@ -665,8 +678,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitTypeParameterType(TypeParameterType type, CoreTypes coreTypes) {
-    // TODO(johnniwinther): Why don't we use the bound?
-    return false;
+    return type.bound.accept1(this, coreTypes);
   }
 
   @override

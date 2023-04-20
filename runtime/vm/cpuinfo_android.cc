@@ -13,7 +13,7 @@
 namespace dart {
 
 CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
-const char* CpuInfo::fields_[kCpuInfoMax] = {0};
+const char* CpuInfo::fields_[kCpuInfoMax] = {};
 
 void CpuInfo::Init() {
   // Initialize our read from /proc/cpuinfo.

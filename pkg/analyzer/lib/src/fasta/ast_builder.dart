@@ -32,8 +32,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateExtraneousModifier,
-        templateInternalProblemUnhandled,
-        templatePatternAssignmentDeclaresVariable;
+        templateInternalProblemUnhandled;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -433,24 +432,8 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     assert(_classLikeBuilder == null);
-    if (!enableSealedClass) {
-      if (sealedToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.sealed_class,
-          startToken: sealedToken,
-        );
-        // Pretend that 'sealed' didn't occur while this feature is incomplete.
-        sealedToken = null;
-      }
-    }
     if (!enableClassModifiers) {
       if (baseToken != null) {
         _reportFeatureNotEnabled(
@@ -460,28 +443,9 @@ class AstBuilder extends StackListener {
         // Pretend that 'base' didn't occur while this feature is incomplete.
         baseToken = null;
       }
-      if (interfaceToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.class_modifiers,
-          startToken: interfaceToken,
-        );
-        // Pretend that 'interface' didn't occur while this feature is incomplete.
-        interfaceToken = null;
-      }
-      if (finalToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.class_modifiers,
-          startToken: finalToken,
-        );
-        // Pretend that 'final' didn't occur while this feature is incomplete.
-        finalToken = null;
-      }
     }
     push(augmentToken ?? NullValues.Token);
-    push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
-    push(interfaceToken ?? NullValues.Token);
-    push(finalToken ?? NullValues.Token);
   }
 
   @override
@@ -886,6 +850,10 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<ExpressionImpl>(count);
+    for (final expression in expressions) {
+      reportErrorIfSuper(expression);
+    }
+
     final arguments = ArgumentListImpl(
       leftParenthesis: leftParenthesis,
       arguments: expressions,
@@ -1866,6 +1834,7 @@ class AstBuilder extends StackListener {
 
     var initializer = pop() as ExpressionImpl;
     var name = pop() as SimpleIdentifierImpl;
+    reportErrorIfSuper(initializer);
     push(
       VariableDeclarationImpl(
         name: name.token,
@@ -2279,7 +2248,7 @@ class AstBuilder extends StackListener {
       IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        expression: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenElement: thenElement,
@@ -2300,7 +2269,7 @@ class AstBuilder extends StackListener {
       IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        expression: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenElement: thenElement,
@@ -2322,7 +2291,7 @@ class AstBuilder extends StackListener {
       IfStatementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        expression: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenStatement: thenPart,
@@ -2878,6 +2847,8 @@ class AstBuilder extends StackListener {
     debugEvent("ParenthesizedExpression");
 
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       ParenthesizedExpressionImpl(
         leftParenthesis: leftParenthesis,
@@ -3551,6 +3522,7 @@ class AstBuilder extends StackListener {
 
     var initializer = pop() as ExpressionImpl;
     var identifier = pop() as SimpleIdentifierImpl;
+    reportErrorIfSuper(initializer);
     // TODO(ahe): Don't push initializers, instead install them.
     push(
       VariableDeclarationImpl(
@@ -3637,11 +3609,25 @@ class AstBuilder extends StackListener {
 
     var type = pop() as TypeAnnotationImpl;
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       AsExpressionImpl(
         expression: expression,
         asOperator: asOperator,
         type: type,
+      ),
+    );
+  }
+
+  @override
+  void handleAssignedVariablePattern(Token variable) {
+    debugEvent('AssignedVariablePattern');
+    assert(_featureSet.isEnabled(Feature.patterns));
+    assert(variable.lexeme != '_');
+    push(
+      AssignedVariablePatternImpl(
+        name: variable,
       ),
     );
   }
@@ -3658,6 +3644,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
           messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
     }
+    reportErrorIfSuper(rhs);
     push(
       AssignmentExpressionImpl(
         leftHandSide: lhs,
@@ -3956,6 +3943,22 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
+    debugEvent('DeclaredVariablePattern');
+    assert(_featureSet.isEnabled(Feature.patterns));
+    assert(variable.lexeme != '_');
+    var type = pop() as TypeAnnotationImpl?;
+    push(
+      DeclaredVariablePatternImpl(
+        keyword: keyword,
+        type: type,
+        name: variable,
+      ),
+    );
+  }
+
+  @override
   void handleDottedName(int count, Token firstIdentifier) {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
@@ -4243,6 +4246,7 @@ class AstBuilder extends StackListener {
 
     var iterable = pop() as ExpressionImpl;
     var variableOrDeclaration = pop()!;
+    reportErrorIfSuper(iterable);
 
     ForEachPartsImpl forLoopParts;
     if (patternKeyword != null) {
@@ -4298,6 +4302,10 @@ class AstBuilder extends StackListener {
     var updates = popTypedList2<ExpressionImpl>(updateExpressionCount);
     var conditionStatement = pop() as StatementImpl;
     var initializerPart = pop();
+
+    for (final update in updates) {
+      reportErrorIfSuper(update);
+    }
 
     ExpressionImpl? condition;
     Token rightSeparator;
@@ -4440,6 +4448,7 @@ class AstBuilder extends StackListener {
 
     var index = pop() as ExpressionImpl;
     var target = pop() as ExpressionImpl?;
+    reportErrorIfSuper(index);
     if (target == null) {
       var receiver = pop() as CascadeExpressionImpl;
       var token = peek() as Token;
@@ -4556,6 +4565,8 @@ class AstBuilder extends StackListener {
 
     var type = pop() as TypeAnnotationImpl;
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
+
     push(
       IsExpressionImpl(
         expression: expression,
@@ -4748,30 +4759,20 @@ class AstBuilder extends StackListener {
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
-    var finalKeyword = pop(NullValues.Token) as Token?;
-    var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
-    var sealedKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
 
-    final begin = sealedKeyword ??
-        baseKeyword ??
-        interfaceKeyword ??
-        finalKeyword ??
-        mixinKeyword;
+    final begin = baseKeyword ?? mixinKeyword;
     var comment = _findComment(metadata, begin);
 
     _classLikeBuilder = _MixinDeclarationBuilder(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
-      sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
-      interfaceKeyword: interfaceKeyword,
-      finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       name: name.token,
       typeParameters: typeParameters,
@@ -4801,6 +4802,16 @@ class AstBuilder extends StackListener {
     } else {
       push(NullValues.IdentifierList);
     }
+  }
+
+  @override
+  void handleMixinWithClause(Token withKeyword) {
+    assert(optional('with', withKeyword));
+    // This is an error case. An error has been issued already.
+    // Possibly the data could be used for help though.
+    _popNamedTypeList(
+      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+    );
   }
 
   @override
@@ -5035,6 +5046,7 @@ class AstBuilder extends StackListener {
       );
     }
     condition = pop() as ExpressionImpl;
+    reportErrorIfSuper(condition);
     push(_ParenthesizedCondition(leftParenthesis, condition, caseClause));
   }
 
@@ -5495,52 +5507,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
-      {required bool inAssignmentPattern}) {
-    debugEvent('VariablePattern');
-    if (!_featureSet.isEnabled(Feature.patterns)) {
-      // TODO(paulberry): report the appropriate error
-      throw UnimplementedError('Patterns not enabled');
-    }
-    var type = pop() as TypeAnnotationImpl?;
-    if (inAssignmentPattern && (type != null || keyword != null)) {
-      // TODO(paulberry): Consider generating this error in the parser
-      // This error is also reported in the body builder
-      handleRecoverableError(
-          templatePatternAssignmentDeclaresVariable
-              .withArguments(variable.lexeme),
-          variable,
-          variable);
-      // To ensure that none of the tokens are dropped from the AST, don't build
-      // an `AssignedVariablePatternImpl`.
-      inAssignmentPattern = false;
-    }
-    if (variable.lexeme == '_') {
-      push(
-        WildcardPatternImpl(
-          keyword: keyword,
-          type: type,
-          name: variable,
-        ),
-      );
-    } else if (inAssignmentPattern) {
-      push(
-        AssignedVariablePatternImpl(
-          name: variable,
-        ),
-      );
-    } else {
-      push(
-        DeclaredVariablePatternImpl(
-          keyword: keyword,
-          type: type,
-          name: variable,
-        ),
-      );
-    }
-  }
-
-  @override
   void handleVoidKeyword(Token voidKeyword) {
     assert(optional('void', voidKeyword));
     debugEvent("VoidKeyword");
@@ -5563,6 +5529,23 @@ class AstBuilder extends StackListener {
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     push(arguments);
     handleType(voidKeyword, null);
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    debugEvent('WildcardPattern');
+    assert(_featureSet.isEnabled(Feature.patterns));
+    // Note: if `default` appears in a switch expression, parser error recovery
+    // treats it as a wildcard pattern.
+    assert(wildcard.lexeme == '_' || wildcard.lexeme == 'default');
+    var type = pop() as TypeAnnotationImpl?;
+    push(
+      WildcardPatternImpl(
+        keyword: keyword,
+        type: type,
+        name: wildcard,
+      ),
+    );
   }
 
   @override
@@ -5950,10 +5933,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
-  final Token? sealedKeyword;
   final Token? baseKeyword;
-  final Token? interfaceKeyword;
-  final Token? finalKeyword;
   final Token mixinKeyword;
   final Token name;
   OnClauseImpl? onClause;
@@ -5966,10 +5946,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.leftBracket,
     required super.rightBracket,
     required this.augmentKeyword,
-    required this.sealedKeyword,
     required this.baseKeyword,
-    required this.interfaceKeyword,
-    required this.finalKeyword,
     required this.mixinKeyword,
     required this.name,
     required this.onClause,
@@ -5981,10 +5958,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
-      sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
-      interfaceKeyword: interfaceKeyword,
-      finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       name: name,
       typeParameters: typeParameters,

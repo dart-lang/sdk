@@ -23,7 +23,8 @@ part of '../types.dart';
 /// Not that the fields of the record types _are_ using the type, so that
 /// the `$1` field of `(String, Object)` is known to contain only `String`s.
 class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
-  RecordStaticType(super.typeOperations, super.fieldLookup, super.type);
+  RecordStaticType(super.typeOperations, super.fieldLookup, super.type)
+      : super(isImplicitlyNullable: false);
 
   @override
   bool get isRecord => true;
@@ -46,8 +47,8 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   }
 
   @override
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties) {
     StringBuffer buffer = new StringBuffer();
     buffer.write('(');
     String comma = '';
@@ -55,28 +56,28 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
       if (key is RecordIndexKey) {
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${spaceFields[key] ?? staticType}');
+        buffer.write('${spaceProperties[key] ?? staticType}');
       } else if (key is RecordNameKey) {
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${key.name}: ${spaceFields[key] ?? staticType}');
+        buffer.write('${key.name}: ${spaceProperties[key] ?? staticType}');
       }
     });
     buffer.write(')');
     String additionalStart = '(';
     String additionalEnd = '';
     comma = '';
-    spaceFields.forEach((Key key, Space value) {
+    spaceProperties.forEach((Key key, Space value) {
       if (key is! RecordKey) {
         buffer.write(additionalStart);
         additionalStart = '';
         additionalEnd = ')';
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${key.name}: ${value}');
+        buffer.write('${key.name}: $value');
       }
     });
-    additionalSpaceFields.forEach((Key key, Space value) {
+    additionalSpaceProperties.forEach((Key key, Space value) {
       if (key is! RecordKey) {
         buffer.write(additionalStart);
         additionalStart = '';
@@ -91,8 +92,9 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     buffer.write('(');
     String comma = '';
     for (Key key in fields.keys) {
@@ -100,9 +102,9 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
         buffer.write(comma);
         comma = ', ';
 
-        FieldWitness? field = witnessFields[key];
+        PropertyWitness? field = witnessFields[key];
         if (field != null) {
-          field.witnessToText(buffer);
+          field.witnessToText(buffer, forCorrection: forCorrection);
         } else {
           buffer.write('_');
         }
@@ -112,9 +114,9 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness? field = witnessFields[key];
+        PropertyWitness? field = witnessFields[key];
         if (field != null) {
-          field.witnessToText(buffer);
+          field.witnessToText(buffer, forCorrection: forCorrection);
         } else {
           buffer.write('_');
         }
@@ -126,7 +128,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is! RecordKey) {
         buffer.write(additionalStart);
@@ -137,8 +139,8 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness field = entry.value;
-        field.witnessToText(buffer);
+        PropertyWitness field = entry.value;
+        field.witnessToText(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);

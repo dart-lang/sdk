@@ -378,7 +378,7 @@ class AdbDevicePool {
 
   static Future<AdbDevicePool> create() async {
     var names = await AdbHelper.listDevices();
-    var devices = names.map((id) => AdbDevice(id)).toList();
+    var devices = names.map(AdbDevice.new).toList();
     if (devices.isEmpty) {
       throw Exception('No android devices found. '
           'Please make sure "adb devices" shows your device!');

@@ -50,8 +50,6 @@ mixin On on BaseClass {}
 // [cfe] The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 class ExtendsExtends extends Extends {}
-//    ^
-// [cfe] The type 'ExtendsExtends' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 class Multiple extends FinalClass implements BaseMixin {}
 //    ^^^^^^^^

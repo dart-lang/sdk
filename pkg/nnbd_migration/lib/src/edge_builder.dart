@@ -1117,11 +1117,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitIfElement(IfElement node) {
     _flowAnalysis!.ifStatement_conditionBegin();
-    _checkExpressionNotNull(node.condition);
-    _flowAnalysis!.ifStatement_thenBegin(node.condition, node);
+    _checkExpressionNotNull(node.expression);
+    _flowAnalysis!.ifStatement_thenBegin(node.expression, node);
     NullabilityNode? trueGuard;
     NullabilityNode? falseGuard;
-    if (identical(_conditionInfo?.condition, node.condition)) {
+    if (identical(_conditionInfo?.condition, node.expression)) {
       trueGuard = _conditionInfo!.trueGuard;
       falseGuard = _conditionInfo!.falseGuard;
       _variables.recordConditionalDiscard(source, node,
@@ -1159,10 +1159,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitIfStatement(IfStatement node) {
     _flowAnalysis!.ifStatement_conditionBegin();
-    _checkExpressionNotNull(node.condition);
+    _checkExpressionNotNull(node.expression);
     NullabilityNode? trueGuard;
     NullabilityNode? falseGuard;
-    if (identical(_conditionInfo?.condition, node.condition)) {
+    if (identical(_conditionInfo?.condition, node.expression)) {
       trueGuard = _conditionInfo!.trueGuard;
       falseGuard = _conditionInfo!.falseGuard;
       _variables.recordConditionalDiscard(source, node,
@@ -1172,7 +1172,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _guards.add(trueGuard);
     }
     try {
-      _flowAnalysis!.ifStatement_thenBegin(node.condition, node);
+      _flowAnalysis!.ifStatement_thenBegin(node.expression, node);
       // We branched, so create a new scope for post-dominators.
       _postDominatedLocals.doScoped(
           action: () => _dispatch(node.thenStatement));
@@ -1960,6 +1960,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var hasLabel = member.labels.isNotEmpty;
         _flowAnalysis!.switchStatement_beginAlternatives();
         _flowAnalysis!.switchStatement_beginAlternative();
+        _flowAnalysis!.constantPattern_end(node.expression, scrutineeType,
+            patternsEnabled: false);
         _flowAnalysis!.switchStatement_endAlternative(null, {});
         _flowAnalysis!
             .switchStatement_endAlternatives(node, hasLabels: hasLabel);

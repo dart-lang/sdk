@@ -33,7 +33,7 @@ mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
     await computeSuggestions('''
 abstract ^
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   base
     kind: keyword
@@ -45,8 +45,6 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  sealed
-    kind: keyword
 ''');
   }
 
@@ -57,7 +55,7 @@ abstract b^
     if (isProtocolVersion1) {
       _assertProtocol1SuggestionsWithPrefix();
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -71,7 +69,7 @@ suggestions
     await computeSuggestions('''
 abstract ^ class A {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   base
     kind: keyword
@@ -81,7 +79,16 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  sealed
+''');
+  }
+
+  Future<void> test_afterAbstract_beforeMixinClass() async {
+    await computeSuggestions('''
+abstract ^ mixin class A {}
+''');
+    assertResponse('''
+suggestions
+  base
     kind: keyword
 ''');
   }
@@ -91,7 +98,7 @@ suggestions
     await computeSuggestions('''
 abstract base ^
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   class
     kind: keyword
@@ -104,7 +111,7 @@ suggestions
     await computeSuggestions('''
 base ^ class A {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   mixin
     kind: keyword
@@ -115,10 +122,28 @@ suggestions
     await computeSuggestions('''
 abstract base ^ class A {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   mixin
     kind: keyword
+''');
+  }
+
+  Future<void> test_afterBase_beforeMixin() async {
+    await computeSuggestions('''
+base ^ mixin A {}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_afterBase_beforeMixinClass() async {
+    await computeSuggestions('''
+base ^ mixin class A {}
+''');
+    assertResponse('''
+suggestions
 ''');
   }
 
@@ -126,7 +151,7 @@ suggestions
     await computeSuggestions('''
 ^
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   abstract
     kind: keyword
@@ -180,14 +205,8 @@ import "package:foo/foo.dart";
 ''');
     // TODO(danrubel) should not suggest declaration keywords
     // TODO(brianwilkerson) Should not suggest export or part directives.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -200,10 +219,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -231,12 +256,12 @@ suggestions
 ^
 import foo;
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  import '';
+  export '';
     kind: keyword
     selection: 8
-  export '';
+  import '';
     kind: keyword
     selection: 8
   library
@@ -253,7 +278,7 @@ imp^
 import "package:foo/foo.dart";
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -262,16 +287,10 @@ suggestions
     selection: 8
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -284,10 +303,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -316,7 +341,7 @@ suggestions
 cl^
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -324,16 +349,10 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -346,10 +365,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -379,16 +404,10 @@ suggestions
 import "package:foo/foo.dart";
 ''');
     // TODO(danrubel) should not suggest declaration keywords
-    assertResponse('''
+    assertResponse(r'''
 replacement
   right: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -401,10 +420,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -432,7 +457,7 @@ suggestions
 class A {}
 ^
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   abstract
     kind: keyword
@@ -473,7 +498,7 @@ class A {}
 c^
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -485,29 +510,25 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
-  class
-    kind: keyword
-  const
-    kind: keyword
-  void
-    kind: keyword
-  final
-    kind: keyword
-  typedef
-    kind: keyword
   abstract
     kind: keyword
   base
+    kind: keyword
+  class
+    kind: keyword
+  const
     kind: keyword
   covariant
     kind: keyword
   dynamic
     kind: keyword
   extension
+    kind: keyword
+  final
     kind: keyword
   interface
     kind: keyword
@@ -517,7 +538,11 @@ suggestions
     kind: keyword
   sealed
     kind: keyword
+  typedef
+    kind: keyword
   var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
@@ -528,7 +553,7 @@ suggestions
 import "foo";
 ^
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   abstract
     kind: keyword
@@ -578,7 +603,7 @@ import "foo";
 c^
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -590,16 +615,10 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -612,10 +631,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -641,7 +666,7 @@ suggestions
     await computeSuggestions('''
 final ^ class A {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -655,11 +680,20 @@ suggestions
 ''');
   }
 
-  Future<void> test_afterFinal_beforeMixin() async {
+  Future<void> test_afterInterface_beforeClass() async {
     await computeSuggestions('''
-final ^ mixin M {}
+interface ^ class A {}
 ''');
     assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_afterInterface_beforeClass_abstract() async {
+    await computeSuggestions('''
+abstract interface ^ class A {}
+''');
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -670,7 +704,7 @@ library a;
 cl^
 ''');
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -678,16 +712,10 @@ suggestions
     kind: keyword
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -700,10 +728,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -725,13 +759,22 @@ suggestions
     }
   }
 
+  Future<void> test_afterMixin_beforeClass() async {
+    await computeSuggestions('''
+mixin ^ class A {}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_afterPartOf() async {
     await computeSuggestions('''
 part of foo;
 ^
 ''');
     // TODO(brianwilkerson) We should not be suggesting directives.
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   abstract
     kind: keyword
@@ -775,22 +818,25 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterSealed_beforeClass() async {
+    await computeSuggestions('''
+sealed ^ class A {}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
   Future<void> test_afterWhitespaceAtBOF_suffix() async {
     await computeSuggestions('''
  ^imp
  import "package:foo/foo.dart";
  ''');
     // TODO(danrubel) should not suggest declaration keywords
-    assertResponse('''
+    assertResponse(r'''
 replacement
   right: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -803,10 +849,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -836,7 +888,7 @@ b^
     if (isProtocolVersion1) {
       _assertProtocol1SuggestionsWithPrefix();
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -850,14 +902,8 @@ suggestions
     await computeSuggestions('''
 ^ class A {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -870,10 +916,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -900,14 +952,8 @@ suggestions
     await computeSuggestions('''
 ^ mixin M {}
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -920,10 +966,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -946,34 +998,13 @@ suggestions
 ''');
   }
 
-  Future<void> test_betweenImports_prefix() async {
+  Future<void> test_beforeMixin_afterClass() async {
     await computeSuggestions('''
-library bar;
-import "zoo.dart";
-imp^
-import "package:foo/foo.dart";
+class A {}
+^ mixin M {}
 ''');
-    // TODO(danrubel) should not suggest declaration keywords
-    if (isProtocolVersion2) {
-      assertResponse('''
-replacement
-  left: 3
+    assertResponse(r'''
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-''');
-    } else {
-      assertResponse('''
-replacement
-  left: 3
-suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -990,6 +1021,138 @@ suggestions
     kind: keyword
   final
     kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_beforeMixin_prefix_base() async {
+    await computeSuggestions('''
+b^ mixin M {}
+''');
+    if (isProtocolVersion1) {
+      _assertProtocol1SuggestionsWithPrefix();
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  base
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_beforeMixin_prefix_final() async {
+    await computeSuggestions('''
+f^ mixin M {}
+''');
+    if (isProtocolVersion1) {
+      _assertProtocol1SuggestionsWithPrefix();
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  final
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_beforeMixin_prefix_interface() async {
+    await computeSuggestions('''
+i^ mixin M {}
+''');
+    if (isProtocolVersion1) {
+      _assertProtocol1SuggestionsWithPrefix();
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  interface
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_beforeMixin_prefix_sealed() async {
+    await computeSuggestions('''
+s^ mixin M {}
+''');
+    if (isProtocolVersion1) {
+      _assertProtocol1SuggestionsWithPrefix();
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  sealed
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_betweenImports_prefix() async {
+    await computeSuggestions('''
+library bar;
+import "zoo.dart";
+imp^
+import "package:foo/foo.dart";
+''');
+    // TODO(danrubel) should not suggest declaration keywords
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -1020,7 +1183,7 @@ import "package:foo/foo.dart";
     // TODO(danrubel) should not suggest declaration keywords
     // TODO(brianwilkerson) Should not suggest library, export or part directives.
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -1029,16 +1192,10 @@ suggestions
     selection: 8
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -1051,10 +1208,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late
@@ -1080,7 +1243,7 @@ suggestions
     await computeSuggestions('''
 ^
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   abstract
     kind: keyword
@@ -1133,7 +1296,7 @@ f^
     if (isProtocolVersion1) {
       _assertProtocol1SuggestionsWithPrefix();
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1150,7 +1313,7 @@ i^
     if (isProtocolVersion1) {
       _assertProtocol1SuggestionsWithPrefix();
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1170,7 +1333,7 @@ m^
     if (isProtocolVersion1) {
       _assertProtocol1SuggestionsWithPrefix();
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1187,7 +1350,7 @@ s^
     if (isProtocolVersion1) {
       _assertProtocol1SuggestionsWithPrefix();
     } else {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1198,16 +1361,10 @@ suggestions
   }
 
   void _assertProtocol1SuggestionsWithPrefix() {
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
-  import '';
-    kind: keyword
-    selection: 8
-  export '';
-    kind: keyword
-    selection: 8
   abstract
     kind: keyword
   base
@@ -1220,10 +1377,16 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
   extension
     kind: keyword
   final
     kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
   interface
     kind: keyword
   late

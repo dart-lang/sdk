@@ -14,7 +14,7 @@
 
 namespace dart {
 
-static const intptr_t kInvalidTryIndex = -1;
+static constexpr intptr_t kInvalidTryIndex = -1;
 
 class DescriptorList : public ZoneAllocated {
  public:
@@ -88,7 +88,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     data.outer_try_index = -1;
     data.pc_offset = ExceptionHandlers::kInvalidPcOffset;
     data.is_generated = true;
-    data.handler_types = NULL;
+    data.handler_types = nullptr;
     data.needs_stacktrace = false;
     list_.Add(data);
   }
@@ -191,11 +191,11 @@ struct InstructionSource {
 };
 
 struct CodeSourceMapOps : AllStatic {
-  static const uint8_t kChangePosition = 0;
-  static const uint8_t kAdvancePC = 1;
-  static const uint8_t kPushFunction = 2;
-  static const uint8_t kPopFunction = 3;
-  static const uint8_t kNullCheck = 4;
+  static constexpr uint8_t kChangePosition = 0;
+  static constexpr uint8_t kAdvancePC = 1;
+  static constexpr uint8_t kPushFunction = 2;
+  static constexpr uint8_t kPopFunction = 3;
+  static constexpr uint8_t kNullCheck = 4;
 
   static uint8_t Read(ReadStream* stream,
                       int32_t* arg1,

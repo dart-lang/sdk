@@ -180,33 +180,33 @@ base mixin BaseMixinImplement implements SealedClass {}
 /// It is an error if SealedClass is the `on` type of a mixin.
 
 mixin SimpleMixinOn on SealedClass {}
-// ^
-// [cfe] unspecified
-// [analyzer] unspecified
+//                     ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 mixin SimpleMixinOnSealedSimple on SealedClass, SimpleClass {}
-// ^
-// [cfe] unspecified
-// [analyzer] unspecified
+//                                 ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 mixin SimpleMixinOnSimpleSealed on SimpleClass, SealedClass {}
-// ^
-// [cfe] unspecified
-// [analyzer] unspecified
+//                                              ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 base mixin BaseMixinOn on SealedClass {}
-// ^
-// [cfe] unspecified
-// [analyzer] unspecified
+//                        ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 base mixin BaseMixinOnSealedSimple on SealedClass, SimpleClass {}
-// ^
-// [cfe] unspecified
-// [analyzer] unspecified
+//                                    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 base mixin BaseMixinOnSimpleSealed on SealedClass, SimpleClass {}
-// ^
-// [cfe] unspecified
-// [analyzer] unspecified
+//                                    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 main() {}

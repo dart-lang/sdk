@@ -4,13 +4,13 @@
 
 # Run
 #
-#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
+#     dart run --no-pub pkg/front_end/tool/_fasta/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #
 # If entries with 'analyzerCode' and 'index' have been changed, run
 #
-#     dart run pkg/analyzer/tool/messages/generate.dart
+#     dart run --no-pub pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate analyzer messages.
 
@@ -350,6 +350,7 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 127
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -387,6 +388,7 @@ RecordLiteralZeroFieldsWithTrailingComma:
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
   index: 128
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -427,6 +429,7 @@ EmptyRecordTypeNamedFieldsList:
   correctionMessage: "Try adding a named field to the list."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
   index: 129
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -468,6 +471,7 @@ RecordTypeZeroFieldsButTrailingComma:
   correctionMessage: "Try removing the trailing comma."
   analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
   index: 130
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -508,6 +512,7 @@ RecordTypeOnePositionalFieldNoTrailingComma:
   correctionMessage: "Try adding a trailing comma."
   analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
   index: 131
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -763,6 +768,12 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+MixinWithClause:
+  index: 154
+  problemMessage: "A mixin can't have a with clause."
+  analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
+  script: "mixin M {} mixin N with M {}"
+
 ExtendsFutureOr:
   problemMessage: "The type 'FutureOr' can't be used in an 'extends' clause."
 
@@ -955,6 +966,7 @@ AbstractSealedClass:
   correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
   index: 132
+  hasPublishedDocs: true
   documentation: |-
     #### Description
 
@@ -4906,6 +4918,11 @@ FfiAbiSpecificIntegerMappingInvalid:
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
   external: test/ffi_test.dart
 
+FfiCreateOfStructOrUnion:
+  # Used by dart:ffi
+  problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'."
+  external: test/ffi_test.dart
+
 FfiTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
@@ -5430,6 +5447,10 @@ JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
+JsInteropDartJsInteropAnnotationForStaticInteropOnly:
+  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'."
+  correctionMessage: "Try making this class an inline class or marking it as '@staticInterop'."
+
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
   correctionMessage: "Try adding the annotation to the enclosing class."
@@ -5475,6 +5496,13 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropInlineClassUsedWithWrongJsAnnotation:
+  problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
+  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."
+
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
+
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -5498,9 +5526,6 @@ JsInteropNonExternalMember:
 JsInteropOperatorsNotSupported:
   problemMessage: "JS interop classes do not support operator methods."
   correctionMessage: "Try replacing this with a normal method."
-
-JsInteropInvalidStaticClassMemberName:
-  problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
@@ -5557,6 +5582,10 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
 JsInteropStrictModeViolation:
   problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
   correctionMessage: "Use a JS type instead."
+
+JsInteropStrictModeForbiddenLibrary:
+  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
+  correctionMessage: "Remove the import of a forbidden library."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -6217,17 +6246,6 @@ SealedClassSubtypeOutsideOfLibrary:
     lib.dart:
       sealed class A {}
 
-SealedMixinSubtypeOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be mixed in outside of its library because it's a sealed mixin."
-  analyzerCode: SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
-  experiments: sealed-class
-  script:
-    main.dart:
-      import 'lib.dart';
-      class B with M {}
-    lib.dart:
-      sealed mixin M {}
-
 CantUseClassAsMixin:
   problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
   analyzerCode: CLASS_USED_AS_MIXIN
@@ -6238,6 +6256,69 @@ CantUseClassAsMixin:
       class B with A {}
     lib.dart:
       class A {}
+
+BaseEnum:
+  index: 155
+  problemMessage: "Enums can't be declared to be 'base'."
+  correctionMessage: "Try removing the keyword 'base'."
+  analyzerCode: ParserErrorCode.BASE_ENUM
+  experiments: class-modifiers
+  script:
+    - "base enum E { v }"
+
+FinalEnum:
+  index: 156
+  problemMessage: "Enums can't be declared to be 'final'."
+  correctionMessage: "Try removing the keyword 'final'."
+  analyzerCode: ParserErrorCode.FINAL_ENUM
+  experiments: class-modifiers
+  script:
+    - "final enum E { v }"
+
+InterfaceEnum:
+  index: 157
+  problemMessage: "Enums can't be declared to be 'interface'."
+  correctionMessage: "Try removing the keyword 'interface'."
+  analyzerCode: ParserErrorCode.INTERFACE_ENUM
+  experiments: class-modifiers
+  script:
+    - "interface enum E { v }"
+
+SealedEnum:
+  index: 158
+  problemMessage: "Enums can't be declared to be 'sealed'."
+  correctionMessage: "Try removing the keyword 'sealed'."
+  analyzerCode: ParserErrorCode.SEALED_ENUM
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed enum E { v }"
+
+FinalMixin:
+  index: 146
+  problemMessage: "A mixin can't be declared 'final'."
+  correctionMessage: "Try removing the 'final' keyword."
+  analyzerCode: ParserErrorCode.FINAL_MIXIN
+  experiments: class-modifiers
+  script:
+    - "final mixin M {}"
+
+InterfaceMixin:
+  index: 147
+  problemMessage: "A mixin can't be declared 'interface'."
+  correctionMessage: "Try removing the 'interface' keyword."
+  analyzerCode: ParserErrorCode.INTERFACE_MIXIN
+  experiments: class-modifiers
+  script:
+    - "interface mixin M {}"
+
+SealedMixin:
+  index: 148
+  problemMessage: "A mixin can't be declared 'sealed'."
+  correctionMessage: "Try removing the 'sealed' keyword."
+  analyzerCode: ParserErrorCode.SEALED_MIXIN
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed mixin M {}"
 
 FinalMixinClass:
   index: 142
@@ -6303,17 +6384,6 @@ InterfaceClassExtendedOutsideOfLibrary:
     lib.dart:
       interface class A {}
 
-InterfaceMixinMixedInOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin."
-  analyzerCode: INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
-  script:
-    main.dart:
-      import 'lib.dart';
-      class B with A {}
-    lib.dart:
-      interface mixin A {}
-
 FinalClassExtendedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
@@ -6336,27 +6406,16 @@ FinalClassImplementedOutsideOfLibrary:
     lib.dart:
       final class A {}
 
-FinalMixinImplementedOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a final mixin."
-  analyzerCode: FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+FinalClassUsedAsMixinConstraintOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
+  analyzerCode: FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY
   experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
-      final class B implements A {}
+      base mixin B on A {}
     lib.dart:
-      final mixin A {}
-
-FinalMixinMixedInOutsideOfLibrary:
-  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's a final mixin."
-  analyzerCode: FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
-  experiments: class-modifiers
-  script:
-    main.dart:
-      import 'lib.dart';
-      final class B with A {}
-    lib.dart:
-      final mixin A {}
+      final class A {}
 
 SubtypeOfBaseIsNotBaseFinalOrSealed:
   problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
@@ -6384,16 +6443,27 @@ UnspecifiedGetterNameInObjectPattern:
     abstract class A { int get foo;}
     test(dynamic x) { if (x case A(: 0)) {} }
 
-VariablePatternTypeMismatchInSwitchHeads:
-  problemMessage: "Variable pattern '#name' doesn't have the same type in all cases."
+JointPatternVariablesMismatch:
+  problemMessage: "Variable pattern '#name' doesn't have the same type or finality in all cases."
   experiments: patterns
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
-NonExhaustiveSwitch:
-  problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
-  correctionMessage: "Try adding a default case or cases that match '#string'."
-  analyzerCode: NON_EXHAUSTIVE_SWITCH
+NonExhaustiveSwitchExpression:
+  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
+  correctionMessage: "Try adding a wildcard pattern or cases that match '#string2'."
+  analyzerCode: NON_EXHAUSTIVE_SWITCH_EXPRESSION
+  experiments: patterns
+  script: |
+    enum Enum { a, b }
+    String method(Enum e) => switch (e) {
+        Enum.a => 'a',
+      };
+
+NonExhaustiveSwitchStatement:
+  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
+  correctionMessage: "Try adding a default case or cases that match '#string2'."
+  analyzerCode: NON_EXHAUSTIVE_SWITCH_STATEMENT
   experiments: patterns
   script: |
     enum Enum { a, b }
@@ -6479,11 +6549,11 @@ DuplicateRestElementInPatternContext:
   problemMessage: The first rest element.
   severity: CONTEXT
 
-RestPatternNotLastInMapPattern:
-  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+RestPatternInMapPattern:
+  problemMessage: "The '...' pattern can't appear in map patterns."
   experiments: patterns
   script: |
-    test(dynamic x) { if (x case {..., 1: 1}) {} }
+    test(dynamic x) { if (x case {1: 1, ...}) {} }
 
 UnnecessaryNullAssertPattern:
   problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
@@ -6528,16 +6598,6 @@ RefutablePatternInIrrefutableContext:
       var (a?) = x;
     }
 
-RestElementWithSubpatternInMapPattern:
-  problemMessage: A rest element in a map pattern can't have a subpattern.
-  correctionMessage: Try removing the subpattern.
-  analyzerCode: REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN
-  experiments: patterns
-  script: |
-    method(x) {
-      if (x case {...var a}) {}
-    }
-
 MissingVariablePattern:
   problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
   correctionMessage: "Try declaring this variable pattern in the branch."
@@ -6554,7 +6614,7 @@ MapPatternTypeArgumentMismatch:
   experiments: patterns
   script: |
     method(x) {
-      if (x case <int>{}) {}
+      if (x case <int>{0: 0}) {}
     }
 
 ListPatternTooManyTypeArguments:
@@ -6676,6 +6736,97 @@ PatternAssignmentNotLocalVariable:
       [global] = x;
     }
 
+VariablePatternKeywordInDeclarationContext:
+  problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+  correctionMessage: Try removing the keyword.
+  analyzerCode: ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT
+  index: 149
+  experiments: patterns
+  comment: No parameters.
+  hasPublishedDocs: true
+  script: |
+    void f((int, int) r) {
+      var (var x, y) = r;
+      print(x + y);
+    }
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a variable pattern is used
+    within a declaration context.
+
+    #### Example
+
+    The following code produces this diagnostic because the variable patterns
+    in the record pattern are in a declaration context:
+
+    ```dart
+    void f((int, int) r) {
+      var ([!var!] x, y) = r;
+      print(x + y);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `var` or `final` keyword(s) within the variable pattern:
+
+    ```dart
+    void f((int, int) r) {
+      var (x, y) = r;
+      print(x + y);
+    }
+    ```
+
+InvalidInsideUnaryPattern:
+  problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.
+  correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
+  analyzerCode: ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN
+  index: 150
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    void f(x) {
+      if (x case _ as int as num) {}
+    }
+
+LatePatternVariableDeclaration:
+  problemMessage: A pattern variable declaration may not use the `late` keyword.
+  correctionMessage: Try removing the keyword `late`.
+  analyzerCode: ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION
+  index: 151
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    void f(x) {
+      late var (y, z) = x;
+    }
+
+PatternVariableDeclarationOutsideFunctionOrMethod:
+  problemMessage: A pattern variable declaration may not appear outside a function or method.
+  correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
+  analyzerCode: ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD
+  index: 152
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    class C {
+      var (a, b) = (0, 1);
+    }
+
+DefaultInSwitchExpression:
+  problemMessage: A switch expression may not use the `default` keyword.
+  correctionMessage: Try replacing `default` with `_`.
+  analyzerCode: ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION
+  index: 153
+  experiments: patterns
+  comment: No parameters.
+  script: |
+    void f(x) => switch (x) {
+      1 => 'one',
+      default => 'other'
+    };
+
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 
@@ -6715,3 +6866,35 @@ EqualKeysInMapPatternContext:
 
 PatternMatchingError:
   problemMessage: "Pattern matching error"
+
+EmptyMapPattern:
+  problemMessage: A map pattern must have at least one entry.
+  correctionMessage: Try replacing it with an object pattern 'Map()'.
+  analyzerCode: EMPTY_MAP_PATTERN
+  script: |
+    method(Map m) => switch (m) {
+        {} => 0,
+        _ => 1,
+      };
+
+PatternVariableAssignmentInsideGuard:
+  problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+  correctionMessage: Try assigning to a different variable.
+  analyzerCode: PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+  script: |
+    method(o) => switch (o) {
+      int i when (i = 5) > 0 => 0,
+      _ => -1,
+    };
+
+JointPatternVariableNotInAll:
+  problemMessage: "The variable '#name' is available in some, but not all cases that share this body."
+  analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+  script: |
+    test(x) { switch(x) { case var a: case < 0: case [var a]: return a; default: return null; } }
+
+JointPatternVariableWithLabelDefault:
+  problemMessage: "The variable '#name' is not available because there is a label or 'default' case."
+  analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+  script: |
+    test(x) { switch(x) { case var a: default: return a; } }

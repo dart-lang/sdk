@@ -17,7 +17,7 @@ mixin KernelNodes {
     "dart:core",
     "dart:ffi",
     "dart:typed_data",
-    "dart:wasm"
+    "dart:_wasm"
   ]);
 
   // dart:_internal classes
@@ -103,29 +103,29 @@ mixin KernelNodes {
   late final Class unmodifiableByteDataViewClass =
       index.getClass("dart:typed_data", "_UnmodifiableByteDataView");
 
-  // dart:wasm classes
+  // dart:_wasm classes
   late final Class wasmTypesBaseClass =
-      index.getClass("dart:wasm", "_WasmBase");
-  late final wasmI8Class = index.getClass("dart:wasm", "WasmI8");
-  late final wasmI16Class = index.getClass("dart:wasm", "WasmI16");
-  late final wasmI32Class = index.getClass("dart:wasm", "WasmI32");
-  late final wasmI64Class = index.getClass("dart:wasm", "WasmI64");
-  late final wasmF32Class = index.getClass("dart:wasm", "WasmF32");
-  late final wasmF64Class = index.getClass("dart:wasm", "WasmF64");
-  late final Class wasmAnyRefClass = index.getClass("dart:wasm", "WasmAnyRef");
+      index.getClass("dart:_wasm", "_WasmBase");
+  late final wasmI8Class = index.getClass("dart:_wasm", "WasmI8");
+  late final wasmI16Class = index.getClass("dart:_wasm", "WasmI16");
+  late final wasmI32Class = index.getClass("dart:_wasm", "WasmI32");
+  late final wasmI64Class = index.getClass("dart:_wasm", "WasmI64");
+  late final wasmF32Class = index.getClass("dart:_wasm", "WasmF32");
+  late final wasmF64Class = index.getClass("dart:_wasm", "WasmF64");
+  late final Class wasmAnyRefClass = index.getClass("dart:_wasm", "WasmAnyRef");
   late final Class wasmExternRefClass =
-      index.getClass("dart:wasm", "WasmExternRef");
+      index.getClass("dart:_wasm", "WasmExternRef");
   late final Class wasmFuncRefClass =
-      index.getClass("dart:wasm", "WasmFuncRef");
-  late final Class wasmEqRefClass = index.getClass("dart:wasm", "WasmEqRef");
+      index.getClass("dart:_wasm", "WasmFuncRef");
+  late final Class wasmEqRefClass = index.getClass("dart:_wasm", "WasmEqRef");
   late final Class wasmStructRefClass =
-      index.getClass("dart:wasm", "WasmStructRef");
+      index.getClass("dart:_wasm", "WasmStructRef");
   late final Class wasmArrayRefClass =
-      index.getClass("dart:wasm", "WasmArrayRef");
+      index.getClass("dart:_wasm", "WasmArrayRef");
   late final Class wasmFunctionClass =
-      index.getClass("dart:wasm", "WasmFunction");
-  late final Class wasmVoidClass = index.getClass("dart:wasm", "WasmVoid");
-  late final Class wasmTableClass = index.getClass("dart:wasm", "WasmTable");
+      index.getClass("dart:_wasm", "WasmFunction");
+  late final Class wasmVoidClass = index.getClass("dart:_wasm", "WasmVoid");
+  late final Class wasmTableClass = index.getClass("dart:_wasm", "WasmTable");
 
   // dart:_internal procedures
   late final Procedure loadLibrary =
@@ -160,6 +160,8 @@ mixin KernelNodes {
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
 
   // dart:core various procedures
+  late final Procedure objectHashCode =
+      index.getProcedure("dart:core", "Object", "get:hashCode");
   late final Procedure objectNoSuchMethod =
       index.getProcedure("dart:core", "Object", "noSuchMethod");
   late final Procedure objectGetTypeArguments =
@@ -242,9 +244,9 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_namedParameterMapToList");
   late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
 
-  // dart:wasm procedures
+  // dart:_wasm procedures
   late final Procedure wasmFunctionCall =
-      index.getProcedure("dart:wasm", "WasmFunction", "get:call");
+      index.getProcedure("dart:_wasm", "WasmFunction", "get:call");
   late final Procedure wasmTableCallIndirect =
-      index.getProcedure("dart:wasm", "WasmTable", "callIndirect");
+      index.getProcedure("dart:_wasm", "WasmTable", "callIndirect");
 }

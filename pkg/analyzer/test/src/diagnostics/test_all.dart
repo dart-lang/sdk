@@ -51,6 +51,7 @@ import 'body_might_complete_normally_catch_error_test.dart'
 import 'body_might_complete_normally_nullable_test.dart'
     as body_might_complete_normally_nullable;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
+import 'break_label_on_switch_member_test.dart' as break_label_on_switch_member;
 import 'built_in_identifier_as_extension_name_test.dart'
     as built_in_as_extension_name;
 import 'built_in_identifier_as_prefix_name_test.dart'
@@ -270,12 +271,10 @@ import 'final_class_extended_outside_of_library_test.dart'
     as final_class_extended_outside_of_library;
 import 'final_class_implemented_outside_of_library_test.dart'
     as final_class_implemented_outside_of_library;
+import 'final_class_used_as_mixin_constraint_outside_of_library_test.dart'
+    as final_class_used_as_mixin_constraint_outside_of_library;
 import 'final_initialized_in_declaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
-import 'final_mixin_implemented_outside_of_library_test.dart'
-    as final_mixin_implemented_outside_of_library;
-import 'final_mixin_mixed_in_outside_of_library_test.dart'
-    as final_mixin_mixed_in_outside_of_library;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -370,8 +369,6 @@ import 'integer_literal_imprecise_as_double_test.dart'
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'interface_class_extended_outside_of_library_test.dart'
     as interface_class_extended_outside_of_library;
-import 'interface_mixin_mixed_in_outside_of_library_test.dart'
-    as interface_mixin_mixed_in_outside_of_library;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
@@ -411,6 +408,7 @@ import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_generative_enum_constructor_test.dart'
     as invalid_reference_to_generative_enum_constructor;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
+import 'invalid_reopen_annotation_test.dart' as invalid_reopen_annotation;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
 import 'invalid_required_optional_positional_param_test.dart'
     as invalid_required_optional_positional_param;
@@ -640,6 +638,8 @@ import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
+import 'pattern_never_matches_value_type_test.dart'
+    as pattern_never_matches_value_type;
 import 'pattern_type_mismatch_in_irrefutable_context_test.dart'
     as pattern_type_mismatch_in_irrefutable_context;
 import 'pattern_variable_assignment_inside_guard_test.dart'
@@ -699,8 +699,6 @@ import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart
     as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
 import 'replaced_lint_use_test.dart' as replaced_lint_in_ignore;
-import 'rest_element_not_last_in_map_pattern_test.dart'
-    as rest_element_not_last_in_map_pattern;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
@@ -733,8 +731,6 @@ import 'sdk_version_ui_as_code_in_const_context_test.dart'
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'sealed_class_subtype_outside_of_library_test.dart'
     as sealed_class_subtype_outside_of_library;
-import 'sealed_mixin_subtype_outside_of_library_test.dart'
-    as sealed_mixin_subtype_outside_of_library;
 import 'set_element_from_deferred_library_test.dart'
     as set_element_from_deferred_library;
 import 'set_element_type_not_assignable_test.dart'
@@ -821,7 +817,6 @@ import 'undefined_referenced_parameter_test.dart'
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'undefined_super_getter_test.dart' as undefined_super_getter;
-import 'undefined_super_method_test.dart' as undefined_super_method;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
 import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
@@ -917,6 +912,7 @@ main() {
     body_might_complete_normally_catch_error.main();
     body_might_complete_normally_nullable.main();
     body_might_complete_normally.main();
+    break_label_on_switch_member.main();
     built_in_as_extension_name.main();
     built_in_as_prefix_name.main();
     built_in_as_type_name.main();
@@ -1060,8 +1056,7 @@ main() {
     field_must_be_external_in_struct.main();
     final_class_extended_outside_of_library.main();
     final_class_implemented_outside_of_library.main();
-    final_mixin_implemented_outside_of_library.main();
-    final_mixin_mixed_in_outside_of_library.main();
+    final_class_used_as_mixin_constraint_outside_of_library.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -1120,7 +1115,6 @@ main() {
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     interface_class_extended_outside_of_library.main();
-    interface_mixin_mixed_in_outside_of_library.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
@@ -1150,6 +1144,7 @@ main() {
     invalid_override.main();
     invalid_reference_to_generative_enum_constructor.main();
     invalid_reference_to_this.main();
+    invalid_reopen_annotation.main();
     invalid_required_named_param.main();
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
@@ -1300,6 +1295,7 @@ main() {
     part_of_different_library.main();
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
+    pattern_never_matches_value_type.main();
     pattern_type_mismatch_in_irrefutable_context.main();
     pattern_variable_assignment_inside_guard.main();
     positional_super_formal_parameter_with_positional_argument.main();
@@ -1333,7 +1329,6 @@ main() {
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
     removed_lint_in_ignore.main();
     replaced_lint_in_ignore.main();
-    rest_element_not_last_in_map_pattern.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();
@@ -1356,7 +1351,6 @@ main() {
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();
-    sealed_mixin_subtype_outside_of_library.main();
     set_element_type_not_assignable.main();
     shared_deferred_prefix.main();
     size_annotation_dimensions.main();
@@ -1418,7 +1412,6 @@ main() {
     undefined_setter.main();
     undefined_shown_name.main();
     undefined_super_getter.main();
-    undefined_super_method.main();
     undefined_super_operator.main();
     undefined_super_setter.main();
     unignorable_ignore.main();

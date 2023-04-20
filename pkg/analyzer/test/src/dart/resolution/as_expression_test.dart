@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,6 +16,86 @@ main() {
 
 @reflectiveTest
 class AsExpressionResolutionTest extends PubPackageResolutionTest {
+  test_expression_constVariable() async {
+    await assertErrorsInCode('''
+const num a = 1.2;
+const int b = a as int;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 33, 8),
+    ]);
+
+    var node = findNode.asExpression('as int');
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@getter::a
+    staticType: num
+  asOperator: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: int
+''');
+  }
+
+  test_expression_localVariable() async {
+    await assertNoErrorsInCode('''
+void f() {
+  num v = 42;
+  v as int;
+}
+''');
+
+    var node = findNode.singleAsExpression;
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression: SimpleIdentifier
+    token: v
+    staticElement: v@17
+    staticType: num
+  asOperator: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  staticType: int
+''');
+  }
+
+  test_expression_super() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void f() {
+    super as T;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
+    ]);
+
+    final node = findNode.singleAsExpression;
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression: SuperExpression
+    superKeyword: super
+    staticType: A<T>
+  asOperator: as
+  type: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@8
+      staticType: null
+    type: T
+  staticType: T
+''');
+  }
+
   test_expression_switchExpression() async {
     await assertNoErrorsInCode('''
 void f(Object? x) {
@@ -23,7 +105,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.asExpression('as double');
+    final node = findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SwitchExpression

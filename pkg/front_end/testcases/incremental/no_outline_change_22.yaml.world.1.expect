@@ -3,7 +3,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "dart:collection" show ListMixin;
 
-  abstract class _WithListMixin&Object&ListMixin extends dart.core::Object implements dart.collection::ListMixin<dart.core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  abstract class _WithListMixin&Object&ListMixin extends dart.core::Object implements dart.collection::ListBase<dart.core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
     const synthetic constructor •() → main::_WithListMixin&Object&ListMixin
       : super dart.core::Object::•()
       ;
@@ -47,7 +47,7 @@ library from "org-dartlang-test:///main.dart" as main {
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isEmpty() → dart.core::bool
       return this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0;
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → dart.core::bool
-      return !this.{dart.collection::ListMixin::isEmpty}{dart.core::bool};
+      return !this.{dart.collection::ListBase::isEmpty}{dart.core::bool};
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ single() → dart.core::int {
       if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
         throw dart._internal::IterableElementError::noElement();
@@ -190,7 +190,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return new dart._internal::TakeWhileIterable::•<dart.core::int>(this, test);
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toList({dart.core::bool growable = #C5}) → dart.core::List<dart.core::int> {
-      if(this.{dart.collection::ListMixin::isEmpty}{dart.core::bool})
+      if(this.{dart.collection::ListBase::isEmpty}{dart.core::bool})
         return dart.core::List::empty<dart.core::int>(growable: growable);
       dart.core::int first = this.{dart.core::List::[]}(0){(dart.core::int) → dart.core::int};
       dart.core::List<dart.core::int> result = dart.core::List::filled<dart.core::int>(this.{dart.core::List::length}{dart.core::int}, first, growable: growable);
@@ -217,7 +217,7 @@ library from "org-dartlang-test:///main.dart" as main {
           dart.core::int element = :sync-for-iterator.{dart.core::Iterator::current}{dart.core::int};
           {
             assert(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} i || (throw new dart.core::ConcurrentModificationError::•(this)));
-            this.{dart.collection::ListMixin::add}(element){(dart.core::int) → void};
+            this.{dart.collection::ListBase::add}(element){(dart.core::int) → void};
             i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int};
           }
         }
@@ -226,7 +226,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ remove(dart.core::Object? element) → dart.core::bool {
       for (dart.core::int i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}{dart.core::int}){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
         if(this.{dart.core::List::[]}(i){(dart.core::int) → dart.core::int} =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} element) {
-          this.{dart.collection::ListMixin::_closeGap}(i, i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}){(dart.core::int, dart.core::int) → void};
+          this.{dart.collection::ListBase::_closeGap}(i, i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}){(dart.core::int, dart.core::int) → void};
           return true;
         }
       }
@@ -244,10 +244,10 @@ library from "org-dartlang-test:///main.dart" as main {
       this.{dart.core::List::length} = length.{dart.core::num::-}(size){(dart.core::num) → dart.core::int};
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeWhere((dart.core::int) → dart.core::bool test) → void {
-      this.{dart.collection::ListMixin::_filter}(test, false){((dart.core::int) → dart.core::bool, dart.core::bool) → void};
+      this.{dart.collection::ListBase::_filter}(test, false){((dart.core::int) → dart.core::bool, dart.core::bool) → void};
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((dart.core::int) → dart.core::bool test) → void {
-      this.{dart.collection::ListMixin::_filter}(test, true){((dart.core::int) → dart.core::bool, dart.core::bool) → void};
+      this.{dart.collection::ListBase::_filter}(test, true){((dart.core::int) → dart.core::bool, dart.core::bool) → void};
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int) → dart.core::bool test, dart.core::bool retainMatching) → void {
       dart.core::List<dart.core::int> retained = dart.core::_GrowableList::•<dart.core::int>(0);
@@ -262,7 +262,7 @@ library from "org-dartlang-test:///main.dart" as main {
         }
       }
       if(!(retained.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} this.{dart.core::List::length}{dart.core::int})) {
-        this.{dart.collection::ListMixin::setRange}(0, retained.{dart.core::List::length}{dart.core::int}, retained){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+        this.{dart.collection::ListBase::setRange}(0, retained.{dart.core::List::length}{dart.core::int}, retained){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
         this.{dart.core::List::length} = retained.{dart.core::List::length}{dart.core::int};
       }
     }
@@ -284,8 +284,6 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random? random = #C2]) → void {
       random == null ?{dart.math::Random} random = dart.math::Random::•() : null;
-      if(random{dart.math::Random} == null)
-        throw "!";
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       while (length.{dart.core::num::>}(1){(dart.core::num) → dart.core::bool}) {
         dart.core::int pos = random{dart.math::Random}.{dart.math::Random::nextInt}(length){(dart.core::int) → dart.core::int};
@@ -306,10 +304,8 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(dart.core::int start, [dart.core::int? end = #C2]) → dart.core::List<dart.core::int> {
       dart.core::int listLength = this.{dart.core::List::length}{dart.core::int};
       end == null ?{dart.core::int} end = listLength : null;
-      if(end{dart.core::int} == null)
-        throw "!";
       dart.core::RangeError::checkValidRange(start, end{dart.core::int}, listLength);
-      return dart.core::List::from<dart.core::int>(this.{dart.collection::ListMixin::getRange}(start, end{dart.core::int}){(dart.core::int, dart.core::int) → dart.core::Iterable<dart.core::int>});
+      return dart.core::List::from<dart.core::int>(this.{dart.collection::ListBase::getRange}(start, end{dart.core::int}){(dart.core::int, dart.core::int) → dart.core::Iterable<dart.core::int>});
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ getRange(dart.core::int start, dart.core::int end) → dart.core::Iterable<dart.core::int> {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length}{dart.core::int});
@@ -318,7 +314,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeRange(dart.core::int start, dart.core::int end) → void {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length}{dart.core::int});
       if(end.{dart.core::num::>}(start){(dart.core::num) → dart.core::bool}) {
-        this.{dart.collection::ListMixin::_closeGap}(start, end){(dart.core::int, dart.core::int) → void};
+        this.{dart.collection::ListBase::_closeGap}(start, end){(dart.core::int, dart.core::int) → void};
       }
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(dart.core::int start, dart.core::int end, [covariant-by-class dart.core::int? fill = #C2]) → void {
@@ -361,7 +357,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ replaceRange(dart.core::int start, dart.core::int end, covariant-by-class dart.core::Iterable<dart.core::int> newContents) → void {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length}{dart.core::int});
       if(start =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} this.{dart.core::List::length}{dart.core::int}) {
-        this.{dart.collection::ListMixin::addAll}(newContents){(dart.core::Iterable<dart.core::int>) → void};
+        this.{dart.collection::ListBase::addAll}(newContents){(dart.core::Iterable<dart.core::int>) → void};
         return;
       }
       if(!(newContents is{ForNonNullableByDefault} dart._internal::EfficientLengthIterable<dynamic>)) {
@@ -371,9 +367,9 @@ library from "org-dartlang-test:///main.dart" as main {
       dart.core::int insertLength = newContents.{dart.core::Iterable::length}{dart.core::int};
       if(removeLength.{dart.core::num::>=}(insertLength){(dart.core::num) → dart.core::bool}) {
         dart.core::int insertEnd = start.{dart.core::num::+}(insertLength){(dart.core::num) → dart.core::int};
-        this.{dart.collection::ListMixin::setRange}(start, insertEnd, newContents){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+        this.{dart.collection::ListBase::setRange}(start, insertEnd, newContents){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
         if(removeLength.{dart.core::num::>}(insertLength){(dart.core::num) → dart.core::bool}) {
-          this.{dart.collection::ListMixin::_closeGap}(insertEnd, end){(dart.core::int, dart.core::int) → void};
+          this.{dart.collection::ListBase::_closeGap}(insertEnd, end){(dart.core::int, dart.core::int) → void};
         }
       }
       else
@@ -388,7 +384,7 @@ library from "org-dartlang-test:///main.dart" as main {
                   this.{dart.core::List::[]=}(i, element){(dart.core::int, dart.core::int) → void};
                 }
                 else {
-                  this.{dart.collection::ListMixin::add}(element){(dart.core::int) → void};
+                  this.{dart.collection::ListBase::add}(element){(dart.core::int) → void};
                 }
                 i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int};
               }
@@ -400,12 +396,12 @@ library from "org-dartlang-test:///main.dart" as main {
           dart.core::int oldLength = this.{dart.core::List::length}{dart.core::int};
           dart.core::int insertEnd = start.{dart.core::num::+}(insertLength){(dart.core::num) → dart.core::int};
           for (dart.core::int i = oldLength.{dart.core::num::-}(delta){(dart.core::num) → dart.core::int}; i.{dart.core::num::<}(oldLength){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
-            this.{dart.collection::ListMixin::add}(this.{dart.core::List::[]}(i.{dart.core::num::>}(0){(dart.core::num) → dart.core::bool} ?{dart.core::int} i : 0){(dart.core::int) → dart.core::int}){(dart.core::int) → void};
+            this.{dart.collection::ListBase::add}(this.{dart.core::List::[]}(i.{dart.core::num::>}(0){(dart.core::num) → dart.core::bool} ?{dart.core::int} i : 0){(dart.core::int) → dart.core::int}){(dart.core::int) → void};
           }
           if(insertEnd.{dart.core::num::<}(oldLength){(dart.core::num) → dart.core::bool}) {
-            this.{dart.collection::ListMixin::setRange}(insertEnd, oldLength, this, end){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+            this.{dart.collection::ListBase::setRange}(insertEnd, oldLength, this, end){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
           }
-          this.{dart.collection::ListMixin::setRange}(start, insertEnd, newContents){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+          this.{dart.collection::ListBase::setRange}(start, insertEnd, newContents){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
         }
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(covariant-by-class dart.core::Object? element, [dart.core::int start = #C7]) → dart.core::int {
@@ -429,8 +425,6 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexOf(covariant-by-class dart.core::Object? element, [dart.core::int? start = #C2]) → dart.core::int {
       if(start == null || start{dart.core::int}.{dart.core::num::>=}(this.{dart.core::List::length}{dart.core::int}){(dart.core::num) → dart.core::bool})
         start = this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int};
-      if(start{dart.core::int} == null)
-        throw "!";
       for (dart.core::int i = start{dart.core::int}; i.{dart.core::num::>=}(0){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}) {
         if(this.{dart.core::List::[]}(i){(dart.core::int) → dart.core::int} =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} element)
           return i;
@@ -440,8 +434,6 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexWhere((dart.core::int) → dart.core::bool test, [dart.core::int? start = #C2]) → dart.core::int {
       if(start == null || start{dart.core::int}.{dart.core::num::>=}(this.{dart.core::List::length}{dart.core::int}){(dart.core::num) → dart.core::bool})
         start = this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int};
-      if(start{dart.core::int} == null)
-        throw "!";
       for (dart.core::int i = start{dart.core::int}; i.{dart.core::num::>=}(0){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}) {
         if(test(this.{dart.core::List::[]}(i){(dart.core::int) → dart.core::int}){(dart.core::int) → dart.core::bool})
           return i;
@@ -452,21 +444,21 @@ library from "org-dartlang-test:///main.dart" as main {
       dart._internal::checkNotNullable<dart.core::int>(index, "index");
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       dart.core::RangeError::checkValueInInterval(index, 0, length, "index");
-      this.{dart.collection::ListMixin::add}(element){(dart.core::int) → void};
+      this.{dart.collection::ListBase::add}(element){(dart.core::int) → void};
       if(!(index =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} length)) {
-        this.{dart.collection::ListMixin::setRange}(index.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}, length.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}, this, index){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+        this.{dart.collection::ListBase::setRange}(index.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}, length.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}, this, index){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
         this.{dart.core::List::[]=}(index, element){(dart.core::int, dart.core::int) → void};
       }
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeAt(dart.core::int index) → dart.core::int {
       dart.core::int result = this.{dart.core::List::[]}(index){(dart.core::int) → dart.core::int};
-      this.{dart.collection::ListMixin::_closeGap}(index, index.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}){(dart.core::int, dart.core::int) → void};
+      this.{dart.collection::ListBase::_closeGap}(index, index.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}){(dart.core::int, dart.core::int) → void};
       return result;
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insertAll(dart.core::int index, covariant-by-class dart.core::Iterable<dart.core::int> iterable) → void {
       dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}{dart.core::int}, "index");
       if(index =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} this.{dart.core::List::length}{dart.core::int}) {
-        this.{dart.collection::ListMixin::addAll}(iterable){(dart.core::Iterable<dart.core::int>) → void};
+        this.{dart.collection::ListBase::addAll}(iterable){(dart.core::Iterable<dart.core::int>) → void};
         return;
       }
       if(!(iterable is{ForNonNullableByDefault} dart._internal::EfficientLengthIterable<dynamic>) || dart.core::identical(iterable, this)) {
@@ -478,7 +470,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       dart.core::int oldLength = this.{dart.core::List::length}{dart.core::int};
       for (dart.core::int i = oldLength.{dart.core::num::-}(insertionLength){(dart.core::num) → dart.core::int}; i.{dart.core::num::<}(oldLength){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
-        this.{dart.collection::ListMixin::add}(this.{dart.core::List::[]}(i.{dart.core::num::>}(0){(dart.core::num) → dart.core::bool} ?{dart.core::int} i : 0){(dart.core::int) → dart.core::int}){(dart.core::int) → void};
+        this.{dart.collection::ListBase::add}(this.{dart.core::List::[]}(i.{dart.core::num::>}(0){(dart.core::num) → dart.core::bool} ?{dart.core::int} i : 0){(dart.core::int) → dart.core::int}){(dart.core::int) → void};
       }
       if(!(iterable.{dart.core::Iterable::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} insertionLength)) {
         this.{dart.core::List::length} = this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(insertionLength){(dart.core::num) → dart.core::int};
@@ -486,13 +478,13 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       dart.core::int oldCopyStart = index.{dart.core::num::+}(insertionLength){(dart.core::num) → dart.core::int};
       if(oldCopyStart.{dart.core::num::<}(oldLength){(dart.core::num) → dart.core::bool}) {
-        this.{dart.collection::ListMixin::setRange}(oldCopyStart, oldLength, this, index){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+        this.{dart.collection::ListBase::setRange}(oldCopyStart, oldLength, this, index){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
       }
-      this.{dart.collection::ListMixin::setAll}(index, iterable){(dart.core::int, dart.core::Iterable<dart.core::int>) → void};
+      this.{dart.collection::ListBase::setAll}(index, iterable){(dart.core::int, dart.core::Iterable<dart.core::int>) → void};
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setAll(dart.core::int index, covariant-by-class dart.core::Iterable<dart.core::int> iterable) → void {
       if(iterable is{ForNonNullableByDefault} dart.core::List<dynamic>) {
-        this.{dart.collection::ListMixin::setRange}(index, index.{dart.core::num::+}(iterable.{dart.core::Iterable::length}{dart.core::int}){(dart.core::num) → dart.core::int}, iterable){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
+        this.{dart.collection::ListBase::setRange}(index, index.{dart.core::num::+}(iterable.{dart.core::Iterable::length}{dart.core::int}){(dart.core::num) → dart.core::int}, iterable){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
       }
       else {
         {
@@ -509,10 +501,12 @@ library from "org-dartlang-test:///main.dart" as main {
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ reversed() → dart.core::Iterable<dart.core::int>
       return new dart._internal::ReversedListIterable::•<dart.core::int>(this);
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → dart.core::String
-      return dart.collection::IterableBase::iterableToFullString(this, "[", "]");
+      return dart.collection::ListBase::listToString(this);
     static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int {
       return dart.core::Comparable::compare(a as{ForNonNullableByDefault} dart.core::Comparable<dynamic>, b as{ForNonNullableByDefault} dart.core::Comparable<dynamic>);
     }
+    static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(dart.core::List<dart.core::Object?> list) → dart.core::String
+      return dart.core::Iterable::iterableToFullString(list, "[", "]");
   }
   class WithListMixin extends main::_WithListMixin&Object&ListMixin {
     field dart.core::int length = 2;
@@ -531,6 +525,6 @@ constants  {
   #C3 = dart.core::pragma {name:#C1, options:#C2}
   #C4 = ""
   #C5 = true
-  #C6 = static-tearoff dart.collection::ListMixin::_compareAny
+  #C6 = static-tearoff dart.collection::ListBase::_compareAny
   #C7 = 0
 }

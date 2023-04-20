@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:path/path.dart' show posix;
 
@@ -155,6 +156,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
       dirPath = dirPath.substring(0, dirPath.length - 1);
     }
 
+    var pathContext = request.resourceProvider.pathContext;
     var dir = resProvider.getResource(dirPath);
     if (dir is Folder) {
       try {
@@ -165,7 +167,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
               completion = '$uriPrefix${child.shortName}/';
             }
           } else if (child is File) {
-            if (child.shortName.endsWith('.dart')) {
+            if (file_paths.isDart(pathContext, child.shortName)) {
               completion = '$uriPrefix${child.shortName}';
             }
           }
@@ -181,6 +183,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
 
   void _addPackageFolderSuggestions(
       String partial, String prefix, Folder folder) {
+    var pathContext = request.resourceProvider.pathContext;
     try {
       for (var child in folder.getChildren()) {
         if (child is Folder) {
@@ -189,8 +192,10 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
           if (partial.startsWith(childPrefix)) {
             _addPackageFolderSuggestions(partial, childPrefix, child);
           }
-        } else {
-          builder.suggestUri('$prefix${child.shortName}');
+        } else if (child is File) {
+          if (file_paths.isDart(pathContext, child.path)) {
+            builder.suggestUri('$prefix${child.shortName}');
+          }
         }
       }
     } on FileSystemException {

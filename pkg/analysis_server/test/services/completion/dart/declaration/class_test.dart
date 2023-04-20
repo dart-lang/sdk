@@ -47,7 +47,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -59,6 +59,9 @@ suggestions
   }
 
   Future<void> test_field_hasContextType_subtypes() async {
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
+
     await _checkLocations(
       classCode: r'''
 class A {
@@ -74,7 +77,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -104,7 +107,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -128,7 +131,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -140,6 +143,9 @@ suggestions
   }
 
   Future<void> test_getter_hasContextType_subtypes() async {
+    printerConfiguration.sorting =
+        printer.Sorting.relevanceThenCompletionThenKind;
+
     await _checkLocations(
       classCode: r'''
 class A {
@@ -155,7 +161,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -183,7 +189,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -205,7 +211,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -229,7 +235,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -251,7 +257,7 @@ void f() {
 }
 ''',
       validator: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions

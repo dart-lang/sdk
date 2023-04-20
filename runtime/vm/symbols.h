@@ -517,6 +517,7 @@ class ObjectPointerVisitor;
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_invisible, "vm:invisible")                                              \
+  V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
@@ -555,11 +556,11 @@ class Symbols : public AllStatic {
   };
 
   // Number of one character symbols being predefined in the predefined_ array.
-  static const int kNumberOfOneCharCodeSymbols =
+  static constexpr int kNumberOfOneCharCodeSymbols =
       (kMaxPredefinedId - kNullCharId);
 
   // Offset of Null character which is the predefined character symbol.
-  static const int kNullCharCodeSymbolOffset = 0;
+  static constexpr int kNullCharCodeSymbolOffset = 0;
 
   static const String& Symbol(intptr_t index) {
     ASSERT((index > kIllegal) && (index < kMaxPredefinedId));

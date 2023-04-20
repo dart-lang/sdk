@@ -62,12 +62,6 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
     isNotAlwaysExhaustive(futureOrQuestion(intNone));
   }
 
-  test_mixin_sealed() {
-    final M = mixin_(name: 'M', isSealed: true);
-    isAlwaysExhaustive(interfaceTypeNone(M));
-    isAlwaysExhaustive(interfaceTypeQuestion(M));
-  }
-
   test_recordType() {
     isAlwaysExhaustive(
       recordTypeNone(

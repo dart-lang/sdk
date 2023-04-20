@@ -66,7 +66,7 @@ enum E {
         error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
         error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 40, 13),
       ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 40, 6)
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6)
     ]);
   }
 
@@ -197,7 +197,7 @@ int f(Foo foo) {
         error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
         error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
       ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 38, 6),
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
     ]);
   }
 
@@ -220,7 +220,7 @@ int f(E e) {
         error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
         error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 58, 10),
       ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 58, 6),
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 58, 6),
     ]);
   }
 
@@ -275,7 +275,7 @@ int f(Foo? foo) {
         error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
         error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
       ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 39, 6),
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 39, 6),
     ]);
   }
 

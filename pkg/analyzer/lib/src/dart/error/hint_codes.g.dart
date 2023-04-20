@@ -5,14 +5,19 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
 
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
+import "package:analyzer/src/error/codes.g.dart";
 
 class HintCode extends AnalyzerErrorCode {
   ///  When the target expression uses '?.' operator, it can be `null`, so all the
@@ -143,31 +148,12 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  @Deprecated("Use 'WarningCode.UNNECESSARY_CAST' instead.")
   static const HintCode UNNECESSARY_CAST = HintCode(
     'UNNECESSARY_CAST',
     "Unnecessary cast.",
     correctionMessage: "Try removing the cast.",
     hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode UNNECESSARY_FINAL = HintCode(
-    'UNNECESSARY_FINAL',
-    "The keyword 'final' isn't necessary because the parameter is implicitly "
-        "'final'.",
-    correctionMessage: "Try removing the 'final'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the diagnostic being ignored
-  static const HintCode UNNECESSARY_IGNORE = HintCode(
-    'UNNECESSARY_IGNORE',
-    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
-        "to be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
   );
 
   ///  Parameters:
@@ -182,16 +168,19 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  @Deprecated("Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.")
   static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
     'UNREACHABLE_SWITCH_CASE',
     "This case is covered by the previous cases.",
     correctionMessage:
         "Try removing the case clause, or restructuring the preceding "
         "patterns.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
   ///  0: the name that is declared but not referenced
+  @Deprecated("Use 'WarningCode.UNUSED_ELEMENT' instead.")
   static const HintCode UNUSED_ELEMENT = HintCode(
     'UNUSED_ELEMENT',
     "The declaration '{0}' isn't referenced.",
@@ -201,6 +190,7 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the parameter that is declared but not used
+  @Deprecated("Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.")
   static const HintCode UNUSED_ELEMENT_PARAMETER = HintCode(
     'UNUSED_ELEMENT',
     "A value for optional parameter '{0}' isn't ever given.",
@@ -209,41 +199,9 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   );
 
-  ///  Parameters:
-  ///  0: the name of the unused field
-  static const HintCode UNUSED_FIELD = HintCode(
-    'UNUSED_FIELD',
-    "The value of the field '{0}' isn't used.",
-    correctionMessage: "Try removing the field, or using it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the content of the unused import's URI
-  static const HintCode UNUSED_IMPORT = HintCode(
-    'UNUSED_IMPORT',
-    "Unused import: '{0}'.",
-    correctionMessage: "Try removing the import directive.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the unused variable
-  static const HintCode UNUSED_LOCAL_VARIABLE = HintCode(
-    'UNUSED_LOCAL_VARIABLE',
-    "The value of the local variable '{0}' isn't used.",
-    correctionMessage: "Try removing the variable or using it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name that is shown but not used
-  static const HintCode UNUSED_SHOWN_NAME = HintCode(
-    'UNUSED_SHOWN_NAME',
-    "The name {0} is shown, but isn't used.",
-    correctionMessage: "Try removing the name from the list of shown members.",
-    hasPublishedDocs: true,
-  );
+  ///  This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
+  static const WarningCode UNUSED_LOCAL_VARIABLE =
+      WarningCode.UNUSED_LOCAL_VARIABLE;
 
   /// Initialize a newly created error code to have the given [name].
   const HintCode(

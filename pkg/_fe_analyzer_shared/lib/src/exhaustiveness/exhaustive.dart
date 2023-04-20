@@ -11,8 +11,8 @@ import 'witness.dart';
 
 /// Returns `true` if [caseSpaces] exhaustively covers all possible values of
 /// [valueSpace].
-bool isExhaustive(
-    ObjectFieldLookup fieldLookup, Space valueSpace, List<Space> caseSpaces) {
+bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
+    List<Space> caseSpaces) {
   return checkExhaustiveness(fieldLookup, valueSpace, caseSpaces) == null;
 }
 
@@ -25,7 +25,7 @@ bool isExhaustive(
 /// Returns an empty list if all cases are reachable and the cases are
 /// exhaustive.
 List<ExhaustivenessError> reportErrors(
-    ObjectFieldLookup fieldLookup, StaticType valueType, List<Space> cases) {
+    ObjectPropertyLookup fieldLookup, StaticType valueType, List<Space> cases) {
   _Checker checker = new _Checker(fieldLookup);
 
   List<ExhaustivenessError> errors = <ExhaustivenessError>[];
@@ -52,7 +52,7 @@ List<ExhaustivenessError> reportErrors(
 /// [valueSpace]. If so, returns `null`. Otherwise, returns a string describing
 /// an example of one value that isn't matched by anything in [cases].
 Witness? checkExhaustiveness(
-    ObjectFieldLookup fieldLookup, Space valueSpace, List<Space> cases) {
+    ObjectPropertyLookup fieldLookup, Space valueSpace, List<Space> cases) {
   _Checker checker = new _Checker(fieldLookup);
 
   // TODO(johnniwinther): Perform reachability checking.
@@ -67,9 +67,9 @@ Witness? checkExhaustiveness(
 }
 
 class _Checker {
-  final ObjectFieldLookup _fieldLookup;
+  final ObjectPropertyLookup _propertyLookup;
 
-  _Checker(this._fieldLookup);
+  _Checker(this._propertyLookup);
 
   /// Tries to find a pattern containing at least one value matched by
   /// [valuePatterns] that is not matched by any of the patterns in [caseRows].
@@ -101,25 +101,49 @@ class _Checker {
     Set<Key> keysOfInterest = {};
     for (List<Space> caseRow in caseRows) {
       for (SingleSpace singleSpace in caseRow.first.singleSpaces) {
-        keysOfInterest.addAll(singleSpace.additionalFields.keys);
+        keysOfInterest.addAll(singleSpace.additionalProperties.keys);
       }
     }
     for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
-      // TODO(johnniwinther): Right now, this brute force expands all subtypes
-      // of sealed types and considers them individually. It would be faster to
-      // look at the types of the patterns in the first column of each row and
-      // only expand subtypes that are actually tested.
-      // Split the type into its sealed subtypes and consider each one
-      // separately. This enables it to filter rows more effectively.
-      List<StaticType> subtypes =
-          expandSealedSubtypes(firstValuePattern.type, keysOfInterest);
-      for (StaticType subtype in subtypes) {
-        Witness? result = _filterByType(subtype, caseRows, firstValuePattern,
-            valuePatterns, witnessPredicates, firstValuePatterns.path);
+      StaticType contextType = firstValuePattern.type;
+      List<StaticType> stack = [firstValuePattern.type];
+      while (stack.isNotEmpty) {
+        StaticType type = stack.removeAt(0);
+        if (type.isSubtypeOf(StaticType.neverType)) {
+          // Don't try to exhaust the Never type.
+          continue;
+        }
+        if (type.isSealed) {
+          Witness? result = _filterByType(
+              contextType,
+              type,
+              caseRows,
+              firstValuePattern,
+              valuePatterns,
+              witnessPredicates,
+              firstValuePatterns.path);
+          if (result == null) {
+            // This type was fully handled so no need to test its
+            // subtypes.
+          } else {
+            // The type was not fully handled so we must allow for
+            // handling of individual subtypes.
+            stack.addAll(type.getSubtypes(keysOfInterest));
+          }
+        } else {
+          Witness? result = _filterByType(
+              contextType,
+              type,
+              caseRows,
+              firstValuePattern,
+              valuePatterns,
+              witnessPredicates,
+              firstValuePatterns.path);
 
-        // If we found a witness for a subtype that no rows match, then we can
-        // stop. There may be others but we don't need to find more.
-        if (result != null) return result;
+          // If we found a witness for a subtype that no rows match, then we
+          // can stop. There may be others but we don't need to find more.
+          if (result != null) return result;
+        }
       }
     }
 
@@ -129,6 +153,7 @@ class _Checker {
   }
 
   Witness? _filterByType(
+      StaticType contextType,
       StaticType type,
       List<List<Space>> caseRows,
       SingleSpace firstSingleSpaceValue,
@@ -139,7 +164,7 @@ class _Checker {
     // Extend the witness with the type we're matching.
     List<Predicate> extendedWitness = [
       ...witnessPredicates,
-      new Predicate(path, type)
+      new Predicate(path, contextType, type)
     ];
 
     // 1) Discard any rows that might not match because the column's type isn't
@@ -167,26 +192,27 @@ class _Checker {
     // We have now filtered by the type test of the first column of patterns,
     // but some of those may also have field subpatterns. If so, lift those out
     // so we can recurse into them.
-    Set<Key> fieldKeys = {
-      ...firstSingleSpaceValue.fields.keys,
+    Set<Key> propertyKeys = {
+      ...firstSingleSpaceValue.properties.keys,
       for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
-        ...firstPattern.fields.keys
+        ...firstPattern.properties.keys
     };
 
-    Set<Key> additionalFieldKeys = {
-      ...firstSingleSpaceValue.additionalFields.keys,
+    Set<Key> additionalPropertyKeys = {
+      ...firstSingleSpaceValue.additionalProperties.keys,
       for (SingleSpace firstPattern in remainingRowFirstSingleSpaces)
-        ...firstPattern.additionalFields.keys
+        ...firstPattern.additionalProperties.keys
     };
 
     // Sorting isn't necessary, but makes the behavior deterministic.
-    List<Key> sortedFieldKeys = fieldKeys.toList()..sort();
-    List<Key> sortedAdditionalFieldKeys = additionalFieldKeys.toList()..sort();
+    List<Key> sortedPropertyKeys = propertyKeys.toList()..sort();
+    List<Key> sortedAdditionalPropertyKeys = additionalPropertyKeys.toList()
+      ..sort();
 
     // Remove the first column from the value list and replace it with any
     // expanded fields.
     valueSpaces = [
-      ..._expandFields(sortedFieldKeys, sortedAdditionalFieldKeys,
+      ..._expandProperties(sortedPropertyKeys, sortedAdditionalPropertyKeys,
           firstSingleSpaceValue, type, path),
       ...valueSpaces.skip(1)
     ];
@@ -195,9 +221,9 @@ class _Checker {
     // fields.
     for (int i = 0; i < remainingRows.length; i++) {
       remainingRows[i] = [
-        ..._expandFields(
-            sortedFieldKeys,
-            sortedAdditionalFieldKeys,
+        ..._expandProperties(
+            sortedPropertyKeys,
+            sortedAdditionalPropertyKeys,
             remainingRowFirstSingleSpaces[i],
             remainingRowFirstSingleSpaces[i].type,
             path),
@@ -209,41 +235,59 @@ class _Checker {
     return _unmatched(remainingRows, valueSpaces, extendedWitness);
   }
 
-  /// Given a list of [fieldKeys] and [additionalFieldKeys], and a
-  /// [singleSpace], generates a list of single spaces, one for each named field
-  /// and additional field key.
+  /// Given a list of [propertyKeys] and [additionalPropertyKeys], and a
+  /// [singleSpace], generates a list of single spaces, one for each named
+  /// property and additional property key.
   ///
-  /// When [singleSpace] contains a field with that name or an additional field
-  /// with the key, extracts it into the resulting list. Otherwise, the
-  /// [singleSpace] doesn't care about that field, so inserts a default [Space]
-  /// that matches all values for the field.
+  /// When [singleSpace] contains a property with that name or an additional
+  /// property with the key, extracts it into the resulting list. Otherwise, the
+  /// [singleSpace] doesn't care about that property, so inserts a default
+  /// [Space] that matches all values for the property. If the [type] doesn't
+  /// know about the property, the static type of the property is read from
+  /// [extensionPropertyTypes].
   ///
-  /// In other words, this unpacks a set of fields so that the main algorithm
-  /// can add them to the worklist.
-  List<Space> _expandFields(List<Key> fieldKeys, List<Key> additionalFieldKeys,
-      SingleSpace singleSpace, StaticType type, Path path) {
-    profile.count('_expandFields');
+  /// In other words, this unpacks a set of properties so that the main
+  /// algorithm can add them to the worklist.
+  List<Space> _expandProperties(
+      List<Key> propertyKeys,
+      List<Key> additionalPropertyKeys,
+      SingleSpace singleSpace,
+      StaticType type,
+      Path path) {
+    profile.count('_expandProperties');
     List<Space> result = <Space>[];
-    for (Key key in fieldKeys) {
-      Space? field = singleSpace.fields[key];
-      if (field != null) {
-        result.add(field);
+    for (Key key in propertyKeys) {
+      Space? property = singleSpace.properties[key];
+      if (property != null) {
+        result.add(property);
       } else {
-        // This pattern doesn't test this field, so add a pattern for the
-        // field that matches all values. This way the columns stay aligned.
-        result.add(new Space(path.add(key),
-            type.getField(_fieldLookup, key) ?? StaticType.nullableObject));
+        // This pattern doesn't test this property, so add a pattern for the
+        // property that matches all values. This way the columns stay aligned.
+        StaticType? propertyType = type.getPropertyType(_propertyLookup, key);
+        if (propertyType == null && key is ExtensionKey) {
+          propertyType = key.type;
+        }
+        // TODO(johnniwinther): Enable this assert when extension members are
+        // handled.
+        /*assert(propertyType != null,
+            "Type $type does not have a type for property $key");*/
+        result.add(new Space(
+            path.add(key), propertyType ?? StaticType.nullableObject));
       }
     }
-    for (Key key in additionalFieldKeys) {
-      Space? field = singleSpace.additionalFields[key];
-      if (field != null) {
-        result.add(field);
+    for (Key key in additionalPropertyKeys) {
+      Space? property = singleSpace.additionalProperties[key];
+      if (property != null) {
+        result.add(property);
       } else {
-        // This pattern doesn't test this field, so add a pattern for the
-        // field that matches all values. This way the columns stay aligned.
+        // This pattern doesn't test this property, so add a pattern for the
+        // property that matches all values. This way the columns stay aligned.
+        // TODO(johnniwinther): Enable this assert when extension members are
+        // handled.
+        // assert(type.getAdditionalPropertyType(key) != null,
+        //    "Type $type does not have a type for additional property $key");
         result.add(new Space(path.add(key),
-            type.getAdditionalField(key) ?? StaticType.nullableObject));
+            type.getAdditionalPropertyType(key) ?? StaticType.nullableObject));
       }
     }
     return result;
@@ -264,6 +308,19 @@ List<StaticType> expandSealedSubtypes(
         ...expandSealedSubtypes(subtype, keysOfInterest)
     }.toList();
   }
+}
+
+List<StaticType> checkingOrder(StaticType type, Set<Key> keysOfInterest) {
+  List<StaticType> result = [];
+  List<StaticType> pending = [type];
+  while (pending.isNotEmpty) {
+    StaticType type = pending.removeAt(0);
+    result.add(type);
+    if (type.isSealed) {
+      pending.addAll(type.getSubtypes(keysOfInterest));
+    }
+  }
+  return result;
 }
 
 class ExhaustivenessError {}

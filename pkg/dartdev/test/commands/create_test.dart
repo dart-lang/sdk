@@ -18,15 +18,9 @@ void main() {
 }
 
 void defineCreateTests() {
-  TestProject? p;
-
-  setUp(() => p = null);
-
-  tearDown(() async => await p?.dispose());
-
   test('--help', () async {
-    p = project();
-    var result = await p!.run(['create', '--help']);
+    final p = project();
+    var result = await p.run(['create', '--help']);
 
     expect(result.stdout, contains('Create a new Dart project.'));
     expect(
@@ -40,8 +34,8 @@ void defineCreateTests() {
   });
 
   test('--help --verbose', () async {
-    p = project();
-    var result = await p!.run(['create', '--help', '--verbose']);
+    final p = project();
+    var result = await p.run(['create', '--help', '--verbose']);
 
     expect(result.stdout, contains('Create a new Dart project.'));
     expect(
@@ -74,9 +68,9 @@ void defineCreateTests() {
   });
 
   test('list templates', () async {
-    p = project();
+    final p = project();
 
-    ProcessResult result = await p!.run(['create', '--list-templates']);
+    ProcessResult result = await p.run(['create', '--list-templates']);
     expect(result.exitCode, 0);
 
     String output = result.stdout.toString();
@@ -87,27 +81,27 @@ void defineCreateTests() {
   });
 
   test('no directory given', () async {
-    p = project();
+    final p = project();
 
-    ProcessResult result = await p!.run(['create']);
+    ProcessResult result = await p.run(['create']);
     expect(result.exitCode, 1);
   });
 
   test('directory already exists', () async {
-    p = project();
+    final p = project();
 
-    ProcessResult result = await p!.run(
-        ['create', '--template', CreateCommand.defaultTemplateId, p!.dir.path]);
+    ProcessResult result = await p.run(
+        ['create', '--template', CreateCommand.defaultTemplateId, p.dir.path]);
     expect(result.exitCode, 73);
   });
 
   test('project in current directory', () async {
     final tempDir = Directory.systemTemp.createTempSync('create_test');
     try {
-      p = project();
+      final p = project();
       final projectDir = Directory.fromUri(tempDir.uri.resolve('foo/'))
         ..createSync();
-      final result = await p!.run(
+      final result = await p.run(
         ['create', '--force', '.'],
         workingDir: projectDir.path,
       );
@@ -120,9 +114,9 @@ void defineCreateTests() {
   });
 
   test('project with normalized package name', () async {
-    p = project();
+    final p = project();
     final result =
-        await p!.run(['create', '--no-pub', 'requires-normalization']);
+        await p.run(['create', '--no-pub', 'requires-normalization']);
     expect(result.stderr, isEmpty);
     expect(
         result.stdout,
@@ -132,8 +126,8 @@ void defineCreateTests() {
   });
 
   test('project with an invalid package name', () async {
-    p = project();
-    final result = await p!.run(['create', 'bad-package^name']);
+    final p = project();
+    final result = await p.run(['create', 'bad-package^name']);
     expect(
       result.stderr,
       contains(
@@ -145,10 +139,10 @@ void defineCreateTests() {
   });
 
   test('bad template id', () async {
-    p = project();
+    final p = project();
 
-    ProcessResult result = await p!
-        .run(['create', '--no-pub', '--template', 'foo-bar', p!.dir.path]);
+    ProcessResult result = await p
+        .run(['create', '--no-pub', '--template', 'foo-bar', p.dir.path]);
     expect(result.exitCode, isNot(0));
   });
 
@@ -156,9 +150,9 @@ void defineCreateTests() {
   for (String templateId
       in CreateCommand.legalTemplateIds(includeDeprecated: true)) {
     test(templateId, () async {
-      p = project();
+      final p = project();
       const projectName = 'template_project';
-      ProcessResult result = await p!.run([
+      ProcessResult result = await p.run([
         'create',
         '--force',
         '--no-pub',
@@ -170,7 +164,7 @@ void defineCreateTests() {
 
       String entry = templates.getGenerator(templateId)!.entrypoint!.path;
       entry = entry.replaceAll('__projectName__', projectName);
-      File entryFile = File(path.join(p!.dir.path, projectName, entry));
+      File entryFile = File(path.join(p.dir.path, projectName, entry));
 
       expect(entryFile.existsSync(), true,
           reason: 'File not found: ${entryFile.path}');

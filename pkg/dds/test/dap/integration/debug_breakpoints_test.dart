@@ -64,6 +64,41 @@ main() {
       expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
     });
 
+    test('responds to setBreakpoints before any breakpoint events', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
+      final setBreakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Run the app and get to a breakpoint. This will allow us to add new
+      // breakpoints in the same file that are _immediately_ resolved.
+      await Future.wait([
+        client.initialize(),
+        client.expectStop('breakpoint'),
+        client.setBreakpoint(testFile, setBreakpointLine),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Call setBreakpoint again, and ensure it response before we get any
+      // breakpoint change events because we require their IDs before the change
+      // events are sent.
+      var setBreakpointsResponded = false;
+      await Future.wait([
+        client.breakpointChangeEvents.first.then((_) {
+          if (!setBreakpointsResponded) {
+            throw 'breakpoint change event arrived before '
+                'setBreakpoints completed';
+          }
+        }),
+        client
+            // Send 50 breakpoints for lines 1-50 to ensure we spend some time
+            // sending requests to the VM to allow events to start coming back
+            // from the VM before we complete. Without this, the test can pass
+            // even without the fix.
+            .setBreakpoints(testFile, List.generate(50, (index) => index))
+            .then((_) => setBreakpointsResponded = true),
+      ]);
+    });
+
     test('does not stop at a removed breakpoint', () async {
       final testFile = dap.createTestFile('''
 void main(List<String> args) async {

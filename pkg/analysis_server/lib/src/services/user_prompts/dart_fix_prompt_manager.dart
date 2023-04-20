@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart'
+    show AnalysisServer, MessageType;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
@@ -28,7 +28,7 @@ class DartFixPromptManager {
   static const _sleepTime = Duration(minutes: 10);
 
   static const promptText =
-      'Your project contains issues that might be fixable by running "dart fix" from the command line.';
+      'Your project contains issues that can be fixed by running "dart fix" from the command line.';
 
   static const learnMoreActionText = 'Learn More';
 
@@ -36,9 +36,7 @@ class DartFixPromptManager {
 
   static const doNotShowAgainActionText = "Don't Show Again";
 
-  // TODO(dantup): Move this class and make it not-specific to LSP once server
-  //  has APIs for sending message requests.
-  LspAnalysisServer server;
+  AnalysisServer server;
 
   /// Used for reading/writing preferences such as not to prompt again.
   UserPromptPreferences preferences;
@@ -121,7 +119,7 @@ class DartFixPromptManager {
     // Note: It's possible the user never responds to this until we shut down
     //  so handle the request throwing due to server shutting down.
     final response = await server.showUserPrompt(
-      MessageType.Info,
+      MessageType.info,
       promptText,
       [
         learnMoreActionText,
@@ -132,10 +130,8 @@ class DartFixPromptManager {
     switch (response) {
       case learnMoreActionText:
         _handleLearnMore();
-        break;
       case doNotShowAgainActionText:
         preferences.showDartFixPrompts = false;
-        break;
       default:
       // User closed prompt without clicking a button, or request failed
       // due to shutdown. Do nothing.

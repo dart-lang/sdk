@@ -196,10 +196,6 @@ template("build_gen_snapshot") {
       "//third_party",
     ]
 
-    if (dart_use_tcmalloc) {
-      deps += [ "//third_party/tcmalloc" ]
-    }
-
     if (is_mac) {
       frameworks = [
         "CoreFoundation.framework",
@@ -752,10 +748,6 @@ template("dart_executable") {
       defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
     }
 
-    if (dart_use_tcmalloc) {
-      deps += [ "//third_party/tcmalloc" ]
-    }
-
     include_dirs = [
       "..",
       "//third_party",
@@ -957,6 +949,7 @@ executable("run_vm_tests") {
     ":dart_snapshot_cc",
     ":standalone_dart_io",
     "..:libdart_precompiler_testing",
+    "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
     "//third_party/zlib",
   ]
@@ -966,11 +959,6 @@ executable("run_vm_tests") {
     "//third_party",
   ]
   defines = [ "TESTING" ]
-
-  if (dart_use_tcmalloc) {
-    deps += [ "//third_party/tcmalloc" ]
-    defines += [ "DART_USE_TCMALLOC" ]
-  }
 
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {

@@ -100,6 +100,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// Data structure for tracking declared pattern variables.
   late final _VariableBinder _patternVariables = _VariableBinder(
     errors: _VariableBinderErrors(this),
+    typeProvider: _typeProvider,
   );
 
   factory ResolutionVisitor({
@@ -415,13 +416,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.isFinal = patternContext.finalKeyword != null;
     } else if (patternContext is PatternVariableDeclarationImpl) {
       element.isFinal = patternContext.finalKeyword != null;
-      var keyword = node.keyword;
-      if (keyword != null) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
-          keyword,
-        );
-      }
     } else {
       element.isFinal = node.finalKeyword != null;
     }
@@ -1716,7 +1710,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
 class _VariableBinder
     extends VariableBinder<DartPatternImpl, PromotableElement> {
-  _VariableBinder({required super.errors});
+  final TypeProvider typeProvider;
+
+  _VariableBinder({
+    required super.errors,
+    required this.typeProvider,
+  });
 
   @override
   JoinPatternVariableElementImpl joinPatternVariables({
@@ -1751,7 +1750,9 @@ class _VariableBinder
             .whereType<JoinPatternVariableElementImpl>()
             .map((e) => e.inconsistency),
       ),
-    )..enclosingElement = first.enclosingElement;
+    )
+      ..enclosingElement = first.enclosingElement
+      ..type = typeProvider.dynamicType;
   }
 }
 
@@ -1777,8 +1778,8 @@ class _VariableBinderErrors
       DiagnosticFactory().duplicateDefinitionForNodes(
         visitor._errorReporter.source,
         CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
-        duplicate.node,
-        original.node,
+        duplicate.node.name,
+        original.node.name,
         [name],
       ),
     );

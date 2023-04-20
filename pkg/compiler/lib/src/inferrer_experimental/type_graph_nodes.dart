@@ -1010,9 +1010,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
   /// Add [this] to the graph being computed by [engine].
   void addToGraph(InferrerEngine engine);
 
-  /// Return an iterable over the targets of this call.
-  Iterable<MemberEntity> get callees;
-
   String get debugName => '$callNode';
 }
 
@@ -1070,9 +1067,6 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   @override
-  Iterable<MemberEntity> get callees => [calledElement];
-
-  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStaticCallSiteTypeInformation(this);
   }
@@ -1104,9 +1098,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   bool get isConditional => _hasFlag(_Flag.isConditional);
 
   /// Cached concrete targets of this call.
-  Iterable<DynamicCallTarget>? _concreteTargets;
+  Iterable<DynamicCallTarget>? _targets;
 
-  /// Recomputed when _concreteTargets changes.
+  /// Recomputed when [_targets] changes.
   /// [_hasTargetsIncludeComplexNoSuchMethod] indicates whether this value
   /// is stale and needs to be recomputed.
   bool get _targetsIncludeComplexNoSuchMethod =>
@@ -1148,14 +1142,14 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     final typeMask = computeTypedSelector(inferrer);
     _hasClosureCallTargets =
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
-    final concreteTargets = _concreteTargets =
+    final targets = _targets =
         inferrer.memberHierarchyBuilder.rootsForCall(typeMask, selector!);
     invalidateTargetsIncludeComplexNoSuchMethod();
     receiver.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
     }
-    for (final target in concreteTargets) {
+    for (final target in targets) {
       _handleCalledTarget(target, inferrer, addToQueue: false, remove: false);
     }
   }
@@ -1169,10 +1163,14 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   /// All concrete targets of this invocation. If [hasClosureCallTargets] is
   /// `true` the invocation can additional target an unknown set of 'call'
   /// methods on closures.
-  Iterable<DynamicCallTarget> get concreteTargets => _concreteTargets!;
+  Iterable<DynamicCallTarget> get targets => _targets!;
 
-  @override
-  Iterable<MemberEntity> get callees => concreteTargets.map((e) => e.member);
+  void forEachConcreteTarget(
+      MemberHierarchyBuilder builder, bool Function(MemberEntity member) f) {
+    for (final target in targets) {
+      builder.forEachTargetMember(target, f);
+    }
+  }
 
   AbstractValue? computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;
@@ -1192,12 +1190,13 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
     if (!_hasTargetsIncludeComplexNoSuchMethod) {
       _setFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
-      final value = callees.any((MemberEntity e) {
-        return e.isFunction &&
-            e.isInstanceMember &&
-            e.name == Identifiers.noSuchMethod_ &&
-            inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
-      });
+      final value = targets.any((target) => inferrer.memberHierarchyBuilder
+              .anyTargetMember(target, (MemberEntity e) {
+            return e.isFunction &&
+                e.isInstanceMember &&
+                e.name == Identifiers.noSuchMethod_ &&
+                inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
+          }));
       _setFlagTo(_Flag.targetsIncludeComplexNoSuchMethod, value);
       return value;
     }
@@ -1315,7 +1314,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   AbstractValue computeType(InferrerEngine inferrer) {
     JClosedWorld closedWorld = inferrer.closedWorld;
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    final oldTargets = _concreteTargets!;
+    final oldTargets = _targets!;
     final typeMask = computeTypedSelector(inferrer);
     final localSelector = selector!;
     inferrer.updateSelectorInMember(
@@ -1323,14 +1322,14 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
     final includesClosureCall = _hasClosureCallTargets =
         closedWorld.includesClosureCall(localSelector, typeMask);
-    final concreteTargets = _concreteTargets =
+    final targets = _targets =
         inferrer.memberHierarchyBuilder.rootsForCall(typeMask, localSelector);
 
     // Update the call graph if the targets could have changed.
-    if (!identical(concreteTargets, oldTargets)) {
+    if (!identical(targets, oldTargets)) {
       invalidateTargetsIncludeComplexNoSuchMethod();
       // Add calls to new targets to the graph.
-      concreteTargets
+      targets
           .where((target) => !oldTargets.contains(target))
           .forEach((DynamicCallTarget target) {
         _handleCalledTarget(target, inferrer, addToQueue: true, remove: false);
@@ -1338,7 +1337,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
-          .where((target) => !concreteTargets.contains(target))
+          .where((target) => !targets.contains(target))
           .forEach((DynamicCallTarget target) {
         _handleCalledTarget(target, inferrer, addToQueue: true, remove: true);
       });
@@ -1350,8 +1349,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     if (includesClosureCall) {
       result = abstractValueDomain.dynamicType;
     } else {
-      result = inferrer.types
-          .joinTypeMasks(concreteTargets.map((DynamicCallTarget target) {
+      result =
+          inferrer.types.joinTypeMasks(targets.map((DynamicCallTarget target) {
         final element = target.member;
         if (typeMask != null &&
             inferrer.returnsListElementType(localSelector, typeMask)) {
@@ -1416,14 +1415,14 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(
           caller, _callType, callNode as ir.TreeNode, selector, mask);
-      final oldTargets = concreteTargets;
+      final oldTargets = targets;
       final localSelector = selector!;
       _hasClosureCallTargets =
           inferrer.closedWorld.includesClosureCall(localSelector, mask);
-      final newConcreteTargets = _concreteTargets =
+      final newTargets = _targets =
           inferrer.memberHierarchyBuilder.rootsForCall(mask, localSelector);
       invalidateTargetsIncludeComplexNoSuchMethod();
-      for (final target in newConcreteTargets) {
+      for (final target in newTargets) {
         if (!oldTargets.contains(target)) {
           _handleCalledTarget(target, inferrer,
               addToQueue: true, remove: false);
@@ -1435,11 +1434,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
   @override
   void removeAndClearReferences(InferrerEngine inferrer) {
-    for (MemberEntity element in callees) {
+    forEachConcreteTarget(inferrer.memberHierarchyBuilder, (element) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.removeUser(this);
-    }
+      return true;
+    });
     if (arguments != null) {
       arguments!.forEach((info) => info.removeUser(this));
     }
@@ -1457,8 +1457,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        callees.every((MemberEntity element) =>
-            inferrer.types.getInferredTypeOfMember(element).isStable) &&
+        targets.every((target) => inferrer.memberHierarchyBuilder
+            .anyTargetMember(
+                target,
+                (MemberEntity element) => inferrer.types
+                    .getInferredTypeOfMember(element)
+                    .isStable)) &&
         (arguments == null || arguments!.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
@@ -1497,11 +1501,6 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
       return abstractValueDomain.emptyType;
     }
     return safeType(inferrer);
-  }
-
-  @override
-  Iterable<MemberEntity> get callees {
-    throw UnsupportedError("Cannot compute callees of a closure call.");
   }
 
   @override
@@ -2059,7 +2058,7 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 
 /// A [RecordTypeInformation] is the constructor for a record, used for Record
 /// constants and literals.
-class RecordTypeInformation extends TypeInformation {
+class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   final RecordShape recordShape;
   final AbstractValue originalType;
 

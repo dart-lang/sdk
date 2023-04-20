@@ -13,7 +13,7 @@ part of dart.io;
 /// suitable for applications that require high performance or asynchronous I/O
 /// such as a server. Instead such applications should use the non-blocking
 /// sockets and asynchronous operations in the [Socket] or [RawSocket] classes.
-abstract class RawSynchronousSocket {
+abstract interface class RawSynchronousSocket {
   /// Creates a new socket connection and returns a [RawSynchronousSocket].
   ///
   /// The [host] can either be a [String] or an [InternetAddress].

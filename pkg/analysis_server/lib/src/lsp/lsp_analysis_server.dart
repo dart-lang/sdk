@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
@@ -32,7 +32,6 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
-import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -116,9 +115,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// A progress reporter for analysis status.
   ProgressReporter? analyzingProgressReporter;
 
-  /// Manages prompts telling the user about "dart fix".
-  late final DartFixPromptManager _dartFixPrompt;
-
   /// The number of times contexts have been created/recreated.
   @visibleForTesting
   int contextBuilds = 0;
@@ -135,13 +131,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
 
-  /// Indicates whether the next time the server completes analysis is the first
-  /// one since analysis contexts were built.
-  ///
-  /// This is useful for triggering things like [_dartFixPrompt] only when
-  /// it may be useful to do so (after initial analysis and
-  /// "pub get"/"pub upgrades").
-  bool _isFirstAnalysisSinceContextsBuilt = true;
+  /// A flag indicating whether analysis was being performed the last time
+  /// `sendStatusNotification` was invoked.
+  bool wasAnalyzing = false;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -172,23 +164,17 @@ class LspAnalysisServer extends AnalysisServer {
           processRunner,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
           enableBlazeWatcher: enableBlazeWatcher,
+          dartFixPromptManager: dartFixPromptManager,
         ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
     capabilitiesComputer = ServerCapabilitiesComputer(this);
-    if (dartFixPromptManager != null) {
-      _dartFixPrompt = dartFixPromptManager;
-    } else {
-      final promptPreferences =
-          UserPromptPreferences(resourceProvider, instrumentationService);
-      _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
-    }
 
     final contextManagerCallbacks =
         LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(_handleAnalysisStatusChange);
+    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
     analysisDriverScheduler.start();
 
     _channelSubscription =
@@ -264,10 +250,12 @@ class LspAnalysisServer extends AnalysisServer {
       RefactoringWorkspace(driverMap.values, searchEngine);
 
   /// Whether or not the client supports openUri notifications.
+  @override
   bool get supportsOpenUriNotification => initializationOptions.allowOpenUri;
 
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
+  @override
   bool get supportsShowMessageRequest =>
       clientCapabilities?.supportsShowMessageRequest ?? false;
 
@@ -379,6 +367,13 @@ class LspAnalysisServer extends AnalysisServer {
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
         uri: Uri.file(path), version: documentVersions[path]?.version);
+  }
+
+  @override
+  FutureOr<void> handleAnalysisStatusChange(
+      analysis.AnalysisStatus status) async {
+    super.handleAnalysisStatusChange(status);
+    await sendStatusNotification(status);
   }
 
   void handleClientConnection(
@@ -535,7 +530,8 @@ class LspAnalysisServer extends AnalysisServer {
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
       method: Method.window_logMessage,
-      params: LogMessageParams(type: MessageType.Error, message: message),
+      params:
+          LogMessageParams(type: MessageType.error.forLsp, message: message),
       jsonrpc: jsonRpcVersion,
     ));
   }
@@ -579,28 +575,21 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    final currentFile = resourceProvider.getFile(path);
-    String? currentContent;
-
-    try {
-      currentContent = currentFile.readAsStringSync();
-    } on FileSystemException {
-      // It's possible we're creating an overlay for a file that doesn't yet
-      // exist on disk so must handle missing file exceptions. Checking for
-      // exists first would introduce a race.
-    }
-
     resourceProvider.setOverlay(path,
         content: content, modificationStamp: overlayModificationStamp++);
 
     // If the overlay is exactly the same as the previous content we can skip
     // notifying drivers which avoids re-analyzing the same content.
-    if (content != currentContent) {
+    final driver = contextManager.getDriverFor(path);
+    final contentIsUpdated =
+        driver?.fsState.getExistingFromPath(path)?.content != content;
+
+    if (contentIsUpdated) {
       _afterOverlayChanged(path, plugin.AddContentOverlay(content));
 
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-      contextManager.getDriverFor(path)?.addFile(path);
+      driver?.addFile(path);
     } else {
       // If we skip the work above, we still need to ensure plugins are notified
       // of the new overlay (which usually happens in `_afterOverlayChanged`).
@@ -718,10 +707,9 @@ class LspAnalysisServer extends AnalysisServer {
     channel.sendNotification(notification);
   }
 
+  @override
   void sendOpenUriNotification(Uri uri) {
     assert(supportsOpenUriNotification);
-    // TODO(dantup): Add this method signature as an abstract method on the
-    //  base server when both servers support it.
     final params = OpenUriParams(uri: uri);
     final message = NotificationMessage(
       method: CustomMethods.openUri,
@@ -772,16 +760,26 @@ class LspAnalysisServer extends AnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
+    var isAnalyzing = status.isAnalyzing;
+    if (wasAnalyzing && !isAnalyzing) {
+      wasAnalyzing = isAnalyzing;
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+    if (isAnalyzing && !wasAnalyzing) {
+      wasAnalyzing = true;
+    }
+
     if (clientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
-        params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
+        params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
         jsonrpc: jsonRpcVersion,
       ));
       return;
     }
 
-    if (status.isAnalyzing) {
+    if (isAnalyzing) {
       analyzingProgressReporter ??=
           ProgressReporter.serverCreated(this, analyzingProgressToken)
             ..begin('Analyzing…');
@@ -822,13 +820,13 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void showErrorMessageToUser(String message) {
-    showMessageToUser(MessageType.Error, message);
+    showMessageToUser(MessageType.error, message);
   }
 
   void showMessageToUser(MessageType type, String message) {
     channel.sendNotification(NotificationMessage(
       method: Method.window_showMessage,
-      params: ShowMessageParams(type: type, message: message),
+      params: ShowMessageParams(type: type.forLsp, message: message),
       jsonrpc: jsonRpcVersion,
     ));
   }
@@ -842,6 +840,7 @@ class LspAnalysisServer extends AnalysisServer {
   ///
   /// This is just a convenience method over [showUserPromptItems] where only
   /// title strings are used.
+  @override
   Future<String?> showUserPrompt(
     MessageType type,
     String message,
@@ -873,7 +872,8 @@ class LspAnalysisServer extends AnalysisServer {
     assert(supportsShowMessageRequest);
     final response = await sendRequest(
       Method.window_showMessageRequest,
-      ShowMessageRequestParams(type: type, message: message, actions: actions),
+      ShowMessageRequestParams(
+          type: type.forLsp, message: message, actions: actions),
     );
 
     final result = response.result;
@@ -935,15 +935,12 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Display a message that will allow us to enable analytics on the next run.
   void _checkAnalytics() {
-    var dashAnalytics = analyticsManager.analytics;
-    // The order of the conditions below is important. We need to check whether
-    // the client supports `showMessageRequest` before asking whether we need to
-    // show the message because the `Analytics` instance assumes that if
-    // `shouldShowMessage` returns `true` then the message will be shown.
-    if (_clientCapabilities!.supportsShowMessageRequest &&
-        dashAnalytics.shouldShowMessage) {
-      unawaited(
-          showUserPrompt(MessageType.Info, dashAnalytics.toolsMessage, ['Ok']));
+    // TODO(dantup): This code should move to base server.
+    var unifiedAnalytics = analyticsManager.analytics;
+    if (supportsShowMessageRequest && unifiedAnalytics.shouldShowMessage) {
+      unawaited(showUserPrompt(
+          MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']));
+      unifiedAnalytics.clientShowedMessage();
     }
   }
 
@@ -973,17 +970,6 @@ class LspAnalysisServer extends AnalysisServer {
       ...packages,
       ...additionalFiles,
     ];
-  }
-
-  Future<void> _handleAnalysisStatusChange(
-      analysis.AnalysisStatus status) async {
-    // TODO(dantup): Move this to base class when DartFixPrompt can handle
-    //  legacy server.
-    if (_isFirstAnalysisSinceContextsBuilt) {
-      _isFirstAnalysisSinceContextsBuilt = false;
-      _dartFixPrompt.triggerCheck();
-    }
-    await sendStatusNotification(status);
   }
 
   Future<void> _handleNotificationMessage(
@@ -1150,9 +1136,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void afterContextsCreated() {
+    analysisServer.afterContextsCreated();
     analysisServer.contextBuilds++;
-    analysisServer.addContextsToDeclarationsTracker();
-    analysisServer._isFirstAnalysisSinceContextsBuilt = true;
   }
 
   @override

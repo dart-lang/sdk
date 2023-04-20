@@ -50,6 +50,10 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   ],
 };
 
+/// A regex to extract the type name from the parameter string of a setter
+/// completion item.
+final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
+
 /// Pattern for docComplete text on completion items that can be upgraded to
 /// the "detail" field so that it can be shown more prominently by clients.
 ///
@@ -396,15 +400,17 @@ String? getCompletionDetail(
     // appear in the completion list, so displaying them as setters is misleading.
     // To avoid this, always show only the return type, whether it's a getter
     // or a setter.
-    return prefix +
-        (element?.kind == server.ElementKind.GETTER
-            ? (returnType ?? '')
-            // Don't assume setters always have parameters
-            // See https://github.com/dart-lang/sdk/issues/27747
-            : parameters != null && parameters.isNotEmpty
-                // Extract the type part from '(MyType value)`
-                ? parameters.substring(1, parameters.lastIndexOf(' '))
-                : '');
+    if (element?.kind == server.ElementKind.GETTER) {
+      return prefix + (returnType ?? '');
+    } else if (parameters == null) {
+      return prefix;
+    } else {
+      // TODO(dantup): Consider having the type of a setter available on
+      //  CompletionSuggestion (or changing it to a protocol-agnostic class that
+      //  includes it).
+      return prefix +
+          (_completionSetterTypePattern.firstMatch(parameters)?.group(1) ?? '');
+    }
   } else if (hasParameters && hasReturnType) {
     return '$prefix$parameters → $returnType';
   } else if (hasReturnType) {

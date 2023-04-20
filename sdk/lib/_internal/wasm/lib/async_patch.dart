@@ -51,7 +51,7 @@
 import 'dart:_internal' show patch, scheduleCallback, unsafeCastOpaque;
 import 'dart:_js_helper' show JS;
 
-import 'dart:wasm';
+import 'dart:_wasm';
 
 part 'timer_patch.dart';
 

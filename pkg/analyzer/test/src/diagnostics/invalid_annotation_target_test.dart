@@ -345,10 +345,15 @@ void m() {}
 
 @reflectiveTest
 class InvalidAnnotationTargetTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   // todo(pq): add tests for topLevelVariables:
   // https://dart-review.googlesource.com/c/sdk/+/200301
   void test_classType_class() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -362,8 +367,23 @@ class C {}
 ''');
   }
 
+  void test_classType_classTypeAlias() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.classType})
+class A {
+  const A();
+}
+
+mixin M {}
+
+@A()
+class C = Object with M;
+''');
+  }
+
   void test_classType_mixin() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -380,7 +400,6 @@ mixin M {}
   }
 
   void test_classType_topLevelVariable_constructor() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -397,7 +416,6 @@ int x = 0;
   }
 
   void test_classType_topLevelVariable_topLevelConstant() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -416,7 +434,6 @@ int x = 0;
   }
 
   void test_enumType_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -433,7 +450,6 @@ class C {}
   }
 
   void test_enumType_enum() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -448,7 +464,6 @@ enum E {a, b}
   }
 
   void test_extension_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -465,7 +480,6 @@ class C {}
   }
 
   void test_extension_extension() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -481,7 +495,6 @@ class C {}
   }
 
   void test_field_field() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -498,7 +511,6 @@ class C {
   }
 
   void test_function_function() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -513,7 +525,6 @@ int f(int x) => 0;
   }
 
   void test_function_method() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -532,7 +543,6 @@ class C {
   }
 
   void test_function_topLevelGetter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -549,7 +559,6 @@ int get x => 0;
   }
 
   void test_function_topLevelSetter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -566,7 +575,6 @@ set x(_x) {}
   }
 
   void test_getter_getter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -583,7 +591,6 @@ class C {
   }
 
   void test_getter_method() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -602,7 +609,6 @@ class C {
   }
 
   void test_getter_setter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -621,7 +627,6 @@ class C {
   }
 
   void test_getter_topLevelGetter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -636,7 +641,6 @@ int get x => 0;
   }
 
   void test_library_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -653,7 +657,6 @@ class C {}
   }
 
   void test_library_import() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 @A()
 import 'package:meta/meta_meta.dart';
@@ -666,7 +669,6 @@ class A {
   }
 
   void test_library_library() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 @A()
 library test;
@@ -681,7 +683,6 @@ class A {
   }
 
   void test_method_getter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -700,7 +701,6 @@ class C {
   }
 
   void test_method_method() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -717,7 +717,6 @@ class C {
   }
 
   void test_method_operator() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -734,7 +733,6 @@ class C {
   }
 
   void test_method_setter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -753,7 +751,6 @@ class C {
   }
 
   void test_method_topLevelFunction() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -770,7 +767,6 @@ int f(int x) => x;
   }
 
   void test_mixinType_class() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -787,7 +783,6 @@ class C {}
   }
 
   void test_mixinType_mixin() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -802,7 +797,6 @@ mixin M {}
   }
 
   void test_multiple_invalid() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -819,7 +813,6 @@ int x = 0;
   }
 
   void test_multiple_valid() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -837,7 +830,6 @@ class C {
   }
 
   void test_parameter_function() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -854,7 +846,6 @@ void f(int x) {}
   }
 
   void test_parameter_parameter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -868,7 +859,6 @@ void f(@A() int x) {}
   }
 
   void test_setter_getter() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -887,7 +877,6 @@ class C {
   }
 
   void test_setter_method() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -906,7 +895,6 @@ class C {
   }
 
   void test_setter_setter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -923,7 +911,6 @@ class C {
   }
 
   void test_setter_topLevelSetter() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -938,7 +925,6 @@ set x(_x) {}
   }
 
   void test_topLevelVariable_field() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -957,7 +943,6 @@ class B {
   }
 
   void test_topLevelVariable_topLevelVariable() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -972,7 +957,6 @@ int f = 0;
   }
 
   void test_type_class() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -986,8 +970,23 @@ class C {}
 ''');
   }
 
+  void test_type_classTypeAlias() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.type})
+class A {
+  const A();
+}
+
+mixin M {}
+
+@A()
+class C = Object with M;
+''');
+  }
+
   void test_type_enum() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1002,7 +1001,6 @@ enum E {a, b}
   }
 
   void test_type_extension() async {
-    writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1020,7 +1018,6 @@ class C {}
   }
 
   void test_type_genericTypeAlias() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1035,7 +1032,6 @@ typedef F = void Function(int);
   }
 
   void test_type_mixin() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -1050,7 +1046,6 @@ mixin M {}
   }
 
   void test_typedefType_genericTypeAlias() async {
-    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 

@@ -567,7 +567,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
         (Class::Handle(Z, result_type.type_class()).IsFutureClass() ||
          result_type.IsFutureOrType())) {
       ASSERT(result_type.IsFinalized());
-      type_args = result_type.arguments();
+      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
     }
 
     body += TranslateInstantiatedTypeArguments(type_args);
@@ -581,7 +581,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     if (result_type.IsType() &&
         (result_type.type_class() == IG->object_store()->stream_class())) {
       ASSERT(result_type.IsFinalized());
-      type_args = result_type.arguments();
+      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
     }
 
     body += TranslateInstantiatedTypeArguments(type_args);
@@ -599,7 +599,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     if (result_type.IsType() &&
         (result_type.type_class() == IG->object_store()->iterable_class())) {
       ASSERT(result_type.IsFinalized());
-      type_args = result_type.arguments();
+      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
     }
 
     body += TranslateInstantiatedTypeArguments(type_args);
@@ -679,8 +679,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   if (dart_function.is_native()) {
     body += B->NativeFunctionBody(dart_function, first_parameter);
   } else if (dart_function.is_external()) {
-    body +=
-        ThrowNoSuchMethodError(dart_function, /*incompatible_arguments=*/false);
+    body += ThrowNoSuchMethodError(TokenPosition::kNoSource, dart_function,
+                                   /*incompatible_arguments=*/false);
+    body += ThrowException(TokenPosition::kNoSource);  // Close graph.
   } else if (has_body) {
     body += BuildStatement();
   }
@@ -1503,9 +1504,10 @@ Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError(
+    TokenPosition position,
     const Function& target,
     bool incompatible_arguments) {
-  return flow_graph_builder_->ThrowNoSuchMethodError(target,
+  return flow_graph_builder_->ThrowNoSuchMethodError(position, target,
                                                      incompatible_arguments);
 }
 
@@ -1538,9 +1540,11 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
   if (!target.AreValidArgumentCounts(0, argument_count, 0, nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(
-        target,
-        /*incompatible_arguments=*/true);
+    Fragment instructions;
+    instructions += DropArguments(argument_count, /*type_args_count=*/0);
+    instructions += ThrowNoSuchMethodError(position, target,
+                                           /*incompatible_arguments=*/true);
+    return instructions;
   }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
@@ -1557,13 +1561,28 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     bool use_unchecked_entry) {
   if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
                                 nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(
-        target,
-        /*incompatible_arguments=*/true);
+    Fragment instructions;
+    instructions += DropArguments(argument_count, type_args_count);
+    instructions += ThrowNoSuchMethodError(position, target,
+                                           /*incompatible_arguments=*/true);
+    return instructions;
   }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,
       result_type, type_args_count, use_unchecked_entry);
+}
+
+Fragment StreamingFlowGraphBuilder::StaticCallMissing(
+    TokenPosition position,
+    const String& selector,
+    intptr_t argument_count,
+    InvocationMirror::Level level,
+    InvocationMirror::Kind kind) {
+  Fragment instructions;
+  instructions += DropArguments(argument_count, /*type_args_count=*/0);
+  instructions += flow_graph_builder_->ThrowNoSuchMethodError(
+      position, selector, level, kind);
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -1793,6 +1812,18 @@ Fragment StreamingFlowGraphBuilder::TryCatch(int try_handler_index) {
 
 Fragment StreamingFlowGraphBuilder::Drop() {
   return flow_graph_builder_->Drop();
+}
+
+Fragment StreamingFlowGraphBuilder::DropArguments(intptr_t argument_count,
+                                                  intptr_t type_args_count) {
+  Fragment instructions;
+  for (intptr_t i = 0; i < argument_count; i++) {
+    instructions += Drop();
+  }
+  if (type_args_count != 0) {
+    instructions += Drop();
+  }
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::DropTempsPreserveTop(
@@ -2721,10 +2752,11 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         return LoadStaticField(field, /*calls_initializer=*/false);
       }
     }
-  } else {
-    const Function& function =
-        Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
+  }
 
+  const Function& function = Function::ZoneHandle(
+      Z, H.LookupStaticMethodByKernelProcedure(target, /*required=*/false));
+  if (!function.IsNull()) {
     if (H.IsGetter(target)) {
       return StaticCall(position, function, 0, Array::null_array(),
                         ICData::kStatic, &result_type);
@@ -2739,7 +2771,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
     }
   }
 
-  return Fragment();
+  return StaticCallMissing(
+      position, H.DartSymbolPlain(H.CanonicalNameString(target)),
+      /* argument_count */ 0,
+      H.IsLibrary(H.EnclosingName(target)) ? InvocationMirror::Level::kTopLevel
+                                           : InvocationMirror::Level::kStatic,
+      InvocationMirror::Kind::kGetter);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
@@ -2769,9 +2806,11 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
     // Drop the unused result & leave the stored value on the stack.
     return instructions + Drop();
-  } else {
-    const Field& field =
-        Field::ZoneHandle(Z, H.LookupFieldByKernelGetterOrSetter(target));
+  }
+
+  const Field& field = Field::ZoneHandle(
+      Z, H.LookupFieldByKernelGetterOrSetter(target, /*required=*/false));
+  if (!field.IsNull()) {
     if (NeedsDebugStepCheck(stack(), position)) {
       instructions = DebugStepCheck(position) + instructions;
     }
@@ -2780,6 +2819,14 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
     instructions += StoreStaticField(position, field);
     return instructions;
   }
+
+  instructions += StaticCallMissing(
+      position, H.DartSymbolPlain(H.CanonicalNameString(target)),
+      /* argument_count */ 1,
+      H.IsLibrary(H.EnclosingName(target)) ? InvocationMirror::Level::kTopLevel
+                                           : InvocationMirror::Level::kStatic,
+      InvocationMirror::Kind::kSetter);
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
@@ -3284,8 +3331,26 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   NameIndex procedure_reference =
       ReadCanonicalNameReference();  // read procedure reference.
   intptr_t argument_count = PeekArgumentsCount();
-  const Function& target = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(procedure_reference));
+  const Function& target =
+      Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(
+                                  procedure_reference, /*required=*/false));
+
+  if (target.IsNull()) {
+    Fragment instructions;
+    Array& argument_names = Array::ZoneHandle(Z);
+    instructions +=
+        BuildArguments(&argument_names, nullptr /* arg count */,
+                       nullptr /* positional arg count */);  // read arguments.
+    instructions += StaticCallMissing(
+        position, H.DartSymbolPlain(H.CanonicalNameString(procedure_reference)),
+        argument_count,
+        H.IsLibrary(H.EnclosingName(procedure_reference))
+            ? InvocationMirror::Level::kTopLevel
+            : InvocationMirror::Level::kStatic,
+        InvocationMirror::Kind::kMethod);
+    return instructions;
+  }
+
   const Class& klass = Class::ZoneHandle(Z, target.Owner());
   if (target.IsGenerativeConstructor() || target.IsFactory()) {
     // The VM requires a TypeArguments object as first parameter for
@@ -3411,23 +3476,29 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       ReadCanonicalNameReference();  // read target_reference.
 
   Class& klass = Class::ZoneHandle(
-      Z, H.LookupClassByKernelClass(H.EnclosingName(kernel_name)));
+      Z, H.LookupClassByKernelClass(H.EnclosingName(kernel_name),
+                                    /*required=*/false));
+  Fragment instructions;
+  if (klass.IsNull()) {
+    Array& argument_names = Array::ZoneHandle(Z);
+    intptr_t argument_count;
+    instructions += BuildArguments(
+        &argument_names, &argument_count,
+        /* positional_argument_count = */ nullptr);  // read arguments.
+    instructions += StaticCallMissing(
+        position, H.DartSymbolPlain(H.CanonicalNameString(kernel_name)),
+        argument_count, InvocationMirror::Level::kConstructor,
+        InvocationMirror::Kind::kMethod);
+    return instructions;
+  }
   const auto& error = klass.EnsureIsFinalized(H.thread());
   ASSERT(error == Error::null());
 
-  Fragment instructions;
-
   if (klass.NumTypeArguments() > 0) {
     if (!klass.IsGeneric()) {
-      Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).ptr());
-
-      // TODO(27590): Can we move this code into [ReceiverType]?
-      type ^= ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize);
-      TypeArguments& canonicalized_type_arguments =
-          TypeArguments::ZoneHandle(Z, type.arguments());
-      canonicalized_type_arguments =
-          canonicalized_type_arguments.Canonicalize(thread(), nullptr);
-      instructions += Constant(canonicalized_type_arguments);
+      const TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+          Z, klass.GetDeclarationInstanceTypeArguments());
+      instructions += Constant(type_arguments);
     } else {
       const TypeArguments& type_arguments =
           PeekArgumentsInstantiatedType(klass);
@@ -3448,11 +3519,20 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       &argument_names, &argument_count,
       /* positional_argument_count = */ nullptr);  // read arguments.
 
-  const Function& target = Function::ZoneHandle(
-      Z, H.LookupConstructorByKernelConstructor(klass, kernel_name));
+  const Function& target =
+      Function::ZoneHandle(Z, H.LookupConstructorByKernelConstructor(
+                                  klass, kernel_name, /*required=*/false));
   ++argument_count;
-  instructions += StaticCall(position, target, argument_count, argument_names,
-                             ICData::kStatic, /* result_type = */ nullptr);
+
+  if (target.IsNull()) {
+    instructions += StaticCallMissing(
+        position, H.DartSymbolPlain(H.CanonicalNameString(kernel_name)),
+        argument_count, InvocationMirror::Level::kConstructor,
+        InvocationMirror::Kind::kMethod);
+  } else {
+    instructions += StaticCall(position, target, argument_count, argument_names,
+                               ICData::kStatic, /* result_type = */ nullptr);
+  }
   return instructions + Drop();
 }
 
@@ -4385,7 +4465,8 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
       FATAL("Unexpected type for runtime check in await: %s", type.ToCString());
     }
     ASSERT(type.IsFinalized());
-    const auto& type_args = TypeArguments::ZoneHandle(Z, type.arguments());
+    const auto& type_args =
+        TypeArguments::ZoneHandle(Z, Type::Cast(type).arguments());
     if (!type_args.IsNull()) {
       const auto& type_arg = AbstractType::Handle(Z, type_args.TypeAt(0));
       if (!type_arg.IsTopTypeForSubtyping()) {
@@ -5802,7 +5883,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
                                            ? helper.equals_position_
                                            : helper.position_;
   if (position != nullptr) *position = helper.position_;
-  if (NeedsDebugStepCheck(stack(), debug_position)) {
+  if (NeedsDebugStepCheck(stack(), debug_position) && !helper.IsHoisted()) {
     instructions = DebugStepCheck(debug_position) + instructions;
   }
   instructions += StoreLocal(helper.position_, variable);

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code generation for the file "matchers.dart".
+library;
+
 import 'package:analyzer_utilities/tools.dart';
 
 import 'api.dart';
@@ -90,6 +92,8 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     outputHeader(year: '2017');
     writeln();
     writeln('/// Matchers for data types defined in the analysis server API.');
+    writeln('library;');
+    writeln();
     writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");

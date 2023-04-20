@@ -386,7 +386,7 @@ void Precompiler::ReportStats() {
 
 Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
-      zone_(NULL),
+      zone_(nullptr),
       changed_(false),
       retain_root_library_caches_(false),
       function_count_(0),
@@ -426,7 +426,7 @@ Precompiler::Precompiler(Thread* thread)
       api_uses_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {
-  ASSERT(Precompiler::singleton_ == NULL);
+  ASSERT(Precompiler::singleton_ == nullptr);
   Precompiler::singleton_ = this;
 
   if (FLAG_print_precompiler_timings) {
@@ -443,7 +443,7 @@ Precompiler::~Precompiler() {
   functions_to_retain_.Release();
 
   ASSERT(Precompiler::singleton_ == this);
-  Precompiler::singleton_ = NULL;
+  Precompiler::singleton_ = nullptr;
 
   delete thread()->compiler_timings();
   thread()->set_compiler_timings(nullptr);
@@ -673,7 +673,7 @@ void Precompiler::DoCompileAll() {
       retained_reasons_writer_ = nullptr;
     }
 
-    zone_ = NULL;
+    zone_ = nullptr;
   }
 
   intptr_t symbols_before = -1;
@@ -1191,7 +1191,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
     const Type& type = Type::Cast(abstype);
     const Class& cls = Class::Handle(Z, type.type_class());
     AddTypesOf(cls);
-    const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
+    const TypeArguments& vector = TypeArguments::Handle(Z, type.arguments());
     AddTypeArguments(vector);
   } else if (abstype.IsTypeRef()) {
     AbstractType& type = AbstractType::Handle(Z);
@@ -1297,7 +1297,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
-    void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
       for (ObjectPtr* current = first; current <= last; current++) {
         subinstance_ = *current;
         if (subinstance_.IsInstance()) {
@@ -1307,9 +1307,10 @@ void Precompiler::AddConstObject(const class Instance& instance) {
       subinstance_ = Object::null();
     }
 
+#if defined(DART_COMPRESSED_POINTERS)
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* first,
-                                 CompressedObjectPtr* last) {
+                                 CompressedObjectPtr* last) override {
       for (CompressedObjectPtr* current = first; current <= last; current++) {
         subinstance_ = current->Decompress(heap_base);
         if (subinstance_.IsInstance()) {
@@ -1318,6 +1319,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
       }
       subinstance_ = Object::null();
     }
+#endif
 
    private:
     Precompiler* precompiler_;
@@ -2399,7 +2401,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
                               GrowableHandlePtrArray<const AbstractType>* types)
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
-      void VisitObject(ObjectPtr obj) {
+      void VisitObject(ObjectPtr obj) override {
         if (obj->GetClassId() == kTypeCid ||
             obj->GetClassId() == kFunctionTypeCid ||
             obj->GetClassId() == kRecordTypeCid ||
@@ -3313,7 +3315,7 @@ void Precompiler::Obfuscate() {
                               GrowableHandlePtrArray<const Script>* scripts)
         : script_(Script::Handle(zone)), scripts_(scripts) {}
 
-    void VisitObject(ObjectPtr obj) {
+    void VisitObject(ObjectPtr obj) override {
       if (obj->GetClassId() == kScriptCid) {
         script_ ^= obj;
         scripts_->Add(Script::Cast(script_));
@@ -3555,7 +3557,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           precompiler_->global_object_pool_builder());
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
 
-      CodeStatistics* function_stats = NULL;
+      CodeStatistics* function_stats = nullptr;
       if (FLAG_print_instruction_stats) {
         // At the moment we are leaking CodeStatistics objects for
         // simplicity because this is just a development mode flag.
@@ -3760,7 +3762,7 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
 }
 
 Obfuscator::Obfuscator(Thread* thread, const String& private_key)
-    : state_(NULL) {
+    : state_(nullptr) {
   auto isolate_group = thread->isolate_group();
   if (!isolate_group->obfuscate()) {
     // Nothing to do.
@@ -3791,7 +3793,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
 }
 
 Obfuscator::~Obfuscator() {
-  if (state_ != NULL) {
+  if (state_ != nullptr) {
     state_->SaveState();
   }
 }
@@ -3912,7 +3914,7 @@ static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 void Obfuscator::PreventRenaming(const char* name) {
   // For constructor names Class.name skip class name (if any) and a dot.
   const char* dot = strchr(name, '.');
-  if (dot != NULL) {
+  if (dot != nullptr) {
     name = dot + 1;
   }
 
@@ -4095,7 +4097,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
       Array::Handle(thread->zone(),
                     thread->isolate_group()->object_store()->obfuscation_map());
   if (obfuscation_state.IsNull()) {
-    return NULL;
+    return nullptr;
   }
 
   const Array& renames = Array::Handle(
@@ -4114,7 +4116,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
     str ^= renames_map.GetPayload(entry, 0);
     result[idx++] = StringToCString(str);
   }
-  result[idx++] = NULL;
+  result[idx++] = nullptr;
   renames_map.Release();
 
   return result;

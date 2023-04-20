@@ -1,0 +1,17 @@
+Parser<void> not(Parser<dynamic> parser) {}
+
+final class Error<T> extends Result<T> {
+  const Error(this.error);
+  final String error;
+}
+
+final class Ok<T> extends Result<T> {
+  const Ok(this.value);
+  final T value;
+}
+
+sealed class Result<T> {
+  const Result();
+}
+
+typedef Parser<T> = (Result<T> result, String next) Function(String input);

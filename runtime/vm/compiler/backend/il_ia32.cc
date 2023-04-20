@@ -652,19 +652,19 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     return locs;
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
                          Register value_cid_reg,
                          Register value_reg,
-                         compiler::Label* value_is_smi = NULL) {
+                         compiler::Label* value_is_smi = nullptr) {
   compiler::Label done;
-  if (value_is_smi == NULL) {
+  if (value_is_smi == nullptr) {
     __ movl(value_cid_reg, compiler::Immediate(kSmiCid));
   }
   __ testl(value_reg, compiler::Immediate(kSmiTagMask));
-  if (value_is_smi == NULL) {
+  if (value_is_smi == nullptr) {
     __ j(ZERO, &done, compiler::Assembler::kNearJump);
   } else {
     __ j(ZERO, value_is_smi);
@@ -938,7 +938,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   compiler::Label* deopt =
       CanDeoptimize()
           ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids)
-          : NULL;
+          : nullptr;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
   const ZoneGrowableArray<intptr_t>& data = cid_results();
@@ -955,7 +955,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ j(EQUAL, result ? labels.true_label : labels.false_label);
   }
   // No match found, deoptimize or default action.
-  if (deopt == NULL) {
+  if (deopt == nullptr) {
     // If the cid is not in the list, jump to the opposite label from the cids
     // that are in the list.  These must be all the same (see asserts in the
     // constructor).
@@ -1345,7 +1345,7 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == NULL) ||
+  if ((constant == nullptr) ||
       !compiler::Assembler::IsSafeSmi(constant->value())) {
     return false;
   }
@@ -1427,12 +1427,11 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp_reg = bytes_reg;
   const XmmRegister vector_reg = FpuTMP;
 
-  static const intptr_t kBytesEndTempOffset = 1 * compiler::target::kWordSize;
-  static const intptr_t kBytesEndMinus16TempOffset =
-      0 * compiler::target::kWordSize;
+  const intptr_t kBytesEndTempOffset = 1 * compiler::target::kWordSize;
+  const intptr_t kBytesEndMinus16TempOffset = 0 * compiler::target::kWordSize;
 
-  static const intptr_t kSizeMask = 0x03;
-  static const intptr_t kFlagsMask = 0x3C;
+  const intptr_t kSizeMask = 0x03;
+  const intptr_t kFlagsMask = 0x3C;
 
   compiler::Label scan_ascii, ascii_loop, ascii_loop_in, nonascii_loop;
   compiler::Label rest, rest_loop, rest_loop_in, done;
@@ -1796,7 +1795,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       break;
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
   return locs;
 }
@@ -1994,7 +1993,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField);
   }
 
-  compiler::Label* fail = (deopt != NULL) ? deopt : &fail_label;
+  compiler::Label* fail = (deopt != nullptr) ? deopt : &fail_label;
 
   if (emit_full_guard) {
     __ LoadObject(field_reg, Field::ZoneHandle(field().Original()));
@@ -2047,7 +2046,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jmp(&ok);
     }
 
-    if (deopt == NULL) {
+    if (deopt == nullptr) {
       __ Bind(fail);
 
       __ cmpl(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
@@ -2064,7 +2063,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     ASSERT(compiler->is_optimizing());
-    ASSERT(deopt != NULL);
+    ASSERT(deopt != nullptr);
     ASSERT(fail == deopt);
 
     // Field guard class has been initialized and is known.
@@ -2131,7 +2130,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
       compiler->is_optimizing()
           ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField)
-          : NULL;
+          : nullptr;
 
   const Register value_reg = locs()->in(0).reg();
 
@@ -2161,7 +2160,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // why we use Address instead of FieldAddress.
     __ cmpl(length_reg, compiler::Address(value_reg, offset_reg, TIMES_1, 0));
 
-    if (deopt == NULL) {
+    if (deopt == nullptr) {
       __ j(EQUAL, &ok);
 
       __ pushl(field_reg);
@@ -2534,7 +2533,7 @@ class CheckStackOverflowSlowPath
     compiler->SaveLiveRegisters(instruction()->locs());
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
-    ASSERT(compiler->pending_deoptimization_env_ == NULL);
+    ASSERT(compiler->pending_deoptimization_env_ == nullptr);
     Environment* env = compiler->SlowPathEnvironmentFor(
         instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
@@ -2551,7 +2550,7 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      InstructionSource());
     }
-    compiler->pending_deoptimization_env_ = NULL;
+    compiler->pending_deoptimization_env_ = nullptr;
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ jmp(exit_label());
   }
@@ -2603,7 +2602,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       shift_left->CanDeoptimize()
           ? compiler->AddDeoptStub(shift_left->deopt_id(),
                                    ICData::kDeoptBinarySmiOp)
-          : NULL;
+          : nullptr;
   if (locs.in(1).IsConstant()) {
     const Object& constant = locs.in(1).constant();
     ASSERT(constant.IsSmi());
@@ -2755,7 +2754,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     ConstantInstr* right_constant = right()->definition()->AsConstant();
     // Shift-by-1 overflow checking can use flags, otherwise we need a temp.
     const bool shiftBy1 =
-        (right_constant != NULL) && IsSmiValue(right_constant->value(), 1);
+        (right_constant != nullptr) && IsSmiValue(right_constant->value(), 1);
     const intptr_t kNumTemps = (can_overflow() && !shiftBy1) ? 1 : 0;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -2772,7 +2771,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     ConstantInstr* constant = right()->definition()->AsConstant();
-    if (constant != NULL) {
+    if (constant != nullptr) {
       summary->set_in(1, LocationRegisterOrSmiConstant(right()));
     } else {
       summary->set_in(1, Location::PrefersRegister());
@@ -2810,7 +2809,7 @@ static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
     default:
       UNREACHABLE();
   }
-  if (deopt != NULL) __ j(OVERFLOW, deopt);
+  if (deopt != nullptr) __ j(OVERFLOW, deopt);
 }
 
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -2822,7 +2821,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(left == result);
-  compiler::Label* deopt = NULL;
+  compiler::Label* deopt = nullptr;
   if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
   }
@@ -3143,10 +3142,10 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   if (op_kind() == Token::kTRUNCDIV) {
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   } else if (op_kind() == Token::kMOD) {
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   } else if ((op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR)) {
     const intptr_t kNumTemps = 0;
     LocationSummary* summary = new (zone)
@@ -3172,7 +3171,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     ConstantInstr* constant = right()->definition()->AsConstant();
-    if (constant != NULL) {
+    if (constant != nullptr) {
       summary->set_in(1, LocationRegisterOrSmiConstant(right()));
     } else {
       summary->set_in(1, Location::PrefersRegister());
@@ -3192,7 +3191,7 @@ static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
       shift_left->CanDeoptimize()
           ? compiler->AddDeoptStub(shift_left->deopt_id(),
                                    ICData::kDeoptBinarySmiOp)
-          : NULL;
+          : nullptr;
   ASSERT(locs.in(1).IsConstant());
 
   const Object& constant = locs.in(1).constant();
@@ -3223,7 +3222,7 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(left == result);
-  compiler::Label* deopt = NULL;
+  compiler::Label* deopt = nullptr;
   if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
   }
@@ -3354,7 +3353,7 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_XOR:
     case Token::kADD:
     case Token::kSUB:
-      EmitIntegerArithmetic(compiler, op_kind(), left, right, NULL);
+      EmitIntegerArithmetic(compiler, op_kind(), left, right, nullptr);
       return;
 
     case Token::kMUL:
@@ -3730,7 +3729,7 @@ static void LoadInt32FromMint(FlowGraphCompiler* compiler,
                               Register temp,
                               compiler::Label* deopt) {
   __ movl(result, lo);
-  if (deopt != NULL) {
+  if (deopt != nullptr) {
     ASSERT(temp != result);
     __ movl(temp, result);
     __ sarl(temp, compiler::Immediate(31));
@@ -3748,7 +3747,7 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger);
   }
-  compiler::Label* out_of_range = !is_truncating() ? deopt : NULL;
+  compiler::Label* out_of_range = !is_truncating() ? deopt : nullptr;
 
   const intptr_t lo_offset = Mint::value_offset();
   const intptr_t hi_offset = Mint::value_offset() + kWordSize;
@@ -3757,7 +3756,7 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(value == result);
     __ SmiUntag(value);
   } else if (value_cid == kMintCid) {
-    ASSERT((value != result) || (out_of_range == NULL));
+    ASSERT((value != result) || (out_of_range == nullptr));
     LoadInt32FromMint(
         compiler, result, compiler::FieldAddress(value, lo_offset),
         compiler::FieldAddress(value, hi_offset), temp, out_of_range);
@@ -3773,7 +3772,7 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler::Label done;
     __ SmiUntagOrCheckClass(value, kMintCid, temp, &done);
     __ j(NOT_EQUAL, deopt);
-    if (out_of_range != NULL) {
+    if (out_of_range != nullptr) {
       Register value_temp = locs()->temp(1).reg();
       __ movl(value_temp, value);
       value = value_temp;
@@ -4400,7 +4399,7 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       break;
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -5543,7 +5542,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
     }
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -5864,7 +5863,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register right_hi = locs()->in(1).AsPairLocation()->At(1).reg();
 
     // Jump to a slow path if shift count is > 63 or negative.
-    ShiftInt64OpSlowPath* slow_path = NULL;
+    ShiftInt64OpSlowPath* slow_path = nullptr;
     if (!IsShiftCountInRange()) {
       slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
@@ -5876,7 +5875,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     EmitShiftInt64ByECX(compiler, op_kind(), left_lo, left_hi);
 
-    if (slow_path != NULL) {
+    if (slow_path != nullptr) {
       __ Bind(slow_path->exit_label());
     }
   }
@@ -5999,7 +5998,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register right_hi = locs()->in(1).AsPairLocation()->At(1).reg();
 
     // Jump to a slow path if shift count is > 31 or negative.
-    ShiftUint32OpSlowPath* slow_path = NULL;
+    ShiftUint32OpSlowPath* slow_path = nullptr;
     if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
       slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
@@ -6012,7 +6011,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     EmitShiftUint32ByECX(compiler, op_kind(), left);
 
-    if (slow_path != NULL) {
+    if (slow_path != nullptr) {
       __ Bind(slow_path->exit_label());
     }
   }
@@ -6375,7 +6374,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Emit comparison code. This must not overwrite the result register.
   // IfThenElseInstr::Supports() should prevent EmitComparisonCode from using
   // the labels or returning an invalid condition.
-  BranchLabels labels = {NULL, NULL, NULL};
+  BranchLabels labels = {nullptr, nullptr, nullptr};
   Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
   ASSERT(true_condition != kInvalidCondition);
 

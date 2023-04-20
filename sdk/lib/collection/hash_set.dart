@@ -95,7 +95,7 @@ part of dart.collection;
 /// occur only once.
 /// * [LinkedHashSet] objects stored based on insertion order.
 /// * [SplayTreeSet] iterates the objects in sorted order.
-abstract class HashSet<E> implements Set<E> {
+abstract final class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
   ///
   /// The provided [equals] must define a stable equivalence relation, and

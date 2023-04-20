@@ -24,7 +24,7 @@ Object f(bool x) {
   };
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 28, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 28, 6),
     ]);
   }
 
@@ -74,7 +74,7 @@ Object f(E x) {
   };
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 44, 6,
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 44, 6,
           correctionContains: 'E.a'),
     ]);
   }
@@ -91,7 +91,7 @@ void f(bool x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 19, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
     ]);
   }
 
@@ -127,7 +127,8 @@ void f(bool x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 19, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3),
     ]);
   }
 
@@ -152,7 +153,7 @@ void f(bool? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 20, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 20, 6),
     ]);
   }
 
@@ -182,7 +183,7 @@ void f(E x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 35, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 35, 6),
     ]);
   }
 
@@ -216,7 +217,7 @@ void f(E x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 35, 6,
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 35, 6,
           correctionContains: 'E.a'),
     ]);
   }
@@ -244,7 +245,7 @@ void f(Null x) {
   switch (x) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 19, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
     ]);
   }
 
@@ -286,7 +287,7 @@ void f(A x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 77, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 77, 6),
     ]);
   }
 
@@ -324,23 +325,6 @@ void f(A x) {
 ''');
   }
 
-  test_alwaysExhaustive_sealedMixin_2at1() async {
-    await assertErrorsInCode(r'''
-sealed mixin M {}
-class A with M {}
-class B with M {}
-
-void f(M x) {
-  switch (x) {
-    case A():
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 71, 6),
-    ]);
-  }
-
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
     await assertErrorsInCode(r'''
 void f<T extends bool>(T x) {
@@ -350,12 +334,12 @@ void f<T extends bool>(T x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 32, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 32, 6),
     ]);
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true_false() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T extends bool>(T x) {
   switch (x) {
     case true:
@@ -363,9 +347,7 @@ void f<T extends bool>(T x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 32, 6),
-    ]);
+''');
   }
 
   test_alwaysExhaustive_typeVariable_promoted_bool_true() async {
@@ -379,12 +361,10 @@ void f<T>(T x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 40, 6),
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6),
     ]);
   }
 
-  /// TODO(scheglov) Fix it.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51819')
   test_alwaysExhaustive_typeVariable_promoted_bool_true_false() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T x) {

@@ -38,6 +38,13 @@ Uri sdkPlatformBinariesUri = computePlatformBinariesLocation()
 
 String sdkPlatformBinariesPath = sdkPlatformBinariesUri.toString();
 
+Uri buildPlatformBinariesUri =
+    computePlatformBinariesLocation(forceBuildDir: true)
+        .resolve("dart2js_platform.dill")
+        .resolve('.');
+
+String buildPlatformBinariesPath = buildPlatformBinariesUri.toString();
+
 class MultiDiagnostics implements api.CompilerDiagnostics {
   final List<api.CompilerDiagnostics> diagnosticsList;
 
@@ -184,7 +191,12 @@ Compiler compilerFor(
   }
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      librariesSpecificationUri: librariesSpecificationUri)
+      librariesSpecificationUri: librariesSpecificationUri,
+      // Unsound platform dill files are no longer packaged in the SDK and must
+      // be read from the build directory during tests.
+      platformBinaries: options.contains(Flags.noSoundNullSafety)
+          ? buildPlatformBinariesUri
+          : null)
     ..entryUri = entryPoint
     ..environment = {}
     ..packageConfig = packageConfig;

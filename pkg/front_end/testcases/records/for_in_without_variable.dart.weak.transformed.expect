@@ -13,7 +13,7 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final(self::left::A%, self::left::B%) #t2 = :sync-for-iterator.{core::Iterator::current}{(self::left::A%, self::left::B%)};
         {
-          self::left::A% a;
+          hoisted self::left::A% a;
           {
             final synthesized dynamic #0#0 = #t2;
             if(!(let final self::left::A% #t3 = a = #0#0{(self::left::A%, self::left::B%)}.$1{self::left::A%} in true))

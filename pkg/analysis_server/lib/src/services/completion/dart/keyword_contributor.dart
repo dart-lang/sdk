@@ -38,7 +38,21 @@ class KeywordContributor extends DartCompletionContributor {
     if (request.target.isDoubleOrIntLiteral()) {
       return;
     }
-    request.target.containingNode.accept(_KeywordVisitor(request, builder));
+
+    final visitor = _KeywordVisitor(request, builder);
+
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWantsFinalOrVar) {
+      visitor._addSuggestions([
+        Keyword.FINAL,
+        Keyword.VAR,
+      ]);
+      return;
+    } else if (patternLocation is NamedPatternFieldWantsName) {
+      return;
+    }
+
+    request.target.containingNode.accept(visitor);
   }
 }
 
@@ -170,23 +184,43 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (entity == node.classKeyword) {
       var previous = node.findPrevious(node.classKeyword);
-      if (previous != null && previous.keyword != Keyword.ABSTRACT) {
+      if (previous != null) {
+        if (previous.keyword != Keyword.BASE &&
+            previous.keyword != Keyword.FINAL &&
+            previous.keyword != Keyword.INTERFACE &&
+            previous.keyword != Keyword.MIXIN &&
+            previous.keyword != Keyword.SEALED) {
+          if (previous.keyword != Keyword.ABSTRACT) {
+            if (request.featureSet.isEnabled(Feature.sealed_class)) {
+              _addSuggestion(Keyword.SEALED);
+            }
+          } else {
+            // abstract ^ class A {}
+            if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+              _addSuggestions([
+                Keyword.BASE,
+                Keyword.FINAL,
+                Keyword.INTERFACE,
+                Keyword.MIXIN
+              ]);
+            }
+          }
+        }
         if (request.featureSet.isEnabled(Feature.class_modifiers) &&
             previous.keyword == Keyword.BASE) {
           // base ^ class A {}
           // abstract base ^ class A {}
           _addSuggestion(Keyword.MIXIN);
         }
-      } else {
-        // Suggest all modifiers.
-        // ^ class A {}
-        // abstract ^ class A {}
-        if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-          _addSuggestions(
-              [Keyword.BASE, Keyword.FINAL, Keyword.INTERFACE, Keyword.MIXIN]);
-        }
-        if (request.featureSet.isEnabled(Feature.sealed_class)) {
-          _addSuggestion(Keyword.SEALED);
+      }
+    } else if (entity == node.mixinKeyword) {
+      var previous = node.findPrevious(node.mixinKeyword!);
+      if (previous != null) {
+        if (previous.keyword != Keyword.BASE) {
+          // abstract ^ mixin class A {}
+          if (request.featureSet.isEnabled(Feature.class_modifiers)) {
+            _addSuggestion(Keyword.BASE);
+          }
         }
       }
     } else if (entity == node.rightBracket) {
@@ -295,6 +329,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    if (node.name is SyntheticStringToken) {
+      return;
+    }
     var parent = node.parent;
     if (!(parent is GuardedPattern && parent.hasWhen)) {
       _addSuggestion(Keyword.WHEN);
@@ -611,7 +648,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     } else if (entity == node.thenElement || entity == node.elseElement) {
       _addCollectionElementKeywords();
       _addExpressionKeywords(node);
-    } else if (entity == node.condition) {
+    } else if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
     return super.visitIfElement(node);
@@ -638,7 +675,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
-    } else if (entity == node.condition) {
+    } else if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
   }
@@ -762,18 +799,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.name) {
       return;
     }
-    if (entity == node.mixinKeyword) {
-      var previous = node.findPrevious(node.mixinKeyword);
-      if (previous == null) {
-        // ^ mixin M {}
-        if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-          _addSuggestions([Keyword.BASE, Keyword.FINAL, Keyword.INTERFACE]);
-        }
-        if (request.featureSet.isEnabled(Feature.sealed_class)) {
-          _addSuggestion(Keyword.SEALED);
-        }
-      }
-    } else if (entity == node.rightBracket) {
+    if (entity == node.rightBracket) {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
@@ -784,7 +810,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       }
-    } else {
+    } else if (entity != node.mixinKeyword) {
       _addMixinDeclarationKeywords(node);
     }
   }
@@ -1102,6 +1128,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.FINAL,
+      Keyword.MIXIN,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
@@ -1113,7 +1140,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addSuggestion(Keyword.LATE);
     }
     if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-      _addSuggestions([Keyword.BASE, Keyword.INTERFACE, Keyword.MIXIN]);
+      _addSuggestions([Keyword.BASE, Keyword.INTERFACE]);
     }
     if (request.featureSet.isEnabled(Feature.sealed_class)) {
       _addSuggestion(Keyword.SEALED);

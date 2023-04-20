@@ -21,12 +21,12 @@ void f(List<(int, int)> x01) {
   for (final (a, b) in ^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  x01
-    kind: parameter
   await
     kind: keyword
+  x01
+    kind: parameter
 ''');
   }
 
@@ -36,7 +36,7 @@ void f(Object x) {
   for (final (a, b) ^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   in
     kind: keyword
@@ -49,7 +49,7 @@ void f(List<(int, int)> rl) {
   for (final (a, b) i^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -84,11 +84,11 @@ void f(Object x) {
   for (^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  var
-    kind: keyword
   final
+    kind: keyword
+  var
     kind: keyword
 ''');
   }
@@ -99,11 +99,11 @@ void f(Object x) {
   for (^)
 }
 ''');
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  var
-    kind: keyword
   final
+    kind: keyword
+  var
     kind: keyword
 ''');
   }

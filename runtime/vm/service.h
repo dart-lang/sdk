@@ -209,7 +209,7 @@ class Service : public AllStatic {
   static void SetDartLibraryKernelForSources(const uint8_t* kernel_bytes,
                                              intptr_t kernel_length);
   static bool HasDartLibraryKernelForSources() {
-    return (dart_library_kernel_ != NULL);
+    return (dart_library_kernel_ != nullptr);
   }
 
   static const uint8_t* dart_library_kernel() { return dart_library_kernel_; }

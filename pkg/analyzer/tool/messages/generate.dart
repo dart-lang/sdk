@@ -14,6 +14,8 @@
 ///
 /// It is expected that 'pkg/front_end/tool/fasta generate-messages'
 /// has already been successfully run.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -74,11 +76,15 @@ class _AnalyzerErrorGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
+
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
   _AnalyzerErrorGenerator(this.errorClasses, this.generatedCodes);
@@ -126,6 +132,10 @@ class _AnalyzerErrorGenerator {
           out.writeln('${errorCodeInfo.aliasFor};');
         } else {
           generatedCodes.add('${errorClass.name}.$errorName');
+          var deprecatedMessage = errorCodeInfo.deprecatedMessage;
+          if (deprecatedMessage != null) {
+            out.writeln('  @Deprecated("$deprecatedMessage")');
+          }
           out.writeln('  static const ${errorClass.name} $errorName =');
           out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
         }
@@ -176,11 +186,15 @@ class _ErrorCodeValuesGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
+
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
   _ErrorCodeValuesGenerator(this.generatedCodes);

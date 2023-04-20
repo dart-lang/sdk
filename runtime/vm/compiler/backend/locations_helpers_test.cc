@@ -70,7 +70,7 @@ class MockInstruction : public ZoneAllocated {
   virtual ~MockInstruction() {}
 
   LocationSummary* locs() {
-    if (locs_ == NULL) {
+    if (locs_ == nullptr) {
       locs_ = MakeLocationSummary(Thread::Current()->zone(), false);
     }
     return locs_;
@@ -90,7 +90,9 @@ class MockInstruction : public ZoneAllocated {
    public:                                                                     \
     LocationSummary* MakeLocationSummary(Zone* zone, bool opt) const;          \
     void EmitNativeCode(FlowGraphCompiler* compiler);                          \
-    virtual intptr_t InputCount() const { return Arity; }                      \
+    virtual intptr_t InputCount() const {                                      \
+      return Arity;                                                            \
+    }                                                                          \
   };                                                                           \
   TEST_CASE(LocationsHelpers_##Name) {                                         \
     const Location expected_out = ExpectedOut;                                 \
@@ -107,7 +109,7 @@ class MockInstruction : public ZoneAllocated {
     ValidateSummary(locs, expected_out, expected_inputs, expected_temps);      \
     FillSummary(locs, allocated_out, allocated_inputs, allocated_temps);       \
                                                                                \
-    instr->EmitNativeCode(NULL);                                               \
+    instr->EmitNativeCode(nullptr);                                            \
   }                                                                            \
   DEFINE_BACKEND(Name, Signature)
 

@@ -30,6 +30,54 @@ class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
+  test_deprecatedField_inObjectPattern_explicitName() async {
+    await assertErrorsInCode2(externalCode: r'''
+class C {
+  @Deprecated('')
+  final int foo = 0;
+}
+''', code: '''
+int g(Object s) =>
+  switch (s) {
+    C(foo: var f) => f,
+    _ => 7,
+  };
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 69, 3),
+    ]);
+  }
+
+  test_deprecatedField_inObjectPattern_inferredName() async {
+    await assertErrorsInCode2(externalCode: r'''
+class C {
+  @Deprecated('')
+  final int foo = 0;
+}
+''', code: '''
+int g(Object s) =>
+  switch (s) {
+    C(:var foo) => foo,
+    _ => 7,
+  };
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 74, 3),
+    ]);
+  }
+
+  test_inDeprecatedDefaultFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {
+  const C();
+}
+''',
+      code: r'''
+f({@deprecated C? c = const C()}) {}
+''',
+    );
+  }
+
   test_inDeprecatedEnum() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -44,6 +92,62 @@ enum E {
   void m() {
     f();
   }
+}
+''',
+    );
+  }
+
+  test_inDeprecatedFieldFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+class A {
+  Object? o;
+  A({@deprecated C? this.o});
+}
+''',
+    );
+  }
+
+  test_inDeprecatedFunctionTypedFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+f({@deprecated C? callback()?}) {}
+''',
+    );
+  }
+
+  test_inDeprecatedSimpleFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+f({@deprecated C? c}) {}
+''',
+    );
+  }
+
+  test_inDeprecatedSuperFormalParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+class C {}
+''',
+      code: r'''
+class A {
+  A({Object? o});
+}
+class B extends A {
+  B({@deprecated C? super.o});
 }
 ''',
     );
@@ -307,6 +411,34 @@ void f(A a) {}
         error(HintCode.DEPRECATED_MEMBER_USE, 36, 1),
       ],
     );
+  }
+
+  test_class_inDeprecatedFunctionTypeAlias() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+@deprecated
+typedef A T();
+''');
+  }
+
+  test_class_inDeprecatedGenericTypeAlias() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+@deprecated
+typedef T = A Function();
+''');
   }
 
   test_compoundAssignment() async {
@@ -663,8 +795,7 @@ f() {
           HintCode.DEPRECATED_MEMBER_USE,
           48,
           7,
-          // TODO(srawlins): Fix this message!
-          messageContains: ["'A.A.named' is deprecated and shouldn't be used."],
+          messageContains: ["'A.named' is deprecated and shouldn't be used."],
         ),
       ],
     );
@@ -850,6 +981,20 @@ void f(A a) {
       error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 3,
           text: "'foo' is deprecated and shouldn't be used. 0.9."),
     ]);
+  }
+
+  test_mixin_inDeprecatedClassTypeAlias() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+mixin A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+@deprecated
+class B = Object with A;
+''');
   }
 
   test_operator() async {
@@ -1283,7 +1428,8 @@ class B extends A {
 }
 ''',
       [
-        error(HintCode.DEPRECATED_MEMBER_USE, 57, 13),
+        error(HintCode.DEPRECATED_MEMBER_USE, 57, 13,
+            text: "'A.named' is deprecated and shouldn't be used."),
       ],
     );
   }
@@ -1303,8 +1449,7 @@ class B extends A {
 ''',
       [
         error(HintCode.DEPRECATED_MEMBER_USE, 57, 7,
-            // TODO(srawlins): Correct this message!
-            text: "'A.A' is deprecated and shouldn't be used."),
+            text: "'A.new' is deprecated and shouldn't be used."),
       ],
     );
   }

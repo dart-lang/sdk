@@ -7159,6 +7159,61 @@ library
 ''');
   }
 
+  test_class_mixins_genericMixin_tooManyArguments() async {
+    var library = await buildLibrary('''
+mixin M<T> {}
+class A extends Object with M<int, String> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @20
+        supertype: Object
+        mixins
+          M<dynamic>
+        constructors
+          synthetic @-1
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_class_mixins_typeParameter() async {
+    var library = await buildLibrary('''
+mixin M1 {}
+mixin M2 {}
+class A<T> extends Object with M1, T<int>, M2 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          M1
+          M2
+        constructors
+          synthetic @-1
+    mixins
+      mixin M1 @6
+        superclassConstraints
+          Object
+      mixin M2 @18
+        superclassConstraints
+          Object
+''');
+  }
+
   test_class_mixins_unresolved() async {
     var library = await buildLibrary(
         'class C extends Object with X, Y, Z {} class X {} class Z {}',
@@ -8444,25 +8499,35 @@ library
 
   test_class_supertype() async {
     var library = await buildLibrary('''
-class C extends D {}
-class D {}
+class A {}
+class B extends A {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class B @17
+        supertype: A
+''');
+  }
+
+  test_class_supertype_dynamic() async {
+    var library = await buildLibrary('''
+class A extends dynamic {}
 ''');
     checkElementText(library, r'''
 library
   definingUnit
     classes
-      class C @6
-        supertype: D
-        constructors
-          synthetic @-1
-            superConstructor: self::@class::D::@constructor::new
-      class D @27
+      class A @6
         constructors
           synthetic @-1
 ''');
   }
 
-  test_class_supertype_typeArguments() async {
+  test_class_supertype_genericClass() async {
     var library = await buildLibrary('''
 class C extends D<int, double> {}
 class D<T1, T2> {}
@@ -8489,6 +8554,25 @@ library
 ''');
   }
 
+  test_class_supertype_genericClass_tooManyArguments() async {
+    var library = await buildLibrary('''
+class A<T> {}
+class B extends A<int, String> {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+      class B @20
+        supertype: A<dynamic>
+''');
+  }
+
   test_class_supertype_typeArguments_self() async {
     var library = await buildLibrary('''
 class A<T> {}
@@ -8511,6 +8595,23 @@ library
             superConstructor: ConstructorMember
               base: self::@class::A::@constructor::new
               substitution: {T: B}
+''');
+  }
+
+  test_class_supertype_typeParameter() async {
+    var library = await buildLibrary('''
+class A<T> extends T<int> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -9200,6 +9301,342 @@ library
                 staticElement: dart:core::@class::Object::@constructor::new
     mixins
       mixin M @36
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_classAlias_constructors_default() async {
+    var library = await buildLibrary('''
+class A {}
+mixin class M {}
+class X = A with M;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      mixin class M @23
+        constructors
+          synthetic @-1
+      class alias X @34
+        supertype: A
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_classAlias_constructors_dependencies() async {
+    var library = await buildLibrary('''
+class A {
+  A(int i);
+}
+mixin class M1 {}
+mixin class M2 {}
+
+class C2 = C1 with M2;
+class C1 = A with M1;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional i @18
+                type: int
+      mixin class M1 @36
+        constructors
+          synthetic @-1
+      mixin class M2 @54
+        constructors
+          synthetic @-1
+      class alias C2 @67
+        supertype: C1
+        mixins
+          M2
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional i @-1
+                type: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: i @-1
+                      staticElement: self::@class::C2::@constructor::new::@parameter::i
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::C1::@constructor::new
+            superConstructor: self::@class::C1::@constructor::new
+      class alias C1 @90
+        supertype: A
+        mixins
+          M1
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional i @-1
+                type: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: i @-1
+                      staticElement: self::@class::C1::@constructor::new::@parameter::i
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_classAlias_constructors_optionalParameters() async {
+    var library = await buildLibrary('''
+class A {
+  A.c1(int a);
+  A.c2(int a, [int? b, int c = 0]);
+  A.c3(int a, {int? b, int c = 0});
+}
+
+mixin M {}
+
+class C = A with M;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          c1 @14
+            periodOffset: 13
+            nameEnd: 16
+            parameters
+              requiredPositional a @21
+                type: int
+          c2 @29
+            periodOffset: 28
+            nameEnd: 31
+            parameters
+              requiredPositional a @36
+                type: int
+              optionalPositional b @45
+                type: int?
+              optionalPositional c @52
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @56
+                    staticType: int
+          c3 @65
+            periodOffset: 64
+            nameEnd: 67
+            parameters
+              requiredPositional a @72
+                type: int
+              optionalNamed b @81
+                type: int?
+              optionalNamed c @88
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @92
+                    staticType: int
+      class alias C @118
+        supertype: A
+        mixins
+          M
+        constructors
+          synthetic c1 @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: c1 @-1
+                  staticElement: self::@class::A::@constructor::c1
+                  staticType: null
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: self::@class::C::@constructor::c1::@parameter::a
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::c1
+            superConstructor: self::@class::A::@constructor::c1
+          synthetic c2 @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+              optionalPositional b @-1
+                type: int?
+              optionalPositional c @-1
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @56
+                    staticType: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: c2 @-1
+                  staticElement: self::@class::A::@constructor::c2
+                  staticType: null
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: self::@class::C::@constructor::c2::@parameter::a
+                      staticType: int
+                    SimpleIdentifier
+                      token: b @-1
+                      staticElement: self::@class::C::@constructor::c2::@parameter::b
+                      staticType: int?
+                    SimpleIdentifier
+                      token: c @-1
+                      staticElement: self::@class::C::@constructor::c2::@parameter::c
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::c2
+            superConstructor: self::@class::A::@constructor::c2
+          synthetic c3 @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+              optionalNamed b @-1
+                type: int?
+              optionalNamed c @-1
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @92
+                    staticType: int
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                period: . @0
+                constructorName: SimpleIdentifier
+                  token: c3 @-1
+                  staticElement: self::@class::A::@constructor::c3
+                  staticType: null
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: self::@class::C::@constructor::c3::@parameter::a
+                      staticType: int
+                    SimpleIdentifier
+                      token: b @-1
+                      staticElement: self::@class::C::@constructor::c3::@parameter::b
+                      staticType: int?
+                    SimpleIdentifier
+                      token: c @-1
+                      staticElement: self::@class::C::@constructor::c3::@parameter::c
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::c3
+            superConstructor: self::@class::A::@constructor::c3
+    mixins
+      mixin M @106
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_classAlias_constructors_requiredParameters() async {
+    var library = await buildLibrary('''
+class A<T extends num> {
+  A(T x, T y);
+}
+
+mixin M {}
+
+class B<E extends num> = A<E> with M;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            bound: num
+            defaultType: num
+        constructors
+          @27
+            parameters
+              requiredPositional x @31
+                type: T
+              requiredPositional y @36
+                type: T
+      class alias B @61
+        typeParameters
+          covariant E @63
+            bound: num
+            defaultType: num
+        supertype: A<E>
+        mixins
+          M
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional x @-1
+                type: E
+              requiredPositional y @-1
+                type: E
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    SimpleIdentifier
+                      token: x @-1
+                      staticElement: self::@class::B::@constructor::new::@parameter::x
+                      staticType: E
+                    SimpleIdentifier
+                      token: y @-1
+                      staticElement: self::@class::B::@constructor::new::@parameter::y
+                      staticType: E
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::new
+              substitution: {T: E}
+    mixins
+      mixin M @49
         superclassConstraints
           Object
 ''');
@@ -13063,6 +13500,41 @@ const int x = 0;
 ''');
   }
 
+  test_const_invalid_methodInvocation() async {
+    var library = await buildLibrary(r'''
+const a = 'abc'.codeUnitAt(0);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        shouldUseTypeForInitializerInference: false
+        constantInitializer
+          MethodInvocation
+            target: SimpleStringLiteral
+              literal: 'abc' @10
+            operator: . @15
+            methodName: SimpleIdentifier
+              token: codeUnitAt @16
+              staticElement: dart:core::@class::String::@method::codeUnitAt
+              staticType: int Function(int)
+            argumentList: ArgumentList
+              leftParenthesis: ( @26
+              arguments
+                IntegerLiteral
+                  literal: 0 @27
+                  staticType: int
+              rightParenthesis: ) @28
+            staticInvokeType: int Function(int)
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
+''');
+  }
+
   test_const_invalid_topLevel() async {
     var library = await buildLibrary(r'''
 const v = 1 + foo();
@@ -14735,7 +15207,7 @@ library
               IfElement
                 ifKeyword: if @29
                 leftParenthesis: ( @32
-                condition: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true @33
                   staticType: bool
                 rightParenthesis: ) @37
@@ -14779,7 +15251,7 @@ library
               IfElement
                 ifKeyword: if @29
                 leftParenthesis: ( @32
-                condition: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true @33
                   staticType: bool
                 rightParenthesis: ) @37
@@ -14971,11 +15443,11 @@ library
               IfElement
                 ifKeyword: if @34
                 leftParenthesis: ( @37
-                condition: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true @38
                   staticType: bool
                 rightParenthesis: ) @42
-                thenElement: SetOrMapLiteral
+                thenElement: MapLiteralEntry
                   key: IntegerLiteral
                     literal: 1 @44
                     staticType: int
@@ -15011,7 +15483,7 @@ library
             constKeyword: const @17
             leftBracket: { @23
             elements
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -15081,7 +15553,7 @@ library
                     rightBracket: > @46
                   leftBracket: { @47
                   elements
-                    SetOrMapLiteral
+                    MapLiteralEntry
                       key: IntegerLiteral
                         literal: 1 @48
                         staticType: int
@@ -15154,7 +15626,7 @@ library
                     rightBracket: > @47
                   leftBracket: { @48
                   elements
-                    SetOrMapLiteral
+                    MapLiteralEntry
                       key: IntegerLiteral
                         literal: 1 @49
                         staticType: int
@@ -16787,7 +17259,7 @@ library
               IfElement
                 ifKeyword: if @29
                 leftParenthesis: ( @32
-                condition: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true @33
                   staticType: bool
                 rightParenthesis: ) @37
@@ -18561,21 +19033,21 @@ library
             constKeyword: const @10
             leftBracket: { @16
             elements
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 0 @17
                   staticType: int
                 separator: : @18
                 value: SimpleStringLiteral
                   literal: 'aaa' @20
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 1 @27
                   staticType: int
                 separator: : @28
                 value: SimpleStringLiteral
                   literal: 'bbb' @30
-              SetOrMapLiteral
+              MapLiteralEntry
                 key: IntegerLiteral
                   literal: 2 @37
                   staticType: int
@@ -23851,6 +24323,39 @@ library
 ''');
   }
 
+  test_extension_typeParameters_hasBound() async {
+    var library = await buildLibrary('''
+extension E<T extends num> on int {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+            bound: num
+            defaultType: num
+        extendedType: int
+''');
+  }
+
+  test_extension_typeParameters_noBound() async {
+    var library = await buildLibrary('''
+extension E<T> on int {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        extendedType: int
+''');
+  }
+
   test_function_async() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
@@ -24169,6 +24674,25 @@ library
 ''');
   }
 
+  test_function_parameter_type_typeParameter() async {
+    var library = await buildLibrary('''
+void f<T>(T a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
+''');
+  }
+
   test_function_parameters() async {
     var library = await buildLibrary('f(x, y) {}');
     checkElementText(library, r'''
@@ -24182,17 +24706,6 @@ library
           requiredPositional y @5
             type: dynamic
         returnType: dynamic
-''');
-  }
-
-  test_function_return_type() async {
-    var library = await buildLibrary('int f() => null;');
-    checkElementText(library, r'''
-library
-  definingUnit
-    functions
-      f @4
-        returnType: int
 ''');
   }
 
@@ -24218,8 +24731,23 @@ library
 ''');
   }
 
-  test_function_type_parameter() async {
-    var library = await buildLibrary('T f<T, U>(U u) => null;');
+  test_function_returnType() async {
+    var library = await buildLibrary('''
+int f() => 0;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @4
+        returnType: int
+''');
+  }
+
+  test_function_returnType_typeParameter() async {
+    var library = await buildLibrary('''
+T f<T>() => throw 0;
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -24228,11 +24756,6 @@ library
         typeParameters
           covariant T @4
             defaultType: dynamic
-          covariant U @7
-            defaultType: dynamic
-        parameters
-          requiredPositional u @12
-            type: U
         returnType: T
 ''');
   }
@@ -24265,6 +24788,39 @@ library
         library
             .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
         isFalse);
+  }
+
+  test_function_typeParameters_hasBound() async {
+    var library = await buildLibrary('''
+void f<T extends num>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            bound: num
+            defaultType: num
+        returnType: void
+''');
+  }
+
+  test_function_typeParameters_noBound() async {
+    var library = await buildLibrary('''
+void f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        returnType: void
+''');
   }
 
   test_functions() async {
@@ -31694,6 +32250,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @38
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @33
@@ -33314,6 +33871,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @38
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @33
@@ -34851,20 +35409,6 @@ library
 ''');
   }
 
-  test_mixin_final() async {
-    var library = await buildLibrary(r'''
-final mixin M on A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    mixins
-      final mixin M @12
-        superclassConstraints
-          Object
-''');
-  }
-
   test_mixin_first() async {
     var library = await buildLibrary(r'''
 mixin M {}
@@ -35470,20 +36014,6 @@ library
 ''');
   }
 
-  test_mixin_interface() async {
-    var library = await buildLibrary(r'''
-interface mixin M on A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    mixins
-      interface mixin M @16
-        superclassConstraints
-          Object
-''');
-  }
-
   test_mixin_method_invokesSuperSelf() async {
     var library = await buildLibrary(r'''
 mixin M on A {
@@ -35526,20 +36056,6 @@ library
         methods
           A @33
             returnType: void
-''');
-  }
-
-  test_mixin_sealed() async {
-    var library = await buildLibrary(r'''
-sealed mixin M on A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    mixins
-      sealed mixin M @13
-        superclassConstraints
-          Object
 ''');
   }
 
@@ -35957,6 +36473,7 @@ library
       E @10
         typeParameters
           covariant T @12
+            defaultType: dynamic
         extendedType: int
 ''');
   }

@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue51710.dart:8:4: Error: Can't assign to the final variable 'b'.
+//   (b, a) = (a, b);
+//    ^
+//
+// pkg/front_end/testcases/patterns/issue51710.dart:8:7: Error: Can't assign to the final variable 'a'.
+//   (b, a) = (a, b);
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  final hoisted has-declared-initializer core::String a;
+  final hoisted has-declared-initializer core::String b;
+  {
+    final synthesized dynamic #0#0 = ("left", "right");
+    if(!((let final dynamic #t1 = a = #0#0{(core::String, core::String)}.$1{core::String} in true) && (let final dynamic #t2 = b = #0#0{(core::String, core::String)}.$2{core::String} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  core::print("${a} ${b}");
+  block {
+    final synthesized dynamic #1#0 = (a, b);
+    if(!(invalid-expression "pkg/front_end/testcases/patterns/issue51710.dart:8:4: Error: Can't assign to the final variable 'b'.
+  (b, a) = (a, b);
+   ^" && invalid-expression "pkg/front_end/testcases/patterns/issue51710.dart:8:7: Error: Can't assign to the final variable 'a'.
+  (b, a) = (a, b);
+      ^"))
+      throw new core::StateError::•("Pattern matching error");
+  } =>#1#0;
+  core::print("${a} ${b}");
+}

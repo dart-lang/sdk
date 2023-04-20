@@ -806,13 +806,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -1662,6 +1656,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    _unexpected();
+  }
+
+  @override
   void handleCommentReference(
       Token? newKeyword,
       Token? firstToken,
@@ -2046,8 +2045,18 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    _unsupported();
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
+    _unsupported();
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
     _unsupported();
   }
 

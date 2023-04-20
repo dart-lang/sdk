@@ -825,7 +825,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    _recordDataForNode('IfElement (condition)', node.condition,
+    _recordDataForNode('IfElement (condition)', node.expression,
         allowedKeywords: expressionKeywords);
     _recordDataForNode('IfElement (then)', node.thenElement);
     _recordDataForNode('IfElement (else)', node.elseElement);
@@ -834,7 +834,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    _recordDataForNode('IfStatement (condition)', node.condition,
+    _recordDataForNode('IfStatement (condition)', node.expression,
         allowedKeywords: expressionKeywords);
     _recordDataForNode('IfStatement (then)', node.thenStatement,
         allowedKeywords: statementKeywords);

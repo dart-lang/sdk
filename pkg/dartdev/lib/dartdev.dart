@@ -155,7 +155,8 @@ class DartdevRunner extends CommandRunner<int> {
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
     // the respective intention and print any notices to standard out and exit.
-    if (topLevelResults['disable-analytics']) {
+    if (topLevelResults['disable-analytics'] ||
+        topLevelResults['disable-telemetry']) {
       // This block also potentially catches the case of (disableAnalytics &&
       // enableAnalytics), in which we favor the disabling of analytics.
       analytics.enabled = false;
@@ -170,6 +171,11 @@ class DartdevRunner extends CommandRunner<int> {
       return 0;
     } else if (topLevelResults['enable-analytics']) {
       analytics.enabled = true;
+
+      // Enable sending data via the unified analytics package.
+      var unifiedAnalytics = createUnifiedAnalytics();
+      await unifiedAnalytics.setTelemetry(true);
+      unifiedAnalytics.close();
 
       // Alert the user again that data will be collected.
       print(analyticsNoticeOnFirstRunMessage);
@@ -275,8 +281,13 @@ class DartdevRunner extends CommandRunner<int> {
           );
         }
 
+        // Use no more than 5% of the running time or 1 second to process
+        // analytics, whichever is less.  Assume a base of 150ms for dart VM
+        // initialization (not counted by stopwatch).
+        var ms = stopwatch.elapsedMilliseconds + 150;
+        var timeout = ms ~/ 20 > 1000 ? 1000 : ms ~/ 20;
         await analytics.waitForLastPing(
-            timeout: const Duration(milliseconds: 200));
+            timeout: Duration(milliseconds: timeout));
       }
 
       // Set the enabled flag in the analytics object to true. Note: this will not

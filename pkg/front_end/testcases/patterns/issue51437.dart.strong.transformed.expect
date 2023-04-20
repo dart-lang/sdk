@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue51437.dart:17:9: Error: The getter 'arglebargle' isn't defined for the class 'Object?'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'arglebargle'.
+//       x.arglebargle; // Error
+//         ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  final field self::A::X% x;
+  constructor •(self::A::X% x) → self::A<self::A::X%>
+    : self::A::x = x, super core::Object::•()
+    ;
+}
+extension /* unnamed */ _extension#0<X extends core::Object? = dynamic> on self::A<X%> {
+  get g = self::_extension#0|get#g;
+}
+static method _extension#0|get#g<X extends core::Object? = dynamic>(lowered final self::A<self::_extension#0|get#g::X%> #this) → self::_extension#0|get#g::X%
+  return #this.{self::A::x}{self::_extension#0|get#g::X%};
+static method foo<X extends core::Object? = dynamic>(self::A<self::foo::X%> it) → void {
+  #L1:
+  {
+    final synthesized self::A<self::foo::X%> #0#0 = it;
+    {
+      hoisted self::foo::X% x;
+      if(let final self::foo::X% #t1 = x = self::_extension#0|get#g<self::foo::X%>(#0#0) in true) {
+        {
+          invalid-expression "pkg/front_end/testcases/patterns/issue51437.dart:17:9: Error: The getter 'arglebargle' isn't defined for the class 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'arglebargle'.
+      x.arglebargle; // Error
+        ^^^^^^^^^^^" in x{<unresolved>}.arglebargle;
+        }
+      }
+    }
+  }
+}

@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 void testZLibInflate_regress10026() {
   test(data, expect) {
     asyncStart();
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     controller.stream
         .transform(zlib.decoder)
         .transform(utf8.decoder)

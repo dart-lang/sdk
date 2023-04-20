@@ -108,7 +108,13 @@ abstract class RuntimeConfiguration {
     var dartExecutable = _configuration.dartPrecompiledPath;
 
     if (dartExecutable == null || dartExecutable == '') {
-      dartExecutable = '$buildDir/dart_precompiled_runtime$executableExtension';
+      var dir = buildDir;
+
+      // gen_snapshot can run with different word sizes, but the simulators
+      // cannot.
+      dir = dir.replaceAll("SIMARM_X64", "SIMARM");
+
+      dartExecutable = '$dir/dart_precompiled_runtime$executableExtension';
     }
 
     TestUtils.ensureExists(dartExecutable, _configuration);

@@ -3,14 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 sealed class A {}
+
 class B extends A {}
+
 class C extends A {}
+
 class D extends A {}
 
-enum Enum {a, b}
+enum Enum { a, b }
 
 void exhaustiveSwitch1(A a) {
   /*
+   checkingOrder={A,B,C,D},
    subtypes={B,C,D},
    type=A
   */
@@ -32,6 +36,7 @@ void exhaustiveSwitch1(A a) {
 
 void exhaustiveSwitch2(A a) {
   /*
+   checkingOrder={A,B,C,D},
    subtypes={B,C,D},
    type=A
   */
@@ -49,6 +54,7 @@ void exhaustiveSwitch2(A a) {
 
 void nonExhaustiveSwitch1(A a) {
   /*
+   checkingOrder={A,B,C,D},
    error=non-exhaustive:D(),
    subtypes={B,C,D},
    type=A
@@ -67,6 +73,7 @@ void nonExhaustiveSwitch1(A a) {
 
 void nonExhaustiveSwitch2(A a) {
   /*
+   checkingOrder={A,B,C,D},
    error=non-exhaustive:B(),
    subtypes={B,C,D},
    type=A
@@ -85,6 +92,7 @@ void nonExhaustiveSwitch2(A a) {
 
 void nonExhaustiveSwitch3(A a) {
   /*
+   checkingOrder={A,B,C,D},
    error=non-exhaustive:C(),
    subtypes={B,C,D},
    type=A
@@ -103,6 +111,7 @@ void nonExhaustiveSwitch3(A a) {
 
 void nonExhaustiveSwitchWithDefault(A a) {
   /*
+   checkingOrder={A,B,C,D},
    subtypes={B,C,D},
    type=A
   */
@@ -119,10 +128,12 @@ void nonExhaustiveSwitchWithDefault(A a) {
 
 void exhaustiveNullableSwitch(A? a) {
   /*
+   checkingOrder={A?,A,Null,B,C,D},
    expandedSubtypes={B,C,D,Null},
    subtypes={A,Null},
    type=A?
-  */switch (a) {
+  */
+  switch (a) {
     /*space=B*/
     case B b:
       print('B');
@@ -144,6 +155,7 @@ void exhaustiveNullableSwitch(A? a) {
 
 void nonExhaustiveNullableSwitch1(A? a) {
   /*
+   checkingOrder={A?,A,Null,B,C,D},
    error=non-exhaustive:null,
    expandedSubtypes={B,C,D,Null},
    subtypes={A,Null},
@@ -159,6 +171,7 @@ void nonExhaustiveNullableSwitch1(A? a) {
 
 void nonExhaustiveNullableSwitch2(A? a) {
   /*
+   checkingOrder={A?,A,Null,B,C,D},
    error=non-exhaustive:D(),
    expandedSubtypes={B,C,D,Null},
    subtypes={A,Null},
@@ -182,6 +195,7 @@ void nonExhaustiveNullableSwitch2(A? a) {
 
 void unreachableCase1(A a) {
   /*
+   checkingOrder={A,B,C,D},
    subtypes={B,C,D},
    type=A
   */
@@ -211,6 +225,7 @@ void unreachableCase1(A a) {
 void unreachableCase2(A a) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   /*
+   checkingOrder={A,B,C,D},
    subtypes={B,C,D},
    type=A
   */
@@ -228,6 +243,7 @@ void unreachableCase2(A a) {
 
 void unreachableCase3(A? a) {
   /*
+   checkingOrder={A?,A,Null,B,C,D},
    expandedSubtypes={B,C,D,Null},
    subtypes={A,Null},
    type=A?

@@ -33,14 +33,14 @@ class Snapshot {
 
   static const Snapshot* SetupFromBuffer(const void* raw_memory);
 
-  static const int32_t kMagicValue = 0xdcdcf5f5;
-  static const intptr_t kMagicOffset = 0;
-  static const intptr_t kMagicSize = sizeof(int32_t);
-  static const intptr_t kLengthOffset = kMagicOffset + kMagicSize;
-  static const intptr_t kLengthSize = sizeof(int64_t);
-  static const intptr_t kKindOffset = kLengthOffset + kLengthSize;
-  static const intptr_t kKindSize = sizeof(int64_t);
-  static const intptr_t kHeaderSize = kKindOffset + kKindSize;
+  static constexpr int32_t kMagicValue = 0xdcdcf5f5;
+  static constexpr intptr_t kMagicOffset = 0;
+  static constexpr intptr_t kMagicSize = sizeof(int32_t);
+  static constexpr intptr_t kLengthOffset = kMagicOffset + kMagicSize;
+  static constexpr intptr_t kLengthSize = sizeof(int64_t);
+  static constexpr intptr_t kKindOffset = kLengthOffset + kLengthSize;
+  static constexpr intptr_t kKindSize = sizeof(int64_t);
+  static constexpr intptr_t kHeaderSize = kKindOffset + kKindSize;
 
   // Accessors.
   bool check_magic() const {
@@ -81,7 +81,7 @@ class Snapshot {
 
   const uint8_t* DataImage() const {
     if (!IncludesCode(kind())) {
-      return NULL;
+      return nullptr;
     }
     uword offset = Utils::RoundUp(length(), kObjectStartAlignment);
     return Addr() + offset;

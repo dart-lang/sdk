@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -306,17 +305,17 @@ const v = a;
     var v = findElement.topVar('v') as ConstVariableElement;
     var value = v.computeConstantValue()!;
 
-    var type = value.type as InterfaceType;
-    assertType(type, 'C<double Function(int)>');
+    dartObjectPrinterConfiguration.withTypeArguments = true;
 
-    expect(type.typeArguments, hasLength(1));
-    var typeArgument = type.typeArguments[0] as FunctionType;
-    assertType(typeArgument, 'double Function(int)');
-
-    // The element and type arguments are available for the function type.
-    var importFind = findElement.importFind('package:test/a.dart');
-    var alias = importFind.typeAlias('F');
-    assertTypeAlias(typeArgument, element: alias, typeArguments: ['double']);
+    assertDartObjectText(value, r'''
+C<double* Function(int*)*>*
+  typeArguments
+    double* Function(int*)*
+      alias: package:test/a.dart::@typeAlias::F
+        typeArguments
+          double*
+  variable: self::@variable::v
+''');
   }
 
   test_imported_prefixedIdentifier_staticField_class() async {

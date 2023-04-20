@@ -10,7 +10,7 @@ part of dart.core;
 /// available, the sink should be closed.
 ///
 /// This is a generic interface that other data receivers can implement.
-abstract class Sink<T> {
+abstract interface class Sink<T> {
   /// Adds [data] to the sink.
   ///
   /// Must not be called after a call to [close].

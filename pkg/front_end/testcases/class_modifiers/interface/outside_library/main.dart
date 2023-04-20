@@ -6,14 +6,6 @@ import 'main_lib.dart';
 
 class ExtendsInterfaceClass extends A {}
 
-class MixInInterfaceMixin with M {}
-
-class MixInInterfaceMixinExtendsObject extends Object with M {}
-
-enum EnumSubtype with M { x }
-
 mixin MixinOnA on A {}
 
-mixin MixinOnM on M {}
-
-mixin MixinOnAM on A, M {}
+mixin MixinOnAM on A, B {}

@@ -51,7 +51,7 @@ DEFINE_FLAG(bool,
 #if defined(DART_PRECOMPILER)
 DEFINE_FLAG(charp,
             write_v8_snapshot_profile_to,
-            NULL,
+            nullptr,
             "Write a snapshot profile in V8 format to a file.");
 DEFINE_FLAG(bool,
             print_array_optimization_candidates,
@@ -495,7 +495,8 @@ class ClassDeserializationCluster : public DeserializationCluster {
 // explicitly as Array objects into the snapshot and instead utilize a different
 // encoding: objects in a cluster representing a canonical set are sorted
 // to appear in the same order they appear in the Array representing the set,
-// and we additionally write out array of values describing gaps between objects.
+// and we additionally write out array of values describing gaps between
+// objects.
 //
 // In some situations not all canonical objects of the some type need to
 // be added to the resulting canonical set because they are cached in some
@@ -1740,8 +1741,8 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       LibraryPtr lib = static_cast<LibraryPtr>(d.Ref(id));
       Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize());
       d.ReadFromTo(lib);
-      lib->untag()->native_entry_resolver_ = NULL;
-      lib->untag()->native_entry_symbol_resolver_ = NULL;
+      lib->untag()->native_entry_resolver_ = nullptr;
+      lib->untag()->native_entry_symbol_resolver_ = nullptr;
       lib->untag()->index_ = d.Read<int32_t>();
       lib->untag()->num_imports_ = d.Read<uint16_t>();
       lib->untag()->load_state_ = d.Read<int8_t>();
@@ -6741,7 +6742,7 @@ class UnitDeserializationRoots : public DeserializationRoots {
 };
 
 #if defined(DEBUG)
-static const int32_t kSectionMarker = 0xABAB;
+static constexpr int32_t kSectionMarker = 0xABAB;
 #endif
 
 Serializer::Serializer(Thread* thread,
@@ -7159,7 +7160,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
                                                      bool is_canonical) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 #else
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
@@ -7318,9 +7319,9 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       break;
   }
 
-  // The caller will check for NULL and provide an error with more context than
-  // is available here.
-  return NULL;
+  // The caller will check for nullptr and provide an error with more context
+  // than is available here.
+  return nullptr;
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
@@ -7708,7 +7709,7 @@ uint32_t Serializer::GetDataOffset(ObjectPtr object) const {
 }
 
 intptr_t Serializer::GetDataSize() const {
-  if (image_writer_ == NULL) {
+  if (image_writer_ == nullptr) {
     return 0;
   }
   return image_writer_->data_size();
@@ -7844,13 +7845,13 @@ ObjectPtr Serializer::ParentOf(const Object& object) const {
 
 void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   const char* expected_version = Version::SnapshotString();
-  ASSERT(expected_version != NULL);
+  ASSERT(expected_version != nullptr);
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   char* expected_features =
       Dart::FeaturesString(IsolateGroup::Current(), is_vm_snapshot, kind_);
-  ASSERT(expected_features != NULL);
+  ASSERT(expected_features != nullptr);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
              features_len + 1);
@@ -8498,7 +8499,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       break;
   }
   FATAL("No cluster defined for cid %" Pd, cid);
-  return NULL;
+  return nullptr;
 }
 
 void Deserializer::ReadDispatchTable(
@@ -8607,7 +8608,7 @@ char* SnapshotHeaderReader::VerifyVersion() {
   // Note: New things are allocated only if we're going to return an error.
 
   const char* expected_version = Version::SnapshotString();
-  ASSERT(expected_version != NULL);
+  ASSERT(expected_version != nullptr);
   const intptr_t version_len = strlen(expected_version);
   if (stream_.PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
@@ -8620,7 +8621,7 @@ char* SnapshotHeaderReader::VerifyVersion() {
 
   const char* version =
       reinterpret_cast<const char*>(stream_.AddressOfCurrentPosition());
-  ASSERT(version != NULL);
+  ASSERT(version != nullptr);
   if (strncmp(version, expected_version, version_len) != 0) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
@@ -8639,8 +8640,8 @@ char* SnapshotHeaderReader::VerifyVersion() {
 
 char* SnapshotHeaderReader::VerifyFeatures(IsolateGroup* isolate_group) {
   const char* expected_features =
-      Dart::FeaturesString(isolate_group, (isolate_group == NULL), kind_);
-  ASSERT(expected_features != NULL);
+      Dart::FeaturesString(isolate_group, (isolate_group == nullptr), kind_);
+  ASSERT(expected_features != nullptr);
   const intptr_t expected_len = strlen(expected_features);
 
   const char* features = nullptr;
@@ -8902,7 +8903,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     ASSERT(section_marker == kSectionMarker);
 #endif
 
-    refs_ = NULL;
+    refs_ = nullptr;
   }
 
   roots->PostLoad(this, refs);
@@ -8946,10 +8947,10 @@ FullSnapshotWriter::FullSnapshotWriter(
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
       isolate_image_writer_(isolate_image_writer) {
-  ASSERT(isolate_group() != NULL);
-  ASSERT(heap() != NULL);
+  ASSERT(isolate_group() != nullptr);
+  ASSERT(heap() != nullptr);
   ObjectStore* object_store = isolate_group()->object_store();
-  ASSERT(object_store != NULL);
+  ASSERT(object_store != nullptr);
 
 #if defined(DEBUG)
   isolate_group()->ValidateClassTable();
@@ -9008,7 +9009,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(
   serializer.set_loading_units(units);
   serializer.set_current_loading_unit_id(LoadingUnit::kRootId);
   ObjectStore* object_store = isolate_group()->object_store();
-  ASSERT(object_store != NULL);
+  ASSERT(object_store != nullptr);
 
   // These type arguments must always be retained.
   ASSERT(object_store->type_argument_int()->untag()->IsCanonical());
@@ -9299,10 +9300,10 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(data_image_ != NULL);
+    ASSERT(data_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(data_image_,
                                              /* is_executable */ false);
-    ASSERT(instructions_image_ != NULL);
+    ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
   }
@@ -9340,10 +9341,10 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(data_image_ != NULL);
+    ASSERT(data_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(data_image_,
                                              /* is_executable */ false);
-    ASSERT(instructions_image_ != NULL);
+    ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
   }
@@ -9385,10 +9386,10 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(data_image_ != NULL);
+    ASSERT(data_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(data_image_,
                                              /* is_executable */ false);
-    ASSERT(instructions_image_ != NULL);
+    ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
   }

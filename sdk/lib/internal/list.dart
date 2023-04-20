@@ -208,7 +208,7 @@ abstract class FixedLengthListBase<E> = ListBase<E>
 abstract class UnmodifiableListBase<E> = ListBase<E>
     with UnmodifiableListMixin<E>;
 
-class _ListIndicesIterable extends ListIterable<int> {
+final class _ListIndicesIterable extends ListIterable<int> {
   List _backedList;
 
   _ListIndicesIterable(this._backedList);
@@ -247,7 +247,7 @@ class ListMapView<E> extends UnmodifiableMapBase<int, E> {
   }
 }
 
-class ReversedListIterable<E> extends ListIterable<E> {
+final class ReversedListIterable<E> extends ListIterable<E> {
   Iterable<E> _source;
   ReversedListIterable(this._source);
 

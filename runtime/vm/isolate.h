@@ -1537,13 +1537,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  Thread* ScheduleThread(bool is_mutator,
-                         bool is_nested_reenter,
-                         bool bypass_safepoint);
-  void UnscheduleThread(Thread* thread,
-                        bool is_mutator,
-                        bool is_nested_exit,
-                        bool bypass_safepoint);
+  Thread* ScheduleThread(bool is_nested_reenter);
+  void UnscheduleThread(Thread* thread, bool is_nested_exit);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).

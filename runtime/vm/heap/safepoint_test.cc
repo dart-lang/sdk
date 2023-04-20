@@ -295,15 +295,18 @@ class CheckinTask : public StateMachineTask {
     Data(IsolateGroup* isolate_group,
          SafepointLevel level,
          std::atomic<intptr_t>* gc_only_checkins,
-         std::atomic<intptr_t>* deopt_checkin)
+         std::atomic<intptr_t>* deopt_checkin,
+         std::atomic<intptr_t>* timeout_checkin)
         : StateMachineTask::Data(isolate_group),
           level(level),
           gc_only_checkins(gc_only_checkins),
-          deopt_checkin(deopt_checkin) {}
+          deopt_checkin(deopt_checkin),
+          timeout_checkin(timeout_checkin) {}
 
     SafepointLevel level;
     std::atomic<intptr_t>* gc_only_checkins;
     std::atomic<intptr_t>* deopt_checkin;
+    std::atomic<intptr_t>* timeout_checkin;
   };
 
   explicit CheckinTask(std::shared_ptr<Data> data) : StateMachineTask(data) {}
@@ -335,6 +338,7 @@ class CheckinTask : public StateMachineTask {
           break;
         }
         case SafepointLevel::kNumLevels:
+        case SafepointLevel::kNoSafepoint:
           UNREACHABLE();
       }
 
@@ -348,9 +352,9 @@ class CheckinTask : public StateMachineTask {
       // thread continue.
       const auto now = OS::GetCurrentTimeMillis();
       if ((now - last_sync) > 1000) {
-        thread_->EnterSafepoint();
-        thread_->ExitSafepoint();
-        last_sync = now;
+        if (SafepointIfRequested(thread_, data()->timeout_checkin)) {
+          last_sync = now;
+        }
       }
     }
   }
@@ -372,20 +376,55 @@ class CheckinTask : public StateMachineTask {
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
   auto isolate_group = thread->isolate_group();
 
-  const intptr_t kTaskCount = 5;
+  const intptr_t kTaskCount = 6;
   std::atomic<intptr_t> gc_only_checkins[kTaskCount];
   std::atomic<intptr_t> deopt_checkin[kTaskCount];
+  std::atomic<intptr_t> timeout_checkins[kTaskCount];
   for (intptr_t i = 0; i < kTaskCount; ++i) {
     gc_only_checkins[i] = 0;
     deopt_checkin[i] = 0;
+    timeout_checkins[i] = 0;
   }
+
+  auto task_to_level = [](intptr_t task_id) -> SafepointLevel {
+    switch (task_id) {
+      case 0:
+      case 1:
+      case 2:
+        return SafepointLevel::kGC;
+      case 3:
+      case 4:
+      case 5:
+        return SafepointLevel::kGCAndDeopt;
+      default:
+        UNREACHABLE();
+        return SafepointLevel::kGC;
+    }
+  };
+  auto wait_for_sync = [&](intptr_t syncs) {
+    while (true) {
+      bool ready = true;
+      for (intptr_t i = 0; i < kTaskCount; ++i) {
+        const intptr_t all =
+            gc_only_checkins[i] + deopt_checkin[i] + timeout_checkins[i];
+        if (all != syncs) {
+          ready = false;
+          break;
+        }
+      }
+      if (ready) {
+        return;
+      }
+      OS::SleepMicros(1000);
+    }
+  };
 
   std::vector<std::shared_ptr<CheckinTask::Data>> threads;
   for (intptr_t i = 0; i < kTaskCount; ++i) {
-    const auto level =
-        (i % 2) == 0 ? SafepointLevel::kGC : SafepointLevel::kGCAndDeopt;
-    std::unique_ptr<CheckinTask::Data> data(new CheckinTask::Data(
-        isolate_group, level, &gc_only_checkins[i], &deopt_checkin[i]));
+    const auto level = task_to_level(i);
+    std::unique_ptr<CheckinTask::Data> data(
+        new CheckinTask::Data(isolate_group, level, &gc_only_checkins[i],
+                              &deopt_checkin[i], &timeout_checkins[i]));
     threads.push_back(std::move(data));
   }
 
@@ -404,11 +443,11 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
     }
     {
       { GcSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
+      wait_for_sync(1);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
+      wait_for_sync(2);  // Wait for threads to exit safepoint
       { GcSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
+      wait_for_sync(3);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
     }
     for (intptr_t i = 0; i < kTaskCount; i++) {
@@ -418,18 +457,19 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
       threads[i]->WaitUntil(CheckinTask::kExited);
     }
     for (intptr_t i = 0; i < kTaskCount; ++i) {
-      const auto level =
-          (i % 2) == 0 ? SafepointLevel::kGC : SafepointLevel::kGCAndDeopt;
-      switch (level) {
+      switch (task_to_level(i)) {
         case SafepointLevel::kGC:
           EXPECT_EQ(0, deopt_checkin[i]);
           EXPECT_EQ(2, gc_only_checkins[i]);
+          EXPECT_EQ(2, timeout_checkins[i]);
           break;
         case SafepointLevel::kGCAndDeopt:
           EXPECT_EQ(4, deopt_checkin[i]);
           EXPECT_EQ(0, gc_only_checkins[i]);
+          EXPECT_EQ(0, timeout_checkins[i]);
           break;
         case SafepointLevel::kNumLevels:
+        case SafepointLevel::kNoSafepoint:
           UNREACHABLE();
       }
     }
@@ -527,15 +567,36 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_StressTest) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_DeoptAndNonDeoptNesting) {
+  auto safepoint_handler = thread->isolate_group()->safepoint_handler();
   {
     DeoptSafepointOperationScope safepoint_scope(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     DeoptSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     GcSafepointOperationScope safepoint_scope3(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
     GcSafepointOperationScope safepoint_scope4(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
   }
   {
     DeoptSafepointOperationScope safepoint_scope(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGCAndDeopt);
     GcSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
+  }
+  {
+    GcSafepointOperationScope safepoint_scope1(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
+    GcSafepointOperationScope safepoint_scope2(thread);
+    EXPECT(safepoint_handler->InnermostSafepointOperation(thread) ==
+           SafepointLevel::kGC);
   }
 }
 

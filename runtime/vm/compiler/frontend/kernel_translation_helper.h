@@ -153,24 +153,33 @@ class TranslationHelper {
 
   const String& DartFactoryName(NameIndex factory);
 
+  DART_NORETURN void LookupFailed(NameIndex name);
+  DART_NORETURN void LookupFailed(StringIndex name);
+
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
-  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library,
+                                                  bool required = true);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass,
+                                            bool required = true);
 
-  FieldPtr LookupFieldByKernelField(NameIndex field);
+  FieldPtr LookupFieldByKernelField(NameIndex field, bool required = true);
   FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
                                              bool required = true);
   FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure,
                                                   bool required = true);
-  FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
+  FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor,
+                                                   bool required = true);
   FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
-                                                   NameIndex constructor);
-  FunctionPtr LookupConstructorByKernelConstructor(
-      const Class& owner,
-      StringIndex constructor_name);
-  FunctionPtr LookupMethodByMember(NameIndex target, const String& method_name);
+                                                   NameIndex constructor,
+                                                   bool required = true);
+  FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
+                                                   StringIndex constructor_name,
+                                                   bool required = true);
+  FunctionPtr LookupMethodByMember(NameIndex target,
+                                   const String& method_name,
+                                   bool required = true);
   FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
@@ -412,6 +421,7 @@ class VariableDeclarationHelper {
     kCovariant = 1 << 7,
     kLowered = 1 << 8,
     kSynthesized = 1 << 9,
+    kHoisted = 1 << 10,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -432,6 +442,7 @@ class VariableDeclarationHelper {
   bool IsLate() const { return (flags_ & kLate) != 0; }
   bool IsRequired() const { return (flags_ & kRequired) != 0; }
   bool IsSynthesized() const { return (flags_ & kSynthesized) != 0; }
+  bool IsHoisted() const { return (flags_ & kHoisted) != 0; }
   bool HasDeclaredInitializer() const {
     return (flags_ & kHasDeclaredInitializer) != 0;
   }
@@ -1065,7 +1076,7 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  static const int32_t kInvalidSelectorId = 0;
+  static constexpr int32_t kInvalidSelectorId = 0;
 
   bool method_or_setter_called_dynamically = true;
   bool getter_called_dynamically = true;
@@ -1174,8 +1185,8 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
 
  private:
-  static const uint8_t kCalledOnNullBit = 1 << 0;
-  static const uint8_t kTornOffBit = 1 << 1;
+  static constexpr uint8_t kCalledOnNullBit = 1 << 0;
+  static constexpr uint8_t kTornOffBit = 1 << 1;
 
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 
@@ -1260,7 +1271,7 @@ class KernelReaderHelper {
 
   void ReadUntilFunctionNode();
 
-  Tag PeekTag(uint8_t* payload = NULL);
+  Tag PeekTag(uint8_t* payload = nullptr);
 
  protected:
   const Script& script() const { return script_; }
@@ -1322,7 +1333,7 @@ class KernelReaderHelper {
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
   TokenPosition ReadPosition();
-  Tag ReadTag(uint8_t* payload = NULL);
+  Tag ReadTag(uint8_t* payload = nullptr);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
   Nullability ReadNullability();
   Variance ReadVariance();
@@ -1382,15 +1393,15 @@ class KernelReaderHelper {
 class ActiveClass {
  public:
   ActiveClass()
-      : klass(NULL),
-        member(NULL),
-        enclosing(NULL),
-        local_type_parameters(NULL) {}
+      : klass(nullptr),
+        member(nullptr),
+        enclosing(nullptr),
+        local_type_parameters(nullptr) {}
 
-  bool HasMember() { return member != NULL; }
+  bool HasMember() { return member != nullptr; }
 
   bool MemberIsProcedure() {
-    ASSERT(member != NULL);
+    ASSERT(member != nullptr);
     UntaggedFunction::Kind function_kind = member->kind();
     return function_kind == UntaggedFunction::kRegularFunction ||
            function_kind == UntaggedFunction::kGetterFunction ||
@@ -1401,7 +1412,7 @@ class ActiveClass {
   }
 
   bool MemberIsFactoryProcedure() {
-    ASSERT(member != NULL);
+    ASSERT(member != nullptr);
     return member->IsFactory();
   }
 
@@ -1414,7 +1425,7 @@ class ActiveClass {
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {
-    ASSERT(klass != NULL);
+    ASSERT(klass != nullptr);
     return klass->NumTypeArguments();
   }
 
@@ -1429,7 +1440,7 @@ class ActiveClass {
   }
 
   const char* ToCString() {
-    return member != NULL ? member->ToCString() : klass->ToCString();
+    return member != nullptr ? member->ToCString() : klass->ToCString();
   }
 
   // The current enclosing class (or the library top-level class).
@@ -1585,7 +1596,7 @@ class TypeTranslator {
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
       outer_parameter_count_ = 0;
-      if (outer_ != NULL) {
+      if (outer_ != nullptr) {
         outer_parameter_count_ =
             outer_->outer_parameter_count_ + outer_->parameter_count_;
       }

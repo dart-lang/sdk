@@ -11,7 +11,6 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -86,8 +85,9 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
   } else if (IsArrayClassId(instance.GetClassId())) {
     const auto& cls = Class::Handle(
         zone, thread->isolate_group()->object_store()->list_class());
-    const auto& type_arguments =
+    auto& type_arguments =
         TypeArguments::Handle(zone, instance.GetTypeArguments());
+    type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
     const auto& type = Type::Handle(
         zone,
         Type::New(cls, type_arguments, Nullability::kNonNullable, Heap::kNew));
@@ -334,22 +334,6 @@ DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
-#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
-  const String& filename =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  {
-    FileHeapSnapshotWriter file_writer(thread, filename.ToCString());
-    HeapSnapshotWriter writer(thread, &file_writer);
-    writer.Write();
-  }
-#else
-  Exceptions::ThrowUnsupportedError(
-      "Heap snapshots are only supported in non-product mode.");
-#endif  // !defined(PRODUCT)
-  return Object::null();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
   DeoptimizeFunctionsOnStack();
   return Object::null();
@@ -376,10 +360,11 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const TypeArguments& instance_type_args,
                                      const Class& interface_cls,
                                      TypeArguments* interface_type_args) {
+  Thread* thread = Thread::Current();
   Class& cur_cls = Class::Handle(zone, instance_cls.ptr());
   // The following code is a specialization of Class::IsSubtypeOf().
   Array& interfaces = Array::Handle(zone);
-  AbstractType& interface = AbstractType::Handle(zone);
+  Type& interface = Type::Handle(zone);
   Class& cur_interface_cls = Class::Handle(zone);
   TypeArguments& cur_interface_type_args = TypeArguments::Handle(zone);
   while (true) {
@@ -393,7 +378,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       interface ^= interfaces.At(i);
       ASSERT(interface.IsFinalized());
       cur_interface_cls = interface.type_class();
-      cur_interface_type_args = interface.arguments();
+      cur_interface_type_args =
+          interface.GetInstanceTypeArguments(thread, /*canonicalize=*/false);
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
@@ -426,7 +412,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
     const AbstractType& function_type_arg =
         AbstractType::Handle(zone, arguments->NativeTypeArgAt(0));
     if (function_type_arg.IsType() &&
-        (function_type_arg.arguments() == TypeArguments::null())) {
+        (Type::Cast(function_type_arg).arguments() == TypeArguments::null())) {
       interface_cls = function_type_arg.type_class();
       num_type_args = interface_cls.NumTypeParameters();
     }
@@ -560,7 +546,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         DartFrameIterator iterator(Thread::Current(),
                                    StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* caller_frame = iterator.NextFrame();
-        ASSERT(caller_frame != NULL);
+        ASSERT(caller_frame != nullptr);
         location = caller_frame->GetTokenPos();
       }
       const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));

@@ -29,7 +29,6 @@ class C {
 void testRelational() {
   // Test casts from dynamic on the right operand to a relational operator.
   const dynamic big = 234;
-  const dynamic wrong = 'not int';
 
   // Matches in refutable context if type matches and operation is true.
   if (123 case < big) {
@@ -37,15 +36,6 @@ void testRelational() {
   } else {
     Expect.fail('Should have matched.');
   }
-
-  // Throws (and doesn't refute) if type doesn't match.
-  Expect.throws(() {
-    if (123 case < wrong) {
-      Expect.fail('Should not have matched.');
-    } else {
-      Expect.fail('Should not have refuted.');
-    }
-  });
 }
 
 void testTypedVariable() {

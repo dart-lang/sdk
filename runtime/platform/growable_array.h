@@ -19,10 +19,10 @@ template <typename T, typename B, typename Allocator>
 class BaseGrowableArray : public B {
  public:
   explicit BaseGrowableArray(Allocator* allocator)
-      : length_(0), capacity_(0), data_(NULL), allocator_(allocator) {}
+      : length_(0), capacity_(0), data_(nullptr), allocator_(allocator) {}
 
   BaseGrowableArray(intptr_t initial_capacity, Allocator* allocator)
-      : length_(0), capacity_(0), data_(NULL), allocator_(allocator) {
+      : length_(0), capacity_(0), data_(nullptr), allocator_(allocator) {
     if (initial_capacity > 0) {
       capacity_ = Utils::RoundUpToPowerOfTwo(initial_capacity);
       data_ = allocator_->template Alloc<T>(capacity_);
@@ -36,7 +36,7 @@ class BaseGrowableArray : public B {
         allocator_(other.allocator_) {
     other.length_ = 0;
     other.capacity_ = 0;
-    other.data_ = NULL;
+    other.data_ = nullptr;
   }
 
   ~BaseGrowableArray() { allocator_->template Free<T>(data_, capacity_); }
@@ -198,7 +198,7 @@ class BaseGrowableArray : public B {
   void StealBuffer(T** buffer, intptr_t* length) {
     *buffer = data_;
     *length = length_;
-    data_ = NULL;
+    data_ = nullptr;
     length_ = 0;
     capacity_ = 0;
   }
@@ -234,7 +234,7 @@ void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
     intptr_t new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
     T* new_data =
         allocator_->template Realloc<T>(data_, capacity_, new_capacity);
-    ASSERT(new_data != NULL);
+    ASSERT(new_data != nullptr);
     data_ = new_data;
     capacity_ = new_capacity;
   }
@@ -245,7 +245,7 @@ template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   if (new_length > capacity_) {
     T* new_data = allocator_->template Alloc<T>(new_length);
-    ASSERT(new_data != NULL);
+    ASSERT(new_data != nullptr);
     data_ = new_data;
     capacity_ = new_length;
   }
@@ -275,8 +275,10 @@ class MallocGrowableArray
     : public BaseGrowableArray<T, MallocAllocated, Malloc> {
  public:
   explicit MallocGrowableArray(intptr_t initial_capacity)
-      : BaseGrowableArray<T, MallocAllocated, Malloc>(initial_capacity, NULL) {}
-  MallocGrowableArray() : BaseGrowableArray<T, MallocAllocated, Malloc>(NULL) {}
+      : BaseGrowableArray<T, MallocAllocated, Malloc>(initial_capacity,
+                                                      nullptr) {}
+  MallocGrowableArray()
+      : BaseGrowableArray<T, MallocAllocated, Malloc>(nullptr) {}
 };
 
 }  // namespace dart

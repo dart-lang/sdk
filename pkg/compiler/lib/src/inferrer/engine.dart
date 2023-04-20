@@ -25,6 +25,7 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import 'abstract_value_domain.dart';
@@ -34,6 +35,7 @@ import 'debug.dart' as debug;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
+import 'record_tracer.dart';
 import 'set_tracer.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_nodes.dart';
@@ -80,11 +82,13 @@ class InferrerEngine {
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
   /// inferencing on it and give it the dynamic type.
+  /// TODO(natebiggs): This value is needed right now because some types
+  /// do not converge. See https://github.com/dart-lang/sdk/issues/50626
   ///
   /// Note: Due to the encoding to track refine count for a given node this
   /// value must be less than 2^(64-N) where N is the number of values in the
   /// TypeInformation flags enum.
-  static const int _MAX_CHANGE_COUNT = 6;
+  static const int _MAX_CHANGE_COUNT = 12;
 
   int _overallRefineCount = 0;
   int _addedInGraph = 0;
@@ -112,6 +116,9 @@ class InferrerEngine {
   // [ClosureWorldRefiner].
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
+  final MemberHierarchyBuilder memberHierarchyBuilder;
+  Set<MemberEntity>? _initializedVirtualMembers = {};
+
   InferrerEngine(
       this._options,
       this._progress,
@@ -123,6 +130,7 @@ class InferrerEngine {
       this.inferredDataBuilder)
       : this.types = TypeSystem(closedWorld,
             KernelTypeSystemStrategy(closedWorld, globalLocalsMap)),
+        memberHierarchyBuilder = MemberHierarchyBuilder(closedWorld),
         // Ensure `_MAX_CHANGE_COUNT` conforms to TypeInformation flag encoding.
         assert(_MAX_CHANGE_COUNT.bitLength <
             64 - TypeInformation.NUM_TYPE_INFO_FLAGS);
@@ -131,9 +139,10 @@ class InferrerEngine {
   /// [mask]. If [f] returns false, aborts the iteration.
   void forEachElementMatching(
       Selector selector, AbstractValue? mask, bool f(MemberEntity element)) {
-    Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
-    for (MemberEntity e in elements) {
-      if (!f(e)) return;
+    final targets = memberHierarchyBuilder.rootsForCall(mask, selector);
+    for (final target in targets) {
+      memberHierarchyBuilder.forEachTargetMember(
+          target, (member) => member.isAbstract || f(member));
     }
   }
 
@@ -311,11 +320,25 @@ class InferrerEngine {
     _workQueue.add(info);
   }
 
+  void analyzeRecordAndEnqueue(RecordTypeInformation info) {
+    if (info.analyzed) return;
+    info.analyzed = true;
+    RecordTracerVisitor tracer = RecordTracerVisitor(info, this);
+
+    bool succeeded = tracer.run();
+    if (!succeeded) return;
+
+    info.bailedOut = false;
+    _workQueue.add(info);
+  }
+
   void runOverAllElements() {
     metrics.time.measure(_runOverAllElements);
   }
 
   void _runOverAllElements() {
+    _initMemberHierarchy();
+
     metrics.analyze.measure(_analyzeAllElements);
     final dump =
         debug.PRINT_GRAPH ? TypeGraphDump(_compilerOutput, this) : null;
@@ -323,6 +346,11 @@ class InferrerEngine {
     dump?.beforeAnalysis();
     _buildWorkQueue();
     metrics.refine1.measure(_refine);
+
+    // Process the refined targets of calls labeling closureized members. We do
+    // not need to mark targets as called in this pass because we don't use this
+    // information in global inference.
+    _processCalledTargets(shouldMarkCalled: false);
 
     metrics.trace.measure(() {
       // Try to infer element types of lists and compute their escape information.
@@ -387,26 +415,37 @@ class InferrerEngine {
           trace(elements, ClosureTracerVisitor(elements, info, this));
         } else if (info is CallSiteTypeInformation) {
           final selector = info.selector;
-          if (info is StaticCallSiteTypeInformation &&
-              selector != null &&
-              selector.isCall) {
-            // This is a constructor call to a class with a call method. So we
-            // need to trace the call method here.
-            final calledElement = info.calledElement;
-            assert(calledElement is ConstructorEntity &&
-                calledElement.isGenerativeConstructor);
-            final cls = calledElement.enclosingClass!;
-            final callMethod = _lookupCallMethod(cls)!;
-            Iterable<FunctionEntity> elements = [callMethod];
-            trace(elements, ClosureTracerVisitor(elements, info, this));
-          } else {
+          List<FunctionEntity> elements;
+          if (info is StaticCallSiteTypeInformation) {
+            if (selector != null && selector.isCall) {
+              // This is a constructor call to a class with a call method. So we
+              // need to trace the call method here.
+              final calledElement = info.calledElement;
+              assert(calledElement is ConstructorEntity &&
+                  calledElement.isGenerativeConstructor);
+              final cls = calledElement.enclosingClass!;
+              final callMethod = _lookupCallMethod(cls)!;
+              elements = [callMethod];
+            } else {
+              elements = [info.calledElement as FunctionEntity];
+            }
+          } else if (info is DynamicCallSiteTypeInformation) {
             // We only are interested in functions here, as other targets
             // of this closure call are not a root to trace but an intermediate
             // for some other function.
-            Iterable<FunctionEntity> elements = List<FunctionEntity>.from(
-                info.callees.where((e) => e.isFunction));
-            trace(elements, ClosureTracerVisitor(elements, info, this));
+            elements = [];
+            bool processTarget(MemberEntity entity) {
+              if (entity.isFunction && !entity.isAbstract) {
+                elements.add(entity as FunctionEntity);
+              }
+              return true;
+            }
+
+            info.forEachConcreteTarget(memberHierarchyBuilder, processTarget);
+          } else {
+            elements = const [];
           }
+          trace(elements, ClosureTracerVisitor(elements, info, this));
         } else if (info is MemberTypeInformation) {
           final member = info.member as FunctionEntity;
           trace(
@@ -435,6 +474,10 @@ class InferrerEngine {
 
     _workQueue.addAll(seenTypes);
     metrics.refine2.measure(_refine);
+
+    // Process the refined targets of calls labeling closureized members and
+    // marking targeted members as called.
+    _processCalledTargets(shouldMarkCalled: true);
 
     if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((_info) {
@@ -469,15 +512,16 @@ class InferrerEngine {
           if (info.hasClosureCallTargets) {
             print('<Closure.call>');
           }
-          for (MemberEntity target in info.concreteTargets) {
-            if (target is FunctionEntity) {
-              print('${types.getInferredSignatureOfMethod(target)} '
-                  'for ${target}');
+          info.forEachConcreteTarget(memberHierarchyBuilder, (member) {
+            if (member is FunctionEntity) {
+              print('${types.getInferredSignatureOfMethod(member)} '
+                  'for ${member}');
             } else {
-              print('${types.getInferredTypeOfMember(target).type} '
-                  'for ${target}');
+              print('${types.getInferredTypeOfMember(member).type} '
+                  'for ${member}');
             }
-          }
+            return true;
+          });
         } else if (info is StaticCallSiteTypeInformation) {
           final cls = info.calledElement.enclosingClass!;
           final callMethod = _lookupCallMethod(cls)!;
@@ -501,11 +545,12 @@ class InferrerEngine {
 
   /// Call [analyze] for all live members.
   void _analyzeAllElements() {
-    Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
-        .where((MemberEntity member) => !member.isAbstract);
-
     _progress.startPhase();
-    processedMembers.forEach((MemberEntity member) {
+    final toProcess = {
+      ...closedWorld.processedMembers,
+      ...closedWorld.liveAbstractInstanceMembers
+    };
+    toProcess.forEach((MemberEntity member) {
       _progress.showProgress(
           'Added ', _addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
@@ -515,6 +560,14 @@ class InferrerEngine {
     metrics.elementsInGraph.add(_addedInGraph);
     _reporter.log('Added $_addedInGraph elements in inferencing graph.');
     metrics.allTypesCount.add(types.allTypes.length);
+  }
+
+  void _initMemberHierarchy() {
+    metrics.memberHierarchy
+        .measure(() => memberHierarchyBuilder.init(_initializeOverrideEdges));
+    // Once the hierarchy is set up we will not need to initialize new
+    // virtual members and can clear the initialization cache.
+    _initializedVirtualMembers = null;
   }
 
   /// Returns the body node for [member].
@@ -624,12 +677,13 @@ class InferrerEngine {
       }
     } else {
       final method = element as FunctionEntity;
-      recordReturnType(method, type!);
+      // Abstract methods don't have a body so they won't have a return type.
+      if (!method.isAbstract) recordReturnType(method, type!);
     }
   }
 
   /// Visits [body] to compute the [TypeInformation] node for [member].
-  TypeInformation? _computeMemberTypeInformation(
+  TypeInformation _computeMemberTypeInformation(
       MemberEntity member, ir.Node? body) {
     KernelTypeGraphBuilder visitor = KernelTypeGraphBuilder(
         _options,
@@ -638,7 +692,8 @@ class InferrerEngine {
         member,
         body,
         globalLocalsMap.getLocalsMap(member),
-        closedWorld.elementMap.getStaticTypeProvider(member));
+        closedWorld.elementMap.getStaticTypeProvider(member),
+        memberHierarchyBuilder);
     return visitor.run();
   }
 
@@ -705,8 +760,10 @@ class InferrerEngine {
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.callees.forEach((MemberEntity element) {
+        info.forEachConcreteTarget(memberHierarchyBuilder,
+            (MemberEntity element) {
           inferredDataBuilder.addFunctionCalledInLoop(element);
+          return true;
         });
       }
     });
@@ -751,15 +808,20 @@ class InferrerEngine {
   }
 
   /// Update the inputs to parameters in the graph. [remove] tells whether
-  /// inputs must be added or removed. If [init] is false, parameters are
-  /// added to the work queue.
-  void updateParameterInputs(TypeInformation caller, MemberEntity callee,
+  /// inputs must be added or removed. If [addToQueue] is `true`, parameters are
+  /// added to the work queue. Returns `true` if the call requires [callee] to
+  /// be closurized. If [virtualCall] is `true` inputs are added and removed
+  /// from the virtual types for [callee].
+  bool updateParameterInputs(TypeInformation callSiteType, MemberEntity callee,
       ArgumentsTypes? arguments, Selector? selector,
-      {required bool remove, required bool addToQueue}) {
-    if (callee.name == Identifiers.noSuchMethod_) return;
+      {required bool remove,
+      required bool addToQueue,
+      bool virtualCall = false}) {
+    if (callee.name == Identifiers.noSuchMethod_) return false;
     if (callee is FieldEntity) {
       if (selector!.isSetter) {
-        ElementTypeInformation info = types.getInferredTypeOfMember(callee);
+        ElementTypeInformation info =
+            types.getInferredTypeOfMember(callee, virtual: virtualCall);
         if (remove) {
           info.removeInput(arguments!.positional[0]);
         } else {
@@ -768,30 +830,15 @@ class InferrerEngine {
         if (addToQueue) _workQueue.add(info);
       }
     } else if (callee.isGetter) {
-      return;
+      return false;
     } else if (selector != null && selector.isGetter) {
       // We are tearing a function off and thus create a closure.
       assert(callee.isFunction);
-      MemberTypeInformation info = types.getInferredTypeOfMember(callee);
-      if (remove) {
-        info.closurizedCount--;
-      } else {
-        info.closurizedCount++;
-        if (callee.isStatic || callee.isTopLevel) {
-          types.allocatedClosures.add(info);
-        } else {
-          // We add the call-site type information here so that we
-          // can benefit from further refinement of the selector.
-          types.allocatedClosures.add(caller);
-        }
-        types.strategy.forEachParameter(callee as FunctionEntity,
-            (Local parameter) {
-          ParameterTypeInformation info =
-              types.getInferredTypeOfParameter(parameter);
-          info.tagAsTearOffClosureParameter(this);
-          if (addToQueue) _workQueue.add(info);
-        });
-      }
+      final memberInfo =
+          types.getInferredTypeOfMember(callee, virtual: virtualCall);
+      _markForClosurization(memberInfo, callSiteType,
+          remove: remove, addToQueue: addToQueue, isVirtualCall: virtualCall);
+      return true;
     } else {
       final method = callee as FunctionEntity;
       ParameterStructure parameterStructure = method.parameterStructure;
@@ -807,7 +854,8 @@ class InferrerEngine {
           type = localArguments.positional[parameterIndex];
         }
         if (type == null) type = getDefaultTypeOfParameter(parameter);
-        TypeInformation info = types.getInferredTypeOfParameter(parameter);
+        TypeInformation info =
+            types.getInferredTypeOfParameter(parameter, virtual: virtualCall);
         if (remove) {
           info.removeInput(type);
         } else {
@@ -816,6 +864,228 @@ class InferrerEngine {
         parameterIndex++;
         if (addToQueue) _workQueue.add(info);
       });
+    }
+    return false;
+  }
+
+  /// Adds edges between the virtual type information for [parent] and
+  /// [override] based on the type of each member. If the virtual type
+  /// information for either does not exist yet, create it and initialize
+  /// it by adding edges to the concrete type information for that member.
+  /// Passed to [MemberHierarchyBuilder.init] to be called as it discovers
+  /// overrides.
+  ///
+  /// Possible override configurations (parent/override):
+  /// - field/getter
+  /// - field/setter
+  /// - field/field
+  /// - getter/getter
+  /// - getter/field
+  /// - setter/setter
+  /// - setter/field
+  /// - method/method
+  void _initializeOverrideEdges(MemberEntity parent, MemberEntity override) {
+    // Skip adding edges for Object.noSuchMethod since it cannot virtually
+    // dispatch to other implementations of NSM. However, user-defined NSM
+    // methods do need to handle virtual dispatch.
+    if (parent == commonElements.objectNoSuchMethod) return;
+    final parentType = _getAndSetupVirtualMember(parent);
+    final overrideType = _getAndSetupVirtualMember(override);
+
+    _addOverrideTypeInputs(parent, override, parentType, overrideType);
+  }
+
+  void _setupVirtualCall(
+      MemberTypeInformation virtualCallType, MemberEntity member) {
+    if (member is FieldEntity || member.isGetter) {
+      final realMember = types.getInferredTypeOfMember(member);
+      virtualCallType.addInput(realMember);
+      if (member.isAssignable) {
+        realMember.addInput(virtualCallType);
+      }
+    } else {
+      assert(member.isSetter || member.isFunction);
+      types.strategy.forEachParameter(member as FunctionEntity,
+          (Local parameter) {
+        final virtualParamInfo =
+            types.getInferredTypeOfParameter(parameter, virtual: true);
+        final realParamInfo = types.getInferredTypeOfParameter(parameter);
+        realParamInfo.addInput(virtualParamInfo);
+      });
+      if (member.isFunction) {
+        virtualCallType.addInput(types.getInferredTypeOfMember(member));
+      }
+    }
+  }
+
+  void _addOverrideParameterEdges(MemberEntity parent, MemberEntity override) {
+    final method = parent as FunctionEntity;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int parameterIndex = 0;
+    // Collect the parent parameter type infos.
+    final List<TypeInformation> positional = [];
+    final Map<String, TypeInformation> named = {};
+    types.strategy.forEachParameter(parent, (Local parameter) {
+      TypeInformation type =
+          types.getInferredTypeOfParameter(parameter, virtual: true);
+      if (parameterIndex < parameterStructure.requiredPositionalParameters) {
+        positional.add(type);
+      } else if (parameterStructure.namedParameters.isNotEmpty) {
+        named[parameter.name!] = type;
+      } else if (parameterIndex < parameterStructure.positionalParameters) {
+        positional.add(type);
+      }
+      parameterIndex++;
+    });
+    parameterIndex = 0;
+
+    // Add the parent parameter type infos as inputs to the override's
+    // parameters.
+    types.strategy.forEachParameter(override as FunctionEntity,
+        (Local parameter) {
+      TypeInformation? parentParamInfo;
+      if (parameterIndex < parameterStructure.requiredPositionalParameters) {
+        parentParamInfo = positional[parameterIndex];
+      } else if (parameterStructure.namedParameters.isNotEmpty) {
+        parentParamInfo = named[parameter.name];
+      } else if (parameterIndex < positional.length) {
+        parentParamInfo = positional[parameterIndex];
+      }
+      // If the override includes parameters that the parent doesn't
+      // (optional parameters) then use the override's default type as any
+      // default value will be used within the body of the override.
+      parentParamInfo ??= getDefaultTypeOfParameter(parameter);
+      TypeInformation overrideParamInfo =
+          types.getInferredTypeOfParameter(parameter, virtual: true);
+      overrideParamInfo.addInput(parentParamInfo);
+      parameterIndex++;
+    });
+  }
+
+  MemberTypeInformation _getAndSetupVirtualMember(MemberEntity member) {
+    final memberType = types.getInferredTypeOfMember(member, virtual: true);
+    if (_initializedVirtualMembers!.add(member)) {
+      _setupVirtualCall(memberType, member);
+    }
+    return memberType;
+  }
+
+  void _addOverrideTypeInputs(MemberEntity parent, MemberEntity override,
+      MemberTypeInformation parentType, MemberTypeInformation overrideType) {
+    if (parent is FieldEntity) {
+      if (override.isGetter) {
+        parentType.addInput(overrideType);
+      } else if (override.isSetter) {
+        types.strategy.forEachParameter(override as FunctionEntity,
+            (Local parameter) {
+          final paramInfo =
+              types.getInferredTypeOfParameter(parameter, virtual: true);
+          paramInfo.addInput(parentType);
+        });
+      } else {
+        assert(override is FieldEntity);
+        parentType.addInput(overrideType);
+        if (parent.isAssignable) {
+          // Parent has an implicit setter so the types of set values need to
+          // flow into the override.
+          overrideType.addInput(parentType);
+        }
+      }
+    } else if (parent.isGetter) {
+      assert(override.isGetter || override is FieldEntity);
+      parentType.addInput(overrideType);
+    } else if (parent.isSetter) {
+      if (override.isSetter) {
+        _addOverrideParameterEdges(parent, override);
+      } else {
+        assert(override is FieldEntity);
+        types.strategy.forEachParameter(parent as FunctionEntity,
+            (Local parameter) {
+          final paramInfo =
+              types.getInferredTypeOfParameter(parameter, virtual: true);
+          overrideType.addInput(paramInfo);
+        });
+      }
+    } else {
+      assert(parent.isFunction && override.isFunction);
+      parentType.addInput(overrideType);
+      _addOverrideParameterEdges(parent, override);
+    }
+  }
+
+  void _markForClosurization(
+      MemberTypeInformation memberInfo, TypeInformation callSiteType,
+      {required bool remove,
+      required bool addToQueue,
+      required bool isVirtualCall}) {
+    final member = memberInfo.member;
+    if (remove) {
+      memberInfo.closurizedCount--;
+    } else {
+      memberInfo.closurizedCount++;
+      if (member.isStatic || member.isTopLevel) {
+        types.allocatedClosures.add(memberInfo);
+      } else {
+        // We add the call-site type information here so that we
+        // can benefit from further refinement of the selector.
+        types.allocatedClosures.add(callSiteType);
+      }
+      types.strategy.forEachParameter(member as FunctionEntity,
+          (Local parameter) {
+        ParameterTypeInformation info =
+            types.getInferredTypeOfParameter(parameter, virtual: isVirtualCall);
+        info.tagAsTearOffClosureParameter(this);
+        if (addToQueue) _workQueue.add(info);
+      });
+    }
+  }
+
+  /// Iterate through reachable members for the given target. Label relevant
+  /// members as needing closurization if necessary. If [shouldMarkCalled] then
+  /// also mark reachable members as called.
+  void _processDynamicTarget(
+      DynamicCallTarget target, DynamicCallSiteTypeInformation callSiteType,
+      {required bool shouldMarkCalled}) {
+    final virtualType =
+        types.getInferredTypeOfMember(target.member, virtual: true);
+    final needsClosurization = virtualType.closurizedCount > 0;
+
+    // There is nothing to do so no need to iterate over target members.
+    if (!needsClosurization && !shouldMarkCalled) return;
+
+    bool handleTarget(MemberEntity member) {
+      if (!member.isAbstract) {
+        MemberTypeInformation info = types.getInferredTypeOfMember(member);
+        if (shouldMarkCalled) info.markCalled();
+
+        if (needsClosurization) {
+          _markForClosurization(info, callSiteType,
+              remove: false,
+              addToQueue: false,
+              isVirtualCall: target.isVirtual);
+        }
+      }
+      return true;
+    }
+
+    memberHierarchyBuilder.forEachTargetMember(target, handleTarget);
+  }
+
+  /// Update call information for targets of calls.
+  ///
+  /// Marks targets of dynamic calls that need closuraization. If [shouldMarkCalled]
+  /// is true any members targeted by a dynamic or static call is also marked
+  /// as being called.
+  void _processCalledTargets({required bool shouldMarkCalled}) {
+    for (final call in types.allocatedCalls) {
+      if (call is DynamicCallSiteTypeInformation) {
+        for (final target in call.targets) {
+          _processDynamicTarget(target, call,
+              shouldMarkCalled: shouldMarkCalled);
+        }
+      } else if (shouldMarkCalled && call is StaticCallSiteTypeInformation) {
+        types.getInferredTypeOfMember(call.calledElement).markCalled();
+      }
     }
   }
 
@@ -828,8 +1098,11 @@ class InferrerEngine {
     _defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
+      TypeInformation virtualInfo =
+          types.getInferredTypeOfParameter(parameter, virtual: true);
       // Replace references to [existing] to use [type] instead.
       info.inputs.replace(existing, type);
+      virtualInfo.inputs.replace(existing, type);
       // Also forward all users.
       type.addUsersOf(existing);
     } else {
@@ -856,16 +1129,26 @@ class InferrerEngine {
     return types.getInferredTypeOfParameter(element);
   }
 
+  MemberTypeInformation _inferredTypeOfMember(MemberEntity element,
+      {required bool isVirtual}) {
+    return types.getInferredTypeOfMember(element, virtual: isVirtual);
+  }
+
+  MemberTypeInformation inferredTypeOfTarget(DynamicCallTarget target) {
+    return _inferredTypeOfMember(target.member, isVirtual: target.isVirtual);
+  }
+
   /// Returns the type of [element].
-  TypeInformation typeOfMember(MemberEntity element) {
+  TypeInformation typeOfMember(MemberEntity element, {bool isVirtual = false}) {
     if (element is FunctionEntity) return types.functionType;
-    return types.getInferredTypeOfMember(element);
+    return _inferredTypeOfMember(element, isVirtual: isVirtual);
   }
 
   /// Returns the return type of [element].
-  TypeInformation returnTypeOfMember(MemberEntity element) {
+  TypeInformation returnTypeOfMember(MemberEntity element,
+      {bool isVirtual = false}) {
     if (element is! FunctionEntity) return types.dynamicType;
-    return types.getInferredTypeOfMember(element);
+    return _inferredTypeOfMember(element, isVirtual: isVirtual);
   }
 
   /// Records that [element] is of type [type].
@@ -973,8 +1256,9 @@ class InferrerEngine {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     }
 
-    closedWorld.locateMembers(selector, mask).forEach((callee) {
-      _updateSideEffects(sideEffectsBuilder, selector, callee);
+    forEachElementMatching(selector, mask, (element) {
+      _updateSideEffects(sideEffectsBuilder, selector, element);
+      return true;
     });
 
     CallSiteTypeInformation info = DynamicCallSiteTypeInformation(
@@ -1043,20 +1327,6 @@ class InferrerEngine {
     return info;
   }
 
-  void close() {
-    for (final callSite in types.allocatedCalls) {
-      void markCalled(MemberEntity member) {
-        types.getInferredTypeOfMember(member).markCalled();
-      }
-
-      if (callSite is StaticCallSiteTypeInformation) {
-        markCalled(callSite.calledElement);
-      } else if (callSite is DynamicCallSiteTypeInformation) {
-        callSite.callees.forEach(markCalled);
-      }
-    }
-  }
-
   void clear() {
     if (retainDataForTesting) return;
 
@@ -1099,8 +1369,9 @@ class InferrerEngine {
         if (callSite is StaticCallSiteTypeInformation) {
           (callers[callSite.calledElement] ??= {}).add(callSite.caller);
         } else if (callSite is DynamicCallSiteTypeInformation) {
-          callSite.callees.forEach((callee) {
-            (callers[callee] ??= {}).add(callSite.caller);
+          callSite.forEachConcreteTarget(memberHierarchyBuilder, (member) {
+            (callers[member] ??= {}).add(callSite.caller);
+            return true;
           });
         }
       }
@@ -1110,7 +1381,8 @@ class InferrerEngine {
 
   /// Returns the type of [element] when being called with [selector].
   TypeInformation typeOfMemberWithSelector(
-      MemberEntity element, Selector? selector) {
+      MemberEntity element, Selector? selector,
+      {required bool isVirtual}) {
     if (element.name == Identifiers.noSuchMethod_ &&
         selector!.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case
@@ -1120,9 +1392,9 @@ class InferrerEngine {
       if (element.isFunction) {
         return types.functionType;
       } else if (element is FieldEntity) {
-        return typeOfMember(element);
+        return typeOfMember(element, isVirtual: isVirtual);
       } else if (element.isGetter) {
-        return returnTypeOfMember(element);
+        return returnTypeOfMember(element, isVirtual: isVirtual);
       } else {
         assert(false, failedAt(element, "Unexpected member $element"));
         return types.dynamicType;
@@ -1131,7 +1403,7 @@ class InferrerEngine {
       assert(selector.isCall || selector.isSetter);
       return types.dynamicType;
     } else {
-      return returnTypeOfMember(element);
+      return returnTypeOfMember(element, isVirtual: isVirtual);
     }
   }
 
@@ -1169,6 +1441,7 @@ class InferrerEngine {
 class _InferrerEngineMetrics extends MetricsBase {
   final time = DurationMetric('time');
   final analyze = DurationMetric('time.analyze');
+  final memberHierarchy = DurationMetric('time.memberHierarchy');
   final refine1 = DurationMetric('time.refine1');
   final trace = DurationMetric('time.trace');
   final refine2 = DurationMetric('time.refine2');
@@ -1181,6 +1454,7 @@ class _InferrerEngineMetrics extends MetricsBase {
     primary = [time, ...subMetrics.primary];
     secondary = [
       analyze,
+      memberHierarchy,
       refine1,
       trace,
       refine2,

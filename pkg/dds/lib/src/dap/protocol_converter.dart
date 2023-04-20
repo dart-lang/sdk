@@ -239,8 +239,9 @@ class ProtocolConverter {
           final fieldEvaluateName = name != null
               ? _adapter.combineEvaluateName(evaluateName, '.$name')
               : null;
-          if (fieldEvaluateName != null) {
-            _adapter.storeEvaluateName(field.value, fieldEvaluateName);
+          final value = field.value;
+          if (fieldEvaluateName != null && value is vm.InstanceRef) {
+            _adapter.storeEvaluateName(value, fieldEvaluateName);
           }
           return convertVmResponseToVariable(
             thread,

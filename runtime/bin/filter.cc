@@ -15,16 +15,16 @@ namespace bin {
 const int kZLibFlagUseGZipHeader = 16;
 const int kZLibFlagAcceptAnyHeader = 32;
 
-static const int kFilterPointerNativeField = 0;
+static constexpr int kFilterPointerNativeField = 0;
 
 static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
-  ASSERT(filter != NULL);
+  ASSERT(filter != nullptr);
   Filter* result;
   Dart_Handle err = Filter::GetFilterNativeField(filter_obj, &result);
   if (Dart_IsError(err)) {
     return err;
   }
-  if (result == NULL) {
+  if (result == nullptr) {
     return Dart_NewApiError("Filter was destroyed");
   }
 
@@ -34,8 +34,8 @@ static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
 
 static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
                                   uint8_t** dictionary) {
-  ASSERT(dictionary != NULL);
-  uint8_t* src = NULL;
+  ASSERT(dictionary != nullptr);
+  uint8_t* src = nullptr;
   intptr_t size;
   Dart_TypedData_Type type;
 
@@ -45,7 +45,7 @@ static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
   }
 
   uint8_t* result = new uint8_t[size];
-  if (result == NULL) {
+  if (result == nullptr) {
     return Dart_NewApiError("Could not allocate new dictionary");
   }
 
@@ -75,14 +75,14 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
   bool raw = DartUtils::GetBooleanValue(raw_obj);
 
   Dart_Handle err;
-  uint8_t* dictionary = NULL;
+  uint8_t* dictionary = nullptr;
   intptr_t dictionary_length = 0;
   if (!Dart_IsNull(dict_obj)) {
     err = CopyDictionary(dict_obj, &dictionary);
     if (Dart_IsError(err)) {
       Dart_PropagateError(err);
     }
-    ASSERT(dictionary != NULL);
+    ASSERT(dictionary != nullptr);
     dictionary_length = 0;
     err = Dart_ListLength(dict_obj, &dictionary_length);
     if (Dart_IsError(err)) {
@@ -93,7 +93,7 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
 
   ZLibInflateFilter* filter = new ZLibInflateFilter(
       static_cast<int32_t>(window_bits), dictionary, dictionary_length, raw);
-  if (filter == NULL) {
+  if (filter == nullptr) {
     delete[] dictionary;
     Dart_PropagateError(
         Dart_NewApiError("Could not allocate ZLibInflateFilter"));
@@ -129,14 +129,14 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   bool raw = DartUtils::GetBooleanValue(raw_obj);
 
   Dart_Handle err;
-  uint8_t* dictionary = NULL;
+  uint8_t* dictionary = nullptr;
   intptr_t dictionary_length = 0;
   if (!Dart_IsNull(dict_obj)) {
     err = CopyDictionary(dict_obj, &dictionary);
     if (Dart_IsError(err)) {
       Dart_PropagateError(err);
     }
-    ASSERT(dictionary != NULL);
+    ASSERT(dictionary != nullptr);
     dictionary_length = 0;
     err = Dart_ListLength(dict_obj, &dictionary_length);
     if (Dart_IsError(err)) {
@@ -149,7 +149,7 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
       gzip, static_cast<int32_t>(level), static_cast<int32_t>(window_bits),
       static_cast<int32_t>(mem_level), static_cast<int32_t>(strategy),
       dictionary, dictionary_length, raw);
-  if (filter == NULL) {
+  if (filter == nullptr) {
     delete[] dictionary;
     Dart_PropagateError(
         Dart_NewApiError("Could not allocate ZLibDeflateFilter"));
@@ -175,9 +175,9 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   intptr_t chunk_length = end - start;
   intptr_t length;
   Dart_TypedData_Type type;
-  uint8_t* buffer = NULL;
+  uint8_t* buffer = nullptr;
 
-  Filter* filter = NULL;
+  Filter* filter = nullptr;
   Dart_Handle err = GetFilter(filter_obj, &filter);
   if (Dart_IsError(err)) {
     Dart_PropagateError(err);
@@ -193,7 +193,7 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
           "Invalid argument passed to Filter_Process"));
     }
     uint8_t* zlib_buffer = new uint8_t[chunk_length];
-    if (zlib_buffer == NULL) {
+    if (zlib_buffer == nullptr) {
       Dart_TypedDataReleaseData(data_obj);
       Dart_PropagateError(Dart_NewApiError("Could not allocate zlib buffer"));
     }
@@ -207,7 +207,7 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
       Dart_PropagateError(err);
     }
     buffer = new uint8_t[chunk_length];
-    if (buffer == NULL) {
+    if (buffer == nullptr) {
       Dart_PropagateError(Dart_NewApiError("Could not allocate buffer"));
     }
     err = Dart_ListGetAsBytes(data_obj, start, buffer, chunk_length);
@@ -231,7 +231,7 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   Dart_Handle end_obj = Dart_GetNativeArgument(args, 2);
   bool end = DartUtils::GetBooleanValue(end_obj);
 
-  Filter* filter = NULL;
+  Filter* filter = nullptr;
   Dart_Handle err = GetFilter(filter_obj, &filter);
   if (Dart_IsError(err)) {
     Dart_PropagateError(err);
@@ -316,10 +316,10 @@ bool ZLibDeflateFilter::Init() {
   if (result != Z_OK) {
     return false;
   }
-  if ((dictionary_ != NULL) && !gzip_ && !raw_) {
+  if ((dictionary_ != nullptr) && !gzip_ && !raw_) {
     result = deflateSetDictionary(&stream_, dictionary_, dictionary_length_);
     delete[] dictionary_;
-    dictionary_ = NULL;
+    dictionary_ = nullptr;
     if (result != Z_OK) {
       return false;
     }
@@ -329,7 +329,7 @@ bool ZLibDeflateFilter::Init() {
 }
 
 bool ZLibDeflateFilter::Process(uint8_t* data, intptr_t length) {
-  if (current_buffer_ != NULL) {
+  if (current_buffer_ != nullptr) {
     return false;
   }
   stream_.avail_in = length;
@@ -362,7 +362,7 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
   }
 
   delete[] current_buffer_;
-  current_buffer_ = NULL;
+  current_buffer_ = nullptr;
   // Either 0 Byte processed or error
   return error ? -1 : 0;
 }
@@ -393,7 +393,7 @@ bool ZLibInflateFilter::Init() {
 }
 
 bool ZLibInflateFilter::Process(uint8_t* data, intptr_t length) {
-  if (current_buffer_ != NULL) {
+  if (current_buffer_ != nullptr) {
     return false;
   }
   stream_.avail_in = length;
@@ -422,13 +422,13 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
     }
 
     case Z_NEED_DICT:
-      if (dictionary_ == NULL) {
+      if (dictionary_ == nullptr) {
         error = true;
       } else {
         int result =
             inflateSetDictionary(&stream_, dictionary_, dictionary_length_);
         delete[] dictionary_;
-        dictionary_ = NULL;
+        dictionary_ = nullptr;
         error = result != Z_OK;
       }
       if (error) {
@@ -445,7 +445,7 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   }
 
   delete[] current_buffer_;
-  current_buffer_ = NULL;
+  current_buffer_ = nullptr;
   // Either 0 Byte processed or error
   return error ? -1 : 0;
 }

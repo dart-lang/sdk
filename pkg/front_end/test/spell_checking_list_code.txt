@@ -479,6 +479,7 @@ enters
 entrypoint
 entrypointish
 enumerates
+enuum
 env
 eof
 eq
@@ -504,6 +505,7 @@ exchanging
 execute
 executor
 executors
+exhaust
 exhausted
 exhaustively
 exhaustiveness
@@ -1113,6 +1115,7 @@ printf
 println
 prioritization
 proc
+proceeds
 processes
 processor
 producers
@@ -1471,6 +1474,7 @@ subname
 subnode
 subnodes
 subpatterns
+subproperties
 subscription
 subsection
 subsections
@@ -1501,6 +1505,7 @@ supers
 suppose
 surprising
 surrounded
+surrounds
 suspended
 svar
 svg
@@ -1512,6 +1517,7 @@ symbolic
 synchronously
 syncs
 synth
+systematic
 t
 tagged
 tagger
@@ -1609,6 +1615,7 @@ unaligned
 unaltered
 unavailable
 unbound
+uncached
 uncategorized
 uncomment
 uncommon

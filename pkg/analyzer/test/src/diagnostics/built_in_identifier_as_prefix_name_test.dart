@@ -19,7 +19,7 @@ class BuiltInIdentifierAsPrefixNameTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 import 'dart:async' as abstract;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 12),
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME, 23, 8),
     ]);
   }
@@ -28,7 +28,7 @@ import 'dart:async' as abstract;
     await assertErrorsInCode('''
 import 'dart:async' as Function;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 12),
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME, 23, 8),
     ]);
   }

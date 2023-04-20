@@ -5,10 +5,10 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic
   return block {
     final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
-    core::int i;
-    core::int n;
+    hoisted core::int i;
+    hoisted core::int n;
     {
-      final synthesized dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
@@ -27,10 +27,10 @@ static method test2(dynamic x) → dynamic
   return block {
     final core::Map<core::int, core::int> #t6 = <core::int, core::int>{};
     #t6.{core::Map::[]=}{Invariant}(1.{core::int::unary-}(){() → core::int}, 1.{core::int::unary-}(){() → core::int}){(core::int, core::int) → void};
-    core::int i;
-    core::int n;
+    hoisted core::int i;
+    hoisted core::int n;
     {
-      final synthesized dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
@@ -50,10 +50,10 @@ static method test3(dynamic x, dynamic another) → dynamic
   return block {
     final core::Map<dynamic, dynamic> #t11 = <dynamic, dynamic>{};
     #t11.{core::Map::[]=}{Invariant}(1.{core::int::unary-}(){() → core::int}, 1.{core::int::unary-}(){() → core::int}){(dynamic, dynamic) → void};
-    core::int i1;
-    dynamic n1;
+    hoisted core::int i1;
+    hoisted dynamic n1;
     {
-      final synthesized dynamic #0#0 = x;
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       function ##0#6#initializer() → dynamic
         return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
@@ -63,10 +63,10 @@ static method test3(dynamic x, dynamic another) → dynamic
     final core::int #t14 = i1;
     final dynamic #t15 = n1;
     for (core::int i1 = #t14, dynamic n1 = #t15; i1.{core::num::<}(n1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::bool}; i1 = i1.{core::num::+}(1){(core::num) → core::int}) {
-      core::int i2;
-      dynamic n2;
+      hoisted core::int i2;
+      hoisted dynamic n2;
       {
-        final synthesized dynamic #1#0 = x;
+        final synthesized dynamic #1#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
         function ##1#8#initializer() → dynamic
           return #1#0{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic};
         late final synthesized dynamic #1#8 = ##1#8#initializer(){() → dynamic};
@@ -155,4 +155,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_for_in_collections.dart:48:22 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_for_in_collections.dart:48:26 -> IntConstant(-2)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_c_style_pattern_for_in_collections.dart:48:30 -> IntConstant(-2)
-Extra constant evaluation: evaluated: 304, effectively constant: 24
+Extra constant evaluation: evaluated: 308, effectively constant: 24

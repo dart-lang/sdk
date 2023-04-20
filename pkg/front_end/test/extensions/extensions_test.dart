@@ -137,6 +137,10 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         lookupLibraryBuilder(compilerResult, library) as SourceLibraryBuilder;
     libraryBuilder.forEachExtensionInScope((ExtensionBuilder extension) {
       LibraryBuilder library = extension.parent as LibraryBuilder;
+      if (library.importUri.isScheme('dart')) {
+        // Don't include dart: extensions.
+        return;
+      }
       String libraryPrefix = '';
       if (library != libraryBuilder) {
         libraryPrefix = '${library.fileUri.pathSegments.last}.';

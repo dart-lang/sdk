@@ -2782,9 +2782,9 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
-    case '_RecordType':
+    case 'RecordType':
       return M.InstanceKind.recordType;
-    case '_Record':
+    case 'Record':
       return M.InstanceKind.record;
     case 'Finalizer':
       return M.InstanceKind.finalizer;

@@ -291,7 +291,7 @@ TEST_CASE(Class_EndTokenPos) {
       "  // }\n"
       "  var bar = '\\'}';\n"
       "}\n";
-  Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib_h = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib_h);
   TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
@@ -1648,7 +1648,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalOneByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1698,7 +1698,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalOneByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1708,7 +1708,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
   const String& empty_str = String::Handle(ExternalOneByteString::New(
-      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, 0, nullptr, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1743,7 +1743,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalTwoByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
   EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
@@ -1752,7 +1752,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
   const String& empty_str = String::Handle(ExternalTwoByteString::New(
-      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, 0, nullptr, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1764,7 +1764,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalTwoByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsTwoByteString());
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1977,9 +1977,9 @@ static void TestIllegalArrayLength(intptr_t length) {
                  ", null);\n"
                  "}\n",
                  length);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   Utils::SNPrint(buffer, sizeof(buffer),
                  "Unhandled exception:\n"
                  "RangeError (length): Invalid value: "
@@ -2006,9 +2006,9 @@ TEST_CASE(ArrayLengthOneTooMany) {
                  ", null);\n"
                  "}\n",
                  kOneTooMany);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_ERROR(result, "Out of Memory");
 }
 
@@ -2020,9 +2020,9 @@ TEST_CASE(ArrayLengthMaxElements) {
                  ", null);\n"
                  "}\n",
                  Array::kMaxElements);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   if (Dart_IsError(result)) {
     EXPECT_ERROR(result, "Out of Memory");
   } else {
@@ -2043,9 +2043,9 @@ static void TestIllegalTypedDataLength(const char* class_name,
                  ");\n"
                  "}\n",
                  class_name, length);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   Utils::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
   EXPECT_ERROR(result, "RangeError (length): Invalid value");
   EXPECT_ERROR(result, buffer);
@@ -2070,9 +2070,9 @@ TEST_CASE(Int8ListLengthOneTooMany) {
                  ");\n"
                  "}\n",
                  kOneTooMany);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_ERROR(result, "Out of Memory");
 }
 
@@ -2086,9 +2086,9 @@ TEST_CASE(Int8ListLengthMaxElements) {
                  ");\n"
                  "}\n",
                  max_elements);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   if (Dart_IsError(result)) {
     EXPECT_ERROR(result, "Out of Memory");
   } else {
@@ -2514,9 +2514,9 @@ ISOLATE_UNIT_TEST_CASE(Script) {
 
   TransitionVMToNative transition(thread);
   const char* kScript = "main() {}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
 
@@ -2550,7 +2550,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
-      new LocalScope(NULL, parent_scope_function_level, 0);
+      new LocalScope(nullptr, parent_scope_function_level, 0);
 
   const intptr_t local_scope_function_level = 1;
   LocalScope* local_scope =
@@ -2606,7 +2606,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT_EQ(parent_scope_function_level, var_c->owner()->function_level());
   // c is not in local_scope.
   EXPECT(local_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
 
   test_only = false;  // Please, insert alias.
   var_c =
@@ -2622,7 +2622,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   bool found_captured_vars = false;
   VariableIndex next_index = parent_scope->AllocateVariables(
       Function::null_function(), first_parameter_index, num_parameters,
-      first_local_index, NULL, &found_captured_vars);
+      first_local_index, nullptr, &found_captured_vars);
   // Variables a, c and var_ta are captured, therefore are not allocated in
   // frame.
   EXPECT_EQ(0, next_index.value() -
@@ -2651,7 +2651,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   // var b was not captured.
   EXPECT(outer_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
 
   var_c = outer_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset);
   EXPECT(var_c->is_captured());
@@ -3482,15 +3482,15 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   mangled_name = OneByteString::New("foo@12345.name@12345");
   ext_mangled_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_mangled_str),
-      strlen(ext_mangled_str), NULL, 0, NoopFinalizer, Heap::kNew);
+      strlen(ext_mangled_str), nullptr, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_mangled_name.IsExternalOneByteString());
   ext_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bare_str), strlen(ext_bare_str),
-      NULL, 0, NoopFinalizer, Heap::kNew);
+      nullptr, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bare_name.IsExternalOneByteString());
   ext_bad_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
-      strlen(ext_bad_bare_str), NULL, 0, NoopFinalizer, Heap::kNew);
+      strlen(ext_bad_bare_str), nullptr, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bad_bare_name.IsExternalOneByteString());
 
   // str1 - OneByteString, str2 - ExternalOneByteString.
@@ -3550,9 +3550,9 @@ TEST_CASE(StackTraceFormat) {
       "main() {\n"
       "  (() => new MyClass())();\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   const char* lib_url = "file:///test-lib";
   const size_t kBufferSize = 1024;
@@ -5438,7 +5438,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   return cls.ptr();
 }
 
-TEST_CASE(ImplementsFinalizable) {
+TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
   const char* kScript = R"(
@@ -5462,16 +5462,16 @@ class X extends E {}
   EXPECT(!lib.IsNull());
 
   const auto& class_x = Class::Handle(zone, GetClass(lib, "X"));
-  ClassFinalizer::FinalizeTypesInClass(class_x);
-  EXPECT(class_x.implements_finalizable());
+  class_x.EnsureIsFinalized(thread);
+  EXPECT(class_x.is_isolate_unsendable());
 
   const auto& class_a_impl = Class::Handle(zone, GetClass(lib, "AImpl"));
-  ClassFinalizer::FinalizeTypesInClass(class_a_impl);
-  EXPECT(class_a_impl.implements_finalizable());
+  class_a_impl.EnsureIsFinalized(thread);
+  EXPECT(class_a_impl.is_isolate_unsendable());
 
   const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
-  ClassFinalizer::FinalizeTypesInClass(class_a_sub);
-  EXPECT(class_a_sub.implements_finalizable());
+  class_a_sub.EnsureIsFinalized(thread);
+  EXPECT(class_a_sub.is_isolate_unsendable());
 }
 
 TEST_CASE(ImplementorCid) {
@@ -5506,9 +5506,9 @@ main() {
   new FImplementation2();
 }
 )";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   TransitionNativeToVM transition(thread);
@@ -5763,9 +5763,9 @@ TEST_CASE(Metadata) {
         TestCase::NullableTag()), std::free);
   // clang-format on
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
@@ -5842,7 +5842,7 @@ TEST_CASE(FunctionSourceFingerprint) {
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}";
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  TestCase::LoadTestScript(kScriptChars, nullptr);
   TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
@@ -5898,11 +5898,11 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
       "  new A().b();\n"
       "}";
   const int kBreakpointLine = 5;
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   // Run function A.b one time.
-  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, nullptr);
   EXPECT_VALID(result);
 
   // With no breakpoint, function A.b is inlineable.
@@ -6516,9 +6516,9 @@ TEST_CASE(InstanceEquality) {
       "  A a = new A();\n"
       "}";
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   TransitionNativeToVM transition(thread);
@@ -6542,9 +6542,9 @@ TEST_CASE(HashCode) {
       "  return \"foo\".hashCode;\n"
       "}";
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, nullptr);
   EXPECT_VALID(h_result);
 
   TransitionNativeToVM transition(thread);
@@ -6736,9 +6736,9 @@ TEST_CASE(Map_iteration) {
       "  map.remove('w');\n"
       "  return map;\n"
       "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, nullptr);
   EXPECT_VALID(h_result);
 
   TransitionNativeToVM transition(thread);
@@ -6942,19 +6942,19 @@ bool lookupSpreadCollections(Map map) =>
 
 bool? lookupNull(Map map) => map[null];
 )";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("makeNonConstMap"), 0, NULL);
+      Dart_Invoke(lib, NewString("makeNonConstMap"), 0, nullptr);
   EXPECT_VALID(non_const_result);
   Dart_Handle first_key_result =
-      Dart_Invoke(lib, NewString("firstKey"), 0, NULL);
+      Dart_Invoke(lib, NewString("firstKey"), 0, nullptr);
   EXPECT_VALID(first_key_result);
   Dart_Handle first_key_hashcode_result =
-      Dart_Invoke(lib, NewString("firstKeyHashCode"), 0, NULL);
+      Dart_Invoke(lib, NewString("firstKeyHashCode"), 0, nullptr);
   EXPECT_VALID(first_key_hashcode_result);
   Dart_Handle first_key_identity_hashcode_result =
-      Dart_Invoke(lib, NewString("firstKeyIdentityHashCode"), 0, NULL);
+      Dart_Invoke(lib, NewString("firstKeyIdentityHashCode"), 0, nullptr);
   EXPECT_VALID(first_key_identity_hashcode_result);
 
   Dart_Handle const_argument;
@@ -7015,14 +7015,15 @@ static bool IsLinkedHashBase(const Object& object) {
 template <class LinkedHashBase, int kMutableCid, int kImmutableCid>
 static void HashBaseNonConstEqualsConst(const char* script,
                                         bool check_data = true) {
-  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, NULL);
+  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, nullptr);
   EXPECT_VALID(init_result);
   Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("nonConstValue"), 0, NULL);
+      Dart_Invoke(lib, NewString("nonConstValue"), 0, nullptr);
   EXPECT_VALID(non_const_result);
-  Dart_Handle const_result = Dart_Invoke(lib, NewString("constValue"), 0, NULL);
+  Dart_Handle const_result =
+      Dart_Invoke(lib, NewString("constValue"), 0, nullptr);
   EXPECT_VALID(const_result);
 
   TransitionNativeToVM transition(Thread::Current());
@@ -7221,9 +7222,9 @@ makeSet() {
   return set;
 }
 )";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, nullptr);
   EXPECT_VALID(h_result);
 
   TransitionNativeToVM transition(thread);
@@ -7276,10 +7277,10 @@ makeNonConstSet() {
 
 bool containsFive(Set set) => set.contains(5);
 )";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("makeNonConstSet"), 0, NULL);
+      Dart_Invoke(lib, NewString("makeNonConstSet"), 0, nullptr);
   EXPECT_VALID(non_const_result);
 
   Dart_Handle const_argument;
@@ -7413,10 +7414,10 @@ makeInternalString() {
 bool equalsAB(String a, String b) => !identical(a, b) && (a == b);
 bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
 )";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle internal_string =
-      Dart_Invoke(lib, NewString("makeInternalString"), 0, NULL);
+      Dart_Invoke(lib, NewString("makeInternalString"), 0, nullptr);
   EXPECT_VALID(internal_string);
 
   Dart_Handle external_string;
@@ -7427,7 +7428,7 @@ bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
     TransitionNativeToVM transition(thread);
 
     const String& str = String::Handle(ExternalOneByteString::New(
-        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
     EXPECT(!str.IsOneByteString());
     EXPECT(str.IsExternalOneByteString());
 
@@ -7483,7 +7484,7 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     intptr_t len = ARRAY_SIZE(characters);
 
     const String& str = String::Handle(ExternalOneByteString::New(
-        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -7494,7 +7495,7 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     intptr_t len = ARRAY_SIZE(characters);
 
     const String& str = String::Handle(ExternalTwoByteString::New(
-        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -7504,14 +7505,14 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     intptr_t len1 = ARRAY_SIZE(characters1);
 
     const String& str1 = String::Handle(ExternalOneByteString::New(
-        characters1, len1, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters1, len1, nullptr, 0, NoopFinalizer, Heap::kNew));
 
     uint16_t characters2[] = {'a',  '\n', '\f', '\b', '\t',
                               '\v', '\r', '\\', '$',  'z'};
     intptr_t len2 = ARRAY_SIZE(characters2);
 
     const String& str2 = String::Handle(ExternalTwoByteString::New(
-        characters2, len2, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters2, len2, nullptr, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str1, &Symbols::Dot(), &str2};
     CheckConcatAll(data, 3);
   }
@@ -7575,7 +7576,7 @@ TEST_CASE(TypeParameterTypeRef) {
       "void bar<M extends U<M>>(M x) {}\n"
       "abstract class C<T> {}\n"
       "abstract class U<T> extends C<T> {}\n";
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  TestCase::LoadTestScript(kScriptChars, nullptr);
   TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
@@ -7796,7 +7797,7 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& decl_type_args_a2 =
         TypeArguments::Handle(zone, decl_type_a2.arguments());
     const auto& type_arg_a2_x =
-        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(1));
+        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(0));
     auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
     tav_a2_x.SetTypeAt(0, type_arg_a2_x);
     tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);
@@ -8235,9 +8236,9 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   }
   buffer.AddString("}\n");
 
-  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), NULL);
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
   EXPECT_VALID(api_lib);
-  Dart_Handle result = Dart_Invoke(api_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(api_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   // D + C0...CN, where N = kNumClasses - 1
@@ -8336,8 +8337,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
       invoke_instantiate_tav_arguments.SetAt(1, instantiator_type_args);
       invoke_instantiate_tav_arguments.SetAt(2, function_type_args);
       result_type_args ^= DartEntry::InvokeCode(
-          invoke_instantiate_tav, invoke_instantiate_tav.EntryPoint(),
-          invoke_instantiate_tav_args_descriptor,
+          invoke_instantiate_tav, invoke_instantiate_tav_args_descriptor,
           invoke_instantiate_tav_arguments, thread);
       EXPECT_EQ(1, result_type_args.Length());
       result_type = result_type_args.TypeAt(0);

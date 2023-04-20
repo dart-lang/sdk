@@ -1,6 +1,13 @@
+# 2.7.8
+- [DAP] Sentinel values (such as uninitialized fields/locals) will no longer cause `scopesRequest`/`variablesRequest` to fail, instead showing appropriate text (like "<not initialized>") against the variable.
+
+# 2.7.7
+- [DAP] Debug adapters now only call `setLibraryDebuggable` when the debuggable flag changes from the default/current values, reducing the amount of VM Service traffic for new isolates/reloads.
+- [DAP] `breakpoint` events are no longer sometimes sent prior to the response to the `setBreakpointsRequest` that created them.
+
 # 2.7.6
 - [DAP] `scopesRequest` now returns a `Globals` scope containing global variables for the current frame.
-- [DAP] Responses to `breakpointRequest` will now have `verified: false` and will send `breakpoint` events to update `verified` and/or `line`/`column` as the VM resolves them.
+- [DAP] Responses to `setBreakpointsRequest` will now have `verified: false` and will send `breakpoint` events to update `verified` and/or `line`/`column` as the VM resolves them.
 
 # 2.7.5
 - Updated `vm_service` version to >=9.0.0 <12.0.0.

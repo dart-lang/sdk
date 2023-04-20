@@ -50,7 +50,7 @@ using UnresolvedPcRelativeCalls = GrowableArray<UnresolvedPcRelativeCall*>;
 
 class StubCodeCompiler {
  public:
-  StubCodeCompiler(Assembler* assembler_) : assembler(assembler_) {}
+  explicit StubCodeCompiler(Assembler* assembler_) : assembler(assembler_) {}
 
   Assembler* assembler;
 
@@ -208,10 +208,10 @@ class StubCodeCompiler {
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
 
 // Zap value used to indicate unused CODE_REG in deopt.
-static const uword kZapCodeReg = 0xf1f1f1f1;
+static constexpr uword kZapCodeReg = 0xf1f1f1f1;
 
 // Zap value used to indicate unused return address in deopt.
-static const uword kZapReturnAddress = 0xe1e1e1e1;
+static constexpr uword kZapReturnAddress = 0xe1e1e1e1;
 
 }  // namespace dart
 

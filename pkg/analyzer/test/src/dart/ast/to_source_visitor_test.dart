@@ -2700,36 +2700,6 @@ base mixin M {}
     );
   }
 
-  void test_visitMixinDeclaration_final() {
-    var findNode = _parseStringToFindNode(r'''
-final mixin M {}
-''');
-    _assertSource(
-      'final mixin M {}',
-      findNode.mixinDeclaration('mixin M'),
-    );
-  }
-
-  void test_visitMixinDeclaration_interface() {
-    var findNode = _parseStringToFindNode(r'''
-interface mixin M {}
-''');
-    _assertSource(
-      'interface mixin M {}',
-      findNode.mixinDeclaration('mixin M'),
-    );
-  }
-
-  void test_visitMixinDeclaration_sealed() {
-    var findNode = _parseStringToFindNode(r'''
-sealed mixin M {}
-''');
-    _assertSource(
-      'sealed mixin M {}',
-      findNode.mixinDeclaration('mixin M'),
-    );
-  }
-
   void test_visitNamedExpression() {
     final code = 'a: 0';
     final findNode = _parseStringToFindNode('''

@@ -18,7 +18,7 @@ class Thread;
 
 class Simulator {
  public:
-  static const uword kSimulatorStackUnderflowSize = 64;
+  static constexpr uword kSimulatorStackUnderflowSize = 64;
 
   Simulator();
   ~Simulator();

@@ -9,6 +9,7 @@ class Class {
 duplicateAssignmentPatternVariable(List<String> list) {}
 duplicateRecordPatternField(o) {}
 duplicateRestPattern(o) {}
+emptyMapPattern(o) {}
 matchedTypeIsStrictlyNonNullable(List<int> list) {}
 nonBooleanCondition(int i) {}
 patternTypeMismatchInIrrefutableContext(List<String> list) {}
@@ -16,3 +17,4 @@ refutablePatternInIrrefutableContext(int? x) {}
 relationalPatternOperatorReturnTypeNotAssignableToBool(Class cls) {}
 restPatternNotLastInMap(o) {}
 restPatternWithSubPatternInMap(o) {}
+singleRestPatternInMap(o) {}

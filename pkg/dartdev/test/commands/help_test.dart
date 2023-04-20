@@ -15,8 +15,6 @@ void main() {
 void help() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   /// Commands not tested by the following loop.
   List<String> commandsNotTested = <String>[
     'help', // `dart help help` is redundant

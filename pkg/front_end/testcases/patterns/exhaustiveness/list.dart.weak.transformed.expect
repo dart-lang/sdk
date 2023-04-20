@@ -2,99 +2,99 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:37:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:37:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[]'.
+// Try adding a wildcard pattern or cases that match '[]'.
 // nonExhaustive1aMissing(List<num> list) => switch (list) {
 //                                                   ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:41:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:41:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[]'.
+// Try adding a wildcard pattern or cases that match '[]'.
 // nonExhaustive1bMissing(List<num> list) => switch (list) {
 //                                                   ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:45:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:45:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[_]'.
+// Try adding a wildcard pattern or cases that match '[_]'.
 // nonExhaustive2aMissing(List<num> list) => switch (list) {
 //                                                   ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:50:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:50:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[_]'.
+// Try adding a wildcard pattern or cases that match '[_]'.
 // nonExhaustive2bMissing(List<num> list) => switch (list) {
 //                                                   ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:55:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:55:51: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[_]'.
+// Try adding a wildcard pattern or cases that match '[_]'.
 // nonExhaustive2cMissing(List<num> list) => switch (list) {
 //                                                   ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:60:56: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:60:56: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[...[...]]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[...[...]]'.
+// Try adding a wildcard pattern or cases that match '[...]'.
 // nonExhaustiveRestrictedType(List<num> list) => switch (list) {
 //                                                        ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:64:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:64:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), ...[...]]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[double(), ...[...]]'.
+// Try adding a wildcard pattern or cases that match '[double(), ...]'.
 // nonExhaustive1aRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:69:58: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:69:58: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[]'.
+// Try adding a wildcard pattern or cases that match '[]'.
 // nonExhaustive1aRestrictedType(List<num> list) => switch (list) {
 //                                                          ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:74:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:74:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[...[...], double()]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[...[...], double()]'.
+// Try adding a wildcard pattern or cases that match '[..., double()]'.
 // nonExhaustive1bRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:79:58: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:79:58: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[...[...], double()]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[...[...], double()]'.
+// Try adding a wildcard pattern or cases that match '[..., double()]'.
 // nonExhaustive1bRestrictedType(List<num> list) => switch (list) {
 //                                                          ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:84:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:84:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double()]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[double()]'.
+// Try adding a wildcard pattern or cases that match '[double()]'.
 // nonExhaustive2aRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:90:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:90:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), double(), ...[...]]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[double(), double(), ...[...]]'.
+// Try adding a wildcard pattern or cases that match '[double(), double(), ...]'.
 // nonExhaustive2bRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:96:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:96:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), double(), ...[...]]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[double(), double(), ...[...]]'.
+// Try adding a wildcard pattern or cases that match '[double(), double(), ...]'.
 // nonExhaustive2cRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:102:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:102:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[double(), _, ...[...]]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[double(), _, ...[...]]'.
+// Try adding a wildcard pattern or cases that match '[double(), _, ...]'.
 // nonExhaustive2dRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:108:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:108:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_, double()]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[_, double()]'.
+// Try adding a wildcard pattern or cases that match '[_, double()]'.
 // nonExhaustive2eRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:114:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/list.dart:114:59: Error: The type 'List<num>' is not exhaustively matched by the switch cases since it doesn't match '[_, double()]'.
 //  - 'List' is from 'dart:core'.
-// Try adding a default case or cases that match '[_, double()]'.
+// Try adding a wildcard pattern or cases that match '[_, double()]'.
 // nonExhaustive2fRestrictedValue(List<num> list) => switch (list) {
 //                                                           ^
 //

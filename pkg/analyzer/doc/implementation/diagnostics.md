@@ -34,7 +34,7 @@ isn't explicitly provided, it will default to being the same as the unique name.
 After every edit to the `messages.yaml` file, you will need to run the following
 to update the generated files:
 ```bash
-dart run analyzer/tool/messages/generate.dart
+dart run --no-pub analyzer/tool/messages/generate.dart
 ```
 
 ### Add code to `error_fix_status.yaml`

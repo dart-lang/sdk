@@ -1,0 +1,10 @@
+class A<X> {
+  A(this.x);
+  final X x;
+}
+
+extension<X> on A<X> {
+  X get g => x;
+}
+
+void foo<X>(A<X> it) {}

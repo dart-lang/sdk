@@ -5,6 +5,8 @@
 /// Code for displaying the API as HTML.  This is used both for generating a
 /// full description of the API as a web page, and for generating doc comments
 /// in generated code.
+library;
+
 import 'dart:convert';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;
@@ -427,10 +429,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
         switch (localName) {
           case 'domains':
             generateDomainsHeader();
-            break;
           case 'domain':
             visitDomain(apiMappings.domains[node]!);
-            break;
           case 'head':
             head(() {
               translateHtml(node, squashParagraphs: squashParagraphs);
@@ -444,22 +444,16 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
                 writeln(stylesheet);
               });
             });
-            break;
           case 'refactorings':
             visitRefactorings(api.refactorings);
-            break;
           case 'types':
             visitTypes(api.types);
-            break;
           case 'version':
             translateHtml(node, squashParagraphs: squashParagraphs);
-            break;
           case 'toc':
             generateTableOfContents();
-            break;
           case 'index':
             generateIndex();
-            break;
           default:
             if (!ApiReader.specialElements.contains(localName)) {
               element(localName, node.attributes, () {

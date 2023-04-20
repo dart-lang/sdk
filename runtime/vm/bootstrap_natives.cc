@@ -47,12 +47,12 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(name));
   if (!obj.IsString()) {
-    return NULL;
+    return nullptr;
   }
   ASSERT(auto_setup_scope);
   *auto_setup_scope = false;
   const char* function_name = obj.ToCString();
-  ASSERT(function_name != NULL);
+  ASSERT(function_name != nullptr);
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     const struct NativeEntries* entry = &(BootStrapEntries[i]);
@@ -61,7 +61,7 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void* BootstrapNatives::LookupFfiNative(const char* name,
@@ -85,7 +85,7 @@ const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void Bootstrap::SetupNativeResolver() {

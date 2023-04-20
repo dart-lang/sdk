@@ -21,7 +21,9 @@
 - **Breaking Change**: Non-`mixin` classes in the platform libraries
   can no longer be mixed in, unless they are explicitly marked as `mixin class`.
   The following existing classes have been made mixin classes:
-  * `IterableMixin`
+  * `Iterable`
+  * `IterableMixin` (now alias for `Iterable`)
+  * `IterableBase` (now alias for `Iterable`)
   * `ListMixin`
   * `SetMixin`
   * `MapMixin`
@@ -30,6 +32,8 @@
 
 #### `dart:core`
 - Added `bool.parse` and `bool.tryParse` static methods.
+- Added `DateTime.timestamp()` constructor to get current time as UTC.
+- The type of `RegExpMatch.pattern` is now `RegExp`, not just `Pattern`.
 
 - **Breaking change** [#49529][]:
   - Removed the deprecated `List` constructor, as it wasn't null safe.
@@ -62,13 +66,38 @@
     a shared supertype locking them to a specific name for moving backwards.
 
 - **Breaking change when migrating code to Dart 3.0**:
-  Some changes to platform libraries only affect code when it is migrated
+  Some changes to platform libraries only affect code when that code is migrated
   to language version 3.0.
-  - The `Function` type can no longer be implemented.
+  - The `Function` type can no longer be implemented, extended or mixed in.
     Since Dart 2.0 writing `implements Function` has been allowed
     for backwards compatibility, but it has not had any effect.
-    In Dart 3.0, the `Function` type is `final` and cannot be implemented
-    by class-modifier aware code.
+    In Dart 3.0, the `Function` type is `final` and cannot be subtyped,
+    preventing code from mistakenly assuming it works.
+  - The following declarations can only be implemented, not extended:
+    * `Comparable`
+    * `Exception`
+    * `Iterator`
+    * `Pattern`
+    * `Match`
+    * `RegExp`
+    * `RegExpMatch`
+    * `StackTrace`
+    * `StringSink`
+
+    None of these declarations contained any implementation to inherit,
+    and are marked as `interface` to signify that they are only intended
+    as interfaces.
+  - The following declarations can no longer be implemented or extended:
+    * `MapEntry`
+    * `OutOfMemoryError`
+    * `StackOverflowError`
+    * `Expando`
+    * `WeakReference`
+    * `Finalizer`
+    
+    The `MapEntry` value class is restricted to enable later optimizations.
+    The remaining classes are tightly coupled to the platform and not
+    intended to be subclassed or implemented.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
@@ -97,6 +126,8 @@
 
 #### `dart:async`
 
+- Added extension member `wait` on iterables and 2-9 tuples of futures.
+
 - **Breaking change** [#49529][]:
   - Removed the deprecated [`DeferredLibrary`][] class.
     Use the [`deferred as`][] import syntax instead.
@@ -107,7 +138,30 @@
 
 #### `dart:collection`
 
+- Added extension members `nonNulls`, `firstOrNull`, `lastOrNull`,
+  `singleOrNull`, `elementAtOrNull` and `indexed` on `Iterable`s.
+  Also exported from `dart:core`.
 - Deprecated the `HasNextIterator` class ([#50883][]).
+
+- **Breaking change when migrating code to Dart 3.0**:
+  Some changes to platform libraries only affect code when it is migrated
+  to language version 3.0.
+  - The following interface can no longer be extended, only implemented:
+    * `Queue`
+  - The following implementation classes can no longer be implemented:
+    * `LinkedList`
+    * `LinkedListEntry`
+  - The following implementation classes can no longer be implemented
+    or extended:
+    * `HasNextIterator` (Also deprecated.)
+    * `HashMap`
+    * `LinkedHashMap`
+    * `HashSet`
+    * `LinkedHashSet`
+    * `DoubleLinkedQueue`
+    * `ListQueue`
+    * `SplayTreeMap`
+    * `SplayTreeSet`
 
 [#50883]: https://github.com/dart-lang/sdk/issues/50883
 
@@ -148,13 +202,20 @@
 
 #### `dart:io`
 
-- Deprecated `NetworkInterface.listSupported`. Has always returned true since
+- Added `name` and `signalNumber` to the `ProcessSignal` class.
+- Deprecate `NetworkInterface.listSupported`. Has always returned true since
   Dart 2.3.
 - Finalize `httpEnableTimelineLogging` parameter name transition from `enable`
   to `enabled`. See [#43638][].
+- Favor IPv4 connections over IPv6 when connecting sockets. See
+  [#50868].
 - **Breaking change** [#51035][]:
   - Update `NetworkProfiling` to accommodate new `String` ids
     that are introduced in vm_service:11.0.0
+
+[#43638]: https://github.com/dart-lang/sdk/issues/43638
+[#50868]: https://github.com/dart-lang/sdk/issues/50868
+[#51035]: https://github.com/dart-lang/sdk/issues/51035
 
 #### `dart:js_util`
 
@@ -168,13 +229,21 @@
 
 ### Tools
 
-#### Observatory
-- Observatory is no longer served by default and users should instead use Dart
-  DevTools. Users requiring specific functionality in Observatory should set
-  the `--serve-observatory` flag.
-
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
+- The compile time flag `--nativeNonNullAsserts`, which ensures web library APIs
+are sound in their nullability, is by default set to true in sound mode. For
+more information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
+
+[NATIVE_NULL_ASSERTIONS.md]: https://github.com/dart-lang/sdk/blob/main/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
+
+#### dart2js
+- The compile time flag `--native-null-assertions`, which ensures web library
+APIs are sound in their nullability, is by default set to true in sound mode,
+unless `-O3` or higher is passed, in which case they are not checked. For more
+information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
+
+[NATIVE_NULL_ASSERTIONS.md]: https://github.com/dart-lang/sdk/blob/main/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
 
 #### Dart2js
 
@@ -190,11 +259,36 @@
 * Better indentation of multiline function types inside type argument lists.
 * Fix bug where parameter metadata wouldn't always split when it should.
 
+#### Analyzer
+
+- Most static analysis "hints" are converted to be "warnings," and any
+  remaining hints are intended to be converted soon after the Dart 3.0 release.
+  This means that any (previously) hints reported by `dart analyze` are now
+  considered "fatal" (will result in a non-zero exit code). The previous
+  behavior, where such hints (now warnings) are not fatal, can be achieved by
+  using the `--no-fatal-warnings` flag. This behavior can also be altered, on a
+  code-by-code basis, by [changing the severity of rules] in an analysis
+  options file.
+- Add static enforcement of the SDK-only `@Since` annotation. When code in a
+  package uses a Dart SDK element annotated with `@Since`, analyzer will report
+  a warning if the package's [Dart SDK constraint] allows versions of Dart
+  which don't include that element.
+- Protects the Dart Analysis Server against extreme memory usage by limiting
+  the number of plugins per analysis context to 1. (issue [#50981][]).
+
+[changing the severity of rules]: https://dart.dev/guides/language/analysis-options#changing-the-severity-of-rules
+[Dart SDK constraint]: https://dart.dev/tools/pub/pubspec#sdk-constraints
+
 #### Linter
 
-Updates the Linter to `1.34.0-dev`, which includes changes that
+Updates the Linter to `1.35.0`, which includes changes that
 
-- add new lint: `unnecessary_breaks`.
+- add new lints:
+  - `explicit_reopen`
+  - `unnecessary_breaks`
+  - `type_literal_in_constant_pattern`
+  - `invalid_case_patterns`
+- update existing lints to support patterns and class modifiers
 - remove support for:
   - `enable_null_safety`
   - `invariant_booleans`
@@ -219,12 +313,21 @@ Updates the Linter to `1.34.0-dev`, which includes changes that
 - update `use_build_context_synchronously` to check context properties.
 - improve `unnecessary_parenthesis` support for property accesses and method
   invocations.
-- add new lint: `invalid_case_patterns`.
 - update `unnecessary_parenthesis` to allow parentheses in more null-aware
   cascade contexts.
 - update `unreachable_from_main` to track static elements.
 - update `unnecessary_null_checks` to not report on arguments passed to
   `Future.value` or `Completer.complete`.
+- mark `always_use_package_imports` and `prefer_relative_imports` as
+  incompatible rules.
+- update `only_throw_errors` to not report on `Never`-typed expressions.
+- update `unnecessary_lambdas` to not report with `late final` variables.
+- update `avoid_function_literals_in_foreach_calls` to not report with nullable-
+  typed targets.
+- add new lint: `deprecated_member_use_from_same_package` which replaces the
+  soft-deprecated analyzer hint of the same name.
+- update `public_member_api_docs` to not require docs on enum constructors.
+- update `prefer_void_to_null` to not report on as-expressions.
 
 #### Migration tool removal
 
@@ -234,7 +337,7 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
 
 #### Pub
 
-- To preserve compatibility with null-safe code pre Dart 3 Pub will interpret a
+- To preserve compatibility with null-safe code pre Dart 3, Pub will interpret a
   language constraint indicating a language version of `2.12` or higher and an
   upper bound of `<3.0.0` as `<4.0.0`.
 
@@ -246,6 +349,25 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
   2.1](https://www.rfc-editor.org/rfc/rfc6750#section-2.1). This means they must
   contain only the characters: `^[a-zA-Z0-9._~+/=-]+$`. Before a failure would
   happen when attempting to send the authorization header.
+- `dart pub get` and related commands will now by default also update the
+  dependencies in the `example` folder (if it exists). Use `--no-example` to
+  avoid this.
+
+## 2.19.6 - 2023-03-29
+
+This is a patch release that:
+
+- Fixes an `Out of Memory` exception due to a VM bug. (issue [#50537]).
+
+[#50537]: https://github.com/dart-lang/sdk/issues/50537
+
+## 2.19.5 - 2023-03-22
+
+This is a patch release that:
+
+- Fixes fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
+
+[#51459]: https://github.com/dart-lang/sdk/issues/51459
 
 ## 2.19.4 - 2023-03-08
 
@@ -262,8 +384,8 @@ This is a patch release that:
 
 - Updates DDC test and builder configuration. (issue [#51481][]).
 
-- Improves the performance of the Dart Analysis Server by limiting the analysis
-  context to 1. (issue [#50981][]).
+- Protects the Dart Analysis Server against extreme memory usage by limiting
+  the number of plugins per analysis context to 1. (issue [#50981][]).
 
 [#50981]: https://github.com/dart-lang/sdk/issues/50981
 [#51481]: https://github.com/dart-lang/sdk/issues/51481

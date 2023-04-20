@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         templateFfiDartTypeMismatch,
@@ -13,6 +14,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiExtendsOrImplementsSealedClass,
         templateFfiNotStatic;
 
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -117,16 +119,33 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   }
 
   @override
+  visitConstructorInvocation(ConstructorInvocation node) {
+    if (_inFfiTearoff) {
+      return node;
+    }
+    final target = node.target;
+    if (hierarchy.isSubclassOf(target.enclosingClass, compoundClass) &&
+        target.name != Name("#fromTypedDataBase")) {
+      diagnosticReporter.report(messageFfiCreateOfStructOrUnion,
+          node.fileOffset, 1, node.location?.file);
+    }
+    return super.visitConstructorInvocation(node);
+  }
+
+  @override
   visitProcedure(Procedure node) {
     assert(_inFfiTearoff == false);
-    _inFfiTearoff = (isFfiLibrary &&
-        node.isExtensionMember &&
-        (node == allocationTearoff ||
-            node == asFunctionTearoff ||
-            node == lookupFunctionTearoff ||
-            node == abiSpecificIntegerPointerElementAtTearoff ||
-            node == structPointerElementAtTearoff ||
-            node == unionPointerElementAtTearoff));
+    _inFfiTearoff = ((isFfiLibrary &&
+            node.isExtensionMember &&
+            (node == allocationTearoff ||
+                node == asFunctionTearoff ||
+                node == lookupFunctionTearoff ||
+                node == abiSpecificIntegerPointerElementAtTearoff ||
+                node == structPointerElementAtTearoff ||
+                node == unionPointerElementAtTearoff))) ||
+        // Dart2wasm uses enabledConstructorTearOffLowerings but these are not
+        // users trying to call constructors.
+        isConstructorTearOffLowering(node);
     final result = super.visitProcedure(node);
     _inFfiTearoff = false;
     return result;
@@ -249,7 +268,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node,
+            allowCompounds: true, allowVoid: true);
 
         if (nativeType is InterfaceType) {
           Expression? inlineSizeOf = _inlineSizeOf(nativeType);
@@ -271,8 +291,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
-        final InterfaceType nativeType = InterfaceType(
-            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+        final InterfaceType nativeType = InterfaceType(nativeFunctionClass,
+            Nullability.nonNullable, [node.arguments.types[0]]);
 
         ensureNativeTypeValid(nativeType, node);
         ensureNativeTypeToDartType(nativeType, dartType, node);
@@ -386,7 +406,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node,
+            allowCompounds: true, allowVoid: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
@@ -782,12 +803,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         } else {
           return superClass;
         }
-      }
-    }
-
-    for (final parent in nativeTypesClasses.values) {
-      if (hierarchy.isSubtypeOf(klass, parent)) {
-        return parent;
       }
     }
 

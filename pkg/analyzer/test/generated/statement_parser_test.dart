@@ -875,7 +875,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNotNull);
@@ -887,7 +887,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNotNull);
@@ -899,7 +899,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNotNull);
@@ -911,7 +911,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNull);
@@ -923,7 +923,7 @@ main() {
     assertNoErrors();
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
-    expect(statement.condition, isNotNull);
+    expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.thenStatement, isNotNull);
     expect(statement.elseKeyword, isNull);

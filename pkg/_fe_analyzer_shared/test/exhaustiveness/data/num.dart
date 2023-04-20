@@ -4,6 +4,7 @@
 
 exhaustiveSwitchNum(num n) {
   /*
+   checkingOrder={num,double,int},
    subtypes={double,int},
    type=num
   */
@@ -15,6 +16,7 @@ exhaustiveSwitchNum(num n) {
 
 exhaustiveSwitchIntDouble(num n) {
   /*
+   checkingOrder={num,double,int},
    subtypes={double,int},
    type=num
   */
@@ -28,6 +30,7 @@ exhaustiveSwitchIntDouble(num n) {
 
 exhaustiveSwitchNullable(num? n) {
   /*
+   checkingOrder={num?,num,Null,double,int},
    expandedSubtypes={double,int,Null},
    subtypes={num,Null},
    type=num?
@@ -44,6 +47,7 @@ exhaustiveSwitchNullable(num? n) {
 
 nonExhaustiveSwitch(num n1, num n2, num? n3) {
   /*
+   checkingOrder={num,double,int},
    error=non-exhaustive:double(),
    subtypes={double,int},
    type=num
@@ -53,6 +57,7 @@ nonExhaustiveSwitch(num n1, num n2, num? n3) {
     case int i:
   }
   /*
+   checkingOrder={num,double,int},
    error=non-exhaustive:int(),
    subtypes={double,int},
    type=num
@@ -62,6 +67,7 @@ nonExhaustiveSwitch(num n1, num n2, num? n3) {
     case double d:
   }
   /*
+   checkingOrder={num?,num,Null,double,int},
    error=non-exhaustive:null,
    expandedSubtypes={double,int,Null},
    subtypes={num,Null},

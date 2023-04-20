@@ -7,7 +7,7 @@ dynamic guard() => true;
 main() {
   var [a] = [5];
   int b;
-  [b] = [5];
+  [b] = [if (a case == 5 when guard()) 5];
   if (a case == 5 when guard()) {
     a = 6;
   }
@@ -19,4 +19,5 @@ main() {
     case int e when guard():
       print(a);
   }
+  var d = {if (a case == 5 when guard()) 5: 6};
 }

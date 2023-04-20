@@ -342,6 +342,10 @@ class VariableUseGenerator extends Generator {
   }
 
   Expression _createWrite(int offset, Expression value) {
+    if (_helper.isDeclaredInEnclosingCase(variable)) {
+      _helper.addProblem(
+          messagePatternVariableAssignmentInsideGuard, offset, noLength);
+    }
     _helper.registerVariableAssignment(variable);
     return new VariableSet(variable, value)..fileOffset = offset;
   }

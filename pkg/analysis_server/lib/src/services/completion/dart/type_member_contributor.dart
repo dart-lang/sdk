@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:collection/collection.dart';
 
@@ -25,6 +26,23 @@ class TypeMemberContributor extends DartCompletionContributor {
   Future<void> computeSuggestions({
     required OperationPerformanceImpl performance,
   }) async {
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWantsFinalOrVar) {
+      return;
+    } else if (patternLocation is NamedPatternFieldWantsName) {
+      var excludedGetters = patternLocation.existingFields
+          .map((field) => field.name?.name?.lexeme)
+          .whereNotNull()
+          .toSet();
+      _suggestFromType(
+        expression: null,
+        expressionType: patternLocation.matchedType,
+        excludedGetters: excludedGetters,
+        includeSetters: false,
+      );
+      return;
+    }
+
     // Recompute the target because resolution might have changed it.
     var expression = request.target.dotTarget;
     if (expression == null ||
@@ -79,7 +97,10 @@ class TypeMemberContributor extends DartCompletionContributor {
         includeSetters: includeSetters);
   }
 
-  void _suggestFromRecordType(RecordType type) {
+  void _suggestFromRecordType({
+    required RecordType type,
+    required Set<String> excludedFields,
+  }) {
     type.positionalFields.forEachIndexed((index, field) {
       builder.suggestRecordField(
         field: field,
@@ -88,10 +109,12 @@ class TypeMemberContributor extends DartCompletionContributor {
     });
 
     for (final field in type.namedFields) {
-      builder.suggestRecordField(
-        field: field,
-        name: field.name,
-      );
+      if (!excludedFields.contains(field.name)) {
+        builder.suggestRecordField(
+          field: field,
+          name: field.name,
+        );
+      }
     }
   }
 
@@ -145,7 +168,10 @@ class TypeMemberContributor extends DartCompletionContributor {
             excludedGetters: excludedGetters, includeSetters: includeSetters);
       }
     } else if (type is RecordType) {
-      _suggestFromRecordType(type);
+      _suggestFromRecordType(
+        type: type,
+        excludedFields: excludedGetters,
+      );
       _suggestFromDartCoreObject();
     } else {
       _suggestFromDartCoreObject();

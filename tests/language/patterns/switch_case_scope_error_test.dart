@@ -10,7 +10,7 @@ main() {
   // If cases sharing a body don't agree on a variable's finality, it is still
   // considered in scope and an error to use.
   switch ('value') {
-    case final int local:
+    case final int local when false: // Guard to make the next case reachable.
     case int local:
       print(local);
       //    ^^^^^

@@ -25,7 +25,7 @@ class ImportInternalLibraryTest extends PubPackageResolutionTest {
 import 'dart:_internal';
 ''', [
       error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 16),
-      error(HintCode.UNUSED_IMPORT, 7, 16),
+      error(WarningCode.UNUSED_IMPORT, 7, 16),
     ]);
   }
 }

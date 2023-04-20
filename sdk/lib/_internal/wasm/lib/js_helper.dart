@@ -7,10 +7,10 @@ library dart._js_helper;
 
 import 'dart:_internal';
 import 'dart:_js_annotations' as js;
+import 'dart:_wasm';
 import 'dart:collection';
 import 'dart:js_interop';
 import 'dart:typed_data';
-import 'dart:wasm';
 
 part 'regexp_helper.dart';
 
@@ -99,7 +99,7 @@ extension JSObjectExtension on JSObject {
   external void operator []=(JSString key, JSAny? value);
 }
 
-class JSArrayIteratorAdapter<T> extends Iterator<T> {
+class JSArrayIteratorAdapter<T> implements Iterator<T> {
   final JSArray array;
   int index = -1;
 

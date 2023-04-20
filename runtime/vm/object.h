@@ -311,7 +311,7 @@ class Object {
   // We use 30 bits for the hash code so hashes in a snapshot taken on a
   // 64-bit architecture stay in Smi range when loaded on a 32-bit
   // architecture.
-  static const intptr_t kHashBits = 30;
+  static constexpr intptr_t kHashBits = 30;
 
   static ObjectPtr RawCast(ObjectPtr obj) { return obj; }
 
@@ -798,7 +798,7 @@ class Object {
   }                                                                            \
   type##Ptr* UnsafeMutableNonPointer(type##Ptr const* addr) const {            \
     UnimplementedMethod();                                                     \
-    return NULL;                                                               \
+    return nullptr;                                                            \
   }
 
   CLASS_LIST(STORE_NON_POINTER_ILLEGAL_TYPE);
@@ -1196,24 +1196,30 @@ class Class : public Object {
   uint32_t Hash() const;
   int32_t SourceFingerprint() const;
 
-  // Return the Type with type parameters declared by this class filled in with
-  // dynamic and type parameters declared in superclasses filled in as declared
-  // in superclass clauses.
-  AbstractTypePtr RareType() const;
+  // Return the Type with type arguments filled in with dynamic.
+  TypePtr RareType() const;
 
-  // Return the Type whose arguments are the type parameters declared by this
-  // class preceded by the type arguments declared for superclasses, etc.
-  // e.g. given
-  // class B<T, S>
-  // class C<R> extends B<R, int>
-  // C.DeclarationType() --> C [R, int, R]
-  // The declaration type's nullability is either legacy or non-nullable when
-  // the non-nullable experiment is enabled.
+  // Return the non-nullable Type whose arguments are the type parameters
+  // declared by this class.
   TypePtr DeclarationType() const;
 
   static intptr_t declaration_type_offset() {
     return OFFSET_OF(UntaggedClass, declaration_type_);
   }
+
+  // Returns flattened instance type arguments vector for
+  // instance of this class, parameterized with declared
+  // type parameters of this class.
+  TypeArgumentsPtr GetDeclarationInstanceTypeArguments() const;
+
+  // Returns flattened instance type arguments vector for
+  // instance of this type, parameterized with given type arguments.
+  //
+  // Length of [type_arguments] should match number of type parameters
+  // returned by [NumTypeParameters].
+  TypeArgumentsPtr GetInstanceTypeArguments(Thread* thread,
+                                            const TypeArguments& type_arguments,
+                                            bool canonicalize = true) const;
 
   LibraryPtr library() const { return untag()->library(); }
   void set_library(const Library& value) const;
@@ -1235,8 +1241,8 @@ class Class : public Object {
       intptr_t index,
       Nullability nullability = Nullability::kNonNullable) const;
 
-  // The type argument vector is flattened and includes the type arguments of
-  // the super class.
+  // Length of the flattened instance type arguments vector.
+  // Includes type arguments of the super class.
   intptr_t NumTypeArguments() const;
 
   // Return true if this class declares type parameters.
@@ -1253,7 +1259,7 @@ class Class : public Object {
   TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
 
   // If this class is parameterized, each instance has a type_arguments field.
-  static const intptr_t kNoTypeArguments = -1;
+  static constexpr intptr_t kNoTypeArguments = -1;
   intptr_t host_type_arguments_field_offset() const {
     ASSERT(is_type_finalized() || is_prefinalized());
     if (untag()->host_type_arguments_field_offset_in_words_ ==
@@ -1310,11 +1316,11 @@ class Class : public Object {
   }
 
   // The super type of this class, Object type if not explicitly specified.
-  AbstractTypePtr super_type() const {
+  TypePtr super_type() const {
     ASSERT(is_declaration_loaded());
     return untag()->super_type();
   }
-  void set_super_type(const AbstractType& value) const;
+  void set_super_type(const Type& value) const;
   static intptr_t super_type_offset() {
     return OFFSET_OF(UntaggedClass, super_type_);
   }
@@ -1345,7 +1351,7 @@ class Class : public Object {
   // path must be equal to the other results.
   bool FindInstantiationOf(Zone* zone,
                            const Class& cls,
-                           GrowableArray<const AbstractType*>* path,
+                           GrowableArray<const Type*>* path,
                            bool consider_only_super_classes = false) const;
   bool FindInstantiationOf(Zone* zone,
                            const Class& cls,
@@ -1368,7 +1374,7 @@ class Class : public Object {
   // applying each path must be equal to the other results.
   bool FindInstantiationOf(Zone* zone,
                            const Type& type,
-                           GrowableArray<const AbstractType*>* path,
+                           GrowableArray<const Type*>* path,
                            bool consider_only_super_classes = false) const;
   bool FindInstantiationOf(Zone* zone,
                            const Type& type,
@@ -1679,9 +1685,12 @@ class Class : public Object {
   static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
     return clazz->untag()->num_native_fields_;
   }
-  static bool ImplementsFinalizable(ClassPtr clazz) {
-    ASSERT(Class::Handle(clazz).is_type_finalized());
-    return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
+  static bool IsIsolateUnsendable(ClassPtr clazz) {
+    return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
+  }
+  static bool IsIsolateUnsendableDueToPragma(ClassPtr clazz) {
+    return IsIsolateUnsendableDueToPragmaBit::decode(
+        clazz->untag()->state_bits_);
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1881,6 +1890,13 @@ class Class : public Object {
   // Caches the declaration type of this class.
   void set_declaration_type(const Type& type) const;
 
+  TypeArgumentsPtr declaration_instance_type_arguments() const {
+    return untag()
+        ->declaration_instance_type_arguments<std::memory_order_acquire>();
+  }
+  void set_declaration_instance_type_arguments(
+      const TypeArguments& value) const;
+
   bool CanReloadFinalized(const Class& replacement,
                           ProgramReloadContext* context) const;
   bool CanReloadPreFinalized(const Class& replacement,
@@ -1918,12 +1934,21 @@ class Class : public Object {
     kIsAllocatedBit,
     kIsLoadedBit,
     kHasPragmaBit,
-    kImplementsFinalizableBit,
     kSealedBit,
     kMixinClassBit,
     kBaseClassBit,
     kInterfaceClassBit,
     kFinalBit,
+    // Whether instances of the class cannot be sent across ports.
+    //
+    // Will be true iff
+    //    - class is marked with `@pramga('vm:isolate-unsendable')
+    //    - super class / super interface classes are marked as unsendable.
+    //    - class has native fields.
+    kIsIsolateUnsendableBit,
+    // True if this class has `@pramga('vm:isolate-unsendable') annotation or
+    // base class or implemented interfaces has this bit.
+    kIsIsolateUnsendableDueToPragmaBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1946,14 +1971,17 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
   class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
-  class ImplementsFinalizableBit
-      : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
   class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
   class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
   class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
   class InterfaceClassBit
       : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
   class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
+  class IsIsolateUnsendableBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableBit, 1> {};
+  class IsIsolateUnsendableDueToPragmaBit
+      : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
+  };
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1971,10 +1999,10 @@ class Class : public Object {
   UnboxedFieldBitmap CalculateFieldOffsets() const;
 
   // functions_hash_table is in use iff there are at least this many functions.
-  static const intptr_t kFunctionLookupHashThreshold = 16;
+  static constexpr intptr_t kFunctionLookupHashThreshold = 16;
 
   // Initial value for the cached number of type arguments.
-  static const intptr_t kUnknownNumTypeArguments = -1;
+  static constexpr intptr_t kUnknownNumTypeArguments = -1;
 
   int16_t num_type_arguments() const {
     return LoadNonPointer<int16_t, std::memory_order_relaxed>(
@@ -1993,13 +2021,18 @@ class Class : public Object {
   void set_num_type_arguments_unsafe(intptr_t value) const;
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
-  void set_has_pragma(bool has_pragma) const;
+  void set_has_pragma(bool value) const;
 
-  bool implements_finalizable() const {
-    ASSERT(is_type_finalized());
-    return ImplementsFinalizable(ptr());
+  void set_is_isolate_unsendable(bool value) const;
+  bool is_isolate_unsendable() const {
+    ASSERT(is_finalized());  // This bit is initialized in class finalizer.
+    return IsIsolateUnsendableBit::decode(state_bits());
   }
-  void set_implements_finalizable(bool value) const;
+
+  void set_is_isolate_unsendable_due_to_pragma(bool value) const;
+  bool is_isolate_unsendable_due_to_pragma() const {
+    return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
+  }
 
  private:
   void set_functions(const Array& value) const;
@@ -2306,7 +2339,7 @@ class ICData : public CallSiteData {
 #undef DEFINE_ENUM_LIST
   };
 
-  static const intptr_t kLastRecordedDeoptReason = kDeoptUnknown - 1;
+  static constexpr intptr_t kLastRecordedDeoptReason = kDeoptUnknown - 1;
 
   enum DeoptFlags {
     // Deoptimization is caused by an optimistically hoisted instruction.
@@ -3330,7 +3363,7 @@ class Function : public Object {
   void InheritKernelOffsetFrom(const Function& src) const;
   void InheritKernelOffsetFrom(const Field& src) const;
 
-  static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
+  static constexpr intptr_t kMaxInstructionCount = (1 << 16) - 1;
 
   void SetOptimizedInstructionCountClamped(uintptr_t value) const {
     if (value > kMaxInstructionCount) value = kMaxInstructionCount;
@@ -3377,7 +3410,8 @@ class Function : public Object {
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
-  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  // Otherwise, it returns false and the reason (if error_message is not
+  // nullptr).
   bool AreValidArgumentCounts(intptr_t num_type_arguments,
                               intptr_t num_arguments,
                               intptr_t num_named_arguments,
@@ -3432,7 +3466,8 @@ class Function : public Object {
 
   // Returns true if the type argument count, total argument count and the names
   // of optional arguments are valid for calling this function.
-  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  // Otherwise, it returns false and the reason (if error_message is not
+  // nullptr).
   bool AreValidArguments(intptr_t num_type_arguments,
                          intptr_t num_arguments,
                          const Array& argument_names,
@@ -4005,6 +4040,11 @@ class Function : public Object {
 #undef DEFINE_BIT
 
  private:
+  enum NativeFunctionData {
+    kNativeName,
+    kTearOff,
+    kLength,
+  };
   // Given the provided defaults type arguments, determines which
   // DefaultTypeArgumentsKind applies.
   DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
@@ -4862,8 +4902,9 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  ObjectPtr LookupReExport(const String& name,
-                           ZoneGrowableArray<intptr_t>* visited = NULL) const;
+  ObjectPtr LookupReExport(
+      const String& name,
+      ZoneGrowableArray<intptr_t>* visited = nullptr) const;
   ObjectPtr LookupObjectAllowPrivate(const String& name) const;
   ObjectPtr LookupLocalOrReExportObject(const String& name) const;
   ObjectPtr LookupImportedObject(const String& name) const;
@@ -5126,8 +5167,8 @@ class Library : public Object {
   void EnsureTopLevelClassIsFinalized() const;
 
  private:
-  static const int kInitialImportsCapacity = 4;
-  static const int kImportsCapacityIncrement = 8;
+  static constexpr int kInitialImportsCapacity = 4;
+  static constexpr int kImportsCapacityIncrement = 8;
 
   static LibraryPtr New();
 
@@ -5377,9 +5418,9 @@ class ObjectPool : public Object {
     return 0;
   }
 
-  static const intptr_t kBytesPerElement =
+  static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedObjectPool::Entry) + sizeof(uint8_t);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
@@ -5463,35 +5504,35 @@ class Instructions : public Object {
 // Note: We keep the checked entrypoint offsets even (emitting NOPs if
 // necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 36;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
+  static constexpr intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 36;
+  static constexpr intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static constexpr intptr_t kPolymorphicEntryOffsetAOT = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 8;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 22;
+  static constexpr intptr_t kMonomorphicEntryOffsetJIT = 8;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static constexpr intptr_t kMonomorphicEntryOffsetAOT = 8;
+  static constexpr intptr_t kPolymorphicEntryOffsetAOT = 22;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
+  static constexpr intptr_t kMonomorphicEntryOffsetJIT = 0;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 44;
+  static constexpr intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static constexpr intptr_t kPolymorphicEntryOffsetAOT = 16;
 #elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 52;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 8;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 24;
+  static constexpr intptr_t kMonomorphicEntryOffsetJIT = 8;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 52;
+  static constexpr intptr_t kMonomorphicEntryOffsetAOT = 8;
+  static constexpr intptr_t kPolymorphicEntryOffsetAOT = 24;
 #elif defined(TARGET_ARCH_RISCV32)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 6;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 18;
+  static constexpr intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 44;
+  static constexpr intptr_t kMonomorphicEntryOffsetAOT = 6;
+  static constexpr intptr_t kPolymorphicEntryOffsetAOT = 18;
 #elif defined(TARGET_ARCH_RISCV64)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 6;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 18;
+  static constexpr intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 44;
+  static constexpr intptr_t kMonomorphicEntryOffsetAOT = 6;
+  static constexpr intptr_t kPolymorphicEntryOffsetAOT = 18;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -5514,7 +5555,7 @@ class Instructions : public Object {
     return entry;
   }
 
-  static const intptr_t kMaxElements =
+  static constexpr intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(UntaggedInstructions) + sizeof(UntaggedObject) +
                     (2 * kObjectStartAlignment)));
 
@@ -5523,11 +5564,11 @@ class Instructions : public Object {
   // If we later decide to align on larger boundaries to put entries at the
   // start of cache lines, make sure to account for entry points that are
   // _not_ at the start of the payload.
-  static const intptr_t kBarePayloadAlignment = 4;
+  static constexpr intptr_t kBarePayloadAlignment = 4;
 
   // When instructions reside in the heap we align the payloads on word
   // boundaries.
-  static const intptr_t kNonBarePayloadAlignment = kWordSize;
+  static constexpr intptr_t kNonBarePayloadAlignment = kWordSize;
 
   // In the precompiled runtime when running in bare instructions mode,
   // Instructions objects don't exist, just their bare payloads, so we
@@ -5747,9 +5788,10 @@ class LocalVarDescriptors : public Object {
   void GetInfo(intptr_t var_index,
                UntaggedLocalVarDescriptors::VarInfo* info) const;
 
-  static const intptr_t kBytesPerElement =
+  static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedLocalVarDescriptors::VarInfo);
-  static const intptr_t kMaxElements = UntaggedLocalVarDescriptors::kMaxIndex;
+  static constexpr intptr_t kMaxElements =
+      UntaggedLocalVarDescriptors::kMaxIndex;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
@@ -5777,8 +5819,8 @@ class LocalVarDescriptors : public Object {
 
 class PcDescriptors : public Object {
  public:
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
+  static constexpr intptr_t kBytesPerElement = 1;
+  static constexpr intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
   static intptr_t HeaderSize() { return sizeof(UntaggedPcDescriptors); }
   static intptr_t UnroundedSize(PcDescriptorsPtr desc) {
@@ -5915,8 +5957,8 @@ class PcDescriptors : public Object {
 
 class CodeSourceMap : public Object {
  public:
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
+  static constexpr intptr_t kBytesPerElement = 1;
+  static constexpr intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
   static intptr_t HeaderSize() { return sizeof(UntaggedCodeSourceMap); }
   static intptr_t UnroundedSize(CodeSourceMapPtr map) {
@@ -6263,7 +6305,7 @@ class CompressedStackMaps : public Object {
 
 class ExceptionHandlers : public Object {
  public:
-  static const intptr_t kInvalidPcOffset = 0;
+  static constexpr intptr_t kInvalidPcOffset = 0;
 
   intptr_t num_entries() const;
 
@@ -6315,7 +6357,7 @@ class ExceptionHandlers : public Object {
   // Pick somewhat arbitrary maximum number of exception handlers
   // for a function. This value is used to catch potentially
   // malicious code.
-  static const intptr_t kMaxHandlers = 1024 * 1024;
+  static constexpr intptr_t kMaxHandlers = 1024 * 1024;
 
   void set_handled_types_data(const Array& value) const;
 
@@ -6420,8 +6462,8 @@ class WeakArray : public Object {
     untag()->set_element<std::memory_order_release>(index, value.ptr());
   }
 
-  static const intptr_t kBytesPerElement = kCompressedWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kBytesPerElement = kCompressedWordSize;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static constexpr bool IsValidLength(intptr_t length) {
     return 0 <= length && length <= kMaxElements;
@@ -6452,7 +6494,7 @@ class Code : public Object {
   InstructionsPtr active_instructions() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->active_instructions();
 #endif
@@ -6631,7 +6673,7 @@ class Code : public Object {
   ArrayPtr deopt_info_array() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->deopt_info_array();
 #endif
@@ -6687,7 +6729,7 @@ class Code : public Object {
   ArrayPtr static_calls_target_table() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->static_calls_target_table();
 #endif
@@ -6703,7 +6745,7 @@ class Code : public Object {
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
   void SetStubCallTargetCodeAt(uword pc, const Code& code) const;
 
-  void Disassemble(DisassemblyFormatter* formatter = NULL) const;
+  void Disassemble(DisassemblyFormatter* formatter = nullptr) const;
 
 #if defined(INCLUDE_IL_PRINTER)
   class Comments : public ZoneAllocated, public CodeComments {
@@ -6741,7 +6783,7 @@ class Code : public Object {
   ObjectPtr return_address_metadata() const {
 #if defined(PRODUCT)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->return_address_metadata();
 #endif
@@ -6782,7 +6824,7 @@ class Code : public Object {
   LocalVarDescriptorsPtr var_descriptors() const {
 #if defined(PRODUCT)
     UNREACHABLE();
-    return NULL;
+    return nullptr;
 #else
     return untag()->var_descriptors();
 #endif
@@ -6837,9 +6879,9 @@ class Code : public Object {
   // We would have a VisitPointers function here to traverse all the
   // embedded objects in the instructions using pointer_offsets.
 
-  static const intptr_t kBytesPerElement =
+  static constexpr intptr_t kBytesPerElement =
       sizeof(reinterpret_cast<UntaggedCode*>(kOffsetOfPtr)->data()[0]);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedCode); }
@@ -7004,7 +7046,7 @@ class Code : public Object {
     DISALLOW_COPY_AND_ASSIGN(SlowFindRawCodeVisitor);
   };
 
-  static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
+  static constexpr intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
 #if defined(PRODUCT)
@@ -7128,8 +7170,8 @@ class Context : public Object {
 
   void Dump(int indent = 0) const;
 
-  static const intptr_t kBytesPerElement = kCompressedWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kBytesPerElement = kCompressedWordSize;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedContext); }
@@ -7226,9 +7268,9 @@ class ContextScope : public Object {
   intptr_t KernelOffsetAt(intptr_t scope_index) const;
   void SetKernelOffsetAt(intptr_t scope_index, intptr_t kernel_offset) const;
 
-  static const intptr_t kBytesPerElement =
+  static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedContextScope::VariableDesc);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -7301,9 +7343,9 @@ class Sentinel : public Object {
 
 class MegamorphicCache : public CallSiteData {
  public:
-  static const intptr_t kInitialCapacity = 16;
-  static const intptr_t kSpreadFactor = 7;
-  static const double kLoadFactor;
+  static constexpr intptr_t kInitialCapacity = 16;
+  static constexpr intptr_t kSpreadFactor = 7;
+  static constexpr double kLoadFactor = 0.50;
 
   enum EntryType {
     kClassIdIndex,
@@ -7716,9 +7758,9 @@ class Instance : public Object {
 
   AbstractTypePtr GetType(Heap::Space space) const;
 
-  // Access the arguments of the [Type] of this [Instance].
-  // Note: for [Type]s instead of [Instance]s with a [Type] attached, use
-  // [arguments()] and [set_arguments()]
+  // Access the type arguments vector of this [Instance].
+  // This vector includes type arguments corresponding to type parameters of
+  // instance's class and all its superclasses.
   virtual TypeArgumentsPtr GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
 
@@ -7766,7 +7808,7 @@ class Instance : public Object {
 
   // If the instance is a callable object, i.e. a closure or the instance of a
   // class implementing a 'call' method, return true and set the function
-  // (if not NULL) to call.
+  // (if not nullptr) to call.
   bool IsCallable(Function* function) const;
 
   ObjectPtr Invoke(const String& selector,
@@ -7933,8 +7975,8 @@ class LibraryPrefix : public Instance {
                               const Library& importer);
 
  private:
-  static const int kInitialSize = 2;
-  static const int kIncrementSize = 2;
+  static constexpr int kInitialSize = 2;
+  static constexpr int kIncrementSize = 2;
 
   void set_name(const String& value) const;
   void set_imports(const Array& value) const;
@@ -7985,13 +8027,13 @@ class TypeParameters : public Object {
   // The number of flags per Smi should be a power of 2 in order to simplify the
   // generated code accessing the flags array.
 #if !defined(DART_COMPRESSED_POINTERS)
-  static const intptr_t kFlagsPerSmiShift = kBitsPerWordLog2 - 1;
+  static constexpr intptr_t kFlagsPerSmiShift = kBitsPerWordLog2 - 1;
 #else
-  static const intptr_t kFlagsPerSmiShift = kBitsPerWordLog2 - 2;
+  static constexpr intptr_t kFlagsPerSmiShift = kBitsPerWordLog2 - 2;
 #endif
-  static const intptr_t kFlagsPerSmi = 1LL << kFlagsPerSmiShift;
+  static constexpr intptr_t kFlagsPerSmi = 1LL << kFlagsPerSmiShift;
   COMPILE_ASSERT(kFlagsPerSmi < kSmiBits);
-  static const intptr_t kFlagsPerSmiMask = kFlagsPerSmi - 1;
+  static constexpr intptr_t kFlagsPerSmiMask = kFlagsPerSmi - 1;
 
   void Print(Thread* thread,
              Zone* zone,
@@ -8037,7 +8079,7 @@ class TypeParameters : public Object {
 class TypeArguments : public Instance {
  public:
   // Hash value for a type argument vector consisting solely of dynamic types.
-  static const intptr_t kAllDynamicHash = 1;
+  static constexpr intptr_t kAllDynamicHash = 1;
 
   // Returns whether this TypeArguments vector can be used in a context that
   // expects a vector of length [count]. Always true for the null vector.
@@ -8080,12 +8122,12 @@ class TypeArguments : public Instance {
   // Note that this allows for ITA to be longer than UTA (the bit vector must be
   // stored in the same order as the corresponding type vector, i.e. with the
   // least significant 2 bits representing the nullability of the first type).
-  static const intptr_t kNullabilityBitsPerType = 2;
-  static const intptr_t kNullabilityMaxTypes =
+  static constexpr intptr_t kNullabilityBitsPerType = 2;
+  static constexpr intptr_t kNullabilityMaxTypes =
       kSmiBits / kNullabilityBitsPerType;
-  static const intptr_t kNonNullableBits = 0;
-  static const intptr_t kNullableBits = 3;
-  static const intptr_t kLegacyBits = 2;
+  static constexpr intptr_t kNonNullableBits = 0;
+  static constexpr intptr_t kNullableBits = 3;
+  static constexpr intptr_t kLegacyBits = 2;
   intptr_t nullability() const;
   static intptr_t nullability_offset() {
     return OFFSET_OF(UntaggedTypeArguments, nullability_);
@@ -8197,6 +8239,20 @@ class TypeArguments : public Instance {
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
   TypeArgumentsPtr Canonicalize(Thread* thread, TrailPtr trail = nullptr) const;
+
+  // Shrinks flattened instance type arguments to ordinary type arguments.
+  TypeArgumentsPtr FromInstanceTypeArguments(Thread* thread,
+                                             const Class& cls) const;
+
+  // Expands type arguments to a vector suitable as instantiator type
+  // arguments.
+  //
+  // Only fills positions corresponding to type parameters of [cls], leave
+  // all positions of superclass type parameters blank.
+  // Use [GetInstanceTypeArguments] on a class or a type if full vector is
+  // needed.
+  TypeArgumentsPtr ToInstantiatorTypeArguments(Thread* thread,
+                                               const Class& cls) const;
 
   // Add the class name and URI of each type argument of this vector to the uris
   // list and mark ambiguous triplets to be printed.
@@ -8425,8 +8481,8 @@ class TypeArguments : public Instance {
     return OFFSET_OF(UntaggedTypeArguments, instantiations_);
   }
 
-  static const intptr_t kBytesPerElement = kCompressedWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kBytesPerElement = kCompressedWordSize;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedTypeArguments) ==
@@ -8476,7 +8532,7 @@ class TypeArguments : public Instance {
   void SetLength(intptr_t value) const;
   // Number of fields in the raw object is 4:
   // instantiations_, length_, hash_ and nullability_.
-  static const int kNumFields = 4;
+  static constexpr int kNumFields = 4;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Instance);
   friend class AbstractType;
@@ -8534,7 +8590,6 @@ class AbstractType : public Instance {
   virtual classid_t type_class_id() const;
   virtual ClassPtr type_class() const;
   virtual TypeArgumentsPtr arguments() const;
-  virtual void set_arguments(const TypeArguments& value) const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = nullptr) const;
@@ -8852,7 +8907,13 @@ class Type : public AbstractType {
   virtual ClassPtr type_class() const;
   void set_type_class(const Class& value) const;
   virtual TypeArgumentsPtr arguments() const { return untag()->arguments(); }
-  virtual void set_arguments(const TypeArguments& value) const;
+  void set_arguments(const TypeArguments& value) const;
+
+  // Returns flattened instance type arguments vector for
+  // instance of this type.
+  TypeArgumentsPtr GetInstanceTypeArguments(Thread* thread,
+                                            bool canonicalize = true) const;
+
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = nullptr) const;
@@ -9550,9 +9611,9 @@ class Integer : public Number {
 
 class Smi : public Integer {
  public:
-  static const intptr_t kBits = kSmiBits;
-  static const intptr_t kMaxValue = kSmiMax;
-  static const intptr_t kMinValue = kSmiMin;
+  static constexpr intptr_t kBits = kSmiBits;
+  static constexpr intptr_t kMaxValue = kSmiMax;
+  static constexpr intptr_t kMinValue = kSmiMin;
 
   intptr_t Value() const { return RawSmiValue(ptr()); }
 
@@ -9631,10 +9692,10 @@ class SmiTraits : AllStatic {
 
 class Mint : public Integer {
  public:
-  static const intptr_t kBits = 63;  // 64-th bit is sign.
-  static const int64_t kMaxValue =
+  static constexpr intptr_t kBits = 63;  // 64-th bit is sign.
+  static constexpr int64_t kMaxValue =
       static_cast<int64_t>(DART_2PART_UINT64_C(0x7FFFFFFF, FFFFFFFF));
-  static const int64_t kMinValue =
+  static constexpr int64_t kMinValue =
       static_cast<int64_t>(DART_2PART_UINT64_C(0x80000000, 00000000));
 
   int64_t value() const { return untag()->value_; }
@@ -9724,19 +9785,20 @@ class Symbol : public AllStatic {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  static const intptr_t kOneByteChar = 1;
-  static const intptr_t kTwoByteChar = 2;
+  static constexpr intptr_t kOneByteChar = 1;
+  static constexpr intptr_t kTwoByteChar = 2;
 
 // All strings share the same maximum element count to keep things
 // simple.  We choose a value that will prevent integer overflow for
 // 2 byte strings, since it is the worst case.
 #if defined(HASH_IN_OBJECT_HEADER)
-  static const intptr_t kSizeofRawString = sizeof(UntaggedInstance) + kWordSize;
+  static constexpr intptr_t kSizeofRawString =
+      sizeof(UntaggedInstance) + kWordSize;
 #else
-  static const intptr_t kSizeofRawString =
+  static constexpr intptr_t kSizeofRawString =
       sizeof(UntaggedInstance) + 2 * kWordSize;
 #endif
-  static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
+  static constexpr intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
   static intptr_t HeaderSize() { return String::kSizeofRawString; }
 
@@ -10130,8 +10192,8 @@ class OneByteString : public AllStatic {
   }
   static OneByteStringPtr EscapeSpecialCharacters(const String& str);
   // We use the same maximum elements for all strings.
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = String::kMaxElements;
+  static constexpr intptr_t kBytesPerElement = 1;
+  static constexpr intptr_t kMaxElements = String::kMaxElements;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -10270,8 +10332,8 @@ class TwoByteString : public AllStatic {
   static TwoByteStringPtr EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.
-  static const intptr_t kBytesPerElement = 2;
-  static const intptr_t kMaxElements = String::kMaxElements;
+  static constexpr intptr_t kBytesPerElement = 2;
+  static constexpr intptr_t kMaxElements = String::kMaxElements;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -10388,8 +10450,8 @@ class ExternalOneByteString : public AllStatic {
   }
 
   // We use the same maximum elements for all strings.
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = String::kMaxElements;
+  static constexpr intptr_t kBytesPerElement = 1;
+  static constexpr intptr_t kMaxElements = String::kMaxElements;
 
   static intptr_t InstanceSize() {
     return String::RoundedAllocationSize(sizeof(UntaggedExternalOneByteString));
@@ -10481,8 +10543,8 @@ class ExternalTwoByteString : public AllStatic {
   }
 
   // We use the same maximum elements for all strings.
-  static const intptr_t kBytesPerElement = 2;
-  static const intptr_t kMaxElements = String::kMaxElements;
+  static constexpr intptr_t kBytesPerElement = 2;
+  static constexpr intptr_t kMaxElements = String::kMaxElements;
 
   static intptr_t InstanceSize() {
     return String::RoundedAllocationSize(sizeof(UntaggedExternalTwoByteString));
@@ -10662,7 +10724,7 @@ class Array : public Instance {
   bool IsImmutable() const { return ptr()->GetClassId() == kImmutableArrayCid; }
 
   // Position of element type in type arguments.
-  static const intptr_t kElementTypeTypeArgPos = 0;
+  static constexpr intptr_t kElementTypeTypeArgPos = 0;
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
     return untag()->type_arguments();
@@ -10682,9 +10744,9 @@ class Array : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
 
-  static const intptr_t kBytesPerElement = ArrayTraits::kElementSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-  static const intptr_t kMaxNewSpaceElements =
+  static constexpr intptr_t kBytesPerElement = ArrayTraits::kElementSize;
+  static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static constexpr intptr_t kMaxNewSpaceElements =
       (Heap::kNewAllocatableSize - sizeof(UntaggedArray)) / kBytesPerElement;
 
   static intptr_t type_arguments_offset() {
@@ -10920,7 +10982,7 @@ class GrowableObjectArray : public Instance {
  private:
   UntaggedArray* DataArray() const { return data()->untag(); }
 
-  static const int kDefaultInitialCapacity = 0;
+  static constexpr int kDefaultInitialCapacity = 0;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
   friend class Array;
@@ -11196,8 +11258,8 @@ class Record : public Instance {
     untag()->set_field(field_index, value.ptr());
   }
 
-  static const intptr_t kBytesPerElement = kCompressedWordSize;
-  static const intptr_t kMaxElements = RecordShape::kMaxNumFields;
+  static constexpr intptr_t kBytesPerElement = kCompressedWordSize;
+  static constexpr intptr_t kMaxElements = RecordShape::kMaxNumFields;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
@@ -11374,7 +11436,7 @@ class TypedDataBase : public PointerBase {
     ASSERT(size != 0);
     return size;
   }
-  static const intptr_t kNumElementSizes =
+  static constexpr intptr_t kNumElementSizes =
       (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
@@ -11481,7 +11543,7 @@ class ExternalTypedData : public TypedDataBase {
  public:
   // Alignment of data when serializing ExternalTypedData in a clustered
   // snapshot. Should be independent of word size.
-  static const int kDataSerializationAlignment = 8;
+  static constexpr int kDataSerializationAlignment = 8;
 
   FinalizablePersistentHandle* AddFinalizer(void* peer,
                                             Dart_HandleFinalizer callback,
@@ -11652,7 +11714,7 @@ class Pointer : public Instance {
     return OFFSET_OF(UntaggedPointer, type_arguments_);
   }
 
-  static const intptr_t kNativeTypeArgPos = 0;
+  static constexpr intptr_t kNativeTypeArgPos = 0;
 
   // Fetches the NativeType type argument.
   AbstractTypePtr type_argument() const {
@@ -11805,8 +11867,8 @@ class LinkedHashBase : public Instance {
 
  protected:
   // Keep this in sync with Dart implementation (lib/compact_hash.dart).
-  static const intptr_t kInitialIndexBits = 2;
-  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+  static constexpr intptr_t kInitialIndexBits = 2;
+  static constexpr intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
 
  private:
   LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }
@@ -12257,7 +12319,7 @@ class DebuggerStackTrace;
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static const int kPreallocatedStackdepth = 90;
+  static constexpr int kPreallocatedStackdepth = 90;
 
   intptr_t Length() const;
 
@@ -12420,7 +12482,7 @@ class RegExpFlags {
     kDotAll = 16,
   };
 
-  static const int kDefaultFlags = 0;
+  static constexpr int kDefaultFlags = 0;
 
   RegExpFlags() : value_(kDefaultFlags) {}
   explicit RegExpFlags(int value) : value_(value) {}
@@ -13049,7 +13111,7 @@ void Instance::GetNativeFields(uint16_t num_fields,
                                intptr_t* field_values) const {
   NoSafepointScope no_safepoint;
   ASSERT(num_fields == NumNativeFields());
-  ASSERT(field_values != NULL);
+  ASSERT(field_values != nullptr);
   TypedDataPtr native_fields = static_cast<TypedDataPtr>(
       NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields == TypedData::null()) {

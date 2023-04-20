@@ -514,6 +514,10 @@ class DartCompletionRequest {
       }
     }
 
+    if (entity is DeclaredVariablePattern && entity.name.offset <= offset) {
+      return fromToken(entity.name);
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
         return fromToken(entity.token);

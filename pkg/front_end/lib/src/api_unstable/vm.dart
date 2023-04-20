@@ -59,6 +59,7 @@ export '../fasta/fasta_codes.dart'
         LocatedMessage,
         messageFfiAbiSpecificIntegerInvalid,
         messageFfiAbiSpecificIntegerMappingInvalid,
+        messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiLeafCallMustNotReturnHandle,
@@ -101,7 +102,10 @@ export '../fasta/fasta_codes.dart'
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 
 export '../fasta/kernel/redirecting_factory_body.dart'
-    show getRedirectingFactoryBody, isRedirectingFactoryField;
+    show
+        expressionValueWrappedFinalizableName,
+        getRedirectingFactoryBody,
+        isRedirectingFactoryField;
 
 export '../fasta/kernel/utils.dart'
     show

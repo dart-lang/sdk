@@ -24,10 +24,34 @@ g(int a) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  readElement: self::@function::g::@parameter::a
+  readType: int
+  writeElement: self::@function::g::@parameter::a
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_compound_plus_int_context_int_complex() async {
@@ -38,10 +62,49 @@ g(List<int> a) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::g::@parameter::a
+      staticType: List<int>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: ParameterMember
+        base: dart:core::@class::List::@method::[]=::@parameter::index
+        substitution: {E: int}
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  readElement: MethodMember
+    base: dart:core::@class::List::@method::[]
+    substitution: {E: int}
+  readType: int
+  writeElement: MethodMember
+    base: dart:core::@class::List::@method::[]=
+    substitution: {E: int}
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_compound_plus_int_context_int_promoted() async {
@@ -54,10 +117,34 @@ g(num a) {
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  readElement: self::@function::g::@parameter::a
+  readType: int
+  writeElement: self::@function::g::@parameter::a
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_compound_plus_int_context_int_promoted_with_subsequent_demotion() async {
@@ -66,17 +153,99 @@ T f<T>() => throw Error();
 g(num a, bool b) {
   if (a is int) {
     a += b ? f() : 1.0;
-    print(a);
+    a;
   }
 }
 ''');
 
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('f()'),
-      ['int'],
-    );
+    final node = findNode.assignment('+=');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: ConditionalExpression
+    condition: SimpleIdentifier
+      token: b
+      staticElement: self::@function::g::@parameter::b
+      staticType: bool
+    question: ?
+    thenExpression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: f
+        staticElement: self::@function::f
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+      typeArgumentTypes
+        int
+    colon: :
+    elseExpression: DoubleLiteral
+      literal: 1.0
+      staticType: double
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: num
+  readElement: self::@function::g::@parameter::a
+  readType: int
+  writeElement: self::@function::g::@parameter::a
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: num
+''');
 
-    assertType(findNode.simple('a);').staticType, 'num');
+    assertResolvedNodeText(findNode.simple('a;'), r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@function::g::@parameter::a
+  staticType: num
+''');
+  }
+
+  test_importPrefix_deferred_topLevelVariable_simple() async {
+    newFile('$testPackageLibPath/a.dart', '''
+var v = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' deferred as prefix;
+
+void f() {
+  prefix.v = 0;
+}
+''');
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: v
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: package:test/a.dart::@setter::v::@parameter::_v
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/a.dart::@setter::v
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_cascade_compound() async {
@@ -503,6 +672,38 @@ AssignmentExpression
   readType: null
   writeElement: self::@class::A::@method::[]=
   writeType: num
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_left_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    super = 0;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
   staticElement: <null>
   staticType: int
 ''');
@@ -998,7 +1199,34 @@ g(int? a) {
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['int?']);
+    final node = findNode.assignment('??= f()');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@function::g::@parameter::a
+    staticType: null
+  operator: ??=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    parameter: <null>
+    staticInvokeType: int? Function()
+    staticType: int?
+    typeArgumentTypes
+      int?
+  readElement: self::@function::g::@parameter::a
+  readType: int?
+  writeElement: self::@function::g::@parameter::a
+  writeType: int?
+  staticElement: <null>
+  staticType: int?
+''');
   }
 
   test_prefixedIdentifier_instance_compound() async {
@@ -2914,6 +3142,37 @@ AssignmentExpression
   writeType: dynamic
   staticElement: <null>
   staticType: int
+''');
+  }
+
+  test_right_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f(Object a) {
+    a = super;
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: self::@class::A::@method::f::@parameter::a
+    staticType: null
+  operator: =
+  rightHandSide: SuperExpression
+    superKeyword: super
+    staticType: A
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::f::@parameter::a
+  writeType: Object
+  staticElement: <null>
+  staticType: A
 ''');
   }
 

@@ -202,8 +202,8 @@ class Disassembler : public AllStatic {
                                     const Code& code,
                                     bool optimized);
 
-  static const int kHexadecimalBufferSize = 32;
-  static const int kUserReadableBufferSize = 256;
+  static constexpr int kHexadecimalBufferSize = 32;
+  static constexpr int kUserReadableBufferSize = 256;
 };
 
 }  // namespace dart

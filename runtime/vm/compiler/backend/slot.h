@@ -78,7 +78,6 @@ class ParsedFunction;
   V(SuspendState, UntaggedSuspendState, function_data, Dynamic, VAR)           \
   V(SuspendState, UntaggedSuspendState, then_callback, Closure, VAR)           \
   V(SuspendState, UntaggedSuspendState, error_callback, Closure, VAR)          \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \

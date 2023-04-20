@@ -190,6 +190,9 @@ class Flags {
 
   static const String cfeConstants = '--cfe-constants';
 
+  static const String disableDiagnosticByteCache =
+      '--disable-diagnostic-byte-cache';
+
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.
   // Shipping features default to on, but can be disabled individually. All

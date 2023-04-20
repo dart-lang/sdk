@@ -4,7 +4,7 @@
 
 part of dart._js_helper;
 
-class CustomKeyHashMap<K, V> extends CustomHashMap<K, V> {
+base class CustomKeyHashMap<K, V> extends CustomHashMap<K, V> {
   final _Predicate<Object?> _validKey;
   CustomKeyHashMap(_Equality<K> equals, _Hasher<K> hashCode, this._validKey)
       : super(equals, hashCode);
@@ -29,7 +29,7 @@ class CustomKeyHashMap<K, V> extends CustomHashMap<K, V> {
   }
 }
 
-class CustomHashMap<K, V> extends InternalMap<K, V> {
+base class CustomHashMap<K, V> extends InternalMap<K, V> {
   /// The backing store for this map.
   @notNull
   final _map = JS('', 'new Map()');

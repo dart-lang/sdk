@@ -30,46 +30,10 @@ part of dart.collection;
 /// To avoid this, override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, if possible, use `DelegatingList` from
 /// "package:collection/collection.dart" instead of a `ListMixin`.
-abstract class ListBase<E> extends Object with ListMixin<E> {
-  /// Converts a [List] to a [String].
-  ///
-  /// Converts [list] to a string by converting each element to a string (by
-  /// calling [Object.toString]), joining them with ", ", and wrapping the
-  /// result in `[` and `]`.
-  ///
-  /// Handles circular references where converting one of the elements
-  /// to a string ends up converting [list] to a string again.
-  static String listToString(List list) =>
-      IterableBase.iterableToFullString(list, '[', ']');
-}
+// TODO: @Deprecated("Use List instead")
+abstract mixin class ListBase<E> implements List<E> {
+  const ListBase();
 
-/// Base implementation of a [List] class.
-///
-/// `ListMixin` can be used as a mixin to make a class implement
-/// the `List` interface.
-///
-/// This mixin implements all read operations using only the `length` and
-/// `operator[]` and members. It implements write operations using those and
-/// `add`, `length=` and `operator[]=`.
-/// Classes using this mixin should implement those five operations.
-///
-/// **NOTICE**: For backwards compatibility reasons,
-/// there is a default implementation of `add`
-/// which only works for lists with a nullable element type.
-/// For lists with a non-nullable element type,
-/// the `add` method must be implemented.
-///
-/// **NOTICE**: Forwarding just the four `length` and `[]` read/write operations
-/// to a normal growable [List] (as created by a `[]` literal)
-/// will give very bad performance for `add` and `addAll` operations
-/// of `ListMixin`.
-/// These operations are implemented by
-/// increasing the length of the list by one for each `add` operation,
-/// and repeatedly increasing the length of a growable list is not efficient.
-/// To avoid this, override 'add' and 'addAll' to also forward directly
-/// to the growable list, or, if possible, use `DelegatingList` from
-/// "package:collection/collection.dart" instead of a `ListMixin`.
-abstract mixin class ListMixin<E> implements List<E> {
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
   // of redeclaring everything.
@@ -363,7 +327,6 @@ abstract mixin class ListMixin<E> implements List<E> {
 
   void shuffle([Random? random]) {
     random ??= Random();
-    if (random == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     int length = this.length;
     while (length > 1) {
@@ -384,7 +347,6 @@ abstract mixin class ListMixin<E> implements List<E> {
   List<E> sublist(int start, [int? end]) {
     int listLength = this.length;
     end ??= listLength;
-    if (end == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     RangeError.checkValidRange(start, end, listLength);
     return List.from(getRange(start, end));
@@ -503,9 +465,6 @@ abstract mixin class ListMixin<E> implements List<E> {
   int lastIndexOf(Object? element, [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
 
-    // TODO(38493): The previous line should promote.
-    if (start == null) throw "!";
-
     for (int i = start; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -514,9 +473,6 @@ abstract mixin class ListMixin<E> implements List<E> {
 
   int lastIndexWhere(bool test(E element), [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
-
-    // TODO(38493): The previous line should promote.
-    if (start == null) throw "!";
 
     for (int i = start; i >= 0; i--) {
       if (test(this[i])) return i;
@@ -586,5 +542,45 @@ abstract mixin class ListMixin<E> implements List<E> {
 
   Iterable<E> get reversed => ReversedListIterable<E>(this);
 
-  String toString() => IterableBase.iterableToFullString(this, '[', ']');
+  String toString() => listToString(this);
+
+  /// Converts a [List] to a [String].
+  ///
+  /// Converts [list] to a string by converting each element to a string (by
+  /// calling [Object.toString]), joining them with ", ", and wrapping the
+  /// result in `[` and `]`.
+  ///
+  /// Handles circular references where converting one of the elements
+  /// to a string ends up converting [list] to a string again.
+  static String listToString(List<Object?> list) =>
+      IterableBase.iterableToFullString(list, '[', ']');
 }
+
+/// Base mixin implementation of a [List] class.
+///
+/// `ListMixin` can be used as a mixin to make a class implement
+/// the `List` interface.
+///
+/// This mixin implements all read operations using only the `length` and
+/// `operator[]` and members. It implements write operations using those and
+/// `add`, `length=` and `operator[]=`.
+/// Classes using this mixin should implement those five operations.
+///
+/// **NOTICE**: For backwards compatibility reasons,
+/// there is a default implementation of `add`
+/// which only works for lists with a nullable element type.
+/// For lists with a non-nullable element type,
+/// the `add` method must be implemented.
+///
+/// **NOTICE**: Forwarding just the four `length` and `[]` read/write operations
+/// to a normal growable [List] (as created by a `[]` literal)
+/// will give very bad performance for `add` and `addAll` operations
+/// of `ListMixin`.
+/// These operations are implemented by
+/// increasing the length of the list by one for each `add` operation,
+/// and repeatedly increasing the length of a growable list is not efficient.
+/// To avoid this, override 'add' and 'addAll' to also forward directly
+/// to the growable list, or, if possible, use `DelegatingList` from
+/// "package:collection/collection.dart" instead of a `ListMixin`.
+// TODO: @Deprecated("Use List instead")
+typedef ListMixin<E> = ListBase<E>;

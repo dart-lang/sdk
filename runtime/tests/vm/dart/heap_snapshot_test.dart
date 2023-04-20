@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:_internal';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
@@ -23,7 +24,7 @@ main() async {
     var exception;
     try {
       await runTest();
-    } catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.contains(
@@ -42,17 +43,17 @@ Future runTest() async {
 
     var local;
 
-    VMInternalsForTesting.writeHeapSnapshotToFile(state1);
+    NativeRuntime.writeHeapSnapshotToFile(state1);
     if (alwaysTrue) {
       global = Foo();
       local = Foo();
     }
-    VMInternalsForTesting.writeHeapSnapshotToFile(state2);
+    NativeRuntime.writeHeapSnapshotToFile(state2);
     if (alwaysTrue) {
       global = null;
       local = null;
     }
-    VMInternalsForTesting.writeHeapSnapshotToFile(state3);
+    NativeRuntime.writeHeapSnapshotToFile(state3);
 
     final int count1 = countFooInstances(
         findReachableObjects(loadHeapSnapshotFromFile(state1)));

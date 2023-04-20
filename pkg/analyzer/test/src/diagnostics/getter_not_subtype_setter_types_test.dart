@@ -86,7 +86,7 @@ class B extends A {
   set _foo(String _) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 44, 4),
+      error(WarningCode.UNUSED_ELEMENT, 44, 4),
     ]);
   }
 
@@ -139,7 +139,7 @@ class B extends A {
   int get _foo => 0;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 48, 4),
+      error(WarningCode.UNUSED_ELEMENT, 48, 4),
     ]);
   }
 

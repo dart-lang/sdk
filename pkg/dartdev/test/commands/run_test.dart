@@ -34,8 +34,6 @@ void main() async {
 void run() {
   late TestProject p;
 
-  tearDown(() async => await p.dispose());
-
   test('--help', () async {
     p = project();
     var result = await p.run(['run', '--help']);
@@ -178,7 +176,7 @@ void run() {
 
   test('from path-dependency with cyclic dependency', () async {
     p = project(name: 'foo');
-    final bar = TestProject(name: 'bar');
+    final bar = project(name: 'bar');
     p.file('pubspec.yaml', '''
 name: foo
 environment:
@@ -191,22 +189,18 @@ import 'package:bar/bar.dart';
 final b = "FOO $bar";
 ''');
 
-    try {
-      bar.file('lib/bar.dart', 'final bar = "BAR";');
+    bar.file('lib/bar.dart', 'final bar = "BAR";');
 
-      bar.file('bin/main.dart', r'''
+    bar.file('bin/main.dart', r'''
 import 'package:foo/foo.dart';
 void main(List<String> args) => print("$b $args");
 ''');
 
-      ProcessResult result = await p.run(['run', 'bar:main', '--arg1', 'arg2']);
+    ProcessResult result = await p.run(['run', 'bar:main', '--arg1', 'arg2']);
 
-      expect(result.stderr, isEmpty);
-      expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
-      expect(result.exitCode, 0);
-    } finally {
-      await bar.dispose();
-    }
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
+    expect(result.exitCode, 0);
   });
 
   test('with absolute file path', () async {
@@ -341,10 +335,7 @@ void main(List<String> args) => print("$b $args");
     expect(result.stderr, isEmpty);
     expect(result.stdout, isEmpty);
     expect(result.exitCode, 0);
-    expect(
-        p
-            .findFile(path.join(p.dirPath, 'dart-timeline.json'))!
-            .readAsStringSync(),
+    expect(p.findFile('dart-timeline.json')!.readAsStringSync(),
         contains('"name":"sync","cat":"Dart"'));
   });
 
@@ -641,7 +632,7 @@ void main(List<String> args) => print("$b $args");
             '--enable-vm-service=0',
             if (!withDds) '--no-dds',
             if (!enableAuthCodes) '--disable-service-auth-codes',
-            if (serve) '--serve-observatory',
+            if (!serve) '--no-serve-observatory',
             p.relativeFilePath,
           ]);
 
@@ -753,11 +744,7 @@ void residentRun() {
         File(path.join(serverInfoDirectory.dirPath, 'info')),
       );
     } catch (_) {}
-
-    serverInfoDirectory.dispose();
   });
-
-  tearDown(() async => await p.dispose());
 
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
@@ -784,7 +771,7 @@ void residentRun() {
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
       sdkConstraint: VersionConstraint.parse(
-        '>=2.19.0 <3.0.0',
+        '^3.0.0',
       ),
     );
     final result = await p.run([
@@ -811,7 +798,6 @@ void residentRun() {
   test('same server used from different directories', () async {
     p = project(mainSrc: "void main() { print('1'); }");
     TestProject p2 = project(mainSrc: "void main() { print('2'); }");
-    addTearDown(() async => p2.dispose());
 
     final runResult1 = await p.run([
       'run',
@@ -1030,36 +1016,64 @@ void residentRun() {
   });
 
   test('custom package_config path', () async {
-    p = project(name: 'foo');
-    final bar = TestProject(name: 'bar');
-    final baz = TestProject(name: 'baz', mainSrc: '''
-  import 'package:bar/bar.dart'
-  void main() {}
+    p = project(name: 'foo', mainSrc: '''
+import 'package:bar/main.dart';
+void main() {
+  cmd();
+}
 ''');
-    addTearDown(() async => bar.dispose());
-    addTearDown(() async => baz.dispose());
+    final bar1 = project(name: 'bar1', mainSrc: '''
+cmd() {
+  print('hi');
+}
+''');
+    final bar2 = project(name: 'bar2', mainSrc: '''
+cmd() {
+  print('bye');
+}
+''');
 
-    p.file('custom_packages.json', '''
+    p.file('custom_packages1.json', '''
 {
   "configVersion": 2,
   "packages": [
     {
       "name": "bar",
-      "rootUri": "${bar.dirPath}",
-      "packageUri": "${path.join(bar.dirPath, 'lib')}"
+      "rootUri": "${bar1.dirPath}",
+      "packageUri": "${path.join(bar1.dirPath, 'lib')}"
     }
   ]
 }
 ''');
-    final runResult = await baz.run([
+    p.file('custom_packages2.json', '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "bar",
+      "rootUri": "${bar2.dirPath}",
+      "packageUri": "${path.join(bar2.dirPath, 'lib')}"
+    }
+  ]
+}
+''');
+    final runResult1 = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
-      '--packages=${path.join(p.dirPath, 'custom_packages.json')}',
-      baz.relativeFilePath,
+      '--packages=${path.join(p.dirPath, 'custom_packages1.json')}',
+      p.relativeFilePath,
+    ]);
+    expect(runResult1.stderr, isEmpty);
+    expect(runResult1.stdout, contains('hi'));
+    expect(runResult1.exitCode, 0);
+    // Test that --packages can precede the command name
+    final runResult2 = await p.run([
+      '--packages=${path.join(p.dirPath, 'custom_packages2.json')}',
+      'run',
+      p.relativeFilePath,
     ]);
 
-    expect(runResult.exitCode, 0);
-    expect(runResult.stderr, isEmpty);
-    expect(runResult.stdout, isEmpty);
-  }, skip: 'until a --packages flag is added to the run command');
+    expect(runResult2.stderr, isEmpty);
+    expect(runResult2.stdout, contains('bye'));
+    expect(runResult2.exitCode, 0);
+  });
 }

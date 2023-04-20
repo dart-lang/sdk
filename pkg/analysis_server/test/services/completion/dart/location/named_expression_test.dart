@@ -43,13 +43,9 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  x
-    kind: parameter
   const
-    kind: keyword
-  true
     kind: keyword
   false
     kind: keyword
@@ -57,6 +53,10 @@ suggestions
     kind: keyword
   switch
     kind: keyword
+  true
+    kind: keyword
+  x
+    kind: parameter
 ''');
   }
 
@@ -69,13 +69,9 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  x
-    kind: parameter
   const
-    kind: keyword
-  true
     kind: keyword
   false
     kind: keyword
@@ -83,6 +79,10 @@ suggestions
     kind: keyword
   switch
     kind: keyword
+  true
+    kind: keyword
+  x
+    kind: parameter
 ''');
   }
 
@@ -95,13 +95,9 @@ void f(int x) {
 void g({required int a}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
-  x
-    kind: parameter
   const
-    kind: keyword
-  true
     kind: keyword
   false
     kind: keyword
@@ -109,6 +105,10 @@ suggestions
     kind: keyword
   switch
     kind: keyword
+  true
+    kind: keyword
+  x
+    kind: parameter
 ''');
   }
 }

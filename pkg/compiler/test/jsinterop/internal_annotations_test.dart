@@ -18,9 +18,12 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    await testClasses('package:js/js.dart', 'dart:_js_annotations');
+    // TODO(srujzs): Uncomment these tests when we create a `dart:js_interop`
+    // `@JS` annotation. Currently these tests fail because
+    // `dart:_js_annotations`' `@JS` can only be used for static interop.
+    // await testClasses('package:js/js.dart', 'dart:_js_annotations');
     await testClasses('package:js/js.dart', 'package:js/js.dart');
-    await testClasses('dart:_js_annotations', 'dart:_js_annotations');
+    // await testClasses('dart:_js_annotations', 'dart:_js_annotations');
   });
 }
 

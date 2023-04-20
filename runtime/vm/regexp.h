@@ -77,8 +77,8 @@ class CharacterRange {
   // Negate the contents of a character range in canonical form.
   static void Negate(ZoneGrowableArray<CharacterRange>* src,
                      ZoneGrowableArray<CharacterRange>* dst);
-  static const intptr_t kStartMarker = (1 << 24);
-  static const intptr_t kPayloadMask = (1 << 24) - 1;
+  static constexpr intptr_t kStartMarker = (1 << 24);
+  static constexpr intptr_t kPayloadMask = (1 << 24) - 1;
 
  private:
   int32_t from_;
@@ -91,10 +91,10 @@ class CharacterRange {
 // integers (< 32).  May do zone-allocation.
 class OutSet : public ZoneAllocated {
  public:
-  OutSet() : first_(0), remaining_(NULL), successors_(NULL) {}
+  OutSet() : first_(0), remaining_(nullptr), successors_(nullptr) {}
   OutSet* Extend(unsigned value, Zone* zone);
   bool Get(unsigned value) const;
-  static const unsigned kFirstLimit = 32;
+  static constexpr unsigned kFirstLimit = 32;
 
  private:
   // Destructively set a value in this set.  In most cases you want
@@ -108,7 +108,7 @@ class OutSet : public ZoneAllocated {
   ZoneGrowableArray<OutSet*>* successors() { return successors_; }
 
   OutSet(uint32_t first, ZoneGrowableArray<unsigned>* remaining)
-      : first_(first), remaining_(remaining), successors_(NULL) {}
+      : first_(first), remaining_(remaining), successors_(nullptr) {}
   uint32_t first_;
   ZoneGrowableArray<unsigned>* remaining_;
   ZoneGrowableArray<OutSet*>* successors_;
@@ -192,12 +192,12 @@ class UnicodeRangeSplitter : public ValueObject {
   ZoneGrowableArray<CharacterRange>* non_bmp() const { return non_bmp_; }
 
  private:
-  static const int kBase = 0;
+  static constexpr int kBase = 0;
   // Separate ranges into
-  static const int kBmpCodePoints = 1;
-  static const int kLeadSurrogates = 2;
-  static const int kTrailSurrogates = 3;
-  static const int kNonBmpCodePoints = 4;
+  static constexpr int kBmpCodePoints = 1;
+  static constexpr int kLeadSurrogates = 2;
+  static constexpr int kTrailSurrogates = 3;
+  static constexpr int kNonBmpCodePoints = 4;
 
   Zone* zone_;
   ChoiceTable table_;
@@ -384,8 +384,8 @@ class QuickCheckDetails {
 class RegExpNode : public ZoneAllocated {
  public:
   explicit RegExpNode(Zone* zone)
-      : replacement_(NULL), trace_count_(0), zone_(zone) {
-    bm_info_[0] = bm_info_[1] = NULL;
+      : replacement_(nullptr), trace_count_(0), zone_(zone) {
+    bm_info_[0] = bm_info_[1] = nullptr;
   }
   virtual ~RegExpNode();
   virtual void Accept(NodeVisitor* visitor) = 0;
@@ -419,7 +419,7 @@ class RegExpNode : public ZoneAllocated {
                                     RegExpCompiler* compiler,
                                     intptr_t characters_filled_in,
                                     bool not_at_start) = 0;
-  static const intptr_t kNodeIsTooComplexForGreedyLoops = -1;
+  static constexpr intptr_t kNodeIsTooComplexForGreedyLoops = -1;
   virtual intptr_t GreedyLoopTextLength() {
     return kNodeIsTooComplexForGreedyLoops;
   }
@@ -427,7 +427,7 @@ class RegExpNode : public ZoneAllocated {
   // character and that has no guards on it.
   virtual RegExpNode* GetSuccessorOfOmnivorousTextNode(
       RegExpCompiler* compiler) {
-    return NULL;
+    return nullptr;
   }
 
   // Collects information on the possible code units (mod 128) that can match if
@@ -435,7 +435,7 @@ class RegExpNode : public ZoneAllocated {
   // implementation.  TODO(erikcorry):  This should share more code with
   // EatsAtLeast, GetQuickCheckDetails.  The budget argument is used to limit
   // the number of nodes we are willing to look at in order to create this data.
-  static const intptr_t kRecursionBudget = 200;
+  static constexpr intptr_t kRecursionBudget = 200;
   virtual void FillInBMInfo(intptr_t offset,
                             intptr_t budget,
                             BoyerMooreLookahead* bm,
@@ -445,7 +445,7 @@ class RegExpNode : public ZoneAllocated {
 
   // If we know that the input is one-byte then there are some nodes that can
   // never match.  This method returns a node that can be substituted for
-  // itself, or NULL if the node can never match.
+  // itself, or nullptr if the node can never match.
   virtual RegExpNode* FilterOneByte(intptr_t depth) { return this; }
   // Helper for FilterOneByte.
   RegExpNode* replacement() {
@@ -472,7 +472,7 @@ class RegExpNode : public ZoneAllocated {
   // on how often we allow that to happen before we insist on starting a new
   // trace and generating generic code for a node that can be reused by flushing
   // the deferred actions in the current trace and generating a goto.
-  static const intptr_t kMaxCopiesCodeGenerated = 10;
+  static constexpr intptr_t kMaxCopiesCodeGenerated = 10;
 
   NodeInfo* info() { return &info_; }
 
@@ -493,7 +493,7 @@ class RegExpNode : public ZoneAllocated {
   }
 
  private:
-  static const intptr_t kFirstCharBudget = 10;
+  static constexpr intptr_t kFirstCharBudget = 10;
   BlockLabel label_;
   NodeInfo info_;
   // This variable keeps track of how many times code has been generated for
@@ -528,7 +528,7 @@ class Interval {
   intptr_t from() const { return from_; }
   intptr_t to() const { return to_; }
   static Interval Empty() { return Interval(); }
-  static const intptr_t kNone = -1;
+  static constexpr intptr_t kNone = -1;
 
  private:
   intptr_t from_;
@@ -705,8 +705,8 @@ class TextNode : public SeqRegExpNode {
     CHARACTER_CLASS_MATCH        // Character class.
   };
   static bool SkipPass(intptr_t pass, bool ignore_case);
-  static const intptr_t kFirstRealPass = SIMPLE_CHARACTER_MATCH;
-  static const intptr_t kLastPass = CHARACTER_CLASS_MATCH;
+  static constexpr intptr_t kFirstRealPass = SIMPLE_CHARACTER_MATCH;
+  static constexpr intptr_t kLastPass = CHARACTER_CLASS_MATCH;
   void TextEmitPass(RegExpCompiler* compiler,
                     TextEmitPassType pass,
                     bool preloaded,
@@ -875,7 +875,8 @@ class Guard : public ZoneAllocated {
 
 class GuardedAlternative {
  public:
-  explicit GuardedAlternative(RegExpNode* node) : node_(node), guards_(NULL) {}
+  explicit GuardedAlternative(RegExpNode* node)
+      : node_(node), guards_(nullptr) {}
   void AddGuard(Guard* guard, Zone* zone);
   RegExpNode* node() const { return node_; }
   void set_node(RegExpNode* node) { node_ = node; }
@@ -1012,8 +1013,8 @@ class LoopChoiceNode : public ChoiceNode {
                           bool read_backward,
                           Zone* zone)
       : ChoiceNode(2, zone),
-        loop_node_(NULL),
-        continue_node_(NULL),
+        loop_node_(nullptr),
+        continue_node_(nullptr),
         body_can_be_zero_length_(body_can_be_zero_length),
         read_backward_(read_backward) {}
   void AddLoopAlternative(GuardedAlternative alt);
@@ -1108,8 +1109,8 @@ class BoyerMoorePositionInfo : public ZoneAllocated {
 
   bool& at(intptr_t i) { return (*map_)[i]; }
 
-  static const intptr_t kMapSize = 128;
-  static const intptr_t kMask = kMapSize - 1;
+  static constexpr intptr_t kMapSize = 128;
+  static constexpr intptr_t kMask = kMapSize - 1;
 
   intptr_t map_count() const { return map_count_; }
 
@@ -1207,7 +1208,7 @@ class Trace {
   class DeferredAction {
    public:
     DeferredAction(ActionNode::ActionType action_type, intptr_t reg)
-        : action_type_(action_type), reg_(reg), next_(NULL) {}
+        : action_type_(action_type), reg_(reg), next_(nullptr) {}
     DeferredAction* next() { return next_; }
     bool Mentions(intptr_t reg);
     intptr_t reg() { return reg_; }
@@ -1265,10 +1266,10 @@ class Trace {
 
   Trace()
       : cp_offset_(0),
-        actions_(NULL),
-        backtrack_(NULL),
-        stop_node_(NULL),
-        loop_label_(NULL),
+        actions_(nullptr),
+        backtrack_(nullptr),
+        stop_node_(nullptr),
+        loop_label_(nullptr),
         characters_preloaded_(0),
         bound_checked_up_to_(0),
         flush_budget_(100),
@@ -1292,7 +1293,7 @@ class Trace {
   // a trivial trace is recorded in a label in the node so that gotos can be
   // generated to that code.
   bool is_trivial() {
-    return backtrack_ == NULL && actions_ == NULL && cp_offset_ == 0 &&
+    return backtrack_ == nullptr && actions_ == nullptr && cp_offset_ == 0 &&
            characters_preloaded_ == 0 && bound_checked_up_to_ == 0 &&
            quick_check_performed_.characters() == 0 && at_start_ == UNKNOWN;
   }
@@ -1313,7 +1314,7 @@ class Trace {
   // These set methods and AdvanceCurrentPositionInTrace should be used only on
   // new traces - the intention is that traces are immutable after creation.
   void add_action(DeferredAction* new_action) {
-    ASSERT(new_action->next_ == NULL);
+    ASSERT(new_action->next_ == nullptr);
     new_action->next_ = actions_;
     actions_ = new_action;
   }
@@ -1370,7 +1371,7 @@ class GreedyLoopState {
 };
 
 struct PreloadState {
-  static const intptr_t kEatsAtLeastNotYetInitialized = -1;
+  static constexpr intptr_t kEatsAtLeastNotYetInitialized = -1;
   bool preload_is_current_;
   bool preload_has_checked_bounds_;
   intptr_t preload_characters_;
@@ -1404,7 +1405,7 @@ class NodeVisitor : public ValueObject {
 class Analysis : public NodeVisitor {
  public:
   explicit Analysis(bool is_one_byte)
-      : is_one_byte_(is_one_byte), error_message_(NULL) {}
+      : is_one_byte_(is_one_byte), error_message_(nullptr) {}
   void EnsureAnalyzed(RegExpNode* node);
 
 #define DECLARE_VISIT(Type) virtual void Visit##Type(Type##Node* that);
@@ -1412,9 +1413,9 @@ class Analysis : public NodeVisitor {
 #undef DECLARE_VISIT
   virtual void VisitLoopChoice(LoopChoiceNode* that);
 
-  bool has_failed() { return error_message_ != NULL; }
+  bool has_failed() { return error_message_ != nullptr; }
   const char* error_message() {
-    ASSERT(error_message_ != NULL);
+    ASSERT(error_message_ != nullptr);
     return error_message_;
   }
   void fail(const char* error_message) { error_message_ = error_message; }
@@ -1428,8 +1429,8 @@ class Analysis : public NodeVisitor {
 
 struct RegExpCompileData : public ZoneAllocated {
   RegExpCompileData()
-      : tree(NULL),
-        node(NULL),
+      : tree(nullptr),
+        node(nullptr),
         simple(true),
         contains_anchor(false),
         capture_name_map(Array::Handle(Array::null())),
@@ -1450,20 +1451,20 @@ class RegExpEngine : public AllStatic {
     explicit CompilationResult(const char* error_message)
         : error_message(error_message),
 #if !defined(DART_PRECOMPILED_RUNTIME)
-          backtrack_goto(NULL),
-          graph_entry(NULL),
+          backtrack_goto(nullptr),
+          graph_entry(nullptr),
           num_blocks(-1),
           num_stack_locals(-1),
 #endif
-          bytecode(NULL),
+          bytecode(nullptr),
           num_registers(-1) {
     }
 
     CompilationResult(TypedData* bytecode, intptr_t num_registers)
-        : error_message(NULL),
+        : error_message(nullptr),
 #if !defined(DART_PRECOMPILED_RUNTIME)
-          backtrack_goto(NULL),
-          graph_entry(NULL),
+          backtrack_goto(nullptr),
+          graph_entry(nullptr),
           num_blocks(-1),
           num_stack_locals(-1),
 #endif
@@ -1477,12 +1478,12 @@ class RegExpEngine : public AllStatic {
                       intptr_t num_blocks,
                       intptr_t num_stack_locals,
                       intptr_t num_registers)
-        : error_message(NULL),
+        : error_message(nullptr),
           backtrack_goto(backtrack_goto),
           graph_entry(graph_entry),
           num_blocks(num_blocks),
           num_stack_locals(num_stack_locals),
-          bytecode(NULL) {}
+          bytecode(nullptr) {}
 #endif
 
     const char* error_message;

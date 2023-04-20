@@ -52,6 +52,9 @@ class DapTestClient {
   /// testing.
   bool? forceBreakpointDriveLetterCasingLower;
 
+  /// All stderr OutputEvents that have occurred so far.
+  final StringBuffer _stderr = StringBuffer();
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -76,6 +79,12 @@ class DapTestClient {
         _pendingRequests.clear();
       },
     );
+
+    // Collect stderr output events so if we can write this to the real
+    // stderr when the app terminates to help track down things like VM crashes.
+    outputEvents
+        .where((event) => event.category == 'stderr')
+        .listen((event) => _stderr.write(event.output));
   }
 
   /// Returns a stream of [OutputEventBody] events.
@@ -415,7 +424,13 @@ class DapTestClient {
     await _subscription.cancel();
   }
 
-  Future<Response> terminate() => sendRequest(TerminateArguments());
+  /// Whether or not any `terminate()` request has been sent.
+  bool get hasSentTerminateRequest => _hasSentTerminateRequest;
+  bool _hasSentTerminateRequest = false;
+  Future<Response?> terminate() async {
+    _hasSentTerminateRequest = true;
+    return sendRequest(TerminateArguments());
+  }
 
   /// Sends a threads request to the server to request the list of active
   /// threads (isolates).
@@ -469,6 +484,11 @@ class DapTestClient {
       // a useful location.
       if (message.event == 'terminated') {
         unawaited(_eventController.close());
+
+        if (_stderr.isNotEmpty) {
+          stderr.writeln('STDERR output collected before app terminated:');
+          stderr.write(_stderr.toString());
+        }
       }
     } else if (message is Request) {
       // The server sent a request to the client. Call the handler and then send
@@ -489,14 +509,11 @@ class DapTestClient {
   ///
   /// Returns [future].
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
-    var didComplete = false;
-    Future.delayed(_requestWarningDuration).then((_) {
-      if (!didComplete) {
-        print(
-            '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
-      }
+    final timer = Timer(_requestWarningDuration, () {
+      print(
+          '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
     });
-    return future.whenComplete(() => didComplete = true);
+    return future.whenComplete(timer.cancel);
   }
 
   /// Creates a [DapTestClient] that connects the server listening on

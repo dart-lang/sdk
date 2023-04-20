@@ -26,8 +26,8 @@ class _SplayTreeSetNode<K> extends _SplayTreeNode<K, _SplayTreeSetNode<K>> {
 ///
 /// A [_SplayTreeNode] that also contains a value,
 /// and which implements [MapEntry].
-class _SplayTreeMapNode<K, V> extends _SplayTreeNode<K, _SplayTreeMapNode<K, V>>
-    implements MapEntry<K, V> {
+class _SplayTreeMapNode<K, V>
+    extends _SplayTreeNode<K, _SplayTreeMapNode<K, V>> {
   final V value;
   _SplayTreeMapNode(K key, this.value) : super(key);
 
@@ -35,8 +35,6 @@ class _SplayTreeMapNode<K, V> extends _SplayTreeNode<K, _SplayTreeMapNode<K, V>>
       _SplayTreeMapNode<K, V>(key, value)
         .._left = _left
         .._right = _right;
-
-  String toString() => "MapEntry($key: $value)";
 }
 
 /// A splay tree is a self-balancing binary search tree.
@@ -390,7 +388,7 @@ Comparator<K> _defaultCompare<K>() {
 /// * [Map], the general interface of key/value pair collections.
 /// * [HashMap] is unordered (the order of iteration is not guaranteed).
 /// * [LinkedHashMap] iterates in key insertion order.
-class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
+final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     with MapMixin<K, V> {
   _SplayTreeMapNode<K, V>? _root;
 
@@ -836,7 +834,8 @@ class _SplayTreeValueIterator<K, V>
 class _SplayTreeMapEntryIterator<K, V>
     extends _SplayTreeIterator<K, _SplayTreeMapNode<K, V>, MapEntry<K, V>> {
   _SplayTreeMapEntryIterator(SplayTreeMap<K, V> tree) : super(tree);
-  MapEntry<K, V> _getValue(_SplayTreeMapNode<K, V> node) => node;
+  MapEntry<K, V> _getValue(_SplayTreeMapNode<K, V> node) =>
+      MapEntry<K, V>(node.key, node.value);
 
   // Replaces the value of the current node.
   void _replaceValue(V value) {
@@ -947,8 +946,8 @@ class _SplayTreeMapEntryIterator<K, V>
 /// * [Set] is a base-class for collection of objects.
 /// * [HashSet] the order of the objects in the iterations is not guaranteed.
 /// * [LinkedHashSet] objects stored based on insertion order.
-class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
-    with IterableMixin<E>, SetMixin<E> {
+final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
+    with Iterable<E>, SetMixin<E> {
   _SplayTreeSetNode<E>? _root;
 
   Comparator<E> _compare;
@@ -1189,5 +1188,5 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
 
   Set<E> toSet() => _clone();
 
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
+  String toString() => Iterable.iterableToFullString(this, '{', '}');
 }

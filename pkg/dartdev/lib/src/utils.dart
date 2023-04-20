@@ -13,6 +13,17 @@ import 'package:path/path.dart' as p;
 int? get dartdevUsageLineLength =>
     stdout.hasTerminal ? stdout.terminalColumns : null;
 
+/// Global options for dartdev.
+///
+///  ** READ THIS BEFORE MODIFYING **
+///
+/// Adding or changing behavior for global flags may have consequences for
+/// integration with the VM.  Check `runtime/bin/main_options.cc` in the
+/// Dart SDK if adding or changing any flags.  This is most important for
+/// those that are intended to be run without a script such as
+/// `dart --disable-analytics` as there is special handling.  Any flags
+/// added here should also be tested by hand with a compiled SDK as unit tests
+/// running `dartdev.dart` directly do not hit that code path.
 ArgParser globalDartdevOptionsParser({bool verbose = false}) {
   var argParser = ArgParser(
     usageLineLength: dartdevUsageLineLength,
@@ -26,6 +37,8 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
       negatable: false, help: 'Enable analytics.');
   argParser.addFlag('disable-analytics',
       negatable: false, help: 'Disable analytics.');
+  argParser.addFlag('disable-telemetry',
+      negatable: false, help: 'Disable telemetry.', hide: true);
 
   argParser.addFlag('diagnostics',
       negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);

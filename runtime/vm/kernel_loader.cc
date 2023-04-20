@@ -41,7 +41,7 @@ class SimpleExpressionConverter {
                             KernelReaderHelper* reader_helper)
       : translation_helper_(*translation_helper),
         zone_(translation_helper_.zone()),
-        simple_value_(NULL),
+        simple_value_(nullptr),
         helper_(reader_helper) {}
 
   bool IsSimple(intptr_t kernel_offset) {
@@ -135,11 +135,13 @@ ArrayPtr KernelLoader::MakeFunctionsArray() {
 }
 
 LibraryPtr BuildingTranslationHelper::LookupLibraryByKernelLibrary(
-    NameIndex library) {
+    NameIndex library,
+    bool required) {
   return loader_->LookupLibrary(library);
 }
 
-ClassPtr BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
+ClassPtr BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass,
+                                                             bool required) {
 #if defined(DEBUG)
   LibraryLookupHandleScope library_lookup_handle_scope(library_lookup_handle_);
 #endif  // defined(DEBUG)
@@ -192,7 +194,7 @@ KernelLoader::KernelLoader(Program* program,
       patch_classes_(Array::ZoneHandle(zone_)),
       active_class_(),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
-      correction_offset_(-1),  // Set to the correct value in LoadLibrary
+      correction_offset_(-1),      // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
@@ -272,7 +274,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
       const String& script_source = helper_.GetSourceFor(index);
       wrapper.uri = &uri_string;
       UriToSourceTableEntry* pair = uri_to_source_table.LookupValue(&wrapper);
-      if (pair != NULL) {
+      if (pair != nullptr) {
         // At least two entries with content. Unless the content is the same
         // that's not valid.
         const bool src_differ = pair->sources->CompareTo(script_source) != 0;
@@ -453,7 +455,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 KernelLoader::KernelLoader(const Script& script,
                            const ExternalTypedData& kernel_data,
                            intptr_t data_program_offset)
-    : program_(NULL),
+    : program_(nullptr),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       no_active_isolate_scope_(),
@@ -1033,7 +1035,7 @@ void KernelLoader::FinishTopLevelClassLoading(
   const intptr_t field_count = helper_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < field_count; ++i) {
     intptr_t field_offset = helper_.ReaderOffset() - correction_offset_;
-    ActiveMemberScope active_member_scope(&active_class_, NULL);
+    ActiveMemberScope active_member_scope(&active_class_, nullptr);
     FieldHelper field_helper(&helper_);
     field_helper.ReadUntilExcluding(FieldHelper::kName);
 
@@ -1045,6 +1047,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     bool has_pragma_annotation;
     ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
                       /*is_invisible_function=*/nullptr,
+                      /*is_isolate_unsendable=*/nullptr,
                       &has_pragma_annotation);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
@@ -1272,7 +1275,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (type_tag == kSomething) {
     AbstractType& super_type =
         T.BuildTypeWithoutFinalization();  // read super class type (part 2).
-    klass->set_super_type(super_type);
+    klass->set_super_type(Type::Cast(super_type));
   }
 
   class_helper->SetJustRead(ClassHelper::kSuperClass);
@@ -1356,8 +1359,13 @@ void KernelLoader::LoadClass(const Library& library,
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
   bool has_pragma_annotation = false;
+  bool is_isolate_unsendable = false;
   ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                    /*is_invisible_function=*/nullptr, &has_pragma_annotation);
+                    /*is_invisible_function=*/nullptr, &is_isolate_unsendable,
+                    &has_pragma_annotation);
+  if (is_isolate_unsendable) {
+    out_class->set_is_isolate_unsendable_due_to_pragma(true);
+  }
   if (has_pragma_annotation) {
     out_class->set_has_pragma(true);
   }
@@ -1421,7 +1429,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     int field_count = helper_.ReadListLength();  // read list length.
     for (intptr_t i = 0; i < field_count; ++i) {
       intptr_t field_offset = helper_.ReaderOffset() - correction_offset_;
-      ActiveMemberScope active_member(&active_class_, NULL);
+      ActiveMemberScope active_member(&active_class_, nullptr);
       FieldHelper field_helper(&helper_);
 
       field_helper.ReadUntilIncluding(FieldHelper::kSourceUriIndex);
@@ -1437,6 +1445,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       bool has_pragma_annotation;
       ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
                         /*is_invisible_function=*/nullptr,
+                        /*is_isolate_unsendable=*/nullptr,
                         &has_pragma_annotation);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
@@ -1556,14 +1565,15 @@ void KernelLoader::FinishClassLoading(const Class& klass,
   int constructor_count = helper_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < constructor_count; ++i) {
     intptr_t constructor_offset = helper_.ReaderOffset() - correction_offset_;
-    ActiveMemberScope active_member_scope(&active_class_, NULL);
+    ActiveMemberScope active_member_scope(&active_class_, nullptr);
     ConstructorHelper constructor_helper(&helper_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
     bool has_pragma_annotation;
     bool is_invisible_function;
     ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      &is_invisible_function, &has_pragma_annotation);
+                      &is_invisible_function, /*isolate_unsendable=*/nullptr,
+                      &has_pragma_annotation);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1705,7 +1715,8 @@ void KernelLoader::FinishLoading(const Class& klass) {
                                    class_index, &class_helper);
 }
 
-// Read annotations on a procedure to identify potential VM-specific directives.
+// Read annotations on a procedure or a class to identify potential VM-specific
+// directives.
 //
 // Output parameters:
 //
@@ -1720,6 +1731,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
                                      intptr_t annotation_count,
                                      String* native_name,
                                      bool* is_invisible_function,
+                                     bool* is_isolate_unsendable,
                                      bool* has_pragma_annotation) {
   if (is_invisible_function != nullptr) {
     *is_invisible_function = false;
@@ -1755,6 +1767,12 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
           if (constant_reader.IsStringConstant(name_index,
                                                "vm:external-name")) {
             constant_reader.GetStringConstant(options_index, native_name);
+          }
+        }
+        if (is_isolate_unsendable != nullptr) {
+          if (constant_reader.IsStringConstant(name_index,
+                                               "vm:isolate-unsendable")) {
+            *is_isolate_unsendable = true;
           }
         }
       }
@@ -1796,7 +1814,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_invisible_function;
   const intptr_t annotation_count = helper_.ReadListLength();
   ReadVMAnnotations(library, annotation_count, &native_name,
-                    &is_invisible_function, &has_pragma_annotation);
+                    &is_invisible_function, /*isolate_unsendable=*/nullptr,
+                    &has_pragma_annotation);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =

@@ -225,6 +225,14 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   DateTime.now() : this._now();
 
+  /// Constructs a [DateTime] with the current UTC date and time.
+  ///
+  ///
+  /// ```dart
+  /// final mark = DateTime.timestamp();
+  /// ```
+  DateTime.timestamp() : this._nowUtc();
+
   /// Constructs a new [DateTime] instance based on [formattedString].
   ///
   /// Throws a [FormatException] if the input string cannot be parsed.

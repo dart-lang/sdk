@@ -90,7 +90,7 @@ static void* ThreadStart(void* data_ptr) {
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
-  return NULL;
+  return nullptr;
 }
 
 int Thread::Start(const char* name,
@@ -118,7 +118,7 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(NULL);
+const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(nullptr);
 
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
@@ -200,7 +200,7 @@ Monitor::Monitor() {
   result = pthread_mutexattr_destroy(&attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_cond_init(data_.cond(), NULL);
+  result = pthread_cond_init(data_.cond(), nullptr);
   VALIDATE_PTHREAD_RESULT(result);
 }
 

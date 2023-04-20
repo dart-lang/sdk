@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  final field self::A::X% x;
+  constructor •(self::A::X% x) → self::A<self::A::X%>
+    ;
+}
+extension /* unnamed */ _extension#0<X extends core::Object? = dynamic> on self::A<X%> {
+  get g = self::_extension#0|get#g;
+}
+static method _extension#0|get#g<X extends core::Object? = dynamic>(lowered final self::A<self::_extension#0|get#g::X%> #this) → self::_extension#0|get#g::X%
+  ;
+static method foo<X extends core::Object? = dynamic>(self::A<self::foo::X%> it) → void
+  ;

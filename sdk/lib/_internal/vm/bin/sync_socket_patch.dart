@@ -45,10 +45,12 @@ class _RawSynchronousSocket implements RawSynchronousSocket {
 
 // The NativeFieldWrapperClass1 can not be used with a mixin, due to missing
 // implicit constructor.
-class _NativeSynchronousSocketNativeWrapper extends NativeFieldWrapperClass1 {}
+base class _NativeSynchronousSocketNativeWrapper
+    extends NativeFieldWrapperClass1 {}
 
 // The _NativeSynchronousSocket class encapsulates a synchronous OS socket.
-class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
+base class _NativeSynchronousSocket
+    extends _NativeSynchronousSocketNativeWrapper {
   // Socket close state.
   bool isClosed = false;
   bool isClosedRead = false;

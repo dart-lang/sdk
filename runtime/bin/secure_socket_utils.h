@@ -25,7 +25,7 @@ const bool SSL_LOG_CERTS = false;
 
 class SecureSocketUtils : public AllStatic {
  public:
-  static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
+  static constexpr int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 
   static void ThrowIOException(int status,
                                const char* exception_type,
@@ -65,7 +65,7 @@ class ScopedMemBIO {
           DartUtils::NewDartArgumentError("Argument is not a List<int>"));
     }
 
-    uint8_t* bytes = NULL;
+    uint8_t* bytes = nullptr;
     intptr_t bytes_len = 0;
     bool is_typed_data = false;
     if (Dart_IsTypedData(object)) {
@@ -77,7 +77,7 @@ class ScopedMemBIO {
       ASSERT(Dart_IsList(object));
       ThrowIfError(Dart_ListLength(object, &bytes_len));
       bytes = Dart_ScopeAllocate(bytes_len);
-      ASSERT(bytes != NULL);
+      ASSERT(bytes != nullptr);
       ThrowIfError(Dart_ListGetAsBytes(object, 0, bytes, bytes_len));
     }
 
@@ -85,12 +85,12 @@ class ScopedMemBIO {
     bytes_ = bytes;
     bytes_len_ = bytes_len;
     bio_ = BIO_new_mem_buf(bytes, bytes_len);
-    ASSERT(bio_ != NULL);
+    ASSERT(bio_ != nullptr);
     is_typed_data_ = is_typed_data;
   }
 
   ~ScopedMemBIO() {
-    ASSERT(bio_ != NULL);
+    ASSERT(bio_ != nullptr);
     if (is_typed_data_) {
       BIO_free(bio_);
       ThrowIfError(Dart_TypedDataReleaseData(object_));
@@ -100,7 +100,7 @@ class ScopedMemBIO {
   }
 
   BIO* bio() {
-    ASSERT(bio_ != NULL);
+    ASSERT(bio_ != nullptr);
     return bio_;
   }
 
@@ -124,7 +124,7 @@ class ScopedSSLType {
   explicit ScopedSSLType(T* obj) : obj_(obj) {}
 
   ~ScopedSSLType() {
-    if (obj_ != NULL) {
+    if (obj_ != nullptr) {
       free_func(obj_);
     }
   }
@@ -134,7 +134,7 @@ class ScopedSSLType {
 
   T* release() {
     T* result = obj_;
-    obj_ = NULL;
+    obj_ = nullptr;
     return result;
   }
 
@@ -151,7 +151,7 @@ class ScopedSSLStackType {
   explicit ScopedSSLStackType(T* obj) : obj_(obj) {}
 
   ~ScopedSSLStackType() {
-    if (obj_ != NULL) {
+    if (obj_ != nullptr) {
       sk_pop_free(reinterpret_cast<_STACK*>(obj_),
                   reinterpret_cast<void (*)(void*)>(func));
     }
@@ -162,7 +162,7 @@ class ScopedSSLStackType {
 
   T* release() {
     T* result = obj_;
-    obj_ = NULL;
+    obj_ = nullptr;
     return result;
   }
 

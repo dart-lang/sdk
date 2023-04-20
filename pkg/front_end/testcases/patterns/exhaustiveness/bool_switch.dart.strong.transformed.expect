@@ -2,22 +2,22 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:17:11: Error: The type 'bool' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:17:11: Error: The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'false'.
 // Try adding a default case or cases that match 'false'.
 //   switch (b) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:25:11: Error: The type 'bool' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:25:11: Error: The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'true'.
 // Try adding a default case or cases that match 'true'.
 //   switch (b) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: The type 'bool?' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
 // Try adding a default case or cases that match 'null'.
 //   switch (b) /* Error */ {
 //           ^
 //
-// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: The type 'bool?' is not exhaustively matched by the switch cases.
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'false'.
 // Try adding a default case or cases that match 'false'.
 //   switch (b) /* Error */ {
 //           ^

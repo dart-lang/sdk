@@ -22,7 +22,7 @@ class A {
   A({this._p = 0});
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 16, 2),
+      error(WarningCode.UNUSED_FIELD, 16, 2),
       error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 30, 2),
     ]);
   }

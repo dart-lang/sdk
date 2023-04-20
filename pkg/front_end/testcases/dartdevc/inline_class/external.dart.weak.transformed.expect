@@ -1,11 +1,11 @@
 @#C2
 library static_interop /*isNonNullableByDefault*/;
 import self as self;
-import "package:js/js.dart" as js;
+import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 import "dart:js_util" as js_;
 
-import "package:js/js.dart";
+import "dart:js_interop";
 
 abstract class A extends core::Object {
   synthetic constructor •() → self::A
@@ -94,7 +94,7 @@ static method method(self::A a) → void {
 
 constants  {
   #C1 = null
-  #C2 = js::JS {name:#C1}
+  #C2 = _js::JS {name:#C1}
   #C3 = static-tearoff self::B|staticMethod
   #C4 = static-tearoff self::B|staticGenericMethod
   #C5 = instantiation #C4 <core::String*>
@@ -103,5 +103,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///external.dart:
-- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
+- JS. (from org-dartlang-sdk:///lib/js/_js_annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)

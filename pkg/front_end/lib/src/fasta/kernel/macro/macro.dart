@@ -273,8 +273,8 @@ class MacroApplications {
     return new MacroApplications(macroExecutor, libraryData, dataForTesting);
   }
 
-  Map<ClassBuilder, macro.ClassDeclaration> _classDeclarations = {};
-  Map<macro.ClassDeclaration, ClassBuilder> _classBuilders = {};
+  Map<ClassBuilder, macro.ParameterizedTypeDeclaration> _classDeclarations = {};
+  Map<macro.ParameterizedTypeDeclaration, ClassBuilder> _classBuilders = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
 
@@ -284,7 +284,7 @@ class MacroApplications {
         _createMemberDeclaration(memberBuilder);
   }
 
-  macro.ClassDeclaration getClassDeclaration(ClassBuilder builder) {
+  macro.ParameterizedTypeDeclaration getClassDeclaration(ClassBuilder builder) {
     return _classDeclarations[builder] ??= _createClassDeclaration(builder);
   }
 
@@ -293,7 +293,8 @@ class MacroApplications {
         _createTypeAliasDeclaration(builder);
   }
 
-  ClassBuilder _getClassBuilder(macro.ClassDeclaration declaration) {
+  ClassBuilder _getClassBuilder(
+      macro.ParameterizedTypeDeclaration declaration) {
     return _classBuilders[declaration]!;
   }
 
@@ -310,6 +311,23 @@ class MacroApplications {
       // TODO(johnniwinther): Throw when all members are supported.
       throw new UnimplementedError(
           'Unsupported member ${memberBuilder} (${memberBuilder.runtimeType})');
+    }
+  }
+
+  macro.TypeDeclaration _resolveDeclaration(macro.Identifier identifier) {
+    if (identifier is MemberBuilderIdentifier) {
+      return getClassDeclaration(identifier.memberBuilder.classBuilder!);
+    } else if (identifier is TypeDeclarationBuilderIdentifier) {
+      final TypeDeclarationBuilder typeDeclarationBuilder =
+          identifier.typeDeclarationBuilder;
+      if (typeDeclarationBuilder is ClassBuilder) {
+        return getClassDeclaration(typeDeclarationBuilder);
+      }
+      throw new UnimplementedError(
+          'Resolving declarations is only supported for classes');
+    } else {
+      throw new UnimplementedError(
+          'Resolving declarations not supported for $identifier');
     }
   }
 
@@ -354,7 +372,7 @@ class MacroApplications {
         ClassMacroApplicationData classData = classEntry.value;
         ApplicationData? classApplicationData = classData.classApplications;
         if (classApplicationData != null) {
-          macro.ClassDeclaration classDeclaration =
+          macro.ParameterizedTypeDeclaration classDeclaration =
               getClassDeclaration(classBuilder);
           classApplicationData.declaration = classDeclaration;
         }
@@ -432,8 +450,8 @@ class MacroApplications {
       if (executionResults.isNotEmpty) {
         Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
         String result = _macroExecutor
-            .buildAugmentationLibrary(
-                executionResults, _resolveIdentifier, _inferOmittedType,
+            .buildAugmentationLibrary(executionResults, _resolveDeclaration,
+                _resolveIdentifier, _inferOmittedType,
                 omittedTypes: omittedTypes)
             .trim();
         assert(
@@ -486,8 +504,8 @@ class MacroApplications {
                 typeIntrospector);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
-          String source = _macroExecutor.buildAugmentationLibrary(
-              [result], _resolveIdentifier, _inferOmittedType,
+          String source = _macroExecutor.buildAugmentationLibrary([result],
+              _resolveDeclaration, _resolveIdentifier, _inferOmittedType,
               omittedTypes: omittedTypes);
           if (retainDataForTesting) {
             dataForTesting?.registerDeclarationsResult(
@@ -629,8 +647,8 @@ class MacroApplications {
       }
       if (executionResults.isNotEmpty) {
         String result = _macroExecutor
-            .buildAugmentationLibrary(
-                executionResults, _resolveIdentifier, _inferOmittedType)
+            .buildAugmentationLibrary(executionResults, _resolveDeclaration,
+                _resolveIdentifier, _inferOmittedType)
             .trim();
         assert(
             result.trim().isNotEmpty,
@@ -666,7 +684,8 @@ class MacroApplications {
             .toList();
   }
 
-  macro.ClassDeclaration _createClassDeclaration(ClassBuilder builder) {
+  macro.ParameterizedTypeDeclaration _createClassDeclaration(
+      ClassBuilder builder) {
     assert(
         !builder.isAnonymousMixinApplication,
         "Trying to create a ClassDeclaration for the mixin application "
@@ -686,21 +705,34 @@ class MacroApplications {
     if (mixins != null) {
       mixins = mixins.reversed.toList();
     }
-    macro.ClassDeclaration declaration =
+    final TypeDeclarationBuilderIdentifier identifier =
+        new TypeDeclarationBuilderIdentifier(
+            typeDeclarationBuilder: builder,
+            libraryBuilder: builder.libraryBuilder,
+            id: macro.RemoteInstance.uniqueId,
+            name: builder.name);
+    // TODO(johnniwinther): Support typeParameters
+    final List<macro.TypeParameterDeclarationImpl> typeParameters = [];
+    final List<macro.NamedTypeAnnotationImpl> interfaces =
+        _typeBuildersToAnnotations(
+            builder.libraryBuilder, builder.interfaceBuilders);
+    macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
         // TODO: These shouldn't always be introspectable. In the declarations
         // phase we need to limit the introspectable declarations to those that
         // are part of the super chain of the directly macro annotated class.
-        new macro.IntrospectableClassDeclarationImpl(
+        ? new macro.IntrospectableMixinDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
-            identifier: new TypeDeclarationBuilderIdentifier(
-                typeDeclarationBuilder: builder,
-                libraryBuilder: builder.libraryBuilder,
-                id: macro.RemoteInstance.uniqueId,
-                name: builder.name),
-            // TODO(johnniwinther): Support typeParameters
-            typeParameters: [],
-            interfaces: _typeBuildersToAnnotations(
-                builder.libraryBuilder, builder.interfaceBuilders),
+            identifier: identifier,
+            typeParameters: typeParameters,
+            hasBase: builder.isBase,
+            interfaces: interfaces,
+            superclassConstraints: _typeBuildersToAnnotations(
+                builder.libraryBuilder, builder.onTypes))
+        : new macro.IntrospectableClassDeclarationImpl(
+            id: macro.RemoteInstance.uniqueId,
+            identifier: identifier,
+            typeParameters: typeParameters,
+            interfaces: interfaces,
             hasAbstract: builder.isAbstract,
             hasBase: builder.isBase,
             hasExternal: builder.isExternal,
@@ -782,7 +814,7 @@ class MacroApplications {
     }
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, formals);
-    macro.ClassDeclaration definingClass =
+    macro.ParameterizedTypeDeclaration definingClass =
         getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -790,7 +822,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
-      definingClass: definingClass.identifier as macro.IdentifierImpl,
+      definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
       isExternal: builder.isExternal,
@@ -810,7 +842,7 @@ class MacroApplications {
       SourceFactoryBuilder builder) {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
-    macro.ClassDeclaration definingClass =
+    macro.ParameterizedTypeDeclaration definingClass =
         getClassDeclaration(builder.classBuilder);
 
     return new macro.ConstructorDeclarationImpl(
@@ -819,7 +851,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
-      definingClass: definingClass.identifier as macro.IdentifierImpl,
+      definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
       isExternal: builder.isExternal,
@@ -840,7 +872,7 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
 
-    macro.ClassDeclaration? definingClass = null;
+    macro.ParameterizedTypeDeclaration? definingClass = null;
     if (builder.classBuilder != null) {
       definingClass =
           getClassDeclaration(builder.classBuilder as SourceClassBuilder);
@@ -854,7 +886,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
-          definingClass: definingClass.identifier as macro.IdentifierImpl,
+          definingType: definingClass.identifier as macro.IdentifierImpl,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
           isGetter: builder.isGetter,
@@ -890,7 +922,7 @@ class MacroApplications {
 
   macro.VariableDeclaration _createVariableDeclaration(
       SourceFieldBuilder builder) {
-    macro.ClassDeclaration? definingClass = null;
+    macro.ParameterizedTypeDeclaration? definingClass = null;
     if (builder.classBuilder != null) {
       definingClass =
           getClassDeclaration(builder.classBuilder as SourceClassBuilder);
@@ -904,7 +936,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
-          definingClass: definingClass.identifier as macro.IdentifierImpl,
+          definingType: definingClass.identifier as macro.IdentifierImpl,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
@@ -1121,6 +1153,13 @@ class _TypeIntrospector implements macro.TypeIntrospector {
   }
 
   @override
+  Future<List<macro.EnumValueDeclaration>> valuesOf(
+      covariant macro.IntrospectableEnum enumType) {
+    // TODO: implement valuesOf
+    throw new UnimplementedError();
+  }
+
+  @override
   Future<List<macro.FieldDeclaration>> fieldsOf(macro.IntrospectableType type) {
     if (type is! macro.IntrospectableClassDeclaration) {
       throw new UnsupportedError('Only introspection on classes is supported');
@@ -1139,10 +1178,13 @@ class _TypeIntrospector implements macro.TypeIntrospector {
   @override
   Future<List<macro.MethodDeclaration>> methodsOf(
       macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration) {
-      throw new UnsupportedError('Only introspection on classes is supported');
+    if (type is! macro.IntrospectableClassDeclaration &&
+        type is! macro.IntrospectableMixinDeclaration) {
+      throw new UnsupportedError(
+          'Only introspection on classes and mixins is supported');
     }
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
+    ClassBuilder classBuilder = macroApplications
+        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
     List<macro.MethodDeclaration> result = [];
     Iterator<SourceProcedureBuilder> iterator =
         classBuilder.fullMemberIterator<SourceProcedureBuilder>();
@@ -1192,7 +1234,11 @@ macro.DeclarationKind _declarationKind(macro.Declaration declaration) {
   } else if (declaration is macro.VariableDeclaration) {
     return macro.DeclarationKind.variable;
   } else if (declaration is macro.ClassDeclaration) {
-    return macro.DeclarationKind.clazz;
+    return macro.DeclarationKind.classType;
+  } else if (declaration is macro.EnumDeclaration) {
+    return macro.DeclarationKind.enumType;
+  } else if (declaration is macro.MixinDeclaration) {
+    return macro.DeclarationKind.mixinType;
   }
   throw new UnsupportedError(
       "Unexpected declaration ${declaration} (${declaration.runtimeType})");
@@ -1211,7 +1257,9 @@ class ApplicationData {
 
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
-      libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
+      enumValueAugmentations.isNotEmpty ||
+      libraryAugmentations.isNotEmpty ||
+      typeAugmentations.isNotEmpty;
 }
 
 class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {

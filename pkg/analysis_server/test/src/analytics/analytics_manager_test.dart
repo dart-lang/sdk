@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -19,7 +20,6 @@ import 'package:http/src/response.dart' as http;
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unified_analytics/src/config_handler.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
@@ -528,7 +528,7 @@ class _IsStringEncodedPositiveInt extends Matcher {
 }
 
 /// An implementation of [Analytics] specialized for testing.
-class _MockAnalytics implements Analytics {
+class _MockAnalytics implements NoopAnalytics {
   List<_Event> events = [];
 
   _MockAnalytics();

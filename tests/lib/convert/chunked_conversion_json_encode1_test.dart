@@ -57,7 +57,7 @@ final TESTS = [
   [r'\foo', r'"\\foo"'],
 ];
 
-class MyStringConversionSink extends StringConversionSinkBase {
+class MyStringConversionSink extends StringConversionSink {
   var buffer = new StringBuffer();
   var callback;
 

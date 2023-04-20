@@ -5,9 +5,9 @@ class Circle {
   Circle(this.radius);
 }
 
-test1(dynamic x) => switch (x) {  };
+test1(dynamic x) => switch (x) {};
 dynamic Function(dynamic)? captured;
-test2(dynamic x) => switch (x) {  };
+test2(dynamic x) => switch (x) {};
 test3(dynamic x) {}
 main() {}
 expectEquals(x, y) {}

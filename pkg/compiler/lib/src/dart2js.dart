@@ -685,6 +685,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption('${Flags.cfeInvocationModes}=.+', passThrough),
     _OneOption('${Flags.invoker}=.+', setInvoker),
     _OneOption('${Flags.verbosity}=.+', passThrough),
+    _OneOption(Flags.disableDiagnosticByteCache, passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -732,6 +733,16 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   parseCommandLine(handlers, argv);
 
+  if (nullSafetyMode == Flags.noSoundNullSafety && platformBinaries == null) {
+    // Compiling without sound null safety is no longer allowed except in the
+    // cases where an unsound platform .dill file is manually provided.
+    // The unsound .dills are no longer packaged in the SDK release so any
+    // compile initiated through `dart compile js --no-sound-null-safety`
+    // will not find a .dill in the default location and should be prevented
+    // from executing.
+    _fail('the flag --no-sound-null-safety is not supported in Dart 3.\n'
+        'See: https://dart.dev/null-safety.');
+  }
   final diagnostic = diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnostic.verbose = verbose!;
@@ -969,12 +980,16 @@ Future<api.CompilationResult> compile(List<String> argv,
           'The options --bazel-root and --multi-root cannot be supplied '
           'together, please choose one or the other.');
     }
-    inputProvider = BazelInputProvider(bazelPaths!, byteReader);
+    inputProvider = BazelInputProvider(bazelPaths!, byteReader,
+        disableByteCache: compilerOptions.disableDiagnosticByteCache);
   } else if (multiRoots != null) {
-    inputProvider =
-        MultiRootInputProvider(multiRootScheme!, multiRoots!, byteReader);
+    inputProvider = MultiRootInputProvider(
+        multiRootScheme!, multiRoots!, byteReader,
+        disableByteCache: compilerOptions.disableDiagnosticByteCache);
   } else {
-    inputProvider = CompilerSourceFileProvider(byteReader: byteReader);
+    inputProvider = CompilerSourceFileProvider(
+        byteReader: byteReader,
+        disableByteCache: compilerOptions.disableDiagnosticByteCache);
   }
 
   diagnostic.registerFileProvider(inputProvider);
@@ -1276,6 +1291,11 @@ Usage: dart compile js [arguments] <dart entry point>
     Do not include names of late variables in error messages. This allows
     dart2js to generate smaller code by removing late variable names from the
     generated JavaScript.
+
+  --native-null-assertions
+    Add assertions to web library APIs to ensure that non-nullable APIs do not
+    return null. This is by default set to true in sound null-safety, unless
+    -O3 or higher is passed.
 
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve

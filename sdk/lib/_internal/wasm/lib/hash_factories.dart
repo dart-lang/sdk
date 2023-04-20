@@ -63,7 +63,7 @@ class LinkedHashSet<E> {
 }
 
 @pragma("wasm:entry-point")
-class _WasmDefaultMap<K, V> extends _HashFieldBase
+base class _WasmDefaultMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -75,7 +75,7 @@ class _WasmDefaultMap<K, V> extends _HashFieldBase
 }
 
 @pragma('wasm:entry-point')
-class _WasmDefaultSet<E> extends _HashFieldBase
+base class _WasmDefaultSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
@@ -98,7 +98,7 @@ abstract class _HashWasmImmutableBase extends _HashFieldBase
 }
 
 @pragma("wasm:entry-point")
-class _WasmImmutableMap<K, V> extends _HashWasmImmutableBase
+base class _WasmImmutableMap<K, V> extends _HashWasmImmutableBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -114,7 +114,7 @@ class _WasmImmutableMap<K, V> extends _HashWasmImmutableBase
 }
 
 @pragma("wasm:entry-point")
-class _WasmImmutableSet<E> extends _HashWasmImmutableBase
+base class _WasmImmutableSet<E> extends _HashWasmImmutableBase
     with
         SetMixin<E>,
         _HashBase,

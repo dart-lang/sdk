@@ -183,7 +183,7 @@ class _Collector {
     }
 
     if (node is IfElement) {
-      collect(node.condition);
+      collect(node.expression);
       collect(node.thenElement);
       if (node.elseElement != null) {
         collect(node.elseElement!);

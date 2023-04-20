@@ -52,7 +52,7 @@ exp^
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -92,7 +92,7 @@ par^
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -107,14 +107,14 @@ suggestions
   }
 
   void _protocol1Directives() {
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
-  import '';
+  export '';
     kind: keyword
     selection: 8
-  export '';
+  import '';
     kind: keyword
     selection: 8
   part '';

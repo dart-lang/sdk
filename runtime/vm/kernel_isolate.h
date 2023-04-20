@@ -24,14 +24,26 @@ class KernelIsolate : public AllStatic {
 
  public:
   static const char* kName;
-  static const int kCompileTag;
-  static const int kUpdateSourcesTag;
-  static const int kAcceptTag;
-  static const int kTrainTag;
-  static const int kCompileExpressionTag;
-  static const int kListDependenciesTag;
-  static const int kNotifyIsolateShutdown;
-  static const int kRejectTag;
+
+  // Tags used to indicate different requests to the dart frontend.
+  //
+  // Current tags include the following:
+  //   0 - Perform normal compilation.
+  //   1 - Update in-memory file system with in-memory sources (used by tests).
+  //   2 - Accept last compilation result.
+  //   3 - APP JIT snapshot training run for kernel_service.
+  //   4 - Compile expressions in context (used by expression evaluation).
+  //   5 - Generate dependencies used to create a dependencies file.
+  //   6 - Triggers shutdown of the kernel isolate.
+  //   7 - Reject last compilation result.
+  static constexpr int kCompileTag = 0;
+  static constexpr int kUpdateSourcesTag = 1;
+  static constexpr int kAcceptTag = 2;
+  static constexpr int kTrainTag = 3;
+  static constexpr int kCompileExpressionTag = 4;
+  static constexpr int kListDependenciesTag = 5;
+  static constexpr int kNotifyIsolateShutdown = 6;
+  static constexpr int kRejectTag = 7;
 
   static void InitializeState();
   static bool Start();
@@ -49,12 +61,12 @@ class KernelIsolate : public AllStatic {
       const uint8_t* platform_kernel,
       intptr_t platform_kernel_size,
       int source_files_count = 0,
-      Dart_SourceFile source_files[] = NULL,
+      Dart_SourceFile source_files[] = nullptr,
       bool incremental_compile = true,
       bool snapshot_compile = false,
-      const char* package_config = NULL,
-      const char* multiroot_filepaths = NULL,
-      const char* multiroot_scheme = NULL,
+      const char* package_config = nullptr,
+      const char* multiroot_filepaths = nullptr,
+      const char* multiroot_scheme = nullptr,
       Dart_KernelCompilationVerbosityLevel verbosity =
           Dart_KernelCompilationVerbosityLevel_All);
 

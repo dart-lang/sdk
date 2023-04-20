@@ -19,6 +19,7 @@ class ObjectVisitor;
 class ObjectPointerVisitor;
 class FindObjectVisitor;
 class Thread;
+class UnwindingRecords;
 
 // Pages are allocated with kPageSize alignment so that the Page of any object
 // can be computed by masking the object with kPageMask. This does not apply to
@@ -85,12 +86,14 @@ class Page {
     return memory_->start() + NewObjectStartOffset();
   }
   uword object_end() const {
-    if (owner_ != NULL) return owner_->top();
+    if (owner_ != nullptr) return owner_->top();
     return top_;
   }
   intptr_t used() const { return object_end() - object_start(); }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
+  void RegisterUnwindingRecords();
+  void UnregisterUnwindingRecords();
   void AllocateForwardingPage();
 
   PageType type() const { return type_; }
@@ -163,8 +166,8 @@ class Page {
   }
 
   // 1 card = 128 slots.
-  static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 =
+  static constexpr intptr_t kSlotsPerCardLog2 = 7;
+  static constexpr intptr_t kBytesPerCardLog2 =
       kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
   intptr_t card_table_size() const {
@@ -175,7 +178,7 @@ class Page {
 
   void RememberCard(ObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       card_table_ = reinterpret_cast<uint8_t*>(
           calloc(card_table_size(), sizeof(uint8_t)));
     }
@@ -187,7 +190,7 @@ class Page {
   }
   bool IsCardRemembered(ObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       return false;
     }
     intptr_t offset =
@@ -199,7 +202,7 @@ class Page {
 #if defined(DART_COMPRESSED_POINTERS)
   void RememberCard(CompressedObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       card_table_ = reinterpret_cast<uint8_t*>(
           calloc(card_table_size(), sizeof(uint8_t)));
     }
@@ -211,7 +214,7 @@ class Page {
   }
   bool IsCardRemembered(CompressedObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == NULL) {
+    if (card_table_ == nullptr) {
       return false;
     }
     intptr_t offset =
@@ -296,7 +299,7 @@ class Page {
     top_ = value;
   }
 
-  // Returns NULL on OOM.
+  // Returns nullptr on OOM.
   static Page* Allocate(intptr_t size, PageType type, bool can_use_cache);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
@@ -310,7 +313,7 @@ class Page {
   uint8_t* card_table_;  // Remembered set, not marking.
   RelaxedAtomic<intptr_t> progress_bar_;
 
-  // The thread using this page for allocation, otherwise NULL.
+  // The thread using this page for allocation, otherwise nullptr.
   Thread* owner_;
 
   // The address of the next allocation. If owner is non-NULL, this value is
@@ -333,6 +336,7 @@ class Page {
   friend class SemiSpace;
   friend class PageSpace;
   friend class GCCompactor;
+  friend class UnwindingRecords;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Page);

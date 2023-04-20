@@ -1,0 +1,152 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → void {
+  core::List<core::int> list = core::_GrowableList::_literal3<core::int>(1, 2, 3);
+  core::print(self::subs<core::int>(list));
+  core::print(self::perms<core::int>(list));
+  core::print(self::equals<core::int>(list, list));
+}
+static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%> list) → core::List<core::List<self::subs::A%>>
+  return block {
+    core::List<core::List<self::subs::A%>> #t1;
+    final synthesized core::List<self::subs::A%> #0#0 = list;
+    function ##0#1#initializer() → core::int
+      return #0#0.{core::List::length}{core::int};
+    late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
+    #L1:
+    {
+      {
+        if(#0#1.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t1 = core::_GrowableList::•<core::List<self::subs::A%>>(0);
+          break #L1;
+        }
+      }
+      {
+        hoisted self::subs::A% x;
+        hoisted core::List<self::subs::A%> xs;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final self::subs::A% #t2 = x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%} in true) && (let final core::List<self::subs::A%> #t3 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>} in true)) {
+          #t1 = block {
+            final core::List<core::List<self::subs::A%>> #t4 = core::_GrowableList::•<core::List<self::subs::A%>>(0);
+            {
+              synthesized core::Iterator<core::List<self::subs::A%>> :sync-for-iterator = self::subs<self::subs::A%>(xs).{core::Iterable::iterator}{core::Iterator<core::List<self::subs::A%>>};
+              for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+                core::List<self::subs::A%> ys = :sync-for-iterator.{core::Iterator::current}{core::List<self::subs::A%>};
+                #t4.{core::List::addAll}{Invariant}(core::_GrowableList::_literal2<core::List<self::subs::A%>>(core::_GrowableList::_literal1<self::subs::A%>(x).{core::List::+}(ys){(core::List<self::subs::A%>) → core::List<self::subs::A%>}, ys)){(core::Iterable<core::List<self::subs::A%>>) → void};
+              }
+            }
+            #t4.{core::List::add}{Invariant}(core::_GrowableList::_literal1<self::subs::A%>(x)){(core::List<self::subs::A%>) → void};
+          } =>#t4;
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+static method perms<A extends core::Object? = dynamic>(core::List<self::perms::A%> list) → core::List<core::List<self::perms::A%>>
+  return block {
+    core::List<core::List<self::perms::A%>> #t5;
+    final synthesized core::List<self::perms::A%> #0#0 = list;
+    function ##0#1#initializer() → core::int
+      return #0#0.{core::List::length}{core::int};
+    late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
+    #L2:
+    {
+      {
+        if(#0#1.{core::num::<=}(#C1){(core::num) → core::bool} || #0#1 =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t5 = core::_GrowableList::_literal1<core::List<self::perms::A%>>(list);
+          break #L2;
+        }
+      }
+      {
+        hoisted self::perms::A% x;
+        hoisted core::List<self::perms::A%> xs;
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final self::perms::A% #t6 = x = #0#0.{core::List::[]}(0){(core::int) → self::perms::A%} in true) && (let final core::List<self::perms::A%> #t7 = xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::perms::A%>} in true)) {
+          #t5 = block {
+            final core::List<core::List<self::perms::A%>> #t8 = core::_GrowableList::•<core::List<self::perms::A%>>(0);
+            for (core::int i = 0; i.{core::num::<}(list.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+              synthesized core::Iterator<core::List<self::perms::A%>> :sync-for-iterator = self::perms<self::perms::A%>(xs).{core::Iterable::iterator}{core::Iterator<core::List<self::perms::A%>>};
+              for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+                core::List<self::perms::A%> perm = :sync-for-iterator.{core::Iterator::current}{core::List<self::perms::A%>};
+                #t8.{core::List::add}{Invariant}( block {
+                  final core::List<self::perms::A%> #t9 = core::List::of<self::perms::A%>(perm.{core::Iterable::take}(i){(core::int) → core::Iterable<self::perms::A%>});
+                  #t9.{core::List::add}{Invariant}(x){(self::perms::A%) → void};
+                  #t9.{core::List::addAll}{Invariant}(perm.{core::Iterable::skip}(i){(core::int) → core::Iterable<self::perms::A%>}){(core::Iterable<self::perms::A%>) → void};
+                } =>#t9){(core::List<self::perms::A%>) → void};
+              }
+            }
+          } =>#t8;
+          break #L2;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t5;
+static method equals<A extends core::Object? = dynamic>(core::List<self::equals::A%> a, core::List<self::equals::A%> b) → core::bool
+  return block {
+    core::bool #t10;
+    final synthesized(core::List<self::equals::A%>, core::List<self::equals::A%>) #0#0 = (a, b);
+    function ##0#1#initializer() → core::List<self::equals::A%>
+      return #0#0.$1{core::List<self::equals::A%>};
+    late final synthesized core::List<self::equals::A%> #0#1 = ##0#1#initializer(){() → core::List<self::equals::A%>};
+    function ##0#2#initializer() → core::int
+      return #0#1.{core::List::length}{core::int};
+    late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
+    function ##0#4#initializer() → core::bool
+      return #0#2.{core::num::<=}(#C1){(core::num) → core::bool};
+    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
+    function ##0#5#initializer() → core::List<self::equals::A%>
+      return #0#0.$2{core::List<self::equals::A%>};
+    late final synthesized core::List<self::equals::A%> #0#5 = ##0#5#initializer(){() → core::List<self::equals::A%>};
+    function ##0#6#initializer() → core::int
+      return #0#5.{core::List::length}{core::int};
+    late final synthesized core::int #0#6 = ##0#6#initializer(){() → core::int};
+    function ##0#7#initializer() → core::bool
+      return #0#6.{core::num::<=}(#C1){(core::num) → core::bool};
+    late final synthesized core::bool #0#7 = ##0#7#initializer(){() → core::bool};
+    function ##0#9#initializer() → core::bool
+      return #0#2.{core::num::>=}(#C2){(core::num) → core::bool};
+    late final synthesized core::bool #0#9 = ##0#9#initializer(){() → core::bool};
+    function ##0#11#initializer() → core::bool
+      return #0#6.{core::num::>=}(#C2){(core::num) → core::bool};
+    late final synthesized core::bool #0#11 = ##0#11#initializer(){() → core::bool};
+    #L3:
+    {
+      {
+        if(#0#4 && #0#7) {
+          #t10 = true;
+          break #L3;
+        }
+      }
+      {
+        if(#0#9 && #0#7) {
+          #t10 = false;
+          break #L3;
+        }
+      }
+      {
+        if(#0#4 && #0#11) {
+          #t10 = false;
+          break #L3;
+        }
+      }
+      {
+        hoisted self::equals::A% l;
+        hoisted core::List<self::equals::A%> ls;
+        hoisted self::equals::A% r;
+        hoisted core::List<self::equals::A%> rs;
+        if(#0#9 && (let final self::equals::A% #t11 = l = #0#1.{core::List::[]}(0){(core::int) → self::equals::A%} in true) && (let final core::List<self::equals::A%> #t12 = ls = #0#1.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::equals::A%>} in true) && (#0#11 && (let final self::equals::A% #t13 = r = #0#5.{core::List::[]}(0){(core::int) → self::equals::A%} in true) && (let final core::List<self::equals::A%> #t14 = rs = #0#5.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::equals::A%>} in true))) {
+          #t10 = l =={core::Object::==}{(core::Object) → core::bool} r && self::equals<self::equals::A%>(ls, rs);
+          break #L3;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t10;
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A collection of utility methods used by completion contributors.
+library;
+
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';

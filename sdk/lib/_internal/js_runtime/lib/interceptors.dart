@@ -8,7 +8,7 @@ import 'dart:_js_embedded_names'
     show DISPATCH_PROPERTY_NAME, TYPE_TO_INTERCEPTOR_MAP;
 
 import 'dart:collection' hide LinkedList, LinkedListEntry;
-import 'dart:_foreign_helper' show JS_GET_FLAG;
+import 'dart:_foreign_helper' show JS_GET_FLAG, TYPE_REF;
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
 import 'dart:_js_helper'
@@ -52,7 +52,12 @@ import 'dart:_foreign_helper'
         JS_INTERCEPTOR_CONSTANT,
         JS_STRING_CONCAT;
 
-import 'dart:_rti' show getRuntimeType;
+import 'dart:_rti'
+    show
+        createRuntimeType,
+        getRuntimeTypeOfArray,
+        getRuntimeTypeOfInterceptorNotArray,
+        TrustedGetRuntimeType;
 
 import 'dart:math' show Random, ln2;
 
@@ -338,11 +343,12 @@ abstract class Interceptor {
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
-  Type get runtimeType => getRuntimeType(this);
+  Type get runtimeType =>
+      getRuntimeTypeOfInterceptorNotArray(getInterceptor(this), this);
 }
 
 /// The interceptor class for [bool].
-final class JSBool extends Interceptor implements bool {
+final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   const JSBool();
 
   // Note: if you change this, also change the function [S].
@@ -358,7 +364,8 @@ final class JSBool extends Interceptor implements bool {
   // positions, including the low bit, so they are different mod 2^k.
   int get hashCode => this ? (2 * 3 * 23 * 3761) : (269 * 811);
 
-  Type get runtimeType => bool;
+  // Same as `=> bool`, but without a constant-pool object.
+  Type get runtimeType => createRuntimeType(TYPE_REF<bool>());
 }
 
 /// The interceptor class for [Null].
@@ -366,7 +373,7 @@ final class JSBool extends Interceptor implements bool {
 /// This class defines implementations for *all* methods on [Object] since
 /// the methods on Object assume the receiver is non-null.  This means that
 /// JSNull will always be in the interceptor set for methods defined on Object.
-final class JSNull extends Interceptor implements Null {
+final class JSNull extends Interceptor implements Null, TrustedGetRuntimeType {
   const JSNull();
 
   external bool operator ==(Object other);
@@ -376,10 +383,8 @@ final class JSNull extends Interceptor implements Null {
 
   int get hashCode => 0;
 
-  // The spec guarantees that `null` is the singleton instance of the `Null`
-  // class. In the mirrors library we also have to patch the `type` getter to
-  // special case `null`.
-  Type get runtimeType => Null;
+  // Same as `=> Null`, but without a constant-pool object.
+  Type get runtimeType => createRuntimeType(TYPE_REF<Null>());
 
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

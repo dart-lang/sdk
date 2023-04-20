@@ -109,19 +109,20 @@ import "dart:_internal"
         CastStream,
         CastStreamTransformer,
         checkNotNullable,
-        EmptyIterator,
         IterableElementError,
         nullFuture,
         printToZone,
         printToConsole,
         Since,
         typeAcceptsNull,
-        unsafeCast;
+        unsafeCast,
+        vmIsolateUnsendable;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';
 part 'deferred_load.dart';
 part 'future.dart';
+part 'future_extensions.dart';
 part 'future_impl.dart';
 part 'schedule_microtask.dart';
 part 'stream.dart';

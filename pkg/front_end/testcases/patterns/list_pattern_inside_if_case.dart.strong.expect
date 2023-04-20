@@ -18,8 +18,8 @@ static method test1(dynamic x) → dynamic {
     }
   }
   {
-    core::String? a;
-    core::String b;
+    hoisted core::String? a;
+    hoisted core::String b;
     final synthesized dynamic #1#0 = x;
     late final synthesized core::String? #1#7 = #1#0{core::List<core::String?>}.{core::List::[]}(1){(core::int) → core::String?};
     if(#1#0 is{ForNonNullableByDefault} core::List<core::String?> && #1#0{core::List<core::String?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #1#0{core::List<core::String?>}.{core::List::[]}(0){(core::int) → core::String?} in true) && (!(#1#7 == null) ?{core::bool} #1#7{core::String} is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = b = #1#7{core::String} in true) : false) && #1#0{core::List<core::String?>}.{core::List::[]}(2){(core::int) → core::String?} =={core::String::==}{(core::Object) → core::bool} #C4) {
@@ -27,8 +27,8 @@ static method test1(dynamic x) → dynamic {
     }
   }
   {
-    core::String a;
-    core::String? b;
+    hoisted core::String a;
+    hoisted core::String? b;
     final synthesized dynamic #2#0 = x;
     late final synthesized dynamic #2#6 = #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized core::String? #2#11 = #2#6{core::List<core::String?>}.{core::List::[]}(0){(core::int) → core::String?};
@@ -37,7 +37,7 @@ static method test1(dynamic x) → dynamic {
     }
   }
   {
-    dynamic a;
+    hoisted dynamic a;
     final synthesized dynamic #3#0 = x;
     late final synthesized dynamic #3#6 = #3#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #3#11 = #3#6{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
@@ -61,8 +61,8 @@ static method test2(core::List<core::Object?> x) → dynamic {
     }
   }
   {
-    core::String? a;
-    core::String b;
+    hoisted core::String? a;
+    hoisted core::String b;
     final synthesized core::List<core::Object?> #1#0 = x;
     late final synthesized core::String? #1#7 = #1#0{core::List<core::String?>}.{core::List::[]}(1){(core::int) → core::String?};
     if(#1#0 is{ForNonNullableByDefault} core::List<core::String?> && #1#0{core::List<core::String?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = a = #1#0{core::List<core::String?>}.{core::List::[]}(0){(core::int) → core::String?} in true) && (!(#1#7 == null) ?{core::bool} #1#7{core::String} is{ForNonNullableByDefault} core::String && (let final dynamic #t7 = b = #1#7{core::String} in true) : false) && #1#0{core::List<core::String?>}.{core::List::[]}(2){(core::int) → core::String?} =={core::String::==}{(core::Object) → core::bool} #C4) {
@@ -70,8 +70,8 @@ static method test2(core::List<core::Object?> x) → dynamic {
     }
   }
   {
-    core::String a;
-    core::String? b;
+    hoisted core::String a;
+    hoisted core::String? b;
     final synthesized core::List<core::Object?> #2#0 = x;
     late final synthesized core::Object? #2#4 = #2#0.{core::List::[]}(0){(core::int) → core::Object?};
     late final synthesized core::String? #2#9 = #2#4{core::List<core::String?>}.{core::List::[]}(0){(core::int) → core::String?};
@@ -80,7 +80,7 @@ static method test2(core::List<core::Object?> x) → dynamic {
     }
   }
   {
-    core::Object a;
+    hoisted core::Object a;
     final synthesized core::List<core::Object?> #3#0 = x;
     late final synthesized core::Object? #3#4 = #3#0.{core::List::[]}(0){(core::int) → core::Object?};
     late final synthesized core::Object? #3#9 = #3#4{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?};

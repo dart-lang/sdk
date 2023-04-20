@@ -41,6 +41,10 @@ namespace dart {
 
 int32_t globalVar;
 
+DART_EXPORT void InduceACrash() {
+  *reinterpret_cast<int*>(InduceACrash) = 123;
+}
+
 DART_EXPORT void SetGlobalVar(int32_t v) {
   globalVar = v;
 }
@@ -452,7 +456,13 @@ DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
   std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ", " << k << ")\n";
-  const intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
+  const intptr_t retval =
+      static_cast<uintptr_t>(a) + static_cast<uintptr_t>(b) +
+      static_cast<uintptr_t>(c) + static_cast<uintptr_t>(d) +
+      static_cast<uintptr_t>(e) + static_cast<uintptr_t>(f) +
+      static_cast<uintptr_t>(g) + static_cast<uintptr_t>(h) +
+      static_cast<uintptr_t>(i) + static_cast<uintptr_t>(j) +
+      static_cast<uintptr_t>(k);
   std::cout << "returning " << retval << "\n";
   return retval;
 }

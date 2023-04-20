@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class Sealed extends core::Object {
+  synthetic constructor •() → self::Sealed
+    ;
+}
+class C1 extends self::Sealed {
+  synthetic constructor •() → self::C1
+    ;
+}
+class C2 extends self::Sealed {
+  synthetic constructor •() → self::C2
+    ;
+}
+static method main() → void
+  ;

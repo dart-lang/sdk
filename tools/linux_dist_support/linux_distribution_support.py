@@ -36,7 +36,6 @@ def UninstallDart():
 def CreateDartTestFile(tempdir):
     filename = os.path.join(tempdir, 'test.dart')
     with open(filename, 'w') as f:
-        f.write('import "dart:collection";\n\n')
         f.write('void main() {\n')
         f.write('  print("Hello world");\n')
         f.write('}')

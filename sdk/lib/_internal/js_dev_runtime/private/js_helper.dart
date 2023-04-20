@@ -53,7 +53,7 @@ class DartIterator<E> implements Iterator<E> {
 }
 
 /// Used to compile `sync*`.
-class SyncIterable<E> extends IterableBase<E> {
+class SyncIterable<E> extends Iterable<E> {
   final Function() _initGenerator;
   SyncIterable(this._initGenerator);
 

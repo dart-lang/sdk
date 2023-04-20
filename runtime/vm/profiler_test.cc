@@ -211,7 +211,7 @@ static LibraryPtr LoadTestScript(const char* script) {
   Dart_Handle api_lib;
   {
     TransitionVMToNative transition(Thread::Current());
-    api_lib = TestCase::LoadTestScript(script, NULL);
+    api_lib = TestCase::LoadTestScript(script, nullptr);
     EXPECT_VALID(api_lib);
   }
   Library& lib = Library::Handle();
@@ -238,7 +238,7 @@ static FunctionPtr GetFunction(const Library& lib, const char* name) {
 static void Invoke(const Library& lib,
                    const char* name,
                    intptr_t argc = 0,
-                   Dart_Handle* argv = NULL) {
+                   Dart_Handle* argv = nullptr) {
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   TransitionVMToNative transition(thread);
@@ -303,11 +303,11 @@ class ProfileStackWalker {
   const char* CurrentName() {
     if (as_functions_) {
       ProfileFunction* func = GetFunction();
-      EXPECT(func != NULL);
+      EXPECT(func != nullptr);
       return func->Name();
     } else {
       ProfileCode* code = GetCode();
-      EXPECT(code != NULL);
+      EXPECT(code != nullptr);
       return code->name();
     }
   }
@@ -349,11 +349,11 @@ class ProfileStackWalker {
   intptr_t CurrentInclusiveTicks() {
     if (as_functions_) {
       ProfileFunction* func = GetFunction();
-      EXPECT(func != NULL);
+      EXPECT(func != nullptr);
       return func->inclusive_ticks();
     } else {
       ProfileCode* code = GetCode();
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       return code->inclusive_ticks();
     }
   }
@@ -361,11 +361,11 @@ class ProfileStackWalker {
   intptr_t CurrentExclusiveTicks() {
     if (as_functions_) {
       ProfileFunction* func = GetFunction();
-      EXPECT(func != NULL);
+      EXPECT(func != nullptr);
       return func->exclusive_ticks();
     } else {
       ProfileCode* code = GetCode();
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       return code->exclusive_ticks();
     }
   }
@@ -379,7 +379,7 @@ class ProfileStackWalker {
     return profile_->GetCodeFromPC(pc, timestamp);
   }
 
-  static const intptr_t kInvalidInlinedIndex = -1;
+  static constexpr intptr_t kInvalidInlinedIndex = -1;
 
   bool UpdateFunctionIndex() {
     if (inlined_index_ != kInvalidInlinedIndex) {
@@ -395,24 +395,24 @@ class ProfileStackWalker {
 
   void ClearInliningData() {
     inlined_index_ = kInvalidInlinedIndex;
-    inlined_functions_ = NULL;
-    inlined_token_positions_ = NULL;
+    inlined_functions_ = nullptr;
+    inlined_token_positions_ = nullptr;
   }
 
   ProfileFunction* GetFunction() {
     // Check to see if we're currently processing inlined functions. If so,
     // return the next inlined function.
     ProfileFunction* function = GetInlinedFunction();
-    if (function != NULL) {
+    if (function != nullptr) {
       return function;
     }
 
     const uword pc = sample_->At(index_);
     ProfileCode* profile_code =
         profile_->GetCodeFromPC(pc, sample_->timestamp());
-    ASSERT(profile_code != NULL);
+    ASSERT(profile_code != nullptr);
     function = profile_code->function();
-    ASSERT(function != NULL);
+    ASSERT(function != nullptr);
 
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
@@ -423,7 +423,7 @@ class ProfileStackWalker {
                                    &inlined_token_positions_, &token_position);
     }
 
-    if (code.IsNull() || (inlined_functions_ == NULL) ||
+    if (code.IsNull() || (inlined_functions_ == nullptr) ||
         (inlined_functions_->length() <= 1)) {
       ClearInliningData();
       // No inlined functions.
@@ -433,7 +433,7 @@ class ProfileStackWalker {
     ASSERT(code.is_optimized());
     inlined_index_ = inlined_functions_->length() - 1;
     function = GetInlinedFunction();
-    ASSERT(function != NULL);
+    ASSERT(function != nullptr);
     return function;
   }
 
@@ -442,7 +442,7 @@ class ProfileStackWalker {
         (inlined_index_ < inlined_functions_->length())) {
       return profile_->FindFunction(*(*inlined_functions_)[inlined_index_]);
     }
-    return NULL;
+    return nullptr;
   }
 
   Profile* profile_;
@@ -2168,7 +2168,7 @@ static void InsertFakeSample(uword* pc_offsets) {
   Isolate* isolate = Isolate::Current();
   ASSERT(Profiler::sample_block_buffer() != nullptr);
   Sample* sample = Profiler::sample_block_buffer()->ReserveCPUSample(isolate);
-  ASSERT(sample != NULL);
+  ASSERT(sample != nullptr);
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(),
                OSThread::Current()->trace_id());
   sample->set_thread_task(Thread::kMutatorTask);
@@ -2330,7 +2330,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
 
   ProfileCodeTable* table = new (Z) ProfileCodeTable();
   EXPECT_EQ(table->length(), 0);
-  EXPECT_EQ(table->FindCodeForPC(42), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(42), static_cast<ProfileCode*>(nullptr));
 
   int64_t timestamp = 0;
   const AbstractCode null_code(Code::null());
@@ -2338,69 +2338,69 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
   ProfileCode* code1 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 50, 60, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code1), 0);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(55), code1);
   EXPECT_EQ(table->FindCodeForPC(59), code1);
-  EXPECT_EQ(table->FindCodeForPC(60), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(60), static_cast<ProfileCode*>(nullptr));
 
   // Insert below all.
   ProfileCode* code2 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 10, 20, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code2), 0);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(10), code2);
   EXPECT_EQ(table->FindCodeForPC(19), code2);
-  EXPECT_EQ(table->FindCodeForPC(20), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(20), static_cast<ProfileCode*>(nullptr));
 
   // Insert above all.
   ProfileCode* code3 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 80, 90, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code3), 2);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(10), code2);
   EXPECT_EQ(table->FindCodeForPC(80), code3);
   EXPECT_EQ(table->FindCodeForPC(89), code3);
-  EXPECT_EQ(table->FindCodeForPC(90), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(90), static_cast<ProfileCode*>(nullptr));
 
   // Insert between.
   ProfileCode* code4 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 65, 75, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code4), 2);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(10), code2);
   EXPECT_EQ(table->FindCodeForPC(80), code3);
   EXPECT_EQ(table->FindCodeForPC(65), code4);
   EXPECT_EQ(table->FindCodeForPC(74), code4);
-  EXPECT_EQ(table->FindCodeForPC(75), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(75), static_cast<ProfileCode*>(nullptr));
 
   // Insert overlapping left.
   ProfileCode* code5 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 15, 25, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code5), 0);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(10), code2);
   EXPECT_EQ(table->FindCodeForPC(80), code3);
   EXPECT_EQ(table->FindCodeForPC(65), code4);
   EXPECT_EQ(table->FindCodeForPC(15), code2);  // Merged left.
   EXPECT_EQ(table->FindCodeForPC(24), code2);  // Merged left.
-  EXPECT_EQ(table->FindCodeForPC(25), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(25), static_cast<ProfileCode*>(nullptr));
 
   // Insert overlapping right.
   ProfileCode* code6 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 45, 55, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code6), 1);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(10), code2);
   EXPECT_EQ(table->FindCodeForPC(80), code3);
@@ -2415,8 +2415,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
   ProfileCode* code7 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 20, 50, timestamp, null_code);
   EXPECT_EQ(table->InsertCode(code7), 0);
-  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
-  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(nullptr));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(nullptr));
   EXPECT_EQ(table->FindCodeForPC(50), code1);
   EXPECT_EQ(table->FindCodeForPC(10), code2);
   EXPECT_EQ(table->FindCodeForPC(80), code3);

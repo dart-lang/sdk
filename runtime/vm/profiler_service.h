@@ -118,7 +118,7 @@ class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
     TokenPosition token_position = TokenPosition::kNoSource;
   };
 
-  static const intptr_t kCacheSize = 128;
+  static constexpr intptr_t kCacheSize = 128;
   intptr_t cache_cursor_;
   intptr_t last_hit_;
   CacheEntry cache_[kCacheSize];
@@ -143,7 +143,7 @@ class ProfileFunction : public ZoneAllocated {
                   const intptr_t table_index);
 
   const char* name() const {
-    ASSERT(name_ != NULL);
+    ASSERT(name_ != nullptr);
     return name_;
   }
 
@@ -337,7 +337,7 @@ class ProfileCodeTable : public ZoneAllocated {
   ProfileCode* FindCodeForPC(uword pc) const {
     intptr_t index = FindCodeIndexForPC(pc);
     if (index < 0) {
-      return NULL;
+      return nullptr;
     }
     return At(index);
   }

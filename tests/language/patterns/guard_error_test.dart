@@ -8,64 +8,79 @@ main() {
   // Error to assign to pattern variables in guard.
   switch (false) {
     case bool x when x = true:
-      //               ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //             ^
+      // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+      // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       print(x);
     default:
   }
 
   print(switch (false) {
-    case bool x when x = true => x;
-      //               ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    bool x when x = true => x,
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+    // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+    _ => false
   });
 
   if (false case bool x when x = true) {
-    //                         ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //                       ^
+    // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+    // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     print(x);
   }
 
   print([
     if (false case bool x when x = true)
-      //                         ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //                       ^
+      // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+      // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
       x
   ]);
 
   // Error even if assignment is nested inside closure.
   switch (false) {
-    case var x when () { x = true; }():
-      //                  ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    case var x
+        when () {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+        }():
       print(x);
     default:
   }
 
   print(switch (false) {
-    case var x when () { x = true; }() => x;
-      //                  ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    var x
+        when (() {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+        })() =>
+      x,
+    _ => false
   });
 
-  if (false case var x when () { x = true; }()) {
-    //                            ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+  if (false case var x
+      when (() {
+        return x = true;
+        //     ^
+        // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+        // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+      })()) {
     print(x);
   }
 
   print([
-    if (false case var x when () { x = true; }())
-      //                          ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    if (false case var x
+        when (() {
+          return x = true;
+          //     ^
+          // [analyzer] COMPILE_TIME_ERROR.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD
+          // [cfe] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+        })())
       x
   ]);
 

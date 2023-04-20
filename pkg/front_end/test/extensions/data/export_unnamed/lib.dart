@@ -4,11 +4,7 @@
 
 /*library: scope=[
   NamedExtension,
-  _extension#1,
-  async.dart.FutureExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+  _extension#1]*/
 
 /*class: _extension#1:
  builder-name=_unnamed-extension_,

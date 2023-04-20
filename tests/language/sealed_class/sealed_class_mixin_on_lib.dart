@@ -4,7 +4,7 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
-// Other-library declarations used by sealed_class_mixin_on_test.dart.
+// Other-library declarations used by sealed_class_mixin_on_error_test.dart.
 
 sealed class SealedClass {}
 

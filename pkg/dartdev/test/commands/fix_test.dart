@@ -33,8 +33,6 @@ void defineFix() {
   TestProject? p;
   late ProcessResult result;
 
-  tearDown(() async => await p?.dispose());
-
   void assertResult({int exitCode = 0}) {
     String message;
     if (result.exitCode != exitCode) {
@@ -246,7 +244,6 @@ linter:
       );
       var result = await p!.runFix(['--apply', path.join('lib', 'main.dart')],
           workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
       expect(
           result.stdout,
@@ -256,6 +253,7 @@ linter:
             '  prefer_single_quotes $bullet 1 fix',
             '1 fix made in 1 file.',
           ]));
+      expect(result.exitCode, 0);
     });
 
     test('--apply --code=(single)', () async {

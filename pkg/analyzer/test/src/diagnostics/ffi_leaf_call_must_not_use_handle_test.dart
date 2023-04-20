@@ -50,14 +50,14 @@ doThings() {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-class NativeFieldWrapperClass1 {}
+base class NativeFieldWrapperClass1 {}
 
-class A extends NativeFieldWrapperClass1 {
+base class A extends NativeFieldWrapperClass1 {
   @FfiNative<Handle Function(Pointer<Void>)>('foo', isLeaf:true)
   external Object get foo;
 }
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 100, 89),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 110, 89),
     ]);
   }
 

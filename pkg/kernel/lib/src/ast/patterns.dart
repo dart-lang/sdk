@@ -583,6 +583,10 @@ class ObjectPattern extends Pattern {
   ///
   /// This is the type the matched expression is checked against, if the
   /// [matchedValueType] is not already a subtype of [requiredType].
+  ///
+  /// This is the type on which pattern accesses from [fields] are looked up.
+  ///
+  /// This is set during inference.
   DartType requiredType;
 
   final List<NamedPattern> fields;
@@ -602,9 +606,8 @@ class ObjectPattern extends Pattern {
   /// [requiredType] or the [matchedValueType] if it is a subtype of
   /// [requiredType].
   ///
-  /// This is the type on which pattern accesses from [fields] are looked up.
-  ///
   /// This is set during inference.
+  // TODO(johnniwinther): Remove this field. It is no longer used.
   DartType? lookupType;
 
   ObjectPattern(this.requiredType, this.fields) {
@@ -936,38 +939,6 @@ class MapPattern extends Pattern {
   /// This is set during inference.
   DartType? lookupType;
 
-  /// If `true`, this map pattern contains a rest pattern.
-  ///
-  /// This is set during inference.
-  bool hasRestPattern = false;
-
-  /// Reference to the target of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  Reference? lengthTargetReference;
-
-  /// The type of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  DartType? lengthType;
-
-  /// Reference to the method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method. If
-  /// this is the empty map pattern, this an `operator <=` method. Otherwise
-  /// this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  Reference? lengthCheckTargetReference;
-
-  /// The type of the method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  FunctionType? lengthCheckType;
-
   /// Reference to the target of the `containsKey` method of the map.
   ///
   /// This is set during inference.
@@ -997,27 +968,6 @@ class MapPattern extends Pattern {
   MapPattern(this.keyType, this.valueType, this.entries)
       : assert((keyType == null) == (valueType == null)) {
     setParents(entries, this);
-  }
-
-  /// The target of the `length` property of the map.
-  ///
-  /// This is set during inference.
-  Member get lengthTarget => lengthTargetReference!.asMember;
-
-  void set lengthTarget(Member value) {
-    lengthTargetReference = value.reference;
-  }
-
-  /// The method used to check the `length` of the map.
-  ///
-  /// If this pattern has a rest pattern, this is an `operator >=` method.
-  /// Otherwise this is an `operator <=` method.
-  ///
-  /// This is set during inference.
-  Procedure get lengthCheckTarget => lengthCheckTargetReference!.asProcedure;
-
-  void set lengthCheckTarget(Procedure value) {
-    lengthCheckTargetReference = value.reference;
   }
 
   /// The target of the `containsKey` method of the map.
@@ -1132,8 +1082,8 @@ class NamedPattern extends Pattern {
   /// When used in an object pattern, this holds the static property type for
   /// this pattern.
   ///
-  /// This is used for [ObjectAccessKind.Object] and
-  /// [ObjectAccessKind.Instance].
+  /// This is used for [ObjectAccessKind.Object], [ObjectAccessKind.Instance],
+  /// and [ObjectAccessKind.Static].
   ///
   /// This is set during inference.
   DartType? resultType;
@@ -1158,9 +1108,8 @@ class NamedPattern extends Pattern {
   /// When used in an object pattern, this holds the function type of [target]
   /// called to read the property for this pattern.
   ///
-  /// This is used for [ObjectAccessKind.Static].
-  ///
   /// This is set during inference.
+  // TODO(johnniwinther): Remove this. This is no longer used.
   FunctionType? functionType;
 
   /// When used in an object pattern, this holds the type arguments used when
@@ -1726,10 +1675,14 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
 
   final List<VariableDeclaration> jointVariables;
 
+  // TODO(johnniwinther): Serialize this field.
+  final List<int>? jointVariableFirstUseOffsets;
+
   PatternSwitchCase(this.caseOffsets, this.patternGuards, this.body,
       {required this.isDefault,
       required this.hasLabel,
-      required this.jointVariables}) {
+      required this.jointVariables,
+      required this.jointVariableFirstUseOffsets}) {
     setParents(patternGuards, this);
     setParents(jointVariables, this);
     body.parent = this;
@@ -2237,7 +2190,10 @@ final PatternGuard dummyPatternGuard = new PatternGuard(dummyPattern);
 
 final PatternSwitchCase dummyPatternSwitchCase = new PatternSwitchCase(
     [], [], dummyStatement,
-    isDefault: true, hasLabel: false, jointVariables: []);
+    isDefault: true,
+    hasLabel: false,
+    jointVariables: [],
+    jointVariableFirstUseOffsets: null);
 
 final SwitchExpressionCase dummySwitchExpressionCase =
     new SwitchExpressionCase(dummyPatternGuard, dummyExpression);

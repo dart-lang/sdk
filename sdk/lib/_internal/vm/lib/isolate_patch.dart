@@ -73,7 +73,7 @@ class RawReceivePort {
   }
 }
 
-class _ReceivePortImpl extends Stream implements ReceivePort {
+final class _ReceivePortImpl extends Stream implements ReceivePort {
   _ReceivePortImpl([String debugName = ''])
       : this.fromRawReceivePort(new RawReceivePort(null, debugName));
 
@@ -132,7 +132,7 @@ Function _getIsolateScheduleImmediateClosure() {
 }
 
 @pragma("vm:entry-point")
-class _RawReceivePort implements RawReceivePort {
+final class _RawReceivePort implements RawReceivePort {
   factory _RawReceivePort(String debugName) {
     final port = _RawReceivePort._(debugName);
     _portMap[port._get_id()] = port;
@@ -219,7 +219,7 @@ class _RawReceivePort implements RawReceivePort {
 }
 
 @pragma("vm:entry-point")
-class _SendPort implements SendPort {
+final class _SendPort implements SendPort {
   factory _SendPort._uninstantiable() {
     throw "Unreachable";
   }
@@ -249,7 +249,6 @@ class _SendPort implements SendPort {
   external void _sendInternal(var message);
 }
 
-typedef _NullaryFunction();
 typedef _UnaryFunction(Never args);
 typedef _BinaryFunction(Never args, Never message);
 
@@ -304,7 +303,7 @@ void _delayEntrypointInvocation(Function entryPoint, List<String>? args,
 }
 
 @patch
-class Isolate {
+final class Isolate {
   static final _currentIsolate = _getCurrentIsolate();
   static final _rootUri = _getCurrentRootUri();
 
@@ -348,13 +347,7 @@ class Isolate {
       SendPort? onExit,
       SendPort? onError,
       String? debugName}) async {
-    // `paused` isn't handled yet.
-    // Check for the type of `entryPoint` on the spawning isolate to make
-    // error-handling easier.
-    if (entryPoint is! _UnaryFunction) {
-      throw new ArgumentError(entryPoint);
-    }
-    // The VM will invoke [_startIsolate] with entryPoint as argument.
+    // The VM will invoke [_startIsolate] with [entryPoint] as argument.
 
     // We do not inherit the package config settings from the parent isolate,
     // instead we use the values that were set on the command line.
@@ -685,7 +678,7 @@ class Isolate {
 
 @patch
 @pragma("vm:entry-point")
-abstract class TransferableTypedData {
+abstract final class TransferableTypedData {
   @patch
   factory TransferableTypedData.fromList(List<TypedData> chunks) {
     if (chunks == null) {
@@ -702,7 +695,7 @@ abstract class TransferableTypedData {
 }
 
 @pragma("vm:entry-point")
-class _TransferableTypedDataImpl implements TransferableTypedData {
+final class _TransferableTypedDataImpl implements TransferableTypedData {
   @pragma("vm:external-name", "TransferableTypedData_factory")
   external factory _TransferableTypedDataImpl(List<TypedData> list);
 

@@ -33,7 +33,7 @@ enum E w^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -57,7 +57,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -69,7 +69,7 @@ enum E implements ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   Object
     kind: class
@@ -83,7 +83,7 @@ enum E implements A ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   with
     kind: keyword
@@ -97,7 +97,7 @@ enum E ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   implements
     kind: keyword
@@ -113,7 +113,7 @@ enum E^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -127,7 +127,7 @@ enum E ^{
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   implements
     kind: keyword
@@ -143,7 +143,7 @@ enum E ^ implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   with
     kind: keyword
@@ -157,7 +157,7 @@ enum E ^ with M implements A {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -170,7 +170,7 @@ enum E ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -185,13 +185,13 @@ enum E with ^ {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A01
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   A01
     kind: class
@@ -208,7 +208,7 @@ enum E with M ^ {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   implements
     kind: keyword
@@ -222,7 +222,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -234,7 +234,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -250,7 +250,7 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -273,7 +273,7 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponse('''
+      assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -294,7 +294,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: constructorInvocation
@@ -312,7 +312,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: constructorInvocation
@@ -329,7 +329,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   new
     kind: constructorInvocation
@@ -343,7 +343,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   new
     kind: constructorInvocation
@@ -358,7 +358,7 @@ enum E {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
 ''');
   }
@@ -372,7 +372,7 @@ enum E<T> {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   foo01
     kind: constructorInvocation

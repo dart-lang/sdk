@@ -16,7 +16,7 @@ abstract class Identifier {
   String get name;
 }
 
-/// The base class for an unresolved reference to a type.
+/// The interface for an unresolved reference to a type.
 ///
 /// See the subtypes [FunctionTypeAnnotation] and [NamedTypeAnnotation].
 abstract class TypeAnnotation {
@@ -29,7 +29,7 @@ abstract class TypeAnnotation {
   TypeAnnotationCode get code;
 }
 
-/// The base class for function type declarations.
+/// The interface for function type declarations.
 abstract class FunctionTypeAnnotation implements TypeAnnotation {
   /// The return type of this function.
   TypeAnnotation get returnType;
@@ -54,6 +54,15 @@ abstract class NamedTypeAnnotation implements TypeAnnotation {
 
   /// The type arguments, if applicable.
   Iterable<TypeAnnotation> get typeArguments;
+}
+
+/// The interface for record type declarations.
+abstract class RecordTypeAnnotation implements TypeAnnotation {
+  /// The positional fields for this record.
+  Iterable<RecordFieldDeclaration> get positionalFields;
+
+  /// The named fields for this record.
+  Iterable<RecordFieldDeclaration> get namedFields;
 }
 
 /// An omitted type annotation.
@@ -85,16 +94,17 @@ abstract class StaticType {
 /// to a concrete declaration.
 abstract class NamedStaticType implements StaticType {}
 
-/// The base class for all declarations.
+/// The interface for all declarations.
 abstract class Declaration {
   ///  An identifier pointing to this named declaration.
   Identifier get identifier;
 }
 
-/// Base class for all Declarations which have a surrounding class.
-abstract class ClassMemberDeclaration implements Declaration {
-  /// The class that defines this method.
-  Identifier get definingClass;
+/// Interface for all Declarations which are a member of a surrounding type
+/// declaration.
+abstract class MemberDeclaration implements Declaration {
+  /// The type that defines this member.
+  Identifier get definingType;
 
   /// Whether or not this is a static member.
   bool get isStatic;
@@ -107,7 +117,8 @@ abstract class TypeDeclaration implements Declaration {}
 
 /// A [TypeDeclaration] which may have type parameters.
 ///
-/// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
+/// See subtypes [ClassDeclaration], [EnumDeclaration], [MixinDeclaration], and
+/// [TypeAliasDeclaration].
 abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
   /// The type parameters defined for this type declaration.
   Iterable<TypeParameterDeclaration> get typeParameters;
@@ -118,6 +129,9 @@ abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
 /// All type declarations which can have members will have a variant which
 /// implements this type.
 abstract class IntrospectableType implements TypeDeclaration {}
+
+/// A marker interface for the enum declarations which are introspectable.
+abstract class IntrospectableEnum implements IntrospectableType {}
 
 /// Class introspection information.
 ///
@@ -159,6 +173,50 @@ abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
 abstract class IntrospectableClassDeclaration
     implements ClassDeclaration, IntrospectableType {}
 
+/// Enum introspection information.
+///
+/// Information about values, fields, methods, and constructors must be
+/// retrieved from the `builder` objects.
+abstract class EnumDeclaration implements ParameterizedTypeDeclaration {
+  /// All the `implements` type annotations.
+  Iterable<NamedTypeAnnotation> get interfaces;
+
+  /// All the `with` type annotations.
+  Iterable<NamedTypeAnnotation> get mixins;
+}
+
+/// Enum entry introspection information.
+///
+/// TODO(https://github.com/dart-lang/language/issues/1930): Design
+/// introspection API for the values of these (or decide not to).
+abstract class EnumValueDeclaration implements Declaration {
+  /// The enum that surrounds this entry.
+  Identifier get definingEnum;
+}
+
+/// An introspectable enum declaration.
+abstract class IntrospectableEnumDeclaration
+    implements EnumDeclaration, IntrospectableEnum {}
+
+/// Mixin introspection information.
+///
+/// Information about fields and methods must be retrieved from the `builder`
+/// objects.
+abstract class MixinDeclaration implements ParameterizedTypeDeclaration {
+  /// Whether this mixin has a `base` modifier.
+  bool get hasBase;
+
+  /// All the `implements` type annotations.
+  Iterable<NamedTypeAnnotation> get interfaces;
+
+  /// All the `on` clause type annotations.
+  Iterable<NamedTypeAnnotation> get superclassConstraints;
+}
+
+/// An introspectable mixin declaration.
+abstract class IntrospectableMixinDeclaration
+    implements MixinDeclaration, IntrospectableType {}
+
 /// Type alias introspection information.
 abstract class TypeAliasDeclaration implements ParameterizedTypeDeclaration {
   /// The type annotation this is an alias for.
@@ -197,7 +255,7 @@ abstract class FunctionDeclaration implements Declaration {
 
 /// Method introspection information.
 abstract class MethodDeclaration
-    implements FunctionDeclaration, ClassMemberDeclaration {}
+    implements FunctionDeclaration, MemberDeclaration {}
 
 /// Constructor introspection information.
 abstract class ConstructorDeclaration implements MethodDeclaration {
@@ -222,7 +280,7 @@ abstract class VariableDeclaration implements Declaration {
 
 /// Field introspection information.
 abstract class FieldDeclaration
-    implements VariableDeclaration, ClassMemberDeclaration {}
+    implements VariableDeclaration, MemberDeclaration {}
 
 /// General parameter introspection information, see the subtypes
 /// [FunctionTypeParameter] and [ParameterDeclaration].
@@ -262,4 +320,23 @@ abstract class TypeParameterDeclaration implements TypeDeclaration {
   /// A convenience method to get a `code` object equivalent to this type
   /// parameter.
   TypeParameterCode get code;
+}
+
+/// Introspection information for a field declaration on a Record type.
+///
+/// Note that for positional fields the [identifier] will be the synthesized
+/// one (`$1` etc), while for named fields it will be the declared name.
+abstract class RecordFieldDeclaration implements Declaration {
+  /// A convenience method to get a `code` object equivalent to this field
+  /// declaration.
+  RecordFieldCode get code;
+
+  /// Record fields don't always have names (if they are positional).
+  ///
+  /// If you want to reference the getter for a field, you should use
+  /// [identifier] instead.
+  String? get name;
+
+  /// The type of this field.
+  TypeAnnotation get type;
 }

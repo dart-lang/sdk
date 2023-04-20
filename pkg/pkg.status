@@ -182,6 +182,10 @@ compiler/test/jsinterop/declaration_test: Slow, Pass
 [ $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
+# Timeout. These tests do not run efficiently on our simulator.
+[ $simulator ]
+*: Skip
+
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
@@ -241,11 +245,6 @@ dartdev/test/commands/info_windows_test: SkipByDesign
 analysis_server/test/completion_test: Slow, Pass
 analysis_server/test/integration/edit/sort_members_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
-
-# Timeout. These tests do not run efficiently on our simulator or low-end
-# devices.
-[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
-*: Skip
 
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir

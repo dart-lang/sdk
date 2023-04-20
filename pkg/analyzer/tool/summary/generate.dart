@@ -15,6 +15,8 @@
 /// Each of the "builder" classes has a single `finish` method which writes
 /// the entity being built into the given FlatBuffer and returns the `Offset`
 /// reference to it.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

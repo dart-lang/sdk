@@ -30,7 +30,7 @@ class C {
   int value;
 }
 ''', [
-      error(HintCode.UNNECESSARY_FINAL, 15, 5),
+      error(WarningCode.UNNECESSARY_FINAL, 15, 5),
     ]);
   }
 
@@ -45,7 +45,7 @@ class B extends A {
   B(final super.value);
 }
 ''', [
-      error(HintCode.UNNECESSARY_FINAL, 67, 5),
+      error(WarningCode.UNNECESSARY_FINAL, 67, 5),
     ]);
   }
 
@@ -56,7 +56,7 @@ class C {
   int value;
 }
 ''', [
-      error(HintCode.UNNECESSARY_FINAL, 14, 5),
+      error(WarningCode.UNNECESSARY_FINAL, 14, 5),
     ]);
   }
 }

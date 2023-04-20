@@ -18,97 +18,9 @@ part of dart.collection;
 ///
 /// A more efficient implementation is usually possible by overriding
 /// some of the other members as well.
-abstract class MapBase<K, V> extends MapMixin<K, V> {
-  static String mapToString(Map<Object?, Object?> m) {
-    // Reuses the list in IterableBase for detecting toString cycles.
-    if (_isToStringVisiting(m)) {
-      return '{...}';
-    }
+abstract mixin class MapBase<K, V> implements Map<K, V> {
+  const MapBase();
 
-    var result = StringBuffer();
-    try {
-      _toStringVisiting.add(m);
-      result.write('{');
-      bool first = true;
-      m.forEach((Object? k, Object? v) {
-        if (!first) {
-          result.write(', ');
-        }
-        first = false;
-        result.write(k);
-        result.write(': ');
-        result.write(v);
-      });
-      result.write('}');
-    } finally {
-      assert(identical(_toStringVisiting.last, m));
-      _toStringVisiting.removeLast();
-    }
-
-    return result.toString();
-  }
-
-  static Object? _id(Object? x) => x;
-
-  /// Fills a [Map] with key/value pairs computed from [iterable].
-  ///
-  /// This method is used by [Map] classes in the named constructor
-  /// `fromIterable`.
-  static void _fillMapWithMappedIterable(
-      Map<Object?, Object?> map,
-      Iterable<Object?> iterable,
-      Object? Function(Object? element)? key,
-      Object? Function(Object? element)? value) {
-    key ??= _id;
-    value ??= _id;
-
-    if (key == null) throw "!"; // TODO(38493): The `??=` should promote.
-    if (value == null) throw "!"; // TODO(38493): The `??=` should promote.
-
-    for (var element in iterable) {
-      map[key(element)] = value(element);
-    }
-  }
-
-  /// Fills a map by associating the [keys] to [values].
-  ///
-  /// This method is used by [Map] classes in the named constructor
-  /// `fromIterables`.
-  static void _fillMapWithIterables(Map<Object?, Object?> map,
-      Iterable<Object?> keys, Iterable<Object?> values) {
-    Iterator<Object?> keyIterator = keys.iterator;
-    Iterator<Object?> valueIterator = values.iterator;
-
-    bool hasNextKey = keyIterator.moveNext();
-    bool hasNextValue = valueIterator.moveNext();
-
-    while (hasNextKey && hasNextValue) {
-      map[keyIterator.current] = valueIterator.current;
-      hasNextKey = keyIterator.moveNext();
-      hasNextValue = valueIterator.moveNext();
-    }
-
-    if (hasNextKey || hasNextValue) {
-      throw ArgumentError("Iterables do not have same length.");
-    }
-  }
-}
-
-/// Mixin implementing a [Map].
-///
-/// This mixin has a basic implementation of all but five of the members of
-/// [Map].
-/// A basic `Map` class can be implemented by mixin in this class and
-/// implementing `keys`, `operator[]`, `operator[]=`, `remove` and `clear`.
-/// The remaining operations are implemented in terms of these five.
-///
-/// The `keys` iterable should have efficient [Iterable.length] and
-/// [Iterable.contains] operations, and it should catch concurrent modifications
-/// of the keys while iterating.
-///
-/// A more efficient implementation is usually possible by overriding
-/// some of the other members as well.
-abstract mixin class MapMixin<K, V> implements Map<K, V> {
   Iterable<K> get keys;
   V? operator [](Object? key);
   operator []=(K key, V value);
@@ -194,8 +106,98 @@ abstract mixin class MapMixin<K, V> implements Map<K, V> {
   bool get isEmpty => keys.isEmpty;
   bool get isNotEmpty => keys.isNotEmpty;
   Iterable<V> get values => _MapBaseValueIterable<K, V>(this);
-  String toString() => MapBase.mapToString(this);
+  String toString() => mapToString(this);
+
+  static String mapToString(Map<Object?, Object?> m) {
+    // Reuses the list used by Iterable for detecting toString cycles.
+    if (isToStringVisiting(m)) {
+      return '{...}';
+    }
+
+    var result = StringBuffer();
+    try {
+      toStringVisiting.add(m);
+      result.write('{');
+      bool first = true;
+      m.forEach((Object? k, Object? v) {
+        if (!first) {
+          result.write(', ');
+        }
+        first = false;
+        result.write(k);
+        result.write(': ');
+        result.write(v);
+      });
+      result.write('}');
+    } finally {
+      assert(identical(toStringVisiting.last, m));
+      toStringVisiting.removeLast();
+    }
+
+    return result.toString();
+  }
+
+  /// Fills a [Map] with key/value pairs computed from [iterable].
+  ///
+  /// This method is used by [Map] classes in the named constructor
+  /// `fromIterable`.
+  static void _fillMapWithMappedIterable(
+      Map<Object?, Object?> map,
+      Iterable<Object?> iterable,
+      Object? Function(Object? element)? key,
+      Object? Function(Object? element)? value) {
+    key ??= _id;
+    value ??= _id;
+
+    for (var element in iterable) {
+      map[key(element)] = value(element);
+    }
+  }
+
+  static Object? _id(Object? x) => x;
+
+  /// Fills a map by associating the [keys] to [values].
+  ///
+  /// This method is used by [Map] classes in the named constructor
+  /// `fromIterables`.
+  static void _fillMapWithIterables(Map<Object?, Object?> map,
+      Iterable<Object?> keys, Iterable<Object?> values) {
+    Iterator<Object?> keyIterator = keys.iterator;
+    Iterator<Object?> valueIterator = values.iterator;
+
+    bool hasNextKey = keyIterator.moveNext();
+    bool hasNextValue = valueIterator.moveNext();
+
+    while (hasNextKey && hasNextValue) {
+      map[keyIterator.current] = valueIterator.current;
+      hasNextKey = keyIterator.moveNext();
+      hasNextValue = valueIterator.moveNext();
+    }
+
+    if (hasNextKey || hasNextValue) {
+      throw ArgumentError("Iterables do not have same length.");
+    }
+  }
 }
+
+/// Mixin implementing a [Map].
+///
+/// This mixin has a basic implementation of all but five of the members of
+/// [Map].
+/// A basic `Map` class can be implemented by mixin in this class and
+/// implementing `keys`, `operator[]`, `operator[]=`, `remove` and `clear`.
+/// The remaining operations are implemented in terms of these five.
+///
+/// The `keys` iterable should have efficient [Iterable.length] and
+/// [Iterable.contains] operations, and it should catch concurrent modifications
+/// of the keys while iterating.
+///
+/// A more efficient implementation is usually possible by overriding
+/// some of the other members as well.
+// TODO: @Deprecated("Use MapBase instead")
+// Longer term: Deprecate `Map` unnamed constructor, to allow using `Map`
+// as skeleton class and replace `MapBase`.
+typedef MapMixin<K, V> = MapBase<K, V>;
 
 /// Basic implementation of an unmodifiable [Map].
 ///
@@ -319,6 +321,8 @@ mixin _UnmodifiableMapMixin<K, V> implements Map<K, V> {
 /// Base for delegating map implementations like [UnmodifiableMapView].
 class MapView<K, V> implements Map<K, V> {
   final Map<K, V> _map;
+
+  /// Creates a view which forwards operations to [map].
   const MapView(Map<K, V> map) : _map = map;
 
   Map<RK, RV> cast<RK, RV>() => _map.cast<RK, RV>();

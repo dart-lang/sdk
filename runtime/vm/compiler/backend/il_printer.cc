@@ -184,7 +184,7 @@ class IlTestPrinter : public AllStatic {
     static std::false_type test(...);
 
    public:
-    static constexpr bool value = decltype(test<T>(0))::value;
+    static constexpr bool value = decltype(test<T>(nullptr))::value;
   };
 
   class AttributesSerializer : public InstructionVisitor {
@@ -239,7 +239,7 @@ class IlTestPrinter : public AllStatic {
     template <typename T>
     void WriteDescriptor(
         const char* name,
-        typename std::enable_if_t<HasGetAttributes<T>::value>* = 0) {
+        typename std::enable_if_t<HasGetAttributes<T>::value>* = nullptr) {
       writer_->OpenArray(name);
       WriteTuple(T::GetAttributeNames());
       writer_->CloseArray();
@@ -248,7 +248,7 @@ class IlTestPrinter : public AllStatic {
     template <typename T>
     void WriteDescriptor(
         const char* name,
-        typename std::enable_if_t<!HasGetAttributes<T>::value>* = 0) {}
+        typename std::enable_if_t<!HasGetAttributes<T>::value>* = nullptr) {}
 
     JSONWriter* writer_;
   };
@@ -320,7 +320,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   char str[4000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
-  if (FLAG_print_environments && (instr->env() != NULL)) {
+  if (FLAG_print_environments && (instr->env() != nullptr)) {
     instr->env()->PrintTo(&f);
   }
   if (print_locations && (instr->HasLocs())) {
@@ -343,7 +343,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const String& dst_name,
                                       bool eliminated) {
   const char* compile_type_name = "unknown";
-  if (value != NULL && value->reaching_type_ != NULL) {
+  if (value != nullptr && value->reaching_type_ != nullptr) {
     compile_type_name = value->reaching_type_->ToCString();
   }
   THR_Print(
@@ -527,7 +527,7 @@ void Instruction::PrintTo(BaseTextBuffer* f) const {
 void Instruction::PrintOperandsTo(BaseTextBuffer* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->AddString(", ");
-    if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
+    if (InputAt(i) != nullptr) InputAt(i)->PrintTo(f);
   }
 }
 
@@ -541,12 +541,12 @@ void Definition::PrintTo(BaseTextBuffer* f) const {
   }
   PrintOperandsTo(f);
   f->AddString(")");
-  if (range_ != NULL) {
+  if (range_ != nullptr) {
     f->AddString(" ");
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL) {
+  if (type_ != nullptr) {
     f->AddString(" ");
     type_->PrintTo(f);
   }
@@ -570,7 +570,7 @@ void CheckNullInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void Definition::PrintOperandsTo(BaseTextBuffer* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->AddString(", ");
-    if (InputAt(i) != NULL) {
+    if (InputAt(i) != nullptr) {
       InputAt(i)->PrintTo(f);
     }
   }
@@ -597,7 +597,7 @@ const char* Value::ToCString() const {
 void Value::PrintTo(BaseTextBuffer* f) const {
   PrintUse(f, *definition());
 
-  if ((reaching_type_ != NULL) && (reaching_type_ != definition()->type_)) {
+  if ((reaching_type_ != nullptr) && (reaching_type_ != definition()->type_)) {
     f->AddString(" ");
     reaching_type_->PrintTo(f);
   }
@@ -606,7 +606,7 @@ void Value::PrintTo(BaseTextBuffer* f) const {
 void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   const char* cstr = value().ToCString();
   const char* new_line = strchr(cstr, '\n');
-  if (new_line == NULL) {
+  if (new_line == nullptr) {
     f->Printf("#%s", cstr);
   } else {
     const intptr_t pos = new_line - cstr;
@@ -636,7 +636,7 @@ void Range::PrintTo(BaseTextBuffer* f) const {
 }
 
 const char* Range::ToCString(const Range* range) {
-  if (range == NULL) return "[_|_, _|_]";
+  if (range == nullptr) return "[_|_, _|_]";
 
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
@@ -677,7 +677,7 @@ void MakeTempInstr::PrintOperandsTo(BaseTextBuffer* f) const {}
 
 void DropTempsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%" Pd "", num_temps());
-  if (value() != NULL) {
+  if (value() != nullptr) {
     f->AddString(", ");
     value()->PrintTo(f);
   }
@@ -1134,10 +1134,10 @@ void JoinEntryInstr::PrintTo(BaseTextBuffer* f) const {
     f->Printf("B%" Pd, predecessors_[i]->block_id());
   }
   f->AddString(")");
-  if (phis_ != NULL) {
+  if (phis_ != nullptr) {
     f->AddString(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
-      if ((*phis_)[i] == NULL) continue;
+      if ((*phis_)[i] == nullptr) continue;
       f->AddString("\n      ");
       (*phis_)[i]->PrintTo(f);
     }
@@ -1160,10 +1160,10 @@ void IndirectEntryInstr::PrintTo(BaseTextBuffer* f) const {
     f->Printf("B%" Pd, predecessors_[i]->block_id());
   }
   f->AddString(")");
-  if (phis_ != NULL) {
+  if (phis_ != nullptr) {
     f->AddString(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
-      if ((*phis_)[i] == NULL) continue;
+      if ((*phis_)[i] == nullptr) continue;
       f->AddString("\n      ");
       (*phis_)[i]->PrintTo(f);
     }
@@ -1178,12 +1178,12 @@ void IndirectEntryInstr::PrintTo(BaseTextBuffer* f) const {
 void PhiInstr::PrintTo(BaseTextBuffer* f) const {
   f->Printf("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
-    if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
+    if (inputs_[i] != nullptr) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->AddString(", ");
   }
   f->AddString(")");
   f->AddString(is_alive() ? " alive" : " dead");
-  if (range_ != NULL) {
+  if (range_ != nullptr) {
     f->AddString(" ");
     range_->PrintTo(f);
   }
@@ -1492,14 +1492,14 @@ void Environment::PrintTo(BaseTextBuffer* f) const {
     } else {
       values_[i]->PrintTo(f);
     }
-    if ((locations_ != NULL) && !locations_[i].IsInvalid()) {
+    if ((locations_ != nullptr) && !locations_[i].IsInvalid()) {
       f->AddString(" [");
       locations_[i].PrintTo(f);
       f->AddString("]");
     }
   }
   f->AddString(" }");
-  if (outer_ != NULL) outer_->PrintTo(f);
+  if (outer_ != nullptr) outer_->PrintTo(f);
 }
 
 const char* Environment::ToCString() const {

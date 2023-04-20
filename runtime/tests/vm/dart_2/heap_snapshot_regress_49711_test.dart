@@ -4,7 +4,7 @@
 
 // @dart=2.9
 
-import 'dart:_internal';
+import 'dart:developer';
 
 import 'package:expect/expect.dart';
 
@@ -43,7 +43,7 @@ main() async {
     // Closures are the example this is a regresion test for, so ensure there's
     // a reachable closure in the heapsnapshot.
     global = alwaysTrue ? FooBar(BarBaz(1), 2, List.filled(1, 3)) : null;
-    VMInternalsForTesting.writeHeapSnapshotToFile(file);
+    NativeRuntime.writeHeapSnapshotToFile(file);
     Expect.equals('FooBar(BarBaz(1), 2, [3])', global.toString());
 
     final snapshot = loadHeapSnapshotFromFile(file);
@@ -61,7 +61,7 @@ main() async {
       if (uri == '') {
         // We don't verify non-user-visible objects.
       } else if (uri.startsWith('dart') &&
-          ['Array', 'List'].any((p) => klass.name.contains(p))) {
+          ['Array', 'List', 'Record'].any((p) => klass.name.contains(p))) {
         Expect.isTrue(fields.length <= object.references.length);
       } else {
         Expect.equals(fields.length, object.references.length);

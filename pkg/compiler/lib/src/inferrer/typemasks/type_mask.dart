@@ -434,4 +434,10 @@ abstract class TypeMask implements AbstractValue {
   /// Returns the [element] that is known to always be hit at runtime
   /// on this mask. Returns null if there is none.
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain);
+
+  /// Returns a set of members that are ancestors of all possible targets for
+  /// a call targeting [selector] on a receiver with the type represented by
+  /// this mask.
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
+      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld);
 }

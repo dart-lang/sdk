@@ -13,9 +13,9 @@ namespace dart {
 // A constant mask that can be 'and'ed with a word of data to determine if it
 // is all ASCII (with no Latin1 characters).
 #if defined(ARCH_IS_64_BIT)
-static const uintptr_t kAsciiWordMask = DART_UINT64_C(0x8080808080808080);
+static constexpr uintptr_t kAsciiWordMask = DART_UINT64_C(0x8080808080808080);
 #else
-static const uintptr_t kAsciiWordMask = 0x80808080u;
+static constexpr uintptr_t kAsciiWordMask = 0x80808080u;
 #endif
 
 intptr_t Utf8::Length(const String& str) {

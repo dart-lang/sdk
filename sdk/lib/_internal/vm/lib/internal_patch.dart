@@ -168,9 +168,6 @@ abstract class VMInternalsForTesting {
   @pragma("vm:external-name", "Internal_collectAllGarbage")
   external static void collectAllGarbage();
 
-  @pragma("vm:external-name", "Internal_writeHeapSnapshotToFile")
-  external static void writeHeapSnapshotToFile(String filename);
-
   @pragma("vm:external-name", "Internal_deoptimizeFunctionsOnStack")
   external static void deoptimizeFunctionsOnStack();
 

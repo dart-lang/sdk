@@ -24,7 +24,7 @@ namespace dart {
 template <typename P, typename V>
 class PriorityQueue {
  public:
-  static const intptr_t kMinimumSize = 16;
+  static constexpr intptr_t kMinimumSize = 16;
 
   struct Entry {
     P priority;
@@ -237,7 +237,7 @@ class PriorityQueue {
     Entry* new_backing = reinterpret_cast<Entry*>(
         realloc(min_heap_, sizeof(Entry) * new_min_heap_size));
 
-    if (new_backing == NULL) FATAL("Cannot allocate memory.");
+    if (new_backing == nullptr) FATAL("Cannot allocate memory.");
 
     min_heap_ = new_backing;
     min_heap_size_ = new_min_heap_size;

@@ -1,8 +1,6 @@
 //
 // Problems outside component:
 //
-// pkg/front_end/testcases/class_modifiers/ffi_exception.dart: Error: Class 'NativeType' cannot be extended or implemented.
-//
 // pkg/front_end/testcases/class_modifiers/ffi_exception.dart: Error: Class 'Object' cannot be extended or implemented.
 //
 library /*isNonNullableByDefault*/;

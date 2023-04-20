@@ -138,9 +138,13 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get completeFunctionCalls =>
       _settings['completeFunctionCalls'] as bool? ?? false;
 
-  /// A hidden experimental flag for enabling new refactors during development.
-  bool get experimentalNewRefactors =>
-      _settings['experimentalNewRefactors'] as bool? ?? false;
+  /// A flag for enabling interaactive refactors flagged as experimental.
+  ///
+  /// This flag is likely to be used by both analysis server developers (working
+  /// on new refactors) and users that want to test/provide feedback for
+  /// incomplete refactors.
+  bool get experimentalRefactors =>
+      _settings['experimentalRefactors'] as bool? ?? false;
 
   /// Whether or not to include dependencies in `textDocument/workspaceSymbols`.
   ///
@@ -156,14 +160,11 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   /// [DocumentationPreference.full].
   DocumentationPreference get preferredDocumentation {
     final value = _settings['documentation'];
-    switch (value) {
-      case 'none':
-        return DocumentationPreference.none;
-      case 'summary':
-        return DocumentationPreference.summary;
-      default:
-        return DocumentationPreference.full;
-    }
+    return switch (value) {
+      'none' => DocumentationPreference.none,
+      'summary' => DocumentationPreference.summary,
+      _ => DocumentationPreference.full
+    };
   }
 
   /// A preview flag for enabling commit characters for completions.

@@ -37,6 +37,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final BufferedSink _metadataSink;
   late BufferedSink _sink;
   final bool includeSources;
+  final bool includeSourceBytes;
   final bool includeOffsets;
   final LibraryFilter? libraryFilter;
 
@@ -65,6 +66,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       {this.libraryFilter,
       StringIndexer? stringIndexer,
       this.includeSources = true,
+      this.includeSourceBytes = true,
       this.includeOffsets = true})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
@@ -869,7 +871,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       String uriAsString = "$uri";
       outputStringViaBuffer(uriAsString, buffer);
 
-      writeByteList(source.source);
+      writeByteList(includeSourceBytes ? source.source : const []);
 
       {
         List<int> lineStarts = source.lineStarts!;
@@ -2773,12 +2775,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.entries);
     writeOptionalNode(node.requiredType);
     writeOptionalNode(node.matchedValueType);
-    writeByte((node.needsCheck ? 0x1 : 0) | (node.hasRestPattern ? 0x2 : 0));
+    writeByte(node.needsCheck ? 0x1 : 0);
     writeOptionalNode(node.lookupType);
-    writeNullAllowedReference(node.lengthTargetReference);
-    writeOptionalNode(node.lengthType);
-    writeNullAllowedReference(node.lengthCheckTargetReference);
-    writeOptionalNode(node.lengthCheckType);
     writeNullAllowedReference(node.containsKeyTargetReference);
     writeOptionalNode(node.containsKeyType);
     writeNullAllowedReference(node.indexGetTargetReference);

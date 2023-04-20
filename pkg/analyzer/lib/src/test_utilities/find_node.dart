@@ -24,7 +24,36 @@ class FindNode {
     return result;
   }
 
+  AdjacentStrings get singleAdjacentStrings => _single();
+
+  Annotation get singleAnnotation => _single();
+
+  AsExpression get singleAsExpression => _single();
+
+  AssertInitializer get singleAssertInitializer => _single();
+
+  AssertStatement get singleAssertStatement => _single();
+
+  AssignmentExpression get singleAssignmentExpression => _single();
+
+  BinaryExpression get singleBinaryExpression => _single();
+
   Block get singleBlock => _single();
+
+  CascadeExpression get singleCascadeExpression => _single();
+
+  ConditionalExpression get singleConditionalExpression => _single();
+
+  ConstructorFieldInitializer get singleConstructorFieldInitializer =>
+      _single();
+
+  ExportDirective get singleExportDirective => _single();
+
+  ExtendsClause get singleExtendsClause => _single();
+
+  FieldDeclaration get singleFieldDeclaration => _single();
+
+  FieldFormalParameter get singleFieldFormalParameter => _single();
 
   ForElement get singleForElement => _single();
 
@@ -32,13 +61,48 @@ class FindNode {
 
   FunctionBody get singleFunctionBody => _single();
 
+  FunctionDeclaration get singleFunctionDeclaration => _single();
+
+  FunctionDeclarationStatement get singleFunctionDeclarationStatement =>
+      _single();
+
+  FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
+      _single();
+
+  FunctionReference get singleFunctionReference => _single();
+
+  FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
+      _single();
+
   GuardedPattern get singleGuardedPattern => _single();
 
   IfElement get singleIfElement => _single();
 
   IfStatement get singleIfStatement => _single();
 
+  ImplementsClause get singleImplementsClause => _single();
+
+  ImportDirective get singleImportDirective => _single();
+
+  IndexExpression get singleIndexExpression => _single();
+
+  InstanceCreationExpression get singleInstanceCreationExpression => _single();
+
+  IsExpression get singleIsExpression => _single();
+
+  LabeledStatement get singleLabeledStatement => _single();
+
   LibraryDirective get singleLibraryDirective => _single();
+
+  ListLiteral get singleListLiteral => _single();
+
+  MethodDeclaration get singleMethodDeclaration => _single();
+
+  MethodInvocation get singleMethodInvocation => _single();
+
+  OnClause get singleOnClause => _single();
+
+  ParenthesizedExpression get singleParenthesizedExpression => _single();
 
   PatternAssignment get singlePatternAssignment => _single();
 
@@ -47,9 +111,35 @@ class FindNode {
   PatternVariableDeclarationStatement
       get singlePatternVariableDeclarationStatement => _single();
 
+  PostfixExpression get singlePostfixExpression => _single();
+
+  PrefixedIdentifier get singlePrefixedIdentifier => _single();
+
+  PrefixExpression get singlePrefixExpression => _single();
+
+  PropertyAccess get singlePropertyAccess => _single();
+
+  RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
+      _single();
+
+  RethrowExpression get singleRethrowExpression => _single();
+
+  SetOrMapLiteral get singleSetOrMapLiteral => _single();
+
+  SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
+
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
+
+  TryStatement get singleTryStatement => _single();
+
+  VariableDeclarationStatement get singleVariableDeclarationStatement =>
+      _single();
+
+  WhileStatement get singleWhileStatement => _single();
+
+  WithClause get singleWithClause => _single();
 
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
@@ -173,6 +263,10 @@ class FindNode {
   }
 
   ConstructorDeclaration constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
+  }
+
+  ConstructorDeclaration constructorDeclaration(String search) {
     return _node(search, (n) => n is ConstructorDeclaration);
   }
 

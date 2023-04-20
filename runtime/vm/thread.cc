@@ -272,15 +272,11 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
 }
 
 bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
-  const bool kIsMutatorThread = true;
-  const bool kBypassSafepoint = false;
-
   is_nested_reenter = is_nested_reenter ||
                       (isolate->mutator_thread() != nullptr &&
                        isolate->mutator_thread()->top_exit_frame_info() != 0);
 
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, is_nested_reenter,
-                                           kBypassSafepoint);
+  Thread* thread = isolate->ScheduleThread(is_nested_reenter);
   if (thread != nullptr) {
     ASSERT(thread->store_buffer_block_ == nullptr);
     ASSERT(thread->isolate() == isolate);
@@ -304,48 +300,10 @@ void Thread::ExitIsolate(bool is_nested_exit) {
   Isolate* isolate = thread->isolate();
   thread->set_vm_tag(isolate->is_runnable() ? VMTag::kIdleTagId
                                             : VMTag::kLoadWaitTagId);
-  const bool kIsMutatorThread = true;
-  const bool kBypassSafepoint = false;
   is_nested_exit =
       is_nested_exit || (isolate->mutator_thread() != nullptr &&
                          isolate->mutator_thread()->top_exit_frame_info() != 0);
-  isolate->UnscheduleThread(thread, kIsMutatorThread, is_nested_exit,
-                            kBypassSafepoint);
-}
-
-bool Thread::EnterIsolateAsHelper(Isolate* isolate,
-                                  TaskKind kind,
-                                  bool bypass_safepoint) {
-  ASSERT(kind != kMutatorTask);
-  const bool kIsMutatorThread = false;
-  const bool kIsNestedReenter = false;
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, kIsNestedReenter,
-                                           bypass_safepoint);
-  if (thread != nullptr) {
-    ASSERT(!thread->IsMutatorThread());
-    ASSERT(thread->isolate() == isolate);
-    ASSERT(thread->isolate_group() == isolate->group());
-    thread->FinishEntering(kind);
-    return true;
-  }
-  return false;
-}
-
-void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != nullptr);
-  ASSERT(!thread->IsMutatorThread());
-  ASSERT(thread->isolate() != nullptr);
-  ASSERT(thread->isolate_group() != nullptr);
-
-  thread->PrepareLeaving();
-
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != nullptr);
-  const bool kIsMutatorThread = false;
-  const bool kIsNestedExit = false;
-  isolate->UnscheduleThread(thread, kIsMutatorThread, kIsNestedExit,
-                            bypass_safepoint);
+  isolate->UnscheduleThread(thread, is_nested_exit);
 }
 
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
@@ -378,7 +336,7 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 }
 
 void Thread::ReleaseStoreBuffer() {
-  ASSERT(IsAtSafepoint());
+  ASSERT(IsAtSafepoint() || OwnsSafepoint());
   if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
     return;  // Nothing to release.
   }
@@ -452,7 +410,7 @@ ErrorPtr Thread::HandleInterrupts() {
 
 #if !defined(PRODUCT)
     if (isolate()->TakeHasCompletedBlocks()) {
-      Profiler::ProcessCompletedBlocks(this);
+      Profiler::ProcessCompletedBlocks(isolate());
     }
 #endif  // !defined(PRODUCT)
 
@@ -568,16 +526,6 @@ void Thread::DeferredMarkingStackAcquire() {
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
 
-bool Thread::CanCollectGarbage() const {
-  // We grow the heap instead of triggering a garbage collection when a
-  // thread is at a safepoint in the following situations :
-  //   - background compiler thread finalizing and installing code
-  //   - disassembly of the generated code is done after compilation
-  // So essentially we state that garbage collection is possible only
-  // when we are not at a safepoint.
-  return !IsAtSafepoint();
-}
-
 bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
@@ -666,7 +614,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
         current_(Thread::Current()),
         op_(op) {}
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
       // Stores into new-space objects don't need a write barrier.
@@ -712,11 +660,13 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     UNREACHABLE();  // Stack slots are not compressed.
   }
+#endif
 
  private:
   Thread* const thread_;
@@ -736,7 +686,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 // Dart frames preceding an exit frame to the store buffer or deferred
 // marking stack.
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
-  ASSERT(IsAtSafepoint());
+  ASSERT(IsAtSafepoint() || OwnsGCSafepoint());
   ASSERT(IsMutatorThread());
 
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
@@ -981,6 +931,30 @@ void Thread::ExitSafepointUsingLock() {
 
 void Thread::BlockForSafepoint() {
   isolate_group()->safepoint_handler()->BlockForSafepoint(this);
+}
+
+bool Thread::OwnsGCSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) <= SafepointLevel::kGCAndDeopt;
+}
+
+bool Thread::OwnsDeoptSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) == SafepointLevel::kGCAndDeopt;
+}
+
+bool Thread::OwnsSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) != SafepointLevel::kNoSafepoint;
+}
+
+bool Thread::CanAcquireSafepointLocks() const {
+  // A thread may acquire locks and then enter a safepoint operation (e.g.
+  // holding program lock, allocating objects which triggers GC).
+  //
+  // So it's generally not safe to acquire locks while we are inside a GC
+  // safepoint operation scope.
+  return !OwnsGCSafepoint();
 }
 
 void Thread::FinishEntering(TaskKind kind) {

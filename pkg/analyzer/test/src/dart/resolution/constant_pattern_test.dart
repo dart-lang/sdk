@@ -146,7 +146,7 @@ ConstantPattern
   expression: SetOrMapLiteral
     leftBracket: {
     elements
-      SetOrMapLiteral
+      MapLiteralEntry
         key: IntegerLiteral
           literal: 0
           staticType: int

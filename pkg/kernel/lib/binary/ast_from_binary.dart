@@ -3139,12 +3139,7 @@ class BinaryBuilder {
     DartType? matchedValueType = readDartTypeOption();
     int flags = readByte();
     bool needsCheck = flags & 0x1 != 0;
-    bool hasRestPattern = flags & 0x2 != 0;
     DartType? lookupType = readDartTypeOption();
-    Reference? lengthTargetReference = readNullableMemberReference();
-    DartType? lengthType = readDartTypeOption();
-    Reference? lengthCheckTargetReference = readNullableMemberReference();
-    FunctionType? lengthCheckType = readDartTypeOption() as FunctionType?;
     Reference? containsKeyTargetReference = readNullableMemberReference();
     FunctionType? containsKeyType = readDartTypeOption() as FunctionType?;
     Reference? indexGetTargetReference = readNullableMemberReference();
@@ -3154,11 +3149,6 @@ class BinaryBuilder {
       ..matchedValueType = matchedValueType
       ..needsCheck = needsCheck
       ..lookupType = lookupType
-      ..hasRestPattern = hasRestPattern
-      ..lengthTargetReference = lengthTargetReference
-      ..lengthType = lengthType
-      ..lengthCheckTargetReference = lengthCheckTargetReference
-      ..lengthCheckType = lengthCheckType
       ..containsKeyTargetReference = containsKeyTargetReference
       ..containsKeyType = containsKeyType
       ..indexGetTargetReference = indexGetTargetReference
@@ -3397,7 +3387,10 @@ class BinaryBuilder {
       cases = new List<PatternSwitchCase>.generate(
           count,
           (_) => new PatternSwitchCase([], [], dummyStatement,
-              isDefault: false, hasLabel: false, jointVariables: []),
+              isDefault: false,
+              hasLabel: false,
+              jointVariables: [],
+              jointVariableFirstUseOffsets: null),
           growable: useGrowableLists);
     }
     switchCaseStack.addAll(cases);

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +28,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -60,7 +61,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -143,7 +144,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -227,7 +228,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -312,7 +313,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -396,7 +397,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -475,7 +476,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -558,7 +559,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -649,7 +650,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -735,7 +736,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -814,7 +815,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -911,7 +912,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -983,6 +984,86 @@ IfStatement
 ''');
   }
 
+  test_caseClause_variables_scope_logicalOr() async {
+    await assertErrorsInCode(r'''
+const a = 0;
+void f(Object? x) {
+  if (x case bool a || a when a) {
+    a;
+  } else {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          56, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
+    ]);
+
+    final node = findNode.singleIfStatement;
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: LogicalOrPattern
+        leftOperand: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: bool
+              staticElement: dart:core::@class::bool
+              staticType: null
+            type: bool
+          name: a
+          declaredElement: a@51
+            type: bool
+          matchedValueType: Object?
+        operator: ||
+        rightOperand: ConstantPattern
+          expression: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@51]
+            staticType: dynamic
+          matchedValueType: Object?
+        matchedValueType: Object?
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@51]
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: notConsistent a[a@51]
+          staticType: bool
+        semicolon: ;
+    rightBracket: }
+  elseKeyword: else
+  elseStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: self::@getter::a
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_caseClause_variables_single() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
@@ -1001,7 +1082,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Object?
@@ -1059,6 +1140,33 @@ IfStatement
 ''');
   }
 
+  test_expression_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    if (super) {}
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
+    ]);
+
+    final node = findNode.singleIfStatement;
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_rewrite_caseClause_pattern() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
@@ -1075,7 +1183,7 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -1117,7 +1225,7 @@ void f(bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -1147,7 +1255,7 @@ void f(int Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: FunctionExpressionInvocation
+  expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       staticElement: self::@function::f::@parameter::a
@@ -1185,7 +1293,7 @@ void f(x, bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
@@ -1229,7 +1337,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  condition: SimpleIdentifier
+  expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic

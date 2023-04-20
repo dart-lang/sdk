@@ -10,6 +10,7 @@
 #error Do not include instructions_riscv.h directly; use instructions.h instead.
 #endif
 
+#include "platform/unaligned.h"
 #include "vm/allocation.h"
 #include "vm/constants.h"
 #include "vm/native_function.h"
@@ -166,7 +167,7 @@ class ReturnPattern : public ValueObject {
   explicit ReturnPattern(uword pc);
 
   // ret = 1 compressed instruction
-  static const intptr_t kLengthInBytes = 2;
+  static constexpr intptr_t kLengthInBytes = 2;
 
   int pattern_length_in_bytes() const { return kLengthInBytes; }
 
@@ -187,22 +188,24 @@ class PcRelativePatternBase : public ValueObject {
   explicit PcRelativePatternBase(uword pc) : pc_(pc) {}
 
   int32_t distance() {
-    Instr auipc(*reinterpret_cast<uint32_t*>(pc_));
-    Instr jalr(*reinterpret_cast<uint32_t*>(pc_ + 4));
+    Instr auipc(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
+    Instr jalr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_ + 4)));
     return auipc.utype_imm() + jalr.itype_imm();
   }
 
   void set_distance(int32_t distance) {
-    Instr auipc(*reinterpret_cast<uint32_t*>(pc_));
-    Instr jalr(*reinterpret_cast<uint32_t*>(pc_ + 4));
+    Instr auipc(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
+    Instr jalr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_ + 4)));
     intx_t imm = distance;
     intx_t lo = ImmLo(imm);
     intx_t hi = ImmHi(imm);
-    *reinterpret_cast<uint32_t*>(pc_) =
-        EncodeUTypeImm(hi) | EncodeRd(auipc.rd()) | EncodeOpcode(AUIPC);
-    *reinterpret_cast<uint32_t*>(pc_ + 4) =
-        EncodeITypeImm(lo) | EncodeRs1(jalr.rs1()) | EncodeFunct3(F3_0) |
-        EncodeRd(jalr.rd()) | EncodeOpcode(JALR);
+    StoreUnaligned(reinterpret_cast<uint32_t*>(pc_), EncodeUTypeImm(hi) |
+                                                         EncodeRd(auipc.rd()) |
+                                                         EncodeOpcode(AUIPC));
+    StoreUnaligned(reinterpret_cast<uint32_t*>(pc_ + 4),
+                   EncodeITypeImm(lo) | EncodeRs1(jalr.rs1()) |
+                       EncodeFunct3(F3_0) | EncodeRd(jalr.rd()) |
+                       EncodeOpcode(JALR));
   }
 
   bool IsValid() const;
@@ -211,6 +214,8 @@ class PcRelativePatternBase : public ValueObject {
   uword pc_;
 };
 
+// auipc ra, hi20
+// jalr ra, lo12(ra)
 class PcRelativeCallPattern : public PcRelativePatternBase {
  public:
   explicit PcRelativeCallPattern(uword pc) : PcRelativePatternBase(pc) {}
@@ -218,6 +223,8 @@ class PcRelativeCallPattern : public PcRelativePatternBase {
   bool IsValid() const;
 };
 
+// auipc tmp, hi20
+// jalr zero, lo12(tmp)
 class PcRelativeTailCallPattern : public PcRelativePatternBase {
  public:
   explicit PcRelativeTailCallPattern(uword pc) : PcRelativePatternBase(pc) {}
@@ -225,28 +232,15 @@ class PcRelativeTailCallPattern : public PcRelativePatternBase {
   bool IsValid() const;
 };
 
-// RISC-V never uses trampolines since the range of the regular pc-relative call
-// is enough.
-class PcRelativeTrampolineJumpPattern : public ValueObject {
+// This exists only for the CodeRelocator_OutOfRange tests. Real programs never
+// use trampolines because regular calls have 32-bit of range and trampolines
+// provide no additional range.
+class PcRelativeTrampolineJumpPattern : public PcRelativeTailCallPattern {
  public:
-  static constexpr intptr_t kLengthInBytes = 8;
-  static constexpr intptr_t kLowerCallingRange =
-      -(DART_INT64_C(1) << 31) + kLengthInBytes;
-  static constexpr intptr_t kUpperCallingRange = (DART_INT64_C(1) << 31) - 1;
-
-  explicit PcRelativeTrampolineJumpPattern(uword pattern_start)
-      : pattern_start_(pattern_start) {
-    USE(pattern_start_);
-  }
+  explicit PcRelativeTrampolineJumpPattern(uword pc)
+      : PcRelativeTailCallPattern(pc) {}
 
   void Initialize();
-
-  int32_t distance();
-  void set_distance(int32_t distance);
-  bool IsValid() const;
-
- private:
-  uword pattern_start_;
 };
 
 }  // namespace dart

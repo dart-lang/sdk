@@ -122,7 +122,7 @@ dload(obj, field) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Handle record types by trying to access [f] via convenience getters.
-    if (JS<bool>('!', '# instanceof #', obj, _RecordImpl) && f is String) {
+    if (_jsInstanceOf(obj, _RecordImpl) && f is String) {
       // It is a compile-time error for record names to clash, so we don't
       // need to check the positionals or named elements in any order.
       var value = JS('', '#.#', obj, f);
@@ -887,7 +887,34 @@ Future<void> loadLibrary(@notNull String libraryUri,
     JS('', '#.add(#)', result, importPrefix);
     return Future.value();
   } else {
-    throw UnimplementedError('realDeferredLoading flag is not yet supported');
+    int currentHotRestartIteration = hotRestartIteration;
+    var loadId = '$libraryUri::$importPrefix';
+    if (targetModule.isEmpty) {
+      throw ArgumentError('Empty module passed for deferred load: $loadId.');
+    }
+    if (JS('', r'#.deferred_loader.isLoaded(#)', global_, loadId)) {
+      return Future.value();
+    }
+    var completer = Completer();
+
+    // Don't mark a load ID as loaded across hot restart boundaries.
+    void internalComplete(void Function() beforeComplete) {
+      if (hotRestartIteration == currentHotRestartIteration &&
+          beforeComplete != null) {
+        beforeComplete();
+      }
+      completer.complete();
+    }
+
+    JS(
+        '',
+        r'#.deferred_loader.loadDeferred(#, #, #, #)',
+        global_,
+        loadId,
+        targetModule,
+        internalComplete,
+        (error) => completer.completeError(error));
+    return completer.future;
   }
 }
 
@@ -900,7 +927,10 @@ void checkDeferredIsLoaded(
       throwDeferredIsLoadedError(libraryUri, importPrefix);
     }
   } else {
-    throw UnimplementedError('realDeferredLoading flag is not yet supported');
+    var loadId = '$libraryUri::$importPrefix';
+    var loaded =
+        JS<bool>('', r'#.deferred_loader.loadIds.has(#)', global_, loadId);
+    if (!loaded) throwDeferredIsLoadedError(libraryUri, importPrefix);
   }
 }
 

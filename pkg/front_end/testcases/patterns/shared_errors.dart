@@ -46,6 +46,18 @@ duplicateRestPattern(o) {
   }
 }
 
+emptyMapPattern(o) {
+  switch (o) {
+    case {}: // Error
+  }
+}
+
+singleRestPatternInMap(o) {
+  switch (o) {
+    case {...}: // Error
+  }
+}
+
 matchedTypeIsStrictlyNonNullable(List<int> list) {
   if (list case [var a!, var b?]) { // Warnings
     print(0);

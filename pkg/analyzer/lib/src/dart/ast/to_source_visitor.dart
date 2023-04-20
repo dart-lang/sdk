@@ -674,7 +674,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     sink.write('if (');
-    _visitNode(node.condition);
+    _visitNode(node.expression);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenElement);
@@ -684,7 +684,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
-    _visitNode(node.condition);
+    _visitNode(node.expression);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenStatement);
@@ -889,10 +889,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.sealedKeyword, suffix: ' ');
     _visitToken(node.baseKeyword, suffix: ' ');
-    _visitToken(node.interfaceKeyword, suffix: ' ');
-    _visitToken(node.finalKeyword, suffix: ' ');
     sink.write('mixin ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);

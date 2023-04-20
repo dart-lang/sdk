@@ -86,13 +86,13 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_depth_(0),
       for_in_depth_(0),
       block_expression_depth_(0),
-      graph_entry_(NULL),
-      scopes_(NULL),
-      breakable_block_(NULL),
-      switch_block_(NULL),
-      try_catch_block_(NULL),
-      try_finally_block_(NULL),
-      catch_block_(NULL),
+      graph_entry_(nullptr),
+      scopes_(nullptr),
+      breakable_block_(nullptr),
+      switch_block_(nullptr),
+      try_catch_block_(nullptr),
+      try_finally_block_(nullptr),
+      catch_block_(nullptr),
       prepend_type_arguments_(Function::ZoneHandle(zone_)),
       throw_new_null_assertion_(Function::ZoneHandle(zone_)) {
   const Script& script =
@@ -192,7 +192,7 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   const Function& function = parsed_function_->function();
 
   if (function.IsGeneric() || function.HasGenericParent()) {
-    ASSERT(parsed_function_->function_type_arguments() != NULL);
+    ASSERT(parsed_function_->function_type_arguments() != nullptr);
     instructions += LoadLocal(parsed_function_->function_type_arguments());
   } else {
     instructions += NullConstant();
@@ -369,7 +369,7 @@ Fragment FlowGraphBuilder::InstanceCall(
       InstructionSource(position), name, kind, std::move(arguments),
       type_args_len, argument_names, checked_argument_count, ic_data_array_,
       GetNextDeoptId(), interface_target, tearoff_interface_target);
-  if ((result_type != NULL) && !result_type->IsTrivial()) {
+  if ((result_type != nullptr) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
   }
   if (use_unchecked_entry) {
@@ -621,11 +621,11 @@ void FlowGraphBuilder::SetResultTypeForStaticCall(
     intptr_t argument_count,
     const InferredTypeMetadata* result_type) {
   if (call->InitResultType(Z)) {
-    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+    ASSERT((result_type == nullptr) || (result_type->cid == kDynamicCid) ||
            (result_type->cid == call->result_cid()));
     return;
   }
-  if ((result_type != NULL) && !result_type->IsTrivial()) {
+  if ((result_type != nullptr) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
   }
 }
@@ -714,19 +714,10 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
-                                                  bool incompatible_arguments) {
-  const Class& klass = Class::ZoneHandle(
-      Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
-  ASSERT(!klass.IsNull());
-  const auto& error = klass.EnsureIsFinalized(H.thread());
-  ASSERT(error == Error::null());
-  const Function& throw_function = Function::ZoneHandle(
-      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
-  ASSERT(!throw_function.IsNull());
-
-  Fragment instructions;
-
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(TokenPosition position,
+                                                  const Function& target,
+                                                  bool incompatible_arguments,
+                                                  bool receiver_pushed) {
   const Class& owner = Class::Handle(Z, target.Owner());
   auto& receiver = Instance::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
@@ -753,30 +744,48 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
     }
   }
 
-  // Call NoSuchMethodError._throwNew static function.
-  if (!target.IsRecordFieldGetter()) {
+  Fragment instructions;
+  if (!receiver_pushed) {
     instructions += Constant(receiver);  // receiver
   }
-  instructions += Constant(String::ZoneHandle(Z, target.name()));  // memberName
+  instructions +=
+      ThrowNoSuchMethodError(position, String::ZoneHandle(Z, target.name()),
+                             level, kind, /*receiver_pushed*/ true);
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(TokenPosition position,
+                                                  const String& selector,
+                                                  InvocationMirror::Level level,
+                                                  InvocationMirror::Kind kind,
+                                                  bool receiver_pushed) {
+  const Class& klass = Class::ZoneHandle(
+      Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
+  const Function& throw_function = Function::ZoneHandle(
+      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(!throw_function.IsNull());
+
+  Fragment instructions;
+  if (!receiver_pushed) {
+    instructions += NullConstant();  // receiver
+  }
+  instructions += Constant(selector);
   instructions += IntConstant(InvocationMirror::EncodeType(level, kind));
   instructions += IntConstant(0);  // type arguments length
   instructions += NullConstant();  // type arguments
   instructions += NullConstant();  // arguments
   instructions += NullConstant();  // argumentNames
-
-  instructions += StaticCall(TokenPosition::kNoSource, throw_function,
-                             /* argument_count = */ 7, ICData::kStatic);
-
-  // Properly close graph with a ThrowInstr, although it is not executed.
-  instructions += ThrowException(TokenPosition::kNoSource);
-  instructions += Drop();
-
+  instructions += StaticCall(position, throw_function, /* argument_count = */ 7,
+                             ICData::kNoRebind);
   return instructions;
 }
 
 LocalVariable* FlowGraphBuilder::LookupVariable(intptr_t kernel_offset) {
   LocalVariable* local = scopes_->locals.Lookup(kernel_offset);
-  ASSERT(local != NULL);
+  ASSERT(local != nullptr);
   ASSERT(local->kernel_offset() == kernel_offset);
   return local;
 }
@@ -1747,7 +1756,7 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
 
   receiver_variable->set_is_captured();
   //  receiver_variable->set_is_final();
-  LocalScope* scope = new (Z) LocalScope(NULL, 0, 0);
+  LocalScope* scope = new (Z) LocalScope(nullptr, 0, 0);
   scope->set_context_level(0);
   scope->AddVariable(receiver_variable);
   scope->AddContextVariable(receiver_variable);
@@ -1819,13 +1828,15 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
     return false;
   }
   Definition* definition = value->definition();
-  if (definition->IsConstant() || definition->IsLoadStaticField()) {
+  if (definition->IsConstant() || definition->IsLoadStaticField() ||
+      definition->IsLoadLocal() || definition->IsAssertAssignable() ||
+      definition->IsAllocateSmallRecord() || definition->IsAllocateRecord()) {
     return true;
   }
   if (auto const alloc = definition->AsAllocateClosure()) {
     return !alloc->known_function().IsNull();
   }
-  return definition->IsLoadLocal() || definition->IsAssertAssignable();
+  return false;
 }
 
 Fragment FlowGraphBuilder::EvaluateAssertion() {
@@ -2027,7 +2038,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     }
 
     const AbstractType* target_type = &param->type();
-    if (forwarding_target != NULL) {
+    if (forwarding_target != nullptr) {
       // We add 1 to the parameter index to account for the receiver.
       target_type =
           &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
@@ -2176,7 +2187,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   LocalVariable* array = MakeTemporary();
   if (receiver_index > 0) {
     LocalVariable* type_args = parsed_function_->function_type_arguments();
-    ASSERT(type_args != NULL);
+    ASSERT(type_args != nullptr);
     body += LoadLocal(array);
     body += IntConstant(0);
     body += LoadLocal(type_args);
@@ -2373,8 +2384,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
 
   Fragment throw_nsm(nsm);
   throw_nsm += LoadLocal(parsed_function_->receiver_var());
-  throw_nsm +=
-      ThrowNoSuchMethodError(function, /*incompatible_arguments=*/false);
+  throw_nsm += ThrowNoSuchMethodError(TokenPosition::kNoSource, function,
+                                      /*incompatible_arguments=*/false,
+                                      /*receiver_pushed=*/true);
+  throw_nsm += ThrowException(TokenPosition::kNoSource);  // Close graph.
 
   // There is no prologue code for a record field getter.
   PrologueInfo prologue_info(-1, -1);
@@ -3470,7 +3483,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
           Function::ZoneHandle(Z, function.parent_function());
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
-      type = Type::New(owner, TypeArguments::Handle(Z));
+      type = Type::New(owner, Object::null_type_arguments());
       type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {
@@ -3727,13 +3740,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // TranslateInstantiatedTypeArguments is smart enough to
       // avoid instantiation and reuse passed function type arguments
       // if there are no extra type arguments in the flattened vector.
-      const auto& instantiated_type_arguments =
-          TypeArguments::ZoneHandle(Z, result_type.arguments());
+      const auto& instantiated_type_arguments = TypeArguments::ZoneHandle(
+          Z, Type::Cast(result_type).GetInstanceTypeArguments(H.thread()));
       closure +=
           TranslateInstantiatedTypeArguments(instantiated_type_arguments);
     } else {
       type_args_len = function.NumTypeParameters();
-      ASSERT(parsed_function_->function_type_arguments() != NULL);
+      ASSERT(parsed_function_->function_type_arguments() != nullptr);
       closure += LoadLocal(parsed_function_->function_type_arguments());
     }
   } else if (target.IsFactory()) {
@@ -3747,8 +3760,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Class& cls = Class::ZoneHandle(Z, target.Owner());
     if (cls.NumTypeArguments() > 0) {
       if (!function.IsGeneric()) {
-        Type& cls_type = Type::Handle(Z, cls.DeclarationType());
-        closure += Constant(TypeArguments::ZoneHandle(Z, cls_type.arguments()));
+        closure += Constant(TypeArguments::ZoneHandle(
+            Z, cls.GetDeclarationInstanceTypeArguments()));
       }
       closure += AllocateObject(function.token_pos(), cls, 1);
     } else {
@@ -3779,7 +3792,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   closure += StaticCall(TokenPosition::kNoSource, target, argument_count,
                         argument_names, ICData::kNoRebind,
-                        /* result_type = */ NULL, type_args_len);
+                        /* result_type = */ nullptr, type_args_len);
 
   if (target.IsGenerativeConstructor()) {
     // Drop result of constructor invocation, leave receiver

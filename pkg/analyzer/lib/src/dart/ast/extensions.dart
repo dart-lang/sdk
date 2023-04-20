@@ -112,6 +112,20 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   }
 }
 
+extension DartPatternExtension on DartPattern {
+  /// Return the matched value type of this pattern.
+  ///
+  /// This accessor should be used on patterns that are expected to
+  /// be already resolved. Every such pattern must have the type set.
+  DartType get matchedValueTypeOrThrow {
+    var type = matchedValueType;
+    if (type == null) {
+      throw StateError('No type: $this');
+    }
+    return type;
+  }
+}
+
 extension ExpressionExtension on Expression {
   /// Return the static type of this expression.
   ///

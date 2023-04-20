@@ -7,12 +7,10 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -40,6 +38,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   late ResolvedUnitResult result;
   late FindNode findNode;
   late FindElement findElement;
+
+  final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
+      DartObjectPrinterConfiguration();
 
   ClassElement get boolElement => typeProvider.boolElement;
 
@@ -75,8 +76,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement get objectElement =>
       typeProvider.objectType.element as ClassElement;
 
-  InterfaceType get objectType => typeProvider.objectType;
-
   ClassElement get stringElement => typeProvider.stringElement;
 
   InterfaceType get stringType => typeProvider.stringType;
@@ -87,37 +86,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   TypeSystemImpl get typeSystem => result.typeSystem as TypeSystemImpl;
 
-  VoidType get voidType => VoidTypeImpl.instance;
-
   void addTestFile(String content) {
     newFile(testFile.path, content);
-  }
-
-  /// Assert that the given [identifier] is a reference to a class, in the
-  /// form that is not a separate expression, e.g. in a static method
-  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
-  void assertClassRef(Expression? identifier, ClassElement expectedElement) {
-    identifier as SimpleIdentifier;
-    assertElement(identifier, expectedElement);
-    assertTypeNull(identifier);
-  }
-
-  void assertConstructorElement(ConstructorElement? actual, Object? expected) {
-    if (actual is ConstructorMember && expected is ConstructorMember) {
-      expect(actual.declaration, same(expected.declaration));
-      // TODO(brianwilkerson) Compare the type arguments of the two members.
-    } else {
-      assertElement(actual, expected);
-    }
-  }
-
-  void assertConstructors(ClassElement class_, List<String> expected) {
-    expect(
-      class_.constructors.map((c) {
-        return c.getDisplayString(withNullability: false);
-      }).toList(),
-      unorderedEquals(expected),
-    );
   }
 
   void assertDartObjectText(
@@ -129,6 +99,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var buffer = StringBuffer();
     DartObjectPrinter(
+      configuration: dartObjectPrinterConfiguration,
       sink: buffer,
       selfUriStr: '${libraryElement.source.uri}',
     ).write(object as DartObjectImpl?);
@@ -173,20 +144,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       if (isLegacy || substitution.isNotEmpty) {
         fail('Expected to be a Member: (${element.runtimeType}) $element');
       }
-    }
-  }
-
-  void assertElementLibraryUri(Element? element, String expected) {
-    var uri = element!.library!.source.uri;
-    expect('$uri', expected);
-  }
-
-  void assertElementName(Element element, String name,
-      {bool isSynthetic = false, int? offset}) {
-    expect(element.name, name);
-    expect(element.isSynthetic, isSynthetic);
-    if (offset != null) {
-      expect(element.nameOffset, offset);
     }
   }
 
@@ -282,63 +239,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(result.errors, isNotEmpty);
   }
 
-  void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
-    var getter = findElement.topGet(name);
-    assertElement(ref, getter);
-
-    var type = typeString(getter.returnType);
-    assertType(ref, type);
-  }
-
-  void assertIdentifierTopSetRef(SimpleIdentifier ref, String name) {
-    var setter = findElement.topSet(name);
-    assertElement(ref, setter);
-
-    var type = typeString(setter.parameters[0].type);
-    assertType(ref, type);
-  }
-
-  void assertImplicitCallReference(ImplicitCallReference node,
-      Element? expectedElement, String expectedType) {
-    assertElement(node, expectedElement);
-    assertType(node, expectedType);
-  }
-
-  /// In valid code [element] must be a [PrefixElement], but for invalid code
-  /// like `int.double v;` we want to resolve `int` somehow. Still not type.
-  void assertImportPrefix(Expression? identifier, Element? element) {
-    identifier as SimpleIdentifier;
-    assertElement(identifier, element);
-    assertTypeNull(identifier);
-  }
-
   /// Resolve the [code], and ensure that it can be resolved without a crash,
   /// and is invalid, i.e. produces a diagnostic.
   Future<void> assertInvalidTestCode(String code) async {
     await resolveTestCode(code);
     assertHasTestErrors();
-  }
-
-  void assertInvokeType(Expression node, String expected) {
-    DartType? actual;
-    if (node is BinaryExpression) {
-      actual = node.staticInvokeType;
-    } else if (node is InvocationExpression) {
-      actual = node.staticInvokeType;
-    } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
-    }
-    expect(typeString(actual!), expected);
-  }
-
-  void assertInvokeTypeDynamic(InvocationExpression node) {
-    var actual = node.staticInvokeType;
-    expect(actual, isDynamicType);
-  }
-
-  void assertInvokeTypeNull(BinaryExpression node) {
-    var actual = node.staticInvokeType;
-    expect(actual, isNull);
   }
 
   void assertMember(
@@ -358,29 +263,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
-  void assertNamedType(
-      NamedType node, Element? expectedElement, String? expectedType,
-      {Element? expectedPrefix}) {
-    assertType(node, expectedType);
-
-    if (expectedPrefix == null) {
-      var name = node.name as SimpleIdentifier;
-      assertElement(name, expectedElement);
-      // TODO(scheglov) Should this be null?
-//      assertType(name, expectedType);
-    } else {
-      var name = node.name as PrefixedIdentifier;
-      assertImportPrefix(name.prefix, expectedPrefix);
-      assertElement(name.identifier, expectedElement);
-
-      // TODO(scheglov) This should be null, but it is not.
-      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
-      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
-      // and for `foo.Bar()` to have a type. But not a name of a type? No.
-//      expect(name.identifier.staticType, isNull);
-    }
-  }
-
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -390,11 +272,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertNoErrorsInResult() {
     assertErrorsInResult(const []);
-  }
-
-  void assertParameterElementType(FormalParameter node, String expected) {
-    var parameterElement = node.declaredElement!;
-    assertType(parameterElement.type, expected);
   }
 
   void assertParsedNodeText(
@@ -413,33 +290,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertPrefixedIdentifier(
-    PrefixedIdentifier node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-  }
-
-  void assertPropertyAccess(
-    PropertyAccess access,
-    Element expectedElement,
-    String expectedType,
-  ) {
-    assertElement(access.propertyName, expectedElement);
-    assertType(access, expectedType);
-  }
-
-  void assertPropertyAccess2(
-    PropertyAccess node, {
-    required Object? element,
-    required String type,
-  }) {
-    assertElement(node.propertyName.staticElement, element);
-    assertType(node.staticType, type);
-  }
-
   void assertResolvedNodeText(
     AstNode node,
     String expected, {
@@ -454,13 +304,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
-  }
-
-  void assertSimpleFormalParameter(
-    SimpleFormalParameter node, {
-    required ParameterElement element,
-  }) {
-    assertElement(node.declaredElement, element);
   }
 
   void assertSimpleIdentifier(
@@ -496,22 +339,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actualMapString, expected);
   }
 
-  void assertSuperExpression(Expression? node) {
-    if (node is! SuperExpression) {
-      fail('Expected SuperExpression: (${node.runtimeType}) $node');
-    }
-
-    // TODO(scheglov) I think `super` does not have type itself.
-    // It is just a signal to look for implemented method in the supertype.
-    // With mixins there isn't a type anyway.
-//    assertTypeNull(superExpression);
-  }
-
-  void assertTopGetRef(String search, String name) {
-    var ref = findNode.simple(search);
-    assertIdentifierTopGetRef(ref, name);
-  }
-
   void assertType(Object? typeOrNode, String? expected) {
     DartType? actual;
     if (typeOrNode is DartType) {
@@ -535,34 +362,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  /// We have a contract with the Angular team that FunctionType(s) from
-  /// typedefs carry the element of the typedef, and the type arguments.
-  void assertTypeAlias(
-    DartType type, {
-    required TypeAliasElement element,
-    required List<String> typeArguments,
-  }) {
-    assertElement2(type.alias?.element, declaration: element);
-    assertElementTypes(type.alias?.typeArguments, typeArguments);
-  }
-
-  /// Assert that the given [identifier] is a reference to a type alias, in the
-  /// form that is not a separate expression, e.g. in a static method
-  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
-  void assertTypeAliasRef(
-      SimpleIdentifier identifier, TypeAliasElement expected) {
-    assertElement(identifier, expected);
-    assertTypeNull(identifier);
-  }
-
-  void assertTypeArgumentTypes(
-    InvocationExpression node,
-    List<String> expected,
-  ) {
-    var actual = node.typeArgumentTypes!.map((t) => typeString(t)).toList();
-    expect(actual, expected);
-  }
-
   void assertTypeDynamic(Object? typeOrExpression) {
     DartType? actual;
     if (typeOrExpression is DartType?) {
@@ -575,56 +374,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isDynamicType);
   }
 
-  void assertTypeLegacy(Expression? expression) {
-    expression!;
-    NullabilitySuffix actual = expression.typeOrThrow.nullabilitySuffix;
-    expect(actual, NullabilitySuffix.star);
-  }
-
-  void assertTypeLiteral(
-      TypeLiteral node, Element? expectedElement, String expectedType,
-      {Element? expectedPrefix}) {
-    assertType(node, 'Type');
-    assertNamedType(node.type, expectedElement, expectedType,
-        expectedPrefix: expectedPrefix);
-  }
-
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
-  }
-
-  void assertUnresolvedIndexExpression(IndexExpression node) {
-    assertElementNull(node);
-    assertTypeNull(node);
-  }
-
-  void assertUnresolvedPrefixedIdentifier(PrefixedIdentifier node) {
-    assertElementNull(node);
-    assertTypeNull(node);
-    assertUnresolvedSimpleIdentifier(node.identifier);
-  }
-
-  /// TODO(scheglov) Remove [disableElementCheck]
-  void assertUnresolvedPropertyAccess(
-    PropertyAccess node, {
-    bool disableElementCheck = false,
-  }) {
-    if (!disableElementCheck) {
-      assertElementNull(node);
-    }
-    assertTypeNull(node);
-    assertUnresolvedSimpleIdentifier(node.propertyName);
-  }
-
-  /// TODO(scheglov) Remove [disableElementCheck]
-  void assertUnresolvedSimpleIdentifier(
-    SimpleIdentifier node, {
-    bool disableElementCheck = false,
-  }) {
-    if (!disableElementCheck) {
-      assertElementNull(node);
-    }
-    assertTypeNull(node);
   }
 
   /// TODO(scheglov) Remove `?` from [declaration].

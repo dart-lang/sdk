@@ -1114,7 +1114,7 @@ void f() {
       destination: findNode.ifStatement('true'),
       source: findNode.ifStatement('false'),
       childAccessors: [
-        (node) => node.condition,
+        (node) => node.expression,
         (node) => node.thenStatement,
         (node) => node.elseStatement!,
       ],

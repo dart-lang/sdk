@@ -32,27 +32,28 @@ Caller frame   | last parameter     | <- SP of caller frame, FP of current frame
                T against a slot indicates it needs to be traversed during GC.
 */
 
-static const int kDartFrameFixedSize = 4;  // PP, FP, RA, PC marker.
-static const int kSavedPcSlotFromSp = -1;
+static constexpr int kDartFrameFixedSize = 4;  // PP, FP, RA, PC marker.
+static constexpr int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -3;  // Used by GC to traverse stack.
-static const int kLastFixedObjectSlotFromFp = -4;
+static constexpr int kFirstObjectSlotFromFp =
+    -3;  // Used by GC to traverse stack.
+static constexpr int kLastFixedObjectSlotFromFp = -4;
 
-static const int kFirstLocalSlotFromFp = -5;
-static const int kSavedCallerPpSlotFromFp = -4;
-static const int kPcMarkerSlotFromFp = -3;
-static const int kSavedCallerFpSlotFromFp = -2;
-static const int kSavedCallerPcSlotFromFp = -1;
+static constexpr int kFirstLocalSlotFromFp = -5;
+static constexpr int kSavedCallerPpSlotFromFp = -4;
+static constexpr int kPcMarkerSlotFromFp = -3;
+static constexpr int kSavedCallerFpSlotFromFp = -2;
+static constexpr int kSavedCallerPcSlotFromFp = -1;
 
-static const int kParamEndSlotFromFp = -1;  // One slot past last parameter.
-static const int kCallerSpSlotFromFp = 0;
-static const int kLastParamSlotFromEntrySp = 0;
+static constexpr int kParamEndSlotFromFp = -1;  // One slot past last parameter.
+static constexpr int kCallerSpSlotFromFp = 0;
+static constexpr int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(TARGET_ARCH_RISCV64)
-static const int kExitLinkSlotFromEntryFp = -30;
+static constexpr int kExitLinkSlotFromEntryFp = -30;
 #elif defined(TARGET_ARCH_RISCV32)
-static const int kExitLinkSlotFromEntryFp = -42;
+static constexpr int kExitLinkSlotFromEntryFp = -42;
 #endif
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 11);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 12);
@@ -68,7 +69,7 @@ constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 2;
 
 // For FFI calls passing in TypedData, we save it on the stack before entering
 // a Dart frame. This denotes how to get to the backed up typed data.
-static const int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp;
+static constexpr int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp;
 
 }  // namespace dart
 

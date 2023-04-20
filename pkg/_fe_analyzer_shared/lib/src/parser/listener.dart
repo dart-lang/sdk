@@ -204,13 +204,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of a mixin declaration.
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {}
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -231,10 +225,12 @@ class Listener implements UnescapeErrorListener {
   /// Handle recovery associated with a mixin header.
   /// This may be called multiple times after [handleMixinHeader]
   /// to recover information about the previous mixin header.
-  /// The substructures are a subset of
+  /// For otherwise legal input the substructures are a subset of
   /// and in the same order as [handleMixinHeader]
   /// - on types
   /// - implemented types
+  /// but also covers the illegal
+  /// - with clause
   void handleRecoverMixinHeader() {
     logEvent("RecoverMixinHeader");
   }
@@ -781,6 +777,16 @@ class Listener implements UnescapeErrorListener {
   /// Handle the absence of an enum with clause.
   void handleEnumNoWithClause() {
     logEvent("EnumNoWithClause");
+  }
+
+  /// Handle the end of a mixin with clause (e.g. "with B, C").
+  /// Substructures:
+  /// - mixin types (TypeList)
+  ///
+  /// This method is separated from [handleClassWithClause] and
+  /// [handleEnumWithClause] as it is an error state.
+  void handleMixinWithClause(Token withKeyword) {
+    logEvent("MixinWithClause");
   }
 
   /// Handle the beginning of a named mixin application.
@@ -1444,16 +1450,35 @@ class Listener implements UnescapeErrorListener {
     logEvent('NullCheckPattern');
   }
 
-  /// Called after the parser has consumed a variable pattern, consisting of an
-  /// optional `var` or `final` keyword, an optional type annotation, and a
-  /// variable name identifier.
+  /// Called after the parser has consumed an assigned variable pattern,
+  /// consisting of a variable name identifier (other than `_`).
+  ///
+  /// This method will only be called for a variable pattern that is part of a
+  /// `patternAssignment` (and hence should refer to a previously declared
+  /// variable rather than declaring a fresh one).
+  void handleAssignedVariablePattern(Token variable) {
+    logEvent('AssignedVariablePattern');
+  }
+
+  /// Called after the parser has consumed a declared variable pattern,
+  /// consisting of an optional `var` or `final` keyword, an optional type
+  /// annotation, and a variable name identifier (other than `_`).
   ///
   /// The flag [inAssignmentPattern] indicates whether this variable pattern is
-  /// part of a `patternAssignment` (and hence should refer to a previously
-  /// declared variable rather than declaring a fresh one).
-  void handleVariablePattern(Token? keyword, Token variable,
+  /// part of a `patternAssignment`.  If this is `true`, it indicates that the
+  /// parser has recovered from an error (since declared variable patterns are
+  /// not allowed inside a `patternAssignment`).  The error has already been
+  /// reported.
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
-    logEvent('VariablePattern');
+    logEvent('DeclaredVariablePattern');
+  }
+
+  /// Called after the parser has consumed a wildcard pattern, consisting of an
+  /// optional `var` or `final` keyword, an optional type annotation, and the
+  /// identifier `_`.
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    logEvent('WildcardPattern');
   }
 
   void handleNoName(Token token) {

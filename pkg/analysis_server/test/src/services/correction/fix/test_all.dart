@@ -32,6 +32,7 @@ import 'add_missing_parameter_required_test.dart'
     as add_missing_parameter_required;
 import 'add_missing_required_argument_test.dart'
     as add_missing_required_argument;
+import 'add_missing_switch_cases_test.dart' as add_missing_switch_cases;
 import 'add_ne_null_test.dart' as add_ne_null;
 import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
@@ -166,6 +167,7 @@ import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_invocation_test.dart' as remove_invocation;
+import 'remove_late_test.dart' as remove_late;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
@@ -200,6 +202,8 @@ import 'remove_unnecessary_string_escapes_test.dart'
     as remove_unnecessary_string_escapes;
 import 'remove_unnecessary_string_interpolation_test.dart'
     as remove_unnecessary_string_interpolation;
+import 'remove_unnecessary_wildcard_pattern_test.dart'
+    as remove_unnecessary_wildcard_pattern;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_element_test.dart' as remove_unused_element;
@@ -217,6 +221,7 @@ import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_container_with_sized_box_test.dart'
     as replace_container_with_sized_box;
+import 'replace_empty_amp_pattern_test.dart' as replace_empty_amp_pattern;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
@@ -227,6 +232,7 @@ import 'replace_return_type_iterable_test.dart' as replace_return_type_iterable;
 import 'replace_return_type_stream_test.dart' as replace_return_type_stream;
 import 'replace_return_type_test.dart' as replace_return_type;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
+import 'replace_with_arrow_test.dart' as replace_with_arrow;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
@@ -243,11 +249,15 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_unicode_escape_test.dart' as replace_with_unicode_escape_;
 import 'replace_with_var_test.dart' as replace_with_var;
+import 'replace_with_wildcard_test.dart' as replace_with_wildcard;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
 import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
+import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
+import 'type_literal_in_constant_pattern_test.dart'
+    as type_literal_in_constant_pattern;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_effective_integer_division_test.dart'
@@ -283,6 +293,7 @@ void main() {
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();
     add_missing_required_argument.main();
+    add_missing_switch_cases.main();
     add_ne_null.main();
     add_null_check.main();
     add_override.main();
@@ -402,6 +413,7 @@ void main() {
     remove_initializer.main();
     remove_interpolation_braces.main();
     remove_invocation.main();
+    remove_late.main();
     remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
@@ -428,6 +440,7 @@ void main() {
     remove_unnecessary_raw_string.main();
     remove_unnecessary_string_escapes.main();
     remove_unnecessary_string_interpolation.main();
+    remove_unnecessary_wildcard_pattern.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_element.main();
@@ -443,6 +456,7 @@ void main() {
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_container_with_sized_box.main();
+    replace_empty_amp_pattern.main();
     replace_final_with_const.main();
     replace_final_with_var.main();
     replace_new_with_const.main();
@@ -454,6 +468,7 @@ void main() {
     replace_return_type_iterable.main();
     replace_return_type_stream.main();
     replace_var_with_dynamic.main();
+    replace_with_arrow.main();
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
     replace_with_decorated_box.main();
@@ -469,10 +484,13 @@ void main() {
     replace_with_tear_off.main();
     replace_with_unicode_escape_.main();
     replace_with_var.main();
+    replace_with_wildcard.main();
     sort_properties_last.main();
     sort_constructor_first_test.main();
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
+    surround_with_parentheses.main();
+    type_literal_in_constant_pattern.main();
     update_sdk_constraints.main();
     use_curly_braces.main();
     use_effective_integer_division.main();

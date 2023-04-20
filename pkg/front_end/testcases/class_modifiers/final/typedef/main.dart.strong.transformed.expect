@@ -26,65 +26,17 @@ library /*isNonNullableByDefault*/;
 // enum EnumImplementsFinalClassTypedef2 implements ATypeDef2 { x }
 //                                                  ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:19:52: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// final class ImplementsFinalMixinTypeDef implements MTypeDef {}
-//                                                    ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:21:53: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// final class ImplementsFinalMixinTypeDef2 implements MTypeDef2 {}
-//                                                     ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:23:49: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// enum EnumImplementsFinalMixinTypeDef implements MTypeDef { x }
-//                                                 ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:25:50: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// enum EnumImplementsFinalMixinTypeDef2 implements MTypeDef2 { x }
-//                                                  ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:27:41: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// final class MixInFinalMixinTypeDef with MTypeDef {}
-//                                         ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:29:42: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// final class MixInFinalMixinTypeDef2 with MTypeDef2 {}
-//                                          ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:31:38: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// enum EnumMixInFinalMixinTypeDef with MTypeDef { x }
-//                                      ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:33:39: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// enum EnumMixInFinalMixinTypeDef2 with MTypeDef2 { x }
-//                                       ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:39:53: Error: The class 'A' can't be extended outside of its library because it's a final class.
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:21:53: Error: The class 'A' can't be extended outside of its library because it's a final class.
 // final class ExtendsFinalClassTypedefOutside extends AOutsideTypedef {}
 //                                                     ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:41:59: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:23:59: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // final class ImplementsFinalClassTypedefOutside implements AOutsideTypedef {}
 //                                                           ^
 //
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:43:56: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:25:56: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // enum EnumImplementsFinalClassTypedefOutside implements AOutsideTypedef { x }
 //                                                        ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:45:59: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// final class ImplementsFinalMixinTypeDefOutside implements MOutsideTypedef {}
-//                                                           ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:47:56: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// enum EnumImplementsFinalMixinTypeDefOutside implements MOutsideTypedef { x }
-//                                                        ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:49:48: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// final class MixInFinalMixinTypeDefOutside with MOutsideTypedef {}
-//                                                ^
-//
-// pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:51:45: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// enum EnumMixInFinalMixinTypeDefOutside with MOutsideTypedef { x }
-//                                             ^
 //
 import self as self;
 import "main_lib.dart" as mai;
@@ -93,7 +45,6 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib.dart";
 
 typedef AOutsideTypedef = mai::A;
-typedef MOutsideTypedef = mai::M;
 final class ExtendsFinalClassTypedef extends mai::A {
   synthetic constructor •() → self::ExtendsFinalClassTypedef
     : super mai::A::•()
@@ -132,82 +83,6 @@ class EnumImplementsFinalClassTypedef2 extends core::_Enum implements mai::A /*i
   method _enumToString() → core::String
     return "EnumImplementsFinalClassTypedef2.${this.{core::_Enum::_name}{core::String}}";
 }
-final class ImplementsFinalMixinTypeDef extends core::Object implements mai::M {
-  synthetic constructor •() → self::ImplementsFinalMixinTypeDef
-    : super core::Object::•()
-    ;
-}
-final class ImplementsFinalMixinTypeDef2 extends core::Object implements mai::M {
-  synthetic constructor •() → self::ImplementsFinalMixinTypeDef2
-    : super core::Object::•()
-    ;
-}
-class EnumImplementsFinalMixinTypeDef extends core::_Enum implements mai::M /*isEnum*/  {
-  static const field core::List<self::EnumImplementsFinalMixinTypeDef> values = #C8;
-  enum-element static const field self::EnumImplementsFinalMixinTypeDef x = #C7;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixinTypeDef
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "EnumImplementsFinalMixinTypeDef.${this.{core::_Enum::_name}{core::String}}";
-}
-class EnumImplementsFinalMixinTypeDef2 extends core::_Enum implements mai::M /*isEnum*/  {
-  static const field core::List<self::EnumImplementsFinalMixinTypeDef2> values = #C10;
-  enum-element static const field self::EnumImplementsFinalMixinTypeDef2 x = #C9;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixinTypeDef2
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "EnumImplementsFinalMixinTypeDef2.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract final class _MixInFinalMixinTypeDef&Object&MTypeDef extends core::Object implements mai::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_MixInFinalMixinTypeDef&Object&MTypeDef
-    : super core::Object::•()
-    ;
-}
-final class MixInFinalMixinTypeDef extends self::_MixInFinalMixinTypeDef&Object&MTypeDef {
-  synthetic constructor •() → self::MixInFinalMixinTypeDef
-    : super self::_MixInFinalMixinTypeDef&Object&MTypeDef::•()
-    ;
-}
-abstract final class _MixInFinalMixinTypeDef2&Object&MTypeDef2 extends core::Object implements mai::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_MixInFinalMixinTypeDef2&Object&MTypeDef2
-    : super core::Object::•()
-    ;
-}
-final class MixInFinalMixinTypeDef2 extends self::_MixInFinalMixinTypeDef2&Object&MTypeDef2 {
-  synthetic constructor •() → self::MixInFinalMixinTypeDef2
-    : super self::_MixInFinalMixinTypeDef2&Object&MTypeDef2::•()
-    ;
-}
-abstract final class _EnumMixInFinalMixinTypeDef&_Enum&MTypeDef extends core::_Enum implements mai::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixinTypeDef&_Enum&MTypeDef
-    : super core::_Enum::•(index, _name)
-    ;
-}
-class EnumMixInFinalMixinTypeDef extends self::_EnumMixInFinalMixinTypeDef&_Enum&MTypeDef /*isEnum*/  {
-  static const field core::List<self::EnumMixInFinalMixinTypeDef> values = #C12;
-  enum-element static const field self::EnumMixInFinalMixinTypeDef x = #C11;
-  const constructor •(core::int #index, core::String #name) → self::EnumMixInFinalMixinTypeDef
-    : super self::_EnumMixInFinalMixinTypeDef&_Enum&MTypeDef::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "EnumMixInFinalMixinTypeDef.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract final class _EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2 extends core::_Enum implements mai::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2
-    : super core::_Enum::•(index, _name)
-    ;
-}
-class EnumMixInFinalMixinTypeDef2 extends self::_EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2 /*isEnum*/  {
-  static const field core::List<self::EnumMixInFinalMixinTypeDef2> values = #C14;
-  enum-element static const field self::EnumMixInFinalMixinTypeDef2 x = #C13;
-  const constructor •(core::int #index, core::String #name) → self::EnumMixInFinalMixinTypeDef2
-    : super self::_EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "EnumMixInFinalMixinTypeDef2.${this.{core::_Enum::_name}{core::String}}";
-}
 final class ExtendsFinalClassTypedefOutside extends mai::A {
   synthetic constructor •() → self::ExtendsFinalClassTypedefOutside
     : super mai::A::•()
@@ -219,51 +94,13 @@ final class ImplementsFinalClassTypedefOutside extends core::Object implements m
     ;
 }
 class EnumImplementsFinalClassTypedefOutside extends core::_Enum implements mai::A /*isEnum*/  {
-  static const field core::List<self::EnumImplementsFinalClassTypedefOutside> values = #C16;
-  enum-element static const field self::EnumImplementsFinalClassTypedefOutside x = #C15;
+  static const field core::List<self::EnumImplementsFinalClassTypedefOutside> values = #C8;
+  enum-element static const field self::EnumImplementsFinalClassTypedefOutside x = #C7;
   const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedefOutside
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "EnumImplementsFinalClassTypedefOutside.${this.{core::_Enum::_name}{core::String}}";
-}
-final class ImplementsFinalMixinTypeDefOutside extends core::Object implements mai::M {
-  synthetic constructor •() → self::ImplementsFinalMixinTypeDefOutside
-    : super core::Object::•()
-    ;
-}
-class EnumImplementsFinalMixinTypeDefOutside extends core::_Enum implements mai::M /*isEnum*/  {
-  static const field core::List<self::EnumImplementsFinalMixinTypeDefOutside> values = #C18;
-  enum-element static const field self::EnumImplementsFinalMixinTypeDefOutside x = #C17;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixinTypeDefOutside
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "EnumImplementsFinalMixinTypeDefOutside.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract final class _MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef extends core::Object implements mai::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef
-    : super core::Object::•()
-    ;
-}
-final class MixInFinalMixinTypeDefOutside extends self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef {
-  synthetic constructor •() → self::MixInFinalMixinTypeDefOutside
-    : super self::_MixInFinalMixinTypeDefOutside&Object&MOutsideTypedef::•()
-    ;
-}
-abstract final class _EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef extends core::_Enum implements mai::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef
-    : super core::_Enum::•(index, _name)
-    ;
-}
-class EnumMixInFinalMixinTypeDefOutside extends self::_EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef /*isEnum*/  {
-  static const field core::List<self::EnumMixInFinalMixinTypeDefOutside> values = #C20;
-  enum-element static const field self::EnumMixInFinalMixinTypeDefOutside x = #C19;
-  const constructor •(core::int #index, core::String #name) → self::EnumMixInFinalMixinTypeDefOutside
-    : super self::_EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "EnumMixInFinalMixinTypeDefOutside.${this.{core::_Enum::_name}{core::String}}";
 }
 
 library /*isNonNullableByDefault*/;
@@ -272,14 +109,10 @@ import "dart:core" as core;
 
 typedef ATypeDef = mai::A;
 typedef ATypeDef2 = mai::A;
-typedef MTypeDef = mai::M;
-typedef MTypeDef2 = mai::M;
 final class A extends core::Object {
   synthetic constructor •() → mai::A
     : super core::Object::•()
     ;
-}
-abstract final class M extends core::Object /*isMixinDeclaration*/  {
 }
 
 constants  {
@@ -289,20 +122,8 @@ constants  {
   #C4 = <self::EnumImplementsFinalClassTypedef>[#C3]
   #C5 = self::EnumImplementsFinalClassTypedef2 {index:#C1, _name:#C2}
   #C6 = <self::EnumImplementsFinalClassTypedef2>[#C5]
-  #C7 = self::EnumImplementsFinalMixinTypeDef {index:#C1, _name:#C2}
-  #C8 = <self::EnumImplementsFinalMixinTypeDef>[#C7]
-  #C9 = self::EnumImplementsFinalMixinTypeDef2 {index:#C1, _name:#C2}
-  #C10 = <self::EnumImplementsFinalMixinTypeDef2>[#C9]
-  #C11 = self::EnumMixInFinalMixinTypeDef {index:#C1, _name:#C2}
-  #C12 = <self::EnumMixInFinalMixinTypeDef>[#C11]
-  #C13 = self::EnumMixInFinalMixinTypeDef2 {index:#C1, _name:#C2}
-  #C14 = <self::EnumMixInFinalMixinTypeDef2>[#C13]
-  #C15 = self::EnumImplementsFinalClassTypedefOutside {index:#C1, _name:#C2}
-  #C16 = <self::EnumImplementsFinalClassTypedefOutside>[#C15]
-  #C17 = self::EnumImplementsFinalMixinTypeDefOutside {index:#C1, _name:#C2}
-  #C18 = <self::EnumImplementsFinalMixinTypeDefOutside>[#C17]
-  #C19 = self::EnumMixInFinalMixinTypeDefOutside {index:#C1, _name:#C2}
-  #C20 = <self::EnumMixInFinalMixinTypeDefOutside>[#C19]
+  #C7 = self::EnumImplementsFinalClassTypedefOutside {index:#C1, _name:#C2}
+  #C8 = <self::EnumImplementsFinalClassTypedefOutside>[#C7]
 }
 
 
@@ -312,13 +133,4 @@ org-dartlang-testcase:///main.dart:
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - EnumImplementsFinalClassTypedef2. (from org-dartlang-testcase:///main.dart:17:6)
-- EnumImplementsFinalMixinTypeDef. (from org-dartlang-testcase:///main.dart:23:6)
-- EnumImplementsFinalMixinTypeDef2. (from org-dartlang-testcase:///main.dart:25:6)
-- EnumMixInFinalMixinTypeDef. (from org-dartlang-testcase:///main.dart:31:6)
-- _EnumMixInFinalMixinTypeDef&_Enum&MTypeDef. (from org-dartlang-testcase:///main.dart:31:6)
-- EnumMixInFinalMixinTypeDef2. (from org-dartlang-testcase:///main.dart:33:6)
-- _EnumMixInFinalMixinTypeDef2&_Enum&MTypeDef2. (from org-dartlang-testcase:///main.dart:33:6)
-- EnumImplementsFinalClassTypedefOutside. (from org-dartlang-testcase:///main.dart:43:6)
-- EnumImplementsFinalMixinTypeDefOutside. (from org-dartlang-testcase:///main.dart:47:6)
-- EnumMixInFinalMixinTypeDefOutside. (from org-dartlang-testcase:///main.dart:51:6)
-- _EnumMixInFinalMixinTypeDefOutside&_Enum&MOutsideTypedef. (from org-dartlang-testcase:///main.dart:51:6)
+- EnumImplementsFinalClassTypedefOutside. (from org-dartlang-testcase:///main.dart:25:6)

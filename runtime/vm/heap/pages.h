@@ -45,7 +45,7 @@ class PageSpaceGarbageCollectionHistory {
     int64_t start;
     int64_t end;
   };
-  static const intptr_t kHistoryLength = 4;
+  static constexpr intptr_t kHistoryLength = 4;
   RingBuffer<Entry, kHistoryLength> history_;
 
   DISALLOW_ALLOCATION();

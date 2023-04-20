@@ -144,7 +144,6 @@ class ModifierContext {
     // TODO(johnniwinther): Should we support 'augment' on enums.
     reportExtraneousModifier(augmentToken);
     reportExtraneousModifier(covariantToken);
-    reportExtraneousModifier(finalToken);
     reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);

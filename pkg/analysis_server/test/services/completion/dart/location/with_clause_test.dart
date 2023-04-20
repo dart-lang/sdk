@@ -50,7 +50,7 @@ sealed class FooSealed {}
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
     kind: class
@@ -76,7 +76,7 @@ class A with ^
 ''');
 
     if (isProtocolVersion1) {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
   FooBase
     kind: class
@@ -88,7 +88,7 @@ suggestions
     kind: class
 ''');
     } else {
-      assertResponse('''
+      assertResponse(r'''
 suggestions
 ''');
     }
@@ -100,7 +100,7 @@ base mixin FooBase {}
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBase
     kind: mixin
@@ -114,7 +114,7 @@ import 'a.dart';
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   Foo
     kind: mixin
@@ -128,7 +128,7 @@ mixin class FooMixinClass {}
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBaseMixinClass
     kind: class
@@ -147,7 +147,7 @@ import 'a.dart';
 class A with ^
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   FooBaseMixinClass
     kind: class

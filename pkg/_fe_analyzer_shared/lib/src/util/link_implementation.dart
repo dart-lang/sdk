@@ -31,7 +31,7 @@ class LinkIterator<T> implements Iterator<T> {
 
 typedef T Transformation<S, T>(S input);
 
-class MappedLinkIterator<S, T> extends Iterator<T> {
+class MappedLinkIterator<S, T> implements Iterator<T> {
   Transformation<S, T> _transformation;
   Link<S> _link;
   T? _current;

@@ -24,9 +24,9 @@
 namespace dart {
 namespace bin {
 
-const char* Platform::executable_name_ = NULL;
+const char* Platform::executable_name_ = nullptr;
 int Platform::script_index_ = 1;
-char** Platform::argv_ = NULL;
+char** Platform::argv_ = nullptr;
 
 class PlatformWin {
  public:
@@ -115,13 +115,13 @@ int Platform::NumberOfProcessors() {
 // registry because GetVersionEx() and friends lie about the OS version after
 // Windows 8.1. See:
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724451(v=vs.85).aspx
-static const wchar_t* kCurrentVersion =
+static constexpr const wchar_t* kCurrentVersion =
     L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
 
 static bool GetCurrentVersionDWord(const wchar_t* field, DWORD* value) {
   DWORD value_size = sizeof(*value);
   LONG err = RegGetValue(HKEY_LOCAL_MACHINE, kCurrentVersion, field,
-                         RRF_RT_REG_DWORD, NULL, value, &value_size);
+                         RRF_RT_REG_DWORD, nullptr, value, &value_size);
   return err == ERROR_SUCCESS;
 }
 
@@ -129,7 +129,7 @@ static bool GetCurrentVersionString(const wchar_t* field, const char** value) {
   wchar_t wversion[256];
   DWORD wversion_size = sizeof(wversion);
   LONG err = RegGetValue(HKEY_LOCAL_MACHINE, kCurrentVersion, field,
-                         RRF_RT_REG_SZ, NULL, wversion, &wversion_size);
+                         RRF_RT_REG_SZ, nullptr, wversion, &wversion_size);
   if (err != ERROR_SUCCESS) {
     return false;
   }
@@ -144,25 +144,25 @@ static const char* VersionNumber() {
   if (!GetCurrentVersionDWord(L"CurrentMajorVersionNumber", &major)) {
     const char* version;
     if (!GetCurrentVersionString(L"CurrentVersion", &version)) {
-      return NULL;
+      return nullptr;
     }
     return version;
   }
 
   DWORD minor;
   if (!GetCurrentVersionDWord(L"CurrentMinorVersionNumber", &minor)) {
-    return NULL;
+    return nullptr;
   }
   const char* kFormat = "%d.%d";
-  int len = snprintf(NULL, 0, kFormat, major, minor);
+  int len = snprintf(nullptr, 0, kFormat, major, minor);
   if (len < 0) {
-    return NULL;
+    return nullptr;
   }
   char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   len = snprintf(result, len + 1, kFormat, major, minor);
   if (len < 0) {
-    return NULL;
+    return nullptr;
   }
   return result;
 }
@@ -171,24 +171,24 @@ const char* Platform::OperatingSystemVersion() {
   // Get the product name, e.g. "Windows 10 Home".
   const char* name;
   if (!GetCurrentVersionString(L"ProductName", &name)) {
-    return NULL;
+    return nullptr;
   }
 
   // Get the version number, e.g. "10.0".
   const char* version_number = VersionNumber();
-  if (version_number == NULL) {
-    return NULL;
+  if (version_number == nullptr) {
+    return nullptr;
   }
 
   // Get the build number.
   const char* build;
   if (!GetCurrentVersionString(L"CurrentBuild", &build)) {
-    return NULL;
+    return nullptr;
   }
 
   // Put it all together.
   const char* kFormat = "\"%s\" %s (Build %s)";
-  int len = snprintf(NULL, 0, kFormat, name, version_number, build);
+  int len = snprintf(nullptr, 0, kFormat, name, version_number, build);
   char* result = DartUtils::ScopedCString(len + 1);
   len = snprintf(result, len + 1, kFormat, name, version_number, build);
   return result;
@@ -206,7 +206,7 @@ const char* Platform::LocaleName() {
   wchar_t locale_name[LOCALE_NAME_MAX_LENGTH];
   int result = GetUserDefaultLocaleName(locale_name, LOCALE_NAME_MAX_LENGTH);
   if (result == 0) {
-    return NULL;
+    return nullptr;
   }
   return StringUtilsWin::WideToUtf8(locale_name);
 }
@@ -224,8 +224,8 @@ bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 
 char** Platform::Environment(intptr_t* count) {
   wchar_t* strings = GetEnvironmentStringsW();
-  if (strings == NULL) {
-    return NULL;
+  if (strings == nullptr) {
+    return nullptr;
   }
   wchar_t* tmp = strings;
   intptr_t i = 0;
@@ -270,11 +270,11 @@ const char* Platform::ResolveExecutablePath() {
   // Get the required length of the buffer.
   GetModuleFileNameW(nullptr, tmp_buffer, kTmpBufferSize);
   if (GetLastError() != ERROR_SUCCESS) {
-    return NULL;
+    return nullptr;
   }
   char* path = StringUtilsWin::WideToUtf8(tmp_buffer);
   // Return the canonical path as the returned path might contain symlinks.
-  const char* canon_path = File::GetCanonicalPath(NULL, path);
+  const char* canon_path = File::GetCanonicalPath(nullptr, path);
   return canon_path;
 }
 

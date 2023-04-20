@@ -946,48 +946,21 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Mixin);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
-    if (sealedToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.sealedClass,
-          sealedToken.charOffset, sealedToken.length)) {
-        sealedToken = null;
-      }
-    }
     if (baseToken != null) {
       if (reportIfNotEnabled(libraryFeatures.classModifiers,
           baseToken.charOffset, baseToken.length)) {
         baseToken = null;
       }
     }
-    if (interfaceToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.classModifiers,
-          interfaceToken.charOffset, interfaceToken.length)) {
-        interfaceToken = null;
-      }
-    }
-    if (finalToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.classModifiers,
-          finalToken.charOffset, finalToken.length)) {
-        finalToken = null;
-      }
-    }
     push(augmentToken ?? NullValues.Token);
-    push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
-    push(interfaceToken ?? NullValues.Token);
-    push(finalToken ?? NullValues.Token);
     push(typeVariables ?? NullValues.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
@@ -1424,10 +1397,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
       /* type variables */ ValueKinds.TypeVariableListOrNull,
-      /* final token */ ValueKinds.TokenOrNull,
-      /* interface token */ ValueKinds.TokenOrNull,
       /* base token */ ValueKinds.TokenOrNull,
-      /* sealed token */ ValueKinds.TokenOrNull,
       /* augment token */ ValueKinds.TokenOrNull,
       /* name offset */ ValueKinds.Integer,
       /* name */ ValueKinds.NameOrParserRecovery,
@@ -1440,10 +1410,7 @@ class OutlineBuilder extends StackListenerImpl {
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeVariableBuilder>? typeVariables =
         pop(NullValues.TypeVariables) as List<TypeVariableBuilder>?;
-    Token? finalToken = pop(NullValues.Token) as Token?;
-    Token? interfaceToken = pop(NullValues.Token) as Token?;
     Token? baseToken = pop(NullValues.Token) as Token?;
-    Token? sealedToken = pop(NullValues.Token) as Token?;
     Token? augmentToken = pop(NullValues.Token) as Token?;
     int nameOffset = popCharOffset();
     Object? name = pop();
@@ -1499,10 +1466,7 @@ class OutlineBuilder extends StackListenerImpl {
           nameOffset,
           endToken.charOffset,
           -1,
-          isSealed: sealedToken != null,
           isBase: baseToken != null,
-          isInterface: interfaceToken != null,
-          isFinal: finalToken != null,
           isAugmentation: augmentToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
@@ -3756,6 +3720,21 @@ class OutlineBuilder extends StackListenerImpl {
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
     push(NullValues.MixinApplicationBuilder);
+  }
+
+  @override
+  void handleMixinWithClause(Token withKeyword) {
+    debugEvent("MixinWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
+
+    // This is an error case where the parser has already given an error.
+    // We just discard the data.
+    pop();
   }
 
   @override

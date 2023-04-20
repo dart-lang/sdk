@@ -224,6 +224,7 @@ const List<Option> folderOptionsSpecification = [
   noVerifyCmd,
   Options.target,
   Options.defines,
+  Options.showOffsets,
 ];
 
 const Option<bool> fixNnbdReleaseVersion =
@@ -260,6 +261,7 @@ class FolderOptions {
   final bool noVerify;
   final String target;
   final String? overwriteCurrentSdkVersion;
+  final bool showOffsets;
 
   FolderOptions(this._explicitExperimentalFlags,
       {this.enableUnscheduledExperiments,
@@ -273,7 +275,8 @@ class FolderOptions {
       this.noVerify = false,
       this.target = "vm",
       // can be null
-      this.overwriteCurrentSdkVersion})
+      this.overwriteCurrentSdkVersion,
+      this.showOffsets = false})
       // ignore: unnecessary_null_comparison
       : assert(nnbdAgnosticMode != null),
         assert(
@@ -447,6 +450,7 @@ class FastaContext extends ChainContext with MatchContext {
       bool noVerify = false;
       Map<String, String>? defines = {};
       String target = "vm";
+      bool showOffsets = false;
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
             enableUnscheduledExperiments: enableUnscheduledExperiments,
@@ -458,7 +462,8 @@ class FastaContext extends ChainContext with MatchContext {
             nnbdAgnosticMode: nnbdAgnosticMode,
             defines: defines,
             noVerify: noVerify,
-            target: target);
+            target: target,
+            showOffsets: showOffsets);
       } else {
         File optionsFile =
             new File.fromUri(directory.uri.resolve('folder.options'));
@@ -484,6 +489,7 @@ class FastaContext extends ChainContext with MatchContext {
               Options.forceConstructorTearOffLowering.read(parsedOptions);
           nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
           defines = parsedOptions.defines;
+          showOffsets = Options.showOffsets.read(parsedOptions);
           if (Options.noDefines.read(parsedOptions)) {
             if (defines.isNotEmpty) {
               throw "Can't have no defines and specific defines "
@@ -509,7 +515,8 @@ class FastaContext extends ChainContext with MatchContext {
               defines: defines,
               noVerify: noVerify,
               target: target,
-              overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument);
+              overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument,
+              showOffsets: showOffsets);
         } else {
           folderOptions = _computeFolderOptions(directory.parent);
         }

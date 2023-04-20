@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef Parser<unrelated T extends core::Object? = dynamic> = (core::String) → (self::Result<T%>, core::String);
+abstract sealed class Result<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Result<self::Result::T%>
+    : super core::Object::•()
+    ;
+}
+final class Ok<T extends core::Object? = dynamic> extends self::Result<self::Ok::T%> /*hasConstConstructor*/  {
+  final field self::Ok::T% value;
+  const constructor •(self::Ok::T% value) → self::Ok<self::Ok::T%>
+    : self::Ok::value = value, super self::Result::•()
+    ;
+}
+final class Error<T extends core::Object? = dynamic> extends self::Result<self::Error::T%> /*hasConstConstructor*/  {
+  final field core::String error;
+  const constructor •(core::String error) → self::Error<self::Error::T%>
+    : self::Error::error = error, super self::Result::•()
+    ;
+}
+static method not((core::String) → (self::Result<dynamic>, core::String) parser) → (core::String) → (self::Result<void>, core::String)
+  ;

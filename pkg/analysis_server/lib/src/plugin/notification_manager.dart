@@ -84,36 +84,29 @@ abstract class AbstractNotificationManager {
       case plugin.ANALYSIS_NOTIFICATION_ERRORS:
         var params = plugin.AnalysisErrorsParams.fromNotification(notification);
         recordAnalysisErrors(pluginId, params.file, params.errors);
-        break;
       case plugin.ANALYSIS_NOTIFICATION_FOLDING:
         var params =
             plugin.AnalysisFoldingParams.fromNotification(notification);
         recordFoldingRegions(pluginId, params.file, params.regions);
-        break;
       case plugin.ANALYSIS_NOTIFICATION_HIGHLIGHTS:
         var params =
             plugin.AnalysisHighlightsParams.fromNotification(notification);
         recordHighlightRegions(pluginId, params.file, params.regions);
-        break;
       case plugin.ANALYSIS_NOTIFICATION_NAVIGATION:
         var params =
             plugin.AnalysisNavigationParams.fromNotification(notification);
         recordNavigationParams(pluginId, params.file,
             converter.convertAnalysisNavigationParams(params));
-        break;
       case plugin.ANALYSIS_NOTIFICATION_OCCURRENCES:
         var params =
             plugin.AnalysisOccurrencesParams.fromNotification(notification);
         recordOccurrences(pluginId, params.file, params.occurrences);
-        break;
       case plugin.ANALYSIS_NOTIFICATION_OUTLINE:
         var params =
             plugin.AnalysisOutlineParams.fromNotification(notification);
         recordOutlines(pluginId, params.file, params.outline);
-        break;
       case plugin.PLUGIN_NOTIFICATION_ERROR:
         sendPluginErrorNotification(notification);
-        break;
     }
   }
 

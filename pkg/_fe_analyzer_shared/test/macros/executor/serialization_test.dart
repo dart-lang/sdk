@@ -248,7 +248,7 @@ void main() {
               positionalParameters: [barPositionalParam],
               returnType: fooType,
               typeParameters: [zapTypeParam],
-              definingClass: fooType.identifier,
+              definingType: fooType.identifier,
               isStatic: false);
           expectSerializationEquality(method, mode);
         });
@@ -267,7 +267,7 @@ void main() {
             positionalParameters: [barPositionalParam],
             returnType: fooType,
             typeParameters: [zapTypeParam],
-            definingClass: fooType.identifier,
+            definingType: fooType.identifier,
             isFactory: true,
           );
           expectSerializationEquality(constructor, mode);
@@ -295,7 +295,7 @@ void main() {
             isFinal: true,
             isLate: false,
             type: barType,
-            definingClass: fooType.identifier,
+            definingType: fooType.identifier,
             isStatic: false,
           );
           expectSerializationEquality(bar, mode);
@@ -338,6 +338,43 @@ void main() {
           }
         });
 
+        test('EnumDeclaration', () {
+          var fooEnum = EnumDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+            interfaces: [barType],
+            mixins: [serializableType],
+            typeParameters: [zapTypeParam],
+          );
+          expectSerializationEquality(fooEnum, mode);
+        });
+
+        test('EnumValueDeclaration', () {
+          var entry = EnumValueDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
+            definingEnum:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+          );
+          expectSerializationEquality(entry, mode);
+        });
+
+        test('MixinDeclaration', () {
+          for (var base in [true, false]) {
+            var mixin = MixinDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
+              hasBase: base,
+              interfaces: [barType],
+              superclassConstraints: [serializableType],
+              typeParameters: [zapTypeParam],
+            );
+            expectSerializationEquality(mixin, mode);
+          }
+        });
+
         test('TypeAliasDeclaration', () {
           var typeAlias = TypeAliasDeclarationImpl(
             id: RemoteInstance.uniqueId,
@@ -352,6 +389,33 @@ void main() {
                 typeArguments: [barType]),
           );
           expectSerializationEquality(typeAlias, mode);
+        });
+
+        /// Transitively tests [RecordField]
+        test('RecordTypeAnnotation', () {
+          var recordType = RecordTypeAnnotationImpl(
+            id: RemoteInstance.uniqueId,
+            isNullable: true,
+            namedFields: [
+              RecordFieldDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'hello'),
+                name: 'hello',
+                type: barType,
+              ),
+            ],
+            positionalFields: [
+              RecordFieldDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+                name: null,
+                type: fooType,
+              ),
+            ],
+          );
+          expectSerializationEquality(recordType, mode);
         });
       });
     }

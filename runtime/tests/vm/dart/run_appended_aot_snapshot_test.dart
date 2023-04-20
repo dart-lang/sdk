@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
         .toList();
 
     {
-      final result = await generateAotKernel(checkedInDartVM, genKernel,
+      final result = await generateAotKernel(checkedInDartVM, genKernelDart,
           platformDill, sourcePath, dillPath, null, [],
           extraGenKernelOptions: extraGenKernelOptions);
       Expect.equals(result.stderr, '');

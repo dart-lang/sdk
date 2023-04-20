@@ -4,6 +4,7 @@
 
 import '../executor.dart';
 import '../api.dart';
+import 'introspection_impls.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
 
@@ -26,7 +27,7 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
       for (Phase phase in Phase.values) {
         int interfaceMask = _interfaceMask(declarationKind, phase);
         switch (declarationKind) {
-          case DeclarationKind.clazz:
+          case DeclarationKind.classType:
             switch (phase) {
               case Phase.types:
                 if (macro is ClassTypesMacro) {
@@ -121,6 +122,63 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
                 break;
             }
             break;
+          case DeclarationKind.enumType:
+            switch (phase) {
+              case Phase.types:
+                if (macro is EnumTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+              case Phase.declarations:
+                if (macro is EnumDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+              case Phase.definitions:
+                if (macro is EnumDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+            }
+            break;
+          case DeclarationKind.enumValue:
+            switch (phase) {
+              case Phase.types:
+                if (macro is EnumValueTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+              case Phase.declarations:
+                if (macro is EnumValueDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+              case Phase.definitions:
+                if (macro is EnumValueDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+            }
+            break;
+          case DeclarationKind.mixinType:
+            switch (phase) {
+              case Phase.types:
+                if (macro is MixinTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+              case Phase.declarations:
+                if (macro is MixinDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+              case Phase.definitions:
+                if (macro is MixinDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+                break;
+            }
+            break;
           case DeclarationKind.variable:
             switch (phase) {
               case Phase.types:
@@ -194,7 +252,7 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
 /// Implementation of [MacroExecutionResult].
 class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
-  final Map<String, List<DeclarationCode>> classAugmentations;
+  final Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations;
 
   @override
   final List<DeclarationCode> libraryAugmentations;
@@ -202,20 +260,25 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
   final List<String> newTypeNames;
 
+  @override
+  final Map<IdentifierImpl, List<DeclarationCode>> typeAugmentations;
+
   MacroExecutionResultImpl({
-    required this.classAugmentations,
+    required this.enumValueAugmentations,
     required this.libraryAugmentations,
     required this.newTypeNames,
+    required this.typeAugmentations,
   });
 
   factory MacroExecutionResultImpl.deserialize(Deserializer deserializer) {
-    deserializer.moveNext();
-    deserializer.expectList();
-    Map<String, List<DeclarationCode>> classAugmentations = {
+    deserializer
+      ..moveNext()
+      ..expectList();
+    Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations = {
       for (bool hasNext = deserializer.moveNext();
           hasNext;
           hasNext = deserializer.moveNext())
-        deserializer.expectString(): [
+        deserializer.expectRemoteInstance(): [
           for (bool hasNextCode = (deserializer
                     ..moveNext()
                     ..expectList())
@@ -226,16 +289,19 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
         ]
     };
 
-    deserializer.moveNext();
-    deserializer.expectList();
+    deserializer
+      ..moveNext()
+      ..expectList();
     List<DeclarationCode> libraryAugmentations = [
       for (bool hasNext = deserializer.moveNext();
           hasNext;
           hasNext = deserializer.moveNext())
         deserializer.expectCode()
     ];
-    deserializer.moveNext();
-    deserializer.expectList();
+
+    deserializer
+      ..moveNext()
+      ..expectList();
     List<String> newTypeNames = [
       for (bool hasNext = deserializer.moveNext();
           hasNext;
@@ -243,20 +309,39 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
         deserializer.expectString()
     ];
 
+    deserializer
+      ..moveNext()
+      ..expectList();
+    Map<IdentifierImpl, List<DeclarationCode>> typeAugmentations = {
+      for (bool hasNext = deserializer.moveNext();
+          hasNext;
+          hasNext = deserializer.moveNext())
+        deserializer.expectRemoteInstance(): [
+          for (bool hasNextCode = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNextCode;
+              hasNextCode = deserializer.moveNext())
+            deserializer.expectCode(),
+        ]
+    };
+
     return new MacroExecutionResultImpl(
-      classAugmentations: classAugmentations,
+      enumValueAugmentations: enumValueAugmentations,
       libraryAugmentations: libraryAugmentations,
       newTypeNames: newTypeNames,
+      typeAugmentations: typeAugmentations,
     );
   }
 
   @override
   void serialize(Serializer serializer) {
     serializer.startList();
-    for (String clazz in classAugmentations.keys) {
-      serializer.addString(clazz);
+    for (IdentifierImpl enuum in enumValueAugmentations.keys) {
+      enuum.serialize(serializer);
       serializer.startList();
-      for (DeclarationCode augmentation in classAugmentations[clazz]!) {
+      for (DeclarationCode augmentation in enumValueAugmentations[enuum]!) {
         augmentation.serialize(serializer);
       }
       serializer.endList();
@@ -271,6 +356,17 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     serializer.startList();
     for (String name in newTypeNames) {
       serializer.addString(name);
+    }
+    serializer.endList();
+
+    serializer.startList();
+    for (IdentifierImpl type in typeAugmentations.keys) {
+      type.serialize(serializer);
+      serializer.startList();
+      for (DeclarationCode augmentation in typeAugmentations[type]!) {
+        augmentation.serialize(serializer);
+      }
+      serializer.endList();
     }
     serializer.endList();
   }

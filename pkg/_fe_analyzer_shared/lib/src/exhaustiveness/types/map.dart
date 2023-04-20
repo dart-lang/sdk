@@ -4,55 +4,48 @@
 
 part of '../types.dart';
 
-/// [StaticType] for a map pattern type using a [MapTypeIdentity] for its
+/// [StaticType] for a map pattern type using a [MapTypeRestriction] for its
 /// uniqueness.
 class MapPatternStaticType<Type extends Object>
-    extends RestrictedStaticType<Type, MapTypeIdentity<Type>> {
+    extends RestrictedStaticType<Type, MapTypeRestriction<Type>> {
   MapPatternStaticType(super.typeOperations, super.fieldLookup, super.type,
       super.restriction, super.name);
 
   @override
-  String spaceToText(
-      Map<Key, Space> spaceFields, Map<Key, Space> additionalSpaceFields) {
+  String spaceToText(Map<Key, Space> spaceProperties,
+      Map<Key, Space> additionalSpaceProperties) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(restriction.typeArgumentsText);
     buffer.write('{');
 
     bool first = true;
-    additionalSpaceFields.forEach((Key key, Space space) {
+    additionalSpaceProperties.forEach((Key key, Space space) {
       if (!first) buffer.write(', ');
       buffer.write('$key: $space');
       first = false;
     });
-    if (restriction.hasRest) {
-      if (!first) buffer.write(', ');
-      buffer.write('...');
-    }
 
     buffer.write('}');
     return buffer.toString();
   }
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     buffer.write('{');
     String comma = '';
     for (MapKey key in restriction.keys) {
       buffer.write(comma);
       buffer.write(key.valueAsText);
       buffer.write(': ');
-      FieldWitness? witness = witnessFields[key];
+      PropertyWitness? witness = witnessFields[key];
       if (witness != null) {
-        witness.witnessToText(buffer);
+        witness.witnessToText(buffer, forCorrection: forCorrection);
       } else {
         buffer.write('_');
       }
       comma = ', ';
-    }
-    if (restriction.hasRest) {
-      buffer.write(comma);
-      buffer.write('...');
     }
     buffer.write('}');
 
@@ -60,7 +53,7 @@ class MapPatternStaticType<Type extends Object>
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is! MapKey) {
         buffer.write(additionalStart);
@@ -71,15 +64,15 @@ class MapPatternStaticType<Type extends Object>
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness field = entry.value;
-        field.witnessToText(buffer);
+        PropertyWitness field = entry.value;
+        field.witnessToText(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);
   }
 }
 
-/// Identity object used for creating a unique [MapPatternStaticType] for a
+/// Restriction object used for creating a unique [MapPatternStaticType] for a
 /// map pattern.
 ///
 /// The uniqueness is defined by the key and value types, the key values of
@@ -87,34 +80,30 @@ class MapPatternStaticType<Type extends Object>
 ///
 /// This identity ensures that we can detect overlap between map patterns with
 /// the same set of keys.
-class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
+class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
   final Type keyType;
   final Type valueType;
   final Set<MapKey> keys;
-  final bool hasRest;
   final String typeArgumentsText;
 
-  MapTypeIdentity(
-      this.keyType, this.valueType, this.keys, this.typeArgumentsText,
-      {required this.hasRest});
+  MapTypeRestriction(
+      this.keyType, this.valueType, this.keys, this.typeArgumentsText);
 
   @override
   late final int hashCode =
-      Object.hash(keyType, valueType, Object.hashAllUnordered(keys), hasRest);
+      Object.hash(keyType, valueType, Object.hashAllUnordered(keys));
 
   @override
   bool get isUnrestricted {
     // The map pattern containing only a rest pattern covers the whole type.
-    return hasRest && keys.isEmpty;
+    return keys.isEmpty;
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! MapTypeIdentity<Type>) return false;
-    if (keyType != other.keyType ||
-        valueType != other.valueType ||
-        hasRest != other.hasRest) {
+    if (other is! MapTypeRestriction<Type>) return false;
+    if (keyType != other.keyType || valueType != other.valueType) {
       return false;
     }
     if (keys.length != other.keys.length) return false;
@@ -124,16 +113,10 @@ class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
   @override
   bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
     if (other.isUnrestricted) return true;
-    if (other is! MapTypeIdentity<Type>) return false;
+    if (other is! MapTypeRestriction<Type>) return false;
     if (!typeOperations.isSubtypeOf(keyType, other.keyType)) return false;
     if (!typeOperations.isSubtypeOf(valueType, other.valueType)) return false;
-    if (other.hasRest) {
-      return keys.containsAll(other.keys);
-    } else if (hasRest) {
-      return false;
-    } else {
-      return keys.length == other.keys.length && keys.containsAll(other.keys);
-    }
+    return keys.containsAll(other.keys);
   }
 
   @override
@@ -146,11 +129,6 @@ class MapTypeIdentity<Type extends Object> implements Restriction<Type> {
       sb.write(comma);
       sb.write(key);
       sb.write(': ()');
-      comma = ', ';
-    }
-    if (hasRest) {
-      sb.write(comma);
-      sb.write('...');
       comma = ', ';
     }
     sb.write('}');

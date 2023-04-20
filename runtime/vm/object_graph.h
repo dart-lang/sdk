@@ -62,7 +62,7 @@ class ObjectGraph : public ThreadStackResource {
 
     virtual bool visit_weak_persistent_handles() const { return false; }
 
-    const char* gc_root_type = NULL;
+    const char* gc_root_type = nullptr;
     bool is_traversing = false;
   };
 
@@ -129,13 +129,16 @@ class ChunkedWriter : public ThreadStackResource {
 
 class FileHeapSnapshotWriter : public ChunkedWriter {
  public:
-  FileHeapSnapshotWriter(Thread* thread, const char* filename);
+  FileHeapSnapshotWriter(Thread* thread,
+                         const char* filename,
+                         bool* success = nullptr);
   ~FileHeapSnapshotWriter();
 
   virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last);
 
  private:
   void* file_ = nullptr;
+  bool* success_;
 };
 
 class CallbackHeapSnapshotWriter : public ChunkedWriter {
@@ -161,7 +164,7 @@ class VmServiceHeapSnapshotChunkedWriter : public ChunkedWriter {
   virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last);
 
  private:
-  static const intptr_t kMetadataReservation = 512;
+  static constexpr intptr_t kMetadataReservation = 512;
 };
 
 // Generates a dump of the heap, whose format is described in
@@ -240,7 +243,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
  private:
   static uint32_t GetHashHelper(Thread* thread, ObjectPtr obj);
 
-  static const intptr_t kPreferredChunkSize = MB;
+  static constexpr intptr_t kPreferredChunkSize = MB;
 
   void SetupCountingPages();
   bool OnImagePage(ObjectPtr obj) const;
@@ -266,7 +269,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
   };
   // There are up to 4 images to consider:
   // {instructions, data} x {vm isolate, current isolate}
-  static const intptr_t kMaxImagePages = 4;
+  static constexpr intptr_t kMaxImagePages = 4;
   ImagePageRange image_page_ranges_[kMaxImagePages];
 
   MallocGrowableArray<SmiPtr> smis_;
@@ -279,8 +282,8 @@ class CountObjectsVisitor : public ObjectVisitor, public HandleVisitor {
   CountObjectsVisitor(Thread* thread, intptr_t class_count);
   ~CountObjectsVisitor() {}
 
-  void VisitObject(ObjectPtr obj);
-  void VisitHandle(uword addr);
+  void VisitObject(ObjectPtr obj) override;
+  void VisitHandle(uword addr) override;
 
   std::unique_ptr<intptr_t[]> new_count_;
   std::unique_ptr<intptr_t[]> new_size_;

@@ -110,6 +110,16 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void emptyMapPattern({
+    required DartPattern pattern,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
+      pattern,
+    );
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required PromotableElement variable,
     required PromotableElement component,
@@ -228,22 +238,13 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(
-      {required covariant MapPatternImpl node,
-      required covariant RestPatternElementImpl element}) {
+  void restPatternInMap({
+    required covariant MapPatternImpl node,
+    required covariant RestPatternElementImpl element,
+  }) {
     _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN,
+      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
       element,
-    );
-  }
-
-  @override
-  void restPatternWithSubPatternInMap(
-      {required covariant MapPatternImpl node,
-      required covariant RestPatternElementImpl element}) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN,
-      element.pattern!,
     );
   }
 

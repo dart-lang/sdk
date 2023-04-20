@@ -396,6 +396,15 @@ Message _withArgumentsBaseClassImplementedOutsideOfLibraryCause(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBaseEnum = messageBaseEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBaseEnum = const MessageCode("BaseEnum",
+    index: 155,
+    problemMessage: r"""Enums can't be declared to be 'base'.""",
+    correctionMessage: r"""Try removing the keyword 'base'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -2313,6 +2322,18 @@ const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
         problemMessage: r"""This is one of the overridden members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDefaultInSwitchExpression =
+    messageDefaultInSwitchExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDefaultInSwitchExpression = const MessageCode(
+    "DefaultInSwitchExpression",
+    index: 153,
+    problemMessage:
+        r"""A switch expression may not use the `default` keyword.""",
+    correctionMessage: r"""Try replacing `default` with `_`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDefaultValueInRedirectingFactoryConstructor =
     const Template<Message Function(String name)>(
@@ -3070,6 +3091,15 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
           """This is the existing record type field named '${name}'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEmptyMapPattern = messageEmptyMapPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEmptyMapPattern = const MessageCode("EmptyMapPattern",
+    analyzerCodes: <String>["EMPTY_MAP_PATTERN"],
+    problemMessage: r"""A map pattern must have at least one entry.""",
+    correctionMessage: r"""Try replacing it with an object pattern 'Map()'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
@@ -4614,6 +4644,15 @@ Message _withArgumentsFfiCompoundImplementsFinalizable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiCreateOfStructOrUnion = messageFfiCreateOfStructOrUnion;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
+    "FfiCreateOfStructOrUnion",
+    problemMessage:
+        r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,
@@ -5249,6 +5288,44 @@ Message _withArgumentsFinalClassImplementedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFinalClassUsedAsMixinConstraintOutsideOfLibrary =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
+        withArguments:
+            _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalClassUsedAsMixinConstraintOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
+        analyzerCodes: <String>[
+      "FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalClassUsedAsMixinConstraintOutsideOfLibrary,
+      problemMessage:
+          """The class '${name}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalEnum = messageFinalEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalEnum = const MessageCode("FinalEnum",
+    index: 156,
+    problemMessage: r"""Enums can't be declared to be 'final'.""",
+    correctionMessage: r"""Try removing the keyword 'final'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -5335,6 +5412,15 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalMixin = messageFinalMixin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalMixin = const MessageCode("FinalMixin",
+    index: 146,
+    problemMessage: r"""A mixin can't be declared 'final'.""",
+    correctionMessage: r"""Try removing the 'final' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalMixinClass = messageFinalMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5342,60 +5428,6 @@ const MessageCode messageFinalMixinClass = const MessageCode("FinalMixinClass",
     index: 142,
     problemMessage: r"""A mixin class can't be declared 'final'.""",
     correctionMessage: r"""Try removing the 'final' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateFinalMixinImplementedOutsideOfLibrary = const Template<
-        Message Function(String name)>(
-    problemMessageTemplate:
-        r"""The mixin '#name' can't be implemented outside of its library because it's a final mixin.""",
-    withArguments: _withArgumentsFinalMixinImplementedOutsideOfLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeFinalMixinImplementedOutsideOfLibrary =
-    const Code<Message Function(String name)>(
-        "FinalMixinImplementedOutsideOfLibrary",
-        analyzerCodes: <String>["FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalMixinImplementedOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeFinalMixinImplementedOutsideOfLibrary,
-      problemMessage:
-          """The mixin '${name}' can't be implemented outside of its library because it's a final mixin.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateFinalMixinMixedInOutsideOfLibrary = const Template<
-        Message Function(String name)>(
-    problemMessageTemplate:
-        r"""The mixin '#name' can't be mixed-in outside of its library because it's a final mixin.""",
-    withArguments: _withArgumentsFinalMixinMixedInOutsideOfLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeFinalMixinMixedInOutsideOfLibrary =
-    const Code<Message Function(String name)>(
-        "FinalMixinMixedInOutsideOfLibrary",
-        analyzerCodes: <String>["FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalMixinMixedInOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeFinalMixinMixedInOutsideOfLibrary,
-      problemMessage:
-          """The mixin '${name}' can't be mixed-in outside of its library because it's a final mixin.""",
-      arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6455,6 +6487,24 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInterfaceEnum = messageInterfaceEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInterfaceEnum = const MessageCode("InterfaceEnum",
+    index: 157,
+    problemMessage: r"""Enums can't be declared to be 'interface'.""",
+    correctionMessage: r"""Try removing the keyword 'interface'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInterfaceMixin = messageInterfaceMixin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInterfaceMixin = const MessageCode("InterfaceMixin",
+    index: 147,
+    problemMessage: r"""A mixin can't be declared 'interface'.""",
+    correctionMessage: r"""Try removing the 'interface' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInterfaceMixinClass = messageInterfaceMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6463,33 +6513,6 @@ const MessageCode messageInterfaceMixinClass = const MessageCode(
     index: 143,
     problemMessage: r"""A mixin class can't be declared 'interface'.""",
     correctionMessage: r"""Try removing the 'interface' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateInterfaceMixinMixedInOutsideOfLibrary = const Template<
-        Message Function(String name)>(
-    problemMessageTemplate:
-        r"""The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin.""",
-    withArguments: _withArgumentsInterfaceMixinMixedInOutsideOfLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeInterfaceMixinMixedInOutsideOfLibrary =
-    const Code<Message Function(String name)>(
-        "InterfaceMixinMixedInOutsideOfLibrary",
-        analyzerCodes: <String>["INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInterfaceMixinMixedInOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeInterfaceMixinMixedInOutsideOfLibrary,
-      problemMessage:
-          """The mixin '${name}' can't be mixed-in outside of its library because it's an interface mixin.""",
-      arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemAlreadyInitialized =
@@ -7226,6 +7249,19 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidInsideUnaryPattern =
+    messageInvalidInsideUnaryPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidInsideUnaryPattern = const MessageCode(
+    "InvalidInsideUnaryPattern",
+    index: 150,
+    problemMessage:
+        r"""This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.""",
+    correctionMessage:
+        r"""Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7520,6 +7556,88 @@ Message _withArgumentsInvokeNonFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJointPatternVariableNotInAll = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The variable '#name' is available in some, but not all cases that share this body.""",
+    withArguments: _withArgumentsJointPatternVariableNotInAll);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeJointPatternVariableNotInAll =
+    const Code<Message Function(String name)>("JointPatternVariableNotInAll",
+        analyzerCodes: <String>[
+      "INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJointPatternVariableNotInAll(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJointPatternVariableNotInAll,
+      problemMessage:
+          """The variable '${name}' is available in some, but not all cases that share this body.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJointPatternVariableWithLabelDefault = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The variable '#name' is not available because there is a label or 'default' case.""",
+    withArguments: _withArgumentsJointPatternVariableWithLabelDefault);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJointPatternVariableWithLabelDefault =
+    const Code<Message Function(String name)>(
+        "JointPatternVariableWithLabelDefault",
+        analyzerCodes: <String>[
+      "INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJointPatternVariableWithLabelDefault(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJointPatternVariableWithLabelDefault,
+      problemMessage:
+          """The variable '${name}' is not available because there is a label or 'default' case.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJointPatternVariablesMismatch = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Variable pattern '#name' doesn't have the same type or finality in all cases.""",
+    withArguments: _withArgumentsJointPatternVariablesMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeJointPatternVariablesMismatch =
+    const Code<Message Function(String name)>(
+  "JointPatternVariablesMismatch",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJointPatternVariablesMismatch(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJointPatternVariablesMismatch,
+      problemMessage:
+          """Variable pattern '${name}' doesn't have the same type or finality in all cases.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropAnonymousFactoryPositionalParameters =
     messageJsInteropAnonymousFactoryPositionalParameters;
 
@@ -7565,6 +7683,18 @@ Message _withArgumentsJsInteropDartClassExtendsJSClass(
           """Try adding the JS interop annotation or removing it from the parent class.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    messageJsInteropDartJsInteropAnnotationForStaticInteropOnly;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    const MessageCode("JsInteropDartJsInteropAnnotationForStaticInteropOnly",
+        problemMessage:
+            r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'.""",
+        correctionMessage:
+            r"""Try making this class an inline class or marking it as '@staticInterop'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
@@ -7759,6 +7889,18 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
     problemMessage: r"""Only JS interop members may be 'external'.""",
     correctionMessage:
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
+    messageJsInteropInlineClassUsedWithWrongJsAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropInlineClassUsedWithWrongJsAnnotation =
+    const MessageCode("JsInteropInlineClassUsedWithWrongJsAnnotation",
+        problemMessage:
+            r"""Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
+        correctionMessage:
+            r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =
@@ -8204,6 +8346,34 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropStrictModeForbiddenLibrary =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Library '#name' is forbidden when strict mode is enabled.""",
+        correctionMessageTemplate:
+            r"""Remove the import of a forbidden library.""",
+        withArguments: _withArgumentsJsInteropStrictModeForbiddenLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStrictModeForbiddenLibrary =
+    const Code<Message Function(String name)>(
+  "JsInteropStrictModeForbiddenLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStrictModeForbiddenLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStrictModeForbiddenLibrary,
+      problemMessage:
+          """Library '${name}' is forbidden when strict mode is enabled.""",
+      correctionMessage: """Remove the import of a forbidden library.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(
@@ -8365,6 +8535,18 @@ Message _withArgumentsLateDefinitelyUnassignedError(String name) {
           """Late variable '${name}' without initializer is definitely unassigned.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLatePatternVariableDeclaration =
+    messageLatePatternVariableDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLatePatternVariableDeclaration = const MessageCode(
+    "LatePatternVariableDeclaration",
+    index: 151,
+    problemMessage:
+        r"""A pattern variable declaration may not use the `late` keyword.""",
+    correctionMessage: r"""Try removing the keyword `late`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
@@ -9057,6 +9239,13 @@ Message _withArgumentsMixinInheritsFromNotObject(String name) {
           """The class '${name}' can't be used as a mixin because it extends a class other than 'Object'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinWithClause = messageMixinWithClause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinWithClause = const MessageCode("MixinWithClause",
+    index: 154, problemMessage: r"""A mixin can't have a with clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10957,6 +11146,31 @@ const MessageCode messagePatternMatchingError = const MessageCode(
     problemMessage: r"""Pattern matching error""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatternVariableAssignmentInsideGuard =
+    messagePatternVariableAssignmentInsideGuard;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatternVariableAssignmentInsideGuard = const MessageCode(
+    "PatternVariableAssignmentInsideGuard",
+    analyzerCodes: <String>["PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD"],
+    problemMessage:
+        r"""Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
+    correctionMessage: r"""Try assigning to a different variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatternVariableDeclarationOutsideFunctionOrMethod =
+    messagePatternVariableDeclarationOutsideFunctionOrMethod;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatternVariableDeclarationOutsideFunctionOrMethod =
+    const MessageCode("PatternVariableDeclarationOutsideFunctionOrMethod",
+        index: 152,
+        problemMessage:
+            r"""A pattern variable declaration may not appear outside a function or method.""",
+        correctionMessage:
+            r"""Try declaring ordinary variables and assigning from within a function or method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =
     messagePlatformPrivateLibraryAccess;
 
@@ -11210,26 +11424,12 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRestElementWithSubpatternInMapPattern =
-    messageRestElementWithSubpatternInMapPattern;
+const Code<Null> codeRestPatternInMapPattern = messageRestPatternInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRestElementWithSubpatternInMapPattern =
-    const MessageCode("RestElementWithSubpatternInMapPattern",
-        analyzerCodes: <String>["REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN"],
-        problemMessage:
-            r"""A rest element in a map pattern can't have a subpattern.""",
-        correctionMessage: r"""Try removing the subpattern.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRestPatternNotLastInMapPattern =
-    messageRestPatternNotLastInMapPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRestPatternNotLastInMapPattern = const MessageCode(
-    "RestPatternNotLastInMapPattern",
-    problemMessage:
-        r"""The '...' pattern can appear only at the end in map patterns.""");
+const MessageCode messageRestPatternInMapPattern = const MessageCode(
+    "RestPatternInMapPattern",
+    problemMessage: r"""The '...' pattern can't appear in map patterns.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRethrowNotCatch = messageRethrowNotCatch;
@@ -11383,6 +11583,24 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSealedEnum = messageSealedEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSealedEnum = const MessageCode("SealedEnum",
+    index: 158,
+    problemMessage: r"""Enums can't be declared to be 'sealed'.""",
+    correctionMessage: r"""Try removing the keyword 'sealed'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSealedMixin = messageSealedMixin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSealedMixin = const MessageCode("SealedMixin",
+    index: 148,
+    problemMessage: r"""A mixin can't be declared 'sealed'.""",
+    correctionMessage: r"""Try removing the 'sealed' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSealedMixinClass = messageSealedMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11391,33 +11609,6 @@ const MessageCode messageSealedMixinClass = const MessageCode(
     index: 144,
     problemMessage: r"""A mixin class can't be declared 'sealed'.""",
     correctionMessage: r"""Try removing the 'sealed' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateSealedMixinSubtypeOutsideOfLibrary = const Template<
-        Message Function(String name)>(
-    problemMessageTemplate:
-        r"""The mixin '#name' can't be mixed in outside of its library because it's a sealed mixin.""",
-    withArguments: _withArgumentsSealedMixinSubtypeOutsideOfLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeSealedMixinSubtypeOutsideOfLibrary =
-    const Code<Message Function(String name)>(
-        "SealedMixinSubtypeOutsideOfLibrary",
-        analyzerCodes: <String>["SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSealedMixinSubtypeOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeSealedMixinSubtypeOutsideOfLibrary,
-      problemMessage:
-          """The mixin '${name}' can't be mixed in outside of its library because it's a sealed mixin.""",
-      arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSetLiteralTooManyTypeArguments =
@@ -13077,29 +13268,16 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateVariablePatternTypeMismatchInSwitchHeads =
-    const Template<Message Function(String name)>(
-        problemMessageTemplate:
-            r"""Variable pattern '#name' doesn't have the same type in all cases.""",
-        withArguments: _withArgumentsVariablePatternTypeMismatchInSwitchHeads);
+const Code<Null> codeVariablePatternKeywordInDeclarationContext =
+    messageVariablePatternKeywordInDeclarationContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeVariablePatternTypeMismatchInSwitchHeads =
-    const Code<Message Function(String name)>(
-  "VariablePatternTypeMismatchInSwitchHeads",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsVariablePatternTypeMismatchInSwitchHeads(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeVariablePatternTypeMismatchInSwitchHeads,
-      problemMessage:
-          """Variable pattern '${name}' doesn't have the same type in all cases.""",
-      arguments: {'name': name});
-}
+const MessageCode messageVariablePatternKeywordInDeclarationContext =
+    const MessageCode("VariablePatternKeywordInDeclarationContext",
+        index: 149,
+        problemMessage:
+            r"""Variable patterns in declaration context can't specify 'var' or 'final' keyword.""",
+        correctionMessage: r"""Try removing the keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVerificationErrorOriginContext =

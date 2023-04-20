@@ -108,6 +108,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  InvalidExpression emptyMapPattern({
+    required Pattern pattern,
+  }) {
+    return helper.buildProblem(
+        messageEmptyMapPattern, pattern.fileOffset, noLength);
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required VariableDeclaration variable,
     required VariableDeclaration component,
@@ -213,15 +221,12 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(
-      {required Pattern node, required TreeNode element}) {
-    // This is reported in the body builder.
-  }
-
-  @override
-  void restPatternWithSubPatternInMap(
-      {required Pattern node, required TreeNode element}) {
-    // This is reported in the body builder.
+  InvalidExpression restPatternInMap({
+    required Pattern node,
+    required TreeNode element,
+  }) {
+    return helper.buildProblem(
+        messageRestPatternInMapPattern, element.fileOffset, noLength);
   }
 
   @override

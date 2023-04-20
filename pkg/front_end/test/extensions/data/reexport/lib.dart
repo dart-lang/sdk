@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[
-  async.dart.FutureExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName]*/
+/*library: */
 
 export 'lib1.dart';
 /*error: errors=['ClashingExtension' is exported from both 'org-dartlang-test:///a/b/c/lib1.dart' and 'org-dartlang-test:///a/b/c/lib2.dart'.]*/

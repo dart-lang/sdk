@@ -39,11 +39,11 @@ DECLARE_FLAG(bool, force_evacuation);
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
-const uint8_t* TesterState::vm_snapshot_data = NULL;
-Dart_IsolateGroupCreateCallback TesterState::create_callback = NULL;
-Dart_IsolateShutdownCallback TesterState::shutdown_callback = NULL;
+const uint8_t* TesterState::vm_snapshot_data = nullptr;
+Dart_IsolateGroupCreateCallback TesterState::create_callback = nullptr;
+Dart_IsolateShutdownCallback TesterState::shutdown_callback = nullptr;
 Dart_IsolateGroupCleanupCallback TesterState::group_cleanup_callback = nullptr;
-const char** TesterState::argv = NULL;
+const char** TesterState::argv = nullptr;
 int TesterState::argc = 0;
 
 void KernelBufferList::AddBufferToList(const uint8_t* kernel_buffer) {
@@ -51,16 +51,16 @@ void KernelBufferList::AddBufferToList(const uint8_t* kernel_buffer) {
   kernel_buffer_ = kernel_buffer;
 }
 
-TestCaseBase* TestCaseBase::first_ = NULL;
-TestCaseBase* TestCaseBase::tail_ = NULL;
-KernelBufferList* TestCaseBase::current_kernel_buffers_ = NULL;
+TestCaseBase* TestCaseBase::first_ = nullptr;
+TestCaseBase* TestCaseBase::tail_ = nullptr;
+KernelBufferList* TestCaseBase::current_kernel_buffers_ = nullptr;
 
 TestCaseBase::TestCaseBase(const char* name, const char* expectation)
     : raw_test_(false),
-      next_(NULL),
+      next_(nullptr),
       name_(name),
       expectation_(strlen(expectation) > 0 ? expectation : "Pass") {
-  if (first_ == NULL) {
+  if (first_ == nullptr) {
     first_ = this;
   } else {
     tail_->next_ = this;
@@ -70,7 +70,7 @@ TestCaseBase::TestCaseBase(const char* name, const char* expectation)
 
 void TestCaseBase::RunAllRaw() {
   TestCaseBase* test = first_;
-  while (test != NULL) {
+  while (test != nullptr) {
     if (test->raw_test_) {
       test->RunTest();
       CleanupState();
@@ -81,7 +81,7 @@ void TestCaseBase::RunAllRaw() {
 
 void TestCaseBase::RunAll() {
   TestCaseBase* test = first_;
-  while (test != NULL) {
+  while (test != nullptr) {
     if (!test->raw_test_) {
       test->RunTest();
       CleanupState();
@@ -91,15 +91,15 @@ void TestCaseBase::RunAll() {
 }
 
 void TestCaseBase::CleanupState() {
-  if (current_kernel_buffers_ != NULL) {
+  if (current_kernel_buffers_ != nullptr) {
     delete current_kernel_buffers_;
-    current_kernel_buffers_ = NULL;
+    current_kernel_buffers_ = nullptr;
   }
 }
 
 void TestCaseBase::AddToKernelBuffers(const uint8_t* kernel_buffer) {
-  ASSERT(kernel_buffer != NULL);
-  if (current_kernel_buffers_ == NULL) {
+  ASSERT(kernel_buffer != nullptr);
+  if (current_kernel_buffers_ == nullptr) {
     current_kernel_buffers_ = new KernelBufferList(kernel_buffer);
   } else {
     current_kernel_buffers_->AddBufferToList(kernel_buffer);
@@ -116,7 +116,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
   api_flags.null_safety = FLAG_sound_null_safety;
-  Dart_Isolate isolate = NULL;
+  Dart_Isolate isolate = nullptr;
   if (len == 0) {
     isolate = Dart_CreateIsolateGroup(
         /*script_uri=*/name, /*name=*/name, data_buffer, instr_buffer,
@@ -127,12 +127,12 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
                                                 &api_flags, group_data,
                                                 isolate_data, &err);
   }
-  if (isolate == NULL) {
+  if (isolate == nullptr) {
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
   }
 
-  EXPECT(isolate != NULL);
+  EXPECT(isolate != nullptr);
   return isolate;
 }
 
@@ -179,14 +179,14 @@ struct TestLibEntry {
   const char* source;
 };
 
-static MallocGrowableArray<TestLibEntry>* test_libs_ = NULL;
+static MallocGrowableArray<TestLibEntry>* test_libs_ = nullptr;
 
 const char* TestCase::url() {
   return RESOLVED_USER_TEST_URI;
 }
 
 void TestCase::AddTestLib(const char* url, const char* source) {
-  if (test_libs_ == NULL) {
+  if (test_libs_ == nullptr) {
     test_libs_ = new MallocGrowableArray<TestLibEntry>();
   }
   // If the test lib is already added, replace the source.
@@ -203,15 +203,15 @@ void TestCase::AddTestLib(const char* url, const char* source) {
 }
 
 const char* TestCase::GetTestLib(const char* url) {
-  if (test_libs_ == NULL) {
-    return NULL;
+  if (test_libs_ == nullptr) {
+    return nullptr;
   }
   for (intptr_t i = 0; i < test_libs_->length(); i++) {
     if (strcmp(url, (*test_libs_)[i].url) == 0) {
       return (*test_libs_)[i].source;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool TestCase::IsNNBD() {
@@ -249,11 +249,11 @@ static Dart_NativeFunction IsolateReloadTestNativeResolver(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  const char* function_name = NULL;
+  const char* function_name = nullptr;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   ASSERT(!Dart_IsError(result));
-  ASSERT(function_name != NULL);
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(function_name != nullptr);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = true;
   int num_entries = sizeof(ReloadEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -263,11 +263,11 @@ static Dart_NativeFunction IsolateReloadTestNativeResolver(
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void FUNCTION_NAME(Test_Reload)(Dart_NativeArguments native_args) {
-  Dart_Handle result = TestCase::TriggerReload(/* kernel_buffer= */ NULL,
+  Dart_Handle result = TestCase::TriggerReload(/* kernel_buffer= */ nullptr,
                                                /* kernel_buffer_size= */ 0);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
@@ -332,7 +332,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
       url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
-      sourcefiles, incrementally, false, NULL, multiroot_filepaths,
+      sourcefiles, incrementally, false, nullptr, multiroot_filepaths,
       multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
@@ -357,22 +357,22 @@ char* TestCase::ValidateCompilationResult(
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
     free(compilation_result.error);
-    if (compilation_result.kernel != NULL) {
+    if (compilation_result.kernel != nullptr) {
       free(const_cast<uint8_t*>(compilation_result.kernel));
     }
-    *kernel_buffer = NULL;
+    *kernel_buffer = nullptr;
     *kernel_buffer_size = 0;
     return result;
   }
   *kernel_buffer = compilation_result.kernel;
   *kernel_buffer_size = compilation_result.kernel_size;
-  if (compilation_result.error != NULL) {
+  if (compilation_result.error != nullptr) {
     free(compilation_result.error);
   }
-  if (kernel_buffer == NULL) {
-    return OS::SCreate(zone, "front end generated a NULL kernel file");
+  if (kernel_buffer == nullptr) {
+    return OS::SCreate(zone, "front end generated a nullptr kernel file");
   }
-  return NULL;
+  return nullptr;
 }
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
@@ -393,11 +393,11 @@ static intptr_t BuildSourceFilesArray(
     Dart_SourceFile** sourcefiles,
     const char* script,
     const char* script_url = RESOLVED_USER_TEST_URI) {
-  ASSERT(sourcefiles != NULL);
-  ASSERT(script != NULL);
+  ASSERT(sourcefiles != nullptr);
+  ASSERT(script != nullptr);
 
   intptr_t num_test_libs = 0;
-  if (test_libs_ != NULL) {
+  if (test_libs_ != nullptr) {
     num_test_libs = test_libs_->length();
   }
 
@@ -425,7 +425,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      bool finalize_classes,
                                      bool allow_compile_errors) {
   LoadIsolateReloadTestLibIfNeeded(script);
-  Dart_SourceFile* sourcefiles = NULL;
+  Dart_SourceFile* sourcefiles = nullptr;
   intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
   Dart_Handle result =
       LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
@@ -445,13 +445,13 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
   const char* prefixed_lib_uri =
       OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
   Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
-  const uint8_t* kernel_buffer = NULL;
+  const uint8_t* kernel_buffer = nullptr;
   intptr_t kernel_buffer_size = 0;
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   char* error = TestCase::CompileTestScriptWithDFE(
       sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
       &kernel_buffer_size, true);
-  if ((kernel_buffer == NULL) && (error != NULL)) {
+  if ((kernel_buffer == nullptr) && (error != nullptr)) {
     return Dart_NewApiError(error);
   }
 
@@ -469,7 +469,7 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
   Dart_Handle result = Dart_SetRootLibrary(lib);
   EXPECT_VALID(result);
 
-  Dart_SetNativeResolver(lib, resolver, NULL);
+  Dart_SetNativeResolver(lib, resolver, nullptr);
   return lib;
 }
 
@@ -485,14 +485,14 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   // First script is the main script.
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
-  const uint8_t* kernel_buffer = NULL;
+  const uint8_t* kernel_buffer = nullptr;
   intptr_t kernel_buffer_size = 0;
   char* error = TestCase::CompileTestScriptWithDFE(
-      entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri,
+      entry_script_uri != nullptr ? entry_script_uri : sourcefiles[0].uri,
       sourcefiles_count, sourcefiles, &kernel_buffer, &kernel_buffer_size,
       incrementally, allow_compile_errors, multiroot_filepaths,
       multiroot_scheme);
-  if ((kernel_buffer == NULL) && error != NULL) {
+  if ((kernel_buffer == nullptr) && error != nullptr) {
     return Dart_NewApiError(error);
   }
 
@@ -506,12 +506,12 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(
-      entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri));
+      entry_script_uri != nullptr ? entry_script_uri : sourcefiles[0].uri));
   EXPECT_VALID(lib);
   result = Dart_SetRootLibrary(lib);
   EXPECT_VALID(result);
 
-  result = Dart_SetNativeResolver(lib, resolver, NULL);
+  result = Dart_SetNativeResolver(lib, resolver, nullptr);
   EXPECT_VALID(result);
   if (finalize) {
     result = Dart_FinalizeLoading(false);
@@ -528,7 +528,7 @@ Dart_Handle TestCase::SetReloadTestScript(const char* script) {
   FLAG_gc_during_reload = true;
   FLAG_force_evacuation = true;
 
-  Dart_SourceFile* sourcefiles = NULL;
+  Dart_SourceFile* sourcefiles = nullptr;
   intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
   Dart_KernelCompilationResult compilation_result =
       KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
@@ -570,7 +570,7 @@ Dart_Handle TestCase::TriggerReload(
   }
 
   TransitionNativeToVM transition(thread);
-  if (isolate_group->program_reload_context() != NULL) {
+  if (isolate_group->program_reload_context() != nullptr) {
     isolate_group->DeleteReloadContext();
   }
 
@@ -597,7 +597,7 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
-  Dart_SourceFile* sourcefiles = NULL;
+  Dart_SourceFile* sourcefiles = nullptr;
   intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
   Dart_KernelCompilationResult compilation_result =
       KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
@@ -605,13 +605,14 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     Dart_Handle result = Dart_NewApiError(compilation_result.error);
     free(compilation_result.error);
-    if (compilation_result.kernel != NULL) {
+    if (compilation_result.kernel != nullptr) {
       free(const_cast<uint8_t*>(compilation_result.kernel));
     }
     return result;
   }
 
-  return TriggerReload(/* kernel_buffer= */ NULL, /* kernel_buffer_size= */ 0);
+  return TriggerReload(/* kernel_buffer= */ nullptr,
+                       /* kernel_buffer_size= */ 0);
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,
@@ -753,7 +754,7 @@ void AssemblerTest::Assemble() {
 
 bool CompilerTest::TestCompileFunction(const Function& function) {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   ASSERT(ClassFinalizer::AllClassesFinalized());
   const Object& result =
       Object::Handle(Compiler::CompileFunction(thread, function));
@@ -765,7 +766,7 @@ void ElideJSONSubstring(const char* prefix,
                         char* out,
                         const char* postfix) {
   const char* pos = strstr(in, prefix);
-  while (pos != NULL) {
+  while (pos != nullptr) {
     // Copy up to pos into the output buffer.
     while (in < pos) {
       *out++ = *in++;

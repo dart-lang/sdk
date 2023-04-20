@@ -81,6 +81,11 @@ enum ScopeKind {
   /// This scope kind is used in assertion checks.
   switchCase,
 
+  /// Scope for switch case bodies
+  ///
+  /// This is used to handle local variables of switch cases.
+  switchCaseBody,
+
   /// Scope for type parameters of declarations
   typeParameters,
 }

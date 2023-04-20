@@ -26,14 +26,17 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   final TypeOperations<Type> _typeOperations;
   final FieldLookup<Type> _fieldLookup;
   final Type _type;
+  @override
+  final bool isImplicitlyNullable;
 
-  TypeBasedStaticType(this._typeOperations, this._fieldLookup, this._type);
+  TypeBasedStaticType(this._typeOperations, this._fieldLookup, this._type,
+      {required this.isImplicitlyNullable});
 
   @override
   Map<Key, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
 
   @override
-  StaticType? getAdditionalField(Key key) =>
+  StaticType? getAdditionalPropertyType(Key key) =>
       _fieldLookup.getAdditionalFieldType(_type, key);
 
   /// Returns a [Restriction] value for static types the determines subtypes of
@@ -67,8 +70,9 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   Type get typeForTesting => _type;
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     if (!_typeOperations.hasSimpleName(_type)) {
       buffer.write(name);
       buffer.write(' _');
@@ -77,7 +81,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
       String additionalStart = ' && Object(';
       String additionalEnd = '';
       String comma = '';
-      for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+      for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
         Key key = entry.key;
         if (key is! ListKey) {
           buffer.write(additionalStart);
@@ -88,13 +92,14 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 
           buffer.write(key.name);
           buffer.write(': ');
-          FieldWitness field = entry.value;
-          field.witnessToText(buffer);
+          PropertyWitness field = entry.value;
+          field.witnessToText(buffer, forCorrection: forCorrection);
         }
       }
       buffer.write(additionalEnd);
     } else {
-      super.witnessToText(buffer, witness, witnessFields);
+      super.witnessToText(buffer, witness, witnessFields,
+          forCorrection: forCorrection);
     }
   }
 }
@@ -109,7 +114,8 @@ abstract class RestrictedStaticType<Type extends Object,
   final String name;
 
   RestrictedStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this.restriction, this.name);
+      this.restriction, this.name)
+      : super(isImplicitlyNullable: false);
 }
 
 /// [StaticType] for an object restricted to a single value.
@@ -119,15 +125,16 @@ class ValueStaticType<Type extends Object, T extends Object>
       super.restriction, super.name);
 
   @override
-  void witnessToText(StringBuffer buffer, FieldWitness witness,
-      Map<Key, FieldWitness> witnessFields) {
+  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+      Map<Key, PropertyWitness> witnessFields,
+      {required bool forCorrection}) {
     buffer.write(name);
 
     // If we have restrictions on the value we create an and pattern.
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     String comma = '';
-    for (MapEntry<Key, FieldWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
       Key key = entry.key;
       if (key is! RecordKey) {
         buffer.write(additionalStart);
@@ -138,8 +145,8 @@ class ValueStaticType<Type extends Object, T extends Object>
 
         buffer.write(key.name);
         buffer.write(': ');
-        FieldWitness field = entry.value;
-        field.witnessToText(buffer);
+        PropertyWitness field = entry.value;
+        field.witnessToText(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);

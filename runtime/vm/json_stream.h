@@ -156,14 +156,14 @@ class JSONStream : ValueObject {
                              intptr_t* offset,
                              intptr_t* count);
 
+  // Append |buffer| to the stream.
+  void AppendBytes(const uint8_t* buffer, intptr_t buffer_length) {
+    writer_.AppendBytes(buffer, buffer_length);
+  }
+
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object) {
     writer_.AppendSerializedObject(serialized_object);
-  }
-
-  // Append |buffer| to the stream.
-  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length) {
-    writer_.AppendSerializedObject(buffer, buffer_length);
   }
 
   // Append |serialized_object| to the stream with |property_name|.
@@ -180,7 +180,7 @@ class JSONStream : ValueObject {
 
   void PostNullReply(Dart_Port port);
 
-  void OpenObject(const char* property_name = NULL) {
+  void OpenObject(const char* property_name = nullptr) {
     if (ignore_object_depth_ > 0 ||
         (property_name != nullptr && !IsAllowableKey(property_name))) {
       ignore_object_depth_++;
@@ -201,7 +201,7 @@ class JSONStream : ValueObject {
     writer_.UncloseObject();
   }
 
-  void OpenArray(const char* property_name = NULL) {
+  void OpenArray(const char* property_name = nullptr) {
     if (ignore_object_depth_ > 0 ||
         (property_name != nullptr && !IsAllowableKey(property_name))) {
       ignore_object_depth_++;
@@ -217,6 +217,16 @@ class JSONStream : ValueObject {
     writer_.CloseArray();
   }
 
+  // Append the Base64 encoding of |bytes| to the stream.
+  //
+  // Beware that padding characters are added when |length| is not a multiple of
+  // three. Padding is only valid at the end of Base64 strings, so you must be
+  // careful when trying to populate a single Base64 string with multiple calls
+  // to this method. |JSONBase64String| should be used for that use-case,
+  // because it handles padding management.
+  void AppendBytesInBase64(const uint8_t* bytes, intptr_t length) {
+    writer_.AppendBytesInBase64(bytes, length);
+  }
   void PrintValueNull() { writer_.PrintValueNull(); }
   void PrintValueBool(bool b) { writer_.PrintValueBool(b); }
   void PrintValue(intptr_t i) { writer_.PrintValue(i); }
@@ -350,6 +360,7 @@ class JSONStream : ValueObject {
   intptr_t ignore_object_depth_;
   friend class JSONObject;
   friend class JSONArray;
+  friend class JSONBase64String;
   friend class TimelineEvent;
 };
 
@@ -517,6 +528,28 @@ class JSONArray : public ValueObject {
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(JSONArray);
+};
+
+class JSONBase64String : public ValueObject {
+ public:
+  explicit JSONBase64String(JSONStream* stream)
+      : stream_(stream), queued_bytes_(), num_queued_bytes_(0) {
+    stream_->AppendBytes(reinterpret_cast<const uint8_t*>("\""), 1);
+  }
+  ~JSONBase64String() {
+    stream_->AppendBytesInBase64(queued_bytes_, num_queued_bytes_);
+    stream_->AppendBytes(reinterpret_cast<const uint8_t*>("\""), 1);
+  }
+
+  void AppendBytes(const uint8_t* bytes, intptr_t length);
+
+ private:
+  JSONStream* stream_;
+  uint8_t queued_bytes_[3];
+  intptr_t num_queued_bytes_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(JSONBase64String);
 };
 
 }  // namespace dart

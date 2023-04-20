@@ -6,7 +6,10 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
+    hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
+import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,7 +20,48 @@ import 'mocks.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ServerDomainTest);
+    defineReflectiveTests(ServerDartFixPromptTest);
   });
+}
+
+/// Checks server interacts with [DartFixPromptManager] correctly.
+///
+/// Tests for [DartFixPromptManager]'s behaviour are in
+/// test/services/user_prompts/dart_fix_prompt_manager_test.dart.
+@reflectiveTest
+class ServerDartFixPromptTest extends PubPackageAnalysisServerTest {
+  late TestDartFixPromptManager promptManager;
+
+  @override
+  DartFixPromptManager? get dartFixPromptManager => promptManager;
+
+  @override
+  void setUp() {
+    promptManager = TestDartFixPromptManager();
+    super.setUp();
+  }
+
+  Future<void> test_trigger_afterInitialAnalysis() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 1);
+  }
+
+  Future<void> test_trigger_afterPackageConfigChange() async {
+    // Ensure there's a file to analyze otherwise writing the package_config
+    // won't trigger any additional analysis.
+    newFile('$testPackageLibPath/test.dart', 'void f() {}');
+
+    // Set up and let initial analysis complete.
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 1);
+
+    // Expect that writing package config attempts to trigger another check.
+    writeTestPackageConfig();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.checksTriggered, 2);
+  }
 }
 
 @reflectiveTest
@@ -102,19 +146,47 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Send the request.
     var responseFuture =
-        server.showUserPrompt(MessageType.WARNING, 'message', ['a', 'b']);
+        server.showUserPrompt(MessageType.warning, 'message', ['a', 'b']);
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     await serverChannel.simulateResponseFromClient(
-        ServerShowMessageRequestResult('a').toResponse(request.id));
+        ServerShowMessageRequestResult(action: 'a').toResponse(request.id));
     var response = await responseFuture;
     expect(response, 'a');
+  }
+
+  Future<void> test_showMessage_nullResponse() async {
+    server.clientCapabilities.requests = ['showMessageRequest'];
+
+    // Send the request.
+    var responseFuture =
+        server.showUserPrompt(MessageType.warning, 'message', ['a', 'b']);
+    expect(serverChannel.serverRequestsSent, hasLength(1));
+
+    // Simulate the response.
+    var request = serverChannel.serverRequestsSent[0];
+    await serverChannel.simulateResponseFromClient(
+        ServerShowMessageRequestResult().toResponse(request.id));
+    var response = await responseFuture;
+    expect(response, isNull);
   }
 
   Future<void> test_shutdown() async {
     var request = ServerShutdownParams().toRequest('0');
     await handleSuccessfulRequest(request);
+  }
+}
+
+class TestDartFixPromptManager implements DartFixPromptManager {
+  var checksTriggered = 0;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void triggerCheck() {
+    checksTriggered++;
   }
 }

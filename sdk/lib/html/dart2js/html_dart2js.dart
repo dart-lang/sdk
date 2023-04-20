@@ -28544,7 +28544,7 @@ class SpeechGrammarList extends JavaScriptObject
 // BSD-style license that can be found in the LICENSE file.
 
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Native("SpeechRecognition")
+@Native("SpeechRecognition,webkitSpeechRecognition")
 class SpeechRecognition extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognition._() {

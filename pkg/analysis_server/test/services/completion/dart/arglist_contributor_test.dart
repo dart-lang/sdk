@@ -5,6 +5,7 @@
 /// This file contains tests written in a deprecated way. Please do not add any
 /// tests to this file. Instead, add tests to the files in `declaration`,
 /// `location`, or `relevance`.
+library;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -80,7 +81,7 @@ void f() {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |fff: |
     kind: namedArgument
@@ -105,7 +106,7 @@ build() => new Row(
       return suggestion.completion.startsWith('children');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   children: [],
     kind: namedArgument
@@ -130,7 +131,7 @@ build() => new Scaffold(
       return suggestion.completion.startsWith('backgroundColor');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   backgroundColor: ,
     kind: namedArgument
@@ -154,7 +155,7 @@ build() => new Row(
       return suggestion.completion.startsWith('children');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   children: [],
     kind: namedArgument
@@ -178,7 +179,7 @@ build() => new Row(
       return suggestion.completion.startsWith('children');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   children: [],
     kind: namedArgument
@@ -202,7 +203,7 @@ build() => new Row(
       return suggestion.completion.startsWith('key');
     };
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -229,7 +230,7 @@ class DynamicRow extends Widget {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   children: [],
     kind: namedArgument
@@ -250,7 +251,7 @@ build() => new Row(
   );
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -275,7 +276,7 @@ class MapRow extends Widget {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   children: ,
     kind: namedArgument
@@ -298,7 +299,7 @@ class CustomScrollView extends Widget {
 }
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   slivers: [],
     kind: namedArgument
@@ -323,7 +324,7 @@ void f() {
 foo({String children}) {}
 ''');
 
-    assertResponse('''
+    assertResponse(r'''
 suggestions
   |children: |
     kind: namedArgument
@@ -353,7 +354,7 @@ class ArgumentListContributorNamedTest extends AbstractCompletionDriverTest {
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |foo01: |
   |foo02: |
@@ -367,7 +368,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo0^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -383,7 +384,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^ foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -399,7 +400,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^, foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -414,7 +415,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^ , foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -429,7 +430,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^f,)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   right: 1
 suggestions
@@ -445,7 +446,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^ foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   foo01: ,
     selection: 7
@@ -459,7 +460,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   right: 5
 suggestions
@@ -475,7 +476,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^, foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |foo01: |
 ''');
@@ -488,7 +489,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^ , foo02: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |foo01: |
 ''');
@@ -501,7 +502,7 @@ suggestions
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^, foo03: 3)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |foo02: |
 ''');
@@ -514,7 +515,7 @@ suggestions
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^ foo03: 3)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   foo02: ,
     selection: 7
@@ -528,7 +529,7 @@ suggestions
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^foo03: 3)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   right: 5
 suggestions
@@ -545,7 +546,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
 ''');
       },
@@ -558,7 +559,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2 ^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |, foo01: |
 ''');
@@ -571,7 +572,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, ^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |foo01: |
 ''');
@@ -584,7 +585,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, f^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -599,7 +600,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, f^,)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -614,7 +615,7 @@ suggestions
       parameters: '(int foo01, int foo02, int foo03, {int? foo04, int? foo05})',
       arguments: '(1, ^, 3)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   |foo04: |
   |foo05: |
@@ -629,7 +630,7 @@ suggestions
       parameters: '(int foo01, int foo02, int foo03, {int? foo04, int? foo05})',
       arguments: '(1, ^, 3)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
 ''');
       },
@@ -641,7 +642,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^: 0)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -657,7 +658,7 @@ suggestions
       parameters: '(bool foo01, {int? foo02, int? foo03})',
       arguments: '(false, ^f: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   right: 1
 suggestions
@@ -675,7 +676,7 @@ suggestions
       parameters: '(int foo01, {int? foo02})',
       arguments: '(0, foo^ba: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 replacement
   left: 3
   right: 2
@@ -691,7 +692,7 @@ suggestions
       parameters: '(bool foo01, {int? foo02, int? foo03})',
       arguments: '(0, ^: 2)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
   foo02
   foo03
@@ -705,7 +706,7 @@ suggestions
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo01: ^)',
       check: () {
-        assertResponse('''
+        assertResponse(r'''
 suggestions
 ''');
       },

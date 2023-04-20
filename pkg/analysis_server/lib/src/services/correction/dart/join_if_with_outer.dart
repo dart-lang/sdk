@@ -44,8 +44,8 @@ class JoinIfWithOuter extends CorrectionProducer {
     // prepare environment
     var prefix = utils.getNodePrefix(outerIfStatement);
     // merge conditions
-    var targetCondition = targetIfStatement.condition;
-    var outerCondition = outerIfStatement.condition;
+    var targetCondition = targetIfStatement.expression;
+    var outerCondition = outerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var outerConditionSource = utils.getNodeText(outerCondition);
     if (shouldWrapParenthesisBeforeAnd(targetCondition)) {

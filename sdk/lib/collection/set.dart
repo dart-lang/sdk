@@ -5,25 +5,26 @@
 /// Base implementations of [Set].
 part of dart.collection;
 
-/// Mixin implementation of [Set].
+/// Base implementation of [Set].
 ///
 /// This class provides a base implementation of a `Set` that depends only
 /// on the abstract members: [add], [contains], [lookup], [remove],
 /// [iterator], [length] and [toSet].
 ///
 /// Some of the methods assume that `toSet` creates a modifiable set.
-/// If using this mixin for an unmodifiable set,
+/// If using this base class for an unmodifiable set,
 /// where `toSet` should return an unmodifiable set,
 /// it's necessary to reimplement
 /// [retainAll], [union], [intersection] and [difference].
 ///
-/// Implementations of `Set` using this mixin should consider also implementing
+/// Implementations of `Set` using this base should consider also implementing
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
-abstract mixin class SetMixin<E> implements Set<E> {
+abstract mixin class SetBase<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
   // Mixin class from IterableMixin and the new methods of this class.
+  const SetBase();
 
   bool add(E value);
 
@@ -128,9 +129,9 @@ abstract mixin class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
+  String toString() => setToString(this);
 
-  // Copied from IterableMixin.
+  // Copied from Iterable.
   // Should be inherited if we had multi-level mixins.
 
   Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
@@ -170,17 +171,20 @@ abstract mixin class SetMixin<E> implements Set<E> {
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
-    StringBuffer buffer = StringBuffer();
-    if (separator == null || separator == "") {
+    var first = iterator.current.toString();
+    if (!iterator.moveNext()) return first;
+    var buffer = StringBuffer(first);
+    // TODO(51681): Drop null check when de-supporting pre-2.12 code.
+    if (separator == null || separator.isEmpty) {
       do {
         buffer.write(iterator.current);
       } while (iterator.moveNext());
     } else {
-      buffer.write(iterator.current);
-      while (iterator.moveNext()) {
-        buffer.write(separator);
-        buffer.write(iterator.current);
-      }
+      do {
+        buffer
+          ..write(separator)
+          ..write(iterator.current);
+      } while (iterator.moveNext());
     }
     return buffer.toString();
   }
@@ -237,65 +241,50 @@ abstract mixin class SetMixin<E> implements Set<E> {
   }
 
   E lastWhere(bool test(E value), {E Function()? orElse}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        result = element;
-        foundMatching = true;
+    var iterator = this.iterator;
+    E result;
+    do {
+      if (!iterator.moveNext()) {
+        if (orElse != null) return orElse();
+        throw IterableElementError.noElement();
       }
+      result = iterator.current;
+    } while (!test(result));
+    while (iterator.moveNext()) {
+      var current = iterator.current;
+      if (test(current)) result = current;
     }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
+    return result;
   }
 
   E singleWhere(bool test(E value), {E Function()? orElse}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
+    var iterator = this.iterator;
+    E result;
+    do {
+      if (!iterator.moveNext()) {
+        if (orElse != null) return orElse();
+        throw IterableElementError.noElement();
       }
+      result = iterator.current;
+    } while (!test(result));
+    while (iterator.moveNext()) {
+      if (test(iterator.current)) throw IterableElementError.tooMany();
     }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
+    return result;
   }
 
   E elementAt(int index) {
-    checkNotNullable(index, "index");
     RangeError.checkNotNegative(index, "index");
-    int elementIndex = 0;
-    for (E element in this) {
-      if (index == elementIndex) return element;
-      elementIndex++;
+    var iterator = this.iterator;
+    var skipCount = index;
+    while (iterator.moveNext()) {
+      if (skipCount == 0) return iterator.current;
+      skipCount--;
     }
-    throw IndexError.withLength(index, elementIndex,
+    throw IndexError.withLength(index, index - skipCount,
         indexable: this, name: "index");
   }
-}
 
-/// Base implementation of [Set].
-///
-/// This class provides a base implementation of a `Set` that depends only
-/// on the abstract members: [add], [contains], [lookup], [remove],
-/// [iterator], [length] and [toSet].
-///
-/// Some of the methods assume that `toSet` creates a modifiable set.
-/// If using this base class for an unmodifiable set,
-/// where `toSet` should return an unmodifiable set,
-/// it's necessary to reimplement
-/// [retainAll], [union], [intersection] and [difference].
-///
-/// Implementations of `Set` using this base should consider also implementing
-/// `clear` in constant time. The default implementation works by removing every
-/// element.
-abstract class SetBase<E> with SetMixin<E> {
   /// Converts a [Set] to a [String].
   ///
   /// Converts [set] to a string by converting each element to a string (by
@@ -308,8 +297,28 @@ abstract class SetBase<E> with SetMixin<E> {
       IterableBase.iterableToFullString(set, '{', '}');
 }
 
+/// Mixin implementation of [Set].
+///
+/// This class provides a base implementation of a `Set` that depends only
+/// on the abstract members: [add], [contains], [lookup], [remove],
+/// [iterator], [length] and [toSet].
+///
+/// Some of the methods assume that `toSet` creates a modifiable set.
+/// If using this mixin for an unmodifiable set,
+/// where `toSet` should return an unmodifiable set,
+/// it's necessary to reimplement
+/// [retainAll], [union], [intersection] and [difference].
+///
+/// Implementations of `Set` using this mixin should consider also implementing
+/// `clear` in constant time. The default implementation works by removing every
+/// element.
+// TODO: @Deprecated("Use SetBase instead")
+// Longer term: Deprecate `Set` unnamed constructor, to allow using `Set`
+// as skeleton class and replace `SetBase`.
+typedef SetMixin<E> = SetBase<E>;
+
 /// Common internal implementation of some [Set] methods.
-abstract class _SetBase<E> with SetMixin<E> {
+abstract class _SetBase<E> extends SetBase<E> {
   // The following two methods override the ones in SetBase.
   // It's possible to be more efficient if we have a way to create an empty
   // set of the correct type.

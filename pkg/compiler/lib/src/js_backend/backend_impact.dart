@@ -122,10 +122,13 @@ class BackendImpacts {
   );
 
   late final BackendImpact syncStarBody = BackendImpact(
-    staticUses: [
-      _commonElements.endOfIteration,
-      _commonElements.yieldStar,
-      _commonElements.syncStarUncaughtError,
+    // The transformed JavaScript code for the sync* body has direct assignments
+    // to the properties for the instance fields of `_SyncStarIterator`.
+    // BackendImpact cannot model direct field assigments, so instead the
+    // impacts are modeled by a call to `_SyncStarIterator._modelGeneratedCode`
+    // in `moveNext()`.
+    dynamicUses: [
+      Selector.fromElement(_commonElements.syncStarIteratorYieldStarMethod),
     ],
   );
 
@@ -201,7 +204,7 @@ class BackendImpacts {
   late final BackendImpact superNoSuchMethod = BackendImpact(
     staticUses: [
       _commonElements.createInvocationMirror,
-      _commonElements.objectNoSuchMethod
+      _commonElements.objectNoSuchMethod!
     ],
     otherImpacts: [
       _needsInt('Needed to encode the invocation kind of super.noSuchMethod.'),

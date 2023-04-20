@@ -14,29 +14,41 @@ class IsolateGroup;
 class JSONStream;
 
 // Metrics for each isolate group.
-#define ISOLATE_GROUP_METRIC_LIST(V)                                           \
+//
+// Golem uses `--print-metrics` and relies on
+//
+//   heap.old.capacity.max
+//   heap.new.capacity.max
+//
+// g3 uses metrics via Dart API:
+//
+//   Dart_Heap{Old,New}{Used,Capacity,External}
+//
+// All metrics are exposed via vm-service protocol.
+//
+#define DART_API_ISOLATE_GROUP_METRIC_LIST(V)                                  \
   V(MetricHeapOldUsed, HeapOldUsed, "heap.old.used", kByte)                    \
-  V(MaxMetric, HeapOldUsedMax, "heap.old.used.max", kByte)                     \
   V(MetricHeapOldCapacity, HeapOldCapacity, "heap.old.capacity", kByte)        \
-  V(MaxMetric, HeapOldCapacityMax, "heap.old.capacity.max", kByte)             \
   V(MetricHeapOldExternal, HeapOldExternal, "heap.old.external", kByte)        \
   V(MetricHeapNewUsed, HeapNewUsed, "heap.new.used", kByte)                    \
-  V(MaxMetric, HeapNewUsedMax, "heap.new.used.max", kByte)                     \
   V(MetricHeapNewCapacity, HeapNewCapacity, "heap.new.capacity", kByte)        \
+  V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)
+
+#define ISOLATE_GROUP_METRIC_LIST(V)                                           \
+  DART_API_ISOLATE_GROUP_METRIC_LIST(V)                                        \
+  V(MaxMetric, HeapOldUsedMax, "heap.old.used.max", kByte)                     \
+  V(MaxMetric, HeapOldCapacityMax, "heap.old.capacity.max", kByte)             \
+  V(MaxMetric, HeapNewUsedMax, "heap.new.used.max", kByte)                     \
   V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
-  V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
   V(MetricHeapUsed, HeapGlobalUsed, "heap.global.used", kByte)                 \
   V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)
 
 // Metrics for each isolate.
+//
+// All metrics are exposed via vm-service protocol.
 #define ISOLATE_METRIC_LIST(V)                                                 \
   V(Metric, RunnableLatency, "isolate.runnable.latency", kMicrosecond)         \
   V(Metric, RunnableHeapSize, "isolate.runnable.heap", kByte)
-
-#define VM_METRIC_LIST(V)                                                      \
-  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)            \
-  V(MetricCurrentRSS, CurrentRSS, "vm.memory.current", kByte)                  \
-  V(MetricPeakRSS, PeakRSS, "vm.memory.max", kByte)
 
 class Metric {
  public:
@@ -182,13 +194,6 @@ class MetricHeapUsed : public Metric {
  public:
   virtual int64_t Value() const;
 };
-
-#if !defined(PRODUCT)
-#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  extern type vm_metric_##variable;
-VM_METRIC_LIST(VM_METRIC_VARIABLE);
-#undef VM_METRIC_VARIABLE
-#endif  // !defined(PRODUCT)
 
 }  // namespace dart
 

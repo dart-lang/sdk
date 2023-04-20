@@ -400,15 +400,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
-    listener?.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
-        interfaceToken, finalToken, mixinKeyword, name);
+      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(
+        augmentToken, baseToken, mixinKeyword, name);
   }
 
   @override
@@ -1417,6 +1411,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleMixinWithClause(Token withKeyword) {
+    listener?.handleMixinWithClause(withKeyword);
+  }
+
+  @override
   void handleCommentReference(
       Token? newKeyword,
       Token? firstToken,
@@ -1812,10 +1811,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable,
+  void handleAssignedVariablePattern(Token variable) {
+    listener?.handleAssignedVariablePattern(variable);
+  }
+
+  @override
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
-    listener?.handleVariablePattern(keyword, variable,
+    listener?.handleDeclaredVariablePattern(keyword, variable,
         inAssignmentPattern: inAssignmentPattern);
+  }
+
+  @override
+  void handleWildcardPattern(Token? keyword, Token wildcard) {
+    listener?.handleWildcardPattern(keyword, wildcard);
   }
 
   @override

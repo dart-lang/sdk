@@ -29,11 +29,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   dynamic qux;
   dynamic quux;
   {
-    core::int foo;
-    core::int bar;
-    core::int baz;
-    core::double boz;
-    core::int foobar;
+    hoisted core::int foo;
+    hoisted core::int bar;
+    hoisted core::int baz;
+    hoisted core::double boz;
+    hoisted core::int foobar;
     final synthesized dynamic #0#0 = x;
     function ##0#2#initializer() → core::int?
       return #0#0{self::A}.{self::A::foo}{core::int?};
@@ -48,11 +48,11 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
       return 0;
     }
     else {
-      dynamic foo;
-      dynamic bar;
-      dynamic baz;
-      core::double boz;
-      dynamic foobar;
+      hoisted dynamic foo;
+      hoisted dynamic bar;
+      hoisted dynamic baz;
+      hoisted core::double boz;
+      hoisted dynamic foobar;
       final synthesized dynamic #1#0 = x;
       function ##1#2#initializer() → core::Object?
         return #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?};
@@ -83,13 +83,21 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
     }
   }
   block {
-    final synthesized dynamic #4#0 = y;
-    if(!(#4#0 is{ForNonNullableByDefault} self::A && (let final core::bool #t15 = qux = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final core::String #t16 = quux = #4#0{self::A}.{self::A::quux}{core::String} in true)))
+    dynamic #t15;
+    dynamic #t16;
+    final synthesized dynamic #4#0 = y as{TypeError,ForDynamic,ForNonNullableByDefault} self::A;
+    if(!(#4#0 is{ForNonNullableByDefault} self::A && (let final core::bool #t17 = #t15 = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final core::String #t18 = #t16 = #4#0{self::A}.{self::A::quux}{core::String} in true)))
       throw new core::StateError::•("Pattern matching error");
+    qux = #t15;
+    quux = #t16;
   } =>#4#0;
   block {
-    final synthesized dynamic #5#0 = z;
-    if(!(#5#0 is{ForNonNullableByDefault} (core::Object?, {quux: core::Object?}) && (let final core::Object? #t17 = qux = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final core::Object? #t18 = quux = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
+    dynamic #t19;
+    dynamic #t20;
+    final synthesized dynamic #5#0 = z as{TypeError,ForDynamic,ForNonNullableByDefault} (dynamic, {quux: dynamic});
+    if(!(#5#0 is{ForNonNullableByDefault} (core::Object?, {quux: core::Object?}) && (let final core::Object? #t21 = #t19 = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final core::Object? #t22 = #t20 = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
       throw new core::StateError::•("Pattern matching error");
+    qux = #t19;
+    quux = #t20;
   } =>#5#0;
 }

@@ -781,7 +781,7 @@ class AstComparator implements AstVisitor<bool> {
     IfElement other = _other as IfElement;
     return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.condition, other.condition) &&
+        isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.thenElement, other.thenElement) &&
         isEqualTokens(node.elseKeyword, other.elseKeyword) &&
@@ -793,7 +793,7 @@ class AstComparator implements AstVisitor<bool> {
     IfStatement other = _other as IfStatement;
     return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.condition, other.condition) &&
+        isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.thenStatement, other.thenStatement) &&
         isEqualTokens(node.elseKeyword, other.elseKeyword) &&
@@ -2720,7 +2720,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitIfElement(IfElement node) {
-    if (identical(node.condition, _oldNode)) {
+    if (identical(node.expression, _oldNode)) {
       (node as IfElementImpl).condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenElement, _oldNode)) {
@@ -2735,7 +2735,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitIfStatement(covariant IfStatementImpl node) {
-    if (identical(node.condition, _oldNode)) {
+    if (identical(node.expression, _oldNode)) {
       node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenStatement, _oldNode)) {

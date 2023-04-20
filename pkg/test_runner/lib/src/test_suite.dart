@@ -618,6 +618,14 @@ class StandardTestSuite extends TestSuite {
       '$directory/${name}_vm.status',
     ];
 
+    // For third_party/pkg, we need a status file outside the third_party dirs.
+    final segments = directory.segments();
+    if (segments.length >= 2 &&
+        segments[0] == 'third_party' &&
+        segments[1] == 'pkg') {
+      statusPaths = ['third_party/pkg/$name.status'];
+    }
+
     return StandardTestSuite(configuration, name, directory, statusPaths,
         recursive: true);
   }

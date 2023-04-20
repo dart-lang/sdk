@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ContinueLabelInvalidTest extends PubPackageResolutionTest {
-  test_continueLabelInvalid() async {
+  test_onBlock() async {
     await assertErrorsInCode(r'''
 void f() {
   L:
@@ -28,6 +28,33 @@ void f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 50, 11),
+    ]);
+  }
+
+  test_onSwitchStatement() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  L: switch (x) {
+    case 0:
+      continue L;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 52, 11),
+    ]);
+  }
+
+  test_onSwitchStatement_language219() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.19
+void f(int x) {
+  L: switch (x) {
+    case 0:
+      continue L;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 68, 11),
     ]);
   }
 }

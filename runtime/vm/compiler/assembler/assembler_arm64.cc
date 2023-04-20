@@ -297,7 +297,7 @@ static int CountOneBits(uint64_t value, int width) {
 // If it can't be encoded, the function returns false, and the operand is
 // undefined.
 bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
-  ASSERT(imm_op != NULL);
+  ASSERT(imm_op != nullptr);
   ASSERT((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
   if (width == kWRegSizeInBits) {
     value &= 0xffffffffUL;
@@ -1643,12 +1643,14 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
+  // For TSAN, we always go to the runtime so TSAN is aware of the release
+  // semantics of entering the safepoint.
 
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1663,7 +1665,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     b(&retry);
   }
 
@@ -1701,11 +1703,13 @@ void Assembler::ExitFullSafepoint(Register state,
                                   bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
+  // For TSAN, we always go to the runtime so TSAN is aware of the acquire
+  // semantics of leaving the safepoint.
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path) {
+  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1720,7 +1724,7 @@ void Assembler::ExitFullSafepoint(Register state,
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
     b(&retry);
   }
 
@@ -2008,7 +2012,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                                   JumpDistance distance,
                                   Register instance_reg,
                                   Register temp_reg) {
-  ASSERT(failure != NULL);
+  ASSERT(failure != nullptr);
   ASSERT(instance_size != 0);
   ASSERT(instance_reg != temp_reg);
   ASSERT(temp_reg != kNoRegister);

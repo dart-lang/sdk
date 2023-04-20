@@ -16,6 +16,12 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#include "perfetto/protozero/scattered_heap_buffer.h"
+#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
+#endif  // defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO) &&           \
+        // !defined(PRODUCT)
+
 #if defined(FUCHSIA_SDK) || defined(DART_HOST_OS_FUCHSIA)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
@@ -34,6 +40,12 @@
 
 namespace dart {
 
+#if !defined(SUPPORT_TIMELINE)
+#define TIMELINE_DURATION(thread, stream, name)
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
+#define TIMELINE_FUNCTION_GC_DURATION(thread, name)
+#endif  // !defined(SUPPORT_TIMELINE)
+
 class JSONArray;
 class JSONObject;
 class JSONStream;
@@ -49,11 +61,13 @@ class TimelineStream;
 class VirtualMemory;
 class Zone;
 
+#if defined(SUPPORT_TIMELINE)
 #define CALLBACK_RECORDER_NAME "Callback"
 #define ENDLESS_RECORDER_NAME "Endless"
 #define FILE_RECORDER_NAME "File"
 #define FUCHSIA_RECORDER_NAME "Fuchsia"
 #define MACOS_RECORDER_NAME "Macos"
+#define PERFETTO_RECORDER_NAME "Perfetto"
 #define RING_RECORDER_NAME "Ring"
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
@@ -69,6 +83,7 @@ class Zone;
   V(GC, "dart:gc", true)                                                       \
   V(Isolate, "dart:isolate", true)                                             \
   V(VM, "dart:vm", true)
+#endif  // defined(SUPPORT_TIMELINE)
 
 // A stream of timeline events. A stream has a name and can be enabled or
 // disabled (globally and per isolate).
@@ -96,7 +111,7 @@ class TimelineStream {
 
   void set_enabled(bool enabled) { enabled_ = enabled ? 1 : 0; }
 
-  // Records an event. Will return |NULL| if not enabled. The returned
+  // Records an event. Will return |nullptr| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
   // NOTE: It is not allowed to call StartEvent again without completing
   // the first event.
@@ -129,6 +144,7 @@ class TimelineStream {
 #endif
 };
 
+#if defined(SUPPORT_TIMELINE)
 class RecorderSynchronizationLock : public AllStatic {
  public:
   static void Init() {
@@ -258,7 +274,7 @@ struct TimelineEventArgument {
 
 class TimelineEventArguments {
  public:
-  TimelineEventArguments() : buffer_(NULL), length_(0) {}
+  TimelineEventArguments() : buffer_(nullptr), length_(0) {}
   ~TimelineEventArguments() { Free(); }
   // Get/Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
@@ -376,7 +392,7 @@ class TimelineEvent {
   void CompleteWithPreSerializedArgs(char* args_json);
 
   // Get/Set the number of arguments in the event.
-  intptr_t GetNumArguments() { return arguments_.length(); }
+  intptr_t GetNumArguments() const { return arguments_.length(); }
   void SetNumArguments(intptr_t length) { arguments_.SetNumArguments(length); }
   // |name| must be a compile time constant. Takes ownership of |argument|.
   void SetArgument(intptr_t i, const char* name, char* argument) {
@@ -420,8 +436,8 @@ class TimelineEvent {
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
-  const char* GetFormattedIsolateId() const;
-  const char* GetFormattedIsolateGroupId() const;
+  char* GetFormattedIsolateId() const;
+  char* GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;
@@ -562,6 +578,9 @@ class TimelineEvent {
   friend class TimelineEventPlatformRecorder;
   friend class TimelineEventFuchsiaRecorder;
   friend class TimelineEventMacosRecorder;
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  friend class TimelineEventPerfettoFileRecorder;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -582,6 +601,14 @@ class TimelineTrackMetadata {
    * object into |jsarr_events|.
    */
   void PrintJSON(const JSONArray& jsarr_events) const;
+#if defined(SUPPORT_PERFETTO)
+  /*
+   * Populates the fields of a |perfetto::protos::pbzero::TracePacket| with the
+   * metadata stored by this object.
+   */
+  void PopulateTracePacket(
+      perfetto::protos::pbzero::TracePacket* track_descriptor_packet);
+#endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
 
  private:
@@ -593,7 +620,6 @@ class TimelineTrackMetadata {
   Utils::CStringUniquePtr track_name_;
 };
 
-#ifdef SUPPORT_TIMELINE
 #define TIMELINE_DURATION(thread, stream, name)                                \
   TimelineBeginEndScope tbes(thread, Timeline::Get##stream##Stream(), name);
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
@@ -605,11 +631,6 @@ class TimelineTrackMetadata {
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
   TimelineBeginEndScope tbes(thread, Timeline::GetGCStream(), name);
-#else
-#define TIMELINE_DURATION(thread, stream, name)
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
-#define TIMELINE_FUNCTION_GC_DURATION(thread, name)
-#endif  // SUPPORT_TIMELINE
 
 // See |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {
@@ -681,7 +702,7 @@ class TimelineBeginEndScope : public TimelineEventScope {
 // A block of |TimelineEvent|s. Not thread safe.
 class TimelineEventBlock : public MallocAllocated {
  public:
-  static const intptr_t kBlockSize = 64;
+  static constexpr intptr_t kBlockSize = 64;
 
   explicit TimelineEventBlock(intptr_t index);
   ~TimelineEventBlock();
@@ -766,7 +787,7 @@ class TimelineEventFilter : public ValueObject {
   virtual ~TimelineEventFilter();
 
   virtual bool IncludeBlock(TimelineEventBlock* block) {
-    if (block == NULL) {
+    if (block == nullptr) {
       return false;
     }
     // Not empty and not in use.
@@ -774,7 +795,7 @@ class TimelineEventFilter : public ValueObject {
   }
 
   virtual bool IncludeEvent(TimelineEvent* event) {
-    if (event == NULL) {
+    if (event == nullptr) {
       return false;
     }
     return event->IsValid();
@@ -796,7 +817,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
                                       int64_t time_extent_micros = -1);
 
   bool IncludeBlock(TimelineEventBlock* block) {
-    if (block == NULL) {
+    if (block == nullptr) {
       return false;
     }
     // Not empty, not in use, and isolate match.
@@ -833,6 +854,10 @@ class TimelineEventRecorder : public MallocAllocated {
                                      const char* thread_name);
 
  protected:
+  SimpleHashMap& track_uuid_to_track_metadata() {
+    return track_uuid_to_track_metadata_;
+  }
+
 #ifndef PRODUCT
   void WriteTo(const char* directory);
 #endif
@@ -866,7 +891,7 @@ class TimelineEventRecorder : public MallocAllocated {
   friend class Timeline;
 
  private:
-  static const intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
+  static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
   SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
@@ -875,7 +900,7 @@ class TimelineEventRecorder : public MallocAllocated {
 // An abstract recorder that stores events in a buffer of fixed capacity.
 class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
  public:
-  static const intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
+  static constexpr intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
 
   explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
   virtual ~TimelineEventFixedBufferRecorder();
@@ -955,8 +980,8 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   }
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked() { return NULL; }
-  TimelineEventBlock* GetHeadBlockLocked() { return NULL; }
+  TimelineEventBlock* GetNewBlockLocked() { return nullptr; }
+  TimelineEventBlock* GetHeadBlockLocked() { return nullptr; }
   void Clear() {}
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
@@ -1036,8 +1061,8 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   virtual const char* name() const = 0;
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked() { return NULL; }
-  TimelineEventBlock* GetHeadBlockLocked() { return NULL; }
+  TimelineEventBlock* GetNewBlockLocked() { return nullptr; }
+  TimelineEventBlock* GetHeadBlockLocked() { return nullptr; }
   void Clear() {}
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
@@ -1137,6 +1162,30 @@ class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
   bool first_;
 };
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
+ public:
+  explicit TimelineEventPerfettoFileRecorder(const char* path);
+  virtual ~TimelineEventPerfettoFileRecorder();
+
+  const char* name() const final { return PERFETTO_RECORDER_NAME; }
+
+ private:
+  void WritePacket(
+      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
+      const;
+  void DrainImpl(const TimelineEvent& event) final;
+
+  static const intptr_t kAsyncTrackUuidToTrackDescriptorInitialCapacity = 1
+                                                                          << 4;
+  SimpleHashMap async_track_uuid_to_track_descriptor_;
+  // We allocate one heap-buffered packet as a class member, because it lets us
+  // continuously follow a cycle of resetting the buffer and writing its to
+  // contents to the file.
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
+};
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(TimelineEvent* event,
@@ -1145,6 +1194,7 @@ class DartTimelineEventHelpers : public AllStatic {
                               char* name,
                               char* args);
 };
+#endif  // defined(SUPPORT_TIMELINE)
 
 }  // namespace dart
 

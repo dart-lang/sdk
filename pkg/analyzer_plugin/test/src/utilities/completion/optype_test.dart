@@ -2223,6 +2223,20 @@ void f(int a, {int b}) {}
         voidReturn: true);
   }
 
+  Future<void> test_recordLiteral_field_namedExpression() async {
+    addTestSource('''
+void f() {
+  foo((y: ^,));
+}
+''');
+    await assertOpType(
+      completionLocation: 'ArgumentList_recordLiteral_named',
+      constructors: true,
+      returnValue: true,
+      typeNames: true,
+    );
+  }
+
   Future<void> test_recordLiteral_fieldName() async {
     addTestSource('final x = (foo^: 0)');
     await assertOpType(

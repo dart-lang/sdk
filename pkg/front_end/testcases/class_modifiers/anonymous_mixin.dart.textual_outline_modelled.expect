@@ -1,9 +1,9 @@
 ---- unknown chunk starts ----
-final
+base
 ---- unknown chunk ends ----
 mixin M1 {}
 ---- unknown chunk starts ----
-sealed
+base
 ---- unknown chunk ends ----
 base class S {}
 final class C extends S with M1, M2 {}

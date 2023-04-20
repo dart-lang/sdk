@@ -1,0 +1,193 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main_lib1.dart: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+//
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:8:28: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+// import 'main_lib3.dart' as imported;
+//                            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:15:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+//   new imported.Duplicate();
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:17:12: Error: 'NonExisting' isn't a type.
+//   imported.NonExisting e;
+//            ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:18:16: Error: Couldn't find constructor 'NonExisting'.
+//   new imported.NonExisting();
+//                ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:19:13: Error: 'NonExisting' isn't a type.
+//   <imported.NonExisting>[];
+//             ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:27:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+//   new exported.Duplicate();
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:29:12: Error: 'NonExisting' isn't a type.
+//   exported.NonExisting e;
+//            ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:30:16: Error: Couldn't find constructor 'NonExisting'.
+//   new exported.NonExisting();
+//                ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:31:13: Error: 'NonExisting' isn't a type.
+//   <exported.NonExisting>[];
+//             ^^^^^^^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///main_lib1.dart" as exported;
+import "dart:core" as imported;
+import "org-dartlang-testcase:///main_lib2.dart" as imported;
+import "org-dartlang-testcase:///main_lib3.dart" as imported;
+
+static method testImported() → dynamic {
+  function f(dynamic d) → void {}
+  Never n;
+  <Never>[];
+  invalid-type d;
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:15:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+  new imported.Duplicate();
+      ^^^^^^^^";
+  <invalid-type>[];
+  invalid-type e;
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:18:16: Error: Couldn't find constructor 'NonExisting'.
+  new imported.NonExisting();
+               ^^^^^^^^^^^";
+  <invalid-type>[];
+}
+static method testExported() → dynamic {
+  function f(dynamic d) → void {}
+  Never n;
+  <Never>[];
+  invalid-type d;
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:27:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+  new exported.Duplicate();
+      ^^^^^^^^";
+  <invalid-type>[];
+  invalid-type e;
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:30:16: Error: Couldn't find constructor 'NonExisting'.
+  new exported.NonExisting();
+               ^^^^^^^^^^^";
+  <invalid-type>[];
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_export_from_dill/main_lib1.dart:7:1: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+// export 'main_lib3.dart';
+// ^
+//
+import self as self2;
+import "dart:core" as core;
+import "dart:async" as asy;
+additionalExports = (core::Deprecated,
+  core::pragma,
+  core::BigInt,
+  core::bool,
+  core::Comparable,
+  core::DateTime,
+  core::double,
+  core::Duration,
+  core::Enum,
+  core::Error,
+  core::AssertionError,
+  core::TypeError,
+  core::ArgumentError,
+  core::RangeError,
+  core::IndexError,
+  core::NoSuchMethodError,
+  core::UnsupportedError,
+  core::UnimplementedError,
+  core::StateError,
+  core::ConcurrentModificationError,
+  core::OutOfMemoryError,
+  core::StackOverflowError,
+  core::Exception,
+  core::FormatException,
+  core::IntegerDivisionByZeroException,
+  core::Function,
+  core::int,
+  core::Invocation,
+  core::Iterable,
+  core::Iterator,
+  core::List,
+  core::Map,
+  core::MapEntry,
+  core::Null,
+  core::num,
+  core::Object,
+  core::Pattern,
+  core::Match,
+  core::Record,
+  core::RegExp,
+  core::RegExpMatch,
+  core::Set,
+  core::Sink,
+  core::StackTrace,
+  core::Stopwatch,
+  core::String,
+  core::Runes,
+  core::RuneIterator,
+  core::StringBuffer,
+  core::StringSink,
+  core::Symbol,
+  core::Type,
+  core::Uri,
+  core::UriData,
+  core::Expando,
+  core::WeakReference,
+  core::Finalizer,
+  core::DateTimeCopyWith,
+  core::EnumName,
+  core::EnumByName,
+  core::identical,
+  core::identityHashCode,
+  core::print,
+  core::Comparator,
+  core::deprecated,
+  core::override,
+  asy::Future,
+  asy::Stream,
+  asy::FutureExtensions)
+
+export "dart:core";
+export "org-dartlang-testcase:///main_lib2.dart";
+export "org-dartlang-testcase:///main_lib3.dart";
+
+static const field dynamic _exports# = #C1 /*isLegacy*/;
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:core" as core;
+
+class Duplicate extends core::Object {
+  synthetic constructor •() → self3::Duplicate
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self4;
+import "dart:core" as core;
+
+class Duplicate extends core::Object {
+  synthetic constructor •() → self4::Duplicate
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = "{\"Duplicate\":\"'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.\",\"dynamic\":\"<dynamic>\",\"Never\":\"<Never>\"}"
+}

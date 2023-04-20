@@ -7,10 +7,10 @@ library dart.js_util;
 import "dart:_internal";
 import "dart:_js_helper";
 import "dart:_js_types";
+import "dart:_wasm";
 import "dart:async" show Completer, FutureOr;
 import "dart:collection";
 import "dart:typed_data";
-import "dart:wasm";
 
 @patch
 dynamic jsify(Object? object) {
@@ -94,7 +94,7 @@ bool instanceof(Object? o, Object type) =>
     JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
 
 @patch
-T callConstructor<T>(Object o, List<Object?> args) =>
+T callConstructor<T>(Object o, List<Object?>? args) =>
     dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o), jsifyRaw(args))) as T;
 
 @patch

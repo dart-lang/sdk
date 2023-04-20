@@ -496,22 +496,27 @@ const String& TranslationHelper::DartFactoryName(NameIndex factory) {
   return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
 }
 
-// TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
-// throw a NoSuchMethodError.
-static void CheckStaticLookup(const Object& target) {
-  if (target.IsNull()) {
-#ifndef PRODUCT
-    ASSERT(IsolateGroup::Current()->HasAttemptedReload());
-    Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
-        String::New("Unimplemented handling of missing static target")))));
-#else
-    UNREACHABLE();
-#endif
+void TranslationHelper::LookupFailed(NameIndex name) {
+  String& message = String::Handle(String::New("Lookup failed: "));
+  message = String::Concat(message, DartString(CanonicalNameString(name)));
+  name = CanonicalNameParent(name);
+  while (!IsRoot(name)) {
+    message = String::Concat(message, String::Handle(String::New(" in ")));
+    message = String::Concat(message, DartString(CanonicalNameString(name)));
+    name = CanonicalNameParent(name);
   }
+  Report::LongJump(LanguageError::Handle(LanguageError::New(message)));
+}
+
+void TranslationHelper::LookupFailed(StringIndex name) {
+  const String& message = String::Handle(String::Concat(
+      String::Handle(String::New("Lookup failed: ")), DartString(name)));
+  Report::LongJump(LanguageError::Handle(LanguageError::New(message)));
 }
 
 LibraryPtr TranslationHelper::LookupLibraryByKernelLibrary(
-    NameIndex kernel_library) {
+    NameIndex kernel_library,
+    bool required) {
   // We only use the string and don't rely on having any particular parent.
   // This ASSERT is just a sanity check.
   ASSERT(IsLibrary(kernel_library) ||
@@ -530,12 +535,18 @@ LibraryPtr TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(!library_name.IsNull());
   const Library& library =
       Library::Handle(Z, Library::LookupLibrary(thread_, library_name));
-  CheckStaticLookup(library);
+  if (library.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_library);
+    }
+    return Library::null();
+  }
   name_index_handle_ = Smi::New(kernel_library);
   return info_.InsertLibrary(thread_, name_index_handle_, library);
 }
 
-ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
+ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class,
+                                                     bool required) {
   ASSERT(IsClass(kernel_class));
   {
     name_index_handle_ = Smi::New(kernel_class);
@@ -548,35 +559,58 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
 
   const String& class_name = DartClassName(kernel_class);
   NameIndex kernel_library = CanonicalNameParent(kernel_class);
-  Library& library =
-      Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
-  ASSERT(!library.IsNull());
+  Library& library = Library::Handle(
+      Z, LookupLibraryByKernelLibrary(kernel_library, /*required=*/false));
+  if (library.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_class);
+    }
+    return Class::null();
+  }
   const Class& klass =
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
-  CheckStaticLookup(klass);
-  ASSERT(!klass.IsNull());
+  if (klass.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_class);
+    }
+    return Class::null();
+  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
 
-FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
+FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field,
+                                                     bool required) {
   ASSERT(IsField(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
   Class& klass = Class::Handle(Z);
   if (IsLibrary(enclosing)) {
-    Library& library =
-        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
+    Library& library = Library::Handle(
+        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
+    if (library.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
     klass = library.toplevel_class();
-    CheckStaticLookup(klass);
   } else {
     ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing);
+    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
+    if (klass.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
   }
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
-  CheckStaticLookup(field);
+  if (field.IsNull() && required) {
+    LookupFailed(kernel_field);
+  }
   return field.ptr();
 }
 
@@ -588,19 +622,30 @@ FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
 
   Class& klass = Class::Handle(Z);
   if (IsLibrary(enclosing)) {
-    Library& library =
-        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
+    Library& library = Library::Handle(
+        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
+    if (library.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
     klass = library.toplevel_class();
-    CheckStaticLookup(klass);
   } else {
     ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing);
+    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
+    if (klass.IsNull()) {
+      if (required) {
+        LookupFailed(kernel_field);
+      }
+      return Field::null();
+    }
   }
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
-  if (required) {
-    CheckStaticLookup(field);
+  if (field.IsNull() && required) {
+    LookupFailed(kernel_field);
   }
   return field.ptr();
 }
@@ -613,53 +658,66 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   // The parent is either a library or a class (in which case the procedure is a
   // static method).
   NameIndex enclosing = EnclosingName(procedure);
+  Function& function = Function::Handle(Z);
   if (IsLibrary(enclosing)) {
-    Library& library =
-        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
-    Function& function =
-        Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
-    if (required) {
-      CheckStaticLookup(function);
+    Library& library = Library::Handle(
+        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
+    if (!library.IsNull()) {
+      function = library.LookupFunctionAllowPrivate(procedure_name);
     }
-    return function.ptr();
   } else {
     ASSERT(IsClass(enclosing));
-    Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
-    const auto& error = klass.EnsureIsFinalized(thread_);
-    ASSERT(error == Error::null());
-    Function& function = Function::ZoneHandle(
-        Z, klass.LookupFunctionAllowPrivate(procedure_name));
-    if (required) {
-      CheckStaticLookup(function);
+    Class& klass = Class::Handle(
+        Z, LookupClassByKernelClass(enclosing, /*required=*/false));
+    if (!klass.IsNull()) {
+      const auto& error = klass.EnsureIsFinalized(thread_);
+      ASSERT(error == Error::null());
+      function = klass.LookupFunctionAllowPrivate(procedure_name);
     }
-    return function.ptr();
   }
+  if (function.IsNull() && required) {
+    LookupFailed(procedure);
+  }
+  return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
-    NameIndex constructor) {
+    NameIndex constructor,
+    bool required) {
   ASSERT(IsConstructor(constructor));
-  Class& klass =
-      Class::Handle(Z, LookupClassByKernelClass(EnclosingName(constructor)));
-  CheckStaticLookup(klass);
-  return LookupConstructorByKernelConstructor(klass, constructor);
-}
-
-FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
-    const Class& owner,
-    NameIndex constructor) {
-  ASSERT(IsConstructor(constructor));
-  const auto& error = owner.EnsureIsFinalized(thread_);
-  ASSERT(error == Error::null());
-  Function& function = Function::Handle(
-      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
-  CheckStaticLookup(function);
+  Class& klass = Class::Handle(
+      Z,
+      LookupClassByKernelClass(EnclosingName(constructor), /*required=*/false));
+  Function& function = Function::Handle(Z);
+  if (!klass.IsNull()) {
+    function = LookupConstructorByKernelConstructor(klass, constructor,
+                                                    /*required=*/false);
+  }
+  if (function.IsNull() && required) {
+    LookupFailed(constructor);
+  }
   return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
-    StringIndex constructor_name) {
+    NameIndex constructor,
+    bool required) {
+  ASSERT(IsConstructor(constructor));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
+  Function& function = Function::Handle(
+      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
+  if (function.IsNull() && required) {
+    LookupFailed(constructor);
+  }
+  return function.ptr();
+}
+
+FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
+    const Class& owner,
+    StringIndex constructor_name,
+    bool required) {
   GrowableHandlePtrArray<const String> pieces(Z, 3);
   pieces.Add(String::Handle(Z, owner.Name()));
   pieces.Add(Symbols::Dot());
@@ -671,26 +729,25 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
   const auto& error = owner.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
-  ASSERT(function != Object::null());
+  if (function == Object::null() && required) {
+    LookupFailed(constructor_name);
+  }
   return function;
 }
 
 FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
-                                                    const String& method_name) {
+                                                    const String& method_name,
+                                                    bool required) {
   NameIndex kernel_class = EnclosingName(target);
-  Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
+  Class& klass = Class::Handle(
+      Z, LookupClassByKernelClass(kernel_class, /*required=*/false));
   Function& function = Function::Handle(Z);
-  if (klass.EnsureIsFinalized(thread_) == Error::null()) {
+  if (!klass.IsNull() && klass.EnsureIsFinalized(thread_) == Error::null()) {
     function = klass.LookupFunctionAllowPrivate(method_name);
   }
-#ifdef DEBUG
-  if (function.IsNull()) {
-    THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
-              klass.ToCString());
+  if (function.IsNull() && required) {
+    LookupFailed(target);
   }
-#endif
-  CheckStaticLookup(function);
-  ASSERT(!function.IsNull());
   return function.ptr();
 }
 
@@ -3008,7 +3065,7 @@ ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
 }
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
-  ASSERT(member != NULL);
+  ASSERT(member != nullptr);
   if (member->IsFactory()) {
     return klass->NumTypeParameters();
   } else if (member->IsMethodExtractor()) {
@@ -3067,7 +3124,7 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 
   const TypeArguments* old_params = active_class->local_type_parameters;
   const intptr_t old_param_count =
-      old_params == NULL ? 0 : old_params->Length();
+      old_params == nullptr ? 0 : old_params->Length();
   const TypeArguments& extended_params = TypeArguments::Handle(
       Z, TypeArguments::New(old_param_count + num_new_params));
 
@@ -3115,7 +3172,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
-      type_parameter_scope_(NULL),
+      type_parameter_scope_(nullptr),
       inferred_type_metadata_helper_(helper_, constant_reader_),
       unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
@@ -3240,7 +3297,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
 void TypeTranslator::BuildFunctionType(bool simple) {
   const intptr_t num_enclosing_type_arguments =
-      active_class_->enclosing != NULL
+      active_class_->enclosing != nullptr
           ? active_class_->enclosing->NumTypeArguments()
           : 0;
   Nullability nullability = helper_->ReadNullability();
@@ -3468,7 +3525,7 @@ void TypeTranslator::BuildTypeParameterType() {
       }
     }
   }
-  if (active_class_->local_type_parameters != NULL) {
+  if (active_class_->local_type_parameters != nullptr) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       const auto& type_param = TypeParameter::CheckedHandle(
           Z, active_class_->local_type_parameters->TypeAt(parameter_index));
@@ -3485,7 +3542,7 @@ void TypeTranslator::BuildTypeParameterType() {
     parameter_index -= active_class_->local_type_parameters->Length();
   }
 
-  if (type_parameter_scope_ != NULL &&
+  if (type_parameter_scope_ != nullptr &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
     result_ = Type::DynamicType();
@@ -3549,16 +3606,8 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
     return type_arguments;
   }
 
-  // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
-  // finalize the argument types.
-  // (This can for example make the [type_arguments] vector larger)
-  Type& type = Type::Handle(Z, Type::New(receiver_class, type_arguments));
-  if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(type);
-  }
-
-  const TypeArguments& instantiated_type_arguments =
-      TypeArguments::ZoneHandle(Z, type.arguments());
+  const TypeArguments& instantiated_type_arguments = TypeArguments::ZoneHandle(
+      Z, receiver_class.GetInstanceTypeArguments(H.thread(), type_arguments));
   return instantiated_type_arguments;
 }
 

@@ -115,7 +115,7 @@ typedef _Hasher<K> = int Function(K object);
 /// * [Map], the general interface of key/value pair collections.
 /// * [LinkedHashMap] iterates in key insertion order.
 /// * [SplayTreeMap] iterates the keys in sorted order.
-abstract class HashMap<K, V> implements Map<K, V> {
+abstract final class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered hash-table based [Map].
   ///
   /// The created map is not ordered in any way. When iterating the keys or

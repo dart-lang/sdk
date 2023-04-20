@@ -181,24 +181,26 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     object_ids_ = nullptr;
   }
 
-  virtual bool trace_values_through_fields() const { return true; }
+  bool trace_values_through_fields() const override { return true; }
 
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
   // won't be in use while handling a service request (ObjectGraph's only use).
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; ++current) {
       Visit(current, *current);
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* current = first; current <= last; ++current) {
       Visit(current, current->Decompress(heap_base));
     }
   }
+#endif
 
   void Visit(void* ptr, ObjectPtr obj) {
     if (obj->IsHeapObject() && !obj->untag()->InVMIsolateHeap() &&
@@ -244,7 +246,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     }
   }
 
-  virtual bool visit_weak_persistent_handles() const {
+  bool visit_weak_persistent_handles() const override {
     return visit_weak_persistent_handles_;
   }
 
@@ -263,8 +265,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
 
   bool visit_weak_persistent_handles_ = false;
   static ObjectPtr* const kSentinel;
-  static const intptr_t kInitialCapacity = 1024;
-  static const intptr_t kNoParent = -1;
+  static constexpr intptr_t kInitialCapacity = 1024;
+  static constexpr intptr_t kNoParent = -1;
 
   intptr_t Parent(intptr_t index) const {
     // The parent is just below the next sentinel.
@@ -285,7 +287,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 
-ObjectPtr* const ObjectGraph::Stack::kSentinel = NULL;
+ObjectPtr* const ObjectGraph::Stack::kSentinel = nullptr;
 
 ObjectPtr ObjectGraph::StackIterator::Get() const {
   return stack_->data_[index_].obj;
@@ -399,7 +401,7 @@ class InstanceAccumulator : public ObjectVisitor {
   InstanceAccumulator(ObjectGraph::Stack* stack, intptr_t class_id)
       : stack_(stack), class_id_(class_id) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->GetClassId() == class_id_) {
       ObjectPtr rawobj = obj;
       stack_->VisitPointer(&rawobj);
@@ -617,16 +619,16 @@ class InboundReferencesVisitor : public ObjectVisitor,
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
-  virtual bool trace_values_through_fields() const { return true; }
+  bool trace_values_through_fields() const override { return true; }
 
   intptr_t length() const { return length_; }
 
-  virtual void VisitObject(ObjectPtr raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) override {
     source_ = raw_obj;
     raw_obj->untag()->VisitPointers(this);
   }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current_ptr = first; current_ptr <= last; current_ptr++) {
       ObjectPtr current_obj = *current_ptr;
       if (current_obj == target_) {
@@ -656,9 +658,10 @@ class InboundReferencesVisitor : public ObjectVisitor,
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) {
+                               CompressedObjectPtr* last) override {
     for (CompressedObjectPtr* current_ptr = first; current_ptr <= last;
          current_ptr++) {
       ObjectPtr current_obj = current_ptr->Decompress(heap_base);
@@ -688,6 +691,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
       }
     }
   }
+#endif
 
  private:
   ObjectPtr source_;
@@ -818,7 +822,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
   intptr_t next_offset = 0;
   Page* image_page =
       Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
-  while (image_page != NULL) {
+  while (image_page != nullptr) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
     image_page_ranges_[next_offset].size =
@@ -827,7 +831,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
     next_offset++;
   }
   image_page = isolate_group()->heap()->old_space()->image_pages_;
-  while (image_page != NULL) {
+  while (image_page != nullptr) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
     image_page_ranges_[next_offset].size =
@@ -837,11 +841,11 @@ void HeapSnapshotWriter::SetupCountingPages() {
   }
 
   Page* page = isolate_group()->heap()->old_space()->pages_;
-  while (page != NULL) {
+  while (page != nullptr) {
     page->forwarding_page();
     CountingPage* counting_page =
         reinterpret_cast<CountingPage*>(page->forwarding_page());
-    ASSERT(counting_page != NULL);
+    ASSERT(counting_page != nullptr);
     counting_page->Clear();
     page = page->next();
   }
@@ -939,7 +943,7 @@ class Pass1Visitor : public ObjectVisitor,
         writer_(writer),
         object_slots_(object_slots) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsPseudoObject()) return;
 
     writer_->AssignObjectId(obj);
@@ -960,7 +964,7 @@ class Pass1Visitor : public ObjectVisitor,
     }
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = *ptr;
       if (!obj->IsHeapObject()) {
@@ -970,9 +974,10 @@ class Pass1Visitor : public ObjectVisitor,
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = ptr->Decompress(heap_base);
       if (!obj->IsHeapObject()) {
@@ -981,8 +986,9 @@ class Pass1Visitor : public ObjectVisitor,
       writer_->CountReferences(1);
     }
   }
+#endif
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* weak_persistent_handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     if (!weak_persistent_handle->ptr()->IsHeapObject()) {
@@ -1003,7 +1009,7 @@ class CountImagePageRefs : public ObjectVisitor {
  public:
   CountImagePageRefs() : ObjectVisitor() {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsPseudoObject()) return;
     count_++;
   }
@@ -1020,7 +1026,7 @@ class WriteImagePageRefs : public ObjectVisitor {
   explicit WriteImagePageRefs(HeapSnapshotWriter* writer)
       : ObjectVisitor(), writer_(writer) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsPseudoObject()) return;
 #if defined(DEBUG)
     count_++;
@@ -1052,7 +1058,7 @@ enum NonReferenceDataTags {
   kNameData,
 };
 
-static const intptr_t kMaxStringElements = 128;
+static constexpr intptr_t kMaxStringElements = 128;
 
 enum ExtraCids {
   kRootExtraCid = 1,  // 1-origin
@@ -1073,7 +1079,7 @@ class Pass2Visitor : public ObjectVisitor,
         writer_(writer),
         object_slots_(object_slots) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsPseudoObject()) return;
 
     intptr_t cid = obj->GetClassId();
@@ -1258,7 +1264,7 @@ class Pass2Visitor : public ObjectVisitor,
     writer_->WriteUnsigned(counted_);
   }
 
-  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     if (writing_) {
       for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
         ObjectPtr target = *ptr;
@@ -1273,9 +1279,10 @@ class Pass2Visitor : public ObjectVisitor,
     }
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
-                               CompressedObjectPtr* to) {
+                               CompressedObjectPtr* to) override {
     if (writing_) {
       for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
         ObjectPtr target = ptr->Decompress(heap_base);
@@ -1289,8 +1296,9 @@ class Pass2Visitor : public ObjectVisitor,
       counted_ += count;
     }
   }
+#endif
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* weak_persistent_handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     if (!weak_persistent_handle->ptr()->IsHeapObject()) {
@@ -1336,7 +1344,7 @@ class Pass3Visitor : public ObjectVisitor {
   explicit Pass3Visitor(HeapSnapshotWriter* writer)
       : ObjectVisitor(), thread_(Thread::Current()), writer_(writer) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsPseudoObject()) {
       return;
     }
@@ -1360,7 +1368,7 @@ class CollectStaticFieldNames : public ObjectVisitor {
         field_table_names_(field_table_names),
         field_(Field::Handle()) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     if (obj->IsField()) {
       field_ ^= obj;
       if (field_.is_static()) {
@@ -1409,18 +1417,24 @@ void VmServiceHeapSnapshotChunkedWriter::WriteChunk(uint8_t* buffer,
 }
 
 FileHeapSnapshotWriter::FileHeapSnapshotWriter(Thread* thread,
-                                               const char* filename)
-    : ChunkedWriter(thread) {
+                                               const char* filename,
+                                               bool* success)
+    : ChunkedWriter(thread), success_(success) {
   auto open = Dart::file_open_callback();
-  if (open != nullptr) {
+  auto write = Dart::file_write_callback();
+  auto close = Dart::file_close_callback();
+  if (open != nullptr && write != nullptr && close != nullptr) {
     file_ = open(filename, /*write=*/true);
   }
+  // If we have open/write/close callbacks we assume it can be done
+  // successfully. (Those embedder-provided callbacks currently don't allow
+  // signaling of failure conditions)
+  if (success_ != nullptr) *success_ = file_ != nullptr;
 }
 
 FileHeapSnapshotWriter::~FileHeapSnapshotWriter() {
-  auto close = Dart::file_close_callback();
-  if (close != nullptr) {
-    close(file_);
+  if (file_ != nullptr) {
+    Dart::file_close_callback()(file_);
   }
 }
 
@@ -1428,10 +1442,7 @@ void FileHeapSnapshotWriter::WriteChunk(uint8_t* buffer,
                                         intptr_t size,
                                         bool last) {
   if (file_ != nullptr) {
-    auto write = Dart::file_write_callback();
-    if (write != nullptr) {
-      write(buffer, size, file_);
-    }
+    Dart::file_write_callback()(buffer, size, file_);
   }
   free(buffer);
 }

@@ -413,7 +413,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_FIELD, 49, 2),
+      error(WarningCode.UNUSED_FIELD, 49, 2),
     ]);
   }
 

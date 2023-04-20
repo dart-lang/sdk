@@ -1835,10 +1835,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset,
-      {required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
+      {required bool isBase,
       required bool isAugmentation}) {
     TypeBuilder? supertype;
     MixinApplicationBuilder? mixinApplication;
@@ -1865,10 +1862,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         endOffset,
         supertypeOffset,
         isMacro: false,
-        isSealed: isSealed,
+        isSealed: false,
         isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
+        isInterface: false,
+        isFinal: false,
         isAugmentation: isAugmentation,
         isMixinClass: false);
   }

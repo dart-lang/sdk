@@ -373,6 +373,11 @@ class DateTime {
       : isUtc = false,
         _value = Primitives.dateNow();
 
+  @patch
+  DateTime._nowUtc()
+      : isUtc = true,
+        _value = Primitives.dateNow();
+
   /// Rounds the given [microsecond] to the nearest milliseconds value.
   ///
   /// For example, invoked with argument `2600` returns `3`.

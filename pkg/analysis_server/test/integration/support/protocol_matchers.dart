@@ -7,6 +7,8 @@
 // "pkg/analysis_server/tool/spec/generate_files".
 
 /// Matchers for data types defined in the analysis server API.
+library;
+
 import 'package:test/test.dart';
 
 import 'integration_tests.dart';
@@ -3135,11 +3137,11 @@ final Matcher isServerShowMessageRequestParams = LazyMatcher(() =>
 /// server.showMessageRequest result
 ///
 /// {
-///   "action": String
+///   "action": optional String
 /// }
 final Matcher isServerShowMessageRequestResult = LazyMatcher(() =>
-    MatchesJsonObject(
-        'server.showMessageRequest result', {'action': isString}));
+    MatchesJsonObject('server.showMessageRequest result', null,
+        optionalFields: {'action': isString}));
 
 /// server.shutdown params
 final Matcher isServerShutdownParams = isNull;

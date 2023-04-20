@@ -18,8 +18,6 @@ void main() {
       var profiler = ProcessProfiler.getProfilerForPlatform()!;
       var info = (await profiler.getProcessUsage(pid))!;
 
-      print("Uses ${info.memoryKB} KB");
-
       if (Platform.isWindows) {
         expect(info.cpuPercentage, isNull);
       } else {
@@ -34,7 +32,6 @@ void main() {
         use50mb[i] = i % 200;
       }
       var info2 = (await profiler.getProcessUsage(pid))!;
-      print("Now uses ${info2.memoryKB} KB");
 
       for (var b in use50mb) {
         if (b < 0) throw "This shouldn't happen, but we're using the data!";

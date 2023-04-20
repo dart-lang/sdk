@@ -16717,27 +16717,27 @@ class ServerShowMessageRequestParams implements RequestParams {
 /// server.showMessageRequest result
 ///
 /// {
-///   "action": String
+///   "action": optional String
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerShowMessageRequestResult implements ResponseResult {
-  /// The label of the action that was selected by the user.
-  String action;
+  /// The label of the action that was selected by the user. May be omitted or
+  /// `null` if the user dismissed the message without clicking an action
+  /// button.
+  String? action;
 
-  ServerShowMessageRequestResult(this.action);
+  ServerShowMessageRequestResult({this.action});
 
   factory ServerShowMessageRequestResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String action;
+      String? action;
       if (json.containsKey('action')) {
         action = jsonDecoder.decodeString('$jsonPath.action', json['action']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'action');
       }
-      return ServerShowMessageRequestResult(action);
+      return ServerShowMessageRequestResult(action: action);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'server.showMessageRequest result', json);
@@ -16754,7 +16754,10 @@ class ServerShowMessageRequestResult implements ResponseResult {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['action'] = action;
+    var action = this.action;
+    if (action != null) {
+      result['action'] = action;
+    }
     return result;
   }
 

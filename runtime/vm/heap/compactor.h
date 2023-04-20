@@ -43,9 +43,11 @@ class GCCompactor : public ValueObject,
                                   CompressedObjectPtr* first,
                                   CompressedObjectPtr* last) override;
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override;
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
                                CompressedObjectPtr* last) override;
+#endif
   bool CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) override;
   void VisitHandle(uword addr) override;
 

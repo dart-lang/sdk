@@ -75,7 +75,7 @@ import 'unknown.dart';
     await assertErrorsInCode('''
 import 'target.dart';
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 13),
+      error(WarningCode.UNUSED_IMPORT, 7, 13),
     ]);
 
     // Remove the overlay in the same way as AnalysisServer.
@@ -133,7 +133,7 @@ import 'target.dart';
     //  file is not being reanalyzed.
     await resolveTestFile();
     assertErrorsInResult([
-      error(HintCode.UNUSED_IMPORT, 0, 0),
+      error(WarningCode.UNUSED_IMPORT, 0, 0),
     ]);
   }
 

@@ -369,7 +369,7 @@ static const struct {
   const uint32_t finger_print;
   const char* const name;
 } factory_recognizer_list[] = {RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY){
-    Symbols::kIllegal, -1, 0, NULL}};
+    Symbols::kIllegal, -1, 0, nullptr}};
 
 #undef RECOGNIZE_FACTORY
 

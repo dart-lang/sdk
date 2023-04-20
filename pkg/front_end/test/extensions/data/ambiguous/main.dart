@@ -3,10 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: scope=[
-  async.dart.FutureExtensions,
-  core.dart.DateTimeCopyWith,
-  core.dart.EnumByName,
-  core.dart.EnumName,
   lib1.dart.AmbiguousExtension1,
   lib1.dart.AmbiguousExtension2,
   lib1.dart.UnambiguousExtension1,

@@ -3,21 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 sealed class A {}
+
 sealed class B extends A {}
+
 sealed class C extends A {}
+
 sealed class D extends A {}
 
 class B1 extends B {}
+
 class B2 extends B {}
 
 class C1 extends C {}
+
 class C2 extends C {}
 
 class D1 extends D {}
+
 class D2 extends D {}
 
 exhaustiveLevel0(A a) {
   /*
+   checkingOrder={A,B,C,D,B1,B2,C1,C2,D1,D2},
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
    subtypes={B,C,D},
    type=A
@@ -32,6 +39,7 @@ exhaustiveLevel0(A a) {
 
 exhaustiveLevel0_1(A a) {
   /*
+   checkingOrder={A,B,C,D,B1,B2,C1,C2,D1,D2},
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
    subtypes={B,C,D},
    type=A
@@ -52,9 +60,9 @@ exhaustiveLevel0_1(A a) {
   }
 }
 
-
 exhaustiveLevel1(A a) {
   /*
+   checkingOrder={A,B,C,D,B1,B2,C1,C2,D1,D2},
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
    subtypes={B,C,D},
    type=A
@@ -77,6 +85,7 @@ exhaustiveLevel1(A a) {
 
 exhaustiveLevel2(A a) {
   /*
+   checkingOrder={A,B,C,D,B1,B2,C1,C2,D1,D2},
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
    subtypes={B,C,D},
    type=A
@@ -111,6 +120,7 @@ exhaustiveLevel2(A a) {
 
 exhaustiveLevel0_1_2(A a) {
   /*
+   checkingOrder={A,B,C,D,B1,B2,C1,C2,D1,D2},
    expandedSubtypes={B1,B2,C1,C2,D1,D2},
    subtypes={B,C,D},
    type=A

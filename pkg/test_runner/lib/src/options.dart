@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -1035,4 +1036,15 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
   }
 
   return environment;
+})();
+
+final Map<String, String> nativeCompilerEnvironmentVariables = (() {
+  final hostFolderName = Abi.current().toString().replaceAll('_', '-');
+  final clangBin =
+      Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
+  return {
+    'AR': clangBin.resolve('llvm-ar').toFilePath(),
+    'CC': clangBin.resolve('clang').toFilePath(),
+    'LD': clangBin.resolve('ld.lld').toFilePath(),
+  };
 })();

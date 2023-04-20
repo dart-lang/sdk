@@ -3,28 +3,28 @@ library /*isNonNullableByDefault*/;
 // Problems in library:
 //
 // pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:7:39: Error: The class 'A' can't be extended outside of its library because it's a final class.
-// final class ExtendsFinalClass extends A {}
+// final class ExtendsFinalClass extends A {} /* Error */
 //                                       ^
 //
 // pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:9:45: Error: The class 'A' can't be implemented outside of its library because it's a final class.
-// final class ImplementsFinalClass implements A {}
+// final class ImplementsFinalClass implements A {} /* Error */
 //                                             ^
 //
-// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:11:45: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// final class ImplementsFinalMixin implements M {}
-//                                             ^
-//
-// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:13:34: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// final class MixInFinalMixin with M {}
-//                                  ^
-//
-// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:15:42: Error: The mixin 'M' can't be implemented outside of its library because it's a final mixin.
-// enum EnumImplementsFinalMixin implements M { x }
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:11:42: Error: The class 'A' can't be implemented outside of its library because it's a final class.
+// enum EnumImplementsFinalMixin implements A { x } /* Error */
 //                                          ^
 //
-// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:17:31: Error: The mixin 'M' can't be mixed-in outside of its library because it's a final mixin.
-// enum EnumMixInFinalMixin with M { x }
-//                               ^
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:13:24: Error: The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// base mixin MixinOnA on A {} /* Error */
+//                        ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:15:25: Error: The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// base mixin MixinOnAB on A, B {} /* Error */
+//                         ^
+//
+// pkg/front_end/testcases/class_modifiers/final/outside_library/main.dart:15:28: Error: The class 'B' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// base mixin MixinOnAB on A, B {} /* Error */
+//                            ^
 //
 import self as self;
 import "main_lib.dart" as mai;
@@ -40,20 +40,7 @@ final class ImplementsFinalClass extends core::Object implements mai::A {
   synthetic constructor •() → self::ImplementsFinalClass
     ;
 }
-final class ImplementsFinalMixin extends core::Object implements mai::M {
-  synthetic constructor •() → self::ImplementsFinalMixin
-    ;
-}
-abstract final class _MixInFinalMixin&Object&M = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_MixInFinalMixin&Object&M
-    : super core::Object::•()
-    ;
-}
-final class MixInFinalMixin extends self::_MixInFinalMixin&Object&M {
-  synthetic constructor •() → self::MixInFinalMixin
-    ;
-}
-class EnumImplementsFinalMixin extends core::_Enum implements mai::M /*isEnum*/  {
+class EnumImplementsFinalMixin extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalMixin> values = const <self::EnumImplementsFinalMixin>[self::EnumImplementsFinalMixin::x];
   enum-element static const field self::EnumImplementsFinalMixin x = const self::EnumImplementsFinalMixin::•(0, "x");
   const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixin
@@ -62,28 +49,13 @@ class EnumImplementsFinalMixin extends core::_Enum implements mai::M /*isEnum*/ 
   method _enumToString() → core::String
     return "EnumImplementsFinalMixin.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract final class _EnumMixInFinalMixin&_Enum&M = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInFinalMixin&_Enum&M
-    : super core::_Enum::•(index, _name)
+abstract base class MixinOnA extends mai::A /*isMixinDeclaration*/  {
+}
+abstract class _MixinOnAB&A&B extends core::Object implements mai::A, mai::B /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MixinOnAB&A&B
     ;
 }
-class EnumMixInFinalMixin extends self::_EnumMixInFinalMixin&_Enum&M /*isEnum*/  {
-  static const field core::List<self::EnumMixInFinalMixin> values = const <self::EnumMixInFinalMixin>[self::EnumMixInFinalMixin::x];
-  enum-element static const field self::EnumMixInFinalMixin x = const self::EnumMixInFinalMixin::•(0, "x");
-  const constructor •(core::int #index, core::String #name) → self::EnumMixInFinalMixin
-    ;
-  method _enumToString() → core::String
-    return "EnumMixInFinalMixin.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract final class MixinOnA extends mai::A /*isMixinDeclaration*/  {
-}
-abstract final class MixinOnM extends mai::M /*isMixinDeclaration*/  {
-}
-abstract class _MixinOnAM&A&M extends core::Object implements mai::A, mai::M /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_MixinOnAM&A&M
-    ;
-}
-abstract final class MixinOnAM extends self::_MixinOnAM&A&M /*isMixinDeclaration*/  {
+abstract base class MixinOnAB extends self::_MixinOnAB&A&B /*isMixinDeclaration*/  {
 }
 
 library /*isNonNullableByDefault*/;
@@ -94,13 +66,13 @@ final class A extends core::Object {
   synthetic constructor •() → mai::A
     ;
 }
-abstract final class M extends core::Object /*isMixinDeclaration*/  {
+final class B extends core::Object {
+  synthetic constructor •() → mai::B
+    ;
 }
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:15:6 -> ListConstant(const <EnumImplementsFinalMixin*>[const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:15:46 -> InstanceConstant(const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:17:6 -> ListConstant(const <EnumMixInFinalMixin*>[const EnumMixInFinalMixin{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:17:35 -> InstanceConstant(const EnumMixInFinalMixin{})
-Extra constant evaluation: evaluated: 14, effectively constant: 4
+Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:11:6 -> ListConstant(const <EnumImplementsFinalMixin*>[const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:11:46 -> InstanceConstant(const EnumImplementsFinalMixin{_Enum.index: 0, _Enum._name: "x"})
+Extra constant evaluation: evaluated: 7, effectively constant: 2

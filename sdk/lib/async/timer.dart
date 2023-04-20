@@ -33,6 +33,7 @@ part of dart.async;
 ///
 /// See also:
 /// * [Stopwatch] for measuring elapsed time.
+@vmIsolateUnsendable
 abstract interface class Timer {
   /// Creates a new timer.
   ///
