@@ -82,13 +82,13 @@ class Heap {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(thread, size, Page::kData);
+          return AllocateOld(thread, size, /*executable*/ false);
         }
         return AllocateNew(thread, size);
       case kOld:
-        return AllocateOld(thread, size, Page::kData);
+        return AllocateOld(thread, size, /*executable*/ false);
       case kCode:
-        return AllocateOld(thread, size, Page::kExecutable);
+        return AllocateOld(thread, size, /*executable*/ true);
       default:
         UNREACHABLE();
     }
@@ -359,7 +359,7 @@ class Heap {
        intptr_t max_old_gen_words);
 
   uword AllocateNew(Thread* thread, intptr_t size);
-  uword AllocateOld(Thread* thread, intptr_t size, Page::PageType type);
+  uword AllocateOld(Thread* thread, intptr_t size, bool executable);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
