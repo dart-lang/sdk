@@ -13,7 +13,10 @@ int get getter {
 
 class Class {
   method() {
-      getter++; /*@compile-error=unspecified*/
+    getter++;
+//  ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+// [cfe] Setter not found: 'getter'.
   }
 }
 
