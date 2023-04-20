@@ -91,6 +91,19 @@ String stringPrintingProgram(String text) {
 ''';
 }
 
+/// A simple Dart script that just loops forever sleeping for 1 second each
+/// iteration.
+///
+/// A breakpoint marker is included before the loop.
+const infiniteRunningProgram = '''
+  void main(List<String> args) async {
+    print('Looping'); $breakpointMarker
+    while (true) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+''';
+
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain multiple stack frames across some async boundaries.
 const simpleAsyncProgram = '''

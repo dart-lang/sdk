@@ -1,3 +1,6 @@
+# 2.7.9
+- [DAP] Configuring and resuming isolates will no longer cause a crash if the isolate exits before the request is processed.
+
 # 2.7.8
 - [DAP] Sentinel values (such as uninitialized fields/locals) will no longer cause `scopesRequest`/`variablesRequest` to fail, instead showing appropriate text (like "<not initialized>") against the variable.
 
