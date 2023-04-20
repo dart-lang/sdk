@@ -1753,6 +1753,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       final pattern = node.pattern;
       final patternContext = pattern.patternContext;
       if (pattern is DeclaredVariablePatternImpl ||
+          patternContext is ForEachPartsWithPattern ||
           patternContext is PatternVariableDeclaration) {
         optype.patternLocation = NamedPatternFieldWantsName(
           matchedType: parentMatchedValueType,

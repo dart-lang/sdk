@@ -3460,7 +3460,9 @@ abstract class DartPatternImpl extends AstNodeImpl
   DartType? matchedValueType;
 
   /// Returns the context for this pattern.
-  /// * Declaration context: [PatternVariableDeclarationImpl]
+  /// * Declaration context:
+  ///     [ForEachPartsWithPatternImpl]
+  ///     [PatternVariableDeclarationImpl]
   /// * Assignment context: [PatternAssignmentImpl]
   /// * Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
