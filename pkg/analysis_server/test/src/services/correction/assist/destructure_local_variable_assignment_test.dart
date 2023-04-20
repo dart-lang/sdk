@@ -42,7 +42,7 @@ m() {
 ''');
   }
 
-  Future<void> test_object_propertyWritten_noAssist() async {
+  Future<void> test_object_propertyAssigned_noAssist() async {
     await resolveTestCode('''
 class A { 
   set a(int a) {}
@@ -53,6 +53,38 @@ A f() => A();
 m() {
   var obj = f();
   obj.a = 1;
+}
+''');
+    await assertNoAssistAt('obj');
+  }
+
+  Future<void> test_object_propertyPostIncremented_noAssist() async {
+    await resolveTestCode('''
+class A { 
+  int a = 1;
+}
+
+A f() => A();
+
+m() {
+  var obj = f();
+  obj.a++;
+}
+''');
+    await assertNoAssistAt('obj');
+  }
+
+  Future<void> test_object_propertyPreIncremented_noAssist() async {
+    await resolveTestCode('''
+class A { 
+  int a = 1;
+}
+
+A f() => A();
+
+m() {
+  var obj = f();
+  ++obj.a;
 }
 ''');
     await assertNoAssistAt('obj');

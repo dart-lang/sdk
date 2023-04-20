@@ -1164,6 +1164,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitObjectPattern(ObjectPattern node) {
+    if (node.leftParenthesis.end <= offset &&
+        offset <= node.rightParenthesis.offset) {
+      optype.patternLocation = NamedPatternFieldWantsName(
+        matchedType: node.type.typeOrThrow,
+        existingFields: node.fields,
+      );
+    }
     optype.completionLocation = 'ObjectPattern_fieldName';
   }
 
@@ -1718,6 +1725,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return 'operator';
     } else if (node is IndexExpression) {
       return 'index';
+    } else if (node is RecordLiteral) {
+      return 'recordLiteral';
     }
     throw ArgumentError(
         'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}');

@@ -11,7 +11,10 @@ class A implements I<int> {}
 
 class B implements I<String> {}
 
-/*@compile-error=unspecified*/ class C extends A implements B {}
+class C extends A implements B {}
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
+// [cfe] 'C' can't implement both 'I<int>' and 'I<String>'
 
 main() {
   new C();

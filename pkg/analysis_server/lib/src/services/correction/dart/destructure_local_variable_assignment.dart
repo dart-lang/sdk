@@ -6,12 +6,12 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/map.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -55,19 +55,17 @@ class DestructureLocalVariableAssignment extends CorrectionProducer {
     var namesInScope = <String>{};
     namesInScope.addAll(scopedNameFinder.locals);
 
-    var correctionUtils = CorrectionUtils(resolvedResult);
     var varMap = <ObjectFieldName, List<AstNode>>{};
 
     for (var propertyReference in propertyReferences.entries) {
-      var excludes =
-          correctionUtils.findPossibleLocalVariableConflicts(node.offset);
+      var excludes = utils.findPossibleLocalVariableConflicts(node.offset);
       excludes.addAll(namesInScope);
 
       var references = propertyReference.value;
       for (var reference in references) {
-        if (reference.isAssignedTo) return;
-        excludes.addAll(correctionUtils
-            .findPossibleLocalVariableConflicts(reference.offset));
+        if (reference.inSetterContext) return;
+        excludes
+            .addAll(utils.findPossibleLocalVariableConflicts(reference.offset));
       }
 
       var fieldName = ObjectFieldName.forName(propertyReference.key, excludes);
@@ -250,12 +248,13 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.staticElement == element) {
       var parent = node.parent;
-      if (parent is PrefixedIdentifier) {
-        propertyReferences.update(
-            parent.identifier.name, (nodes) => nodes..add(parent),
-            ifAbsent: () => [parent]);
-      } else {
-        objectReferences.add(node);
+      switch (parent) {
+        case PrefixedIdentifier(:var identifier):
+          propertyReferences.add(identifier.name, parent);
+        case PropertyAccess(:var propertyName):
+          propertyReferences.add(propertyName.name, parent);
+        case _:
+          objectReferences.add(node);
       }
     }
     super.visitSimpleIdentifier(node);
@@ -271,10 +270,10 @@ extension on VariableElement {
 }
 
 extension on AstNode {
-  bool get isAssignedTo {
+  bool get inSetterContext {
     var node = this;
-    var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
-    if (assignment == null) return false;
-    return assignment.leftHandSide == node;
+    if (node is PrefixedIdentifier) node = node.identifier;
+    if (node is PropertyAccess) node = node.propertyName;
+    return (node is SimpleIdentifier) ? node.inSetterContext() : false;
   }
 }

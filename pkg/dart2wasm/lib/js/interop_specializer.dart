@@ -347,13 +347,12 @@ class InteropSpecializerFactory {
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
   late String _libraryJSString;
-  late InlineExtensionIndex _inlineExtensionIndex;
+  final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
 
   InteropSpecializerFactory(
       this._staticTypeContext, this._util, this._methodCollector);
 
   void enterLibrary(Library library) {
-    _inlineExtensionIndex = InlineExtensionIndex(library);
     _libraryJSString = getJSName(library);
     if (_libraryJSString.isNotEmpty) {
       _libraryJSString = '$_libraryJSString.';
@@ -436,10 +435,9 @@ class InteropSpecializerFactory {
             node, '$clsString.$memberSelectorString', invocation);
       }
     } else if (node.isInlineClassMember) {
-      final nodeDescriptor =
-          _inlineExtensionIndex.getInlineDescriptor(node.reference);
+      final nodeDescriptor = _inlineExtensionIndex.getInlineDescriptor(node);
       if (nodeDescriptor != null) {
-        final cls = _inlineExtensionIndex.getInlineClass(node.reference)!;
+        final cls = _inlineExtensionIndex.getInlineClass(node)!;
         final clsString = _getTopLevelJSString(cls, cls.name);
         final kind = nodeDescriptor.kind;
         if ((kind == InlineClassMemberKind.Constructor ||
@@ -459,8 +457,7 @@ class InteropSpecializerFactory {
         }
       }
     } else if (node.isExtensionMember) {
-      final nodeDescriptor =
-          _inlineExtensionIndex.getExtensionDescriptor(node.reference);
+      final nodeDescriptor = _inlineExtensionIndex.getExtensionDescriptor(node);
       if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
         return _getSpecializerForMember(
             node, _getJSString(node, nodeDescriptor.name.text), invocation);

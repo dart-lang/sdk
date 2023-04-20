@@ -6,7 +6,10 @@ import 'dart:core';
 import 'dart:core' as core;
 
 class A {
-  /*@compile-error=unspecified*/ core.List get core => throw "uncalled";
+  core.List get core => throw "uncalled";
+//^^^^
+// [analyzer] COMPILE_TIME_ERROR.PREFIX_SHADOWED_BY_LOCAL_DECLARATION
+// [cfe] 'core.List' can't be used as a type because 'core' doesn't refer to an import prefix.
 }
 
 main() {

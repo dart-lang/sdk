@@ -326,11 +326,6 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Inline invocation of '{0}'",
   );
-  static const INTRODUCE_LOCAL_CAST_TYPE = AssistKind(
-    'dart.assist.introduceLocalCast',
-    DartAssistKindPriority.DEFAULT,
-    'Introduce new local with tested type',
-  );
   static const INVERT_IF_STATEMENT = AssistKind(
     'dart.assist.invertIf',
     DartAssistKindPriority.DEFAULT,

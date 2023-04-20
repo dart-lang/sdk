@@ -55,6 +55,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   final ExportChecker exportChecker;
   final Procedure _functionToJSTarget;
+  final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -66,7 +67,6 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasStaticInteropAnnotation = false;
   bool _inTearoff = false;
   bool _libraryHasJSAnnotation = false;
-  late InlineExtensionIndex _inlineExtensionIndex;
   // TODO(joshualitt): These checks add value for our users, but unfortunately
   // some backends support multiple native APIs. We should really make a neutral
   // 'ExternalUsageVerifier` class, but until then we just disable this check on
@@ -324,7 +324,6 @@ class JsInteropChecks extends RecursiveVisitor {
     _staticTypeContext.enterLibrary(node);
     _libraryHasJSAnnotation = hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = false;
-    _inlineExtensionIndex = InlineExtensionIndex(node);
     // Allow only Flutter and package:test to opt out from strict mode on
     // Dart2Wasm.
     final isSDKLibrary = node.importUri.isScheme('dart');
@@ -486,8 +485,7 @@ class JsInteropChecks extends RecursiveVisitor {
     }
 
     if (node.isExternal && node.isExtensionMember) {
-      final annotatable =
-          _inlineExtensionIndex.getExtensionAnnotatable(node.reference);
+      final annotatable = _inlineExtensionIndex.getExtensionAnnotatable(node);
       if (annotatable != null &&
           hasStaticInteropAnnotation(annotatable) &&
           !_isAllowedCustomStaticInteropImplementation(node)) {
@@ -495,7 +493,7 @@ class JsInteropChecks extends RecursiveVisitor {
         // parameters to the procedure's type parameters (in the front) as well.
         // Ignore these for the analysis.
         final extensionTypeParams =
-            _inlineExtensionIndex.getExtension(node.reference)!.typeParameters;
+            _inlineExtensionIndex.getExtension(node)!.typeParameters;
         final procedureTypeParams = List.from(node.function.typeParameters);
         procedureTypeParams.removeRange(0, extensionTypeParams.length);
         if (procedureTypeParams.isNotEmpty ||
@@ -663,7 +661,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (_isAllowedExternalUsage(member)) return;
       if (member.isExtensionMember) {
         final annotatable =
-            _inlineExtensionIndex.getExtensionAnnotatable(member.reference);
+            _inlineExtensionIndex.getExtensionAnnotatable(member);
         if (annotatable == null || !hasNativeAnnotation(annotatable)) {
           _diagnosticsReporter.report(
               messageJsInteropExternalExtensionMemberOnTypeInvalid,
@@ -726,11 +724,11 @@ class JsInteropChecks extends RecursiveVisitor {
       if (_classHasJSAnnotation) return true;
       if (member.isExtensionMember) {
         final annotatable =
-            _inlineExtensionIndex.getExtensionAnnotatable(member.reference);
+            _inlineExtensionIndex.getExtensionAnnotatable(member);
         return annotatable != null && hasJSInteropAnnotation(annotatable);
       }
       if (member.isInlineClassMember) {
-        final cls = _inlineExtensionIndex.getInlineClass(member.reference);
+        final cls = _inlineExtensionIndex.getInlineClass(member);
         return cls != null && hasJSInteropAnnotation(cls);
       }
       if (member.enclosingClass == null) {
