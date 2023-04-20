@@ -873,6 +873,138 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   writer->CloseObject();
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+inline void AddSyncEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_track_uuid(OSThread::ThreadIdToIntPtr(event.thread()));
+}
+
+inline void AddAsyncEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_track_uuid(event.Id());
+}
+
+inline void AddBeginAndInstantEventCommonFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_name(event.label());
+}
+
+inline void AddBeginEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  AddBeginAndInstantEventCommonFields(track_event, event);
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
+  if (event.HasFlowId()) {
+    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
+    // aren't able to populate right now because we aren't keeping track of
+    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
+    // field will provide any benefit though.
+    track_event->add_flow_ids(event.flow_id());
+  }
+}
+
+inline void AddInstantEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  AddBeginAndInstantEventCommonFields(track_event, event);
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_INSTANT);
+}
+
+inline void AddEndEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event) {
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
+}
+
+void TimelineEvent::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* packet) const {
+  ASSERT(packet != nullptr);
+
+  perfetto_utils::SetTrustedPacketSequenceId(packet);
+  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
+  // ClockSnapshot to avoid manually converting from microseconds to
+  // nanoseconds, but I haven't been able to get it to work.
+  packet->set_timestamp(TimeOrigin() * 1000);
+  packet->set_timestamp_clock_id(
+      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  perfetto::protos::pbzero::TrackEvent* track_event = packet->set_track_event();
+  track_event->add_categories(stream()->name());
+
+  const TimelineEvent& event = *this;
+  switch (event_type()) {
+    case TimelineEvent::kBegin: {
+      AddSyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kEnd: {
+      AddSyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      break;
+    }
+    case TimelineEvent::kInstant: {
+      AddSyncEventFields(track_event, event);
+      AddInstantEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kAsyncBegin: {
+      AddAsyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kAsyncEnd: {
+      AddAsyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      break;
+    }
+    case TimelineEvent::kAsyncInstant: {
+      AddAsyncEventFields(track_event, event);
+      AddInstantEventFields(track_event, event);
+      break;
+    }
+    default:
+      break;
+  }
+  if (GetNumArguments() > 0) {
+    if (pre_serialized_args()) {
+      ASSERT(GetNumArguments() == 1);
+      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+          *track_event->add_debug_annotations();
+      debug_annotation.set_name(arguments()[0].name);
+      debug_annotation.set_legacy_json_value(arguments()[0].value);
+    } else {
+      for (intptr_t i = 0; i < GetNumArguments(); ++i) {
+        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+            *track_event->add_debug_annotations();
+        debug_annotation.set_name(arguments()[i].name);
+        debug_annotation.set_string_value(arguments()[i].value);
+      }
+    }
+  }
+  if (HasIsolateId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateId");
+    char* formatted_isolate_id = GetFormattedIsolateId();
+    debug_annotation.set_string_value(formatted_isolate_id);
+    free(formatted_isolate_id);
+  }
+  if (HasIsolateGroupId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateGroupId");
+    char* formatted_isolate_group = GetFormattedIsolateGroupId();
+    debug_annotation.set_string_value(formatted_isolate_group);
+    free(formatted_isolate_group);
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 int64_t TimelineEvent::LowTime() const {
   return timestamp0_;
 }
@@ -1899,137 +2031,14 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
   }
 }
 
-inline void AddSyncEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_track_uuid(OSThread::ThreadIdToIntPtr(event.thread()));
-}
-
-inline void AddAsyncEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_track_uuid(event.Id());
-}
-
-inline void AddBeginAndInstantEventCommonFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_name(event.label());
-}
-
-inline void AddBeginEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  AddBeginAndInstantEventCommonFields(track_event, event);
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
-  if (event.HasFlowId()) {
-    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
-    // aren't able to populate right now because we aren't keeping track of
-    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
-    // field will provide any benefit though.
-    track_event->add_flow_ids(event.flow_id());
-  }
-}
-
-inline void AddInstantEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  AddBeginAndInstantEventCommonFields(track_event, event);
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_INSTANT);
-}
-
-inline void AddEndEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event) {
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
-}
-
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
-  perfetto_utils::SetTrustedPacketSequenceId(packet_.get());
-  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
-  // ClockSnapshot to avoid manually converting from microseconds to
-  // nanoseconds, but I haven't been able to get it to work.
-  packet_->set_timestamp(event.TimeOrigin() * 1000);
-  packet_->set_timestamp_clock_id(
-      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
-
-  perfetto::protos::pbzero::TrackEvent* track_event =
-      packet_->set_track_event();
-  track_event->add_categories(event.stream()->name());
-
-  switch (event.event_type()) {
-    case TimelineEvent::kBegin: {
-      AddSyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kEnd: {
-      AddSyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      break;
-    }
-    case TimelineEvent::kInstant: {
-      AddSyncEventFields(track_event, event);
-      AddInstantEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kAsyncBegin: {
-      AddAsyncTrackMetadataBasedOnEvent(event);
-      AddAsyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kAsyncEnd: {
-      AddAsyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      break;
-    }
-    case TimelineEvent::kAsyncInstant: {
-      AddAsyncTrackMetadataBasedOnEvent(event);
-      AddAsyncEventFields(track_event, event);
-      AddInstantEventFields(track_event, event);
-      break;
-    }
-    default:
-      break;
-  }
-  if (event.GetNumArguments() > 0) {
-    if (event.pre_serialized_args()) {
-      ASSERT(event.GetNumArguments() == 1);
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-          *track_event->add_debug_annotations();
-      debug_annotation.set_name(event.arguments()[0].name);
-      debug_annotation.set_legacy_json_value(event.arguments()[0].value);
-    } else {
-      for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
-        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-            *track_event->add_debug_annotations();
-        debug_annotation.set_name(event.arguments()[i].name);
-        debug_annotation.set_string_value(event.arguments()[i].value);
-      }
-    }
-  }
-  if (event.HasIsolateId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateId");
-    char* formatted_isolate_id = event.GetFormattedIsolateId();
-    debug_annotation.set_string_value(formatted_isolate_id);
-    free(formatted_isolate_id);
-  }
-  if (event.HasIsolateGroupId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateGroupId");
-    char* formatted_isolate_group = event.GetFormattedIsolateGroupId();
-    debug_annotation.set_string_value(formatted_isolate_group);
-    free(formatted_isolate_group);
-  }
-
+  event.PopulateTracePacket(packet_.get());
   WritePacket(&packet_);
   packet_.Reset();
+  if (event.event_type() == TimelineEvent::kAsyncBegin ||
+      event.event_type() == TimelineEvent::kAsyncInstant) {
+    AddAsyncTrackMetadataBasedOnEvent(event);
+  }
 }
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 

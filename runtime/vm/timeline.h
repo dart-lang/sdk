@@ -456,6 +456,12 @@ class TimelineEvent {
   void PrintJSON(JSONStream* stream) const;
 #endif
   void PrintJSON(JSONWriter* writer) const;
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  /*
+   * Populates the fields of |packet| with this event's data.
+   */
+  void PopulateTracePacket(perfetto::protos::pbzero::TracePacket* packet) const;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   ThreadId thread() const { return thread_; }
 
