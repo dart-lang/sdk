@@ -630,6 +630,7 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
+        "nnbd": "strong",
         "use-elf": true
       }
     },
@@ -659,6 +660,7 @@
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
       "options": {
         "builder-tag": "obfuscated",
+        "nnbd": "strong",
         "vm-options": [
           "--obfuscate"
         ]
