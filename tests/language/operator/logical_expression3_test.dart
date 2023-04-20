@@ -22,7 +22,10 @@ main() {
   // When the lhs of a logical or fails, it must not assume that all negative is
   // checks in it, have failed.
   // Here, the `o is! num` check succeeds, but the length test failed.
-  if ((o is! num && o.length == 4) || (nonInlinedNumTypeCheck(o))) { /*@compile-error=unspecified*/
+  if ((o is! num && o.length == 4) || (nonInlinedNumTypeCheck(o))) {
+    //                ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [cfe] The getter 'length' isn't defined for the class 'Object'.
     Expect.fail("Type-check failed");
   }
 }

@@ -10,5 +10,8 @@ int test(int a, [int? b]) {
 
 main() {
   // Parameter b passed twice, as positional and named.
-  test(10, 25, b: 26); /*@compile-error=unspecified*/
+  test(10, 25, b: 26);
+  //           ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
+  // [cfe] No named parameter with the name 'b'.
 }
