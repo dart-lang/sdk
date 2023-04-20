@@ -21,7 +21,11 @@ class C extends B {
   void foo([x]) {
     // But it is a problem to try to pass `x` along to super, since the super
     // method is A.foo.
-    super.foo(/*@compile-error=unspecified*/ x);
+    super.foo(x);
+    //       ^
+    // [cfe] Too many positional arguments: 0 allowed, but 1 found.
+    //        ^
+    // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   }
 }
 
