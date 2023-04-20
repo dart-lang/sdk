@@ -111,10 +111,16 @@ void testValidatePath() {
 }
 
 void testCookieSameSite() {
-  Cookie cookie1 = Cookie.fromSetCookieValue("name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; HttpOnly; Path=/; SameSite=None");
+  Cookie cookie1 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; HttpOnly; Path=/; SameSite=None");
   expect(cookie1.sameSite == SameSite.none, isTrue);
-  Cookie cookie2 = Cookie.fromSetCookieValue("name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; Path=/; SameSite=Lax");
+  Cookie cookie2 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; Path=/; SameSite=Lax");
   expect(cookie2.sameSite == SameSite.lax, isTrue);
+  expect(
+          () => Cookie.fromSetCookieValue(
+          "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; Path=/; SameSite=Relax"),
+      throwsA(TypeMatcher<HttpException>()));
 }
 
 void main() {

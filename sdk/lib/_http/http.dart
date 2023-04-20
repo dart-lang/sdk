@@ -7,6 +7,7 @@ library dart._http;
 import 'dart:_internal'
     show
         checkNotNullable,
+        IterableElementError,
         Since,
         valueOfNonNullableParamWithDefault,
         HttpStatus;
@@ -737,22 +738,50 @@ abstract interface class ContentType implements HeaderValue {
 
 /// Value of [Cookie.sameSite], which defines whether the cookie is available
 /// from other sites.
-///
-/// [lax] is the default value, cookie with this value will generally not be sent
-/// on cross-site requests, unless the user is navigated to the original site.
-/// [strict] means this cookie will never be sent on cross-site requests.
-/// [none] means this cookie will be sent in all requests. [Cookies.secure] must
-/// also be set to true, otherwise the `none` value will have no effect.
-enum SameSite {
-  lax("Lax"),
-  strict("Strict"),
-  none("None");
 
-  final String token;
+class SameSite {
+  /// Default value, cookie with this value will generally not be sent on
+  /// cross-site requests, unless the user is navigated to the original site.
+  static const lax = SameSite._internal(0);
 
-  const SameSite(this.token);
+  /// This cookie will never be sent on cross-site requests.
+  static const strict = SameSite._internal(1);
 
-  String toString() => "SameSite=$token";
+  /// this cookie will be sent in all requests. [Cookies.secure] must also be
+  /// set to true, otherwise the `none` value will have no effect.
+  static const none = SameSite._internal(2);
+
+  static List<SameSite> get values => const <SameSite>[
+    lax,
+    strict,
+    none,
+  ];
+
+  static SameSite byName(String name) {
+    final index = _names.indexWhere(
+            (value) => value.toLowerCase() == name.toLowerCase());
+
+    if (index >= 0 && index < _names.length) {
+      return SameSite._internal(index);
+    } else {
+      throw HttpException('SameSite value should be one of Lax, Strict and None.');
+    }
+  }
+
+  String getName() => _names[_value];
+
+  final int _value;
+  static const List<String> _names = ["Lax", "Strict", "None"];
+  const SameSite._internal(this._value);
+
+  @override
+  String toString() => "SameSite=${getName()}";
+
+  @override
+  bool operator ==(Object other) => other is SameSite && _value == other._value;
+
+  @override
+  int get hashCode => Object.hash(_value, getName());
 }
 
 /// Representation of a cookie. For cookies received by the server as Cookie
@@ -801,8 +830,9 @@ abstract interface class Cookie {
   /// available to client side scripts.
   bool httpOnly = false;
 
-  /// Whether the cookie is available from other sites. See [SameSite] for
-  /// more information.
+  /// Whether the cookie is available from other sites.
+  ///
+  /// See [SameSite] for more information.
   SameSite? sameSite;
 
   /// Creates a new cookie setting the name and value.
