@@ -133,7 +133,7 @@ class RunCommand extends DartdevCommand {
         ..addOption('timeline-recorder',
             help: 'Selects the timeline recorder to use.\n'
                 'Valid recorders include: none, ring, endless, startup, '
-                'systrace, file, callback.\n'
+                'systrace, file, callback, perfettofile.\n'
                 'Defaults to ring.',
             valueHelp: 'recorder');
     } else {

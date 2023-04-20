@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_TIMELINE_H_
 #define RUNTIME_VM_TIMELINE_H_
 
+#include <functional>
+
 #include "include/dart_tools_api.h"
 
 #include "platform/atomic.h"
@@ -47,6 +49,7 @@ namespace dart {
 #endif  // !defined(SUPPORT_TIMELINE)
 
 class JSONArray;
+class JSONBase64String;
 class JSONObject;
 class JSONStream;
 class JSONWriter;
@@ -67,7 +70,7 @@ class Zone;
 #define FILE_RECORDER_NAME "File"
 #define FUCHSIA_RECORDER_NAME "Fuchsia"
 #define MACOS_RECORDER_NAME "Macos"
-#define PERFETTO_RECORDER_NAME "Perfetto"
+#define PERFETTO_FILE_RECORDER_NAME "Perfettofile"
 #define RING_RECORDER_NAME "Ring"
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
@@ -332,6 +335,10 @@ class TimelineEvent {
     kNumEventTypes,
   };
 
+  // This value must be kept in sync with the value of _noFlowId in
+  // sdk/lib/developer/timeline.dart.
+  static const int64_t kNoFlowId = -1;
+
   TimelineEvent();
   ~TimelineEvent();
 
@@ -367,6 +374,7 @@ class TimelineEvent {
 
   void Begin(const char* label,
              int64_t id,
+             int64_t flow_id,
              int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
@@ -434,6 +442,9 @@ class TimelineEvent {
   int64_t timestamp0() const { return timestamp0_; }
   int64_t timestamp1() const { return timestamp1_; }
 
+  bool HasFlowId() const;
+  int64_t flow_id() const { return flow_id_; }
+
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
   char* GetFormattedIsolateId() const;
@@ -448,6 +459,12 @@ class TimelineEvent {
   void PrintJSON(JSONStream* stream) const;
 #endif
   void PrintJSON(JSONWriter* writer) const;
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  /*
+   * Populates the fields of |packet| with this event's data.
+   */
+  void PopulateTracePacket(perfetto::protos::pbzero::TracePacket* packet) const;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   ThreadId thread() const { return thread_; }
 
@@ -538,6 +555,11 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
+  void set_flow_id(int64_t flow_id) {
+    ASSERT(flow_id_ == TimelineEvent::kNoFlowId);
+    flow_id_ = flow_id;
+  }
+
   bool pre_serialized_args() const {
     return PreSerializedArgsBit::decode(state_);
   }
@@ -562,6 +584,12 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
+  // This field is only used by the Perfetto recorders, because Perfetto's trace
+  // format handles flow events by processing flow IDs attached to
+  // |TimelineEvent::kBegin| events. Other recorders handle flow events by
+  // processing events of type TimelineEvent::kFlowBegin|,
+  // |TimelineEvent::kFlowStep|, and |TimelineEvent::kFlowEnd|.
+  int64_t flow_id_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
@@ -603,11 +631,11 @@ class TimelineTrackMetadata {
   void PrintJSON(const JSONArray& jsarr_events) const;
 #if defined(SUPPORT_PERFETTO)
   /*
-   * Populates the fields of a |perfetto::protos::pbzero::TracePacket| with the
-   * metadata stored by this object.
+   * Populates the fields of |track_descriptor_packet| with the metadata stored
+   * by this object.
    */
   void PopulateTracePacket(
-      perfetto::protos::pbzero::TracePacket* track_descriptor_packet);
+      perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const;
 #endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
 
@@ -618,6 +646,27 @@ class TimelineTrackMetadata {
   intptr_t tid_;
   // The name of this track.
   Utils::CStringUniquePtr track_name_;
+};
+
+class AsyncTimelineTrackMetadata {
+ public:
+  AsyncTimelineTrackMetadata(intptr_t pid, intptr_t async_id);
+  intptr_t pid() const { return pid_; }
+  intptr_t async_id() const { return async_id_; }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  /*
+   * Populates the fields of |track_descriptor_packet| with the metadata stored
+   * by this object.
+   */
+  void PopulateTracePacket(
+      perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
+ private:
+  // The ID of the process that this track is associated with.
+  intptr_t pid_;
+  // The async ID that this track is associated with.
+  intptr_t async_id_;
 };
 
 #define TIMELINE_DURATION(thread, stream, name)                                \
@@ -786,7 +835,7 @@ class TimelineEventFilter : public ValueObject {
 
   virtual ~TimelineEventFilter();
 
-  virtual bool IncludeBlock(TimelineEventBlock* block) {
+  virtual bool IncludeBlock(TimelineEventBlock* block) const {
     if (block == nullptr) {
       return false;
     }
@@ -794,7 +843,7 @@ class TimelineEventFilter : public ValueObject {
     return !block->IsEmpty() && !block->in_use();
   }
 
-  virtual bool IncludeEvent(TimelineEvent* event) {
+  virtual bool IncludeEvent(TimelineEvent* event) const {
     if (event == nullptr) {
       return false;
     }
@@ -816,7 +865,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
                                       int64_t time_origin_micros = -1,
                                       int64_t time_extent_micros = -1);
 
-  bool IncludeBlock(TimelineEventBlock* block) {
+  bool IncludeBlock(TimelineEventBlock* block) const final {
     if (block == nullptr) {
       return false;
     }
@@ -824,7 +873,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
     return !block->IsEmpty() && !block->in_use();
   }
 
-  bool IncludeEvent(TimelineEvent* event) {
+  bool IncludeEvent(TimelineEvent* event) const final {
     return event->IsValid() && (event->isolate_id() == isolate_id_);
   }
 
@@ -841,8 +890,15 @@ class TimelineEventRecorder : public MallocAllocated {
   // Interface method(s) which must be implemented.
 #ifndef PRODUCT
   virtual void PrintJSON(JSONStream* js, TimelineEventFilter* filter) = 0;
+#if defined(SUPPORT_PERFETTO)
+  /*
+   * Prints a PerfettoTimeline service response into |js|.
+   */
+  virtual void PrintPerfettoTimeline(JSONStream* js,
+                                     const TimelineEventFilter& filter) = 0;
+#endif  // defined(SUPPORT_PERFETTO)
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
-#endif
+#endif  // !defined(PRODUCT)
   virtual const char* name() const = 0;
   virtual intptr_t Size() = 0;
   TimelineEventBlock* GetNewBlock();
@@ -852,11 +908,20 @@ class TimelineEventRecorder : public MallocAllocated {
   void AddTrackMetadataBasedOnThread(const intptr_t process_id,
                                      const intptr_t trace_id,
                                      const char* thread_name);
+  void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
 
  protected:
   SimpleHashMap& track_uuid_to_track_metadata() {
     return track_uuid_to_track_metadata_;
   }
+  SimpleHashMap& async_track_uuid_to_track_metadata() {
+    return async_track_uuid_to_track_metadata_;
+  }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet() {
+    return packet_;
+  }
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 #ifndef PRODUCT
   void WriteTo(const char* directory);
@@ -872,7 +937,14 @@ class TimelineEventRecorder : public MallocAllocated {
   // Utility method(s).
 #ifndef PRODUCT
   void PrintJSONMeta(const JSONArray& jsarr_events);
-#endif
+#if defined(SUPPORT_PERFETTO)
+  /*
+   * Appends metadata about the timeline in Perfetto's proto format to
+   * |jsonBase64String|.
+   */
+  void PrintPerfettoMeta(JSONBase64String* jsonBase64String);
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
 
@@ -894,6 +966,14 @@ class TimelineEventRecorder : public MallocAllocated {
   static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
   SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
+  SimpleHashMap async_track_uuid_to_track_metadata_;
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  // We allocate one heap-buffered packet as a class member, because it lets us
+  // continuously follow a cycle of resetting the buffer and writing its
+  // contents.
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
@@ -906,9 +986,13 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventFixedBufferRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
-#endif
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
+#endif  // !defined(PRODUCT)
 
   intptr_t Size();
 
@@ -920,14 +1004,26 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   void Clear();
 
 #ifndef PRODUCT
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
-#endif
+  void PrintJSONEvents(const JSONArray& array,
+                       const TimelineEventFilter& filter);
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
+                           const TimelineEventFilter& filter);
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
   VirtualMemory* memory_;
   TimelineEventBlock* blocks_;
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;
+
+ private:
+#if !defined(PRODUCT)
+  inline void PrintEventsCommon(
+      const TimelineEventFilter& filter,
+      std::function<void(const TimelineEvent&)> print_impl);
+#endif  // !defined(PRODUCT)
 };
 
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
@@ -967,8 +1063,12 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif
+#endif  // !defined(PRODUCT)
 
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.
@@ -1016,9 +1116,13 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventEndlessRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
-#endif
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
+#endif  // !defined(PRODUCT)
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
   intptr_t Size() { return block_index_ * sizeof(TimelineEventBlock); }
@@ -1031,12 +1135,24 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void Clear();
 
 #ifndef PRODUCT
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
-#endif
+  void PrintJSONEvents(const JSONArray& array,
+                       const TimelineEventFilter& filter);
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
+                           const TimelineEventFilter& filter);
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
   TimelineEventBlock* head_;
   TimelineEventBlock* tail_;
   intptr_t block_index_;
+
+ private:
+#if !defined(PRODUCT)
+  inline void PrintEventsCommon(
+      const TimelineEventFilter& filter,
+      std::function<void(const TimelineEvent&)> print_impl);
+#endif  // !defined(PRODUCT)
 
   friend class TimelineTestHelper;
 };
@@ -1051,8 +1167,12 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif
+#endif  // !defined(PRODUCT)
 
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.
@@ -1168,21 +1288,13 @@ class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
   explicit TimelineEventPerfettoFileRecorder(const char* path);
   virtual ~TimelineEventPerfettoFileRecorder();
 
-  const char* name() const final { return PERFETTO_RECORDER_NAME; }
+  const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
 
  private:
   void WritePacket(
       protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
       const;
   void DrainImpl(const TimelineEvent& event) final;
-
-  static const intptr_t kAsyncTrackUuidToTrackDescriptorInitialCapacity = 1
-                                                                          << 4;
-  SimpleHashMap async_track_uuid_to_track_descriptor_;
-  // We allocate one heap-buffered packet as a class member, because it lets us
-  // continuously follow a cycle of resetting the buffer and writing its to
-  // contents to the file.
-  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
 };
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
@@ -1190,6 +1302,7 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
+                              int64_t flow_id,
                               intptr_t type,
                               char* name,
                               char* args);

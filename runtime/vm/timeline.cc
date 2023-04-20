@@ -11,6 +11,7 @@
 #include <fcntl.h>
 
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <tuple>
 #include <utility>
@@ -40,6 +41,94 @@
 
 namespace dart {
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+namespace perfetto_utils {
+
+inline void SetTrustedPacketSequenceId(
+    perfetto::protos::pbzero::TracePacket* packet) {
+  // trusted_packet_sequence_id uniquely identifies a trace producer + writer
+  // pair. We set the trusted_packet_sequence_id of all packets written by the
+  // Perfetto file recorder to the arbitrary value of 1.
+  packet->set_trusted_packet_sequence_id(1);
+}
+
+inline void PopulateClockSnapshotPacket(
+    perfetto::protos::pbzero::TracePacket* packet) {
+  SetTrustedPacketSequenceId(packet);
+
+  perfetto::protos::pbzero::ClockSnapshot& clock_snapshot =
+      *packet->set_clock_snapshot();
+  clock_snapshot.set_primary_trace_clock(
+      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+
+  perfetto::protos::pbzero::ClockSnapshot_Clock& clock =
+      *clock_snapshot.add_clocks();
+  clock.set_clock_id(
+      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  clock.set_timestamp(OS::GetCurrentMonotonicMicrosForTimeline() * 1000);
+}
+
+inline void PopulateProcessDescriptorPacket(
+    perfetto::protos::pbzero::TracePacket* packet) {
+  perfetto_utils::SetTrustedPacketSequenceId(packet);
+
+  perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
+      *packet->set_track_descriptor();
+  const int64_t pid = OS::ProcessId();
+  track_descriptor.set_uuid(pid);
+
+  perfetto::protos::pbzero::ProcessDescriptor& process_descriptor =
+      *track_descriptor.set_process();
+  process_descriptor.set_pid(pid);
+  // TODO(derekx): Add the process name.
+}
+
+inline const std::tuple<std::unique_ptr<const uint8_t[]>, intptr_t>
+GetProtoPreamble(
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet) {
+  ASSERT(packet != nullptr);
+
+  intptr_t size = 0;
+  for (const protozero::ScatteredHeapBuffer::Slice& slice :
+       packet->GetSlices()) {
+    size += slice.size() - slice.unused_bytes();
+  }
+
+  std::unique_ptr<uint8_t[]> preamble =
+      std::make_unique<uint8_t[]>(perfetto::TracePacket::kMaxPreambleBytes);
+  uint8_t* ptr = &preamble[0];
+
+  const uint8_t tag = protozero::proto_utils::MakeTagLengthDelimited(
+      perfetto::TracePacket::kPacketFieldNumber);
+  static_assert(tag < 0x80, "TracePacket tag should fit in one byte");
+  *(ptr++) = tag;
+
+  ptr = protozero::proto_utils::WriteVarInt(size, ptr);
+  intptr_t preamble_size = reinterpret_cast<intptr_t>(ptr) -
+                           reinterpret_cast<intptr_t>(&preamble[0]);
+  return std::make_tuple(std::move(preamble), preamble_size);
+}
+
+inline void AppendPacketToJSONBase64String(
+    JSONBase64String* jsonBase64String,
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet) {
+  ASSERT(jsonBase64String != nullptr);
+  ASSERT(packet != nullptr);
+
+  auto& response = perfetto_utils::GetProtoPreamble(packet);
+  const uint8_t* preamble = std::get<0>(response).get();
+  const intptr_t preamble_length = std::get<1>(response);
+  jsonBase64String->AppendBytes(preamble, preamble_length);
+  for (const protozero::ScatteredHeapBuffer::Slice& slice :
+       packet->GetSlices()) {
+    jsonBase64String->AppendBytes(slice.start(),
+                                  slice.size() - slice.unused_bytes());
+  }
+}
+
+}  // namespace perfetto_utils
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 #if defined(PRODUCT)
 #define DEFAULT_TIMELINE_RECORDER "none"
 #define SUPPORTED_TIMELINE_RECORDERS "systrace, file, callback"
@@ -47,7 +136,7 @@ namespace dart {
 #define DEFAULT_TIMELINE_RECORDER "ring"
 #if defined(SUPPORT_PERFETTO)
 #define SUPPORTED_TIMELINE_RECORDERS                                           \
-  "ring, endless, startup, systrace, file, callback, perfetto"
+  "ring, endless, startup, systrace, file, callback, perfettofile"
 #else
 #define SUPPORTED_TIMELINE_RECORDERS                                           \
   "ring, endless, startup, systrace, file, callback"
@@ -186,14 +275,13 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   // The Perfetto file recorder is disabled in PRODUCT mode to avoid the large
   // binary size increase that it brings.
   {
-    const intptr_t kLengthOfWordPerfetto = 8;
-    if (Utils::StrStartsWith(flag, "perfetto") &&
-        (flag[kLengthOfWordPerfetto] == '\0' ||
-         flag[kLengthOfWordPerfetto] == ':' ||
-         flag[kLengthOfWordPerfetto] == '=')) {
-      const char* filename = flag[kLengthOfWordPerfetto] == '\0'
+    const intptr_t kPrefixLength = 12;
+    if (Utils::StrStartsWith(flag, "perfettofile") &&
+        (flag[kPrefixLength] == '\0' || flag[kPrefixLength] == ':' ||
+         flag[kPrefixLength] == '=')) {
+      const char* filename = flag[kPrefixLength] == '\0'
                                  ? "dart.perfetto-trace"
-                                 : &flag[kLengthOfWordPerfetto + 1];
+                                 : &flag[kPrefixLength + 1];
       free(const_cast<char*>(FLAG_timeline_dir));
       FLAG_timeline_dir = nullptr;
       return new TimelineEventPerfettoFileRecorder(filename);
@@ -504,6 +592,7 @@ TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
+      flow_id_(TimelineEvent::kNoFlowId),
       state_(0),
       label_(nullptr),
       stream_(nullptr),
@@ -581,17 +670,23 @@ void TimelineEvent::Duration(const char* label,
   set_timestamp1(end_micros);
 }
 
-void TimelineEvent::Begin(const char* label, int64_t id, int64_t micros) {
+void TimelineEvent::Begin(const char* label,
+                          int64_t id,
+                          int64_t flow_id,
+                          int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
+  // Overload timestamp1_ with the task id. This is required for the MacOS
+  // recorder to work.
   set_timestamp1(id);
+  set_flow_id(flow_id);
 }
 
 void TimelineEvent::End(const char* label, int64_t id, int64_t micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
-  // Overload timestamp1_ with the async_id.
+  // Overload timestamp1_ with the task id. This is required for the MacOS
+  // recorder to work.
   set_timestamp1(id);
 }
 
@@ -662,6 +757,7 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
+  flow_id_ = TimelineEvent::kNoFlowId;
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
   thread_ = os_thread->trace_id();
@@ -803,6 +899,138 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   writer->CloseObject();
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+inline void AddSyncEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_track_uuid(OSThread::ThreadIdToIntPtr(event.thread()));
+}
+
+inline void AddAsyncEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_track_uuid(event.Id());
+}
+
+inline void AddBeginAndInstantEventCommonFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  track_event->set_name(event.label());
+}
+
+inline void AddBeginEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  AddBeginAndInstantEventCommonFields(track_event, event);
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
+  if (event.HasFlowId()) {
+    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
+    // aren't able to populate right now because we aren't keeping track of
+    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
+    // field will provide any benefit though.
+    track_event->add_flow_ids(event.flow_id());
+  }
+}
+
+inline void AddInstantEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event,
+    const TimelineEvent& event) {
+  AddBeginAndInstantEventCommonFields(track_event, event);
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_INSTANT);
+}
+
+inline void AddEndEventFields(
+    perfetto::protos::pbzero::TrackEvent* track_event) {
+  track_event->set_type(
+      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
+}
+
+void TimelineEvent::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* packet) const {
+  ASSERT(packet != nullptr);
+
+  perfetto_utils::SetTrustedPacketSequenceId(packet);
+  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
+  // ClockSnapshot to avoid manually converting from microseconds to
+  // nanoseconds, but I haven't been able to get it to work.
+  packet->set_timestamp(TimeOrigin() * 1000);
+  packet->set_timestamp_clock_id(
+      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  perfetto::protos::pbzero::TrackEvent* track_event = packet->set_track_event();
+  track_event->add_categories(stream()->name());
+
+  const TimelineEvent& event = *this;
+  switch (event_type()) {
+    case TimelineEvent::kBegin: {
+      AddSyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kEnd: {
+      AddSyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      break;
+    }
+    case TimelineEvent::kInstant: {
+      AddSyncEventFields(track_event, event);
+      AddInstantEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kAsyncBegin: {
+      AddAsyncEventFields(track_event, event);
+      AddBeginEventFields(track_event, event);
+      break;
+    }
+    case TimelineEvent::kAsyncEnd: {
+      AddAsyncEventFields(track_event, event);
+      AddEndEventFields(track_event);
+      break;
+    }
+    case TimelineEvent::kAsyncInstant: {
+      AddAsyncEventFields(track_event, event);
+      AddInstantEventFields(track_event, event);
+      break;
+    }
+    default:
+      break;
+  }
+  if (GetNumArguments() > 0) {
+    if (pre_serialized_args()) {
+      ASSERT(GetNumArguments() == 1);
+      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+          *track_event->add_debug_annotations();
+      debug_annotation.set_name(arguments()[0].name);
+      debug_annotation.set_legacy_json_value(arguments()[0].value);
+    } else {
+      for (intptr_t i = 0; i < GetNumArguments(); ++i) {
+        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+            *track_event->add_debug_annotations();
+        debug_annotation.set_name(arguments()[i].name);
+        debug_annotation.set_string_value(arguments()[i].value);
+      }
+    }
+  }
+  if (HasIsolateId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateId");
+    char* formatted_isolate_id = GetFormattedIsolateId();
+    debug_annotation.set_string_value(formatted_isolate_id);
+    free(formatted_isolate_id);
+  }
+  if (HasIsolateGroupId()) {
+    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+        *track_event->add_debug_annotations();
+    debug_annotation.set_name("isolateGroupId");
+    char* formatted_isolate_group = GetFormattedIsolateGroupId();
+    debug_annotation.set_string_value(formatted_isolate_group);
+    free(formatted_isolate_group);
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 int64_t TimelineEvent::LowTime() const {
   return timestamp0_;
 }
@@ -821,6 +1049,10 @@ int64_t TimelineEvent::TimeDuration() const {
     return OS::GetCurrentMonotonicMicrosForTimeline() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
+}
+
+bool TimelineEvent::HasFlowId() const {
+  return flow_id_ != TimelineEvent::kNoFlowId;
 }
 
 bool TimelineEvent::HasIsolateId() const {
@@ -879,17 +1111,9 @@ void TimelineTrackMetadata::PrintJSON(const JSONArray& jsarr_events) const {
 }
 
 #if defined(SUPPORT_PERFETTO)
-inline void SetTrustedPacketSequenceId(
-    perfetto::protos::pbzero::TracePacket* packet) {
-  // trusted_packet_sequence_id uniquely identifies a trace producer + writer
-  // pair. We set the trusted_packet_sequence_id of all packets written by the
-  // Perfetto file recorder to the arbitrary value of 1.
-  packet->set_trusted_packet_sequence_id(1);
-}
-
 void TimelineTrackMetadata::PopulateTracePacket(
-    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) {
-  SetTrustedPacketSequenceId(track_descriptor_packet);
+    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
+  perfetto_utils::SetTrustedPacketSequenceId(track_descriptor_packet);
 
   perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
       *track_descriptor_packet->set_track_descriptor();
@@ -904,6 +1128,21 @@ void TimelineTrackMetadata::PopulateTracePacket(
 }
 #endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
+
+AsyncTimelineTrackMetadata::AsyncTimelineTrackMetadata(intptr_t pid,
+                                                       intptr_t async_id)
+    : pid_(pid), async_id_(async_id) {}
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void AsyncTimelineTrackMetadata::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
+  perfetto_utils::SetTrustedPacketSequenceId(track_descriptor_packet);
+  perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
+      *track_descriptor_packet->set_track_descriptor();
+  track_descriptor.set_parent_uuid(pid());
+  track_descriptor.set_uuid(async_id());
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
@@ -1061,7 +1300,7 @@ void TimelineBeginEndScope::EmitBegin() {
   }
   ASSERT(event != nullptr);
   // Emit a begin event.
-  event->Begin(label(), id());
+  event->Begin(label(), id(), /*flow_id=*/TimelineEvent::kNoFlowId);
   event->Complete();
 }
 
@@ -1105,13 +1344,24 @@ TimelineEventRecorder::TimelineEventRecorder()
       track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
-      track_uuid_to_track_metadata_lock_() {}
+      track_uuid_to_track_metadata_lock_(),
+      async_track_uuid_to_track_metadata_(
+          &SimpleHashMap::SamePointerValue,
+          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
 
 TimelineEventRecorder::~TimelineEventRecorder() {
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
        entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
+    delete value;
+  }
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata_.Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
     delete value;
   }
 }
@@ -1126,7 +1376,42 @@ void TimelineEventRecorder::PrintJSONMeta(const JSONArray& jsarr_events) {
     value->PrintJSON(jsarr_events);
   }
 }
-#endif
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventRecorder::PrintPerfettoMeta(
+    JSONBase64String* jsonBase64String) {
+  ASSERT(jsonBase64String != nullptr);
+
+  perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+  perfetto_utils::PopulateProcessDescriptorPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata().Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata().Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet_.get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+    packet_.Reset();
+  }
+
+  MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet_.get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+    packet_.Reset();
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
@@ -1208,6 +1493,15 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   if (event == nullptr) {
     return;
   }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  // Async track metadata is only written in Perfetto traces, and Perfetto
+  // traces cannot be written when SUPPORT_PERFETTO is not defined, or when
+  // PRODUCT is defined.
+  if (event->event_type() == TimelineEvent::kAsyncBegin ||
+      event->event_type() == TimelineEvent::kAsyncInstant) {
+    AddAsyncTrackMetadataBasedOnEvent(*event);
+  }
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   // Grab the current thread.
   OSThread* thread = OSThread::Current();
   ASSERT(thread != nullptr);
@@ -1306,6 +1600,26 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
   }
 }
 
+#if !defined(PRODUCT)
+void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
+    const TimelineEvent& event) {
+  if (FLAG_timeline_recorder == nullptr ||
+      // There is no way to retrieve track metadata when a callback or systrace
+      // recorder is in use, so we don't need to update the map in these cases.
+      strcmp("callback", FLAG_timeline_recorder) == 0 ||
+      strcmp("systrace", FLAG_timeline_recorder) == 0) {
+    return;
+  }
+  void* key = reinterpret_cast<void*>(event.Id());
+  const intptr_t hash = Utils::WordHash(event.Id());
+  SimpleHashMap::Entry* entry =
+      async_track_uuid_to_track_metadata_.Lookup(key, hash, true);
+  if (entry->value == nullptr) {
+    entry->value = new AsyncTimelineTrackMetadata(OS::ProcessId(), event.Id());
+  }
+}
+#endif  // !defined(PRODUCT)
+
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
     : memory_(nullptr),
@@ -1344,9 +1658,9 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 }
 
 #ifndef PRODUCT
-void TimelineEventFixedBufferRecorder::PrintJSONEvents(
-    JSONArray* events,
-    TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)> print_impl) {
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
@@ -1357,21 +1671,42 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
         &blocks_[(block_idx + block_offset) % num_blocks_];
-    if (!filter->IncludeBlock(block)) {
+    if (!filter.IncludeBlock(block)) {
       continue;
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
       TimelineEvent* event = block->At(event_idx);
-      if (filter->IncludeEvent(event) &&
-          event->Within(filter->time_origin_micros(),
-                        filter->time_extent_micros())) {
+      if (filter.IncludeEvent(event) &&
+          event->Within(filter.time_origin_micros(),
+                        filter.time_extent_micros())) {
         ReportTime(event->LowTime());
         ReportTime(event->HighTime());
-        events->AddValue(event);
+        print_impl(*event);
       }
     }
   }
 }
+
+void TimelineEventFixedBufferRecorder::PrintJSONEvents(
+    const JSONArray& events,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
+    events.AddValue(&event);
+  });
+}
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
+    JSONBase64String* jsonBase64String,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [this,
+                             &jsonBase64String](const TimelineEvent& event) {
+    event.PopulateTracePacket(packet().get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
+    packet().Reset();
+  });
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
                                                  TimelineEventFilter* filter) {
@@ -1380,20 +1715,43 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(events);
-    PrintJSONEvents(&events, filter);
+    PrintJSONEvents(events, *filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
+
+#define PRINT_PERFETTO_TIMELINE_BODY                                           \
+  JSONObject jsobj_topLevel(js);                                               \
+  jsobj_topLevel.AddProperty("type", "PerfettoTimeline");                      \
+                                                                               \
+  js->AppendSerializedObject("\"trace\":");                                    \
+  {                                                                            \
+    JSONBase64String jsonBase64String(js);                                     \
+    PrintPerfettoMeta(&jsonBase64String);                                      \
+    PrintPerfettoEvents(&jsonBase64String, filter);                            \
+  }                                                                            \
+                                                                               \
+  jsobj_topLevel.AddPropertyTimeMicros("timeOriginMicros",                     \
+                                       TimeOriginMicros());                    \
+  jsobj_topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventFixedBufferRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  PRINT_PERFETTO_TIMELINE_BODY
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONMeta(events);
-  PrintJSONEvents(&events, filter);
+  PrintJSONEvents(events, *filter);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
   return &blocks_[0];
@@ -1467,12 +1825,20 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
   UNREACHABLE();
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventCallbackRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  UNREACHABLE();
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
@@ -1559,12 +1925,20 @@ void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
   UNREACHABLE();
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventPlatformRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  UNREACHABLE();
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventPlatformRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventPlatformRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
@@ -1732,41 +2106,17 @@ void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
     const char* path)
-    : TimelineEventFileRecorderBase(path),
-      async_track_uuid_to_track_descriptor_(
-          &SimpleHashMap::SamePointerValue,
-          TimelineEventPerfettoFileRecorder::
-              kAsyncTrackUuidToTrackDescriptorInitialCapacity) {
-  SetTrustedPacketSequenceId(packet_.get());
+    : TimelineEventFileRecorderBase(path) {
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+      this->packet();
 
-  perfetto::protos::pbzero::ClockSnapshot& clock_snapshot =
-      *packet_->set_clock_snapshot();
-  clock_snapshot.set_primary_trace_clock(
-      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
+  perfetto_utils::PopulateClockSnapshotPacket(packet.get());
+  WritePacket(&packet);
+  packet.Reset();
 
-  perfetto::protos::pbzero::ClockSnapshot_Clock& clock =
-      *clock_snapshot.add_clocks();
-  clock.set_clock_id(
-      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
-  clock.set_timestamp(OS::GetCurrentMonotonicMicrosForTimeline() * 1000);
-
-  WritePacket(&packet_);
-  packet_.Reset();
-
-  SetTrustedPacketSequenceId(packet_.get());
-
-  perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
-      *packet_->set_track_descriptor();
-  const int64_t pid = OS::ProcessId();
-  track_descriptor.set_uuid(pid);
-
-  perfetto::protos::pbzero::ProcessDescriptor& process_descriptor =
-      *track_descriptor.set_process();
-  process_descriptor.set_pid(pid);
-  // TODO(derekx): Add the process name.
-
-  WritePacket(&packet_);
-  packet_.Reset();
+  perfetto_utils::PopulateProcessDescriptorPacket(packet.get());
+  WritePacket(&packet);
+  packet.Reset();
 
   OSThread::Start("TimelineEventPerfettoFileRecorder",
                   TimelineEventFileRecorderBaseStart,
@@ -1774,55 +2124,36 @@ TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
 }
 
 TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+      this->packet();
   ShutDown();
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata().Start();
        entry != nullptr; entry = track_uuid_to_track_metadata().Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
-    packet_.Reset();
-    value->PopulateTracePacket(packet_.get());
-    WritePacket(&packet_);
+    value->PopulateTracePacket(packet.get());
+    WritePacket(&packet);
+    packet.Reset();
   }
   for (SimpleHashMap::Entry* entry =
-           async_track_uuid_to_track_descriptor_.Start();
+           async_track_uuid_to_track_metadata().Start();
        entry != nullptr;
-       entry = async_track_uuid_to_track_descriptor_.Next(entry)) {
-    auto* value = static_cast<
-        protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*>(
-        entry->value);
-    WritePacket(value);
-    delete value;
+       entry = async_track_uuid_to_track_metadata().Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet.get());
+    WritePacket(&packet);
+    packet.Reset();
   }
-}
-
-inline const std::tuple<std::unique_ptr<char[]>, intptr_t> GetProtoPreamble(
-    const intptr_t size) {
-  auto preamble =
-      std::make_unique<char[]>(perfetto::TracePacket::kMaxPreambleBytes);
-  uint8_t* ptr = reinterpret_cast<uint8_t*>(&preamble[0]);
-
-  const uint8_t tag = protozero::proto_utils::MakeTagLengthDelimited(
-      perfetto::TracePacket::kPacketFieldNumber);
-  static_assert(tag < 0x80, "TracePacket tag should fit in one byte");
-  *(ptr++) = tag;
-
-  ptr = protozero::proto_utils::WriteVarInt(size, ptr);
-  intptr_t preamble_size = reinterpret_cast<intptr_t>(ptr) -
-                           reinterpret_cast<intptr_t>(&preamble[0]);
-  return std::make_tuple(std::move(preamble), preamble_size);
 }
 
 void TimelineEventPerfettoFileRecorder::WritePacket(
     protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
     const {
-  intptr_t size = 0;
-  for (const protozero::ScatteredHeapBuffer::Slice& slice :
-       packet->GetSlices()) {
-    size += slice.size() - slice.unused_bytes();
-  }
-  const std::tuple<std::unique_ptr<char[]>, intptr_t>& response =
-      GetProtoPreamble(size);
-  Write(std::get<0>(response).get(), std::get<1>(response));
+  const std::tuple<std::unique_ptr<const uint8_t[]>, intptr_t>& response =
+      perfetto_utils::GetProtoPreamble(packet);
+  Write(reinterpret_cast<const char*>(std::get<0>(response).get()),
+        std::get<1>(response));
   for (const protozero::ScatteredHeapBuffer::Slice& slice :
        packet->GetSlices()) {
     Write(reinterpret_cast<char*>(slice.start()),
@@ -1830,154 +2161,14 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
   }
 }
 
-inline void AddSyncEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_track_uuid(OSThread::ThreadIdToIntPtr(event.thread()));
-}
-
-inline void AddAsyncEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_track_uuid(event.Id());
-}
-
-inline void AddBeginAndInstantEventCommonFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_name(event.label());
-}
-
-inline void AddBeginEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  AddBeginAndInstantEventCommonFields(track_event, event);
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
-}
-
-inline void AddInstantEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  AddBeginAndInstantEventCommonFields(track_event, event);
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_INSTANT);
-}
-
-inline void AddEndEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event) {
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
-}
-
-inline void AddTrackDescriptorForAsyncTrack(
-    SimpleHashMap* async_track_uuid_to_track_descriptor,
-    const TimelineEvent& event) {
-  void* key = reinterpret_cast<void*>(event.Id());
-  const intptr_t hash = Utils::WordHash(event.Id());
-  SimpleHashMap::Entry* entry =
-      async_track_uuid_to_track_descriptor->Lookup(key, hash, true);
-  if (entry->value == nullptr) {
-    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>&
-        track_descriptor_packet = *(
-            new protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>);
-    SetTrustedPacketSequenceId(track_descriptor_packet.get());
-
-    perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
-        *track_descriptor_packet->set_track_descriptor();
-    track_descriptor.set_parent_uuid(OS::ProcessId());
-    track_descriptor.set_uuid(event.Id());
-
-    entry->value = &track_descriptor_packet;
-  }
-}
-
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
-  SetTrustedPacketSequenceId(packet_.get());
-  // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
-  // ClockSnapshot to avoid manually converting from microseconds to
-  // nanoseconds, but I haven't been able to get it to work.
-  packet_->set_timestamp(event.TimeOrigin() * 1000);
-  packet_->set_timestamp_clock_id(
-      perfetto::protos::pbzero::BuiltinClock::BUILTIN_CLOCK_MONOTONIC);
-
-  perfetto::protos::pbzero::TrackEvent* track_event =
-      packet_->set_track_event();
-  track_event->add_categories(event.stream()->name());
-
-  switch (event.event_type()) {
-    case TimelineEvent::kBegin: {
-      AddSyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kEnd: {
-      AddSyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      break;
-    }
-    case TimelineEvent::kInstant: {
-      AddSyncEventFields(track_event, event);
-      AddInstantEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kAsyncBegin: {
-      AddTrackDescriptorForAsyncTrack(&async_track_uuid_to_track_descriptor_,
-                                      event);
-      AddAsyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kAsyncEnd: {
-      AddAsyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      break;
-    }
-    case TimelineEvent::kAsyncInstant: {
-      AddTrackDescriptorForAsyncTrack(&async_track_uuid_to_track_descriptor_,
-                                      event);
-      AddAsyncEventFields(track_event, event);
-      AddInstantEventFields(track_event, event);
-      break;
-    }
-    default:
-      break;
+  event.PopulateTracePacket(packet().get());
+  WritePacket(&packet());
+  packet().Reset();
+  if (event.event_type() == TimelineEvent::kAsyncBegin ||
+      event.event_type() == TimelineEvent::kAsyncInstant) {
+    AddAsyncTrackMetadataBasedOnEvent(event);
   }
-  if (event.GetNumArguments() > 0) {
-    if (event.pre_serialized_args()) {
-      ASSERT(event.GetNumArguments() == 1);
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-          *track_event->add_debug_annotations();
-      debug_annotation.set_name(event.arguments()[0].name);
-      debug_annotation.set_legacy_json_value(event.arguments()[0].value);
-    } else {
-      for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
-        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-            *track_event->add_debug_annotations();
-        debug_annotation.set_name(event.arguments()[i].name);
-        debug_annotation.set_string_value(event.arguments()[i].value);
-      }
-    }
-  }
-  if (event.HasIsolateId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateId");
-    char* formatted_isolate_id = event.GetFormattedIsolateId();
-    debug_annotation.set_string_value(formatted_isolate_id);
-    free(formatted_isolate_id);
-  }
-  if (event.HasIsolateGroupId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateGroupId");
-    char* formatted_isolate_group = event.GetFormattedIsolateGroupId();
-    debug_annotation.set_string_value(formatted_isolate_group);
-    free(formatted_isolate_group);
-  }
-
-  WritePacket(&packet_);
-  packet_.Reset();
 }
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
@@ -1987,6 +2178,51 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
 TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 
 #ifndef PRODUCT
+void TimelineEventEndlessRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)> print_impl) {
+  MutexLocker ml(&lock_);
+  ResetTimeTracking();
+  for (TimelineEventBlock* current = head_; current != nullptr;
+       current = current->next()) {
+    if (!filter.IncludeBlock(current)) {
+      continue;
+    }
+    intptr_t length = current->length();
+    for (intptr_t i = 0; i < length; i++) {
+      TimelineEvent* event = current->At(i);
+      if (filter.IncludeEvent(event) &&
+          event->Within(filter.time_origin_micros(),
+                        filter.time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
+        print_impl(*event);
+      }
+    }
+  }
+}
+
+void TimelineEventEndlessRecorder::PrintJSONEvents(
+    const JSONArray& events,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
+    events.AddValue(&event);
+  });
+}
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventEndlessRecorder::PrintPerfettoEvents(
+    JSONBase64String* jsonBase64String,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [this,
+                             &jsonBase64String](const TimelineEvent& event) {
+    event.PopulateTracePacket(packet().get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
+    packet().Reset();
+  });
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
   JSONObject topLevel(js);
@@ -1994,20 +2230,28 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(events);
-    PrintJSONEvents(&events, filter);
+    PrintJSONEvents(events, *filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventEndlessRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  PRINT_PERFETTO_TIMELINE_BODY
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONMeta(events);
-  PrintJSONEvents(&events, filter);
+  PrintJSONEvents(events, *filter);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
   return head_;
@@ -2038,32 +2282,6 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   }
   return block;
 }
-
-#ifndef PRODUCT
-void TimelineEventEndlessRecorder::PrintJSONEvents(
-    JSONArray* events,
-    TimelineEventFilter* filter) {
-  MutexLocker ml(&lock_);
-  ResetTimeTracking();
-  for (TimelineEventBlock* current = head_; current != nullptr;
-       current = current->next()) {
-    if (!filter->IncludeBlock(current)) {
-      continue;
-    }
-    intptr_t length = current->length();
-    for (intptr_t i = 0; i < length; i++) {
-      TimelineEvent* event = current->At(i);
-      if (filter->IncludeEvent(event) &&
-          event->Within(filter->time_origin_micros(),
-                        filter->time_extent_micros())) {
-        ReportTime(event->LowTime());
-        ReportTime(event->HighTime());
-        events->AddValue(event);
-      }
-    }
-  }
-}
-#endif
 
 void TimelineEventEndlessRecorder::Clear() {
   MutexLocker ml(&lock_);
@@ -2177,6 +2395,7 @@ void TimelineEventBlock::Finish() {
 
 void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
                                                int64_t id,
+                                               int64_t flow_id,
                                                intptr_t type,
                                                char* name,
                                                char* args) {
@@ -2192,7 +2411,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
       event->AsyncEnd(name, id, start);
       break;
     case TimelineEvent::kBegin:
-      event->Begin(name, id, start);
+      event->Begin(name, id, flow_id, start);
       break;
     case TimelineEvent::kEnd:
       event->End(name, id, start);

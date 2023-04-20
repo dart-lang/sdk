@@ -279,6 +279,17 @@ class IsolateManager {
     thread.hasPendingResume = true;
     try {
       await _adapter.vmService?.resume(thread.isolate.id!, step: resumeType);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // resuming it.
+    } on vm.RPCError catch (e) {
+      if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
+        // It's possible something else resumed the thread (such as if another
+        // debugger is attached), we can just continue.
+      } else {
+        rethrow;
+      }
     } finally {
       thread.hasPendingResume = false;
     }
@@ -612,13 +623,19 @@ class IsolateManager {
   ) async {
     final isolateId = isolate.id!;
     final uriStrings = uris.map((uri) => uri.toString()).toList();
-    final res = await _adapter.vmService
-        ?.lookupResolvedPackageUris(isolateId, uriStrings, local: true);
+    try {
+      final res = await _adapter.vmService
+          ?.lookupResolvedPackageUris(isolateId, uriStrings, local: true);
 
-    return res?.uris
-        ?.cast<String?>()
-        .map((uri) => uri != null ? Uri.parse(uri) : null)
-        .toList();
+      return res?.uris
+          ?.cast<String?>()
+          .map((uri) => uri != null ? Uri.parse(uri) : null)
+          .toList();
+    } on vm.SentinelException {
+      // If the isolate disappeared before we sent this request, just return
+      // null responses.
+      return uris.map((e) => null).toList();
+    }
   }
 
   /// Interpolates and prints messages for any log points.
