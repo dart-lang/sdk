@@ -909,6 +909,11 @@ class TimelineEventRecorder : public MallocAllocated {
   SimpleHashMap& async_track_uuid_to_track_metadata() {
     return async_track_uuid_to_track_metadata_;
   }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet() {
+    return packet_;
+  }
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 #ifndef PRODUCT
   void WriteTo(const char* directory);
@@ -947,6 +952,13 @@ class TimelineEventRecorder : public MallocAllocated {
   SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
   SimpleHashMap async_track_uuid_to_track_metadata_;
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  // We allocate one heap-buffered packet as a class member, because it lets us
+  // continuously follow a cycle of resetting the buffer and writing its
+  // contents.
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
@@ -1244,11 +1256,6 @@ class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
       protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
       const;
   void DrainImpl(const TimelineEvent& event) final;
-
-  // We allocate one heap-buffered packet as a class member, because it lets us
-  // continuously follow a cycle of resetting the buffer and writing its to
-  // contents to the file.
-  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
 };
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 

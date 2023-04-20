@@ -1986,13 +1986,16 @@ void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
     const char* path)
     : TimelineEventFileRecorderBase(path) {
-  perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
-  WritePacket(&packet_);
-  packet_.Reset();
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+      this->packet();
 
-  perfetto_utils::PopulateProcessDescriptorPacket(packet_.get());
-  WritePacket(&packet_);
-  packet_.Reset();
+  perfetto_utils::PopulateClockSnapshotPacket(packet.get());
+  WritePacket(&packet);
+  packet.Reset();
+
+  perfetto_utils::PopulateProcessDescriptorPacket(packet.get());
+  WritePacket(&packet);
+  packet.Reset();
 
   OSThread::Start("TimelineEventPerfettoFileRecorder",
                   TimelineEventFileRecorderBaseStart,
@@ -2000,14 +2003,16 @@ TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
 }
 
 TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+      this->packet();
   ShutDown();
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata().Start();
        entry != nullptr; entry = track_uuid_to_track_metadata().Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
-    value->PopulateTracePacket(packet_.get());
-    WritePacket(&packet_);
-    packet_.Reset();
+    value->PopulateTracePacket(packet.get());
+    WritePacket(&packet);
+    packet.Reset();
   }
   for (SimpleHashMap::Entry* entry =
            async_track_uuid_to_track_metadata().Start();
@@ -2015,9 +2020,9 @@ TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
        entry = async_track_uuid_to_track_metadata().Next(entry)) {
     AsyncTimelineTrackMetadata* value =
         static_cast<AsyncTimelineTrackMetadata*>(entry->value);
-    value->PopulateTracePacket(packet_.get());
-    WritePacket(&packet_);
-    packet_.Reset();
+    value->PopulateTracePacket(packet.get());
+    WritePacket(&packet);
+    packet.Reset();
   }
 }
 
@@ -2041,9 +2046,9 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
 }
 
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
-  event.PopulateTracePacket(packet_.get());
-  WritePacket(&packet_);
-  packet_.Reset();
+  event.PopulateTracePacket(packet().get());
+  WritePacket(&packet());
+  packet().Reset();
   if (event.event_type() == TimelineEvent::kAsyncBegin ||
       event.event_type() == TimelineEvent::kAsyncInstant) {
     AddAsyncTrackMetadataBasedOnEvent(event);
