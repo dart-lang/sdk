@@ -43,9 +43,9 @@ class RenameParameter extends Change<_Data> {
             builder.addSimpleReplacement(range.token(identifier), newName);
           }
         } else {
-          // If the overridden parameter still exists, then mark it as
-          // deprecated (if it isn't already) and add a declaration of the new
-          // parameter.
+          // If the overridden parameter still exists, then mark the overriding
+          // parameter as deprecated (if it isn't already and the overridden
+          // parameter is) and add a declaration of the new parameter.
           var parameterElement = parameter.declaredElement;
           if (parameterElement != null) {
             builder.addInsertion(parameter.offset, (builder) {
@@ -54,7 +54,8 @@ class RenameParameter extends Change<_Data> {
                   isRequiredNamed: parameterElement.isRequiredNamed,
                   type: parameterElement.type);
               builder.write(', ');
-              if (!parameterElement.hasDeprecated) {
+              if (overriddenParameter.hasDeprecated &&
+                  !parameterElement.hasDeprecated) {
                 builder.write('@deprecated ');
               }
             });
@@ -79,8 +80,17 @@ class RenameParameter extends Change<_Data> {
           parent is Label &&
           grandParent is NamedExpression) {
         var invocation = grandParent.parent?.parent;
-        if (invocation != null && fix.element.matches(invocation)) {
+        if (invocation != null) {
           return _InvocationData(node);
+        }
+      } else if (parent is MethodInvocation) {
+        for (var argument in parent.argumentList.arguments) {
+          if (argument is NamedExpression) {
+            var label = argument.name.label;
+            if (label.name == oldName) {
+              return _InvocationData(label);
+            }
+          }
         }
       }
     }
