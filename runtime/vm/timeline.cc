@@ -900,7 +900,7 @@ inline void SetTrustedPacketSequenceId(
 }
 
 void TimelineTrackMetadata::PopulateTracePacket(
-    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) {
+    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
   SetTrustedPacketSequenceId(track_descriptor_packet);
 
   perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
@@ -916,6 +916,21 @@ void TimelineTrackMetadata::PopulateTracePacket(
 }
 #endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
+
+AsyncTimelineTrackMetadata::AsyncTimelineTrackMetadata(intptr_t pid,
+                                                       intptr_t async_id)
+    : pid_(pid), async_id_(async_id) {}
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void AsyncTimelineTrackMetadata::PopulateTracePacket(
+    perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
+  SetTrustedPacketSequenceId(track_descriptor_packet);
+  perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
+      *track_descriptor_packet->set_track_descriptor();
+  track_descriptor.set_parent_uuid(pid());
+  track_descriptor.set_uuid(async_id());
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
@@ -1117,13 +1132,24 @@ TimelineEventRecorder::TimelineEventRecorder()
       track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
-      track_uuid_to_track_metadata_lock_() {}
+      track_uuid_to_track_metadata_lock_(),
+      async_track_uuid_to_track_metadata_(
+          &SimpleHashMap::SamePointerValue,
+          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
 
 TimelineEventRecorder::~TimelineEventRecorder() {
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
        entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
+    delete value;
+  }
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata_.Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
     delete value;
   }
 }
@@ -1317,6 +1343,26 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     }
   }
 }
+
+#if !defined(PRODUCT)
+void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
+    const TimelineEvent& event) {
+  if (FLAG_timeline_recorder == nullptr ||
+      // There is no way to retrieve track metadata when a callback or systrace
+      // recorder is in use, so we don't need to update the map in these cases.
+      strcmp("callback", FLAG_timeline_recorder) == 0 ||
+      strcmp("systrace", FLAG_timeline_recorder) == 0) {
+    return;
+  }
+  void* key = reinterpret_cast<void*>(event.Id());
+  const intptr_t hash = Utils::WordHash(event.Id());
+  SimpleHashMap::Entry* entry =
+      async_track_uuid_to_track_metadata_.Lookup(key, hash, true);
+  if (entry->value == nullptr) {
+    entry->value = new AsyncTimelineTrackMetadata(OS::ProcessId(), event.Id());
+  }
+}
+#endif  // !defined(PRODUCT)
 
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
@@ -1744,11 +1790,7 @@ void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
     const char* path)
-    : TimelineEventFileRecorderBase(path),
-      async_track_uuid_to_track_descriptor_(
-          &SimpleHashMap::SamePointerValue,
-          TimelineEventPerfettoFileRecorder::
-              kAsyncTrackUuidToTrackDescriptorInitialCapacity) {
+    : TimelineEventFileRecorderBase(path) {
   SetTrustedPacketSequenceId(packet_.get());
 
   perfetto::protos::pbzero::ClockSnapshot& clock_snapshot =
@@ -1791,19 +1833,19 @@ TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
        entry != nullptr; entry = track_uuid_to_track_metadata().Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
-    packet_.Reset();
     value->PopulateTracePacket(packet_.get());
     WritePacket(&packet_);
+    packet_.Reset();
   }
   for (SimpleHashMap::Entry* entry =
-           async_track_uuid_to_track_descriptor_.Start();
+           async_track_uuid_to_track_metadata().Start();
        entry != nullptr;
-       entry = async_track_uuid_to_track_descriptor_.Next(entry)) {
-    auto* value = static_cast<
-        protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*>(
-        entry->value);
-    WritePacket(value);
-    delete value;
+       entry = async_track_uuid_to_track_metadata().Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet_.get());
+    WritePacket(&packet_);
+    packet_.Reset();
   }
 }
 
@@ -1889,28 +1931,6 @@ inline void AddEndEventFields(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
 }
 
-inline void AddTrackDescriptorForAsyncTrack(
-    SimpleHashMap* async_track_uuid_to_track_descriptor,
-    const TimelineEvent& event) {
-  void* key = reinterpret_cast<void*>(event.Id());
-  const intptr_t hash = Utils::WordHash(event.Id());
-  SimpleHashMap::Entry* entry =
-      async_track_uuid_to_track_descriptor->Lookup(key, hash, true);
-  if (entry->value == nullptr) {
-    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>&
-        track_descriptor_packet = *(
-            new protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>);
-    SetTrustedPacketSequenceId(track_descriptor_packet.get());
-
-    perfetto::protos::pbzero::TrackDescriptor& track_descriptor =
-        *track_descriptor_packet->set_track_descriptor();
-    track_descriptor.set_parent_uuid(OS::ProcessId());
-    track_descriptor.set_uuid(event.Id());
-
-    entry->value = &track_descriptor_packet;
-  }
-}
-
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
   SetTrustedPacketSequenceId(packet_.get());
   // TODO(derekx): We should be able to set the unit_multiplier_ns field in a
@@ -1941,8 +1961,7 @@ void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
       break;
     }
     case TimelineEvent::kAsyncBegin: {
-      AddTrackDescriptorForAsyncTrack(&async_track_uuid_to_track_descriptor_,
-                                      event);
+      AddAsyncTrackMetadataBasedOnEvent(event);
       AddAsyncEventFields(track_event, event);
       AddBeginEventFields(track_event, event);
       break;
@@ -1953,8 +1972,7 @@ void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
       break;
     }
     case TimelineEvent::kAsyncInstant: {
-      AddTrackDescriptorForAsyncTrack(&async_track_uuid_to_track_descriptor_,
-                                      event);
+      AddAsyncTrackMetadataBasedOnEvent(event);
       AddAsyncEventFields(track_event, event);
       AddInstantEventFields(track_event, event);
       break;

@@ -622,11 +622,11 @@ class TimelineTrackMetadata {
   void PrintJSON(const JSONArray& jsarr_events) const;
 #if defined(SUPPORT_PERFETTO)
   /*
-   * Populates the fields of a |perfetto::protos::pbzero::TracePacket| with the
-   * metadata stored by this object.
+   * Populates the fields of |track_descriptor_packet| with the metadata stored
+   * by this object.
    */
   void PopulateTracePacket(
-      perfetto::protos::pbzero::TracePacket* track_descriptor_packet);
+      perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const;
 #endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
 
@@ -637,6 +637,27 @@ class TimelineTrackMetadata {
   intptr_t tid_;
   // The name of this track.
   Utils::CStringUniquePtr track_name_;
+};
+
+class AsyncTimelineTrackMetadata {
+ public:
+  AsyncTimelineTrackMetadata(intptr_t pid, intptr_t async_id);
+  intptr_t pid() const { return pid_; }
+  intptr_t async_id() const { return async_id_; }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  /*
+   * Populates the fields of |track_descriptor_packet| with the metadata stored
+   * by this object.
+   */
+  void PopulateTracePacket(
+      perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const;
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
+ private:
+  // The ID of the process that this track is associated with.
+  intptr_t pid_;
+  // The async ID that this track is associated with.
+  intptr_t async_id_;
 };
 
 #define TIMELINE_DURATION(thread, stream, name)                                \
@@ -871,10 +892,14 @@ class TimelineEventRecorder : public MallocAllocated {
   void AddTrackMetadataBasedOnThread(const intptr_t process_id,
                                      const intptr_t trace_id,
                                      const char* thread_name);
+  void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
 
  protected:
   SimpleHashMap& track_uuid_to_track_metadata() {
     return track_uuid_to_track_metadata_;
+  }
+  SimpleHashMap& async_track_uuid_to_track_metadata() {
+    return async_track_uuid_to_track_metadata_;
   }
 
 #ifndef PRODUCT
@@ -913,6 +938,7 @@ class TimelineEventRecorder : public MallocAllocated {
   static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
   SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
+  SimpleHashMap async_track_uuid_to_track_metadata_;
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
@@ -1195,9 +1221,6 @@ class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
       const;
   void DrainImpl(const TimelineEvent& event) final;
 
-  static const intptr_t kAsyncTrackUuidToTrackDescriptorInitialCapacity = 1
-                                                                          << 4;
-  SimpleHashMap async_track_uuid_to_track_descriptor_;
   // We allocate one heap-buffered packet as a class member, because it lets us
   // continuously follow a cycle of resetting the buffer and writing its to
   // contents to the file.
