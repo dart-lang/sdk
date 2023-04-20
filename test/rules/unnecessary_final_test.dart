@@ -129,6 +129,16 @@ f() {
     ]);
   }
 
+  test_recordPattern_destructured_forEach() async {
+    await assertDiagnostics(r'''
+f() {
+  for (final (a, b) in [(1, 2)]) { }
+}
+''', [
+      lint(13, 5),
+    ]);
+  }
+
   test_recordPattern_destructured_ok() async {
     await assertNoDiagnostics(r'''
 f() {

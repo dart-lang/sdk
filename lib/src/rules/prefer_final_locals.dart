@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
@@ -189,13 +189,5 @@ extension on AstNode {
       if (pattern != null && pattern.keyword.isFinal) return true;
     }
     return false;
-  }
-}
-
-extension on Token? {
-  bool get isFinal {
-    var self = this;
-    if (self == null) return false;
-    return self.keyword == Keyword.FINAL;
   }
 }

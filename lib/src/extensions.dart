@@ -427,6 +427,10 @@ extension NullableAstNodeExtension on AstNode? {
   }
 }
 
+extension TokenExtension on Token? {
+  bool get isFinal => this?.keyword == Keyword.FINAL;
+}
+
 extension TokenTypeExtension on TokenType {
   TokenType get inverted => switch (this) {
         TokenType.LT_EQ => TokenType.GT_EQ,

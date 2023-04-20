@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = "Don't use `final` for local variables.";
 
@@ -121,6 +122,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (loopVariable.isFinal) {
         var errorCode = getErrorCode(loopVariable.type);
         rule.reportLintForToken(loopVariable.keyword, errorCode: errorCode);
+      }
+    } else if (forLoopParts is ForEachPartsWithPattern) {
+      var keyword = forLoopParts.keyword;
+      if (keyword.isFinal) {
+        rule.reportLintForToken(keyword,
+            errorCode: UnnecessaryFinal.withoutType);
       }
     }
   }
