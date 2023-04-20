@@ -272,6 +272,18 @@ _nightly_builder(
     dimensions = windows,
 )
 
+# vm|aot
+_nightly_builder(
+    "vm-aot-obfuscate-linux-release-x64",
+    category = "vm|aot|o",
+    channels = ["try"],
+)
+_nightly_builder(
+    "vm-aot-dwarf-linux-product-x64",
+    category = "vm|aot|dw",
+    channels = ["try"],
+)
+
 # vm|misc
 _nightly_builder(
     "vm-eager-optimization-linux-release-ia32",
@@ -449,15 +461,6 @@ _extra_builder(
 _extra_builder(
     "vm-kernel-precomp-linux-release-x64",
     category = "vm|legacy|aot|r",
-)
-_extra_builder(
-    "vm-kernel-precomp-obfuscate-linux-release-x64",
-    category = "vm|legacy|aot|o",
-)
-_nightly_builder(
-    "vm-kernel-precomp-dwarf-linux-product-x64",
-    category = "vm|legacy|aot|dw",
-    channels = ["try"],
 )
 
 # Isolate stress test builder
