@@ -84,7 +84,16 @@ inline void PopulateProcessDescriptorPacket(
 }
 
 inline const std::tuple<std::unique_ptr<const uint8_t[]>, intptr_t>
-GetProtoPreamble(const intptr_t size) {
+GetProtoPreamble(
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet) {
+  ASSERT(packet != nullptr);
+
+  intptr_t size = 0;
+  for (const protozero::ScatteredHeapBuffer::Slice& slice :
+       packet->GetSlices()) {
+    size += slice.size() - slice.unused_bytes();
+  }
+
   std::unique_ptr<uint8_t[]> preamble =
       std::make_unique<uint8_t[]>(perfetto::TracePacket::kMaxPreambleBytes);
   uint8_t* ptr = &preamble[0];
@@ -98,6 +107,23 @@ GetProtoPreamble(const intptr_t size) {
   intptr_t preamble_size = reinterpret_cast<intptr_t>(ptr) -
                            reinterpret_cast<intptr_t>(&preamble[0]);
   return std::make_tuple(std::move(preamble), preamble_size);
+}
+
+inline void AppendPacketToJSONBase64String(
+    JSONBase64String* jsonBase64String,
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet) {
+  ASSERT(jsonBase64String != nullptr);
+  ASSERT(packet != nullptr);
+
+  auto& response = perfetto_utils::GetProtoPreamble(packet);
+  const uint8_t* preamble = std::get<0>(response).get();
+  const intptr_t preamble_length = std::get<1>(response);
+  jsonBase64String->AppendBytes(preamble, preamble_length);
+  for (const protozero::ScatteredHeapBuffer::Slice& slice :
+       packet->GetSlices()) {
+    jsonBase64String->AppendBytes(slice.start(),
+                                  slice.size() - slice.unused_bytes());
+  }
 }
 
 }  // namespace perfetto_utils
@@ -1350,7 +1376,42 @@ void TimelineEventRecorder::PrintJSONMeta(const JSONArray& jsarr_events) {
     value->PrintJSON(jsarr_events);
   }
 }
-#endif
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventRecorder::PrintPerfettoMeta(
+    JSONBase64String* jsonBase64String) {
+  ASSERT(jsonBase64String != nullptr);
+
+  perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+  perfetto_utils::PopulateProcessDescriptorPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata().Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata().Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet_.get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+    packet_.Reset();
+  }
+
+  MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    value->PopulateTracePacket(packet_.get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+    packet_.Reset();
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
@@ -1432,6 +1493,15 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   if (event == nullptr) {
     return;
   }
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  // Async track metadata is only written in Perfetto traces, and Perfetto
+  // traces cannot be written when SUPPORT_PERFETTO is not defined, or when
+  // PRODUCT is defined.
+  if (event->event_type() == TimelineEvent::kAsyncBegin ||
+      event->event_type() == TimelineEvent::kAsyncInstant) {
+    AddAsyncTrackMetadataBasedOnEvent(*event);
+  }
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   // Grab the current thread.
   OSThread* thread = OSThread::Current();
   ASSERT(thread != nullptr);
@@ -1625,6 +1695,19 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
   });
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
+    JSONBase64String* jsonBase64String,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [this,
+                             &jsonBase64String](const TimelineEvent& event) {
+    event.PopulateTracePacket(packet().get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
+    packet().Reset();
+  });
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
                                                  TimelineEventFilter* filter) {
   JSONObject topLevel(js);
@@ -1638,6 +1721,29 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
+#define PRINT_PERFETTO_TIMELINE_BODY                                           \
+  JSONObject jsobj_topLevel(js);                                               \
+  jsobj_topLevel.AddProperty("type", "PerfettoTimeline");                      \
+                                                                               \
+  js->AppendSerializedObject("\"trace\":");                                    \
+  {                                                                            \
+    JSONBase64String jsonBase64String(js);                                     \
+    PrintPerfettoMeta(&jsonBase64String);                                      \
+    PrintPerfettoEvents(&jsonBase64String, filter);                            \
+  }                                                                            \
+                                                                               \
+  jsobj_topLevel.AddPropertyTimeMicros("timeOriginMicros",                     \
+                                       TimeOriginMicros());                    \
+  jsobj_topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
+
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventFixedBufferRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  PRINT_PERFETTO_TIMELINE_BODY
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
@@ -1645,7 +1751,7 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
   PrintJSONMeta(events);
   PrintJSONEvents(events, *filter);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
   return &blocks_[0];
@@ -1719,12 +1825,20 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
   UNREACHABLE();
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventCallbackRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  UNREACHABLE();
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
@@ -1811,12 +1925,20 @@ void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
   UNREACHABLE();
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventPlatformRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  UNREACHABLE();
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventPlatformRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventPlatformRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
@@ -2028,13 +2150,8 @@ TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
 void TimelineEventPerfettoFileRecorder::WritePacket(
     protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
     const {
-  intptr_t size = 0;
-  for (const protozero::ScatteredHeapBuffer::Slice& slice :
-       packet->GetSlices()) {
-    size += slice.size() - slice.unused_bytes();
-  }
   const std::tuple<std::unique_ptr<const uint8_t[]>, intptr_t>& response =
-      perfetto_utils::GetProtoPreamble(size);
+      perfetto_utils::GetProtoPreamble(packet);
   Write(reinterpret_cast<const char*>(std::get<0>(response).get()),
         std::get<1>(response));
   for (const protozero::ScatteredHeapBuffer::Slice& slice :
@@ -2093,6 +2210,19 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
   });
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventEndlessRecorder::PrintPerfettoEvents(
+    JSONBase64String* jsonBase64String,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [this,
+                             &jsonBase64String](const TimelineEvent& event) {
+    event.PopulateTracePacket(packet().get());
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet());
+    packet().Reset();
+  });
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
   JSONObject topLevel(js);
@@ -2106,6 +2236,14 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
+#if defined(SUPPORT_PERFETTO)
+void TimelineEventEndlessRecorder::PrintPerfettoTimeline(
+    JSONStream* js,
+    const TimelineEventFilter& filter) {
+  PRINT_PERFETTO_TIMELINE_BODY
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
@@ -2113,7 +2251,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
   PrintJSONMeta(events);
   PrintJSONEvents(events, *filter);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
   return head_;

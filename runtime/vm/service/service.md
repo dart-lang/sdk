@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.4
+# Dart VM Service Protocol 4.5
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.4_ of the Dart VM Service Protocol. This
+This document describes of _version 4.5_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1013,6 +1013,46 @@ Int32List, Int64List, Float32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
 
+### getPerfettoVMTimeline
+
+```
+PerfettoTimeline getPerfettoVMTimeline(int timeOriginMicros [optional],
+                                       int timeExtentMicros [optional])
+```
+
+The _getPerfettoVMTimeline_ RPC is used to retrieve an object which contains a
+VM timeline trace represented in Perfetto's proto format. See
+[PerfettoTimeline](#perfettotimeline) for a detailed description of the
+response.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to
+filter timeline events. It uses the same monotonic clock as dart:developer's
+`Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+[getVMTimelineMicros](#getvmtimelinemicros) for access to this clock through the
+service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to
+filter timeline events should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline
+events from the following time range will be returned:
+`(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If _getPerfettoVMTimeline_ is invoked while the current recorder is Callback, an
+[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
+be returned as timeline events are handled by the embedder in this mode.
+
+If _getPerfettoVMTimeline_ is invoked while the current recorder is one of
+Fuchsia or Macos or Systrace, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are handled by
+the OS in these modes.
+
+If _getPerfettoVMTimeline_ is invoked while the current recorder is File or
+Perfettofile, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are written
+directly to a file, and thus cannot be retrieved through the VM Service, in
+these modes.
+
 ### getPorts
 
 ```
@@ -1192,7 +1232,7 @@ Timeline getVMTimeline(int timeOriginMicros [optional],
 ```
 
 The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
-events.
+events. See [Timeline](#timeline) for a detailed description of the response.
 
 The _timeOriginMicros_ parameter is the beginning of the time range used to filter
 timeline events. It uses the same monotonic clock as dart:developer's `Timeline.now`
@@ -3746,6 +3786,24 @@ A _Parameter_ is a representation of a function parameter.
 
 See [Instance](#instance).
 
+### PerfettoTimeline
+
+```
+class PerfettoTimeline extends Response {
+  // A Base64 string representing the requested timeline trace in Perfetto's
+  // proto format.
+  string trace;
+
+  // The start of the period of time covered by the trace.
+  int timeOriginMicros;
+
+  // The duration of time covered by the trace.
+  int timeExtentMicros;
+}
+```
+
+See [getPerfettoVMTimeline](#getperfettovmtimeline);
+
 ### PortList
 
 ```
@@ -4254,6 +4312,8 @@ class Timeline extends Response {
 }
 ```
 
+See [getVMTimeline](#getvmtimeline);
+
 ### TimelineEvent
 
 ```
@@ -4524,5 +4584,6 @@ version | comments
 4.2 | Added `getInstancesAsList` RPC.
 4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
 4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
+4.5 | Added `getPerfettoVMTimeline` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

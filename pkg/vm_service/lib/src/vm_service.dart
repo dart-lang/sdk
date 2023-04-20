@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.4.0';
+const String vmServiceVersion = '4.5.0';
 
 /// @optional
 const String optional = 'optional';
@@ -161,6 +161,7 @@ Map<String, Function> _typeFactories = {
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
   'Parameter': Parameter.parse,
+  'PerfettoTimeline': PerfettoTimeline.parse,
   'PortList': PortList.parse,
   'ProfileFunction': ProfileFunction.parse,
   'ProtocolList': ProtocolList.parse,
@@ -218,6 +219,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getIsolateGroupMemoryUsage': const ['MemoryUsage'],
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj'],
+  'getPerfettoVMTimeline': const ['PerfettoTimeline'],
   'getPorts': const ['PortList'],
   'getRetainingPath': const ['RetainingPath'],
   'getProcessMemoryUsage': const ['ProcessMemoryUsage'],
@@ -774,6 +776,40 @@ abstract class VmServiceInterface {
     int? count,
   });
 
+  /// The `getPerfettoVMTimeline` RPC is used to retrieve an object which
+  /// contains a VM timeline trace represented in Perfetto's proto format. See
+  /// [PerfettoTimeline] for a detailed description of the response.
+  ///
+  /// The `timeOriginMicros` parameter is the beginning of the time range used
+  /// to filter timeline events. It uses the same monotonic clock as
+  /// dart:developer's `Timeline.now` and the VM embedding API's
+  /// `Dart_TimelineGetMicros`. See [VmServiceInterface.getVMTimelineMicros] for
+  /// access to this clock through the service protocol.
+  ///
+  /// The `timeExtentMicros` parameter specifies how large the time range used
+  /// to filter timeline events should be.
+  ///
+  /// For example, given `timeOriginMicros` and `timeExtentMicros`, only
+  /// timeline events from the following time range will be returned:
+  /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+  ///
+  /// If `getPerfettoVMTimeline` is invoked while the current recorder is
+  /// Callback, an [RPCError] with error code `114`, `invalid timeline request`,
+  /// will be returned as timeline events are handled by the embedder in this
+  /// mode.
+  ///
+  /// If `getPerfettoVMTimeline` is invoked while the current recorder is one of
+  /// Fuchsia or Macos or Systrace, an [RPCError] with error code `114`,
+  /// `invalid timeline request`, will be returned as timeline events are
+  /// handled by the OS in these modes.
+  ///
+  /// If `getPerfettoVMTimeline` is invoked while the current recorder is File
+  /// or Perfettofile, an [RPCError] with error code `114`, `invalid timeline
+  /// request`, will be returned as timeline events are written directly to a
+  /// file, and thus cannot be retrieved through the VM Service, in these modes.
+  Future<PerfettoTimeline> getPerfettoVMTimeline(
+      {int? timeOriginMicros, int? timeExtentMicros});
+
   /// The `getPorts` RPC is used to retrieve the list of `ReceivePort` instances
   /// for a given isolate.
   ///
@@ -917,7 +953,8 @@ abstract class VmServiceInterface {
   Future<VM> getVM();
 
   /// The `getVMTimeline` RPC is used to retrieve an object which contains VM
-  /// timeline events.
+  /// timeline events. See [Timeline] for a detailed description of the
+  /// response.
   ///
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter timeline events. It uses the same monotonic clock as
@@ -1557,6 +1594,12 @@ class VmServerConnection {
             count: params['count'],
           );
           break;
+        case 'getPerfettoVMTimeline':
+          response = await _serviceImplementation.getPerfettoVMTimeline(
+            timeOriginMicros: params!['timeOriginMicros'],
+            timeExtentMicros: params['timeExtentMicros'],
+          );
+          break;
         case 'getPorts':
           response = await _serviceImplementation.getPorts(
             params!['isolateId'],
@@ -2117,6 +2160,14 @@ class VmService implements VmServiceInterface {
         'objectId': objectId,
         if (offset != null) 'offset': offset,
         if (count != null) 'count': count,
+      });
+
+  @override
+  Future<PerfettoTimeline> getPerfettoVMTimeline(
+          {int? timeOriginMicros, int? timeExtentMicros}) =>
+      _call('getPerfettoVMTimeline', {
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
       });
 
   @override
@@ -7189,6 +7240,54 @@ class Parameter {
       '[Parameter parameterType: $parameterType, fixed: $fixed]';
 }
 
+/// See [VmServiceInterface.getPerfettoVMTimeline];
+class PerfettoTimeline extends Response {
+  static PerfettoTimeline? parse(Map<String, dynamic>? json) =>
+      json == null ? null : PerfettoTimeline._fromJson(json);
+
+  /// A Base64 string representing the requested timeline trace in Perfetto's
+  /// proto format.
+  String? trace;
+
+  /// The start of the period of time covered by the trace.
+  int? timeOriginMicros;
+
+  /// The duration of time covered by the trace.
+  int? timeExtentMicros;
+
+  PerfettoTimeline({
+    this.trace,
+    this.timeOriginMicros,
+    this.timeExtentMicros,
+  });
+
+  PerfettoTimeline._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json) {
+    trace = json['trace'] ?? '';
+    timeOriginMicros = json['timeOriginMicros'] ?? -1;
+    timeExtentMicros = json['timeExtentMicros'] ?? -1;
+  }
+
+  @override
+  String get type => 'PerfettoTimeline';
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    json['type'] = type;
+    json.addAll({
+      'trace': trace ?? '',
+      'timeOriginMicros': timeOriginMicros ?? -1,
+      'timeExtentMicros': timeExtentMicros ?? -1,
+    });
+    return json;
+  }
+
+  @override
+  String toString() => '[PerfettoTimeline ' //
+      'trace: $trace, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros]';
+}
+
 /// A `PortList` contains a list of ports associated with some isolate.
 ///
 /// See [VmServiceInterface.getPorts].
@@ -8226,6 +8325,7 @@ class Success extends Response {
   String toString() => '[Success]';
 }
 
+/// See [VmServiceInterface.getVMTimeline];
 class Timeline extends Response {
   static Timeline? parse(Map<String, dynamic>? json) =>
       json == null ? null : Timeline._fromJson(json);

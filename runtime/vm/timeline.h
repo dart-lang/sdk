@@ -49,6 +49,7 @@ namespace dart {
 #endif  // !defined(SUPPORT_TIMELINE)
 
 class JSONArray;
+class JSONBase64String;
 class JSONObject;
 class JSONStream;
 class JSONWriter;
@@ -889,8 +890,15 @@ class TimelineEventRecorder : public MallocAllocated {
   // Interface method(s) which must be implemented.
 #ifndef PRODUCT
   virtual void PrintJSON(JSONStream* js, TimelineEventFilter* filter) = 0;
+#if defined(SUPPORT_PERFETTO)
+  /*
+   * Prints a PerfettoTimeline service response into |js|.
+   */
+  virtual void PrintPerfettoTimeline(JSONStream* js,
+                                     const TimelineEventFilter& filter) = 0;
+#endif  // defined(SUPPORT_PERFETTO)
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
-#endif
+#endif  // !defined(PRODUCT)
   virtual const char* name() const = 0;
   virtual intptr_t Size() = 0;
   TimelineEventBlock* GetNewBlock();
@@ -929,7 +937,14 @@ class TimelineEventRecorder : public MallocAllocated {
   // Utility method(s).
 #ifndef PRODUCT
   void PrintJSONMeta(const JSONArray& jsarr_events);
-#endif
+#if defined(SUPPORT_PERFETTO)
+  /*
+   * Appends metadata about the timeline in Perfetto's proto format to
+   * |jsonBase64String|.
+   */
+  void PrintPerfettoMeta(JSONBase64String* jsonBase64String);
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
 
@@ -972,8 +987,12 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif
+#endif  // !defined(PRODUCT)
 
   intptr_t Size();
 
@@ -987,7 +1006,11 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
 #ifndef PRODUCT
   void PrintJSONEvents(const JSONArray& array,
                        const TimelineEventFilter& filter);
-#endif
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
+                           const TimelineEventFilter& filter);
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
   VirtualMemory* memory_;
   TimelineEventBlock* blocks_;
@@ -1040,8 +1063,12 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif
+#endif  // !defined(PRODUCT)
 
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.
@@ -1090,8 +1117,12 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif
+#endif  // !defined(PRODUCT)
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
   intptr_t Size() { return block_index_ * sizeof(TimelineEventBlock); }
@@ -1106,7 +1137,11 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #ifndef PRODUCT
   void PrintJSONEvents(const JSONArray& array,
                        const TimelineEventFilter& filter);
-#endif
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoEvents(JSONBase64String* jsonBase64String,
+                           const TimelineEventFilter& filter);
+#endif  // defined(SUPPORT_PERFETTO)
+#endif  // !defined(PRODUCT)
 
   TimelineEventBlock* head_;
   TimelineEventBlock* tail_;
@@ -1132,8 +1167,12 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final;
+#endif  // defined(SUPPORT_PERFETTO)
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
-#endif
+#endif  // !defined(PRODUCT)
 
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.
