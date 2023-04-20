@@ -114,7 +114,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (function == null) return;
 
     var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
-
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
         rule.reportLint(node);
@@ -184,7 +183,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on AstNode {
   bool get isDeclaredFinal {
     var self = this;
-    if (self is DeclaredVariablePattern) return self.keyword.isFinal;
+    if (self is DeclaredVariablePattern) {
+      if (self.keyword.isFinal) return true;
+      var pattern = self.thisOrAncestorOfType<ForEachPartsWithPattern>();
+      if (pattern != null && pattern.keyword.isFinal) return true;
+    }
     return false;
   }
 }

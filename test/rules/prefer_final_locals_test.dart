@@ -148,6 +148,15 @@ f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/linter/issues/4286
+  test_destructured_recordPattern_forLoop_final() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (final (a, b) in [(1, 2), (3, 4), (5, 6)]) { }
+}
+''');
+  }
+
   test_destructured_recordPattern_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
