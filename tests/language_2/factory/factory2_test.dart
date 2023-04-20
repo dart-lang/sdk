@@ -9,19 +9,30 @@
 import "dart:collection";
 
 abstract class A<T> {
-  factory A.create() = AFactory<T>.create; // //# 01: compile-time error
+  factory A.create() = AFactory<T>.create;
+  //                   ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  //                   ^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [cfe] Expected 0 type arguments.
 }
 
 class AFactory {
   //   Compile time error: should be AFactory<T> to match abstract class above
-  factory A.create() { // //# 01: compile-time error
-    return null;// //# 01: continued
-  } // //# 01: continued
+  factory A.create() {
+  //      ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_FACTORY_NAME_NOT_A_CLASS
+  // [cfe] The name of a constructor must match the name of the enclosing class.
+  }
 }
 
 abstract class Link<T> extends IterableBase<T> {
   // does not match constructor for LinkFactory
-  factory Link(T head, [Link<T> tail]) = LinkFactory<T>; //# 03: compile-time error
+  factory Link(T head, [Link<T> tail]) =
+      LinkFactory<T>;
+//    ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
+// [cfe] The constructor function type 'LinkFactory<T> Function(dynamic, [Link<dynamic>])' isn't a subtype of 'Link<T> Function(T, [Link<T>])'.
   Link<T> prepend(T element);
 }
 
@@ -34,7 +45,10 @@ class LinkFactory<T> {
 }
 
 // Does not implement all of Iterable
-class AbstractLink<T> implements Link<T> { /*@compile-error=unspecified*/
+class AbstractLink<T> implements Link<T> {
+//    ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'AbstractLink' is missing implementations for these members:
   const AbstractLink();
   Link<T> prepend(T element) {
     return new Link<T>(element, this);
@@ -42,28 +56,33 @@ class AbstractLink<T> implements Link<T> { /*@compile-error=unspecified*/
 }
 
 // Does not implement all of Iterable
-class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> { /*@compile-error=unspecified*/
+class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
+//    ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'LinkTail' is missing implementations for these members:
   const LinkTail();
 }
 
 // Does not implement all of Iterable
-class LinkEntry<T> extends AbstractLink<T> { /*@compile-error=unspecified*/
+class LinkEntry<T> extends AbstractLink<T> {
+//    ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'LinkEntry' is missing implementations for these members:
   LinkEntry(T head, Link<T> realTail);
 }
 
 class Fisk {
   // instantiation of abstract class
-  Link<String> nodes = const EmptyLink(); /*@compile-error=unspecified*/
+  Link<String> nodes = const EmptyLink();
 }
 
 main() {
   // Equivalent to new Link<dynamic>.create().
-  var a = new A.create(); // //# none: compile-time error
-  var a = new A.create(); // //# 01: continued
+  var a = new A.create();
 
   new Fisk();
   // instantiation of abstract class
-  new EmptyLink<String>().prepend('hest'); //# compile-time error
+  new EmptyLink<String>().prepend('hest');
   // instantiation of abstract class
-  const EmptyLink<String>().prepend('fisk'); //# compile-time error
+  const EmptyLink<String>().prepend('fisk');
 }

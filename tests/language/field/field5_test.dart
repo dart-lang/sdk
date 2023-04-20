@@ -6,7 +6,10 @@
 
 class A {
   var a;
-  int a() {/*@compile-error=unspecified*/
+  int a() {
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'a' is already declared in this scope.
     return 1;
   }
 }
