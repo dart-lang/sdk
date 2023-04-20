@@ -11,6 +11,7 @@
 #include <fcntl.h>
 
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <tuple>
 #include <utility>
@@ -1588,9 +1589,9 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 }
 
 #ifndef PRODUCT
-void TimelineEventFixedBufferRecorder::PrintJSONEvents(
-    JSONArray* events,
-    TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)> print_impl) {
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
@@ -1601,20 +1602,28 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
         &blocks_[(block_idx + block_offset) % num_blocks_];
-    if (!filter->IncludeBlock(block)) {
+    if (!filter.IncludeBlock(block)) {
       continue;
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
       TimelineEvent* event = block->At(event_idx);
-      if (filter->IncludeEvent(event) &&
-          event->Within(filter->time_origin_micros(),
-                        filter->time_extent_micros())) {
+      if (filter.IncludeEvent(event) &&
+          event->Within(filter.time_origin_micros(),
+                        filter.time_extent_micros())) {
         ReportTime(event->LowTime());
         ReportTime(event->HighTime());
-        events->AddValue(event);
+        print_impl(*event);
       }
     }
   }
+}
+
+void TimelineEventFixedBufferRecorder::PrintJSONEvents(
+    const JSONArray& events,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
+    events.AddValue(&event);
+  });
 }
 
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
@@ -1624,7 +1633,7 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(events);
-    PrintJSONEvents(&events, filter);
+    PrintJSONEvents(events, *filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
@@ -1635,7 +1644,7 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONMeta(events);
-  PrintJSONEvents(&events, filter);
+  PrintJSONEvents(events, *filter);
 }
 #endif
 
@@ -2048,6 +2057,38 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
 TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 
 #ifndef PRODUCT
+void TimelineEventEndlessRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)> print_impl) {
+  MutexLocker ml(&lock_);
+  ResetTimeTracking();
+  for (TimelineEventBlock* current = head_; current != nullptr;
+       current = current->next()) {
+    if (!filter.IncludeBlock(current)) {
+      continue;
+    }
+    intptr_t length = current->length();
+    for (intptr_t i = 0; i < length; i++) {
+      TimelineEvent* event = current->At(i);
+      if (filter.IncludeEvent(event) &&
+          event->Within(filter.time_origin_micros(),
+                        filter.time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
+        print_impl(*event);
+      }
+    }
+  }
+}
+
+void TimelineEventEndlessRecorder::PrintJSONEvents(
+    const JSONArray& events,
+    const TimelineEventFilter& filter) {
+  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
+    events.AddValue(&event);
+  });
+}
+
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
   JSONObject topLevel(js);
@@ -2055,7 +2096,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(events);
-    PrintJSONEvents(&events, filter);
+    PrintJSONEvents(events, *filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
@@ -2066,7 +2107,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONMeta(events);
-  PrintJSONEvents(&events, filter);
+  PrintJSONEvents(events, *filter);
 }
 #endif
 
@@ -2099,32 +2140,6 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   }
   return block;
 }
-
-#ifndef PRODUCT
-void TimelineEventEndlessRecorder::PrintJSONEvents(
-    JSONArray* events,
-    TimelineEventFilter* filter) {
-  MutexLocker ml(&lock_);
-  ResetTimeTracking();
-  for (TimelineEventBlock* current = head_; current != nullptr;
-       current = current->next()) {
-    if (!filter->IncludeBlock(current)) {
-      continue;
-    }
-    intptr_t length = current->length();
-    for (intptr_t i = 0; i < length; i++) {
-      TimelineEvent* event = current->At(i);
-      if (filter->IncludeEvent(event) &&
-          event->Within(filter->time_origin_micros(),
-                        filter->time_extent_micros())) {
-        ReportTime(event->LowTime());
-        ReportTime(event->HighTime());
-        events->AddValue(event);
-      }
-    }
-  }
-}
-#endif
 
 void TimelineEventEndlessRecorder::Clear() {
   MutexLocker ml(&lock_);

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_TIMELINE_H_
 #define RUNTIME_VM_TIMELINE_H_
 
+#include <functional>
+
 #include "include/dart_tools_api.h"
 
 #include "platform/atomic.h"
@@ -832,7 +834,7 @@ class TimelineEventFilter : public ValueObject {
 
   virtual ~TimelineEventFilter();
 
-  virtual bool IncludeBlock(TimelineEventBlock* block) {
+  virtual bool IncludeBlock(TimelineEventBlock* block) const {
     if (block == nullptr) {
       return false;
     }
@@ -840,7 +842,7 @@ class TimelineEventFilter : public ValueObject {
     return !block->IsEmpty() && !block->in_use();
   }
 
-  virtual bool IncludeEvent(TimelineEvent* event) {
+  virtual bool IncludeEvent(TimelineEvent* event) const {
     if (event == nullptr) {
       return false;
     }
@@ -862,7 +864,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
                                       int64_t time_origin_micros = -1,
                                       int64_t time_extent_micros = -1);
 
-  bool IncludeBlock(TimelineEventBlock* block) {
+  bool IncludeBlock(TimelineEventBlock* block) const final {
     if (block == nullptr) {
       return false;
     }
@@ -870,7 +872,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
     return !block->IsEmpty() && !block->in_use();
   }
 
-  bool IncludeEvent(TimelineEvent* event) {
+  bool IncludeEvent(TimelineEvent* event) const final {
     return event->IsValid() && (event->isolate_id() == isolate_id_);
   }
 
@@ -957,8 +959,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventFixedBufferRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   intptr_t Size();
@@ -971,7 +973,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   void Clear();
 
 #ifndef PRODUCT
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
+  void PrintJSONEvents(const JSONArray& array,
+                       const TimelineEventFilter& filter);
 #endif
 
   VirtualMemory* memory_;
@@ -979,6 +982,13 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;
+
+ private:
+#if !defined(PRODUCT)
+  inline void PrintEventsCommon(
+      const TimelineEventFilter& filter,
+      std::function<void(const TimelineEvent&)> print_impl);
+#endif  // !defined(PRODUCT)
 };
 
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
@@ -1067,8 +1077,8 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventEndlessRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
@@ -1082,12 +1092,20 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void Clear();
 
 #ifndef PRODUCT
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
+  void PrintJSONEvents(const JSONArray& array,
+                       const TimelineEventFilter& filter);
 #endif
 
   TimelineEventBlock* head_;
   TimelineEventBlock* tail_;
   intptr_t block_index_;
+
+ private:
+#if !defined(PRODUCT)
+  inline void PrintEventsCommon(
+      const TimelineEventFilter& filter,
+      std::function<void(const TimelineEvent&)> print_impl);
+#endif  // !defined(PRODUCT)
 
   friend class TimelineTestHelper;
 };
