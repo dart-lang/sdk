@@ -82,6 +82,8 @@ import '$uriContent';
     final fooPackageRoot = getFolder('$packagesRootPath/foo');
     newFile('$packagesRootPath/foo/lib/foo01.dart', '');
     newFile('$packagesRootPath/foo/lib/foo02.dart', '');
+    // Files that are not `*.dart` should not be suggested.
+    newFile('$packagesRootPath/foo/lib/foo03.txt', '');
     // We use this file to check that exactly `foo0` is used as prefix.
     // So, we don't have one-off and don't use just `foo`.
     newFile('$packagesRootPath/foo/lib/foo11.dart', '');
