@@ -722,6 +722,10 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             node.parent is ast.Directive &&
             offset >= node.contentsOffset &&
             offset <= node.contentsEnd;
+      // Disallow colons automatically triggering for switch statements
+      // (case, default).
+      case ':':
+        return node is! ast.SwitchStatement;
     }
 
     return true; // Any other trigger character can be handled always.
