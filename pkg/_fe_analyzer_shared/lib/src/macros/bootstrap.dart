@@ -102,6 +102,8 @@ void main(List<String> arguments, [SendPort? sendPort]) {
       late Stream<List<int>> inputStream;
       if (socketAddress != null && socketPort != null) {
         var socket = await Socket.connect(socketAddress, socketPort);
+        // Nagle's algorithm slows us down >100x, disable it.
+        socket.setOption(SocketOption.tcpNoDelay, true);
         sendResult = _sendIOSinkResultFactory(socket);
         inputStream = socket;
       } else {
@@ -380,13 +382,15 @@ void Function(Serializer) _sendIOSinkResultFactory(IOSink sink) =>
       } else if (serializationMode == SerializationMode.byteDataClient) {
         Uint8List result = (serializer as ByteDataSerializer).result;
         int length = result.lengthInBytes;
-        sink.add([
+        final bytesBuilder = BytesBuilder(copy: false);
+        bytesBuilder.add([
           length >> 24 & 0xff,
           length >> 16 & 0xff,
           length >> 8 & 0xff,
           length & 0xff,
         ]);
-        sink.add(result);
+        bytesBuilder.add(result);
+        sink.add(bytesBuilder.takeBytes());
       } else {
         throw new UnsupportedError(
             'Unsupported serialization mode \$serializationMode for '

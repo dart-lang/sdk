@@ -159,8 +159,10 @@ Future<void> _separateProcessStdioBenchmarks() async {
       responseCompleter = Completer();
       var result = serialize();
       if (result is List<int>) {
-        _writeLength(result, process.stdin);
-        process.stdin.add(result);
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        process.stdin.add(bytesBuilder.takeBytes());
       } else {
         process.stdin.writeln(jsonEncode(result));
       }
@@ -172,8 +174,10 @@ Future<void> _separateProcessStdioBenchmarks() async {
       responseCompleter = Completer();
       var result = serialize();
       if (result is List<int>) {
-        _writeLength(result, process.stdin);
-        process.stdin.add(result);
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        process.stdin.add(bytesBuilder.takeBytes());
       } else {
         process.stdin.writeln(jsonEncode(result));
       }
@@ -218,6 +222,8 @@ Future<void> _separateProcessSocketBenchmarks() async {
       serverSocket.port.toString(),
     ]);
     var client = await clientCompleter.future;
+    // Nagle's algorithm slows us down >100x, disable it.
+    client.setOption(SocketOption.tcpNoDelay, true);
 
     var listeners = <StreamSubscription>[
       (serializationMode == SerializationMode.jsonServer ||
@@ -240,8 +246,10 @@ Future<void> _separateProcessSocketBenchmarks() async {
       responseCompleter = Completer();
       var result = serialize();
       if (result is List<int>) {
-        _writeLength(result, client);
-        client.add(result);
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        client.add(bytesBuilder.takeBytes());
       } else {
         client.write(jsonEncode(result));
       }
@@ -253,8 +261,10 @@ Future<void> _separateProcessSocketBenchmarks() async {
       responseCompleter = Completer();
       var result = serialize();
       if (result is List<int>) {
-        _writeLength(result, client);
-        client.add(result);
+        final bytesBuilder = BytesBuilder(copy: false);
+        _writeLength(result, bytesBuilder);
+        bytesBuilder.add(result);
+        client.add(bytesBuilder.takeBytes());
       } else {
         client.write(jsonEncode(result));
       }
@@ -265,7 +275,7 @@ Future<void> _separateProcessSocketBenchmarks() async {
     listeners.forEach((l) => l.cancel());
     process.kill();
     await serverSocket.close();
-    await client.close();
+    client.destroy();
   } catch (e, s) {
     print('Error running benchmark \n$e\n\n$s');
   } finally {
@@ -273,12 +283,12 @@ Future<void> _separateProcessSocketBenchmarks() async {
   }
 }
 
-void _writeLength(List<int> result, Sink<List<int>> sink) {
+void _writeLength(List<int> result, BytesBuilder bytesBuilder) {
   int length = (result as Uint8List).lengthInBytes;
   if (length > 0xffffffff) {
     throw new StateError('Message was larger than the allowed size!');
   }
-  sink.add([
+  bytesBuilder.add([
     length >> 24 & 0xff,
     length >> 16 & 0xff,
     length >> 8 & 0xff,
@@ -323,8 +333,10 @@ String childProgram(SerializationMode mode) => '''
               MessageGrouper(socket).messageStream.listen((data) {
                 deserialize(data);
                 var result = serialize() as Uint8List;
-                _writeLength(result, socket);
-                socket.add(result);
+                final bytesBuilder = BytesBuilder(copy: false);
+                _writeLength(result, bytesBuilder);
+                bytesBuilder.add(result);
+                socket.add(bytesBuilder.takeBytes());
               });
             }
           } else {
@@ -345,8 +357,10 @@ String childProgram(SerializationMode mode) => '''
               MessageGrouper(stdin).messageStream.listen((data) {
                 deserialize(data);
                 var result = serialize() as Uint8List;
-                _writeLength(result, stdout);
-                stdout.add(result);
+                final bytesBuilder = BytesBuilder(copy: false);
+                _writeLength(result, bytesBuilder);
+                bytesBuilder.add(result);
+                stdout.add(bytesBuilder.takeBytes());
               });
             }
           }
@@ -392,12 +406,12 @@ String childProgram(SerializationMode mode) => '''
         }
       }
 
-      void _writeLength(Uint8List result, Sink<List<int>> sink) {
+      void _writeLength(Uint8List result, BytesBuilder bytesBuilder) {
         int length = result.lengthInBytes;
         if (length > 0xffffffff) {
           throw new StateError('Message was larger than the allowed size!');
         }
-        sink.add([
+        bytesBuilder.add([
           length >> 24 & 0xff,
           length >> 16 & 0xff,
           length >> 8 & 0xff,
