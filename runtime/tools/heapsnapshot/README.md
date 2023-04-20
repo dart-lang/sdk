@@ -13,6 +13,8 @@ heapsnapshot.
 
 ### Programmatically
 
+Note: enabled for debug and release Dart build modes, but not for product Dart build mode.
+
 It's possible to programmatically dump a heapsnapshot to a file by using a
 `dart:developer` API:
 ```
