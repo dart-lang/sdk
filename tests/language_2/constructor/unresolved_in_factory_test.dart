@@ -8,7 +8,10 @@
 
 class A {
   factory A() {
-    foo(); /*@compile-error=unspecified*/
+    foo();
+//  ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [cfe] Method not found: 'foo'.
   }
 }
 
