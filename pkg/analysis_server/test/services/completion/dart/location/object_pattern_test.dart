@@ -32,7 +32,7 @@ mixin ObjectPatternTestCases on AbstractCompletionDriverTest {
       test_declarationContext_pattern_first_withoutGetter_afterColon() async {
     await computeSuggestions('''
 void f1(A1 x0) {
-  var A1(: ^) = x0; 
+  var A1(: ^) = x0;
 }
 class A0 {
   int f01 = 0;
@@ -65,10 +65,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -76,7 +72,7 @@ suggestions
       test_declarationContext_pattern_first_withoutGetter_afterColon_partial() async {
     await computeSuggestions('''
 void f1(A1 x0) {
-  var A1(: g^) = x0; 
+  var A1(: g^) = x0;
 }
 class A0 {
   int f01 = 0;
@@ -122,10 +118,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
     }
   }
@@ -191,10 +183,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -402,10 +390,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -460,10 +444,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
     }
   }
@@ -520,10 +500,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
     }
   }
@@ -569,10 +545,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 
@@ -612,10 +584,6 @@ suggestions
     kind: getter
   g11
     kind: getter
-  m01
-    kind: methodInvocation
-  m11
-    kind: methodInvocation
 ''');
   }
 }

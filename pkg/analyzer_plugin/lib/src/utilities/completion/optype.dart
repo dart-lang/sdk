@@ -1164,6 +1164,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitObjectPattern(ObjectPattern node) {
+    if (node.leftParenthesis.end <= offset &&
+        offset <= node.rightParenthesis.offset) {
+      optype.patternLocation = NamedPatternFieldWantsName(
+        matchedType: node.type.typeOrThrow,
+        existingFields: node.fields,
+      );
+    }
     optype.completionLocation = 'ObjectPattern_fieldName';
   }
 

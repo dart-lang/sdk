@@ -105,7 +105,8 @@ class MemberSuggestionBuilder {
       required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
     if (method.isAccessibleIn(request.libraryElement) &&
-        _shouldAddSuggestion(method)) {
+        _shouldAddSuggestion(method) &&
+        request.opType.patternLocation == null) {
       builder.suggestMethod(method,
           kind: kind, inheritanceDistance: inheritanceDistance);
     }
