@@ -1093,9 +1093,8 @@ class _Cookie implements Cookie {
     }
     if (secure) sb.write("; Secure");
     if (httpOnly) sb.write("; HttpOnly");
-    if (sameSite != null &&
-        (sameSite != SameSite.None || (sameSite == SameSite.None && secure))) {
-      sb.write("; ${sameSite.toString().replaceAll(".", "=")}");
+    if (sameSite != null && (sameSite != SameSite.none || secure)) {
+      sb.write("; $sameSite");
     }
 
     return sb.toString();

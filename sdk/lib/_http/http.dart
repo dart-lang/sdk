@@ -735,17 +735,24 @@ abstract class ContentType implements HeaderValue {
   String? get charset;
 }
 
-/// Type of [Cookie.sameSite], which defines whether the cookie is available
+/// Value of [Cookie.sameSite], which defines whether the cookie is available
 /// from other sites.
-/// [Lax] is the default value, cookie with this value will generally not be sent
+///
+/// [lax] is the default value, cookie with this value will generally not be sent
 /// on cross-site requests, unless the user is navigated to the original site.
-/// [Strict] means this cookie will never be sent on cross-site requests.
-/// [None] means this cookie will be sent in all requests. [Cookies.secure] must
-/// also be set to true, otherwise this value will have no effect.
+/// [strict] means this cookie will never be sent on cross-site requests.
+/// [none] means this cookie will be sent in all requests. [Cookies.secure] must
+/// also be set to true, otherwise the `none` value will have no effect.
 enum SameSite {
-  Lax,
-  Strict,
-  None,
+  lax("Lax"),
+  strict("Strict"),
+  none("None");
+
+  final String token;
+
+  const SameSite(this.token);
+
+  String toString() => "SameSite=$token";
 }
 
 /// Representation of a cookie. For cookies received by the server as Cookie
