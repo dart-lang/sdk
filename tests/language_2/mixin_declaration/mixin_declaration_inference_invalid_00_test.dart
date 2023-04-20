@@ -13,6 +13,11 @@ mixin M0<T> on I<T> {}
 ///////////////////////////////////////////////////////
 
 // Error since class hierarchy is inconsistent
-class A00 extends I with M0<int> {} /*@compile-error=unspecified*/
+class A00 extends I with M0<int> {}
+//    ^
+// [cfe] 'I with M0' can't implement both 'I<dynamic>' and 'I<int>'
+// [cfe] 'I<dynamic>' doesn't implement 'I<int>' so it can't be used with 'M0<int>'.
+//                       ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
 
 void main() {}

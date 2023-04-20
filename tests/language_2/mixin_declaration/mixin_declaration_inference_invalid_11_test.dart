@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 class I<T> {}
+
 mixin M1<T> on I<T> {}
 
 //////////////////////////////////////////////////////
@@ -12,6 +13,9 @@ mixin M1<T> on I<T> {}
 // the "on" clause of a mixin
 ///////////////////////////////////////////////////////
 
-mixin A00Mixin on I<int>, M1 {} /*@compile-error=unspecified*/
+mixin A00Mixin on I<int>, M1 {}
+//    ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
+// [cfe] 'I with M1' can't implement both 'I<int>' and 'I<dynamic>'
 
 void main() {}
