@@ -11,7 +11,6 @@
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/thread_registry.h"
 
 namespace dart {
 

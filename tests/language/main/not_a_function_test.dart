@@ -4,4 +4,9 @@
 
 main() {}
 
-var main; /*@compile-error=unspecified*/
+var main;
+//  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [analyzer] COMPILE_TIME_ERROR.MAIN_IS_NOT_FUNCTION
+// [cfe] 'main' is already declared in this scope.
+// [cfe] The 'main' declaration must be a function declaration.

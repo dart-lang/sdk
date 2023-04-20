@@ -119,7 +119,7 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
   // Won't set up unwinding records on Windows 7, so users won't be able
   // to benefit from proper unhandled exceptions filtering.
   if (add_growable_function_table_func == nullptr) return;
-  ASSERT(page->type() == Page::kExecutable);
+  ASSERT(page->is_executable());
   page->top_ -= kReservedUnwindingRecordsSizeBytes;
   intptr_t unwinding_record_offset =
       page->memory_->size() - kReservedUnwindingRecordsSizeBytes;
@@ -140,7 +140,7 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
 
 void UnwindingRecords::UnregisterExecutablePage(Page* page) {
   if (delete_growable_function_table_func == nullptr) return;
-  ASSERT(page->type() == Page::kExecutable && !page->is_image_page());
+  ASSERT(page->is_executable() && !page->is_image());
   intptr_t unwinding_record_offset =
       page->memory_->size() - kReservedUnwindingRecordsSizeBytes;
   CodeRangeUnwindingRecord* record =

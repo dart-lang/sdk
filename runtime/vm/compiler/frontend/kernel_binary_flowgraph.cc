@@ -151,7 +151,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
-    if (H.thread()->IsMutatorThread()) {
+    if (H.thread()->IsDartMutatorThread()) {
       ASSERT(field.IsOriginal());
       LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
@@ -184,7 +184,7 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
     bool has_initializer) {
   if (has_initializer && PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
-    if (H.thread()->IsMutatorThread()) {
+    if (H.thread()->IsDartMutatorThread()) {
       LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
     } else {

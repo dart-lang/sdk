@@ -208,8 +208,9 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode ABSTRACT_SEALED_CLASS = ParserErrorCode(
     'ABSTRACT_SEALED_CLASS',
-    "A class can't be declared both 'sealed' and 'abstract'.",
-    correctionMessage: "Try removing the 'abstract' or 'sealed' keyword.",
+    "A 'sealed' class can't be marked 'abstract' because it's already "
+        "implicitly abstract.",
+    correctionMessage: "Try removing the 'abstract' keyword.",
     hasPublishedDocs: true,
   );
 

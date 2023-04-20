@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/flags.h"
 #include "vm/lockers.h"
+#include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/unit_test.h"

@@ -30,7 +30,6 @@
 #include "vm/stack_frame.h"
 #include "vm/tagged_pointer.h"
 #include "vm/thread_barrier.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/visitor.h"
 
@@ -696,7 +695,7 @@ SemiSpace::~SemiSpace() {
   Page* page = head_;
   while (page != nullptr) {
     Page* next = page->next();
-    page->Deallocate(/*can_use_cache*/ true);
+    page->Deallocate();
     page = next;
   }
 }
@@ -705,7 +704,7 @@ Page* SemiSpace::TryAllocatePageLocked(bool link) {
   if (capacity_in_words_ >= max_capacity_in_words_) {
     return nullptr;  // Full.
   }
-  Page* page = Page::Allocate(kPageSize, Page::kNew, /*can_use_cache*/ true);
+  Page* page = Page::Allocate(kPageSize, Page::kNew);
   if (page == nullptr) {
     return nullptr;  // Out of memory;
   }

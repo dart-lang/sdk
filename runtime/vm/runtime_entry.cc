@@ -30,7 +30,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
-#include "vm/thread_registry.h"
 #include "vm/type_testing_stubs.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3864,7 +3863,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   if (thread->is_unwind_in_progress()) {
     FATAL("Cannot invoke native callback while unwind error propagates.");
   }
-  if (!thread->IsMutatorThread()) {
+  if (!thread->IsDartMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");
   }
 

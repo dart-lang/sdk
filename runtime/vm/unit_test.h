@@ -113,7 +113,7 @@
         AssemblerTestRun##name(&test);                                         \
         return;                                                                \
       } else {                                                                 \
-        const Error& error = Error::Handle(thread->sticky_error());            \
+        const Error& error = Error::Handle(thread->StealStickyError());        \
         if (error.ptr() == Object::branch_offset_error().ptr()) {              \
           RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \

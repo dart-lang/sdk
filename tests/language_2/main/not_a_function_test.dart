@@ -6,4 +6,7 @@
 
 main() {}
 
-var main; /*@compile-error=unspecified*/
+var main;
+//  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [cfe] 'main' is already declared in this scope.

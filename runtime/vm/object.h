@@ -7074,7 +7074,7 @@ class Code : public Object {
   void ResetActiveInstructions() const;
 
   void set_instructions(const Instructions& instructions) const {
-    ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
+    ASSERT(Thread::Current()->IsDartMutatorThread() || !is_alive());
     untag()->set_instructions(instructions.ptr());
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)

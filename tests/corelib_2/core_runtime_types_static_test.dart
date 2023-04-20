@@ -18,20 +18,38 @@ class CoreStaticTypesTest {
 
   static testStringOperators() {
     var q = "abcdef";
-    /*@compile-error=unspecified*/ q['hello'];
-    /*@compile-error=unspecified*/ q[0] = 'x';
+    q['hello'];
+    //^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+    q[0] = 'x';
+//   ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
+// [cfe] The operator '[]=' isn't defined for the class 'String'.
   }
 
   static testStringMethods() {
     var s = "abcdef";
-    /*@compile-error=unspecified*/ s.startsWith(1);
-    /*@compile-error=unspecified*/ s.endsWith(1);
+    s.startsWith(1);
+    //           ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'int' can't be assigned to the parameter type 'Pattern'.
+    s.endsWith(1);
+    //         ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'int' can't be assigned to the parameter type 'String'.
   }
 
   static testListOperators() {
     var a = [1, 2, 3, 4];
-    /*@compile-error=unspecified*/ a['0'];
-    /*@compile-error=unspecified*/ a['0'] = 99;
+    a['0'];
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+    a['0'] = 99;
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   }
 }
 

@@ -15,7 +15,6 @@
 #include "vm/object.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
-#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 
 namespace dart {

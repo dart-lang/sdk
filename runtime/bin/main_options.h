@@ -49,7 +49,8 @@ namespace bin {
   V(bypass_trusting_system_roots, bypass_trusting_system_roots)                \
   V(delayed_filewatch_callback, delayed_filewatch_callback)                    \
   V(mark_main_isolate_as_system_isolate, mark_main_isolate_as_system_isolate)  \
-  V(no_serve_observatory, disable_observatory)
+  V(no_serve_observatory, disable_observatory)                                 \
+  V(serve_observatory, enable_observatory)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

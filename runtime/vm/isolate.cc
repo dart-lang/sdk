@@ -626,7 +626,6 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(heap() != nullptr);
-    thread->heap_ = heap();
     thread->set_os_thread(os_thread);
     ASSERT(thread->execution_state() == Thread::kThreadInNative);
     thread->set_execution_state(Thread::kThreadInVM);
@@ -687,7 +686,6 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
     ASSERT(thread->isolate_ == nullptr);
     thread->isolate_group_ = nullptr;
   }
-  thread->heap_ = nullptr;
   thread->set_os_thread(nullptr);
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
@@ -2835,7 +2833,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
   {
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    if (thread->IsMutatorThread() && ContainsOnlyOneIsolate()) {
+    if (thread->IsDartMutatorThread() && ContainsOnlyOneIsolate()) {
       single_current_mutator->Call();
       return;
     }
@@ -3678,7 +3676,7 @@ Thread* Isolate::ScheduleThread(bool is_nested_reenter) {
   // reuse it until the death of the isolate.
   Thread* existing_mutator_thread = mutator_thread_;
   if (existing_mutator_thread != nullptr) {
-    ASSERT(existing_mutator_thread->is_mutator_thread_);
+    ASSERT(existing_mutator_thread->is_dart_mutator_);
   }
 
   // Schedule the thread into the isolate by associating a 'Thread' structure
@@ -3690,7 +3688,7 @@ Thread* Isolate::ScheduleThread(bool is_nested_reenter) {
   ASSERT(mutator_thread_ == nullptr || mutator_thread_ == thread);
   mutator_thread_ = thread;
   scheduled_mutator_thread_ = thread;
-  thread->is_mutator_thread_ = true;
+  thread->is_dart_mutator_ = true;
   thread->field_table_values_ = field_table_->table();
   thread->isolate_ = this;
 

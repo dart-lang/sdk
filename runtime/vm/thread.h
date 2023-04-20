@@ -534,7 +534,7 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, field_table_values_);
   }
 
-  bool IsMutatorThread() const { return is_mutator_thread_; }
+  bool IsDartMutatorThread() const { return is_dart_mutator_; }
 
 #if defined(DEBUG)
   bool IsInsideCompiler() const { return inside_compiler_; }
@@ -661,9 +661,7 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, top_exit_frame_info_);
   }
 
-  // Heap of the isolate that this thread is operating on.
-  Heap* heap() const { return heap_; }
-  static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
+  Heap* heap() const;
 
   // The TLAB memory boundaries.
   //
@@ -1127,17 +1125,6 @@ class Thread : public ThreadState {
   Random* random() { return &thread_random_; }
   static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
-  uint64_t* GetFfiMarshalledArguments(intptr_t size) {
-    if (ffi_marshalled_arguments_size_ < size) {
-      if (ffi_marshalled_arguments_size_ > 0) {
-        free(ffi_marshalled_arguments_);
-      }
-      ffi_marshalled_arguments_ =
-          reinterpret_cast<uint64_t*>(malloc(size * sizeof(uint64_t)));
-    }
-    return ffi_marshalled_arguments_;
-  }
-
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
@@ -1255,7 +1242,6 @@ class Thread : public ThreadState {
   // The code is generated without DART_PRECOMPILED_RUNTIME, but used with
   // DART_PRECOMPILED_RUNTIME.
 
-  Heap* heap_ = nullptr;
   uword true_end_ = 0;
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
@@ -1287,9 +1273,6 @@ class Thread : public ThreadState {
   CompilerTimings* compiler_timings_ = nullptr;
 
   ErrorPtr sticky_error_;
-
-  intptr_t ffi_marshalled_arguments_size_ = 0;
-  uint64_t* ffi_marshalled_arguments_;
 
   ObjectPtr* field_table_values() const { return field_table_values_; }
 
@@ -1339,7 +1322,7 @@ class Thread : public ThreadState {
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
-  bool is_mutator_thread_ = false;
+  bool is_dart_mutator_ = false;
 
   bool is_unwind_in_progress_ = false;
 

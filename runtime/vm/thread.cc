@@ -290,7 +290,7 @@ bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
 void Thread::ExitIsolate(bool is_nested_exit) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(thread->isolate() != nullptr);
   ASSERT(thread->isolate_group() != nullptr);
   DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
@@ -312,7 +312,7 @@ bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
   ASSERT(kind != kMutatorTask);
   Thread* thread = isolate_group->ScheduleThread(bypass_safepoint);
   if (thread != nullptr) {
-    ASSERT(!thread->IsMutatorThread());
+    ASSERT(!thread->IsDartMutatorThread());
     ASSERT(thread->isolate() == nullptr);
     ASSERT(thread->isolate_group() == isolate_group);
     thread->FinishEntering(kind);
@@ -324,14 +324,14 @@ bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
 void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
-  ASSERT(!thread->IsMutatorThread());
+  ASSERT(!thread->IsDartMutatorThread());
   ASSERT(thread->isolate() == nullptr);
   ASSERT(thread->isolate_group() != nullptr);
 
   thread->PrepareLeaving();
 
-  const bool kIsMutatorThread = false;
-  thread->isolate_group()->UnscheduleThread(thread, kIsMutatorThread,
+  const bool kIsDartMutatorThread = false;
+  thread->isolate_group()->UnscheduleThread(thread, kIsDartMutatorThread,
                                             bypass_safepoint);
 }
 
@@ -526,6 +526,10 @@ void Thread::DeferredMarkingStackAcquire() {
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
 
+Heap* Thread::heap() const {
+  return isolate_group_->heap();
+}
+
 bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
@@ -574,7 +578,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 
   // Only the mutator thread can run Dart code.
-  if (IsMutatorThread()) {
+  if (IsDartMutatorThread()) {
     // The MarkTask, which calls this method, can run on a different thread.  We
     // therefore assume the mutator is at a safepoint and we can iterate its
     // stack.
@@ -687,7 +691,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 // marking stack.
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
   ASSERT(IsAtSafepoint() || OwnsGCSafepoint());
-  ASSERT(IsMutatorThread());
+  ASSERT(IsDartMutatorThread());
 
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
       StackFrameIterator::kAllowCrossThreadIteration;

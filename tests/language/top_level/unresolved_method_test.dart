@@ -5,7 +5,10 @@
 // Test that an unresolved method call at the top level creates a compile-
 // time error.
 
-var a = b(); /*@compile-error=unspecified*/
+var a = b();
+//      ^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+// [cfe] Method not found: 'b'.
 
 main() {
   print(a);

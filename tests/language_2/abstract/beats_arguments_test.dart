@@ -14,5 +14,8 @@ abstract class A {
 }
 
 void main() {
-  /*@compile-error=unspecified*/ new A();
+  new A();
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+  // [cfe] The class 'A' is abstract and can't be instantiated.
 }
