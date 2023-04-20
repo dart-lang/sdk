@@ -63,7 +63,8 @@ class EnumInfo<Type extends Object, EnumClass extends Object,
           _fieldLookup,
           _enumOperations.getEnumElementType(element),
           new IdentityRestriction<EnumElement>(element),
-          _enumOperations.getEnumElementName(element));
+          _enumOperations.getEnumElementName(element),
+          element);
     }
     return elements;
   }
@@ -134,6 +135,13 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
 /// unique subtypes of the enum type, modelled using [EnumStaticType].
 class EnumElementStaticType<Type extends Object, EnumElement extends Object>
     extends ValueStaticType<Type, EnumElement> {
+  final EnumElement _value;
+
   EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
-      super.restriction, super.name);
+      super.restriction, super.name, this._value);
+
+  @override
+  void valueToDart(DartTemplateBuffer buffer) {
+    buffer.writeEnumValue(_value, name);
+  }
 }

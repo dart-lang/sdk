@@ -92,7 +92,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
       Map<Key, PropertyWitness> witnessFields,
       {required bool forCorrection}) {
     buffer.write('(');
@@ -104,7 +104,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
         PropertyWitness? field = witnessFields[key];
         if (field != null) {
-          field.witnessToText(buffer, forCorrection: forCorrection);
+          field.witnessToDart(buffer, forCorrection: forCorrection);
         } else {
           buffer.write('_');
         }
@@ -116,7 +116,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
         buffer.write(': ');
         PropertyWitness? field = witnessFields[key];
         if (field != null) {
-          field.witnessToText(buffer, forCorrection: forCorrection);
+          field.witnessToDart(buffer, forCorrection: forCorrection);
         } else {
           buffer.write('_');
         }
@@ -140,7 +140,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
         buffer.write(key.name);
         buffer.write(': ');
         PropertyWitness field = entry.value;
-        field.witnessToText(buffer, forCorrection: forCorrection);
+        field.witnessToDart(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);
