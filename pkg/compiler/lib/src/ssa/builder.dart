@@ -1322,7 +1322,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void _buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
     if (functionNode.asyncMarker != ir.AsyncMarker.Sync) {
-      _buildGenerator(function, functionNode);
+      if (functionNode.asyncMarker == ir.AsyncMarker.SyncStar) {
+        _buildSyncStarGenerator(function, functionNode);
+      } else {
+        _buildGenerator(function, functionNode);
+      }
       return;
     }
 
@@ -1430,7 +1434,74 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds an SSA graph for a sync*/async/async* generator body.
+  /// Builds an SSA graph for a sync* method.  A sync* method is split into an
+  /// entry function and a body function. The entry function calls the body
+  /// function and wraps the result in an `_SyncStarIterable<T>`. The body
+  /// function is a separate entity (GeneratorBodyEntity) that is compiled via
+  /// SSA and the transformed into a reentrant state-machine.
+  ///
+  /// Here we generate the entry function which is approximately like this:
+  ///
+  ///     Iterable<T> foo(parameters) {
+  ///       return _makeSyncStarIterable<T>(foo$body(parameters));
+  ///     }
+  void _buildSyncStarGenerator(
+      FunctionEntity function, ir.FunctionNode functionNode) {
+    _openFunction(function,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure,
+        checks: _checksForFunction(function));
+
+    // Prepare to call the body generator.
+
+    // Is 'buildAsyncBody' the best location for the entry?
+    var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
+
+    // Forward all the parameters to the body.
+    List<HInstruction> inputs = [];
+    if (graph.thisInstruction != null) {
+      inputs.add(graph.thisInstruction!);
+    }
+    if (graph.explicitReceiverParameter != null) {
+      inputs.add(graph.explicitReceiverParameter!);
+    }
+    for (Local local in parameters.keys) {
+      if (!elidedParameters.contains(local)) {
+        inputs.add(localsHandler.readLocal(local));
+      }
+    }
+    for (Local local in _functionTypeParameterLocals) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+
+    JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    push(HInvokeGeneratorBody(
+        body,
+        inputs,
+        _abstractValueDomain.dynamicType, // Untyped JavaScript thunk.
+        sourceInformation));
+
+    // Call `_makeSyncStarIterable<T>(body)`. This usually gets inlined.
+
+    final elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
+        function.asyncMarker, _returnType!);
+    FunctionEntity method = _commonElements.syncStarIterableFactory;
+    List<HInstruction> arguments = [pop()];
+    List<DartType> typeArguments = const [];
+    if (_rtiNeed.methodNeedsTypeArguments(method)) {
+      typeArguments = [elementType];
+      _addTypeArguments(arguments, typeArguments, sourceInformation);
+    }
+    _pushStaticInvocation(method, arguments,
+        _typeInferenceMap.getReturnTypeOf(method), typeArguments,
+        sourceInformation: sourceInformation);
+
+    _closeAndGotoExit(HReturn(_abstractValueDomain, pop(), sourceInformation));
+
+    _closeFunction();
+  }
+
+  /// Builds an SSA graph for a async/async* generator body.
   void _buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;

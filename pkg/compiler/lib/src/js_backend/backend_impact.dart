@@ -122,6 +122,11 @@ class BackendImpacts {
   );
 
   late final BackendImpact syncStarBody = BackendImpact(
+    // The transformed JavaScript code for the sync* body has direct assignments
+    // to the properties for the instance fields of `_SyncStarIterator`.
+    // BackendImpact cannot model direct field assigments, so instead the
+    // impacts are modeled by a call to `_SyncStarIterator._modelGeneratedCode`
+    // in `moveNext()`.
     dynamicUses: [
       Selector.fromElement(_commonElements.syncStarIteratorYieldStarMethod),
     ],

@@ -246,13 +246,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType? asyncTypeParameter,
       js.Name name) {
-    final itemTypeExpression =
-        _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
-
     SyncStarRewriter rewriter = SyncStarRewriter(_reporter, element,
-        iterableFactory: emitter
-            .staticFunctionAccess(commonElements.syncStarIterableFactory),
-        iterableFactoryTypeArguments: itemTypeExpression,
         iteratorCurrentValueProperty: namer.instanceFieldPropertyName(
             commonElements.syncStarIteratorCurrentField),
         iteratorDatumProperty: namer.instanceFieldPropertyName(
@@ -261,11 +255,6 @@ class SsaFunctionCompiler implements FunctionCompiler {
             .instanceMethodName(commonElements.syncStarIteratorYieldStarMethod),
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
-
-    registry.registerStaticUse(StaticUse.staticInvoke(
-        commonElements.syncStarIterableFactory,
-        CallStructure.unnamed(1, 1),
-        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
   }

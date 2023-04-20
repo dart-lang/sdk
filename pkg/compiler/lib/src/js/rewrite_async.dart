@@ -1971,11 +1971,6 @@ class SyncStarRewriter extends AsyncRewriterBase {
   @override
   bool get isSyncStar => true;
 
-  /// Constructor creating the Iterable for a sync* method. Called with
-  /// [bodyName].
-  final js.Expression iterableFactory;
-  List<js.Expression>? iterableFactoryTypeArguments;
-
   /// A parameter to the [bodyName] function that passes the controlling
   /// `_SyncStarIterator`. This parameter is used to update the state of the
   /// iterator.
@@ -1991,9 +1986,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   final js.Expression yieldStarSelector;
 
   SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
-      {required this.iterableFactory,
-      required this.iterableFactoryTypeArguments,
-      required this.iteratorCurrentValueProperty,
+      {required this.iteratorCurrentValueProperty,
       required this.iteratorDatumProperty,
       required this.yieldStarSelector,
       required String safeVariableName(String proposedName),
@@ -2102,26 +2095,20 @@ class SyncStarRewriter extends AsyncRewriterBase {
       "varDecl": variableDeclarations,
       "returnInnerInnerFunction": returnInnerInnerFunction,
     }).withSourceInformation(functionSourceInformation);
-    js.Expression callIterableFactory =
-        js.js("#iterableFactory(#innerFunction, #type)", {
-      "iterableFactory": iterableFactory,
-      "type": iterableFactoryTypeArguments,
-      "innerFunction": innerFunction,
-    }).withSourceInformation(bodySourceInformation);
-    js.Statement returnCallIterableFactory = js.Return(callIterableFactory)
-        .withSourceInformation(bodySourceInformation);
+    js.Statement returnInnerFunction =
+        js.Return(innerFunction).withSourceInformation(bodySourceInformation);
     return js.js("""
           function (#renamedParameters, #typeParameters) {
             if (#needsThis)
               var #self = this;
-            #returnCallIterableFactory;
+            #returnInnerFunction;
           }
           """, {
       "renamedParameters": renamedParameters,
       "typeParameters": typeParameters,
       "needsThis": analysis.hasThis,
       "self": selfName,
-      "returnCallIterableFactory": returnCallIterableFactory,
+      "returnInnerFunction": returnInnerFunction,
     }).withSourceInformation(functionSourceInformation) as js.Fun;
   }
 
@@ -2172,8 +2159,6 @@ class SyncStarRewriter extends AsyncRewriterBase {
   @override
   void initializeNames() {
     iteratorName = freshName('iterator');
-    iterableFactoryTypeArguments =
-        processTypeArguments(iterableFactoryTypeArguments);
   }
 }
 

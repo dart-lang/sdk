@@ -49,8 +49,6 @@ void testSyncStarTransform(String source, String expected) {
       source,
       expected,
       SyncStarRewriter(SimpleErrorReporter(), null,
-          iterableFactory: VariableUse("NewIterable"),
-          iterableFactoryTypeArguments: [VariableUse("IterableType")],
           iteratorCurrentValueProperty: string('_current'),
           iteratorDatumProperty: string('_datum'),
           yieldStarSelector: string('_yieldStar'),
@@ -1295,7 +1293,7 @@ function(a) sync* {
   return foo();
 }""", """
 function(__a) {
-  return NewIterable(function() {
+  return function() {
     var a = __a;
     var __goto = 0, __handler = 2, __currentError;
     return function body(__iterator, __errorCode, __result) {
@@ -1319,6 +1317,6 @@ function(__a) {
             return __iterator._datum = __currentError, 3;
         }
     };
-  }, IterableType);
+  };
 }""");
 }
