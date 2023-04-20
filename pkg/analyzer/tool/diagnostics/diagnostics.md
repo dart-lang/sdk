@@ -566,7 +566,8 @@ abstract class C {
 
 ### abstract_sealed_class
 
-_A class can't be declared both 'sealed' and 'abstract'._
+_A 'sealed' class can't be marked 'abstract' because it's already implicitly
+abstract._
 
 #### Description
 
