@@ -229,6 +229,11 @@
 
 ### Tools
 
+#### Observatory
+- Observatory is no longer served by default and users should instead use Dart
+  DevTools. Users requiring specific functionality in Observatory should set
+  the `--serve-observatory` flag.
+
 #### Web Dev Compiler (DDC)
 - Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
 - The compile time flag `--nativeNonNullAsserts`, which ensures web library APIs
