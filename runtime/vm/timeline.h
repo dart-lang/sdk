@@ -332,6 +332,10 @@ class TimelineEvent {
     kNumEventTypes,
   };
 
+  // This value must be kept in sync with the value of _noFlowId in
+  // sdk/lib/developer/timeline.dart.
+  static const int64_t kNoFlowId = -1;
+
   TimelineEvent();
   ~TimelineEvent();
 
@@ -367,6 +371,7 @@ class TimelineEvent {
 
   void Begin(const char* label,
              int64_t id,
+             int64_t flow_id,
              int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void End(const char* label,
@@ -433,6 +438,9 @@ class TimelineEvent {
 
   int64_t timestamp0() const { return timestamp0_; }
   int64_t timestamp1() const { return timestamp1_; }
+
+  bool HasFlowId() const;
+  int64_t flow_id() const { return flow_id_; }
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
@@ -538,6 +546,11 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
+  void set_flow_id(int64_t flow_id) {
+    ASSERT(flow_id_ == TimelineEvent::kNoFlowId);
+    flow_id_ = flow_id;
+  }
+
   bool pre_serialized_args() const {
     return PreSerializedArgsBit::decode(state_);
   }
@@ -562,6 +575,12 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
+  // This field is only used by the Perfetto recorders, because Perfetto's trace
+  // format handles flow events by processing flow IDs attached to
+  // |TimelineEvent::kBegin| events. Other recorders handle flow events by
+  // processing events of type TimelineEvent::kFlowBegin|,
+  // |TimelineEvent::kFlowStep|, and |TimelineEvent::kFlowEnd|.
+  int64_t flow_id_;
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
@@ -1190,6 +1209,7 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
+                              int64_t flow_id,
                               intptr_t type,
                               char* name,
                               char* args);
