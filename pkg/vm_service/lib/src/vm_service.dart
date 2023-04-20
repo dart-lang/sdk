@@ -941,10 +941,10 @@ abstract class VmServiceInterface {
   /// timeline request`, will be returned as timeline events are handled by the
   /// OS in these modes.
   ///
-  /// If `getVMTimeline` is invoked while the current recorder is File, an
-  /// [RPCError] with error code `114`, `invalid timeline request`, will be
-  /// returned as timeline events are written directly to a file, and thus
-  /// cannot be retrieved through the VM Service, in this mode.
+  /// If `getVMTimeline` is invoked while the current recorder is File or
+  /// Perfettofile, an [RPCError] with error code `114`, `invalid timeline
+  /// request`, will be returned as timeline events are written directly to a
+  /// file, and thus cannot be retrieved through the VM Service, in these modes.
   Future<Timeline> getVMTimeline(
       {int? timeOriginMicros, int? timeExtentMicros});
 
@@ -4735,7 +4735,7 @@ class Flag {
 
   /// The value of this flag as a string.
   ///
-  /// If this property is absent, then the value of the flag was NULL.
+  /// If this property is absent, then the value of the flag was nullptr.
   @optional
   String? valueAsString;
 

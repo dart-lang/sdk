@@ -110,7 +110,7 @@ GetProtoPreamble(const intptr_t size) {
 #define DEFAULT_TIMELINE_RECORDER "ring"
 #if defined(SUPPORT_PERFETTO)
 #define SUPPORTED_TIMELINE_RECORDERS                                           \
-  "ring, endless, startup, systrace, file, callback, perfetto"
+  "ring, endless, startup, systrace, file, callback, perfettofile"
 #else
 #define SUPPORTED_TIMELINE_RECORDERS                                           \
   "ring, endless, startup, systrace, file, callback"
@@ -249,14 +249,13 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   // The Perfetto file recorder is disabled in PRODUCT mode to avoid the large
   // binary size increase that it brings.
   {
-    const intptr_t kLengthOfWordPerfetto = 8;
-    if (Utils::StrStartsWith(flag, "perfetto") &&
-        (flag[kLengthOfWordPerfetto] == '\0' ||
-         flag[kLengthOfWordPerfetto] == ':' ||
-         flag[kLengthOfWordPerfetto] == '=')) {
-      const char* filename = flag[kLengthOfWordPerfetto] == '\0'
+    const intptr_t kPrefixLength = 12;
+    if (Utils::StrStartsWith(flag, "perfettofile") &&
+        (flag[kPrefixLength] == '\0' || flag[kPrefixLength] == ':' ||
+         flag[kPrefixLength] == '=')) {
+      const char* filename = flag[kPrefixLength] == '\0'
                                  ? "dart.perfetto-trace"
-                                 : &flag[kLengthOfWordPerfetto + 1];
+                                 : &flag[kPrefixLength + 1];
       free(const_cast<char*>(FLAG_timeline_dir));
       FLAG_timeline_dir = nullptr;
       return new TimelineEventPerfettoFileRecorder(filename);

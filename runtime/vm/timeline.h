@@ -69,7 +69,7 @@ class Zone;
 #define FILE_RECORDER_NAME "File"
 #define FUCHSIA_RECORDER_NAME "Fuchsia"
 #define MACOS_RECORDER_NAME "Macos"
-#define PERFETTO_RECORDER_NAME "Perfetto"
+#define PERFETTO_FILE_RECORDER_NAME "Perfettofile"
 #define RING_RECORDER_NAME "Ring"
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
@@ -1249,7 +1249,7 @@ class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
   explicit TimelineEventPerfettoFileRecorder(const char* path);
   virtual ~TimelineEventPerfettoFileRecorder();
 
-  const char* name() const final { return PERFETTO_RECORDER_NAME; }
+  const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
 
  private:
   void WritePacket(

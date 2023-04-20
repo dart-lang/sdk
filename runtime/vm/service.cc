@@ -4186,7 +4186,8 @@ static void GetVMTimeline(Thread* thread, JSONStream* js) {
         "for this recorder type.",
         timeline_recorder->name());
     return;
-  } else if (strcmp(name, FILE_RECORDER_NAME) == 0) {
+  } else if (strcmp(name, FILE_RECORDER_NAME) == 0 ||
+             strcmp(name, PERFETTO_FILE_RECORDER_NAME) == 0) {
     js->PrintError(kInvalidTimelineRequest,
                    "A recorder of type \"%s\" is currently in use. As a "
                    "result, timeline events are written directly to a file and "

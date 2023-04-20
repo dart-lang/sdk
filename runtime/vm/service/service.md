@@ -1214,10 +1214,11 @@ Macos or Systrace, an [RPC error](#rpc-error) with error code _114_,
 `invalid timeline request`, will be returned as timeline events are handled by
 the OS in these modes.
 
-If _getVMTimeline_ is invoked while the current recorder is File, an
-[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
-be returned as timeline events are written directly to a file, and thus cannot
-be retrieved through the VM Service, in this mode.
+If _getVMTimeline_ is invoked while the current recorder is File or
+Perfettofile, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are written
+directly to a file, and thus cannot be retrieved through the VM Service, in
+these modes.
 
 ### getVMTimelineFlags
 
