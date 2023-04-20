@@ -469,6 +469,14 @@ abstract class BuildContext {
   bool get mounted;
 }
 
+class Container extends StatelessWidget {
+  const Container({super.key});
+}
+
+class Key {
+  Key(String value);
+}
+
 class Navigator {
   static NavigatorState of(
       BuildContext context, {bool rootNavigator = false}) => NavigatorState();
@@ -476,7 +484,28 @@ class Navigator {
 
 class NavigatorState {}
 
-class Widget {}
+abstract class StatefulWidget extends Widget {
+  const StatefulWidget({super.key});
+}
+
+abstract class Widget {
+  final Key? key;
+
+  const Widget({thi.key});
+}
+
+abstract class StatelessWidget extends Widget {
+  const StatelessWidget({super.key});
+
+  @protected
+  Widget build(BuildContext context);
+}
+
+abstract class Widget {
+  final Key? key;
+
+  const Widget({thi.key});
+}
 ''');
   }
 }

@@ -133,6 +133,8 @@ import 'use_build_context_synchronously_test.dart'
 import 'use_enums_test.dart' as use_enums;
 import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
+import 'use_key_in_widget_constructors_test.dart'
+    as use_key_in_widget_constructors;
 import 'use_late_for_private_fields_and_variables_test.dart'
     as use_late_for_private_fields_and_variables;
 import 'use_named_constants_test.dart' as use_named_constants;
@@ -236,6 +238,7 @@ void main() {
   use_build_context_synchronously.main();
   use_enums.main();
   use_is_even_rather_than_modulo.main();
+  use_key_in_widget_constructors.main();
   use_late_for_private_fields_and_variables.main();
   use_named_constants.main();
   use_super_parameters.main();
