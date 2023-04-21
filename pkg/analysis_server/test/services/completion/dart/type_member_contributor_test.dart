@@ -3737,7 +3737,7 @@ void f() {C.^ print("something");}''');
       check_shadowing('int x;', 'set x(int value) {}', true);
 
   Future<void> test_shadowing_getter_over_field() =>
-      check_shadowing('int get x => null;', 'int x;', false);
+      check_shadowing('int get x => null;', 'int x;', true);
 
   Future<void> test_shadowing_getter_over_getter() =>
       check_shadowing('int get x => null;', 'int get x => null;', true);
