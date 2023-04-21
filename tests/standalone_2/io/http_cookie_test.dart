@@ -124,15 +124,15 @@ void testCookieSameSite() {
   Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
       "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
           "Path=/; SameSite=Relax"),
-      (e) e.message == "SameSite value should be one of Lax, Strict or None.");
+      (e) => e.message == "SameSite value should be one of Lax, Strict or None.");
   Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
       "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
           "Path=/; SameSite="),
-      (e) e.message == "SameSite value should be one of Lax, Strict or None.");
+      (e) => e.message == "SameSite value should be one of Lax, Strict or None.");
   Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
       "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
           "Path=/; SameSite=无"),
-      (e) e.message == "SameSite value should be one of Lax, Strict or None.");
+      (e) => e.message == "SameSite value should be one of Lax, Strict or None.");
 }
 
 void main() {

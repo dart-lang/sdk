@@ -737,7 +737,7 @@ abstract interface class ContentType implements HeaderValue {
 
 /// Value of [Cookie.sameSite], which defines whether an HTTP cookie is
 /// available from other sites.
-class SameSite {
+final class SameSite {
   /// The [Cookie] will generally not be sent on cross-site requests, unless
   /// the user is navigated to the original site. This is the default value.
   static const lax = SameSite._internal(0);
@@ -830,7 +830,8 @@ abstract interface class Cookie {
   /// available to client side scripts.
   bool httpOnly = false;
 
-  /// Whether the cookie is available from other sites.
+  /// Whether the cookie is available from other sites. This value is null if
+  /// the SameSite attribute is not present.
   ///
   /// See [SameSite] for more information.
   SameSite? sameSite;
