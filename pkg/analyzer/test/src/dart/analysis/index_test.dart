@@ -45,6 +45,30 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
     expect(actual, expected);
   }
 
+  test_class_constructorElement_unnamed_implicitInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  B();
+  B.named();
+  factory B.foo() = A;
+}
+
+class C extends A {}
+''');
+
+    final element = findElement.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+42 6:3 |B| IS_INVOKED_BY qualified
+49 7:3 |B.named| IS_INVOKED_BY qualified
+81 8:22 || IS_REFERENCED_BY qualified
+92 11:7 |C| IS_INVOKED_BY qualified
+''');
+  }
+
   test_fieldFormalParameter_noSuchField() async {
     await _indexTestUnit('''
 class B<T> {
