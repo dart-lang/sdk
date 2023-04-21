@@ -9,5 +9,8 @@ void main() {
 // Testing that a block bodied function may not return non-void Object values
 void test() {
   Object a = 3;
-  return /*@compile-error=unspecified*/ a;
+  return a;
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] Can't return a value from a void function.
 }

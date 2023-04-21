@@ -76,6 +76,8 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       clientCompleter.complete(client);
     });
     Socket client = await clientCompleter.future;
+    // Nagle's algorithm slows us down >100x, disable it.
+    client.setOption(SocketOption.tcpNoDelay, true);
 
     Stream<Object> messageStream;
 
@@ -152,13 +154,15 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       if (length > 0xffffffff) {
         throw new StateError('Message was larger than the allowed size!');
       }
-      outSink.add([
+      BytesBuilder bytesBuilder = new BytesBuilder(copy: false);
+      bytesBuilder.add([
         length >> 24 & 0xff,
         length >> 16 & 0xff,
         length >> 8 & 0xff,
         length & 0xff
       ]);
-      outSink.add(result);
+      bytesBuilder.add(result);
+      outSink.add(bytesBuilder.takeBytes());
     } else {
       throw new UnsupportedError(
           'Unsupported serialization mode $serializationMode for '

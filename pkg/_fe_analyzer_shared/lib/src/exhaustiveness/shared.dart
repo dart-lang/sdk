@@ -260,12 +260,13 @@ class ExhaustivenessCache<
       Type type, Identity uniqueValue, String textualRepresentation) {
     Type nonNullable = typeOperations.getNonNullable(type);
     StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
-        new ValueStaticType<Type, Identity>(
+        new GeneralValueStaticType<Type, Identity>(
             typeOperations,
             this,
             nonNullable,
             new IdentityRestriction<Identity>(uniqueValue),
-            textualRepresentation);
+            textualRepresentation,
+            uniqueValue);
     if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }

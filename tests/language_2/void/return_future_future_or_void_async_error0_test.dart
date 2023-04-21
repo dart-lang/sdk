@@ -14,5 +14,8 @@ void main() {
 
 // Testing that a block bodied async function may not return void
 Future<FutureOr<void>> test() async {
-  return /*@compile-error=unspecified*/ voidValue;
+  return voidValue;
+  //     ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] This expression has type 'void' and can't be used.
 }

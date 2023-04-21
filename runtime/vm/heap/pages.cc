@@ -1308,7 +1308,11 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   VirtualMemory* memory = VirtualMemory::ForImagePage(pointer, size);
   ASSERT(memory != nullptr);
   Page* page = reinterpret_cast<Page*>(malloc(sizeof(Page)));
-  page->flags_ = Page::kImage | (is_executable ? Page::kExecutable : 0);
+  uword flags = Page::kImage;
+  if (is_executable) {
+    flags |= Page::kExecutable;
+  }
+  page->flags_ = flags;
   page->memory_ = memory;
   page->next_ = nullptr;
   page->forwarding_page_ = nullptr;

@@ -19,6 +19,8 @@ accounting
 accounts
 accumulated
 accumulating
+accumulation
+accumulator
 acon
 acov
 across
@@ -604,6 +606,7 @@ fvar
 g
 gardening
 garner
+gathers
 gb
 gen
 generation
@@ -759,6 +762,7 @@ interpretation
 interrupted
 intersections
 intersects
+interspersed
 interval
 intervals
 intl
@@ -913,6 +917,7 @@ mime
 mimic
 min
 mini
+mistakes
 misuse
 mixers
 mk
@@ -933,6 +938,7 @@ mus
 mvar
 n
 na
+nagle's
 nameless
 namer
 natively
@@ -1530,6 +1536,7 @@ talks
 tarjan
 tarjan's
 tb
+tcp
 team
 tearoff
 tearoffable
@@ -1750,6 +1757,7 @@ weren't
 werror
 whatnot
 whichever
+who
 widget
 widgets
 wiki
