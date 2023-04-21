@@ -97,6 +97,18 @@ f() {
     ]);
   }
 
+  test_objectPattern_destructured_field() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int _a;
+  A(this._a);
+}
+f() {
+  var A(:_a) = A(1);
+}
+''');
+  }
+
   test_objectPattern_ifCase() async {
     await assertDiagnostics(r'''
 class C {
@@ -129,6 +141,24 @@ f() {
     ]);
   }
 
+  test_objectPattern_switch_field() async {
+    await assertNoDiagnostics(r'''
+class A {
+  var _a;
+}
+
+f(A a) {
+  switch (a) {
+    case A(:var _a):
+  }
+  switch (a) {
+    case A(:var _a?):
+    case A(:var _a!):
+  }
+}
+''');
+  }
+
   test_recordPattern_destructured() async {
     await assertDiagnostics(r'''
 f() {
@@ -139,6 +169,16 @@ f() {
     ]);
   }
 
+  test_recordPattern_destructured_field() async {
+    await assertDiagnostics(r'''
+f() {
+  var (a: _a, :b) = (a: 1, b: 1);
+}
+''', [
+      lint(16, 2),
+    ]);
+  }
+
   test_recordPattern_ifCase() async {
     await assertDiagnostics(r'''
 f(Object o) {
@@ -146,6 +186,16 @@ f(Object o) {
 }
 ''', [
       lint(32, 2),
+    ]);
+  }
+
+  test_recordPattern_ifCase_field() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case (x: int _x, :int y)) {}
+}
+''', [
+      lint(35, 2),
     ]);
   }
 
