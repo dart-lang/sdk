@@ -289,6 +289,8 @@ enum SafepointLevel {
   kGC,
   // Safe to GC as well as Deopt.
   kGCAndDeopt,
+  // Safe to GC, Deopt as well as Reload.
+  kGCAndDeoptAndReload,
   // Number of levels.
   kNumLevels,
 
@@ -361,26 +363,24 @@ class Thread : public ThreadState {
   // Whether there's any active state on the [thread] that needs to be preserved
   // across `Thread::ExitIsolate()` and `Thread::EnterIsolate()`.
   bool HasActiveState();
+  void AssertNonMutatorInvariants();
+  void AssertNonDartMutatorInvariants();
   void AssertEmptyStackInvariants();
   void AssertEmptyThreadInvariants();
 
   // Makes the current thread enter 'isolate'.
-  //
-  // TODO(kustermann): Remove [treat_as_nested_exit] once safepoint-based reload
-  // implementation landed.
-  static bool EnterIsolate(Isolate* isolate,
-                           bool treat_as_nested_enter = false);
+  static bool EnterIsolate(Isolate* isolate);
   // Makes the current thread exit its isolate.
-  //
-  // TODO(kustermann): Remove [treat_as_nested_exit] once safepoint-based reload
-  // implementation landed.
-  static void ExitIsolate(bool isolate_shutdown = false,
-                          bool treat_as_nested_exit = false);
+  static void ExitIsolate(bool isolate_shutdown = false);
 
   static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                         TaskKind kind,
                                         bool bypass_safepoint);
   static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
+
+  static bool EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
+                                            TaskKind kind);
+  static void ExitIsolateGroupAsNonMutator();
 
   // Empties the store buffer block into the isolate.
   void ReleaseStoreBuffer();
@@ -882,32 +882,6 @@ class Thread : public ThreadState {
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
-  /*
-   * Fields used to support safepointing a thread.
-   *
-   * - Bit 0 of the safepoint_state_ field is used to indicate if the thread is
-   *   already at a safepoint,
-   * - Bit 1 of the safepoint_state_ field is used to indicate if a safepoint
-   *   is requested for this thread.
-   * - Bit 2 of the safepoint_state_ field is used to indicate if the thread is
-   *   already at a deopt safepoint,
-   * - Bit 3 of the safepoint_state_ field is used to indicate if a deopt
-   *   safepoint is requested for this thread.
-   * - Bit 4 of the safepoint_state_ field is used to indicate that the thread
-   *   is blocked at a (deopt)safepoint and has to be woken up once the
-   *   (deopt)safepoint operation is complete.
-   * - Bit 6 of the safepoint_state_ field is used to indicate that the isolate
-   *   running on this thread has triggered unwind error, which requires
-   *   enforced exit on a transition from native back to generated.
-   *
-   * The safepoint execution state (described above) for a thread is stored in
-   * in the execution_state_ field.
-   * Potential execution states a thread could be in:
-   *   kThreadInGenerated - The thread is running jitted dart/stub code.
-   *   kThreadInVM - The thread is running VM code.
-   *   kThreadInNative - The thread is running native code.
-   *   kThreadInBlockedState - The thread is blocked waiting for a resource.
-   */
   static bool IsAtSafepoint(SafepointLevel level, uword state) {
     const uword mask = AtSafepointBits(level);
     return (state & mask) == mask;
@@ -958,18 +932,32 @@ class Thread : public ThreadState {
         return (state & SafepointRequestedField::mask_in_place()) != 0;
       case SafepointLevel::kGCAndDeopt:
         return (state & DeoptSafepointRequestedField::mask_in_place()) != 0;
+      case SafepointLevel::kGCAndDeoptAndReload:
+        return (state & ReloadSafepointRequestedField::mask_in_place()) != 0;
       default:
         UNREACHABLE();
     }
   }
 
   void BlockForSafepoint();
+
   uword SetSafepointRequested(SafepointLevel level, bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
 
-    const uword mask = level == SafepointLevel::kGC
-                           ? SafepointRequestedField::mask_in_place()
-                           : DeoptSafepointRequestedField::mask_in_place();
+    uword mask = 0;
+    switch (level) {
+      case SafepointLevel::kGC:
+        mask = SafepointRequestedField::mask_in_place();
+        break;
+      case SafepointLevel::kGCAndDeopt:
+        mask = DeoptSafepointRequestedField::mask_in_place();
+        break;
+      case SafepointLevel::kGCAndDeoptAndReload:
+        mask = ReloadSafepointRequestedField::mask_in_place();
+        break;
+      default:
+        UNREACHABLE();
+    }
 
     if (value) {
       // acquire pulls from the release in TryEnterSafepoint.
@@ -1009,6 +997,7 @@ class Thread : public ThreadState {
   }
 
   bool OwnsGCSafepoint() const;
+  bool OwnsReloadSafepoint() const;
   bool OwnsDeoptSafepoint() const;
   bool OwnsSafepoint() const;
   bool CanAcquireSafepointLocks() const;
@@ -1053,10 +1042,7 @@ class Thread : public ThreadState {
 
   bool TryEnterSafepoint() {
     uword old_state = 0;
-    uword new_state = AtSafepointField::encode(true);
-    if (current_safepoint_level() == SafepointLevel::kGCAndDeopt) {
-      new_state |= AtDeoptSafepointField::encode(true);
-    }
+    uword new_state = AtSafepointBits(current_safepoint_level());
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_release);
   }
@@ -1073,10 +1059,7 @@ class Thread : public ThreadState {
   }
 
   bool TryExitSafepoint() {
-    uword old_state = AtSafepointField::encode(true);
-    if (current_safepoint_level() == SafepointLevel::kGCAndDeopt) {
-      old_state |= AtDeoptSafepointField::encode(true);
-    }
+    uword old_state = AtSafepointBits(current_safepoint_level());
     uword new_state = 0;
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_acquire);
@@ -1151,10 +1134,14 @@ class Thread : public ThreadState {
   PendingDeopts& pending_deopts() { return pending_deopts_; }
 
   SafepointLevel current_safepoint_level() const {
-    return runtime_call_deopt_ability_ ==
-                   RuntimeCallDeoptAbility::kCannotLazyDeopt
-               ? SafepointLevel::kGC
-               : SafepointLevel::kGCAndDeopt;
+    if (runtime_call_deopt_ability_ ==
+        RuntimeCallDeoptAbility::kCannotLazyDeopt) {
+      return SafepointLevel::kGC;
+    }
+    if (no_reload_scope_depth_ > 0 || allow_reload_scope_depth_ <= 0) {
+      return SafepointLevel::kGCAndDeopt;
+    }
+    return SafepointLevel::kGCAndDeoptAndReload;
   }
 
  private:
@@ -1219,6 +1206,9 @@ class Thread : public ThreadState {
   IsolateGroup* isolate_group_ = nullptr;
 
   uword saved_stack_limit_ = 0;
+  // The mutator uses this to indicate it wants to OSR (by
+  // setting [Thread::kOsrRequest]) before going to runtime which will see this
+  // bit.
   uword stack_overflow_flags_ = 0;
   uword volatile top_exit_frame_info_ = 0;
   StoreBufferBlock* store_buffer_block_ = nullptr;
@@ -1238,7 +1228,47 @@ class Thread : public ThreadState {
   ObjectPoolPtr global_object_pool_;
   uword resume_pc_;
   uword saved_shadow_call_stack_ = 0;
+
+  /*
+   * The execution state for a thread.
+   *
+   * Potential execution states a thread could be in:
+   *   kThreadInGenerated - The thread is running jitted dart/stub code.
+   *   kThreadInVM - The thread is running VM code.
+   *   kThreadInNative - The thread is running native code.
+   *   kThreadInBlockedState - The thread is blocked waiting for a resource.
+   *
+   * Warning: Execution state doesn't imply the safepoint state. It's possible
+   * to be in [kThreadInNative] and still not be at-safepoint (e.g. due to a
+   * pending Dart_TypedDataAcquire() that increases no-callback-scope)
+   */
   uword execution_state_;
+
+  /*
+   * Stores
+   *
+   *   - whether the thread is at a safepoint (current thread sets these)
+   *     [AtSafepointField]
+   *     [AtDeoptSafepointField]
+   *     [AtReloadSafepointField]
+   *
+   *   - whether the thread is requested to safepoint (other thread sets these)
+   *     [SafepointRequestedField]
+   *     [DeoptSafepointRequestedField]
+   *     [ReloadSafepointRequestedField]
+   *
+   *   - whether the thread is blocked due to safepoint request and needs to
+   *     be resumed after safepoint is done (current thread sets this)
+   *     [BlockedForSafepointField]
+   *
+   *   - whether the thread should be ignored for safepointing purposes
+   *     [BypassSafepointsField]
+   *
+   *   - whether the isolate running this thread has triggered an unwind error,
+   *     which requires enforced exit on a transition from native back to
+   *     generated.
+   *     [UnwindErrorInProgressField]
+   */
   std::atomic<uword> safepoint_state_;
   GrowableObjectArrayPtr ffi_callback_code_;
   TypedDataPtr ffi_callback_stack_return_;
@@ -1266,6 +1296,7 @@ class Thread : public ThreadState {
   int32_t no_callback_scope_depth_;
   int32_t force_growth_scope_depth_ = 0;
   intptr_t no_reload_scope_depth_ = 0;
+  intptr_t allow_reload_scope_depth_ = 0;
   intptr_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
   int32_t no_safepoint_scope_depth_;
@@ -1306,14 +1337,24 @@ class Thread : public ThreadState {
   class AtSafepointField : public BitField<uword, bool, 0, 1> {};
   class SafepointRequestedField
       : public BitField<uword, bool, AtSafepointField::kNextBit, 1> {};
+
   class AtDeoptSafepointField
       : public BitField<uword, bool, SafepointRequestedField::kNextBit, 1> {};
   class DeoptSafepointRequestedField
       : public BitField<uword, bool, AtDeoptSafepointField::kNextBit, 1> {};
-  class BlockedForSafepointField
+
+  class AtReloadSafepointField
       : public BitField<uword,
                         bool,
                         DeoptSafepointRequestedField::kNextBit,
+                        1> {};
+  class ReloadSafepointRequestedField
+      : public BitField<uword, bool, AtReloadSafepointField::kNextBit, 1> {};
+
+  class BlockedForSafepointField
+      : public BitField<uword,
+                        bool,
+                        ReloadSafepointRequestedField::kNextBit,
                         1> {};
   class BypassSafepointsField
       : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
@@ -1327,6 +1368,10 @@ class Thread : public ThreadState {
       case SafepointLevel::kGCAndDeopt:
         return AtSafepointField::mask_in_place() |
                AtDeoptSafepointField::mask_in_place();
+      case SafepointLevel::kGCAndDeoptAndReload:
+        return AtSafepointField::mask_in_place() |
+               AtDeoptSafepointField::mask_in_place() |
+               AtReloadSafepointField::mask_in_place();
       default:
         UNREACHABLE();
     }
@@ -1363,6 +1408,9 @@ class Thread : public ThreadState {
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
+
+  void SetupState(TaskKind kind);
+  void ResetState();
 
   void SetupMutatorState(TaskKind kind);
   void ResetMutatorState();
@@ -1410,6 +1458,7 @@ class Thread : public ThreadState {
   friend class IsolateGroup;
   friend class NoActiveIsolateScope;
   friend class NoReloadScope;
+  friend class RawReloadParticipationScope;
   friend class Simulator;
   friend class StackZone;
   friend class StoppedMutatorsScope;
@@ -1486,25 +1535,75 @@ class NoSafepointScope : public ValueObject {
 };
 #endif  // defined(DEBUG)
 
+// Disables initiating a reload operation as well as participating in another
+// threads reload operation.
+//
+// Reload triggered by a mutator thread happens by sending all other mutator
+// threads (that are running) OOB messages to check into a safepoint. The thread
+// initiating the reload operation will block until all mutators are at a reload
+// safepoint.
+//
+// When running under this scope, the processing of those OOB messages will
+// ignore reload safepoint checkin requests. Yet we'll have to ensure that the
+// dropped message is still acted upon.
+//
+// => To solve this we make the [~NoReloadScope] destructor resend a new reload
+// OOB request to itself (the [~NoReloadScope] destructor is not necessarily at
+// well-defined place where reload can happen - those places will explicitly
+// opt-in via [ReloadParticipationScope]).
+//
 class NoReloadScope : public ThreadStackResource {
  public:
-  explicit NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    thread->no_reload_scope_depth_++;
-    ASSERT(thread->no_reload_scope_depth_ >= 0);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  }
-
-  ~NoReloadScope() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    thread()->no_reload_scope_depth_ -= 1;
-    ASSERT(thread()->no_reload_scope_depth_ >= 0);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  }
+  explicit NoReloadScope(Thread* thread);
+  ~NoReloadScope();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
 };
+
+// Allows triggering reload safepoint operations as well as participating in
+// reload operations (at safepoint checks).
+//
+// By-default safepoint checkins will not participate in reload operations, as
+// reload has to happen at very well-defined places. This scope is intended
+// for those places where we explicitly want to allow safepoint checkins to
+// participate in reload operations (triggered by other threads).
+//
+// If there is any [NoReloadScope] active we will still disable the safepoint
+// checkins to participate in reload.
+//
+// We also require the thread inititating a reload operation to explicitly
+// opt-in via this scope.
+class RawReloadParticipationScope {
+ public:
+  explicit RawReloadParticipationScope(Thread* thread) : thread_(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    if (thread->allow_reload_scope_depth_ == 0) {
+      ASSERT(thread->current_safepoint_level() == SafepointLevel::kGCAndDeopt);
+    }
+    thread->allow_reload_scope_depth_++;
+    ASSERT(thread->allow_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~RawReloadParticipationScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread_->allow_reload_scope_depth_ -= 1;
+    ASSERT(thread_->allow_reload_scope_depth_ >= 0);
+    if (thread_->allow_reload_scope_depth_ == 0) {
+      ASSERT(thread_->current_safepoint_level() == SafepointLevel::kGCAndDeopt);
+    }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  Thread* thread_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawReloadParticipationScope);
+};
+
+using ReloadParticipationScope =
+    AsThreadStackResource<RawReloadParticipationScope>;
 
 class StoppedMutatorsScope : public ThreadStackResource {
  public:

@@ -375,6 +375,14 @@ bool MessageHandler::HasOOBMessages() {
   return !oob_queue_->IsEmpty();
 }
 
+#if defined(TESTING)
+std::unique_ptr<Message> MessageHandler::StealOOBMessage() {
+  MonitorLocker ml(&monitor_);
+  ASSERT(!oob_queue_->IsEmpty());
+  return oob_queue_->Dequeue();
+}
+#endif
+
 bool MessageHandler::HasMessages() {
   MonitorLocker ml(&monitor_);
   return !queue_->IsEmpty();

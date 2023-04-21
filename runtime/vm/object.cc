@@ -18205,7 +18205,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
 
 void Code::NotifyCodeObservers(const Code& code, bool optimized) {
 #if !defined(PRODUCT)
-  ASSERT(!Thread::Current()->OwnsSafepoint());
+  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   if (CodeObservers::AreActive()) {
     if (code.IsFunctionCode()) {
       const auto& function = Function::Handle(code.function());
@@ -18223,7 +18223,7 @@ void Code::NotifyCodeObservers(const Function& function,
                                bool optimized) {
 #if !defined(PRODUCT)
   ASSERT(!function.IsNull());
-  ASSERT(!Thread::Current()->OwnsSafepoint());
+  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
   if (CodeObservers::AreActive()) {
@@ -18239,7 +18239,7 @@ void Code::NotifyCodeObservers(const char* name,
 #if !defined(PRODUCT)
   ASSERT(name != nullptr);
   ASSERT(!code.IsNull());
-  ASSERT(!Thread::Current()->OwnsSafepoint());
+  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),
