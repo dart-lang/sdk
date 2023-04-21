@@ -361,6 +361,8 @@ class Thread : public ThreadState {
   // Whether there's any active state on the [thread] that needs to be preserved
   // across `Thread::ExitIsolate()` and `Thread::EnterIsolate()`.
   bool HasActiveState();
+  void AssertNonMutatorInvariants();
+  void AssertNonDartMutatorInvariants();
   void AssertEmptyStackInvariants();
   void AssertEmptyThreadInvariants();
 
@@ -381,6 +383,10 @@ class Thread : public ThreadState {
                                         TaskKind kind,
                                         bool bypass_safepoint);
   static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
+
+  static bool EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
+                                            TaskKind kind);
+  static void ExitIsolateGroupAsNonMutator();
 
   // Empties the store buffer block into the isolate.
   void ReleaseStoreBuffer();
@@ -1363,6 +1369,9 @@ class Thread : public ThreadState {
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
+
+  void SetupState(TaskKind kind);
+  void ResetState();
 
   void SetupMutatorState(TaskKind kind);
   void ResetMutatorState();

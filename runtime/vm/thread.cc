@@ -271,6 +271,22 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
   }
 }
 
+void Thread::AssertNonMutatorInvariants() {
+  ASSERT(BypassSafepoints());
+  ASSERT(store_buffer_block_ == nullptr);
+  ASSERT(marking_stack_block_ == nullptr);
+  ASSERT(deferred_marking_stack_block_ == nullptr);
+  AssertNonDartMutatorInvariants();
+}
+
+void Thread::AssertNonDartMutatorInvariants() {
+  ASSERT(!IsDartMutatorThread());
+  ASSERT(isolate() == nullptr);
+  ASSERT(isolate_group() != nullptr);
+  ASSERT(task_kind_ != kMutatorTask);
+  DEBUG_ASSERT(!IsAnyReusableHandleScopeActive());
+}
+
 void Thread::AssertEmptyStackInvariants() {
   ASSERT(zone() == nullptr);
   ASSERT(top_handle_scope() == nullptr);
@@ -379,6 +395,7 @@ bool Thread::EnterIsolate(Isolate* isolate, bool treat_as_nested_enter) {
   } else {
     thread = AddActiveThread(group, isolate, /*is_dart_mutator*/ true,
                              /*bypass_safepoint=*/false);
+    thread->SetupState(kMutatorTask);
     thread->SetupMutatorState(kMutatorTask);
     thread->SetupDartMutatorState(isolate);
   }
@@ -428,6 +445,7 @@ void Thread::ExitIsolate(bool isolate_shutdown, bool treat_as_nested_exit) {
   } else {
     thread->ResetDartMutatorState(isolate);
     thread->ResetMutatorState();
+    thread->ResetState();
     SuspendThreadInternal(thread, VMTag::kInvalidTagId);
     FreeActiveThread(thread, /*bypass_safepoint=*/false);
   }
@@ -443,16 +461,16 @@ void Thread::ExitIsolate(bool isolate_shutdown, bool treat_as_nested_exit) {
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                        TaskKind kind,
                                        bool bypass_safepoint) {
-  ASSERT(kind != kMutatorTask);
-
   Thread* thread = AddActiveThread(isolate_group, nullptr,
                                    /*is_dart_mutator=*/false, bypass_safepoint);
   if (thread != nullptr) {
-    ASSERT(!thread->IsDartMutatorThread());
-    ASSERT(thread->isolate() == nullptr);
-    ASSERT(thread->isolate_group() == isolate_group);
+    thread->SetupState(kind);
+    // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
+    // parallel scavenger threads write to the [Thread]s storebuffer)
     thread->SetupMutatorState(kind);
     ResumeThreadInternal(thread);
+
+    thread->AssertNonDartMutatorInvariants();
     return true;
   }
   return false;
@@ -460,15 +478,39 @@ bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
 
 void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
-  ASSERT(thread != nullptr);
-  ASSERT(!thread->IsDartMutatorThread());
-  ASSERT(thread->isolate() == nullptr);
-  ASSERT(thread->isolate_group() != nullptr);
-  DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
+  thread->AssertNonDartMutatorInvariants();
 
+  // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
+  // parallel scavenger threads write to the [Thread]s storebuffer)
   thread->ResetMutatorState();
+  thread->ResetState();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   FreeActiveThread(thread, bypass_safepoint);
+}
+
+bool Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
+                                           TaskKind kind) {
+  Thread* thread =
+      AddActiveThread(isolate_group, nullptr,
+                      /*is_dart_mutator=*/false, /*bypass_safepoint=*/true);
+  if (thread != nullptr) {
+    thread->SetupState(kind);
+    ResumeThreadInternal(thread);
+
+    thread->AssertNonMutatorInvariants();
+    return true;
+  }
+  return false;
+}
+
+void Thread::ExitIsolateGroupAsNonMutator() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  thread->AssertNonMutatorInvariants();
+
+  thread->ResetState();
+  SuspendThreadInternal(thread, VMTag::kInvalidTagId);
+  FreeActiveThread(thread, /*bypass_safepoint=*/true);
 }
 
 void Thread::ResumeThreadInternal(Thread* thread) {
@@ -1205,10 +1247,18 @@ bool Thread::CanAcquireSafepointLocks() const {
   return !OwnsGCSafepoint();
 }
 
+void Thread::SetupState(TaskKind kind) {
+  task_kind_ = kind;
+}
+
+void Thread::ResetState() {
+  task_kind_ = kUnknownTask;
+  vm_tag_ = VMTag::kInvalidTagId;
+}
+
 void Thread::SetupMutatorState(TaskKind kind) {
   ASSERT(store_buffer_block_ == nullptr);
 
-  task_kind_ = kind;
   if (isolate_group()->marking_stack() != nullptr) {
     // Concurrent mark in progress. Enable barrier for this thread.
     MarkingStackAcquire();
@@ -1228,8 +1278,6 @@ void Thread::ResetMutatorState() {
   ASSERT(execution_state() == Thread::kThreadInVM);
   ASSERT(store_buffer_block_ != nullptr);
 
-  vm_tag_ = VMTag::kInvalidTagId;
-  task_kind_ = kUnknownTask;
   if (is_marking()) {
     MarkingStackRelease();
     DeferredMarkingStackRelease();
