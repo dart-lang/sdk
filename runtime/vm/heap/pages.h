@@ -212,8 +212,6 @@ class PageSpace {
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
   void ResetProgressBars() const;
 
-  ObjectPtr FindObject(FindObjectVisitor* visitor, bool is_executable) const;
-
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(Thread* thread, bool compact, bool finalize);
 

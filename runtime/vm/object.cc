@@ -18250,49 +18250,36 @@ void Code::NotifyCodeObservers(const char* name,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-bool Code::SlowFindRawCodeVisitor::FindObject(ObjectPtr raw_obj) const {
-  return UntaggedCode::ContainsPC(raw_obj, pc_) &&
-         !Code::IsUnknownDartCode(Code::RawCast(raw_obj));
-}
-
-CodePtr Code::LookupCodeInIsolateGroup(IsolateGroup* isolate_group, uword pc) {
-  ASSERT((isolate_group == IsolateGroup::Current()) ||
-         (isolate_group == Dart::vm_isolate_group()));
-  if (isolate_group->heap() == nullptr) {
-    return Code::null();
-  }
-  HeapIterationScope heap_iteration_scope(Thread::Current());
-  SlowFindRawCodeVisitor visitor(pc);
-  ObjectPtr needle = isolate_group->heap()->FindOldObject(&visitor);
-  if (needle != Code::null()) {
-    return static_cast<CodePtr>(needle);
-  }
-  return Code::null();
-}
-
-CodePtr Code::LookupCode(uword pc) {
-  return LookupCodeInIsolateGroup(IsolateGroup::Current(), pc);
-}
-
-CodePtr Code::LookupCodeInVmIsolate(uword pc) {
-  return LookupCodeInIsolateGroup(Dart::vm_isolate_group(), pc);
-}
-
-// Given a pc and a timestamp, lookup the code.
 CodePtr Code::FindCode(uword pc, int64_t timestamp) {
-  Code& code = Code::Handle(Code::LookupCode(pc));
-  if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
-      (code.PayloadStart() == pc)) {
-    // Found code in isolate.
-    return code.ptr();
-  }
-  code = Code::LookupCodeInVmIsolate(pc);
-  if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
-      (code.PayloadStart() == pc)) {
-    // Found code in VM isolate.
-    return code.ptr();
-  }
-  return Code::null();
+  class SlowFindCodeVisitor : public ObjectVisitor {
+   public:
+    SlowFindCodeVisitor(uword pc, int64_t timestamp)
+        : pc_(pc), timestamp_(timestamp), result_(Code::null()) {}
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsCode()) return;
+      CodePtr code = static_cast<CodePtr>(obj);
+      if (Code::PayloadStartOf(code) != pc_) return;
+#if !defined(PRODUCT)
+      if (code->untag()->compile_timestamp_ != timestamp_) return;
+#endif
+      ASSERT(result_ == Code::null());
+      result_ = code;
+    }
+
+    CodePtr result() const { return result_; }
+
+   private:
+    uword pc_;
+    int64_t timestamp_;
+    CodePtr result_;
+  };
+
+  HeapIterationScope iteration(Thread::Current());
+  SlowFindCodeVisitor visitor(pc, timestamp);
+  iteration.IterateVMIsolateObjects(&visitor);
+  iteration.IterateOldObjectsNoImagePages(&visitor);
+  return visitor.result();
 }
 
 TokenPosition Code::GetTokenIndexOfPC(uword pc) const {

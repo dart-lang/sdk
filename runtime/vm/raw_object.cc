@@ -416,11 +416,6 @@ void UntaggedObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   }
 }
 
-bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
-  ASSERT(visitor != nullptr);
-  return visitor->FindObject(static_cast<ObjectPtr>(this));
-}
-
 // Most objects are visited with this function. It calls the from() and to()
 // methods on the raw object to get the first and last cells that need
 // visiting.

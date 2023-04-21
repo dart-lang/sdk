@@ -5162,21 +5162,22 @@ TEST_CASE(IsolateReload_StaticFieldInitialValueDoesnotChange) {
   EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
 }
 
-class FindNoInstancesOfClass : public FindObjectVisitor {
+class CidCountingVisitor : public ObjectVisitor {
  public:
-  explicit FindNoInstancesOfClass(intptr_t cid) : cid_(cid) {
-#if defined(DEBUG)
-    EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
-#endif
-  }
-  virtual ~FindNoInstancesOfClass() {}
+  explicit CidCountingVisitor(intptr_t cid) : cid_(cid) {}
+  virtual ~CidCountingVisitor() {}
 
-  virtual bool FindObject(ObjectPtr obj) const {
-    return obj->GetClassId() == cid_;
+  virtual void VisitObject(ObjectPtr obj) {
+    if (obj->GetClassId() == cid_) {
+      count_++;
+    }
   }
+
+  intptr_t count() const { return count_; }
 
  private:
   intptr_t cid_;
+  intptr_t count_ = 0;
 };
 
 TEST_CASE(IsolateReload_DeleteStaticField) {
@@ -5223,12 +5224,12 @@ TEST_CASE(IsolateReload_DeleteStaticField) {
 
     {
       HeapIterationScope iteration(thread);
-      NoSafepointScope no_safepoint;
-      FindNoInstancesOfClass find_only(cid);
-      Heap* heap = IsolateGroup::Current()->heap();
+      CidCountingVisitor counting_visitor(cid);
+      iteration.IterateObjects(&counting_visitor);
+
       // We still expect to find references to static field values
       // because they are not deleted after hot reload.
-      EXPECT_NE(heap->FindObject(&find_only), Object::null());
+      EXPECT_NE(counting_visitor.count(), 0);
     }
   }
 }

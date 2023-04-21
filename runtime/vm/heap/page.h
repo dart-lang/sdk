@@ -17,7 +17,6 @@ namespace dart {
 class ForwardingPage;
 class ObjectVisitor;
 class ObjectPointerVisitor;
-class FindObjectVisitor;
 class Thread;
 class UnwindingRecords;
 
@@ -114,8 +113,6 @@ class Page {
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
-
-  ObjectPtr FindObject(FindObjectVisitor* visitor) const;
 
   void WriteProtect(bool read_only);
 
