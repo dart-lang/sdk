@@ -388,6 +388,7 @@ class CheckinTask : public StateMachineTask {
 // Test that mutators will not check-in to "deopt safepoint operations" at
 // at places where the mutator cannot depot (which is indicated by the
 // Thread::runtime_call_kind_ value).
+#if !defined(PRODUCT)
 ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
   auto isolate_group = thread->isolate_group();
 
@@ -505,6 +506,7 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
     }
   }
 }
+#endif  // !defined(PRODUCT)
 
 class StressTask : public StateMachineTask {
  public:
@@ -688,6 +690,7 @@ ISOLATE_UNIT_TEST_CASE(ReloadScopes_Test) {
   }
 }
 
+#if !defined(PRODUCT)
 class ReloadTask : public StateMachineTask {
  public:
   using Data = StateMachineTask::Data;
@@ -832,5 +835,6 @@ ISOLATE_UNIT_TEST_CASE(Reload_AtNonReloadSafepoint) {
   task->MarkAndNotify(ReloadTask::kPleaseExit);
   task->WaitUntil(ReloadTask::kExited);
 }
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart
