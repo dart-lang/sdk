@@ -136,9 +136,12 @@ void Page::Deallocate() {
 
   free(card_table_);
 
+  // Load before unregistering with LSAN, or LSAN will temporarily think it has
+  // been leaked.
+  VirtualMemory* memory = memory_;
+
   LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
 
-  VirtualMemory* memory = memory_;
   if (CanUseCache(flags_)) {
     ASSERT(memory->size() == kPageSize);
     MutexLocker ml(page_cache_mutex);
