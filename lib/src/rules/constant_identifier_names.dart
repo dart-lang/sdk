@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../utils.dart';
 
 const _desc = r'Prefer using lowerCamelCase for constant names.';
@@ -84,6 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    if (node.parent.isFieldNameShortcut) return;
     checkIdentifier(node.name);
   }
 

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for local identifiers.';
@@ -144,14 +145,5 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var variable in node.variables.variables) {
       checkIdentifier(variable.name);
     }
-  }
-}
-
-extension on AstNode? {
-  bool get isFieldNameShortcut {
-    var node = this;
-    if (node is NullCheckPattern) node = node.parent;
-    if (node is NullAssertPattern) node = node.parent;
-    return node is PatternField && node.name != null && node.name?.name == null;
   }
 }

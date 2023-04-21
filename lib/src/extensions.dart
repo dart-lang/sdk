@@ -21,6 +21,15 @@ class EnumLikeClassDescription {
   Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
 }
 
+extension AstNodeNullableExtension on AstNode? {
+  bool get isFieldNameShortcut {
+    var node = this;
+    if (node is NullCheckPattern) node = node.parent;
+    if (node is NullAssertPattern) node = node.parent;
+    return node is PatternField && node.name != null && node.name?.name == null;
+  }
+}
+
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
 
