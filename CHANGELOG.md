@@ -1,3 +1,15 @@
+## 3.1.0
+
+### Libraries
+
+#### `dart:io`
+
+- **Breaking change** [#51486][]:
+  - Added class `SameSite`.
+  - Added `sameSite` to the `Cookie` class.
+
+[#51486]: https://github.com/dart-lang/sdk/issues/51486
+
 ## 3.0.0
 
 ### Language
@@ -212,14 +224,10 @@
 - **Breaking change** [#51035][]:
   - Update `NetworkProfiling` to accommodate new `String` ids
     that are introduced in vm_service:11.0.0
-- **Breaking change** [#51486][]:
-  - Added class `SameSite`.
-  - Added `sameSite` to the `Cookie` class.
 
 [#43638]: https://github.com/dart-lang/sdk/issues/43638
 [#50868]: https://github.com/dart-lang/sdk/issues/50868
 [#51035]: https://github.com/dart-lang/sdk/issues/51035
-[#51486]: https://github.com/dart-lang/sdk/issues/51486
 
 #### `dart:js_util`
 
