@@ -368,13 +368,12 @@ bool Thread::HasActiveState() {
   return false;
 }
 
-bool Thread::EnterIsolate(Isolate* isolate, bool treat_as_nested_enter) {
+bool Thread::EnterIsolate(Isolate* isolate) {
   const bool is_resumable = isolate->mutator_thread() != nullptr;
 
   // To let VM's thread pool (if we run on it) know that this thread is
   // occupying a mutator again (decreases its max size).
   const bool is_nested_reenter =
-      treat_as_nested_enter ||
       (is_resumable && isolate->mutator_thread()->top_exit_frame_info() != 0);
 
   auto group = isolate->group();
@@ -391,7 +390,11 @@ bool Thread::EnterIsolate(Isolate* isolate, bool treat_as_nested_enter) {
     ASSERT(thread->is_dart_mutator_);
     ASSERT(thread->isolate() == isolate);
     ASSERT(thread->isolate_group() == isolate->group());
-    thread->ExitSafepoint();
+    {
+      // Descheduled isolates are reloadable (if nothing else prevents it).
+      RawReloadParticipationScope enable_reload(thread);
+      thread->ExitSafepoint();
+    }
   } else {
     thread = AddActiveThread(group, isolate, /*is_dart_mutator*/ true,
                              /*bypass_safepoint=*/false);
@@ -406,7 +409,7 @@ bool Thread::EnterIsolate(Isolate* isolate, bool treat_as_nested_enter) {
   return true;
 }
 
-void Thread::ExitIsolate(bool isolate_shutdown, bool treat_as_nested_exit) {
+void Thread::ExitIsolate(bool isolate_shutdown) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   ASSERT(thread->IsDartMutatorThread());
@@ -440,7 +443,11 @@ void Thread::ExitIsolate(bool isolate_shutdown, bool treat_as_nested_exit) {
     const auto tag =
         isolate->is_runnable() ? VMTag::kIdleTagId : VMTag::kLoadWaitTagId;
     SuspendThreadInternal(thread, tag);
-    thread->EnterSafepoint();
+    {
+      // Descheduled isolates are reloadable (if nothing else prevents it).
+      RawReloadParticipationScope enable_reload(thread);
+      thread->EnterSafepoint();
+    }
     thread->set_execution_state(Thread::kThreadInNative);
   } else {
     thread->ResetDartMutatorState(isolate);
@@ -452,8 +459,7 @@ void Thread::ExitIsolate(bool isolate_shutdown, bool treat_as_nested_exit) {
 
   // To let VM's thread pool (if we run on it) know that this thread is
   // occupying a mutator again (decreases its max size).
-  const bool is_nested_exit =
-      treat_as_nested_exit || thread->top_exit_frame_info() != 0;
+  const bool is_nested_exit = thread->top_exit_frame_info() != 0;
   ASSERT(!(isolate_shutdown && is_nested_exit));
   group->DecreaseMutatorCount(isolate, is_nested_exit);
 }
@@ -607,6 +613,15 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
     // means if this other thread runs code as part of a safepoint operation it
     // will still wait for us to finish here before it tries to iterate the
     // active mutators (e.g. when GC starts/stops incremental marking).
+    //
+    // The thread is empty and the corresponding isolate (if any) is therefore
+    // at event-loop boundary (or shutting down). We participate in reload in
+    // those scenarios.
+    //
+    // (It may be that an active [ReloadOperationScope] sent an OOB message to
+    // this isolate but it didn't handle the OOB due to shutting down, so we'll
+    // still have to update the reloading thread that it's ok to continue)
+    RawReloadParticipationScope enable_reload(thread);
     thread->EnterSafepoint();
   }
 
@@ -1233,6 +1248,11 @@ bool Thread::OwnsDeoptSafepoint() const {
              this) == SafepointLevel::kGCAndDeopt;
 }
 
+bool Thread::OwnsReloadSafepoint() const {
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) <= SafepointLevel::kGCAndDeoptAndReload;
+}
+
 bool Thread::OwnsSafepoint() const {
   return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
              this) != SafepointLevel::kNoSafepoint;
@@ -1242,9 +1262,19 @@ bool Thread::CanAcquireSafepointLocks() const {
   // A thread may acquire locks and then enter a safepoint operation (e.g.
   // holding program lock, allocating objects which triggers GC).
   //
-  // So it's generally not safe to acquire locks while we are inside a GC
-  // safepoint operation scope.
-  return !OwnsGCSafepoint();
+  // So if this code is called inside safepoint operation, we generally have to
+  // assume other threads may hold locks and are blocked on the safepoint,
+  // meaning we cannot hold safepoint and acquire locks (deadlock!).
+  //
+  // Though if we own a reload safepoint operation it means all other mutators
+  // are blocked in very specific places, where we know no locks are held. As
+  // such we allow the current thread to acquire locks.
+  //
+  // Example: We own reload safepoint operation, load kernel, which allocates
+  // symbols, where the symbol implementation acquires the symbol lock (we know
+  // other mutators at reload safepoint do not hold symbol lock).
+  return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
+             this) >= SafepointLevel::kGCAndDeoptAndReload;
 }
 
 void Thread::SetupState(TaskKind kind) {
@@ -1348,6 +1378,38 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
     ASSERT(os_thread != nullptr);
     os_thread->EnableThreadInterrupts();
   }
+}
+
+NoReloadScope::NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  thread->no_reload_scope_depth_++;
+  ASSERT(thread->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+NoReloadScope::~NoReloadScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  thread()->no_reload_scope_depth_ -= 1;
+  ASSERT(thread()->no_reload_scope_depth_ >= 0);
+  auto isolate = thread()->isolate();
+  const intptr_t state = thread()->safepoint_state();
+
+  if (thread()->no_reload_scope_depth_ == 0) {
+    // If we were asked to go to a reload safepoint & block for a reload
+    // safepoint operation on another thread - *while* being inside
+    // [NoReloadScope] - we may have handled & ignored the OOB message telling
+    // us to reload.
+    //
+    // Since we're exiting now the [NoReloadScope], we'll make another OOB
+    // reload request message to ourselves, which will be handled in
+    // well-defined place where we can perform reload.
+    if (isolate != nullptr &&
+        Thread::IsSafepointLevelRequested(
+            state, SafepointLevel::kGCAndDeoptAndReload)) {
+      isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+    }
+  }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Thread::EnsureFfiCallbackMetadata(intptr_t callback_id) {

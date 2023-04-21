@@ -65,6 +65,8 @@ SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
       new LevelHandler(isolate_group, SafepointLevel::kGC);
   handlers_[SafepointLevel::kGCAndDeopt] =
       new LevelHandler(isolate_group, SafepointLevel::kGCAndDeopt);
+  handlers_[SafepointLevel::kGCAndDeoptAndReload] =
+      new LevelHandler(isolate_group, SafepointLevel::kGCAndDeoptAndReload);
 }
 
 SafepointHandler::~SafepointHandler() {
@@ -79,6 +81,7 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
   ASSERT(T->execution_state() == Thread::kThreadInVM);
   ASSERT(T->current_safepoint_level() >= level);
 
+  MallocGrowableArray<Dart_Port> oob_isolates;
   {
     MonitorLocker tl(threads_lock());
 
@@ -116,7 +119,12 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
     handlers_[level]->SetSafepointInProgress(T);
 
     // Ensure a thread is at a safepoint or notify it to get to one.
-    handlers_[level]->NotifyThreadsToGetToSafepointLevel(T);
+    handlers_[level]->NotifyThreadsToGetToSafepointLevel(T, &oob_isolates);
+  }
+
+  for (auto main_port : oob_isolates) {
+    Isolate::SendInternalLibMessage(main_port, Isolate::kCheckForReload,
+                                    /*ignored=*/-1);
   }
 
   // Now wait for all threads that are not already at a safepoint to check-in.
@@ -152,7 +160,8 @@ void SafepointHandler::AssertWeDoNotOwnLowerLevelSafepoints(
 }
 
 void SafepointHandler::LevelHandler::NotifyThreadsToGetToSafepointLevel(
-    Thread* T) {
+    Thread* T,
+    MallocGrowableArray<Dart_Port>* oob_isolates) {
   ASSERT(num_threads_not_parked_ == 0);
   for (auto current = isolate_group()->thread_registry()->active_list();
        current != nullptr; current = current->next()) {
@@ -160,9 +169,25 @@ void SafepointHandler::LevelHandler::NotifyThreadsToGetToSafepointLevel(
     if (!current->BypassSafepoints() && current != T) {
       const uint32_t state = current->SetSafepointRequested(level_, true);
       if (!Thread::IsAtSafepoint(level_, state)) {
-        // Send OOB message to get it to safepoint.
-        if (current->IsDartMutatorThread()) {
-          current->ScheduleInterrupts(Thread::kVMInterrupt);
+        if (level_ == SafepointLevel::kGCAndDeoptAndReload) {
+          // Interrupt the mutator by sending an reload OOB message. The
+          // mutator will only check-in once it's handling the reload OOB
+          // message.
+          //
+          // If there's no isolate, it may be a helper thread that has entered
+          // via `Thread::EnterIsolateGroupAsHelper()`. In that case we cannot
+          // send an OOB message. Instead we'll have to wait until that thread
+          // de-schedules itself.
+          auto isolate = current->isolate();
+          if (isolate != nullptr) {
+            oob_isolates->Add(isolate->main_port());
+          }
+        } else {
+          // Interrupt the mutator and ask it to block at any interruption
+          // point.
+          if (current->IsDartMutatorThread()) {
+            current->ScheduleInterrupts(Thread::kVMInterrupt);
+          }
         }
         MonitorLocker sl(&parked_lock_);
         num_threads_not_parked_++;

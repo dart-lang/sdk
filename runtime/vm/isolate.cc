@@ -343,9 +343,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-      reload_handler_(new ReloadHandler()),
-#endif
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
@@ -434,13 +431,10 @@ IsolateGroup::~IsolateGroup() {
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
-  {
-    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-    ASSERT(isolates_lock_->IsCurrentThreadWriter());
-    isolates_.Append(isolate);
-    isolate_count_++;
-  }
-  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->RegisterIsolate()));
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  ASSERT(isolates_lock_->IsCurrentThreadWriter());
+  isolates_.Append(isolate);
+  isolate_count_++;
 }
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
@@ -457,11 +451,8 @@ void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
 }
 
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
-  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->UnregisterIsolate()));
-  {
-    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-    isolates_.Remove(isolate);
-  }
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  isolates_.Remove(isolate);
 }
 
 bool IsolateGroup::UnregisterIsolateDecrementCount() {
@@ -576,7 +567,6 @@ void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
 void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
   saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
-
 
 void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
                                         bool is_nested_reenter) {
@@ -879,18 +869,42 @@ void IsolateGroup::ValidateConstants() {
 #endif  // DEBUG
 
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
-  const Array& msg = Array::Handle(Array::New(3));
-  Object& element = Object::Handle();
+  const bool ok = SendInternalLibMessage(main_port(), msg_id, capability);
+  if (!ok) UNREACHABLE();
+}
 
-  element = Smi::New(Message::kIsolateLibOOBMsg);
-  msg.SetAt(0, element);
-  element = Smi::New(msg_id);
-  msg.SetAt(1, element);
-  element = Capability::New(capability);
-  msg.SetAt(2, element);
+bool Isolate::SendInternalLibMessage(Dart_Port main_port,
+                                     LibMsgId msg_id,
+                                     uint64_t capability) {
+  Dart_CObject array_entry_msg_kind;
+  array_entry_msg_kind.type = Dart_CObject_kInt64;
+  array_entry_msg_kind.value.as_int64 = Message::kIsolateLibOOBMsg;
 
-  PortMap::PostMessage(WriteMessage(/* same_group */ false, msg, main_port(),
-                                    Message::kOOBPriority));
+  Dart_CObject array_entry_msg_id;
+  array_entry_msg_id.type = Dart_CObject_kInt64;
+  array_entry_msg_id.value.as_int64 = msg_id;
+
+  Dart_CObject array_entry_capability;
+  array_entry_capability.type = Dart_CObject_kCapability;
+  array_entry_capability.value.as_capability.id = capability;
+
+  Dart_CObject* array_entries[3] = {
+      &array_entry_msg_kind,
+      &array_entry_msg_id,
+      &array_entry_capability,
+  };
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kArray;
+  message.value.as_array.values = array_entries;
+  message.value.as_array.length = ARRAY_SIZE(array_entries);
+
+  AllocOnlyStackZone zone;
+  std::unique_ptr<Message> msg = WriteApiMessage(
+      zone.GetZone(), &message, main_port, Message::kOOBPriority);
+  if (msg == nullptr) UNREACHABLE();
+
+  return PortMap::PostMessage(std::move(msg));
 }
 
 void IsolateGroup::set_object_store(ObjectStore* object_store) {
@@ -1138,7 +1152,10 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kCheckForReload: {
       // [ OOB, kCheckForReload, ignored ]
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-      IG->reload_handler()->CheckForReload();
+      {
+        ReloadParticipationScope allow_reload(T);
+        T->CheckForSafepoint();
+      }
 #else
       UNREACHABLE();
 #endif
@@ -1854,7 +1871,7 @@ bool IsolateGroup::CanReload() {
   // During reload itself we don't process OOB messages and don't execute Dart
   // code, so the caller should implicitly have a guarantee we're not reloading
   // already.
-  RELEASE_ASSERT(!IsReloading());
+  RELEASE_ASSERT(!Thread::Current()->OwnsReloadSafepoint());
 
   // We only allow reload to take place from the point on where the first
   // isolate within an isolate group has setup it's root library. From that
@@ -1881,11 +1898,11 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
                                  const char* root_script_url,
                                  const char* packages_url,
                                  bool dont_delete_reload_context) {
+  ASSERT(!IsReloading());
+
   // Ensure all isolates inside the isolate group are paused at a place where we
   // can safely do a reload.
   ReloadOperationScope reload_operation(Thread::Current());
-
-  ASSERT(!IsReloading());
 
   auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
@@ -1910,11 +1927,11 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
                                 const uint8_t* kernel_buffer,
                                 intptr_t kernel_buffer_size,
                                 bool dont_delete_reload_context) {
+  ASSERT(!IsReloading());
+
   // Ensure all isolates inside the isolate group are paused at a place where we
   // can safely do a reload.
   ReloadOperationScope reload_operation(Thread::Current());
-
-  ASSERT(!IsReloading());
 
   auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(

@@ -50,6 +50,17 @@ class DeoptSafepointOperationScope : public SafepointOperationScope {
   DISALLOW_COPY_AND_ASSIGN(DeoptSafepointOperationScope);
 };
 
+// Gets all mutators to a safepoint where GC, Deopt and Reload is allowed.
+class ReloadSafepointOperationScope : public SafepointOperationScope {
+ public:
+  explicit ReloadSafepointOperationScope(Thread* T)
+      : SafepointOperationScope(T, SafepointLevel::kGCAndDeoptAndReload) {}
+  ~ReloadSafepointOperationScope() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ReloadSafepointOperationScope);
+};
+
 // A stack based scope that can be used to perform an operation after getting
 // all threads to a safepoint. At the end of the operation all the threads are
 // resumed. Allocations in the scope will force heap growth.
@@ -140,7 +151,9 @@ class SafepointHandler {
     friend class SafepointHandler;
 
     // Helper methods for [SafepointThreads]
-    void NotifyThreadsToGetToSafepointLevel(Thread* T);
+    void NotifyThreadsToGetToSafepointLevel(
+        Thread* T,
+        MallocGrowableArray<Dart_Port>* oob_isolates);
     void WaitUntilThreadsReachedSafepointLevel();
 
     // Helper methods for [ResumeThreads]
@@ -314,7 +327,7 @@ class TransitionGeneratedToNative : public TransitionSafepointState {
 class TransitionVMToBlocked : public TransitionSafepointState {
  public:
   explicit TransitionVMToBlocked(Thread* T) : TransitionSafepointState(T) {
-    ASSERT(!T->OwnsSafepoint());
+    ASSERT(T->CanAcquireSafepointLocks());
     // A thread blocked on a monitor is considered to be at a safepoint.
     ASSERT(T->execution_state() == Thread::kThreadInVM);
     T->set_execution_state(Thread::kThreadInBlockedState);
