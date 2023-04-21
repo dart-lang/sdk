@@ -38,7 +38,21 @@ class KeywordContributor extends DartCompletionContributor {
     if (request.target.isDoubleOrIntLiteral()) {
       return;
     }
-    request.target.containingNode.accept(_KeywordVisitor(request, builder));
+
+    final visitor = _KeywordVisitor(request, builder);
+
+    final patternLocation = request.opType.patternLocation;
+    if (patternLocation is NamedPatternFieldWantsFinalOrVar) {
+      visitor._addSuggestions([
+        Keyword.FINAL,
+        Keyword.VAR,
+      ]);
+      return;
+    } else if (patternLocation is NamedPatternFieldWantsName) {
+      return;
+    }
+
+    request.target.containingNode.accept(visitor);
   }
 }
 
@@ -834,18 +848,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    final patternLocation = request.opType.patternLocation;
-    if (patternLocation is NamedPatternFieldWithoutName) {
-      if (patternLocation.kind ==
-          NamedPatternFieldWithoutNameKind.wantsFinalOrVar) {
-        _addSuggestions([
-          Keyword.FINAL,
-          Keyword.VAR,
-        ]);
-      }
-    } else {
-      _addSuggestions(patternKeywords);
-    }
+    _addSuggestions(patternKeywords);
     super.visitPatternField(node);
   }
 
