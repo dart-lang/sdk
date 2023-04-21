@@ -49,6 +49,16 @@ void f(void Function() x) {
 ''');
   }
 
+  test_functionType_recordType() async {
+    await assertErrorsInCode('''
+void f(void Function() x) {
+  if (x case (int,) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 8),
+    ]);
+  }
+
   test_functionTypeQuestion_interfaceType_object() async {
     await assertNoErrorsInCode('''
 void f(void Function()? x) {
@@ -398,6 +408,34 @@ void f(Object x) {
 ''');
   }
 
+  test_interfaceType_recordType() async {
+    await assertErrorsInCode('''
+void f(A x) {
+  if (x case (A,) _) {}
+}
+
+class A {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6),
+    ]);
+  }
+
+  test_interfaceType_recordType_object() async {
+    await assertNoErrorsInCode('''
+void f(Object x) {
+  if (x case (int,) _) {}
+}
+''');
+  }
+
+  test_interfaceType_recordType_record() async {
+    await assertNoErrorsInCode('''
+void f(Record x) {
+  if (x case (int,) _) {}
+}
+''');
+  }
+
   test_matchedEnum_requiredDifferentEnum() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -562,6 +600,111 @@ void f(Null x) {
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 8),
     ]);
+  }
+
+  test_recordType2_named_differentCount() async {
+    await assertErrorsInCode('''
+void f(({int f1,}) x) {
+  if (x case ({int f1, int f2,}) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 21),
+    ]);
+  }
+
+  test_recordType2_named_differentNames() async {
+    await assertErrorsInCode('''
+void f(({int a, int b}) x) {
+  if (x case ({int f1, int f2,}) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 21),
+    ]);
+  }
+
+  test_recordType2_named_unrelated() async {
+    await assertErrorsInCode('''
+void f(({A f1,}) x) {
+  if (x case ({R f1,}) _) {}
+}
+
+final class A {}
+class R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 11),
+    ]);
+  }
+
+  test_recordType2_positional_canMatch() async {
+    await assertNoErrorsInCode('''
+void f((A,) x) {
+  if (x case (B,) _) {}
+}
+
+class A {}
+class B {}
+''');
+  }
+
+  test_recordType2_positional_differentCount() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  if (x case (int, String) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 15),
+    ]);
+  }
+
+  test_recordType2_positional_unrelated() async {
+    await assertErrorsInCode('''
+void f((A,) x) {
+  if (x case (R,) _) {}
+}
+
+final class A {}
+class R {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6),
+    ]);
+  }
+
+  test_recordType_functionType() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  if (x case void Function() _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 17),
+    ]);
+  }
+
+  test_recordType_interfaceType() async {
+    await assertErrorsInCode('''
+void f((A,) x) {
+  if (x case A _) {}
+}
+
+class A {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 3),
+    ]);
+  }
+
+  test_recordType_interfaceType_object() async {
+    await assertNoErrorsInCode('''
+void f((int,)? x) {
+  if (x case Object _) {}
+}
+''');
+  }
+
+  test_recordType_interfaceType_record() async {
+    await assertNoErrorsInCode('''
+void f((int,)? x) {
+  if (x case Record _) {}
+}
+''');
   }
 
   test_refutable_pattern_castPattern_match() async {
