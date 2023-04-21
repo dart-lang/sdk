@@ -339,7 +339,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void RunWithLockedGroup(std::function<void()> fun);
 
-  Monitor* threads_lock() const;
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -572,21 +571,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     Thread* thread = Thread::Current();
     return thread == nullptr ? nullptr : thread->isolate_group();
   }
-
-  Thread* ScheduleThreadLocked(MonitorLocker* ml,
-                               Thread* existing_mutator_thread,
-                               bool is_vm_isolate,
-                               bool is_mutator,
-                               bool bypass_safepoint = false);
-  void UnscheduleThreadLocked(MonitorLocker* ml,
-                              Thread* thread,
-                              bool is_mutator,
-                              bool bypass_safepoint = false);
-
-  Thread* ScheduleThread(bool bypass_safepoint = false);
-  void UnscheduleThread(Thread* thread,
-                        bool is_mutator,
-                        bool bypass_safepoint = false);
 
   void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
@@ -1388,10 +1372,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
   }
 
-  const DispatchTable* dispatch_table() const {
-    return group()->dispatch_table();
-  }
-
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags) const;
@@ -1536,9 +1516,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_registered_service_extension_handlers(
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
-
-  Thread* ScheduleThread(bool is_nested_reenter);
-  void UnscheduleThread(Thread* thread, bool is_nested_exit);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).

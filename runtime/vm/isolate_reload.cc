@@ -2877,14 +2877,15 @@ void ReloadHandler::ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
     // mutator limit.
     while (reloading_thread_ != nullptr) {
       SafepointMonitorUnlockScope ml_unlocker(ml);
-      Thread::ExitIsolate(/*nested=*/true);
+      Thread::ExitIsolate(/*isolate_shutdown=*/false,
+                          /*treat_as_nested_exit=*/true);
       {
         MonitorLocker ml(&monitor_);
         while (reloading_thread_ != nullptr) {
           ml.Wait();
         }
       }
-      Thread::EnterIsolate(isolate, /*nested=*/true);
+      Thread::EnterIsolate(isolate, /*treat_as_nested_enter=*/true);
     }
     if (is_registered) {
       SafepointMonitorLocker ml(&checkin_monitor_);

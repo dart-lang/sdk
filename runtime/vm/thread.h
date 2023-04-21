@@ -26,6 +26,7 @@
 #include "vm/pending_deopts.h"
 #include "vm/random.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/tags.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
 
@@ -357,10 +358,24 @@ class Thread : public ThreadState {
     return static_cast<Thread*>(OSThread::CurrentVMThread());
   }
 
+  // Whether there's any active state on the [thread] that needs to be preserved
+  // across `Thread::ExitIsolate()` and `Thread::EnterIsolate()`.
+  bool HasActiveState();
+  void AssertEmptyStackInvariants();
+  void AssertEmptyThreadInvariants();
+
   // Makes the current thread enter 'isolate'.
-  static bool EnterIsolate(Isolate* isolate, bool is_nested_reenter = false);
+  //
+  // TODO(kustermann): Remove [treat_as_nested_exit] once safepoint-based reload
+  // implementation landed.
+  static bool EnterIsolate(Isolate* isolate,
+                           bool treat_as_nested_enter = false);
   // Makes the current thread exit its isolate.
-  static void ExitIsolate(bool is_nested_exit = false);
+  //
+  // TODO(kustermann): Remove [treat_as_nested_exit] once safepoint-based reload
+  // implementation landed.
+  static void ExitIsolate(bool isolate_shutdown = false,
+                          bool treat_as_nested_exit = false);
 
   static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                         TaskKind kind,
@@ -1349,8 +1364,33 @@ class Thread : public ThreadState {
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
 
-  void FinishEntering(TaskKind kind);
-  void PrepareLeaving();
+  void SetupMutatorState(TaskKind kind);
+  void ResetMutatorState();
+
+  void SetupDartMutatorState(Isolate* isolate);
+  void SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate);
+  void ResetDartMutatorState(Isolate* isolate);
+
+  static void SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag);
+  static void ResumeThreadInternal(Thread* thread);
+
+  // Adds a new active mutator thread to thread registry while associating it
+  // with the given isolate (group).
+  //
+  // All existing safepoint operations are waited for before adding the thread
+  // to the thread registry.
+  //
+  // => Anyone who iterates the active threads will first have to get us to
+  // safepoint (but can access `Thread::isolate()`).
+  static Thread* AddActiveThread(IsolateGroup* group,
+                                 Isolate* isolate,
+                                 bool is_dart_mutator,
+                                 bool bypass_safepoint);
+
+  // Releases a active mutator threads from the thread registry.
+  //
+  // Thread needs to be at-safepoint.
+  static void FreeActiveThread(Thread* thread, bool bypass_safepoint);
 
   // Ensures that we have allocated necessary thread-local data structures for
   // [callback_id].
@@ -1378,6 +1418,7 @@ class Thread : public ThreadState {
   friend class compiler::target::Thread;
   friend class FieldTable;
   friend class RuntimeCallDeoptScope;
+  friend class Dart;  // Calls SetupCachedEntryPoints after snapshot reading
   friend class
       TransitionGeneratedToVM;  // IsSafepointRequested/BlockForSafepoint
   friend class
