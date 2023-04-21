@@ -271,51 +271,188 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
   }
 }
 
-bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
-  is_nested_reenter = is_nested_reenter ||
-                      (isolate->mutator_thread() != nullptr &&
-                       isolate->mutator_thread()->top_exit_frame_info() != 0);
+void Thread::AssertEmptyStackInvariants() {
+  ASSERT(zone() == nullptr);
+  ASSERT(top_handle_scope() == nullptr);
+  ASSERT(long_jump_base() == nullptr);
+  ASSERT(top_resource() == nullptr);
+  ASSERT(top_exit_frame_info_ == 0);
+  ASSERT(api_top_scope_ == nullptr);
+  ASSERT(!pending_deopts_.HasPendingDeopts());
+  ASSERT(compiler_state_ == nullptr);
+  ASSERT(hierarchy_info_ == nullptr);
+  ASSERT(type_usage_info_ == nullptr);
+  ASSERT(no_active_isolate_scope_ == nullptr);
+  ASSERT(compiler_timings_ == nullptr);
+  ASSERT(!exit_through_ffi_);
+  ASSERT(runtime_call_deopt_ability_ == RuntimeCallDeoptAbility::kCanLazyDeopt);
+  ASSERT(no_callback_scope_depth_ == 0);
+  ASSERT(force_growth_scope_depth_ == 0);
+  ASSERT(no_reload_scope_depth_ == 0);
+  ASSERT(stopped_mutators_scope_depth_ == 0);
+  ASSERT(stack_overflow_flags_ == 0);
+  DEBUG_ASSERT(!inside_compiler_);
+  DEBUG_ASSERT(no_safepoint_scope_depth_ == 0);
 
-  Thread* thread = isolate->ScheduleThread(is_nested_reenter);
-  if (thread != nullptr) {
-    ASSERT(thread->store_buffer_block_ == nullptr);
-    ASSERT(thread->isolate() == isolate);
-    ASSERT(thread->isolate_group() == isolate->group());
-    thread->FinishEntering(kMutatorTask);
+  // Avoid running these asserts for `vm-isolate`.
+  if (active_stacktrace_.untag() != 0) {
+    ASSERT(sticky_error() == Error::null());
+    ASSERT(active_exception_ == Object::null());
+    ASSERT(active_stacktrace_ == Object::null());
+  }
+}
+
+void Thread::AssertEmptyThreadInvariants() {
+  AssertEmptyStackInvariants();
+
+  ASSERT(top_ == 0);
+  ASSERT(end_ == 0);
+  ASSERT(true_end_ == 0);
+  ASSERT(isolate_ == nullptr);
+  ASSERT(isolate_group_ == nullptr);
+  ASSERT(os_thread() == nullptr);
+  ASSERT(vm_tag_ == VMTag::kInvalidTagId);
+  ASSERT(task_kind_ == kUnknownTask);
+  ASSERT(execution_state_ == Thread::kThreadInNative);
+  ASSERT(!is_dart_mutator_);
+
+  ASSERT(write_barrier_mask_ == UntaggedObject::kGenerationalBarrierMask);
+  ASSERT(store_buffer_block_ == nullptr);
+  ASSERT(marking_stack_block_ == nullptr);
+  ASSERT(deferred_marking_stack_block_ == nullptr);
+  ASSERT(!is_unwind_in_progress_);
+
+  ASSERT(saved_stack_limit_ == 0);
+  ASSERT(stack_limit_.load() == 0);
+  ASSERT(safepoint_state_ == 0);
+
+  // Avoid running these asserts for `vm-isolate`.
+  if (active_stacktrace_.untag() != 0) {
+    ASSERT(field_table_values_ == nullptr);
+    ASSERT(global_object_pool_ == Object::null());
+    ASSERT(ffi_callback_code_ == Object::null());
+    ASSERT(ffi_callback_stack_return_ == Object::null());
+  }
+}
+
+bool Thread::HasActiveState() {
+  // Do we have active dart frames?
+  if (top_exit_frame_info() != 0) {
     return true;
   }
+  // Do we have active embedder scopes?
+  if (api_top_scope() != nullptr) {
+    return true;
+  }
+  // Do we have active vm zone?
+  if (zone() != nullptr) {
+    return true;
+  }
+  AssertEmptyStackInvariants();
   return false;
 }
 
-void Thread::ExitIsolate(bool is_nested_exit) {
+bool Thread::EnterIsolate(Isolate* isolate, bool treat_as_nested_enter) {
+  const bool is_resumable = isolate->mutator_thread() != nullptr;
+
+  // To let VM's thread pool (if we run on it) know that this thread is
+  // occupying a mutator again (decreases its max size).
+  const bool is_nested_reenter =
+      treat_as_nested_enter ||
+      (is_resumable && isolate->mutator_thread()->top_exit_frame_info() != 0);
+
+  auto group = isolate->group();
+  group->IncreaseMutatorCount(isolate, is_nested_reenter);
+
+  // Two threads cannot enter isolate at same time.
+  ASSERT(isolate->scheduled_mutator_thread_ == nullptr);
+
+  // We lazily create a [Thread] structure for the mutator thread, but we'll
+  // reuse it until the death of the isolate.
+  Thread* thread = nullptr;
+  if (is_resumable) {
+    thread = isolate->mutator_thread();
+    ASSERT(thread->is_dart_mutator_);
+    ASSERT(thread->isolate() == isolate);
+    ASSERT(thread->isolate_group() == isolate->group());
+    thread->ExitSafepoint();
+  } else {
+    thread = AddActiveThread(group, isolate, /*is_dart_mutator*/ true,
+                             /*bypass_safepoint=*/false);
+    thread->SetupMutatorState(kMutatorTask);
+    thread->SetupDartMutatorState(isolate);
+  }
+
+  isolate->scheduled_mutator_thread_ = thread;
+  ResumeThreadInternal(thread);
+
+  return true;
+}
+
+void Thread::ExitIsolate(bool isolate_shutdown, bool treat_as_nested_exit) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   ASSERT(thread->IsDartMutatorThread());
   ASSERT(thread->isolate() != nullptr);
   ASSERT(thread->isolate_group() != nullptr);
+  ASSERT(thread->isolate()->mutator_thread_ == thread);
+  ASSERT(thread->isolate()->scheduled_mutator_thread_ == thread);
   DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
 
-  thread->PrepareLeaving();
+  auto isolate = thread->isolate();
+  auto group = thread->isolate_group();
 
-  Isolate* isolate = thread->isolate();
   thread->set_vm_tag(isolate->is_runnable() ? VMTag::kIdleTagId
                                             : VMTag::kLoadWaitTagId);
-  is_nested_exit =
-      is_nested_exit || (isolate->mutator_thread() != nullptr &&
-                         isolate->mutator_thread()->top_exit_frame_info() != 0);
-  isolate->UnscheduleThread(thread, is_nested_exit);
+  if (thread->sticky_error() != Error::null()) {
+    ASSERT(isolate->sticky_error_ == Error::null());
+    isolate->sticky_error_ = thread->StealStickyError();
+  }
+
+  isolate->scheduled_mutator_thread_ = nullptr;
+
+  // Right now we keep the [Thread] object across the isolate's lifetime. This
+  // makes entering/exiting quite fast as it mainly boils down to safepoint
+  // transitions. Though any operation that walks over all active threads will
+  // see this thread as well (e.g. safepoint operations).
+  //
+  // We could safely use `suspend = !HasActiveState()` here instead and may
+  // consider doing so e.g. if the number of isolates is very large.
+  const bool suspend = !isolate_shutdown;
+  if (suspend) {
+    const auto tag =
+        isolate->is_runnable() ? VMTag::kIdleTagId : VMTag::kLoadWaitTagId;
+    SuspendThreadInternal(thread, tag);
+    thread->EnterSafepoint();
+    thread->set_execution_state(Thread::kThreadInNative);
+  } else {
+    thread->ResetDartMutatorState(isolate);
+    thread->ResetMutatorState();
+    SuspendThreadInternal(thread, VMTag::kInvalidTagId);
+    FreeActiveThread(thread, /*bypass_safepoint=*/false);
+  }
+
+  // To let VM's thread pool (if we run on it) know that this thread is
+  // occupying a mutator again (decreases its max size).
+  const bool is_nested_exit =
+      treat_as_nested_exit || thread->top_exit_frame_info() != 0;
+  ASSERT(!(isolate_shutdown && is_nested_exit));
+  group->DecreaseMutatorCount(isolate, is_nested_exit);
 }
 
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                        TaskKind kind,
                                        bool bypass_safepoint) {
   ASSERT(kind != kMutatorTask);
-  Thread* thread = isolate_group->ScheduleThread(bypass_safepoint);
+
+  Thread* thread = AddActiveThread(isolate_group, nullptr,
+                                   /*is_dart_mutator=*/false, bypass_safepoint);
   if (thread != nullptr) {
     ASSERT(!thread->IsDartMutatorThread());
     ASSERT(thread->isolate() == nullptr);
     ASSERT(thread->isolate_group() == isolate_group);
-    thread->FinishEntering(kind);
+    thread->SetupMutatorState(kind);
+    ResumeThreadInternal(thread);
     return true;
   }
   return false;
@@ -327,12 +464,119 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
   ASSERT(!thread->IsDartMutatorThread());
   ASSERT(thread->isolate() == nullptr);
   ASSERT(thread->isolate_group() != nullptr);
+  DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
 
-  thread->PrepareLeaving();
+  thread->ResetMutatorState();
+  SuspendThreadInternal(thread, VMTag::kInvalidTagId);
+  FreeActiveThread(thread, bypass_safepoint);
+}
 
-  const bool kIsDartMutatorThread = false;
-  thread->isolate_group()->UnscheduleThread(thread, kIsDartMutatorThread,
-                                            bypass_safepoint);
+void Thread::ResumeThreadInternal(Thread* thread) {
+  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(thread->isolate_group() != nullptr);
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  ASSERT(thread->vm_tag() == VMTag::kInvalidTagId ||
+         thread->vm_tag() == VMTag::kIdleTagId ||
+         thread->vm_tag() == VMTag::kLoadWaitTagId);
+
+  thread->set_vm_tag(VMTag::kVMTagId);
+  thread->set_execution_state(Thread::kThreadInVM);
+
+  OSThread* os_thread = OSThread::Current();
+  thread->set_os_thread(os_thread);
+  os_thread->set_thread(thread);
+  Thread::SetCurrent(thread);
+  os_thread->EnableThreadInterrupts();
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  thread->heap_sampler().Initialize();
+#endif
+}
+
+void Thread::SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag) {
+  thread->heap()->new_space()->AbandonRemainingTLAB(thread);
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  thread->heap_sampler().Cleanup();
+#endif
+
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != nullptr);
+  os_thread->DisableThreadInterrupts();
+  os_thread->set_thread(nullptr);
+  OSThread::SetCurrent(os_thread);
+  thread->set_os_thread(nullptr);
+
+  thread->set_vm_tag(tag);
+}
+
+Thread* Thread::AddActiveThread(IsolateGroup* group,
+                                Isolate* isolate,
+                                bool is_dart_mutator,
+                                bool bypass_safepoint) {
+  // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
+  // VM startup it might not have been set at this point.
+  const bool is_vm_isolate =
+      Dart::vm_isolate() == nullptr || Dart::vm_isolate() == isolate;
+
+  auto thread_registry = group->thread_registry();
+  auto safepoint_handler = group->safepoint_handler();
+  MonitorLocker ml(thread_registry->threads_lock());
+
+  if (!bypass_safepoint) {
+    while (safepoint_handler->AnySafepointInProgressLocked()) {
+      ml.Wait();
+    }
+  }
+
+  Thread* thread = thread_registry->GetFreeThreadLocked(is_vm_isolate);
+  thread->AssertEmptyThreadInvariants();
+
+  thread->isolate_ = isolate;  // May be nullptr.
+  thread->isolate_group_ = group;
+  thread->is_dart_mutator_ = is_dart_mutator;
+
+  // We start at being at-safepoint (in case any safepoint operation is
+  // in-progress, we'll check into it once leaving the safepoint)
+  thread->set_safepoint_state(Thread::SetBypassSafepoints(bypass_safepoint, 0));
+  thread->runtime_call_deopt_ability_ = RuntimeCallDeoptAbility::kCanLazyDeopt;
+  ASSERT(!thread->IsAtSafepoint());
+
+  ASSERT(thread->saved_stack_limit_ == 0);
+  return thread;
+}
+
+void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
+  ASSERT(!thread->HasActiveState());
+  ASSERT(!thread->IsAtSafepoint());
+
+  thread->ClearReusableHandles();
+
+  auto group = thread->isolate_group_;
+  auto thread_registry = group->thread_registry();
+
+  MonitorLocker ml(thread_registry->threads_lock());
+
+  if (!bypass_safepoint) {
+    // There may be a pending safepoint operation on another thread that is
+    // waiting for us to check-in.
+    //
+    // Though notice we're holding the thread registrys' threads_lock, which
+    // means if this other thread runs code as part of a safepoint operation it
+    // will still wait for us to finish here before it tries to iterate the
+    // active mutators (e.g. when GC starts/stops incremental marking).
+    thread->EnterSafepoint();
+  }
+
+  thread->isolate_ = nullptr;
+  thread->isolate_group_ = nullptr;
+  thread->is_dart_mutator_ = false;
+  thread->set_execution_state(Thread::kThreadInNative);
+  thread->stack_limit_.store(0);
+  thread->safepoint_state_ = 0;
+
+  thread->AssertEmptyThreadInvariants();
+  thread_registry->ReturnThreadLocked(thread);
 }
 
 void Thread::ReleaseStoreBuffer() {
@@ -961,7 +1205,7 @@ bool Thread::CanAcquireSafepointLocks() const {
   return !OwnsGCSafepoint();
 }
 
-void Thread::FinishEntering(TaskKind kind) {
+void Thread::SetupMutatorState(TaskKind kind) {
   ASSERT(store_buffer_block_ == nullptr);
 
   task_kind_ = kind;
@@ -980,16 +1224,65 @@ void Thread::FinishEntering(TaskKind kind) {
   }
 }
 
-void Thread::PrepareLeaving() {
-  ASSERT(store_buffer_block_ != nullptr);
+void Thread::ResetMutatorState() {
   ASSERT(execution_state() == Thread::kThreadInVM);
+  ASSERT(store_buffer_block_ != nullptr);
 
+  vm_tag_ = VMTag::kInvalidTagId;
   task_kind_ = kUnknownTask;
   if (is_marking()) {
     MarkingStackRelease();
     DeferredMarkingStackRelease();
   }
   StoreBufferRelease();
+}
+
+void Thread::SetupDartMutatorState(Isolate* isolate) {
+  field_table_values_ = isolate->field_table_->table();
+  isolate->mutator_thread_ = this;
+
+  SetupDartMutatorStateDependingOnSnapshot(isolate);
+}
+
+void Thread::SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate) {
+  // The snapshot may or may not have been read at this point (on isolate group
+  // creation, the first isolate is first time entered before the snapshot is
+  // read)
+  //
+  // So we call this code explicitly after snapshot reading time and whenever we
+  // enter an isolate with a new thread object.
+#if defined(DART_PRECOMPILED_RUNTIME)
+  auto group = isolate->group();
+  auto object_store = group->object_store();
+  if (object_store != nullptr) {
+    global_object_pool_ = object_store->global_object_pool();
+
+    auto dispatch_table = group->dispatch_table();
+    if (dispatch_table != nullptr) {
+      dispatch_table_array_ = dispatch_table->ArrayOrigin();
+    }
+#define INIT_ENTRY_POINT(name)                                                 \
+  if (object_store->name() != Object::null()) {                                \
+    name##_entry_point_ = Function::EntryPointOf(object_store->name());        \
+  }
+    CACHED_FUNCTION_ENTRY_POINTS_LIST(INIT_ENTRY_POINT)
+#undef INIT_ENTRY_POINT
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+void Thread::ResetDartMutatorState(Isolate* isolate) {
+  ASSERT(execution_state() == Thread::kThreadInVM);
+
+  isolate->mutator_thread_ = nullptr;
+  saved_stack_limit_ = 0;  // Isolate shutdown may set this to 0xff..
+  is_unwind_in_progress_ = false;
+
+  field_table_values_ = nullptr;
+  ffi_callback_code_ = GrowableObjectArray::null();
+  ffi_callback_stack_return_ = TypedData::null();
+  ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
+  ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
 }
 
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)

@@ -311,7 +311,7 @@ class OSThread : public BaseThread {
   // initialization checks at each use.
   static inline thread_local ThreadState* current_vm_thread_ = nullptr;
 
-  friend class IsolateGroup;  // to access set_thread(Thread*).
+  friend class Thread;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterFuchsia;
   friend class ThreadInterrupterMacOS;

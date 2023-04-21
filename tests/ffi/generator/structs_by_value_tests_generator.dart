@@ -504,6 +504,7 @@ extension on CompositeType {
     final packingAnnotation = (self is StructType) && self.hasPacking
         ? "@Packed(${self.packing})"
         : "";
+    final classModifier = isNnbd ? 'final' : '';
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(isNnbd)}\n\n";
@@ -527,7 +528,7 @@ extension on CompositeType {
     }).join(", ");
     return """
     $packingAnnotation
-    class $name extends $dartSuperClass {
+    $classModifier class $name extends $dartSuperClass {
       $dartFields
 
       String toString() => "($toStringBody)";
@@ -972,7 +973,7 @@ Future<void> writeDartCompounds() async {
 
     final path = compoundsPath(isNnbd: isNnbd);
     await File(path).writeAsString(buffer.toString());
-    await runProcess("dart", ["format", path]);
+    await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
 }
 
@@ -1060,10 +1061,7 @@ void main() {$forceDlOpen
         nameSuffix: nameSuffix,
         isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
-    if (!isVarArgs) {
-      // TODO(https://dartbug.com/50798): Dart format support for records.
-      await runProcess("dart", ["format", path]);
-    }
+    await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
 }
 
@@ -1156,11 +1154,7 @@ ${functions.map((e) => e.dartCallbackTestConstructor).join("\n")}
 
     final path = callbackTestPath(isNnbd: isNnbd, isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
-    if (!isVarArgs) {
-      // TODO(https://github.com/dart-lang/dart_style/issues/1128): Dart
-      // format support for records.
-      await runProcess("dart", ["format", path]);
-    }
+    await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
 }
 

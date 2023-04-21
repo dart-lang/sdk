@@ -35,13 +35,14 @@ class ThreadRegistry {
   void AcquireMarkingStacks();
   void ReleaseMarkingStacks();
 
+  Monitor* threads_lock() const { return &threads_lock_; }
+
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
 
  private:
   Thread* active_list() const { return active_list_; }
-  Monitor* threads_lock() const { return &threads_lock_; }
 
   Thread* GetFreeThreadLocked(bool is_vm_isolate);
   void ReturnThreadLocked(Thread* thread);
@@ -56,8 +57,7 @@ class ThreadRegistry {
   Thread* active_list_;  // List of active threads in the isolate.
   Thread* free_list_;    // Free list of Thread objects that can be reused.
 
-  friend class Isolate;
-  friend class IsolateGroup;
+  friend class Thread;
   friend class SafepointHandler;
   friend class Scavenger;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);

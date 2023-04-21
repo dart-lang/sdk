@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/thread.h"
+#include "vm/thread_registry.h"
 #include "vm/thread_stack_resource.h"
 
 namespace dart {
@@ -93,7 +94,7 @@ class SafepointHandler {
   SafepointLevel InnermostSafepointOperation(
       const Thread* current_thread) const;
 
-  bool AnySafepointInProgress() {
+  bool AnySafepointInProgressLocked() {
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
       if (handlers_[level]->SafepointInProgress()) {
         return true;
@@ -131,7 +132,9 @@ class SafepointHandler {
     void NotifyWeAreParked(Thread* T);
 
     IsolateGroup* isolate_group() const { return isolate_group_; }
-    Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
+    Monitor* threads_lock() const {
+      return isolate_group_->thread_registry()->threads_lock();
+    }
 
    private:
     friend class SafepointHandler;
@@ -178,7 +181,9 @@ class SafepointHandler {
   void ExitSafepointLocked(Thread* T, MonitorLocker* tl, SafepointLevel level);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
-  Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
+  Monitor* threads_lock() const {
+    return isolate_group_->thread_registry()->threads_lock();
+  }
 
   IsolateGroup* isolate_group_;
 

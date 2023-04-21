@@ -110,14 +110,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
   ASSERT(thread->IsDartMutatorThread());
   ASSERT(!function.IsNull());
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  thread->set_global_object_pool(
-      thread->isolate_group()->object_store()->global_object_pool());
-  const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
-  ASSERT(dispatch_table != nullptr);
-  thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
-  ASSERT(thread->global_object_pool() != Object::null());
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
     const Object& result = Object::Handle(
         thread->zone(), Compiler::CompileFunction(thread, function));
