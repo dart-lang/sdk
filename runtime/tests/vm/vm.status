@@ -62,6 +62,16 @@ dart_2/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
+[ $builder_tag == obfuscated ]
+dart/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
+dart/isolate_exit_unsendable_test: SkipByDesign # Relies on symbol names
+dart/isolates/send_unsupported_objects_test: SkipByDesign # Relies on symbol names
+dart/sendandexit_test: SkipByDesign # Relies on symbol names
+dart_2/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
+dart_2/isolate_exit_unsendable_test: SkipByDesign # Relies on symbol names
+dart_2/isolates/send_unsupported_objects_test: SkipByDesign # Relies on symbol names
+dart_2/sendandexit_test: SkipByDesign # Relies on symbol names
+
 [ $builder_tag == optimization_counter_threshold ]
 cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
@@ -435,11 +445,27 @@ dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exa
 dart/causal_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
 dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 dart/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart/error_messages_in_null_checks_test: SkipByDesign # Relies symbol names in stack traces
+dart/extension_names_test: SkipByDesign # Relies symbol names in stack traces
+dart/extension_unnamed_names_test: SkipByDesign # Relies symbol names in stack traces
+dart/inline_stack_frame_test: SkipByDesign # Relies symbol names in stack traces
+dart/invisible_function_pragma_test: SkipByDesign # Relies symbol names in stack traces
+dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Relies symbol names in stack traces
+dart/optimized_stacktrace_line_test: SkipByDesign # Relies symbol names in stack traces
+dart/stacktrace_mixin_application_test: SkipByDesign # Relies symbol names in stack traces
 dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/error_messages_in_null_checks_test: SkipByDesign # Relies on uris / symbol names
+dart_2/extension_names_test: SkipByDesign # Relies on uris / symbol names
+dart_2/extension_unnamed_names_test: SkipByDesign # Relies on uris / symbol names
+dart_2/inline_stack_frame_test: SkipByDesign # Relies on uris / symbol names
+dart_2/invisible_function_pragma_test: SkipByDesign # Relies symbol names in stack traces
+dart_2/optimized_stacktrace_line_and_column_test: SkipByDesign # Relies symbol names in stack traces
+dart_2/optimized_stacktrace_line_test: SkipByDesign # Relies symbol names in stack traces
+dart_2/stacktrace_mixin_application_test: SkipByDesign # Relies symbol names in stack traces
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.

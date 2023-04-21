@@ -5,6 +5,10 @@
 bigint_parse_radix_test/3: Slow # Issue http://dartbug.com/47050
 bigint_test: Pass, Slow
 
+[ $builder_tag == obfuscated ]
+corelib/nsm_invocation_test: SkipByDesign # Relies on non-obfuscated symbols
+corelib/symbol_test: SkipByDesign # Relies on non-obfuscated symbols
+
 [ $compiler == dartkp ]
 bigint_parse_radix_test: Slow, Pass # --no_intrinsify
 bigint_test/03: SkipSlow # --no_intrinsify
@@ -35,7 +39,7 @@ stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 apply_generic_function_test: SkipByDesign # Function.apply with named args
 apply_test: Skip # Uses new Symbol via symbolToStringMap helper
 dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
-error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
+error_stack_trace1_test: SkipByDesign # Relies on symbol names in stack traces.
 type_tostring_test: SkipByDesign # Expects names in Type.toString()
 
 [ $compiler != dart2analyzer && $compiler != dart2js && $compiler != ddc ]
