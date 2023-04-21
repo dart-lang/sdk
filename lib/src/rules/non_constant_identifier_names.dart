@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/ascii_utils.dart';
 import '../utils.dart';
 
@@ -100,6 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    if (node.parent.isFieldNameShortcut) return;
     checkIdentifier(node.name);
   }
 
@@ -131,6 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
+    if (node.isFieldNameShortcut) return;
     var pattern = node.pattern;
     if (pattern is DeclaredVariablePattern) {
       checkIdentifier(pattern.name);
