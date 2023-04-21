@@ -65,6 +65,14 @@ f() {
     ]);
   }
 
+  test_record_final_ok() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (final (i, j) in [(1, 2)]) { }
+}  
+''');
+  }
+
   test_record_mutated_ok() async {
     await assertNoDiagnostics(r'''
 f() {
