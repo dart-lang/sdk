@@ -24187,6 +24187,39 @@ library
 ''');
   }
 
+  test_extension_typeParameters_hasBound() async {
+    var library = await buildLibrary('''
+extension E<T extends num> on int {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+            bound: num
+            defaultType: num
+        extendedType: int
+''');
+  }
+
+  test_extension_typeParameters_noBound() async {
+    var library = await buildLibrary('''
+extension E<T> on int {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        extendedType: int
+''');
+  }
+
   test_function_async() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
@@ -24505,6 +24538,25 @@ library
 ''');
   }
 
+  test_function_parameter_type_typeParameter() async {
+    var library = await buildLibrary('''
+void f<T>(T a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
+''');
+  }
+
   test_function_parameters() async {
     var library = await buildLibrary('f(x, y) {}');
     checkElementText(library, r'''
@@ -24518,17 +24570,6 @@ library
           requiredPositional y @5
             type: dynamic
         returnType: dynamic
-''');
-  }
-
-  test_function_return_type() async {
-    var library = await buildLibrary('int f() => null;');
-    checkElementText(library, r'''
-library
-  definingUnit
-    functions
-      f @4
-        returnType: int
 ''');
   }
 
@@ -24554,8 +24595,23 @@ library
 ''');
   }
 
-  test_function_type_parameter() async {
-    var library = await buildLibrary('T f<T, U>(U u) => null;');
+  test_function_returnType() async {
+    var library = await buildLibrary('''
+int f() => 0;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @4
+        returnType: int
+''');
+  }
+
+  test_function_returnType_typeParameter() async {
+    var library = await buildLibrary('''
+T f<T>() => throw 0;
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -24564,11 +24620,6 @@ library
         typeParameters
           covariant T @4
             defaultType: dynamic
-          covariant U @7
-            defaultType: dynamic
-        parameters
-          requiredPositional u @12
-            type: U
         returnType: T
 ''');
   }
@@ -24601,6 +24652,39 @@ library
         library
             .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
         isFalse);
+  }
+
+  test_function_typeParameters_hasBound() async {
+    var library = await buildLibrary('''
+void f<T extends num>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            bound: num
+            defaultType: num
+        returnType: void
+''');
+  }
+
+  test_function_typeParameters_noBound() async {
+    var library = await buildLibrary('''
+void f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        returnType: void
+''');
   }
 
   test_functions() async {
@@ -32030,6 +32114,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @38
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @33
@@ -33650,6 +33735,7 @@ library
             element: self::@getter::foo
         typeParameters
           covariant T @38
+            defaultType: dynamic
             metadata
               Annotation
                 atSign: @ @33
@@ -36251,6 +36337,7 @@ library
       E @10
         typeParameters
           covariant T @12
+            defaultType: dynamic
         extendedType: int
 ''');
   }
