@@ -4,6 +4,20 @@
 
 import 'package:github/github.dart';
 
+Future<List<IssueLabel>> getLabels(
+    {required String owner, required String name, Authentication? auth}) async {
+  var github = GitHub(auth: auth);
+  var slug = RepositorySlug(owner, name);
+  try {
+    return github.issues.listLabels(slug).toList();
+  } on Exception catch (e) {
+    print('exception caught fetching GitHub labels');
+    print(e);
+    print('(defaulting to an empty list)');
+    return Future.value(<IssueLabel>[]);
+  }
+}
+
 Future<List<Issue>> getLinterIssues({Authentication? auth}) async {
   var github = GitHub(auth: auth);
   var slug = RepositorySlug('dart-lang', 'linter');
