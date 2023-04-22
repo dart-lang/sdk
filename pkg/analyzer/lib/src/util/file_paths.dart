@@ -72,7 +72,7 @@ bool isDart(p.Context pathContext, String path) {
 /// Such files specify data-driven fixes.
 bool isFixDataYaml(p.Context pathContext, String path) {
   return pathContext.basename(path) == fixDataYaml ||
-      (pathContext.split(path).contains(fixDataYamlFolder) &&
+      (pathContext.split(path).contains('fix_data') &&
           pathContext.extension(path) == '.yaml');
 }
 

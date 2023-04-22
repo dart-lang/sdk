@@ -458,7 +458,7 @@ class ContextManagerImpl implements ContextManager {
         // packageName/lib/fix_data.yaml
         packageName = pathSegments[pathSegments.length - 3];
       } else {
-        var fixDataIndex = pathSegments.indexOf(file_paths.fixDataYamlFolder);
+        var fixDataIndex = pathSegments.indexOf('fix_data');
         if (fixDataIndex >= 2) {
           // packageName/lib/fix_data/foo/bar/fix.yaml
           packageName = pathSegments[fixDataIndex - 2];
@@ -574,7 +574,7 @@ class ContextManagerImpl implements ContextManager {
 
           var fixDataFolder = rootFolder
               .getChildAssumingFolder('lib')
-              .getChildAssumingFolder(file_paths.fixDataYamlFolder);
+              .getChildAssumingFolder('fix_data');
           if (fixDataFolder.exists) {
             _analyzeFixDataFolder(driver, fixDataFolder, packageName);
           }
