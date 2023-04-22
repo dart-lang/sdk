@@ -3055,7 +3055,6 @@ class Iterable<E> {
 }
 
 class List<E> extends Iterable<E> {
-  factory List() => null;
   factory List.unmodifiable(elements) => null;
   factory List.empty({bool growable = false}) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;

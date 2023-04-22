@@ -55,7 +55,7 @@ Object _convertMapArgument(Map argument) {
  * Returns the new List object.
  */
 List _convertListArgument(List argument) {
-  List l = new List();
+  List l = [];
   for (var i = 0; i < argument.length; i++) l.add(convertArgument(argument[i]));
   return l;
 }
@@ -205,7 +205,7 @@ class Event {
     // proxy the callback
     void __proxy_callback(List rules) {
       if (callback != null) {
-        List<Rule> __proxy_rules = new List<Rule>();
+        List<Rule> __proxy_rules = <Rule>[];
 
         for (Object o in rules) __proxy_rules.add(new Rule._proxy(o));
 
@@ -233,7 +233,7 @@ class Event {
     // proxy the callback
     void __proxy_callback(List rules) {
       if (callback != null) {
-        List<Rule> __proxy_rules = new List<Rule>();
+        List<Rule> __proxy_rules = <Rule>[];
 
         for (Object o in rules) __proxy_rules.add(new Rule._proxy(o));
 

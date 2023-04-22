@@ -98,8 +98,7 @@ class FilesystemChooseEntryOptions extends ChromeObject {
   /// The optional list of accept options for this file opener. Each option will
   /// be presented as a unique group to the end-user.
   List<FilesystemAcceptOption> get accepts {
-    List<FilesystemAcceptOption> __proxy_accepts =
-        new List<FilesystemAcceptOption>();
+    List<FilesystemAcceptOption> __proxy_accepts = <FilesystemAcceptOption>[];
     int count = JS('int', '#.accepts.length', this._jsObject);
     for (int i = 0; i < count; i++) {
       var item = JS('', '#.accepts[#]', this._jsObject, i);

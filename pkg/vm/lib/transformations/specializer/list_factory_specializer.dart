@@ -9,7 +9,6 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 /// Replaces invocation of List factory constructors with
 /// factories of VM-specific classes.
 ///
-/// new List() => new _GrowableList(0)
 /// new List.empty() => new _List.empty()
 /// new List.empty(growable: false) => new _List.empty()
 /// new List.empty(growable: true) => new _GrowableList.empty()

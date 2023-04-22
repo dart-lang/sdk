@@ -67,7 +67,7 @@ class AppRuntimeLaunchData extends ChromeObject {
   }
 
   List<AppRuntimeLaunchItem> get items {
-    List<AppRuntimeLaunchItem> __proxy_items = new List<AppRuntimeLaunchItem>();
+    List<AppRuntimeLaunchItem> __proxy_items = <AppRuntimeLaunchItem>[];
     int count = JS('int', '#.items.length', this._jsObject);
     for (int i = 0; i < count; i++) {
       var item = JS('', '#.items[#]', this._jsObject, i);

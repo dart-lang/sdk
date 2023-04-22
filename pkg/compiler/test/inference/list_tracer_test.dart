@@ -208,9 +208,7 @@ void main() {
     // Test literal list.
     await doTest('<dynamic>[]', nullify: false);
     // Test growable list.
-    await doTest('new List<dynamic>()', nullify: false);
-    // Test fixed list.
-    await doTest('new List<dynamic>(1)', nullify: true);
+    await doTest('new List<dynamic>.empty()', nullify: false);
     // Test List.filled.
     await doTest('new List<dynamic>.filled(1, 0)', nullify: false);
     // Test List.filled.

@@ -14,11 +14,14 @@ main() {
   hugeList4();
 }
 
+/*member: thing:[null]*/
+dynamic thing;
+
 /*member: _huge1:[subclass=JSPositiveInt]*/
 final _huge1 = 5000000000;
 
 /*member: hugeList1:Container([exact=JSFixedArray], element: [null], length: null)*/
-hugeList1() => List(_huge1);
+hugeList1() => List.filled(_huge1, thing);
 
 const _huge2a = 10000000000 * 10000000000;
 
@@ -26,7 +29,7 @@ const _huge2a = 10000000000 * 10000000000;
 final _huge2b = _huge2a;
 
 /*member: hugeList2:Container([exact=JSFixedArray], element: [null], length: null)*/
-hugeList2() => List(_huge2b);
+hugeList2() => List.filled(_huge2b, thing);
 
 const _huge3a = -10000000;
 
@@ -34,7 +37,7 @@ const _huge3a = -10000000;
 final _huge3b = _huge3a;
 
 /*member: hugeList3:Container([exact=JSFixedArray], element: [null], length: null)*/
-hugeList3() => List(_huge3b);
+hugeList3() => List.filled(_huge3b, thing);
 
 // 'Small' limits are still tracked.
 
@@ -42,4 +45,4 @@ hugeList3() => List(_huge3b);
 final _huge4 = 10000000;
 
 /*member: hugeList4:Container([exact=JSFixedArray], element: [null], length: 10000000)*/
-hugeList4() => List(_huge4);
+hugeList4() => List.filled(_huge4, thing);

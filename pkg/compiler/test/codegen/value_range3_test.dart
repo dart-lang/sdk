@@ -16,7 +16,7 @@ var a = [42];
 main() {
   var value = a[0];
   if (value < 42) {
-    return List(42)[value];
+    return List.filled(42, null)[value];
   }
 }
 ''',

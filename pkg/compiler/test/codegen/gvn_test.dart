@@ -19,7 +19,7 @@ void foo(bar) {
 // GVN'ing the length of [:list:].
 const String TEST_TWO = r"""
 void foo(a) {
-  var list = List<int>();
+  var list = <int>[];
   list[0] = list[0 % a];
   list[1] = list[1 % a];
 }

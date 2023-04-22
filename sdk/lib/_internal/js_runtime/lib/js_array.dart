@@ -17,15 +17,6 @@ const _ListConstructorSentinel = const _Growable();
 class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   const JSArray();
 
-  // This factory constructor is the redirection target of the List() factory
-  // constructor. [length] has no type to permit the sentinel value.
-  factory JSArray.list([length = _ListConstructorSentinel]) {
-    if (_ListConstructorSentinel == length) {
-      return new JSArray<E>.emptyGrowable();
-    }
-    return new JSArray<E>.fixed(length);
-  }
-
   /// Returns a fresh JavaScript Array, marked as fixed-length. The holes in the
   /// array yield `undefined`, making the Dart List appear to be filled with
   /// `null` values.
