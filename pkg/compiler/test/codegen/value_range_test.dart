@@ -18,7 +18,7 @@ const int BELOW_ZERO_CHECK = 6;
 final List TESTS = [
   """
 main() {
-  var a = List();
+  var a = [];
   var sum = 0;
   for (int i = 0; i < a.length; i++) {
     sum += a[i];
@@ -29,7 +29,7 @@ main() {
   REMOVED,
   """
 main(value) {
-  var a = List();
+  var a = [];
   var sum = 0;
   for (int i = 0; i < value; i++) {
     sum += a[i];
@@ -42,7 +42,7 @@ main(value) {
 main(check) {
   // Make sure value is an int.
   var value = check ? 42 : 54;
-  var a = List(value);
+  var a = List.filled(value, null);
   var sum = 0;
   for (int i = 0; i < value; i++) {
     sum += a[i];
@@ -53,77 +53,77 @@ main(check) {
   REMOVED,
   """
 main() {
-  var a = List();
+  var a = [];
   return a[0];
 }
 """,
   KEPT,
   """
 main() {
-  var a = List();
+  var a = [];
   return a.removeLast();
 }
 """,
   KEPT,
   """
 main() {
-  var a = List(4);
+  var a = List.filled(4, null);
   return a[0];
 }
 """,
   REMOVED,
   """
 main() {
-  var a = List(4);
+  var a = List.filled(4, null);
   return a.removeLast();
 }
 """,
   REMOVED,
   """
 main(value) {
-  var a = List(value);
+  var a = List.filled(value, null);
   return a[value];
 }
 """,
   KEPT,
   """
 main(value) {
-  var a = List(1024);
+  var a = List.filled(1024, null);
   return a[1023 & value];
 }
 """,
   REMOVED,
   """
 main(value) {
-  var a = List(1024);
+  var a = List.filled(1024, null);
   return a[1024 & value];
 }
 """,
   ABOVE_ZERO,
   """
 main(value) {
-  var a = List();
+  var a = [];
   return a[1];
 }
 """,
   ABOVE_ZERO,
   """
 main(value, call) {
-  var a = List();
+  var a = [];
   return a[value] + call() + a[value];
 }
 """,
   ONE_ZERO_CHECK,
   """
 main(value) {
-  var a = List();
+  var a = [];
   return a[1] + a[0];
 }
 """,
   ONE_CHECK,
   """
 main() {
-  var a = List();
+  var a = [];
   var sum = 0;
   for (int i = 0; i <= a.length - 1; i++) {
     sum += a[i];
@@ -134,7 +134,7 @@ main() {
   REMOVED,
   """
 main() {
-  var a = List();
+  var a = [];
   var sum = 0;
   for (int i = a.length - 1; i >=0; i--) {
     sum += a[i];
@@ -148,7 +148,7 @@ main(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
-  var a = List();
+  var a = [];
   if (value > a.length - 1) return;
   if (value < 0) return;
   return a[value];
@@ -160,7 +160,7 @@ main(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
-  var a = List();
+  var a = [];
   if (value <= a.length - 1) {
     if (value >= 0) {
       return a[value];
@@ -174,7 +174,7 @@ main(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
-  var a = List();
+  var a = [];
   if (value >= a.length) return;
   if (value <= -1) return;
   return a[value];
@@ -183,7 +183,7 @@ main(value) {
   REMOVED,
   """
 main(value) {
-  var a = List(4);
+  var a = List.filled(4, null);
   var sum = 0;
   for (int i = 0; i < a.length; i++) {
     sum += a[i];
@@ -195,7 +195,7 @@ main(value) {
   REMOVED,
   """
 main(value) {
-  var a = List(5);
+  var a = List.filled(5, null);
   var sum = 0;
   for (int i = a.length - 1; i >= 0; i--) {
     sum += a[i];
@@ -207,7 +207,7 @@ main(value) {
   REMOVED,
   """
 main(value) {
-  var a = List(6);
+  var a = List.filled(6, null);
   var sum = 0;
   for (int i = 0; i < a.length; i++) {
     sum += a[i];
@@ -219,7 +219,7 @@ main(value) {
   BELOW_ZERO_CHECK,
   """
 main(value) {
-  var a = List(7);
+  var a = List.filled(7, null);
   var sum = 0;
   for (int i = 0; i < a.length;) {
     sum += a[i];
@@ -231,7 +231,7 @@ main(value) {
   BELOW_ZERO_CHECK,
   """
 main(value) {
-  var a = List(7);
+  var a = List.filled(7, null);
   var sum = 0;
   for (int i = -2; i < a.length; i = 0) {
     sum += a[i];

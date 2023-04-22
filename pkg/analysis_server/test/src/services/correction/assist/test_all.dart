@@ -30,6 +30,8 @@ import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_if_case_statement_chain_test.dart'
+    as convert_to_if_case_statement_chain;
 import 'convert_to_if_case_statement_test.dart' as convert_to_if_case_statement;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
@@ -119,6 +121,7 @@ void main() {
     convert_to_double_quoted_string.main();
     convert_to_field_parameter.main();
     convert_to_for_element.main();
+    convert_to_if_case_statement_chain.main();
     convert_to_if_case_statement.main();
     convert_to_if_element.main();
     convert_to_int_literal.main();

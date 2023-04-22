@@ -400,7 +400,6 @@ class UntaggedObject {
   }
 
   void Validate(IsolateGroup* isolate_group) const;
-  bool FindObject(FindObjectVisitor* visitor);
 
   // This function may access the class-ID in the header, but it cannot access
   // the actual class object, because the sliding compactor uses this function

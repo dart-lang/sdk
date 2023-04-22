@@ -26,14 +26,14 @@ main() {
 }
 
 const String TEST3 = r"""
-var a = List(42);
+var a = List.filled(42, null);
 main() {
   return a[0];
 }
 """;
 
 const String TEST4 = r"""
-var a = List(0);
+var a = List.filled(0, null);
 main() {
   return a[0];
 }
@@ -75,7 +75,7 @@ main() {
 
 const String TEST8 = r"""
 var b = int.parse('42');
-var a = List(b);
+var a = List.filled(b, null);
 main() {
   return a[1];
 }
@@ -83,7 +83,7 @@ main() {
 
 const String TEST9 = r"""
 const b = 42;
-var a = List(b);
+var a = List.filled(b, null);
 main() {
   return a[1];
 }

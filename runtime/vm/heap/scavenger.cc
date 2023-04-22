@@ -1597,25 +1597,6 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
   }
 }
 
-ObjectPtr Scavenger::FindObject(FindObjectVisitor* visitor) {
-  ASSERT(!scavenging_);
-  for (Page* page = to_->head(); page != nullptr; page = page->next()) {
-    uword cur = page->object_start();
-    if (!visitor->VisitRange(cur, page->object_end())) continue;
-    while (cur < page->object_end()) {
-      ObjectPtr raw_obj = UntaggedObject::FromAddr(cur);
-      uword next = cur + raw_obj->untag()->HeapSize();
-      if (visitor->VisitRange(cur, next) &&
-          raw_obj->untag()->FindObject(visitor)) {
-        return raw_obj;  // Found object, return it.
-      }
-      cur = next;
-    }
-    ASSERT(cur == page->object_end());
-  }
-  return Object::null();
-}
-
 void Scavenger::TryAllocateNewTLAB(Thread* thread,
                                    intptr_t min_size,
                                    bool can_safepoint) {

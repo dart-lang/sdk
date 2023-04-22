@@ -681,28 +681,6 @@ void PageSpace::ResetProgressBars() const {
   }
 }
 
-ObjectPtr PageSpace::FindObject(FindObjectVisitor* visitor,
-                                bool is_exec) const {
-  if (is_exec) {
-    for (ExclusiveCodePageIterator it(this); !it.Done(); it.Advance()) {
-      ObjectPtr obj = it.page()->FindObject(visitor);
-      if (obj != Object::null()) {
-        return obj;
-      }
-    }
-  } else {
-    for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-      if (!it.page()->is_executable()) {
-        ObjectPtr obj = it.page()->FindObject(visitor);
-        if (obj != Object::null()) {
-          return obj;
-        }
-      }
-    }
-  }
-  return Object::null();
-}
-
 void PageSpace::WriteProtect(bool read_only) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.

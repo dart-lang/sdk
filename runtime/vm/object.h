@@ -6937,8 +6937,6 @@ class Code : public Object {
                                        CodeStatistics* stats = nullptr);
 
 #endif
-  static CodePtr LookupCode(uword pc);
-  static CodePtr LookupCodeInVmIsolate(uword pc);
   static CodePtr FindCode(uword pc, int64_t timestamp);
 
   int32_t GetPointerOffsetAt(int index) const {
@@ -7031,20 +7029,6 @@ class Code : public Object {
 
   class PtrOffBits
       : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
-
-  class SlowFindRawCodeVisitor : public FindObjectVisitor {
-   public:
-    explicit SlowFindRawCodeVisitor(uword pc) : pc_(pc) {}
-    virtual ~SlowFindRawCodeVisitor() {}
-
-    // Check if object matches find condition.
-    virtual bool FindObject(ObjectPtr obj) const;
-
-   private:
-    const uword pc_;
-
-    DISALLOW_COPY_AND_ASSIGN(SlowFindRawCodeVisitor);
-  };
 
   static constexpr intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 

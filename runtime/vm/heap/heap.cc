@@ -362,37 +362,6 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   old_space_.VisitObjectPointers(visitor);
 }
 
-InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
-  // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, /*exec*/ true);
-  ASSERT((raw_obj == Object::null()) ||
-         (raw_obj->GetClassId() == kInstructionsCid));
-  return static_cast<InstructionsPtr>(raw_obj);
-}
-
-ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, /*exec*/ false);
-}
-
-ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
-  return new_space_.FindObject(visitor);
-}
-
-ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
-  // The visitor must not allocate from the heap.
-  NoSafepointScope no_safepoint_scope;
-  ObjectPtr raw_obj = FindNewObject(visitor);
-  if (raw_obj != Object::null()) {
-    return raw_obj;
-  }
-  raw_obj = FindOldObject(visitor);
-  if (raw_obj != Object::null()) {
-    return raw_obj;
-  }
-  raw_obj = FindObjectInCodeSpace(visitor);
-  return raw_obj;
-}
-
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
   TIMELINE_FUNCTION_GC_DURATION(thread, "NotifyIdle");

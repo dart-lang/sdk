@@ -1107,14 +1107,6 @@ class KCommonElements extends CommonElements {
 class JCommonElements extends CommonElements {
   JCommonElements(super.dartTypes, super.env);
 
-  /// Returns `true` if [element] is the unnamed constructor of `List`.
-  ///
-  /// This will not resolve the constructor if it hasn't been seen yet during
-  /// compilation.
-  bool isUnnamedListConstructor(ConstructorEntity element) =>
-      (element.name == '' && element.enclosingClass == listClass) ||
-      (element.name == 'list' && element.enclosingClass == jsArrayClass);
-
   /// Returns `true` if [element] is the named constructor of `List`,
   /// e.g. `List.of`.
   ///

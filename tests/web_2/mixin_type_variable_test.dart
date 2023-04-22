@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 abstract class Bar<C> {
-  final List<C> _one = new List<C>();
+  final List<C> _one = <C>[];
 
   final bool _two = Foo is C;
 }

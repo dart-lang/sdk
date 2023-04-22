@@ -21,7 +21,8 @@ abstract class SourceFileByteReader {
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
-  int dartCharactersRead = 0;
+  int bytesRead = 0;
+  int sourceBytesFromDill = 0;
   SourceFileByteReader byteReader;
   final Set<Uri> _registeredUris = {};
   final Map<Uri, Uri> _mappedUris = {};
@@ -63,6 +64,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!disableByteCache) {
       _byteCache[resourceUri] = source;
     }
+    sourceBytesFromDill += source.length;
   }
 
   /// Registers the URI and returns true if the URI is new.
@@ -83,7 +85,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
     if (registerUri(resourceUri)) {
-      dartCharactersRead += source.length;
+      bytesRead += source.length;
     }
     if (resourceUri != uri) {
       registerUri(uri);

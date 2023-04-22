@@ -27,6 +27,6 @@ class C1 implements C {}
 class C2 implements C {}
 
 main() {
-  makeLive(new B<List<A<C>>>().method(new List<A1>()));
-  makeLive(new B<List<A<C2>>>().method(new List<A1>()));
+  makeLive(new B<List<A<C>>>().method(<A1>[]));
+  makeLive(new B<List<A<C2>>>().method(<A1>[]));
 }

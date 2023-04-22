@@ -422,9 +422,6 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([int? length]) = JSArray<E>.list;
-
-  @patch
   factory List.filled(int length, E fill, {bool growable = false}) {
     var result = growable
         ? new JSArray<E>.growable(length)

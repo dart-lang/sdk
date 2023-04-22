@@ -1020,13 +1020,15 @@ Future<api.CompilationResult> compile(List<String> argv,
     String? summary;
     switch (readStrategy) {
       case ReadStrategy.fromDart:
-        inputName = inputDillUri != null ? 'kernel bytes' : 'characters Dart';
-        inputSize = inputProvider.dartCharactersRead;
+        final sourceCharCount =
+            _formatCharacterCount(inputProvider.sourceBytesFromDill);
+        inputName = 'input bytes ($sourceCharCount characters source)';
+        inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
       case ReadStrategy.fromClosedWorld:
         inputName = 'bytes data';
-        inputSize = inputProvider.dartCharactersRead;
+        inputSize = inputProvider.bytesRead;
         String dataInput =
             fe.relativizeUri(Uri.base, readClosedWorldUri!, Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
@@ -1035,7 +1037,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         _fail("Must read from closed world and data.");
       case ReadStrategy.fromDataAndClosedWorld:
         inputName = 'bytes data';
-        inputSize = inputProvider.dartCharactersRead;
+        inputSize = inputProvider.bytesRead;
         String worldInput =
             fe.relativizeUri(Uri.base, readClosedWorldUri!, Platform.isWindows);
         String dataInput =
@@ -1048,7 +1050,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         _fail("Must read from closed world, data, and codegen");
       case ReadStrategy.fromCodegenAndClosedWorldAndData:
         inputName = 'bytes data';
-        inputSize = inputProvider.dartCharactersRead;
+        inputSize = inputProvider.bytesRead;
         String worldInput =
             fe.relativizeUri(Uri.base, readClosedWorldUri!, Platform.isWindows);
         String dataInput =

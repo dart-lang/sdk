@@ -255,24 +255,6 @@ void Page::ResetProgressBar() {
   progress_bar_ = 0;
 }
 
-ObjectPtr Page::FindObject(FindObjectVisitor* visitor) const {
-  uword obj_addr = object_start();
-  uword end_addr = object_end();
-  if (visitor->VisitRange(obj_addr, end_addr)) {
-    while (obj_addr < end_addr) {
-      ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
-      uword next_obj_addr = obj_addr + raw_obj->untag()->HeapSize();
-      if (visitor->VisitRange(obj_addr, next_obj_addr) &&
-          raw_obj->untag()->FindObject(visitor)) {
-        return raw_obj;  // Found object, return it.
-      }
-      obj_addr = next_obj_addr;
-    }
-    ASSERT(obj_addr == end_addr);
-  }
-  return Object::null();
-}
-
 void Page::WriteProtect(bool read_only) {
   ASSERT(!is_image());
 

@@ -98,10 +98,9 @@ class Candidate<T> {
   }
 }
 
-List<Candidate<ObjectMirror>> candidateReceivers =
-    new List<Candidate<ObjectMirror>>();
+List<Candidate<ObjectMirror>> candidateReceivers = <Candidate<ObjectMirror>>[];
 List<Candidate<InstanceMirror>> candidateArguments =
-    new List<Candidate<InstanceMirror>>();
+    <Candidate<InstanceMirror>>[];
 
 void addInstance(var instance) {
   addInstanceMirror(reflect(instance));
@@ -345,7 +344,7 @@ void garbageCollect() {
   // page in old space.
   var n;
   for (int i = 0; i < 2048; i++) {
-    var m = new List(512);
+    var m = new List.filled(512, null);
     m[0] = n;
     n = m;
   }

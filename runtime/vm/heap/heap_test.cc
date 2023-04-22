@@ -212,48 +212,6 @@ TEST_CASE(ClassHeapStats) {
 }
 #endif  // !PRODUCT
 
-class FindOnly : public FindObjectVisitor {
- public:
-  explicit FindOnly(ObjectPtr target) : target_(target) {
-#if defined(DEBUG)
-    EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
-#endif
-  }
-  virtual ~FindOnly() {}
-
-  virtual bool FindObject(ObjectPtr obj) const { return obj == target_; }
-
- private:
-  ObjectPtr target_;
-};
-
-class FindNothing : public FindObjectVisitor {
- public:
-  FindNothing() {}
-  virtual ~FindNothing() {}
-  virtual bool FindObject(ObjectPtr obj) const { return false; }
-};
-
-ISOLATE_UNIT_TEST_CASE(FindObject) {
-  Heap* heap = IsolateGroup::Current()->heap();
-  Heap::Space spaces[2] = {Heap::kOld, Heap::kNew};
-  for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
-    const String& obj = String::Handle(String::New("x", spaces[space]));
-    {
-      HeapIterationScope iteration(thread);
-      NoSafepointScope no_safepoint;
-      FindOnly find_only(obj.ptr());
-      EXPECT(obj.ptr() == heap->FindObject(&find_only));
-    }
-  }
-  {
-    HeapIterationScope iteration(thread);
-    NoSafepointScope no_safepoint;
-    FindNothing find_nothing;
-    EXPECT(Object::null() == heap->FindObject(&find_nothing));
-  }
-}
-
 ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
 

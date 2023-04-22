@@ -146,6 +146,11 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Convert to 'if-case' statement",
   );
+  static const CONVERT_TO_IF_CASE_STATEMENT_CHAIN = AssistKind(
+    'dart.assist.convert.ifCaseStatementChain',
+    DartAssistKindPriority.DEFAULT,
+    "Convert to 'if-case' statement chain",
+  );
   static const CONVERT_TO_IF_ELEMENT = AssistKind(
     'dart.assist.convert.toIfElement',
     DartAssistKindPriority.DEFAULT,

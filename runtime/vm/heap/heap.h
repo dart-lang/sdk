@@ -111,19 +111,6 @@ class Heap {
   bool CodeContains(uword addr) const;
   bool DataContains(uword addr) const;
 
-  // Find an object by visiting all pointers in the specified heap space,
-  // the 'visitor' is used to determine if an object is found or not.
-  // The 'visitor' function should be set up to return true if the
-  // object is found, traversal through the heap space stops at that
-  // point.
-  // The 'visitor' function should return false if the object is not found,
-  // traversal through the heap space continues.
-  // Returns null object if nothing is found.
-  InstructionsPtr FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
-  ObjectPtr FindOldObject(FindObjectVisitor* visitor) const;
-  ObjectPtr FindNewObject(FindObjectVisitor* visitor);
-  ObjectPtr FindObject(FindObjectVisitor* visitor);
-
   void NotifyIdle(int64_t deadline);
   void NotifyDestroyed();
 
