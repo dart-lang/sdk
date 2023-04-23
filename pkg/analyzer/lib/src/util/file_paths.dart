@@ -31,9 +31,6 @@ const String dotDartTool = '.dart_tool';
 /// The name of the data file used to specify data-driven fixes.
 const String fixDataYaml = 'fix_data.yaml';
 
-/// The name of the data folder used to specify data-driven fixes.
-const String fixDataYamlFolder = 'fix_data';
-
 /// The name of the package config files.
 const String packageConfigJson = 'package_config.json';
 
@@ -68,12 +65,10 @@ bool isDart(p.Context pathContext, String path) {
   return pathContext.extension(path) == '.dart';
 }
 
-/// Return `true` if the [path] is a `fix_data.yaml` or `fix_data/**.yaml` file.
+/// Return `true` if the [path] is a `fix_data.yaml` file.
 /// Such files specify data-driven fixes.
 bool isFixDataYaml(p.Context pathContext, String path) {
-  return pathContext.basename(path) == fixDataYaml ||
-      (pathContext.split(path).contains(fixDataYamlFolder) &&
-          pathContext.extension(path) == '.yaml');
+  return pathContext.basename(path) == fixDataYaml;
 }
 
 /// Return `true` if the given [path] refers to a file that is assumed to be

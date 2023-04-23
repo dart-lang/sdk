@@ -344,28 +344,14 @@ class ContextManagerImpl implements ContextManager {
     callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
-  /// Use the given analysis [driver] to analyze the content of yaml files
-  /// inside [folder].
-  void _analyzeFixDataFolder(
-      AnalysisDriver driver, Folder folder, String packageName) {
-    for (var resource in folder.getChildren()) {
-      if (resource is File) {
-        if (resource.shortName.endsWith('.yaml')) {
-          _analyzeFixDataYaml(driver, resource, packageName);
-        }
-      } else if (resource is Folder) {
-        _analyzeFixDataFolder(driver, resource, packageName);
-      }
-    }
-  }
-
   /// Use the given analysis [driver] to analyze the content of the
-  /// given [File].
-  void _analyzeFixDataYaml(
-      AnalysisDriver driver, File file, String packageName) {
+  /// data file at the given [path].
+  void _analyzeFixDataYaml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
-      var content = file.readAsStringSync();
+      var file = resourceProvider.getFile(path);
+      var packageName = file.parent.parent.shortName;
+      var content = _readFile(path);
       var errorListener = RecordingErrorListener();
       var errorReporter = ErrorReporter(
         errorListener,
@@ -382,7 +368,7 @@ class ContextManagerImpl implements ContextManager {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
     }
-    callbacks.recordAnalysisErrors(file.path, convertedErrors);
+    callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
   /// Use the given analysis [driver] to analyze the content of the pubspec file
@@ -450,31 +436,10 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _checkForFixDataYamlUpdate(String path) {
-    String? extractPackageNameFromPath(String path) {
-      String? packageName;
-      var pathSegments = pathContext.split(path);
-      if (pathContext.basename(path) == file_paths.fixDataYaml &&
-          pathSegments.length >= 3) {
-        // packageName/lib/fix_data.yaml
-        packageName = pathSegments[pathSegments.length - 3];
-      } else {
-        var fixDataIndex = pathSegments.indexOf(file_paths.fixDataYamlFolder);
-        if (fixDataIndex >= 2) {
-          // packageName/lib/fix_data/foo/bar/fix.yaml
-          packageName = pathSegments[fixDataIndex - 2];
-        }
-      }
-      return packageName;
-    }
-
     if (file_paths.isFixDataYaml(pathContext, path)) {
       var driver = getDriverFor(path);
       if (driver != null) {
-        String? packageName = extractPackageNameFromPath(path);
-        if (packageName != null) {
-          var file = resourceProvider.getFile(path);
-          _analyzeFixDataYaml(driver, file, packageName);
-        }
+        _analyzeFixDataYaml(driver, path);
       }
     }
   }
@@ -564,19 +529,11 @@ class ContextManagerImpl implements ContextManager {
             _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
           }
 
-          var packageName = rootFolder.shortName;
           var fixDataYamlFile = rootFolder
               .getChildAssumingFolder('lib')
               .getChildAssumingFile(file_paths.fixDataYaml);
           if (fixDataYamlFile.exists) {
-            _analyzeFixDataYaml(driver, fixDataYamlFile, packageName);
-          }
-
-          var fixDataFolder = rootFolder
-              .getChildAssumingFolder('lib')
-              .getChildAssumingFolder(file_paths.fixDataYamlFolder);
-          if (fixDataFolder.exists) {
-            _analyzeFixDataFolder(driver, fixDataFolder, packageName);
+            _analyzeFixDataYaml(driver, fixDataYamlFile.path);
           }
 
           var pubspecFile =

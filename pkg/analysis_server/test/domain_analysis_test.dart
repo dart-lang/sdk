@@ -238,28 +238,6 @@ class A {}
     assertNoErrors(b_path);
   }
 
-  Future<void> test_fileSystem_addFile_fixDataFolderYaml() async {
-    var path = '$testPackageLibPath/fix_data/foo.yaml';
-
-    newFile('$testPackageLibPath/a.dart', '');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-
-    // No `fix_data.yaml` to analyze yet.
-    assertNoErrorsNotification(path);
-
-    // Create it, will be analyzed.
-    newFile(path, '0: 1');
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // And it has errors.
-    assertHasErrors(path);
-
-    // We don't recreate analysis contexts.
-    _assertFlushedResults([]);
-  }
-
   Future<void> test_fileSystem_addFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
@@ -553,34 +531,6 @@ class A {}
     assertNoErrors(b_path);
   }
 
-  Future<void> test_fileSystem_changeFile_fixDataFolderYaml() async {
-    var path = '$testPackageLibPath/fix_data/foo.yaml';
-
-    newFile('$testPackageLibPath/a.dart', '');
-
-    // This file has an error.
-    newFile(path, '0: 1');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-
-    // The file was analyzed.
-    assertHasErrors(path);
-
-    // Replace with the content that does not have errors.
-    newFile(path, r'''
-version: 1
-transforms: []
-''');
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // And it has errors.
-    assertNoErrors(path);
-
-    // We don't recreate analysis contexts.
-    _assertFlushedResults([]);
-  }
-
   Future<void> test_fileSystem_changeFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
@@ -594,7 +544,7 @@ transforms: []
     // The file was analyzed.
     assertHasErrors(path);
 
-    // Replace with the content that does not have errors.
+    // Replace with the context that does not have errors.
     newFile(path, r'''
 version: 1
 transforms: []
