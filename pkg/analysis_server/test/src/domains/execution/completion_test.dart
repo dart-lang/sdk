@@ -26,7 +26,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
 
   void addContextFile(String content) {
     contextFile = convertPath('$testPackageLibPath/context.dart');
-    addSource(contextFile, content);
+    newFile(contextFile, content);
 
     contextOffset = content.indexOf('// context line');
     expect(contextOffset, isNonNegative,
@@ -120,13 +120,13 @@ class B extends A {
 
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_inPart() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 part 'context.dart';
 
 int a;
 ''');
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
 double b;

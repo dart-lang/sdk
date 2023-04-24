@@ -297,7 +297,7 @@ void f() {
   Future<void> test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -325,7 +325,7 @@ void f() {
   Future<void> test_ConstructorName_importedClass_unresolved() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -354,7 +354,7 @@ void f() {
   Future<void> test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -455,7 +455,7 @@ void f() {
 
   Future<void>
       test_importPrefix_className_typeArguments_period_nothing_functionTypeContext_matchingReturnType() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A.named();
   A.new();

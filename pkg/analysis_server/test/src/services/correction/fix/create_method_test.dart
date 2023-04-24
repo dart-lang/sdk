@@ -860,8 +860,8 @@ class D {
 }
 ''';
 
-    addSource('$testPackageLibPath/test2.dart', code2);
-    addSource('$testPackageLibPath/test3.dart', r'''
+    newFile('$testPackageLibPath/test2.dart', code2);
+    newFile('$testPackageLibPath/test3.dart', r'''
 library test3;
 class E {}
 ''');
@@ -885,7 +885,7 @@ class D {
   }
 
   Future<void> test_parameterType_inTargetUnit() async {
-    addSource('$testPackageLibPath/test2.dart', r'''
+    newFile('$testPackageLibPath/test2.dart', r'''
 class D {
 }
 

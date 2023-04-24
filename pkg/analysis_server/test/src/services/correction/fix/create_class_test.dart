@@ -73,7 +73,7 @@ class BaseClass {
   }
 
   Future<void> test_inLibraryOfPrefix() async {
-    addSource('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 class A {}
 ''');
 

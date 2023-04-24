@@ -40,10 +40,10 @@ class TransformSetManagerTest extends AbstractContextTest {
         ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
     );
 
-    addSource('/home/test/pubspec.yaml', '');
+    newFile('/home/test/pubspec.yaml', '');
 
     var testFile = convertPath('$testPackageLibPath/test.dart');
-    addSource(testFile, '');
+    newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
@@ -80,10 +80,10 @@ class TransformSetManagerTest extends AbstractContextTest {
         ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
     );
 
-    addSource('/home/test/pubspec.yaml', '');
+    newFile('/home/test/pubspec.yaml', '');
 
     var testFile = convertPath('$testPackageLibPath/test.dart');
-    addSource(testFile, '');
+    newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
@@ -92,9 +92,9 @@ class TransformSetManagerTest extends AbstractContextTest {
   Future<void> test_zeroFiles() async {
     // addTestPackageDependency('p1', '/.pub-cache/p1');
     // addTestPackageDependency('p2', '/.pub-cache/p2');
-    addSource('/home/test/pubspec.yaml', '');
+    newFile('/home/test/pubspec.yaml', '');
     var testFile = convertPath('$testPackageLibPath/test.dart');
-    addSource(testFile, '');
+    newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(0));
