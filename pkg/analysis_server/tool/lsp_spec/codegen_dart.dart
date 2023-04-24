@@ -37,7 +37,8 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'FailureHandlingKind' &&
       name != 'InsertTextFormat' &&
       name != 'MarkupKind' &&
-      name != 'ResourceOperationKind';
+      name != 'ResourceOperationKind' &&
+      name != 'TraceValues';
 }
 
 String generateDartForTypes(List<LspEntity> types) {
