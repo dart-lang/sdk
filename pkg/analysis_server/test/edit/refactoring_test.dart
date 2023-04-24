@@ -1065,6 +1065,16 @@ void f() {
 ''', 'test = 0;');
   }
 
+  Future<void> test_rename_hasElement_localVariable_forEach_statement() {
+    return assertHasRenameRefactoring('''
+void f(List<int> values) {
+  for (final value in values) {
+    value;
+  }
+}
+''', 'value in');
+  }
+
   Future<void> test_rename_hasElement_method() {
     return assertHasRenameRefactoring('''
 class A {

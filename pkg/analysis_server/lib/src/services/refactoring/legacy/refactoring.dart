@@ -464,6 +464,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node;
     } else if (node is ConstructorSelector) {
       nameNode = node;
+    } else if (node is DeclaredIdentifier) {
+      nameNode = node.name;
     } else if (node is DeclaredVariablePattern) {
       nameNode = node.name;
     } else if (node is EnumConstantDeclaration) {
