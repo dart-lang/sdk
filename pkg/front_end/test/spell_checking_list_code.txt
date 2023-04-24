@@ -1055,6 +1055,7 @@ pattern's
 patterned
 patterns
 paulberry
+pause
 pay
 payload
 payloads
@@ -1617,6 +1618,7 @@ ui
 uint
 umbrella
 un
+unaccounted
 unaffected
 unaligned
 unaltered
