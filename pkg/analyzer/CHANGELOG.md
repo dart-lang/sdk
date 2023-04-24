@@ -1,4 +1,4 @@
-## 5.11.0-dev
+## 5.11.0
 * Removed `@experimental` from AST nodes and elements for records and patterns.
 * Deprecated `IfStatement.condition`, use `expression` instead.
 
