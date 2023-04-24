@@ -764,7 +764,7 @@ final class SameSite {
     if (index >= 0 && index < _names.length) {
       return SameSite._internal(index);
     } else {
-      throw HttpException('SameSite value should be one of Lax, Strict and None.');
+      throw HttpException('SameSite value should be one of Lax, Strict or None.');
     }
   }
 
