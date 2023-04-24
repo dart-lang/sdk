@@ -1555,7 +1555,7 @@ class StaticAccessGenerator extends Generator {
           arguments);
     } else {
       return _helper.buildStaticInvocation(readTarget as Procedure, arguments,
-          charOffset: offset);
+          charOffset: offset, isConstructorInvocation: false);
     }
   }
 

@@ -4466,10 +4466,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred = false}) {
     if (node.arguments.types.isEmpty) return;
     Procedure factory = node.target;
-    assert(factory.isFactory);
-    Class klass = factory.enclosingClass!;
-    DartType constructedType = new InterfaceType(
-        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
+    assert(factory.isFactory || factory.isInlineClassMember);
+    DartType constructedType = Substitution.fromPairs(
+            node.target.function.typeParameters, node.arguments.types)
+        .substituteType(node.target.function.returnType);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
