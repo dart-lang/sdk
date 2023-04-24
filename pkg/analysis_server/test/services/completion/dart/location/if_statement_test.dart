@@ -150,6 +150,153 @@ suggestions
     }
   }
 
+  Future<void> test_afterElse_beforeEnd() async {
+    await computeSuggestions('''
+void f() { if (true) {} else ^ }
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftParen_beforeRightParen_inFunction() async {
+    await computeSuggestions('''
+foo() {if (^) }
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftParen_beforeRightParen_inFunction_partial() async {
+    await computeSuggestions('''
+foo() {if (n^) }
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  null
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterLeftParen_beforeRightParen_inMethod() async {
+    await computeSuggestions('''
+class A {foo() {if (^) }}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftParen_beforeRightParen_inMethod_partial() async {
+    await computeSuggestions('''
+class A {foo() {if (n^) }}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  null
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_afterPattern() async {
     await computeSuggestions('''
 void f(Object o) {
@@ -176,6 +323,412 @@ suggestions
   when
     kind: keyword
 ''');
+  }
+
+  Future<void> test_afterRightParen_beforeColon_inFunction_partial() async {
+    await computeSuggestions('''
+foo() {if (true) r^;}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  return
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterRightParen_beforeColon_inMethod_partial() async {
+    await computeSuggestions('''
+class A {foo() {if (true) r^;}}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  return
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterRightParen_beforeEnd_inClass() async {
+    await computeSuggestions('''
+class A {foo() {if (true) ^}}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterRightParen_beforeEnd_inFunction() async {
+    await computeSuggestions('''
+foo() {if (true) ^}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterRightParen_beforeExpressionStatement_inClass() async {
+    await computeSuggestions('''
+class A {foo() {if (true) ^ go();}}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterRightParen_beforeExpressionStatement_inFunction() async {
+    await computeSuggestions('''
+foo() {if (true) ^ go();}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterRightParen_beforeSemicolon_inClass() async {
+    await computeSuggestions('''
+class A {foo() {if (true) ^;}}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterRightParen_beforeSemicolon_inFunction() async {
+    await computeSuggestions('''
+foo() {if (true) ^;}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterThen_beforeEnd_partial() async {
+    await computeSuggestions('''
+void f() { if (true) {} e^ }
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  else
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  else
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_afterWhen() async {

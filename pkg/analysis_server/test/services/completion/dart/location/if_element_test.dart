@@ -13,16 +13,440 @@ void main() {
   });
 }
 
+mixin IfElementInListTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterElse_beforeComma_partial() async {
+    await computeSuggestions('''
+void f(int i) {
+  [if (true) 1 else 2 e^, i, i];
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterElse_beforeEnd() async {
+    await computeSuggestions('''
+f() => [if (true) 1 else ^];
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterFor_beforeEnd_partial() async {
+    await computeSuggestions('''
+void f(int i) {
+  [if (b) for (var e in c) e e^];
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  else
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterRightParen_beforeEnd() async {
+    await computeSuggestions('''
+f() => [if (true) ^];
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterThen_beforeComma() async {
+    await computeSuggestions('''
+void f(int i, int j) {
+  [if (true) i ^, j];
+}
+''');
+    // TODO(brianwilkerson) This should be suggesting `else`.
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterThen_beforeComma_partial() async {
+    await computeSuggestions('''
+void f(int i) {
+  [if (true) 1 e^, i];
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  else
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterThen_beforeEnd() async {
+    await computeSuggestions('''
+void f(int i) {
+  [if (true) i ^];
+}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterThen_beforeEnd_nestedInElse() async {
+    await computeSuggestions('''
+void f(int i) {
+  [if (false) i else if (true) i ^];
+}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterThen_beforeEnd_nestedInFor() async {
+    await computeSuggestions('''
+void f(int i) {
+  [for (var e in []) if (true) i ^];
+}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterThen_beforeEnd_nestedInThen() async {
+    await computeSuggestions('''
+void f(int i) {
+  [if (false) if (true) i ^];
+}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_test_afterThen_beforeEnd_partial() async {
+    await computeSuggestions('''
+void f() {
+  [if (true) 1 e^];
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  else
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+}
+
+mixin IfElementInMapTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterMapEntry_beforeComma_partial() async {
+    await computeSuggestions('''
+void f(int i) {
+  <int, int>{if (true) 1: 1 e^, 2: i};
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  else
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+}
+
+mixin IfElementInSetTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterThen_beforeComma_partial() async {
+    await computeSuggestions('''
+void f(int i) {
+  <int>{if (true) 1 e^, i};
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  else
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  else
+    kind: keyword
+  false
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+}
+
 @reflectiveTest
 class IfElementTest1 extends AbstractCompletionDriverTest
-    with IfElementTestCases {
+    with
+        IfElementTestCases,
+        IfElementInListTestCases,
+        IfElementInMapTestCases,
+        IfElementInSetTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class IfElementTest2 extends AbstractCompletionDriverTest
-    with IfElementTestCases {
+    with
+        IfElementTestCases,
+        IfElementInListTestCases,
+        IfElementInMapTestCases,
+        IfElementInSetTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
