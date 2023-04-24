@@ -19,6 +19,19 @@ class InvertIfStatementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.INVERT_IF_STATEMENT;
 
+  Future<void> test_ifCase() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    await assertNoAssistAt('if (');
+  }
+
   Future<void> test_thenBlock_elseBlock() async {
     await resolveTestCode('''
 void f() {

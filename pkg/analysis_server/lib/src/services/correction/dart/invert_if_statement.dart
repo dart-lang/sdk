@@ -20,6 +20,10 @@ class InvertIfStatement extends CorrectionProducer {
       return;
     }
 
+    if (ifStatement.caseClause != null) {
+      return;
+    }
+
     // The only sane case is when both are blocks.
     final thenStatement = ifStatement.thenStatement;
     final elseStatement = ifStatement.elseStatement;

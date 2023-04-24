@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -19,6 +20,10 @@ class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (!libraryElement.featureSet.isEnabled(Feature.patterns)) {
+      return;
+    }
+
     final ifStatement = node;
     if (ifStatement is! IfStatement) {
       return;
