@@ -747,7 +747,7 @@ final class SameSite {
 
   /// The [Cookie] will be sent in all requests.
   ///
-  /// [Cookies.secure] must also be set to `true`, otherwise the [none] value
+  /// [Cookie.secure] must also be set to `true`, otherwise the [none] value
   /// will have no effect.
   static const none = SameSite._internal(2);
 
