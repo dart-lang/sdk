@@ -865,22 +865,22 @@ mixin StandardBounds {
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
-    //   Note that both types must be class types at this point.
-    assert(type1 is InterfaceType,
+    //   Note that both types must be interface or inline types at this point.
+    assert(type1 is InterfaceType || type1 is InlineType,
         "Expected type1 to be an interface type, got '${type1.runtimeType}'.");
-    assert(type2 is InterfaceType,
+    assert(type2 is InterfaceType || type2 is InlineType,
         "Expected type2 to be an interface type, got '${type2.runtimeType}'.");
 
     // We use the non-nullable variants of the two interfaces types to determine
     // T1 <: T2 without using the nullability of the outermost type. The result
     // uses [uniteNullabilities] to compute the resulting type if the subtype
     // relation is established.
-    InterfaceType typeWithoutNullabilityMarker1 =
+    DartType typeWithoutNullabilityMarker1 =
         computeTypeWithoutNullabilityMarker(type1,
-            isNonNullableByDefault: isNonNullableByDefault) as InterfaceType;
-    InterfaceType typeWithoutNullabilityMarker2 =
+            isNonNullableByDefault: isNonNullableByDefault);
+    DartType typeWithoutNullabilityMarker2 =
         computeTypeWithoutNullabilityMarker(type2,
-            isNonNullableByDefault: isNonNullableByDefault) as InterfaceType;
+            isNonNullableByDefault: isNonNullableByDefault);
 
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
@@ -889,7 +889,7 @@ mixin StandardBounds {
     }
 
     // UP(T1, T2) = T1 if T2 <: T1
-    //   Note that both types must be class types at this point.
+    //   Note that both types must be interface or inline types at this point.
     if (isSubtypeOf(typeWithoutNullabilityMarker2,
         typeWithoutNullabilityMarker1, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(uniteNullabilities(
@@ -897,33 +897,59 @@ mixin StandardBounds {
     }
 
     // UP(C<T0, ..., Tn>, C<S0, ..., Sn>) = C<R0,..., Rn> where Ri is UP(Ti, Si)
+    Class? cls;
+    InlineClass? inlineClass;
+    List<TypeParameter>? typeParameters;
+    List<DartType>? leftArguments;
+    List<DartType>? rightArguments;
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      Class klass = type1.classNode;
-      if (type2.classNode == klass) {
-        int n = klass.typeParameters.length;
-        List<DartType> leftArguments = type1.typeArguments;
-        List<DartType> rightArguments = type2.typeArguments;
-        List<DartType> typeArguments = new List<DartType>.of(leftArguments);
-        for (int i = 0; i < n; ++i) {
-          int variance = klass.typeParameters[i].variance;
-          if (variance == Variance.contravariant) {
-            typeArguments[i] = _getNullabilityAwareStandardLowerBound(
-                leftArguments[i], rightArguments[i],
-                isNonNullableByDefault: isNonNullableByDefault);
-          } else if (variance == Variance.invariant) {
-            if (!areMutualSubtypes(leftArguments[i], rightArguments[i],
-                SubtypeCheckMode.withNullabilities)) {
-              return hierarchy.getLegacyLeastUpperBound(type1, type2,
-                  isNonNullableByDefault: isNonNullableByDefault);
-            }
-          } else {
-            typeArguments[i] = _getNullabilityAwareStandardUpperBound(
-                leftArguments[i], rightArguments[i],
+      if (type1.classNode == type2.classNode) {
+        cls = type1.classNode;
+        typeParameters = cls.typeParameters;
+        leftArguments = type1.typeArguments;
+        rightArguments = type2.typeArguments;
+      }
+    }
+    if (type1 is InlineType && type2 is InlineType) {
+      if (type1.inlineClass == type2.inlineClass) {
+        inlineClass = type1.inlineClass;
+        leftArguments = type1.typeArguments;
+        rightArguments = type2.typeArguments;
+      }
+    }
+
+    if (typeParameters != null &&
+        leftArguments != null &&
+        rightArguments != null) {
+      int n = typeParameters.length;
+      List<DartType> typeArguments = new List<DartType>.of(leftArguments);
+      for (int i = 0; i < n; ++i) {
+        int variance = typeParameters[i].variance;
+        if (variance == Variance.contravariant) {
+          typeArguments[i] = _getNullabilityAwareStandardLowerBound(
+              leftArguments[i], rightArguments[i],
+              isNonNullableByDefault: isNonNullableByDefault);
+        } else if (variance == Variance.invariant) {
+          if (!areMutualSubtypes(leftArguments[i], rightArguments[i],
+              SubtypeCheckMode.withNullabilities)) {
+            return _getLegacyLeastUpperBound(type1, type2,
                 isNonNullableByDefault: isNonNullableByDefault);
           }
+        } else {
+          typeArguments[i] = _getNullabilityAwareStandardUpperBound(
+              leftArguments[i], rightArguments[i],
+              isNonNullableByDefault: isNonNullableByDefault);
         }
+      }
+      if (cls != null) {
         return new InterfaceType(
-            klass,
+            cls,
+            uniteNullabilities(
+                type1.declaredNullability, type2.declaredNullability),
+            typeArguments);
+      } else {
+        return new InlineType(
+            inlineClass!,
             uniteNullabilities(
                 type1.declaredNullability, type2.declaredNullability),
             typeArguments);
@@ -932,9 +958,77 @@ mixin StandardBounds {
 
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //   = least upper bound of two interfaces as in Dart 1.
-    return hierarchy.getLegacyLeastUpperBound(
-        type1 as InterfaceType, type2 as InterfaceType,
+    return _getLegacyLeastUpperBound(type1, type2,
         isNonNullableByDefault: isNonNullableByDefault);
+  }
+
+  DartType _getLegacyLeastUpperBound(DartType type1, DartType type2,
+      {required bool isNonNullableByDefault}) {
+    if (type1 is InterfaceType && type2 is InterfaceType) {
+      return hierarchy.getLegacyLeastUpperBound(type1, type2,
+          isNonNullableByDefault: isNonNullableByDefault);
+    } else if (type1 is InlineType && type2 is InlineType) {
+      // This mimics the legacy least upper bound implementation for regular
+      // classes, where the least upper bound is found as the single common
+      // supertype with the highest class hierarchy depth.
+
+      // TODO(johnniwinther): Move this computation to [ClassHierarchyBase] and
+      // cache it there.
+      Map<InlineClass, int> inlineClassDepth = {};
+
+      int computeInlineClassDepth(InlineClass inlineClass) {
+        int? depth = inlineClassDepth[inlineClass];
+        if (depth == null) {
+          int maxDepth = 0;
+          for (InlineType implemented in inlineClass.implements) {
+            int supertypeDepth =
+                computeInlineClassDepth(implemented.inlineClass);
+            if (supertypeDepth >= maxDepth) {
+              maxDepth = supertypeDepth + 1;
+            }
+          }
+          depth = inlineClassDepth[inlineClass] = maxDepth;
+        }
+        return depth;
+      }
+
+      void computeSuperTypes(InlineType type, List<InlineType> supertypes) {
+        computeInlineClassDepth(type.inlineClass);
+        supertypes.add(type);
+        for (InlineType implemented in type.inlineClass.implements) {
+          InlineType supertype = hierarchy.getInlineTypeAsInstanceOf(
+              type, implemented.inlineClass,
+              isNonNullableByDefault: isNonNullableByDefault)!;
+          computeSuperTypes(supertype, supertypes);
+        }
+      }
+
+      List<InlineType> supertypes1 = [];
+      computeSuperTypes(type1, supertypes1);
+      List<InlineType> supertypes2 = [];
+      computeSuperTypes(type2, supertypes2);
+
+      Set<InlineType> set = supertypes1.toSet()..retainAll(supertypes2);
+      Map<int, List<InlineType>> commonSupertypesByDepth = {};
+      for (InlineType type in set) {
+        (commonSupertypesByDepth[inlineClassDepth[type.inlineClass]!] ??= [])
+            .add(type);
+      }
+      int maxDepth = -1;
+      InlineType? candidate;
+      for (MapEntry<int, List<InlineType>> entry
+          in commonSupertypesByDepth.entries) {
+        if (entry.key > maxDepth && entry.value.length == 1) {
+          maxDepth = entry.key;
+          candidate = entry.value.single;
+        }
+      }
+      if (candidate != null) {
+        return candidate;
+      }
+    }
+    return coreTypes.objectRawType(
+        uniteNullabilities(type1.nullability, type2.nullability));
   }
 
   /// Computes the nullability-aware lower bound of two function types.
