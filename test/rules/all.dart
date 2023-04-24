@@ -104,6 +104,7 @@ import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
 import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
+import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -219,6 +220,7 @@ void main() {
   recursive_getters.main();
   secure_pubspec_urls.main();
   sort_constructors_first.main();
+  sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();
