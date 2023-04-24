@@ -323,10 +323,8 @@ class VMTestSuite extends TestSuite {
 
     // Update the new workflow based expectations to include [testExpectation].
     var testFile = TestFile.vmUnitTest(
-        hasSyntaxError: false,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
-        hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
     var filename = configuration.architecture == Architecture.x64 ||
             configuration.architecture == Architecture.x64c
@@ -464,10 +462,8 @@ class FfiTestSuite extends TestSuite {
 
     // Update the new workflow based expectations to include [testExpectation].
     final testFile = TestFile.vmUnitTest(
-        hasSyntaxError: false,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
-        hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
 
     final args = [
