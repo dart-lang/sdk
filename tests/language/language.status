@@ -4,6 +4,7 @@
 
 [ $builder_tag == obfuscated ]
 nnbd/syntax/late_modifier_runtime_error_test: SkipByDesign # Names are obfuscated in error messages
+records/simple/to_string_test: SkipByDesign # Relies on symbol names
 
 [ $compiler != dart2analyzer ]
 switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status

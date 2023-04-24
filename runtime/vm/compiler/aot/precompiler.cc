@@ -3983,6 +3983,12 @@ StringPtr Obfuscator::ObfuscationState::NewAtomicRename(
 
 StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
                                                     bool atomic) {
+  // Do not rename record positional field names $1, $2 etc
+  // in order to handle them properly during dynamic invocations.
+  if (Record::GetPositionalFieldIndexFromFieldName(name) >= 0) {
+    return name.ptr();
+  }
+
   if (atomic) {
     return NewAtomicRename(name.CharAt(0) == '_');
   }

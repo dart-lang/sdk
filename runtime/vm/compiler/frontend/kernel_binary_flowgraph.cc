@@ -4216,7 +4216,7 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
   const intptr_t num_positional_fields =
       record_type.NumFields() - field_names.Length();
   if (is_named) {
-    const String& field_name = H.DartSymbolPlain(ReadStringReference());
+    const String& field_name = H.DartSymbolObfuscate(ReadStringReference());
     for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
       if (field_names.At(i) == field_name.ptr()) {
         field_index = i;
