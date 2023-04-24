@@ -71,78 +71,130 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
           }
         }
       case DeclaredVariablePattern declaredVariable:
-        final patternField = node.parent;
-        if (patternField is PatternField) {
-          switch (patternField.parent) {
-            case ObjectPatternImpl objectPattern:
-              final nameNode = patternField.name;
-              if (nameNode == null) {
-                return false;
-              }
+        switch (node.parent) {
+          case LogicalAndPattern logicalAnd:
+            return _deleteDeclarationInLogicalAndPattern(
+              declaredVariable: declaredVariable,
+              logicalAnd: logicalAnd,
+            );
+          case PatternField patternField:
+            return _deleteDeclarationInPatternField(
+              patternField: patternField,
+              declaredVariable: declaredVariable,
+            );
+        }
+    }
 
-              final fields = objectPattern.fields;
-              // Remove completely `var A(:notUsed) = x;`
-              if (fields.length == 1) {
-                final patternDeclaration = objectPattern.parent;
-                if (patternDeclaration is PatternVariableDeclaration) {
-                  final patternStatement = patternDeclaration.parent;
-                  if (patternStatement is PatternVariableDeclarationStatement) {
-                    _commands.add(
-                      _DeleteStatementCommand(
-                        utils: utils,
-                        statement: patternStatement,
-                      ),
-                    );
-                    return true;
-                  }
-                }
-              }
-              // If matching, the explicit type is used.
-              if (declaredVariable.type != null) {
-                final patternContext = objectPattern.patternContext;
-                if (patternContext is GuardedPattern) {
-                  if (nameNode.name == null) {
-                    _commands.add(
-                      _AddExplicitFieldNameCommand(
-                        declaredVariable: declaredVariable,
-                        nameNode: nameNode,
-                      ),
-                    );
-                  }
-                  _commands.add(
-                    _MakeItWildcardCommand(
-                      declaredVariable: declaredVariable,
-                    ),
-                  );
-                  return true;
-                }
-              }
-              // Remove a single field.
+    // We don't know the declaration, disable the fix.
+    return false;
+  }
+
+  bool _deleteDeclarationInLogicalAndPattern({
+    required DeclaredVariablePattern declaredVariable,
+    required LogicalAndPattern logicalAnd,
+  }) {
+    if (declaredVariable.type case final typeNode?) {
+      final typeStr = utils.getNodeText(typeNode);
+      _commands.add(
+        _ReplaceSourceRangeCommand(
+          sourceRange: range.node(declaredVariable),
+          replacement: '$typeStr _',
+        ),
+      );
+    } else if (logicalAnd.leftOperand == declaredVariable) {
+      _commands.add(
+        _DeleteSourceRangeCommand(
+          sourceRange: range.startStart(
+            declaredVariable,
+            logicalAnd.rightOperand,
+          ),
+        ),
+      );
+    } else {
+      _commands.add(
+        _DeleteSourceRangeCommand(
+          sourceRange: range.endEnd(
+            logicalAnd.leftOperand,
+            declaredVariable,
+          ),
+        ),
+      );
+    }
+    return true;
+  }
+
+  bool _deleteDeclarationInPatternField({
+    required DeclaredVariablePattern declaredVariable,
+    required PatternField patternField,
+  }) {
+    switch (patternField.parent) {
+      case ObjectPatternImpl objectPattern:
+        final nameNode = patternField.name;
+        if (nameNode == null) {
+          return false;
+        }
+
+        final fields = objectPattern.fields;
+        // Remove completely `var A(:notUsed) = x;`
+        if (fields.length == 1) {
+          final patternDeclaration = objectPattern.parent;
+          if (patternDeclaration is PatternVariableDeclaration) {
+            final patternStatement = patternDeclaration.parent;
+            if (patternStatement is PatternVariableDeclarationStatement) {
               _commands.add(
-                _DeleteNodeInListCommand(
-                  nodes: fields,
-                  node: patternField,
+                _DeleteStatementCommand(
+                  utils: utils,
+                  statement: patternStatement,
                 ),
               );
               return true;
-            case RecordPattern():
-              final nameNode = patternField.name;
-              if (nameNode != null && nameNode.name == null) {
-                _commands.add(
-                  _AddExplicitFieldNameCommand(
-                    declaredVariable: declaredVariable,
-                    nameNode: nameNode,
-                  ),
-                );
-              }
-              _commands.add(
-                _MakeItWildcardCommand(
-                  declaredVariable: declaredVariable,
-                ),
-              );
-              return true;
+            }
           }
         }
+        // If matching, the explicit type is used.
+        if (declaredVariable.type != null) {
+          final patternContext = objectPattern.patternContext;
+          if (patternContext is GuardedPattern) {
+            if (nameNode.name == null) {
+              _commands.add(
+                _AddExplicitFieldNameCommand(
+                  declaredVariable: declaredVariable,
+                  nameNode: nameNode,
+                ),
+              );
+            }
+            _commands.add(
+              _MakeItWildcardCommand(
+                declaredVariable: declaredVariable,
+              ),
+            );
+            return true;
+          }
+        }
+        // Remove a single field.
+        _commands.add(
+          _DeleteNodeInListCommand(
+            nodes: fields,
+            node: patternField,
+          ),
+        );
+        return true;
+      case RecordPattern():
+        final nameNode = patternField.name;
+        if (nameNode != null && nameNode.name == null) {
+          _commands.add(
+            _AddExplicitFieldNameCommand(
+              declaredVariable: declaredVariable,
+              nameNode: nameNode,
+            ),
+          );
+        }
+        _commands.add(
+          _MakeItWildcardCommand(
+            declaredVariable: declaredVariable,
+          ),
+        );
+        return true;
     }
 
     // We don't know the declaration, disable the fix.
@@ -309,5 +361,20 @@ class _MakeItWildcardCommand extends _Command {
   void execute(DartFileEditBuilder builder) {
     final nameRange = range.token(declaredVariable.name);
     builder.addSimpleReplacement(nameRange, '_');
+  }
+}
+
+class _ReplaceSourceRangeCommand extends _Command {
+  final SourceRange sourceRange;
+  final String replacement;
+
+  _ReplaceSourceRangeCommand({
+    required this.sourceRange,
+    required this.replacement,
+  });
+
+  @override
+  void execute(DartFileEditBuilder builder) {
+    builder.addSimpleReplacement(sourceRange, replacement);
   }
 }
