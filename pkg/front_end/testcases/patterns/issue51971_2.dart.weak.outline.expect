@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method test1(dynamic x1) → dynamic
+  ;
+static method test2(dynamic x2) → dynamic
+  ;
+static method test3(dynamic x3) → dynamic
+  ;
+static method test4(dynamic x4) → dynamic
+  ;
+static method test5(dynamic x5) → dynamic
+  ;
+static method test6(dynamic x6) → dynamic
+  ;
+static method test7(dynamic x7) → dynamic
+  ;

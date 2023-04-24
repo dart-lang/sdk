@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::String a1 = "outer a1";
+static const field core::String b1 = "outer b1";
+static const field core::String a2 = "outer a2";
+static const field core::String b2 = "outer b2";
+static const field core::String a3 = "outer a3";
+static const field core::String b3 = "outer b3";
+static const field core::String a4 = "outer a4";
+static const field core::String b4 = "outer b4";
+static method test1(dynamic x) → dynamic
+  ;
+static method test2(dynamic x) → dynamic
+  ;
+static method test3(dynamic x) → dynamic
+  ;
+static method test4(dynamic x) → dynamic
+  ;

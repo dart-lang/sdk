@@ -73,6 +73,17 @@ enum ScopeKind {
   /// should be visible in the scope of the function itself.
   namedFunctionExpression,
 
+  /// The scope of the RHS of a binary-or pattern
+  ///
+  /// It is utilized for separating the branch-local variables from the joint
+  /// variables of the overall binary-or pattern.
+  orPatternRight,
+
+  /// The scope of a pattern
+  ///
+  /// It contains the variables associated with pattern variable declarations.
+  pattern,
+
   /// Local scope of a statement, such as the body of a while loop
   statementLocalScope,
 

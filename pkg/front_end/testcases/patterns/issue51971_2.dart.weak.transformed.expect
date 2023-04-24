@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue51971_2.dart:66:23: Error: Not a constant expression.
+//   list8.addAll(const [x8]);
+//                       ^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test8() → dynamic {
+  core::int x8 = 0;
+  core::List<core::int> list8 = core::_GrowableList::•<core::int>(0);
+  list8.{core::List::addAll}(invalid-expression "pkg/front_end/testcases/patterns/issue51971_2.dart:66:23: Error: Not a constant expression.
+  list8.addAll(const [x8]);
+                      ^^"){(core::Iterable<core::int>) → void};
+  return list8;
+}
