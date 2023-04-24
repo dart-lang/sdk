@@ -216,6 +216,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
         return 'Hint: $message';
       case api.Diagnostic.CRASH:
         return 'Internal Error: $message';
+      case api.Diagnostic.CONTEXT:
       case api.Diagnostic.INFO:
       case api.Diagnostic.VERBOSE_INFO:
         return 'Info: $message';
@@ -256,6 +257,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else if (kind == api.Diagnostic.CRASH) {
       color = colors.red;
     } else if (kind == api.Diagnostic.INFO) {
+      color = colors.green;
+    } else if (kind == api.Diagnostic.CONTEXT) {
       if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
       if (lastKind == api.Diagnostic.HINT && !showHints) return;
       color = colors.green;

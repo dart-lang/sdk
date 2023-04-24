@@ -35,12 +35,7 @@ class Diagnostic {
   /// Any other warning that is not covered by [WARNING].
   static const Diagnostic HINT = const Diagnostic(4, 'hint');
 
-  /// Additional information about the preceding non-info diagnostic from the
-  /// compiler.
-  ///
-  /// For example, consider a duplicated definition. The compiler first emits a
-  /// message about the duplicated definition, then emits an info message about
-  /// the location of the existing definition.
+  /// Informational message about the compiler.
   static const Diagnostic INFO = const Diagnostic(8, 'info');
 
   /// Informational messages that shouldn't be printed unless
@@ -49,6 +44,14 @@ class Diagnostic {
 
   /// An internal error in the compiler.
   static const Diagnostic CRASH = const Diagnostic(32, 'crash');
+
+  /// Additional information about the preceding non-info diagnostic from the
+  /// compiler.
+  ///
+  /// For example, consider a duplicated definition. The compiler first emits a
+  /// message about the duplicated definition, then emits an info message about
+  /// the location of the existing definition.
+  static const Diagnostic CONTEXT = const Diagnostic(64, 'context');
 
   /// An [int] representation of this kind. The ordinals are designed
   /// to be used as bitsets.

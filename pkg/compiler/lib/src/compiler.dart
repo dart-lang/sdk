@@ -879,7 +879,7 @@ class Compiler {
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
-      _reportDiagnosticMessage(info, api.Diagnostic.INFO);
+      _reportDiagnosticMessage(info, api.Diagnostic.CONTEXT);
     }
   }
 
