@@ -771,7 +771,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         Expression initializer = bodyBuilder.buildStaticInvocation(
             constructorBuilder.invokeTarget, arguments,
             constness: Constness.explicitConst,
-            charOffset: fieldBuilder.charOffset);
+            charOffset: fieldBuilder.charOffset,
+            isConstructorInvocation: true);
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
             .inferFieldInitializer(
                 bodyBuilder, const UnknownType(), initializer);

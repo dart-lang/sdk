@@ -1567,7 +1567,8 @@ class BodyBuilder extends StackListenerImpl
               named: arguments.named,
               hasExplicitTypeArguments: hasExplicitTypeArguments(arguments)),
           constness: isConst ? Constness.explicitConst : Constness.explicitNew,
-          charOffset: fileOffset);
+          charOffset: fileOffset,
+          isConstructorInvocation: true);
     }
     return replacementNode;
   }
@@ -5970,7 +5971,8 @@ class BodyBuilder extends StackListenerImpl
       {Constness constness = Constness.implicit,
       TypeAliasBuilder? typeAliasBuilder,
       int charOffset = -1,
-      int charLength = noLength}) {
+      int charLength = noLength,
+      required bool isConstructorInvocation}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
     List<TypeParameter> typeParameters = target.function!.typeParameters;
@@ -6018,7 +6020,7 @@ class BodyBuilder extends StackListenerImpl
       return node;
     } else {
       Procedure procedure = target as Procedure;
-      if (procedure.isFactory) {
+      if (isConstructorInvocation) {
         if (constantContext == ConstantContext.required &&
             constness == Constness.implicit) {
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
@@ -6051,8 +6053,7 @@ class BodyBuilder extends StackListenerImpl
         }
         return node;
       } else {
-        assert(
-            constness == Constness.implicit || procedure.isInlineClassMember);
+        assert(constness == Constness.implicit);
         return new StaticInvocation(target, arguments, isConst: false)
           ..fileOffset = charOffset;
       }
@@ -6494,7 +6495,8 @@ class BodyBuilder extends StackListenerImpl
                 constness: constness,
                 typeAliasBuilder: aliasBuilder,
                 charOffset: nameToken.charOffset,
-                charLength: nameToken.length);
+                charLength: nameToken.length,
+                isConstructorInvocation: true);
             return invocation;
           } else {
             return buildUnresolvedError(errorName, nameLastToken.charOffset,
@@ -6647,7 +6649,8 @@ class BodyBuilder extends StackListenerImpl
             constness: constness,
             charOffset: nameToken.charOffset,
             charLength: nameToken.length,
-            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
+            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+            isConstructorInvocation: true);
         return invocation;
       } else {
         errorName ??= debugName(type.name, name);
@@ -6668,7 +6671,8 @@ class BodyBuilder extends StackListenerImpl
             constness: constness,
             charOffset: nameToken.charOffset,
             charLength: nameToken.length,
-            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
+            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+            isConstructorInvocation: true);
       } else {
         errorName ??= debugName(type.name, name);
       }
@@ -8899,7 +8903,8 @@ class BodyBuilder extends StackListenerImpl
               forest.createStringLiteral(assignmentOffset, name)
             ]),
             constness: Constness.explicitNew,
-            charOffset: assignmentOffset);
+            charOffset: assignmentOffset,
+            isConstructorInvocation: true);
         return <Initializer>[
           new ShadowInvalidFieldInitializer(
               builder.field,
