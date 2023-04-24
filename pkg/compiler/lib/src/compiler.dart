@@ -17,7 +17,8 @@ import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;
 import 'common/metrics.dart' show Metric;
 import 'common/names.dart' show Selectors;
-import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
+import 'common/tasks.dart'
+    show CompilerTask, GenericTask, GenericTaskWithMetrics, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
@@ -65,6 +66,7 @@ import 'resolution/enqueuer.dart';
 import 'serialization/serialization.dart';
 import 'serialization/task.dart';
 import 'serialization/strategies.dart';
+import 'source_file_provider.dart';
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
@@ -110,6 +112,7 @@ class Compiler {
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
   late final Environment environment;
+  final DataReadMetrics dataReadMetrics = DataReadMetrics();
 
   late final List<CompilerTask> tasks;
   late final GenericTask loadKernelTask;
@@ -175,7 +178,7 @@ class Compiler {
     }
 
     CompilerTask kernelFrontEndTask;
-    selfTask = GenericTask('self', measurer);
+    selfTask = GenericTaskWithMetrics('self', measurer, dataReadMetrics);
     _outputProvider = _CompilerOutput(this, outputProvider);
     _reporter = DiagnosticReporter(this);
     kernelFrontEndTask = GenericTask('Front end', measurer);
@@ -243,6 +246,7 @@ class Compiler {
         } finally {
           measurer.stopWallClock();
         }
+        dataReadMetrics.addDataRead(provider);
         if (options.verbose) {
           var timings = StringBuffer();
           computeTimings(setupDuration, timings);
