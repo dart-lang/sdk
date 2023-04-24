@@ -1380,24 +1380,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
 
     var commonElements = _elementMap.commonElements;
 
-    if (commonElements.isUnnamedListConstructor(constructor)) {
-      // We have `new List(...)`.
-      if (arguments.positional.isEmpty && arguments.named.isEmpty) {
-        // We have `new List()`.
-        return _inferrer.concreteTypes.putIfAbsent(
-            node,
-            () => _types.allocateList(_types.growableListType, node,
-                _analyzedMember, _types.nonNullEmpty(), 0));
-      } else {
-        // We have `new List(len)`.
-        final length = _findLength(arguments);
-        return _inferrer.concreteTypes.putIfAbsent(
-            node,
-            () => _types.allocateList(_types.fixedListType, node,
-                _analyzedMember, _types.nullType, length));
-      }
-    }
-
     if (commonElements.isNamedListConstructor('filled', constructor)) {
       // We have something like `List.filled(len, fill)`.
       final length = _findLength(arguments);

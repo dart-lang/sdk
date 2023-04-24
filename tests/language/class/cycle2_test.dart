@@ -14,5 +14,5 @@ class B
 
 main() {
   new C(); // //# 01: continued
-  new List<C>(); // //# 02: continued
+  new List<C>.empty(); // //# 02: continued
 }

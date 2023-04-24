@@ -20,7 +20,7 @@ foo() {
 
 const String TEST_THREE = r"""
 foo() {
-  return List().add(2);
+  return [].add(2);
 }
 """;
 

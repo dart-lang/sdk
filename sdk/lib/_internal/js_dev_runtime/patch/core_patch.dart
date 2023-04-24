@@ -513,23 +513,6 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([@undefined int? length]) {
-    dynamic list;
-    if (JS<bool>('!', '# === void 0', length)) {
-      list = JS('', '[]');
-    } else {
-      int _length = JS('!', '#', length);
-      if (length == null || _length < 0) {
-        throw ArgumentError("Length must be a non-negative integer: $_length");
-      }
-      list = JS('', 'new Array(#)', _length);
-      JS('', '#.fill(null)', list);
-      JSArray.markFixedList(list);
-    }
-    return JSArray<E>.of(list);
-  }
-
-  @patch
   factory List.empty({bool growable = false}) {
     var list = JSArray<E>.of(JS('', 'new Array()'));
     if (!growable) JSArray.markFixedList(list);
