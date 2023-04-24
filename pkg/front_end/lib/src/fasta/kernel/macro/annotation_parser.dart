@@ -2076,6 +2076,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginPattern(Token token) {
+    _unhandled();
+  }
+
+  @override
   void beginPatternGuard(Token token) {
     _unhandled();
   }
@@ -2098,6 +2103,11 @@ class _MacroListener implements Listener {
   @override
   void handleRecordPattern(Token token, int count) {
     _unsupported();
+  }
+
+  @override
+  void endPattern(Token token) {
+    _unhandled();
   }
 
   @override

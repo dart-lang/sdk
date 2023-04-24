@@ -9676,12 +9676,16 @@ class Parser {
       {int precedence = 1}) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
+    listener.beginPattern(token);
     Token start = token.next!;
     token = parsePrimaryPattern(token, patternContext);
     while (true) {
       Token next = token.next!;
       int tokenLevel = _computePrecedence(next, forPattern: true);
-      if (tokenLevel < precedence) return token;
+      if (tokenLevel < precedence) {
+        listener.endPattern(token);
+        return token;
+      }
       switch (next.lexeme) {
         // castPattern ::= primaryPattern 'as' type
         case 'as':
@@ -9724,6 +9728,7 @@ class Parser {
           break;
         default:
           // Some other operator that doesn't belong in a pattern
+          listener.endPattern(token);
           return token;
       }
       // None of the pattern types handled by the switch above are valid inside

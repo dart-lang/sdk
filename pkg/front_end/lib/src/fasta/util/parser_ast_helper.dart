@@ -2639,6 +2639,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginPattern(Token token) {
+    PatternBegin data = new PatternBegin(ParserAstType.BEGIN, token: token);
+    seen(data);
+  }
+
+  @override
   void beginPatternGuard(Token when) {
     PatternGuardBegin data =
         new PatternGuardBegin(ParserAstType.BEGIN, when: when);
@@ -2671,6 +2677,12 @@ abstract class AbstractParserAstListener implements Listener {
   void handleRecordPattern(Token token, int count) {
     RecordPatternHandle data = new RecordPatternHandle(ParserAstType.HANDLE,
         token: token, count: count);
+    seen(data);
+  }
+
+  @override
+  void endPattern(Token token) {
+    PatternEnd data = new PatternEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
@@ -7713,6 +7725,18 @@ class ParenthesizedConditionHandle extends ParserAstNode {
       };
 }
 
+class PatternBegin extends ParserAstNode {
+  final Token token;
+
+  PatternBegin(ParserAstType type, {required this.token})
+      : super("Pattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
 class PatternGuardBegin extends ParserAstNode {
   final Token when;
 
@@ -7779,6 +7803,18 @@ class RecordPatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "count": count,
+      };
+}
+
+class PatternEnd extends ParserAstNode {
+  final Token token;
+
+  PatternEnd(ParserAstType type, {required this.token})
+      : super("Pattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
       };
 }
 
