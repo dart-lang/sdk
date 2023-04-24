@@ -65,9 +65,9 @@ class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
     ClassElement, EnumElement, FieldElement, DartObject> {
   final TypeSystemImpl typeSystem;
 
-  AnalyzerExhaustivenessCache(this.typeSystem)
+  AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement enclosingLibrary)
       : super(
-            AnalyzerTypeOperations(typeSystem),
+            AnalyzerTypeOperations(typeSystem, enclosingLibrary),
             const AnalyzerEnumOperations(),
             AnalyzerSealedClassOperations(typeSystem));
 }
@@ -165,10 +165,11 @@ class AnalyzerSealedClassOperations
 
 class AnalyzerTypeOperations implements TypeOperations<DartType> {
   final TypeSystemImpl _typeSystem;
+  final LibraryElement _enclosingLibrary;
 
   final Map<InterfaceType, Map<Key, DartType>> _interfaceFieldTypesCaches = {};
 
-  AnalyzerTypeOperations(this._typeSystem);
+  AnalyzerTypeOperations(this._typeSystem, this._enclosingLibrary);
 
   @override
   DartType get boolType => _typeSystem.typeProvider.boolType;
@@ -322,11 +323,17 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
         fieldTypes.addAll(_getInterfaceFieldTypes(supertype));
       }
       for (PropertyAccessorElement accessor in type.accessors) {
+        if (accessor.isPrivate && accessor.library != _enclosingLibrary) {
+          continue;
+        }
         if (accessor.isGetter && !accessor.isStatic) {
           fieldTypes[NameKey(accessor.name)] = accessor.type.returnType;
         }
       }
       for (MethodElement method in type.methods) {
+        if (method.isPrivate && method.library != _enclosingLibrary) {
+          continue;
+        }
         if (!method.isStatic) {
           fieldTypes[NameKey(method.name)] = method.type;
         }

@@ -1,0 +1,9 @@
+sealed class B {}
+
+class C extends B {
+  final int _i;
+  C(this._i);
+}
+
+f(B b) {}
+main() {}
