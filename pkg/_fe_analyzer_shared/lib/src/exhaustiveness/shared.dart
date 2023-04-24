@@ -210,7 +210,7 @@ class ExhaustivenessCache<
                 _getSealedClassInfo(sealedClass));
           } else {
             Type? listType = typeOperations.getListType(nonNullable);
-            if (listType == nonNullable) {
+            if (listType != null) {
               staticType =
                   new ListTypeStaticType(typeOperations, this, nonNullable);
             } else {
