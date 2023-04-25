@@ -15,22 +15,45 @@ base mixin BaseMixinOn on BaseMixin {}
 /// BaseMixin can be used as a mixin, so long as the result is base, final,
 /// or sealed.
 
+// Mixin to produce a base class.
+
 base class BaseMixinApply extends Object with BaseMixin {}
 
-final class FinalMixinClassApply extends Object with BaseMixin {}
+// Extending through a base class.
 
-sealed class SealedMixinClassApply extends Object with BaseMixin {}
+base class BaseBaseMixinApplyExtend extends BaseMixinApply {}
+
+final class FinalBaseMixinApplyExtend extends BaseMixinApply {}
+
+sealed class SealedBaseMixinApplyExtend extends BaseMixinApply {}
+
+// Mixin to produce a final class.
+
+final class FinalMixinApply extends Object with BaseMixin {}
+
+// Extending through a final class.
+
+base class BaseFinalMixinApplyExtend extends FinalMixinApply {}
+
+final class FinalFinalMixinApplyExtend extends FinalMixinApply {}
+
+sealed class SealedFinalMixinApplyExtend extends FinalMixinApply {}
+
+// Mixin to produce a sealed class.
+
+sealed class SealedMixinApply extends Object with BaseMixin {}
 
 // Extending through a sealed class.
-base class BaseSealedMixinClassApplyExtend extends SealedMixinClassApply {}
 
-final class FinalSealedMixinClassApplyExtend extends SealedMixinClassApply {}
+base class BaseSealedMixinApplyExtend extends SealedMixinApply {}
 
-sealed class SealedSealedMixinClassApplyExtend extends SealedMixinClassApply {}
+final class FinalSealedMixinApplyExtend extends SealedMixinApply {}
+
+sealed class SealedSealedMixinApplyExtend extends SealedMixinApply {}
 
 // Using a sealed class as an `on` type
 
-base mixin BaseMixinSealedMixinApplyOn on SealedMixinClassApply {}
+base mixin BaseMixinSealedMixinApplyOn on SealedMixinApply {}
 
 /// BaseMixin can be used as a mixin application, so long as the result is
 /// base, final, or sealed.
@@ -42,6 +65,7 @@ final class FinalMixinApplication = Object with BaseMixin;
 sealed class SealedMixinApplication = Object with BaseMixin;
 
 // Extending through a sealed class.
+
 base class BaseSealedMixinApplicationExtend extends SealedMixinApplication {}
 
 final class FinalSealedMixinApplicationExtend extends SealedMixinApplication {}
