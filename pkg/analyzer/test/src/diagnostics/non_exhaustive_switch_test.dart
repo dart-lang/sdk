@@ -325,6 +325,86 @@ void f(A x) {
 ''');
   }
 
+  test_alwaysExhaustive_sealedClass_implementedByEnum_3at2() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+
+class B implements A {}
+
+enum E implements A {
+  a, b
+}
+
+void f(A x) {
+  switch (x) {
+    case B _:
+    case E.a:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 92, 6),
+    ]);
+  }
+
+  test_alwaysExhaustive_sealedClass_implementedByEnum_3at3() async {
+    await assertNoErrorsInCode(r'''
+sealed class A {}
+
+class B implements A {}
+
+enum E implements A {
+  a, b
+}
+
+void f(A x) {
+  switch (x) {
+    case B _:
+    case E.a:
+    case E.b:
+      break;
+  }
+}
+''');
+  }
+
+  test_alwaysExhaustive_sealedClass_implementedByMixin_2at1() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+
+class B implements A {}
+
+mixin M implements A {}
+
+void f(A x) {
+  switch (x) {
+    case B _:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 85, 6),
+    ]);
+  }
+
+  test_alwaysExhaustive_sealedClass_implementedByMixin_2at2() async {
+    await assertNoErrorsInCode(r'''
+sealed class A {}
+
+class B implements A {}
+
+mixin M implements A {}
+
+void f(A x) {
+  switch (x) {
+    case B _:
+    case M _:
+      break;
+  }
+}
+''');
+  }
+
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
     await assertErrorsInCode(r'''
 void f<T extends bool>(T x) {
