@@ -668,7 +668,9 @@ class _SyncStarIterator<T> implements Iterator<T> {
       }
       throw StateError('sync*');
     }
-    return false; // TODO(sra): Fix type inference so that this is not needed.
+    // TODO(http://dartbug.com/52166): Fix type inference so that this return
+    // statement is not needed.
+    return false;
   }
 
   static _terminatedBody(_1, _2, _3) => async_status_codes.SYNC_STAR_DONE;
