@@ -198,11 +198,15 @@ class BaseOrFinalTypeVerifier {
           superElement.isSealed &&
           baseOrFinalSuperElement.library != element.library) {
         if (baseOrFinalSuperElement.isBase) {
+          var errorCode = baseOrFinalSuperElement is MixinElement
+              ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+              : CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-              implementsNamedType,
-              [baseOrFinalSuperElement.displayName],
-              contextMessage);
+            errorCode,
+            implementsNamedType,
+            [baseOrFinalSuperElement.displayName],
+            contextMessage,
+          );
           return true;
         }
       }
