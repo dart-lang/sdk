@@ -1,3 +1,9 @@
+## 5.11.1
+* Restore previously published `finalKeyword`, `interfaceKeyword` and
+  `sealedKeyword` of `MixinElement`. We added them preliminary while
+  working on the class modifiers feature, but eventually decided to remove.
+  See https://github.com/dart-lang/sdk/issues/52159 for details.
+
 ## 5.11.0
 * Removed `@experimental` from AST nodes and elements for records and patterns.
 * Deprecated `IfStatement.condition`, use `expression` instead.
