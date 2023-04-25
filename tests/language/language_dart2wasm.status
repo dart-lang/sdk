@@ -4,6 +4,7 @@
 # Sections in this file should contain "$compiler == dart2wasm".
 
 [ $compiler == dart2wasm ]
+number/web_int_literals_test: SkipByDesign # WASM has real integers.
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler == dart2wasm && $runtime == d8 ]

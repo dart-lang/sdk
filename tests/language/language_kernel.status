@@ -4,16 +4,11 @@
 
 [ $compiler == app_jitk ]
 main/no_main_test/01: Crash
-number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 unsorted/disassemble_test: SkipByDesign # Tested in JIT mode.
 vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 
 [ $compiler == dartkp ]
-number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 unsorted/disassemble_test: SkipByDesign # JIT only test
-
-[ $compiler == fasta ]
-number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $arch == ia32 && $mode == debug ]
 *: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
@@ -56,7 +51,6 @@ mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
 unsorted/disassemble_test: Slow, Crash # dartbug.com/34971
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/regress_29145_test: Skip # Issue 29145
-web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartk && $hot_reload_rollback ]
 symbol/conflict_test: Slow, Pass
