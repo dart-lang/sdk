@@ -12,6 +12,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
+import 'common/metrics.dart';
 import 'io/source_file.dart';
 
 abstract class SourceFileByteReader {
@@ -21,7 +22,8 @@ abstract class SourceFileByteReader {
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
-  int dartCharactersRead = 0;
+  int bytesRead = 0;
+  int sourceBytesFromDill = 0;
   SourceFileByteReader byteReader;
   final Set<Uri> _registeredUris = {};
   final Map<Uri, Uri> _mappedUris = {};
@@ -63,6 +65,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!disableByteCache) {
       _byteCache[resourceUri] = source;
     }
+    sourceBytesFromDill += source.length;
   }
 
   /// Registers the URI and returns true if the URI is new.
@@ -83,7 +86,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
     if (registerUri(resourceUri)) {
-      dartCharactersRead += source.length;
+      bytesRead += source.length;
     }
     if (resourceUri != uri) {
       registerUri(uri);
@@ -213,6 +216,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
         return 'Hint: $message';
       case api.Diagnostic.CRASH:
         return 'Internal Error: $message';
+      case api.Diagnostic.CONTEXT:
       case api.Diagnostic.INFO:
       case api.Diagnostic.VERBOSE_INFO:
         return 'Info: $message';
@@ -253,6 +257,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else if (kind == api.Diagnostic.CRASH) {
       color = colors.red;
     } else if (kind == api.Diagnostic.INFO) {
+      color = colors.green;
+    } else if (kind == api.Diagnostic.CONTEXT) {
       if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
       if (lastKind == api.Diagnostic.HINT && !showHints) return;
       color = colors.green;
@@ -620,5 +626,20 @@ class MultiRootInputProvider extends SourceFileProvider {
         await readBytesFromUri(resolvedUri, inputKind);
     _mappedUris[uri] = resolvedUri;
     return result;
+  }
+}
+
+class DataReadMetrics extends MetricsBase {
+  @override
+  String get namespace => 'input';
+  CountMetric inputBytes = CountMetric('inputBytes');
+
+  void addDataRead(api.CompilerInput input) {
+    if (input is SourceFileProvider) {
+      inputBytes.add(input.bytesRead);
+      if (primary.isEmpty) {
+        primary = [inputBytes];
+      }
+    }
   }
 }

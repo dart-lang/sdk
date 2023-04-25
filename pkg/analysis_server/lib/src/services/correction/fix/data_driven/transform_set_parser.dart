@@ -154,12 +154,12 @@ class TransformSetParser {
   /// Return the result of parsing the file [content] into a transform set, or
   /// `null` if the content does not represent a valid transform set.
   TransformSet? parse(String content) {
-    var map = _parseYaml(content);
-    if (map == null) {
+    var node = _parseYaml(content);
+    if (node == null) {
       // The error has already been reported.
       return null;
     }
-    return _translateTransformSet(map);
+    return _translateTransformSet(node);
   }
 
   /// Convert the given [template] into a list of components. Variable
@@ -1039,6 +1039,10 @@ class TransformSetParser {
         set.addTransform(transform);
       }
       return set;
+    } else if (node is YamlScalar && node.value == null) {
+      // The file has no contents (or is only comments) and should not produce
+      // any diagnostics.
+      return null;
     } else {
       // TODO(brianwilkerson) Consider having a different error code for the
       //  top-level node (instead of using 'file' as the "key").

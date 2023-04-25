@@ -15,7 +15,7 @@ main() {
 
 const String TEST2 = r"""
 main() {
-  var a = List();
+  var a = [];
   a.add(42);
   a.add(null);
   return a[0] + 42;
@@ -24,7 +24,7 @@ main() {
 
 const String TEST3 = r"""
 main() {
-  var a = List(42);
+  var a = List<dynamic>.filled(42, null);
   a[a.length - 1] = 42;
   return a[0] + 42;
 }

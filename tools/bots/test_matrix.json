@@ -368,7 +368,7 @@
         "builder-tag": "ffi"
       }
     },
-    "vm-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "nnbd": "strong"
       }
@@ -603,16 +603,6 @@
         "nnbd": "strong"
       }
     },
-    "dartk-android-(debug|product|release)-(arm|arm64|arm64c)": {
-      "options": {
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "use-elf": true,
@@ -630,19 +620,7 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
-        "use-elf": true
-      }
-    },
-    "dartkp-dwarf-(linux|win|mac)-product-(arm64|arm64c|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
-      "options": {
-        "builder-tag": "dwarf",
-        "vm-options": [
-          "--dwarf_stack_traces",
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
+        "nnbd": "strong",
         "use-elf": true
       }
     },
@@ -659,20 +637,9 @@
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
       "options": {
         "builder-tag": "obfuscated",
+        "nnbd": "strong",
         "vm-options": [
           "--obfuscate"
-        ]
-      }
-    },
-    "dartkp-obfuscate-(linux|mac|win)-(debug|product|release)-(x64|x64c)": {
-      "options": {
-        "builder-tag": "obfuscated",
-        "vm-options": [
-          "--obfuscate",
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
         ]
       }
     },
@@ -1058,7 +1025,7 @@
         {
           "name": "vm ffi tests",
           "arguments": [
-            "-ndartk-android-${mode}-${arch}",
+            "-nvm-android-${mode}-${arch}",
             "ffi"
           ],
           "fileset": "vm-kernel",
@@ -1255,7 +1222,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 8
         },
         {
           "name": "vm co19 tests",
@@ -1264,7 +1231,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 8
         }
       ]
     },
@@ -1458,32 +1425,6 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-dwarf-linux-product-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kernel precomp builders with dwarf stack traces."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-dwarf-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
         "vm-aot-obfuscate-linux-release-x64"
       ],
       "meta": {
@@ -1502,32 +1443,6 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-aot-obfuscate-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-obfuscate-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the obfuscated vm kernel precomp builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-obfuscate-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10

@@ -29,6 +29,7 @@ analyzer:
     implementation_imports: ignore
     library_private_types_in_public_api: ignore
     provide_deprecation_message: ignore
+    todo: ignore
 
   language:
     strict-casts: true

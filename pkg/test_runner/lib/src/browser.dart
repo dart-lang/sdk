@@ -76,7 +76,6 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
     // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
     case "await":
-
     case "break":
     case "case":
     case "catch":

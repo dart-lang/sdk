@@ -221,6 +221,7 @@ vm_sources = [
   "parser.h",
   "pending_deopts.cc",
   "pending_deopts.h",
+  "perfetto_utils.h",
   "pointer_tagging.h",
   "port.cc",
   "port.h",

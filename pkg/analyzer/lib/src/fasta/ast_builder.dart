@@ -538,6 +538,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginPattern(Token token) {
+    debugEvent("Pattern");
+  }
+
+  @override
   void beginPatternGuard(Token when) {
     debugEvent("PatternGuard");
   }
@@ -2908,6 +2913,11 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
+  }
+
+  @override
+  void endPattern(Token token) {
+    debugEvent("Pattern");
   }
 
   @override

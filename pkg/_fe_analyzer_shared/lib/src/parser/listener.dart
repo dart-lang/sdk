@@ -1944,6 +1944,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("ParenthesizedCondition");
   }
 
+  /// Starts a pattern
+  void beginPattern(Token token) {
+    logEvent("Pattern");
+  }
+
   /// Starts a pattern guard, the expression that follows the 'when' keyword
   void beginPatternGuard(Token when) {
     logEvent("PatternGuard");
@@ -1967,6 +1972,11 @@ class Listener implements UnescapeErrorListener {
   /// `(`, a comma-separated sequence of patternFields, and a `)`.
   void handleRecordPattern(Token token, int count) {
     logEvent("RecordPattern");
+  }
+
+  /// Ends a pattern
+  void endPattern(Token token) {
+    logEvent("Pattern");
   }
 
   /// End a pattern guard, the expression that follows the 'when' keyword

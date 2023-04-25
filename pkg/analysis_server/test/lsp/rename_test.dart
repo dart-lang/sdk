@@ -166,6 +166,18 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, 'variable');
   }
 
+  Future<void> test_prepare_variable_forEach_statement() async {
+    const content = '''
+void f(List<int> values) {
+  for (final [[value^]] in values) {
+    value;
+  }
+}
+''';
+
+    return _test_prepare(content, 'value');
+  }
+
   Future<void> test_rename_class() {
     const content = '''
     class MyClass {}
@@ -825,6 +837,25 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     }
     ''';
     return _test_rename_withDocumentChanges(content, 'foo', expectedContent);
+  }
+
+  Future<void> test_rename_variable_forEach_statement() {
+    const content = '''
+void f(List<int> values) {
+  for (final [[value^]] in values) {
+    value;
+  }
+}
+''';
+    const expectedContent = '''
+void f(List<int> values) {
+  for (final newName in values) {
+    newName;
+  }
+}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
   }
 
   Future<void> test_rename_withoutVersionedIdentifier() {

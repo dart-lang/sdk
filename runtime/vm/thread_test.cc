@@ -1038,6 +1038,8 @@ static void RunLockerWithLongJumpTest() {
       Thread::Current()->long_jump_base()->Jump(
           1, Object::background_compilation_error());
     } else {
+      ASSERT(Thread::Current()->StealStickyError() ==
+             Object::background_compilation_error().ptr());
       thrown_count++;
     }
   }

@@ -30,20 +30,24 @@ ArrayPtr ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
   const Array& arguments_descriptor = Array::Handle(
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, arguments.Length()));
   return InvokeFunction(function, arguments, arguments_descriptor);
 }
 
-class ScopedIsolateStackLimits : public ValueObject {
+class DartEntryScope : public TransitionToGenerated {
  public:
   NO_SANITIZE_SAFE_STACK
-  explicit ScopedIsolateStackLimits(Thread* thread) : thread_(thread) {
-    ASSERT(thread != nullptr);
-    // Save the Thread's current stack limit and adjust the stack limit.
-    ASSERT(thread->isolate() == Isolate::Current());
+  explicit DartEntryScope(Thread* thread) : TransitionToGenerated(thread) {
+    // Ensure we do not attempt to long jump across Dart frames.
+    saved_long_jump_base_ = thread->long_jump_base();
+    thread->set_long_jump_base(nullptr);
+
+    // Setup the stack limit checked by generated Dart code. This is repeated at
+    // each Dart entry because a given Thread may move between different
+    // OSThreads.
     saved_stack_limit_ = thread->saved_stack_limit();
 #if defined(USING_SIMULATOR)
     thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
@@ -52,47 +56,30 @@ class ScopedIsolateStackLimits : public ValueObject {
 #endif
 
 #if defined(USING_SAFE_STACK)
+    // Remember the safestack pointer at entry so it can be restored in
+    // Exceptions::JumpToFrame when a Dart exception jumps over C++ frames.
     saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
     thread->set_saved_safestack_limit(saved_safestack_limit_);
 #endif
   }
 
-  ~ScopedIsolateStackLimits() {
-    ASSERT(thread_->isolate() == Isolate::Current());
-    // Since we started with a stack limit of 0 we should be getting back
-    // to a stack limit of 0 when all nested invocations are done and
-    // we have bottomed out.
-    thread_->SetStackLimit(saved_stack_limit_);
+  ~DartEntryScope() {
 #if defined(USING_SAFE_STACK)
-    thread_->set_saved_safestack_limit(saved_safestack_limit_);
+    thread()->set_saved_safestack_limit(saved_safestack_limit_);
 #endif
-  }
 
- private:
-  Thread* thread_;
-#if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_ = 0;
-#endif
-  uword saved_stack_limit_ = 0;
-};
+    thread()->SetStackLimit(saved_stack_limit_);
 
-// Clears/restores Thread::long_jump_base on construction/destruction.
-// Ensures that we do not attempt to long jump across Dart frames.
-class SuspendLongJumpScope : public ThreadStackResource {
- public:
-  explicit SuspendLongJumpScope(Thread* thread)
-      : ThreadStackResource(thread),
-        saved_long_jump_base_(thread->long_jump_base()) {
-    thread->set_long_jump_base(nullptr);
-  }
-
-  ~SuspendLongJumpScope() {
     ASSERT(thread()->long_jump_base() == nullptr);
     thread()->set_long_jump_base(saved_long_jump_base_);
   }
 
  private:
   LongJumpScope* saved_long_jump_base_;
+  uword saved_stack_limit_ = 0;
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_ = 0;
+#endif
 };
 
 extern "C" {
@@ -120,17 +107,10 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 #endif
 
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(!function.IsNull());
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  thread->set_global_object_pool(
-      thread->isolate_group()->object_store()->global_object_pool());
-  const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
-  ASSERT(dispatch_table != nullptr);
-  thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
-  ASSERT(thread->global_object_pool() != Object::null());
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
     const Object& result = Object::Handle(
         thread->zone(), Compiler::CompileFunction(thread, function));
@@ -143,9 +123,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 
   ASSERT(function.HasCode());
 
-  ScopedIsolateStackLimits stack_limit(thread);
-  SuspendLongJumpScope suspend_long_jump_scope(thread);
-  TransitionToGenerated transition(thread);
+  DartEntryScope dart_entry_scope(thread);
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -191,8 +169,7 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!thread->isolate_group()->null_safety_not_set());
 
-  SuspendLongJumpScope suspend_long_jump_scope(thread);
-  TransitionToGenerated transition(thread);
+  DartEntryScope dart_entry_scope(thread);
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(DART_PRECOMPILED_RUNTIME)

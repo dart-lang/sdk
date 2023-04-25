@@ -12,13 +12,30 @@ class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   @override
   bool get isSealed => true;
 
-  late StaticType trueType = new ValueStaticType<Type, bool>(_typeOperations,
-      _fieldLookup, _type, const IdentityRestriction<bool>(true), 'true');
+  late StaticType trueType = new _BoolValueStaticType<Type>(
+      _typeOperations, _fieldLookup, _type, true);
 
-  late StaticType falseType = new ValueStaticType<Type, bool>(_typeOperations,
-      _fieldLookup, _type, const IdentityRestriction<bool>(false), 'false');
+  late StaticType falseType = new _BoolValueStaticType<Type>(
+      _typeOperations, _fieldLookup, _type, false);
 
   @override
   Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
       [trueType, falseType];
+}
+
+/// [StaticType] for an object restricted to a single boolean value (either
+/// `true` or `false`).
+class _BoolValueStaticType<Type extends Object>
+    extends ValueStaticType<Type, bool> {
+  final bool _value;
+
+  _BoolValueStaticType(TypeOperations<Type> typeOperations,
+      FieldLookup<Type> fieldLookup, Type type, this._value)
+      : super(typeOperations, fieldLookup, type,
+            new IdentityRestriction<bool>(_value), '$_value');
+
+  @override
+  void valueToDart(DartTemplateBuffer buffer) {
+    buffer.writeBoolValue(_value);
+  }
 }

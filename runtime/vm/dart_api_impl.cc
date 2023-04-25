@@ -53,7 +53,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/thread_registry.h"
 #include "vm/uri.h"
 #include "vm/version.h"
 #include "vm/zone_text_buffer.h"
@@ -372,7 +371,7 @@ ObjectPtr Api::UnwrapHandle(Dart_Handle object) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   ASSERT(thread->isolate() != nullptr);
   ASSERT(FinalizablePersistentHandle::ptr_offset() == 0 &&
          PersistentHandle::ptr_offset() == 0 && LocalHandle::ptr_offset() == 0);
@@ -481,7 +480,7 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->IsDartMutatorThread());
   CHECK_ISOLATE(isolate);
 
   // Check against all of the handles in the current isolate as well as the
@@ -6441,7 +6440,11 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event != nullptr) {
     switch (type) {
       case Dart_Timeline_Event_Begin:
-        event->Begin(label, timestamp1_or_async_id, timestamp0);
+        // TODO(derekx): Dart_TimelineEvent() needs to be updated so that arrows
+        // corresponding to flow events reported by embedders get included in
+        // Perfetto traces.
+        event->Begin(label, timestamp1_or_async_id,
+                     /*flow_id=*/TimelineEvent::kNoFlowId, timestamp0);
         break;
       case Dart_Timeline_Event_End:
         event->End(label, timestamp1_or_async_id, timestamp0);

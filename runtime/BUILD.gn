@@ -146,10 +146,7 @@ config("dart_arch_config") {
 }
 
 config("dart_config") {
-  # We temporarily need to define this to exclude code that depends on Perfetto
-  # from being built in google3, as there is currently a problem linking
-  # Perfetto into google3 builds.
-  defines = [ "SUPPORT_PERFETTO" ]
+  defines = []
 
   if (dart_debug) {
     defines += [ "DEBUG" ]

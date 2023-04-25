@@ -9,12 +9,20 @@
 
 class C {
   var a;
+  //  ^
+  // [cfe] Conflicts with setter 'a'.
 
-  get a {/*@compile-error=unspecified*/
+  get a {
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'a' is already declared in this scope.
     return 1;
   }
 
-  set a(int val) {/*@compile-error=unspecified*/
+  set a(int val) {
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] Conflicts with the implicit setter of the field 'a'.
     var x = val;
   }
 

@@ -229,7 +229,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
          task_index++) {
       const intptr_t pages_per_task = num_pages / num_tasks;
       for (intptr_t j = 0; j < pages_per_task; j++) {
-        Page* page = heap_->old_space()->AllocatePage(Page::kData,
+        Page* page = heap_->old_space()->AllocatePage(/* exec */ false,
                                                       /* link */ false);
 
         if (page == nullptr) {
@@ -336,7 +336,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
         Page* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
-        page->Deallocate(/*can_use_cache*/ true);
+        page->Deallocate();
         page = next;
       }
     }

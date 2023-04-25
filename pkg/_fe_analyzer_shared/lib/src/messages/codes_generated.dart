@@ -151,8 +151,8 @@ const MessageCode messageAbstractSealedClass = const MessageCode(
     "AbstractSealedClass",
     index: 132,
     problemMessage:
-        r"""A class can't be declared both 'sealed' and 'abstract'.""",
-    correctionMessage: r"""Try removing the 'abstract' or 'sealed' keyword.""");
+        r"""A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.""",
+    correctionMessage: r"""Try removing the 'abstract' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractStaticField = messageAbstractStaticField;

@@ -1341,6 +1341,35 @@ void f() {
     expect(fromPlugin, isNull);
   }
 
+  /// Check that narrowing a type from String? to String in a subclass includes
+  /// the correct narrowed type in the `detail` field.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/4499
+  Future<void> test_getter_barrowedBySubclass() async {
+    final content = '''
+void f(MyItem item) {
+  item.na^
+}
+
+abstract class NullableName {
+  String? get name;
+}
+
+abstract class NotNullableName implements NullableName {
+  @override
+  String get name;
+}
+
+abstract class MyItem implements NotNullableName, NullableName {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final name = res.singleWhere((c) => c.label == 'name');
+    expect(name.detail, equals('String'));
+  }
+
   Future<void> test_gettersAndSetters() async {
     final content = '''
     class MyClass {

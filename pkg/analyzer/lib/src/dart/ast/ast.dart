@@ -3460,7 +3460,9 @@ abstract class DartPatternImpl extends AstNodeImpl
   DartType? matchedValueType;
 
   /// Returns the context for this pattern.
-  /// * Declaration context: [PatternVariableDeclarationImpl]
+  /// * Declaration context:
+  ///     [ForEachPartsWithPatternImpl]
+  ///     [PatternVariableDeclarationImpl]
   /// * Assignment context: [PatternAssignmentImpl]
   /// * Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
@@ -9165,6 +9167,10 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   Token get endToken => rightBracket;
 
+  @Deprecated('This feature was removed from the language')
+  @override
+  Token? get finalKeyword => null;
+
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return baseKeyword ?? mixinKeyword;
@@ -9177,6 +9183,10 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @Deprecated('This feature was removed from the language')
+  @override
+  Token? get interfaceKeyword => null;
+
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
 
@@ -9186,6 +9196,10 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   set onClause(OnClauseImpl? onClause) {
     _onClause = _becomeParentOf(onClause);
   }
+
+  @Deprecated('This feature was removed from the language')
+  @override
+  Token? get sealedKeyword => null;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;

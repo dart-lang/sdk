@@ -1567,7 +1567,8 @@ class BodyBuilder extends StackListenerImpl
               named: arguments.named,
               hasExplicitTypeArguments: hasExplicitTypeArguments(arguments)),
           constness: isConst ? Constness.explicitConst : Constness.explicitNew,
-          charOffset: fileOffset);
+          charOffset: fileOffset,
+          isConstructorInvocation: true);
     }
     return replacementNode;
   }
@@ -2715,6 +2716,94 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void beginPattern(Token token) {
+    debugEvent("Pattern");
+    if (token.lexeme == "||") {
+      createAndEnterLocalScope(
+          debugName: "rhs of a binary-or pattern",
+          kind: ScopeKind.orPatternRight);
+    } else {
+      createAndEnterLocalScope(debugName: "pattern", kind: ScopeKind.pattern);
+    }
+  }
+
+  @override
+  void endPattern(Token token) {
+    debugEvent("Pattern");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ]),
+      ValueKinds.Scope,
+    ]));
+    Object pattern = pop()!;
+    ScopeKind scopeKind = scope.kind;
+
+    exitLocalScope(expectedScopeKinds: const [
+      ScopeKind.pattern,
+      ScopeKind.orPatternRight
+    ]);
+
+    // Bring the variables into the enclosing pattern scope, unless that was
+    // the scope of the RHS of a binary-or pattern. In the latter case, the
+    // joint variables will be declared in the enclosing scope instead later in
+    // the process.
+    //
+    // Here we only handle the visibility of the pattern declared variables
+    // within the pattern itself, so we declare the pattern variables in the
+    // enclosing scope only if that enclosing scope is a pattern scope as well,
+    // that is, if its kind is [ScopeKind.pattern] or
+    // [ScopeKind.orPatternRight].
+    bool enclosingScopeIsPatternScope = scope.kind == ScopeKind.pattern ||
+        scope.kind == ScopeKind.orPatternRight;
+    if (scopeKind != ScopeKind.orPatternRight && enclosingScopeIsPatternScope) {
+      if (pattern is Pattern) {
+        for (VariableDeclaration variable in pattern.declaredVariables) {
+          declareVariable(variable, scope);
+        }
+      }
+    }
+
+    push(pattern);
+  }
+
+  @override
+  void beginBinaryPattern(Token token) {
+    debugEvent("BinaryPattern");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ]),
+      ValueKinds.Scope,
+    ]));
+
+    // In case of the binary-or pattern, its LHS and RHS should contain
+    // declarations of the variables with matching names, and we need to put
+    // them into separate scopes to avoid the naming conflict. For that, we're
+    // exiting the scope for the LHS, and the scope for the RHS will be created
+    // when the RHS will be parsed. Additionally, since it's the first time
+    // we're realizing that it's the binary-or pattern, we need to create the
+    // enclosing scope for its joint variables as well.
+    if (token.lexeme == "||") {
+      Object lhsPattern = pop()!;
+
+      // Exit the scope of the LHS.
+      exitLocalScope(expectedScopeKinds: const [ScopeKind.pattern]);
+
+      createAndEnterLocalScope(
+          debugName: "joint variables of binary-or patterns",
+          kind: ScopeKind.pattern);
+      push(lhsPattern);
+    }
+  }
+
+  @override
   void endBinaryPattern(Token token) {
     debugEvent("BinaryPattern");
     assert(checkState(token, [
@@ -2768,12 +2857,17 @@ class BodyBuilder extends StackListenerImpl
                 noLength);
           }
         }
+        List<VariableDeclaration> jointVariables = [
+          for (VariableDeclaration leftVariable in left.declaredVariables)
+            forest.createVariableDeclaration(
+                leftVariable.fileOffset, leftVariable.name!)
+        ];
+        for (VariableDeclaration variable in jointVariables) {
+          declareVariable(variable, scope);
+          typeInferrer.assignedVariables.declare(variable);
+        }
         push(forest.createOrPattern(token.charOffset, left, right,
-            orPatternJointVariables: [
-              for (VariableDeclaration leftVariable in left.declaredVariables)
-                forest.createVariableDeclaration(
-                    leftVariable.fileOffset, leftVariable.name!)
-            ]));
+            orPatternJointVariables: jointVariables));
         break;
       default:
         internalProblem(
@@ -3585,7 +3679,6 @@ class BodyBuilder extends StackListenerImpl
         debugName: "if-case-head", kind: ScopeKind.ifCaseHead);
     for (VariableDeclaration variable in pattern.declaredVariables) {
       declareVariable(variable, scope);
-      typeInferrer.assignedVariables.declare(variable);
     }
   }
 
@@ -3620,7 +3713,6 @@ class BodyBuilder extends StackListenerImpl
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
           declareVariable(variable, scope);
-          typeInferrer.assignedVariables.declare(variable);
         }
         Scope thenScope = scope.createNestedScope(
             debugName: "then body", kind: ScopeKind.statementLocalScope);
@@ -4098,7 +4190,6 @@ class BodyBuilder extends StackListenerImpl
       pop(); // Metadata.
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
-        typeInferrer.assignedVariables.declare(variable);
       }
       Scope forScope = scope.createNestedScope(
           debugName: "pattern-for internal variables",
@@ -5880,7 +5971,8 @@ class BodyBuilder extends StackListenerImpl
       {Constness constness = Constness.implicit,
       TypeAliasBuilder? typeAliasBuilder,
       int charOffset = -1,
-      int charLength = noLength}) {
+      int charLength = noLength,
+      required bool isConstructorInvocation}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
     List<TypeParameter> typeParameters = target.function!.typeParameters;
@@ -5928,7 +6020,7 @@ class BodyBuilder extends StackListenerImpl
       return node;
     } else {
       Procedure procedure = target as Procedure;
-      if (procedure.isFactory) {
+      if (isConstructorInvocation) {
         if (constantContext == ConstantContext.required &&
             constness == Constness.implicit) {
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
@@ -5961,8 +6053,7 @@ class BodyBuilder extends StackListenerImpl
         }
         return node;
       } else {
-        assert(
-            constness == Constness.implicit || procedure.isInlineClassMember);
+        assert(constness == Constness.implicit);
         return new StaticInvocation(target, arguments, isConst: false)
           ..fileOffset = charOffset;
       }
@@ -6404,7 +6495,8 @@ class BodyBuilder extends StackListenerImpl
                 constness: constness,
                 typeAliasBuilder: aliasBuilder,
                 charOffset: nameToken.charOffset,
-                charLength: nameToken.length);
+                charLength: nameToken.length,
+                isConstructorInvocation: true);
             return invocation;
           } else {
             return buildUnresolvedError(errorName, nameLastToken.charOffset,
@@ -6557,7 +6649,8 @@ class BodyBuilder extends StackListenerImpl
             constness: constness,
             charOffset: nameToken.charOffset,
             charLength: nameToken.length,
-            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
+            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+            isConstructorInvocation: true);
         return invocation;
       } else {
         errorName ??= debugName(type.name, name);
@@ -6578,7 +6671,8 @@ class BodyBuilder extends StackListenerImpl
             constness: constness,
             charOffset: nameToken.charOffset,
             charLength: nameToken.length,
-            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
+            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
+            isConstructorInvocation: true);
       } else {
         errorName ??= debugName(type.name, name);
       }
@@ -6642,7 +6736,6 @@ class BodyBuilder extends StackListenerImpl
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
           declareVariable(variable, scope);
-          typeInferrer.assignedVariables.declare(variable);
         }
         Scope thenScope = scope.createNestedScope(
             debugName: "then-control-flow", kind: ScopeKind.ifElement);
@@ -7281,7 +7374,6 @@ class BodyBuilder extends StackListenerImpl
       for (VariableDeclaration variable in pattern.declaredVariables) {
         variable.isFinal |= isFinal;
         declareVariable(variable, scope);
-        typeInferrer.assignedVariables.declare(variable);
       }
     }
 
@@ -7957,7 +8049,6 @@ class BodyBuilder extends StackListenerImpl
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
-        typeInferrer.assignedVariables.declare(variable);
       }
     }
     push(constantContext);
@@ -7998,7 +8089,6 @@ class BodyBuilder extends StackListenerImpl
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
-        typeInferrer.assignedVariables.declare(variable);
       }
     }
   }
@@ -8277,7 +8367,6 @@ class BodyBuilder extends StackListenerImpl
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
-        typeInferrer.assignedVariables.declare(variable);
       }
     }
     push(pattern);
@@ -8814,7 +8903,8 @@ class BodyBuilder extends StackListenerImpl
               forest.createStringLiteral(assignmentOffset, name)
             ]),
             constness: Constness.explicitNew,
-            charOffset: assignmentOffset);
+            charOffset: assignmentOffset,
+            isConstructorInvocation: true);
         return <Initializer>[
           new ShadowInvalidFieldInitializer(
               builder.field,
@@ -9455,6 +9545,8 @@ class BodyBuilder extends StackListenerImpl
               Modifier.validateVarFinalOrConst(keyword?.lexeme) == finalMask);
       pattern = forest.createVariablePattern(
           variable.charOffset, patternType, declaredVariable);
+      declareVariable(declaredVariable, scope);
+      typeInferrer.assignedVariables.declare(declaredVariable);
     }
     push(pattern);
   }
@@ -9543,7 +9635,6 @@ class BodyBuilder extends StackListenerImpl
       variable.isFinal = isFinal;
       variable.hasDeclaredInitializer = true;
       declareVariable(variable, scope);
-      typeInferrer.assignedVariables.declare(variable);
     }
     // TODO(johnniwinther,cstefantsova): Handle metadata.
     pop(NullValues.Metadata) as List<Expression>?;

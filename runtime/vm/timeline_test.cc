@@ -85,7 +85,7 @@ class TimelineTestHelper : public AllStatic {
     ASSERT(start >= 0);
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != nullptr);
-    event->Begin(label, start);
+    event->Begin(label, /*id=*/-1, /*flow_id=*/TimelineEvent::kNoFlowId, start);
     event->Complete();
   }
 

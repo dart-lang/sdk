@@ -76,6 +76,10 @@ class MessageHandler {
   // handler.
   bool HasOOBMessages();
 
+#if defined(TESTING)
+  std::unique_ptr<Message> StealOOBMessage();
+#endif
+
   // Returns true if there are pending normal messages for this message
   // handler.
   bool HasMessages();

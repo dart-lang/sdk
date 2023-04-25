@@ -16,12 +16,15 @@
 namespace dart {
 
 bool GCSweeper::SweepPage(Page* page, FreeList* freelist, bool locked) {
-  ASSERT(!page->is_image_page());
+  ASSERT(!page->is_image());
+  // Large executable pages are handled here. We never truncate Instructions
+  // objects, so we never truncate executable pages.
+  ASSERT(!page->is_large() || page->is_executable());
 
   // Keep track whether this page is still in use.
   intptr_t used_in_bytes = 0;
 
-  bool is_executable = (page->type() == Page::kExecutable);
+  bool is_executable = page->is_executable();
   uword start = page->object_start();
   uword end = page->object_end();
   uword current = start;
@@ -80,7 +83,8 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist, bool locked) {
 }
 
 intptr_t GCSweeper::SweepLargePage(Page* page) {
-  ASSERT(!page->is_image_page());
+  ASSERT(!page->is_image());
+  ASSERT(page->is_large() && !page->is_executable());
 
   intptr_t words_to_end = 0;
   ObjectPtr raw_obj = UntaggedObject::FromAddr(page->object_start());
@@ -118,8 +122,8 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kSweeperTask, /*bypass_safepoint=*/true);
+    bool result = Thread::EnterIsolateGroupAsNonMutator(isolate_group_,
+                                                        Thread::kSweeperTask);
     ASSERT(result);
     PageSpace* old_space = isolate_group_->heap()->old_space();
     {
@@ -139,7 +143,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
       old_space->Sweep(/*exclusive*/ false);
     }
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
+    Thread::ExitIsolateGroupAsNonMutator();
     // This sweeper task is done. Notify the original isolate.
     {
       MonitorLocker ml(old_space->tasks_lock());

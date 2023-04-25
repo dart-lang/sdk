@@ -51,7 +51,7 @@ void ThreadRegistry::VisitObjectPointers(
     if (thread->isolate_group() == isolate_group_of_interest) {
       // The mutator thread is visited by the isolate itself (see
       // [IsolateGroup::VisitStackPointers]).
-      if (!thread->IsMutatorThread()) {
+      if (!thread->IsDartMutatorThread()) {
         thread->VisitObjectPointers(visitor, validate_frames);
       }
     }
@@ -148,7 +148,8 @@ void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != nullptr);
   ASSERT(thread->os_thread() == nullptr);
   ASSERT(thread->isolate_ == nullptr);
-  ASSERT(thread->heap_ == nullptr);
+  ASSERT(thread->isolate_group_ == nullptr);
+  ASSERT(thread->field_table_values_ == nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Add thread to the free list.
   thread->next_ = free_list_;

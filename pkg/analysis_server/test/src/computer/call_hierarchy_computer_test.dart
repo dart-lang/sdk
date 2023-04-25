@@ -174,7 +174,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -221,7 +221,7 @@ extension StringExtension on String {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -298,7 +298,7 @@ void f() {
 /*1*/void myFunction() {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -343,7 +343,7 @@ void f() {
 /*1*/String get bar => '';/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -372,7 +372,7 @@ void f() {
 /*1*/class Foo {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -457,7 +457,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -506,7 +506,7 @@ class Bar {
 class Foo with Bar {}
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -563,7 +563,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -591,7 +591,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectNoTarget(contents);
   }
 
@@ -627,7 +627,7 @@ void f() {
 /*1*/set bar(String value) {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -702,7 +702,7 @@ final foo1 = Foo();
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'Foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -766,7 +766,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myMethod');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -831,7 +831,7 @@ final foo1 = myFunction();
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myFunction');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -902,7 +902,7 @@ final foo1 = foo;
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -969,7 +969,7 @@ final foo2 = Foo();
     SourceRange rangeAfter(String prefix, String code) =>
         rangeAfterPrefix(prefix, code, 'Foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1012,7 +1012,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myMethod');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1050,7 +1050,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myMethod');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1085,7 +1085,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'Bar');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1124,7 +1124,7 @@ class Bar {
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1197,7 +1197,7 @@ class A {
 }/*2*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1241,7 +1241,7 @@ extension StringExtension on String {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1300,7 +1300,7 @@ void fo^o() {
 /*1*/void f() {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1344,7 +1344,7 @@ String get fo^o {
 }/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1386,7 +1386,7 @@ void f() {
 class Foo {}
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(calls, isEmpty);
   }
@@ -1416,7 +1416,7 @@ class Foo {
 }/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1464,7 +1464,7 @@ mixin OtherMixin {
 /*1*/class A with OtherMixin {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1510,7 +1510,7 @@ class A {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1559,7 +1559,7 @@ set fo^o(String value) {
 }/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,

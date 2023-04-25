@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/thread.h"
+#include "vm/thread_registry.h"
 #include "vm/thread_stack_resource.h"
 
 namespace dart {
@@ -47,6 +48,17 @@ class DeoptSafepointOperationScope : public SafepointOperationScope {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptSafepointOperationScope);
+};
+
+// Gets all mutators to a safepoint where GC, Deopt and Reload is allowed.
+class ReloadSafepointOperationScope : public SafepointOperationScope {
+ public:
+  explicit ReloadSafepointOperationScope(Thread* T)
+      : SafepointOperationScope(T, SafepointLevel::kGCAndDeoptAndReload) {}
+  ~ReloadSafepointOperationScope() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ReloadSafepointOperationScope);
 };
 
 // A stack based scope that can be used to perform an operation after getting
@@ -93,7 +105,7 @@ class SafepointHandler {
   SafepointLevel InnermostSafepointOperation(
       const Thread* current_thread) const;
 
-  bool AnySafepointInProgress() {
+  bool AnySafepointInProgressLocked() {
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
       if (handlers_[level]->SafepointInProgress()) {
         return true;
@@ -131,13 +143,17 @@ class SafepointHandler {
     void NotifyWeAreParked(Thread* T);
 
     IsolateGroup* isolate_group() const { return isolate_group_; }
-    Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
+    Monitor* threads_lock() const {
+      return isolate_group_->thread_registry()->threads_lock();
+    }
 
    private:
     friend class SafepointHandler;
 
     // Helper methods for [SafepointThreads]
-    void NotifyThreadsToGetToSafepointLevel(Thread* T);
+    void NotifyThreadsToGetToSafepointLevel(
+        Thread* T,
+        MallocGrowableArray<Dart_Port>* oob_isolates);
     void WaitUntilThreadsReachedSafepointLevel();
 
     // Helper methods for [ResumeThreads]
@@ -178,7 +194,9 @@ class SafepointHandler {
   void ExitSafepointLocked(Thread* T, MonitorLocker* tl, SafepointLevel level);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
-  Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
+  Monitor* threads_lock() const {
+    return isolate_group_->thread_registry()->threads_lock();
+  }
 
   IsolateGroup* isolate_group_;
 
@@ -309,7 +327,7 @@ class TransitionGeneratedToNative : public TransitionSafepointState {
 class TransitionVMToBlocked : public TransitionSafepointState {
  public:
   explicit TransitionVMToBlocked(Thread* T) : TransitionSafepointState(T) {
-    ASSERT(!T->OwnsSafepoint());
+    ASSERT(T->CanAcquireSafepointLocks());
     // A thread blocked on a monitor is considered to be at a safepoint.
     ASSERT(T->execution_state() == Thread::kThreadInVM);
     T->set_execution_state(Thread::kThreadInBlockedState);

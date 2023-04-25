@@ -337,8 +337,8 @@ _dart2js_common:
     _js_shared_embedded_names:
       uri: "_internal/js_shared/lib/synced/embedded_names.dart"
 
-    _async_await_error_codes:
-      uri: "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
+    _async_status_codes:
+      uri: "_internal/js_runtime/lib/synced/async_status_codes.dart"
 
     _load_library_priority:
       uri: "_internal/js_runtime/lib/synced/load_library_priority.dart"

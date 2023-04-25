@@ -13,9 +13,8 @@ main() {
   constList();
   constNullList();
   intList();
-  newList();
-  newFixedList();
   newFilledList();
+  newFilledGrowableList();
   newFloat32x4List();
   newInt32x4List();
   newFloat64x2List();
@@ -46,14 +45,11 @@ constNullList() => const [null];
 /*member: intList:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
 intList() => [1, 2, 3];
 
-/*member: newList:Container([exact=JSExtendableArray], element: [empty], length: 0)*/
-newList() => List();
-
-/*member: newFixedList:Container([exact=JSFixedArray], element: [null], length: 2)*/
-newFixedList() => List(2);
-
 /*member: newFilledList:Container([exact=JSFixedArray], element: Value([exact=JSString], value: ""), length: 3)*/
 newFilledList() => List.filled(3, '');
+
+/*member: newFilledGrowableList:Container([exact=JSExtendableArray], element: Value([exact=JSString], value: ""), length: 3)*/
+newFilledGrowableList() => List.filled(3, '', growable: true);
 
 /*member: newFloat32x4List:[exact=NativeFloat32x4List]*/
 newFloat32x4List() => Float32x4List(4);

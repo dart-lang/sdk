@@ -3815,10 +3815,18 @@ abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
   @override
   MixinElement? get declaredElement2;
 
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  @Deprecated('This feature was removed from the language')
+  Token? get finalKeyword;
+
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
   @override
   ImplementsClause? get implementsClause;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  @Deprecated('This feature was removed from the language')
+  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   @override
@@ -3831,6 +3839,10 @@ abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
   /// Returns the right curly bracket.
   @override
   Token get rightBracket;
+
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  @Deprecated('This feature was removed from the language')
+  Token? get sealedKeyword;
 
   /// Returns the type parameters for the class/mixin, or `null` if the
   /// class/mixin does not have any type parameters.

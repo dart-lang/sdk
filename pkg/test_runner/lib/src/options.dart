@@ -1039,7 +1039,21 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
 })();
 
 final Map<String, String> nativeCompilerEnvironmentVariables = (() {
-  final hostFolderName = Abi.current().toString().replaceAll('_', '-');
+  if (Platform.isMacOS) {
+    // Use XCode instead, it has the right sysroot by default.
+    return <String, String>{};
+  }
+
+  // Keep consistent with DEPS.
+  const clangHostFolderName = {
+    Abi.linuxArm64: 'linux-arm64',
+    Abi.linuxX64: 'linux-x64',
+    Abi.macosArm64: 'mac-arm64',
+    Abi.macosX64: 'mac-x64',
+    Abi.windowsX64: 'win-x64',
+  };
+
+  final hostFolderName = clangHostFolderName[Abi.current()]!;
   final clangBin =
       Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
   return {

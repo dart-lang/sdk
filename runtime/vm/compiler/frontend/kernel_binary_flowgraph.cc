@@ -151,7 +151,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
-    if (H.thread()->IsMutatorThread()) {
+    if (H.thread()->IsDartMutatorThread()) {
       ASSERT(field.IsOriginal());
       LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
@@ -184,7 +184,7 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
     bool has_initializer) {
   if (has_initializer && PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
-    if (H.thread()->IsMutatorThread()) {
+    if (H.thread()->IsDartMutatorThread()) {
       LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
     } else {
@@ -4210,7 +4210,7 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
   const intptr_t num_positional_fields =
       record_type.NumFields() - field_names.Length();
   if (is_named) {
-    const String& field_name = H.DartSymbolPlain(ReadStringReference());
+    const String& field_name = H.DartSymbolObfuscate(ReadStringReference());
     for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
       if (field_names.At(i) == field_name.ptr()) {
         field_index = i;

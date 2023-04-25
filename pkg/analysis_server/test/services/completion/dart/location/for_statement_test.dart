@@ -15,6 +15,64 @@ void main() {
 
 /// Tests specific to a for-each statement.
 mixin ForEachPartsTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterEquals_beforeRightParen_partial_i() async {
+    await computeSuggestions('''
+void f() {for (int x = i^)}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterEquals_beforeRightParen_partial_in() async {
+    await computeSuggestions('''
+void f() {for (int x = in^)}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 2
+suggestions
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_afterIn() async {
     await computeSuggestions('''
 void f(List<(int, int)> x01) {
@@ -52,6 +110,45 @@ void f(List<(int, int)> rl) {
     assertResponse(r'''
 replacement
   left: 1
+suggestions
+  in
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterTypeName_beforeRightParen_partial() async {
+    await computeSuggestions('''
+void f() {for (int i^)}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void>
+      test_afterVariableDeclaration_beforeRightParen_partial_i() async {
+    await computeSuggestions('''
+void f() {for (int x i^)}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  in
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterVariableDeclaration_beforeRightParen_partial_in() async {
+    await computeSuggestions('''
+void f() {for (int x in^)}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
 suggestions
   in
     kind: keyword

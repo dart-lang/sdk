@@ -873,6 +873,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.ptr();
     }
 
+    T->SetupDartMutatorStateDependingOnSnapshot(I);
     {
       SafepointReadRwLocker reader(T, IG->program_lock());
       I->set_field_table(T, IG->initial_field_table()->Clone(I));

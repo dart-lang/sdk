@@ -4,4 +4,5 @@
 
 import 'entry_points.dart' show compileEntryPoint;
 
-void main(List<String> arguments) => compileEntryPoint(arguments);
+Future<void> main(List<String> arguments) async =>
+    await compileEntryPoint(arguments);

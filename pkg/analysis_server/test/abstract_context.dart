@@ -81,10 +81,6 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
-  void addSource(String path, String content) {
-    newFile(path, content);
-  }
-
   Future<void> analyzeTestPackageFiles() async {
     var analysisContext = contextFor(testPackageRootPath);
     var files = analysisContext.contextRoot.analyzedFiles().toList();

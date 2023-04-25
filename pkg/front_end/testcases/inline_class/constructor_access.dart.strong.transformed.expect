@@ -35,7 +35,7 @@ static method main() → dynamic {
   self::GenericClass<core::String> e = self::GenericClass|<core::String>("bar");
   self::GenericClass<core::int> f = self::GenericClass|<core::int>(42);
   self::GenericClass<core::int> g = self::GenericClass|<core::int>(87);
-  self::GenericClass<core::num> h = self::GenericClass|<core::int>(123);
+  self::GenericClass<core::num> h = self::GenericClass|<core::num>(123);
   self::expect(3, a as{ForNonNullableByDefault} core::int);
   self::expect(3, a);
   self::expect(4, b as{ForNonNullableByDefault} core::int);

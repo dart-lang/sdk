@@ -962,8 +962,8 @@ AbstractLateField:
     - "abstract class C {abstract late var f;}"
 
 AbstractSealedClass:
-  problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
-  correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
+  problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
+  correctionMessage: "Try removing the 'abstract' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
   index: 132
   hasPublishedDocs: true

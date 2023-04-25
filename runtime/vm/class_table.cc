@@ -63,7 +63,7 @@ ClassTable::~ClassTable() {
 }
 
 void ClassTable::Register(const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   ASSERT(cls.id() == kIllegalCid || cls.id() < kNumPredefinedCids);
   bool did_grow = false;
   const classid_t cid =
@@ -90,7 +90,7 @@ void ClassTable::Register(const Class& cls) {
 }
 
 void ClassTable::RegisterTopLevel(const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(Thread::Current()->IsDartMutatorThread());
   ASSERT(cls.id() == kIllegalCid);
 
   bool did_grow = false;

@@ -98,6 +98,11 @@ mixin StringTypes on AbstractTypeSystemTest {
     return type;
   }
 
+  String typesString(List<DartType> types) {
+    final str = types.map(typeString).join('\n');
+    return '$str\n';
+  }
+
   String typeString(DartType type) {
     return type.getDisplayString(withNullability: true) +
         _typeParametersStr(type);

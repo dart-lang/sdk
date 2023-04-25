@@ -42,13 +42,13 @@ abstract class SealedMembers {
 sealed abstract class SealedAndAbstractClass {}
 // [error column 1, length 6]
 // [analyzer] SYNTACTIC_ERROR.ABSTRACT_SEALED_CLASS
-// [cfe] A class can't be declared both 'sealed' and 'abstract'.
+// [cfe] A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.
 
 
 abstract sealed class SealedAndAbstractClass2 {}
 //       ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.ABSTRACT_SEALED_CLASS
-// [cfe] A class can't be declared both 'sealed' and 'abstract'.
+// [cfe] A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.
 
 sealed sealed class SealedDuplicateClass {}
 // [error column 1, length 6]

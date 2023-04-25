@@ -4094,6 +4094,77 @@ static void GetIsolateMetric(Thread* thread, JSONStream* js) {
   HandleNativeMetric(thread, js, id);
 }
 
+enum GetVMTimelineResponseFormat { JSON = 0, Perfetto = 1 };
+
+inline void GetVMTimelineCommon(GetVMTimelineResponseFormat format,
+                                Thread* thread,
+                                JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+  StackZone zone(thread);
+  Timeline::ReclaimCachedBlocksFromThreads();
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
+  ASSERT(timeline_recorder != nullptr);
+  const char* name = timeline_recorder->name();
+  if (strcmp(name, CALLBACK_RECORDER_NAME) == 0) {
+    js->PrintError(kInvalidTimelineRequest,
+                   "A recorder of type \"%s\" is currently in use. As a "
+                   "result, timeline events are handled by the embedder rather "
+                   "than the VM.",
+                   timeline_recorder->name());
+    return;
+  } else if (strcmp(name, FUCHSIA_RECORDER_NAME) == 0 ||
+             strcmp(name, SYSTRACE_RECORDER_NAME) == 0 ||
+             strcmp(name, MACOS_RECORDER_NAME) == 0) {
+    js->PrintError(
+        kInvalidTimelineRequest,
+        "A recorder of type \"%s\" is currently in use. As a result, timeline "
+        "events are handled by the OS rather than the VM. See the VM service "
+        "documentation for more details on where timeline events can be found "
+        "for this recorder type.",
+        timeline_recorder->name());
+    return;
+  } else if (strcmp(name, FILE_RECORDER_NAME) == 0 ||
+             strcmp(name, PERFETTO_FILE_RECORDER_NAME) == 0) {
+    js->PrintError(kInvalidTimelineRequest,
+                   "A recorder of type \"%s\" is currently in use. As a "
+                   "result, timeline events are written directly to a file and "
+                   "thus cannot be retrieved through the VM Service.",
+                   timeline_recorder->name());
+    return;
+  }
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  TimelineEventFilter filter(time_origin_micros, time_extent_micros);
+  if (format == GetVMTimelineResponseFormat::JSON) {
+    timeline_recorder->PrintJSON(js, &filter);
+  } else if (format == GetVMTimelineResponseFormat::Perfetto) {
+#if defined(SUPPORT_PERFETTO)
+    // This branch will never be reached when SUPPORT_PERFETTO is not defined,
+    // because |GetPerfettoVMTimeline| is not defined when SUPPORT_PERFETTO is
+    // not defined.
+    timeline_recorder->PrintPerfettoTimeline(js, filter);
+#else
+    UNREACHABLE();
+#endif  // defined(SUPPORT_PERFETTO)
+  }
+}
+
+#if defined(SUPPORT_PERFETTO)
+static const MethodParameter* const get_perfetto_vm_timeline_params[] = {
+    NO_ISOLATE_PARAMETER,
+    new Int64Parameter("timeOriginMicros", /*required=*/false),
+    new Int64Parameter("timeExtentMicros", /*required=*/false),
+    nullptr,
+};
+
+static void GetPerfettoVMTimeline(Thread* thread, JSONStream* js) {
+  GetVMTimelineCommon(GetVMTimelineResponseFormat::Perfetto, thread, js);
+}
+#endif  // defined(SUPPORT_PERFETTO)
+
 static void SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 #if !defined(SUPPORT_TIMELINE)
   PrintSuccess(js);
@@ -4161,45 +4232,7 @@ static const MethodParameter* const get_vm_timeline_params[] = {
 };
 
 static void GetVMTimeline(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != nullptr);
-  StackZone zone(thread);
-  Timeline::ReclaimCachedBlocksFromThreads();
-  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
-  ASSERT(timeline_recorder != nullptr);
-  const char* name = timeline_recorder->name();
-  if (strcmp(name, CALLBACK_RECORDER_NAME) == 0) {
-    js->PrintError(kInvalidTimelineRequest,
-                   "A recorder of type \"%s\" is currently in use. As a "
-                   "result, timeline events are handled by the embedder rather "
-                   "than the VM.",
-                   timeline_recorder->name());
-    return;
-  } else if (strcmp(name, FUCHSIA_RECORDER_NAME) == 0 ||
-             strcmp(name, SYSTRACE_RECORDER_NAME) == 0 ||
-             strcmp(name, MACOS_RECORDER_NAME) == 0) {
-    js->PrintError(
-        kInvalidTimelineRequest,
-        "A recorder of type \"%s\" is currently in use. As a result, timeline "
-        "events are handled by the OS rather than the VM. See the VM service "
-        "documentation for more details on where timeline events can be found "
-        "for this recorder type.",
-        timeline_recorder->name());
-    return;
-  } else if (strcmp(name, FILE_RECORDER_NAME) == 0) {
-    js->PrintError(kInvalidTimelineRequest,
-                   "A recorder of type \"%s\" is currently in use. As a "
-                   "result, timeline events are written directly to a file and "
-                   "thus cannot be retrieved through the VM Service.",
-                   timeline_recorder->name());
-    return;
-  }
-  int64_t time_origin_micros =
-      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
-  int64_t time_extent_micros =
-      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  TimelineEventFilter filter(time_origin_micros, time_extent_micros);
-  timeline_recorder->PrintJSON(js, &filter);
+  GetVMTimelineCommon(GetVMTimelineResponseFormat::JSON, thread, js);
 }
 
 static const char* const step_enum_names[] = {
@@ -5770,6 +5803,10 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_instances_params },
   { "getInstancesAsList", GetInstancesAsList,
     get_instances_as_list_params },
+#if defined(SUPPORT_PERFETTO)
+  { "getPerfettoVMTimeline", GetPerfettoVMTimeline,
+    get_perfetto_vm_timeline_params },
+#endif  // defined(SUPPORT_PERFETTO)
   { "getPorts", GetPorts,
     get_ports_params },
   { "getIsolate", GetIsolate,

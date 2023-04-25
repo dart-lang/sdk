@@ -67,6 +67,9 @@ abstract class TypeConstraintGatherer {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass);
+
   InterfaceType futureType(DartType type, Nullability nullability);
 
   /// Returns the set of type constraints that was gathered.
@@ -645,6 +648,21 @@ abstract class TypeConstraintGatherer {
       }
       if (isMatch) return true;
       _protoConstraints.length = baseConstraintCount;
+    } else if (p is InlineType &&
+        q is InlineType &&
+        p.inlineClass == q.inlineClass) {
+      assert(p.typeArguments.length == q.typeArguments.length);
+
+      final int baseConstraintCount = _protoConstraints.length;
+      bool isMatch = true;
+      for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
+        isMatch = isMatch &&
+            _isNullabilityAwareSubtypeMatch(
+                p.typeArguments[i], q.typeArguments[i],
+                constrainSupertype: constrainSupertype);
+      }
+      if (isMatch) return true;
+      _protoConstraints.length = baseConstraintCount;
     }
 
     // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
@@ -656,6 +674,22 @@ abstract class TypeConstraintGatherer {
     if (p is InterfaceType && q is InterfaceType) {
       final List<DartType>? sArguments =
           getTypeArgumentsAsInstanceOf(p, q.classNode);
+      if (sArguments != null) {
+        assert(sArguments.length == q.typeArguments.length);
+
+        final int baseConstraintCount = _protoConstraints.length;
+        bool isMatch = true;
+        for (int i = 0; isMatch && i < sArguments.length; ++i) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(sArguments[i], q.typeArguments[i],
+                  constrainSupertype: constrainSupertype);
+        }
+        if (isMatch) return true;
+        _protoConstraints.length = baseConstraintCount;
+      }
+    } else if (p is InlineType && q is InlineType) {
+      final List<DartType>? sArguments =
+          getInlineTypeArgumentsAsInstanceOf(p, q.inlineClass);
       if (sArguments != null) {
         assert(sArguments.length == q.typeArguments.length);
 
@@ -1132,6 +1166,13 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     return environment.getTypeArgumentsAsInstanceOf(type, superclass);
+  }
+
+  @override
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass) {
+    return environment.hierarchy
+        .getInlineTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override

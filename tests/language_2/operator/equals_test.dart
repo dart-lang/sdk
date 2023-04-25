@@ -10,11 +10,17 @@
 import 'package:expect/expect.dart';
 
 class A {
-  operator ==(other) => 42; /*@compile-error=unspecified*/
+  operator ==(other) => 42;
+  //                    ^^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 }
 
 class B extends A {
-  foo() => (super == null) + 4; /*@compile-error=unspecified*/
+  foo() => (super == null) + 4;
+  //                       ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
+  // [cfe] The operator '+' isn't defined for the class 'bool'.
 }
 
 main() {

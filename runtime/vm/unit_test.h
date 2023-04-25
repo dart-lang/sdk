@@ -100,7 +100,7 @@
 // C++ callee-saved registers are not preserved. Arguments may be passed in.
 #define ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, expectation)           \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
-  ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                 \
+  ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(Assembler_##name, expectation) {     \
     volatile intptr_t far_branch_level = 0;                                    \
     while (true) {                                                             \
       LongJumpScope jump(thread);                                              \
@@ -113,7 +113,7 @@
         AssemblerTestRun##name(&test);                                         \
         return;                                                                \
       } else {                                                                 \
-        const Error& error = Error::Handle(thread->sticky_error());            \
+        const Error& error = Error::Handle(thread->StealStickyError());        \
         if (error.ptr() == Object::branch_offset_error().ptr()) {              \
           RELEASE_ASSERT(far_branch_level < 2);                                \
           far_branch_level++;                                                  \

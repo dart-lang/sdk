@@ -31,6 +31,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_expressi
 import 'package:analysis_server/src/services/correction/dart/convert_to_field_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_case_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_if_case_statement_chain.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_multiline_string.dart';
@@ -116,6 +117,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertToFieldParameter.new,
     ConvertToGenericFunctionSyntax.new,
     ConvertToIfCaseStatement.new,
+    ConvertToIfCaseStatementChain.new,
     ConvertToIntLiteral.new,
     ConvertToMapLiteral.new,
     ConvertToMultilineString.new,

@@ -1243,6 +1243,10 @@ severity: $severity
       // When benchmarking we do extra parsing on it's own to get a timing of
       // how much time is spent on the actual parsing (as opposed to the
       // building of what's parsed).
+      // NOTE: This runs the parser over the token stream meaning that any
+      // parser recovery rewriting the token stream will have happened once
+      // the "real" parsing is done. This in turn means that some errors
+      // (e.g. missing semi-colon) will not be issued when benchmarking.
       {
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_diet_parser);
@@ -3055,7 +3059,6 @@ class Iterable<E> {
 }
 
 class List<E> extends Iterable<E> {
-  factory List() => null;
   factory List.unmodifiable(elements) => null;
   factory List.empty({bool growable = false}) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;

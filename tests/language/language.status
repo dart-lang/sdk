@@ -2,8 +2,28 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $builder_tag == dwarf ]
+regress/regress21795_test: SkipByDesign # Relies on symbolic stack traces
+stack_trace/full1_test: SkipByDesign # Relies on symbolic stack traces
+stack_trace/full2_test: SkipByDesign # Relies on symbolic stack traces
+stack_trace/full3_test: SkipByDesign # Relies on symbolic stack traces
+stack_trace/stack_trace_test: SkipByDesign # Relies on symbolic stack traces
+vm/bool_check_stack_traces_test/01: SkipByDesign # Relies on symbolic stack traces
+vm/bool_check_stack_traces_test/02: SkipByDesign # Relies on symbolic stack traces
+vm/bool_check_stack_traces_test/none: SkipByDesign # Relies on symbolic stack traces
+
 [ $builder_tag == obfuscated ]
+closure/tearoff_dynamic_test: SkipByDesign # Relies on symbol names
+generic/f_bounded_quantification4_test: SkipByDesign # Relies on symbol names
+generic/no_such_method_dispatcher_test: SkipByDesign # Relies on symbol names
+generic/recursive_generic_test: SkipByDesign # Relies on symbol names
 nnbd/syntax/late_modifier_runtime_error_test: SkipByDesign # Names are obfuscated in error messages
+no_such_method/native_test: SkipByDesign # Relies on symbol names
+records/simple/to_string_test: SkipByDesign # Relies on symbol names
+regress/regress45529_test: SkipByDesign # Relies on symbol names
+stack_trace/demangle_ctors_test: SkipByDesign # Relies on symbol names
+type_object/literal_type_literal_test: SkipByDesign # Relies on symbol names
+unsorted/invocation_mirror_test: SkipByDesign # Relies on symbol names
 
 [ $compiler != dart2analyzer ]
 switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status

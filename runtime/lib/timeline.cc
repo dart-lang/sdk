@@ -36,12 +36,13 @@ DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0, 0) {
   return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 0, 4) {
+DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 0, 5) {
 #if defined(SUPPORT_TIMELINE)
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, id, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, type, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, flow_id, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, type, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(4));
 
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == nullptr) {
@@ -55,8 +56,8 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 0, 4) {
   }
 
   DartTimelineEventHelpers::ReportTaskEvent(
-      event, id.AsInt64Value(), type.Value(), name.ToMallocCString(),
-      args.ToMallocCString());
+      event, id.AsInt64Value(), flow_id.AsInt64Value(), type.Value(),
+      name.ToMallocCString(), args.ToMallocCString());
 #endif  // SUPPORT_TIMELINE
   return Object::null();
 }

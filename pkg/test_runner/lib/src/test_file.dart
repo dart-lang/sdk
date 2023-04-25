@@ -199,11 +199,6 @@ class TestFile extends _TestFileBase {
           ddcOptions: [],
           dartOptions: [],
           packages: null,
-          hasSyntaxError: false,
-          hasCompileError: false,
-          hasRuntimeError: false,
-          hasStaticWarning: false,
-          hasCrash: false,
           isMultitest: false,
           sharedObjects: [],
           otherResources: [],
@@ -297,32 +292,6 @@ class TestFile extends _TestFileBase {
 
     var isMultitest = _multitestRegExp.hasMatch(contents);
 
-    // TODO(rnystrom): During the migration of the existing tests to Dart 2.0,
-    // we have a number of tests that used to both generate static type warnings
-    // and also validate some runtime behavior in an implementation that
-    // ignores those warnings. Those warnings are now errors. The test code
-    // validates the runtime behavior can and should be removed, but the code
-    // that causes the static warning should still be preserved since that is
-    // part of our coverage of the static type system.
-    //
-    // The test needs to indicate that it should have a static error. We could
-    // put that in the status file, but that makes it confusing because it
-    // would look like implementations that *don't* report the error are more
-    // correct. Eventually, we want to have a notation similar to what front_end
-    // is using for the inference tests where we can put a comment inside the
-    // test that says "This specific static error should be reported right by
-    // this token."
-    //
-    // That system isn't in place yet, so we do a crude approximation here in
-    // test.dart. If a test contains `/*@compile-error=`, which matches the
-    // beginning of the tag syntax that front_end uses, then we assume that
-    // this test must have a static error somewhere in it.
-    //
-    // Redo this code once we have a more precise test framework for detecting
-    // and locating these errors.
-    var hasSyntaxError = contents.contains("@syntax-error");
-    var hasCompileError = hasSyntaxError || contents.contains("@compile-error");
-
     List<StaticError> errorExpectations;
     try {
       errorExpectations = StaticError.parseExpectations(contents);
@@ -335,11 +304,6 @@ class TestFile extends _TestFileBase {
         packages: packages,
         environment: environment,
         isMultitest: isMultitest,
-        hasSyntaxError: hasSyntaxError,
-        hasCompileError: hasCompileError,
-        hasRuntimeError: contents.contains("@runtime-error"),
-        hasStaticWarning: contents.contains("@static-warning"),
-        hasCrash: false,
         requirements: requirements,
         sharedOptions: sharedOptions,
         dartOptions: dartOptions,
@@ -355,14 +319,14 @@ class TestFile extends _TestFileBase {
 
   /// A special fake test file for representing a VM unit test written in C++.
   TestFile.vmUnitTest(
-      {required this.hasSyntaxError,
-      required this.hasCompileError,
+      {required this.hasCompileError,
       required this.hasRuntimeError,
-      required this.hasStaticWarning,
       required this.hasCrash})
       : packages = null,
         environment = {},
         isMultitest = false,
+        hasSyntaxError = false,
+        hasStaticWarning = false,
         requirements = [],
         sharedOptions = [],
         dartOptions = [],
@@ -380,11 +344,6 @@ class TestFile extends _TestFileBase {
       {this.packages,
       required this.environment,
       required this.isMultitest,
-      required this.hasSyntaxError,
-      required this.hasCompileError,
-      required this.hasRuntimeError,
-      required this.hasStaticWarning,
-      required this.hasCrash,
       required this.requirements,
       required this.sharedOptions,
       required this.dartOptions,
@@ -396,7 +355,12 @@ class TestFile extends _TestFileBase {
       required this.otherResources,
       required this.experiments,
       this.isVmIntermediateLanguageTest = false})
-      : super(suiteDirectory, path, expectedErrors) {
+      : hasSyntaxError = false,
+        hasCompileError = false,
+        hasRuntimeError = false,
+        hasStaticWarning = false,
+        hasCrash = false,
+        super(suiteDirectory, path, expectedErrors) {
     assert(!isMultitest || dartOptions.isEmpty);
   }
 

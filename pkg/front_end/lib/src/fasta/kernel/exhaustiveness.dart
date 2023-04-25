@@ -46,8 +46,9 @@ class ExhaustivenessResult {
 
 class CfeTypeOperations implements TypeOperations<DartType> {
   final TypeEnvironment _typeEnvironment;
+  final Library _enclosingLibrary;
 
-  CfeTypeOperations(this._typeEnvironment);
+  CfeTypeOperations(this._typeEnvironment, this._enclosingLibrary);
 
   ClassHierarchy get _classHierarchy => _typeEnvironment.hierarchy;
 
@@ -122,7 +123,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
       Map<Class, Substitution> substitutions = {};
       for (Member member
           in _classHierarchy.getInterfaceMembers(type.classNode)) {
-        if (member.name.isPrivate) {
+        if (member.name.isPrivate && member.name.library != _enclosingLibrary) {
           continue;
         }
         DartType? fieldType;
@@ -396,10 +397,12 @@ class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, Constant> {
   final TypeEnvironment typeEnvironment;
 
-  CfeExhaustivenessCache(ConstantEvaluator constantEvaluator)
+  CfeExhaustivenessCache(
+      ConstantEvaluator constantEvaluator, Library enclosingLibrary)
       : typeEnvironment = constantEvaluator.typeEnvironment,
         super(
-            new CfeTypeOperations(constantEvaluator.typeEnvironment),
+            new CfeTypeOperations(
+                constantEvaluator.typeEnvironment, enclosingLibrary),
             new CfeEnumOperations(constantEvaluator),
             new CfeSealedClassOperations(constantEvaluator.typeEnvironment));
 }

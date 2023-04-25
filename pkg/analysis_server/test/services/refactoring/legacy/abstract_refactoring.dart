@@ -139,7 +139,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   Future<void> indexUnit(String file, String code) async {
-    addSource(file, code);
+    newFile(file, code);
   }
 
   @override
