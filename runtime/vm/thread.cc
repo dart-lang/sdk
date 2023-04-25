@@ -348,6 +348,9 @@ void Thread::AssertEmptyThreadInvariants() {
     ASSERT(global_object_pool_ == Object::null());
     ASSERT(ffi_callback_code_ == Object::null());
     ASSERT(ffi_callback_stack_return_ == Object::null());
+#define CHECK_REUSABLE_HANDLE(object) ASSERT(object##_handle_->IsNull());
+    REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
+#undef CHECK_REUSABLE_HANDLE
   }
 }
 
@@ -598,7 +601,13 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
   ASSERT(!thread->HasActiveState());
   ASSERT(!thread->IsAtSafepoint());
 
-  thread->ClearReusableHandles();
+  if (!bypass_safepoint) {
+    // GC helper threads don't have any handle state to clear, and the GC might
+    // be currently visiting thread state. If this is not a GC helper, the GC
+    // can't be visiting thread state because its waiting for this thread to
+    // check in.
+    thread->ClearReusableHandles();
+  }
 
   auto group = thread->isolate_group_;
   auto thread_registry = group->thread_registry();
