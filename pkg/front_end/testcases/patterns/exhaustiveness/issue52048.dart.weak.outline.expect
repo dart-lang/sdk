@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class _B&A&M = self::A with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_B&A&M
+    : super self::A::•()
+    ;
+}
+class B extends self::_B&A&M {
+  constructor •() → self::B
+    ;
+}
+abstract sealed class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+static method main() → dynamic
+  ;
+static method f(self::A a) → dynamic
+  ;
