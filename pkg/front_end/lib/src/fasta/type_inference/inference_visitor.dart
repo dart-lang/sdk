@@ -1922,10 +1922,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    // TODO(scheglov) Pass actual variables, not just `{}`.
     IfCaseStatementResult<DartType, InvalidExpression> analysisResult =
         analyzeIfCaseStatement(node, node.expression, node.patternGuard.pattern,
-            node.patternGuard.guard, node.then, node.otherwise, {});
+            node.patternGuard.guard, node.then, node.otherwise, {
+      for (VariableDeclaration variable
+          in node.patternGuard.pattern.declaredVariables)
+        variable.name!: variable
+    });
 
     node.matchedValueType = analysisResult.matchedExpressionType;
 
@@ -10058,23 +10061,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       for (VariableDeclaration variable in node.left.declaredVariables)
         variable.name!: variable
     };
-    Set<String> jointVariableNames = {
+    Map<String, VariableDeclaration> jointVariableNames = {
       for (VariableDeclaration variable in node.orPatternJointVariables)
-        variable.name!
+        variable.name!: variable
     };
     for (VariableDeclaration rightVariable in node.right.declaredVariables) {
       String rightVariableName = rightVariable.name!;
       VariableDeclaration? leftVariable =
           leftDeclaredVariablesByName[rightVariableName];
-      if (leftVariable != null &&
-          jointVariableNames.contains(rightVariableName) &&
-          (leftVariable.type != rightVariable.type ||
-              leftVariable.isFinal != rightVariable.isFinal)) {
-        helper.addProblem(
-            templateJointPatternVariablesMismatch
-                .withArguments(rightVariableName),
-            leftVariable.fileOffset,
-            rightVariableName.length);
+      VariableDeclaration? jointVariable =
+          jointVariableNames[rightVariableName];
+      if (leftVariable != null && jointVariable != null) {
+        if (leftVariable.type != rightVariable.type ||
+            leftVariable.isFinal != rightVariable.isFinal) {
+          helper.addProblem(
+              templateJointPatternVariablesMismatch
+                  .withArguments(rightVariableName),
+              leftVariable.fileOffset,
+              rightVariableName.length);
+        } else {
+          jointVariable.isFinal = rightVariable.isFinal;
+          jointVariable.type = rightVariable.type;
+        }
       }
     }
 

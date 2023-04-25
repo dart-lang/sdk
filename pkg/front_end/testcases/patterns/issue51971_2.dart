@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 test1(dynamic x1) {
-  if (x1 case int a1 && < /*a*/1 || int a1) { // Error.
+  if (x1 case int a1 && < a1 || int a1) { // Error.
     return a1;
-  } else if (x1 case int a1 || int a1 && < /*a*/1) { // Error.
+  } else if (x1 case int a1 || int a1 && < a1) { // Error.
     return a1;
   } else {
     return null;
