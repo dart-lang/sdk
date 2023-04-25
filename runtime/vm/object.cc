@@ -2833,7 +2833,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   HeapProfileSampler& heap_sampler = thread->heap_sampler();
   if (heap_sampler.HasOutstandingSample()) {
     thread->IncrementNoCallbackScopeDepth();
-    void* data = heap_sampler.InvokeCallbackForLastSample();
+    void* data = heap_sampler.InvokeCallbackForLastSample(cls_id);
     heap->SetHeapSamplingData(raw_obj, data);
     thread->DecrementNoCallbackScopeDepth();
   }

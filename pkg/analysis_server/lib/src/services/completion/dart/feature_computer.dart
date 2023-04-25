@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 
 const List<String> intNames = ['i', 'j', 'index', 'length'];
 const List<String> listNames = ['list', 'items'];

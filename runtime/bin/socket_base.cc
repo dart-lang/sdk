@@ -301,5 +301,19 @@ void FUNCTION_NAME(SocketBase_IsBindError)(Dart_NativeArguments args) {
   Dart_SetBooleanReturnValue(args, is_bind_error ? true : false);
 }
 
+bool SocketBase::IsValidAddress(const char* address) {
+  ASSERT(address != nullptr);
+  RawAddr raw;
+  memset(&raw, 0, sizeof(raw));
+  int type = strchr(address, ':') == nullptr ? SocketAddress::TYPE_IPV4
+                                             : SocketAddress::TYPE_IPV6;
+  if (type == SocketAddress::TYPE_IPV4) {
+    raw.addr.sa_family = AF_INET;
+  } else {
+    raw.addr.sa_family = AF_INET6;
+  }
+  return SocketBase::ParseAddress(type, address, &raw);
+}
+
 }  // namespace bin
 }  // namespace dart

@@ -6,7 +6,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:collection/collection.dart';
 
 /// A contributor that produces suggestions for super formal parameters that
 /// are based on the parameters declared by the invoked super-constructor.

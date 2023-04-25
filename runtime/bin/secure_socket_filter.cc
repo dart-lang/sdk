@@ -13,6 +13,7 @@
 #include "bin/lockers.h"
 #include "bin/secure_socket_utils.h"
 #include "bin/security_context.h"
+#include "bin/socket_base.h"
 #include "platform/syslog.h"
 #include "platform/text_buffer.h"
 
@@ -540,8 +541,16 @@ void SSLFilter::Connect(const char* hostname,
         certificate_checking_parameters,
         X509_V_FLAG_PARTIAL_CHAIN | X509_V_FLAG_TRUSTED_FIRST);
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
-    status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
-                                         hostname_, strlen(hostname_));
+
+    // Use different check depending on whether the hostname is an IP address
+    // or a DNS name.
+    if (SocketBase::IsValidAddress(hostname_)) {
+      status = X509_VERIFY_PARAM_set1_ip_asc(certificate_checking_parameters,
+                                             hostname_);
+    } else {
+      status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
+                                           hostname_, strlen(hostname_));
+    }
     SecureSocketUtils::CheckStatusSSL(
         status, "TlsException", "Set hostname for certificate checking", ssl_);
   }
