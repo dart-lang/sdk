@@ -26,8 +26,11 @@ Future<void> main(List<String> arguments) async {
 Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   List<String> candidates = [];
   List<String> arguments = [];
+  bool doCount = false;
   for (String arg in inputArguments) {
-    if (arg.startsWith("--candidates=")) {
+    if (arg == "--count") {
+      doCount = true;
+    } else if (arg.startsWith("--candidates=")) {
       candidates.add(arg.substring("--candidates=".length));
     } else {
       arguments.add(arg);
@@ -46,10 +49,14 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
 
   print("Compiling the instrumentation library.");
   Uri instrumentationLibDill = tmpDir.uri.resolve("instrumenter.dill");
+  String libFilename = "instrumenter_lib.dart";
+  if (doCount) {
+    libFilename = "instrumenter_lib_counter.dart";
+  }
   await fasta_compile.main([
     "--omit-platform",
     "-o=${instrumentationLibDill.toFilePath()}",
-    Platform.script.resolve("instrumenter_lib.dart").toFilePath()
+    Platform.script.resolve(libFilename).toFilePath()
   ]);
   if (!File.fromUri(instrumentationLibDill).existsSync()) {
     throw "Instrumentation library didn't compile as expected.";
@@ -117,11 +124,15 @@ void addIfWanted(List<Procedure> output, List<Procedure> input,
   }
 }
 
-String getName(Procedure p) {
+String getName(Procedure p, {bool renameSetter = false}) {
+  String name = p.name.text;
+  if (renameSetter && p.isSetter) {
+    name = "set:$name";
+  }
   if (p.parent is Class) {
-    return "${(p.parent as Class).name}.${p.name.text}";
+    return "${(p.parent as Class).name}.$name";
   } else {
-    return p.name.text;
+    return name;
   }
 }
 
@@ -162,8 +173,9 @@ void initializeAndReport(
             instrumenterReport,
             new Arguments([
               new ListLiteral(procedures
-                  .map((p) => new StringLiteral(
-                      "${p.fileUri.pathSegments.last}|${getName(p)}"))
+                  .map(
+                      (p) => new StringLiteral("${p.fileUri.pathSegments.last}|"
+                          "${getName(p, renameSetter: true)}"))
                   .toList()),
               new BoolLiteral(reportCandidates),
             ])))),
