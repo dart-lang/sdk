@@ -356,6 +356,24 @@ void f(String x) {
     ]);
   }
 
+  test_Null_functionType() async {
+    await assertErrorsInCode('''
+void f(void Function() x) {
+  if (x case (null)) {}
+}
+''', [
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
+    ]);
+  }
+
+  test_Null_functionTypeQuestion() async {
+    await assertNoErrorsInCode('''
+void f(void Function()? x) {
+  if (x case (null)) {}
+}
+''');
+  }
+
   test_Null_int() async {
     await assertErrorsInCode('''
 void f(int x) {

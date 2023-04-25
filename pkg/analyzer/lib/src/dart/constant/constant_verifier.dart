@@ -478,6 +478,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           return _canBeEqual(constantType, bound);
         }
       } else if (valueType is FunctionType) {
+        if (constantType.isDartCoreNull) {
+          return _typeSystem.isNullable(valueType);
+        }
         return false;
       }
     }
