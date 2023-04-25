@@ -1282,12 +1282,12 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
 typedef void (*Dart_HeapSamplingReportCallback)(void* context,
-                                                const char* cls_name,
                                                 void* data);
 
 typedef void* (*Dart_HeapSamplingCreateCallback)(
     Dart_Isolate isolate,
     Dart_IsolateGroup isolate_group,
+    const char* cls_name,
     intptr_t allocation_size);
 typedef void (*Dart_HeapSamplingDeleteCallback)(void* data);
 

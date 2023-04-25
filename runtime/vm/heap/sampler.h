@@ -118,7 +118,7 @@ class HeapProfileSampler {
   // allocations.
   void HandleNewTLAB(intptr_t old_tlab_remaining_space, bool is_first_tlab);
 
-  void* InvokeCallbackForLastSample();
+  void* InvokeCallbackForLastSample(intptr_t cid);
 
   bool HasOutstandingSample() const {
     return last_sample_size_ != kUninitialized;
