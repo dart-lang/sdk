@@ -94,7 +94,6 @@ class Flags {
   static const String suppressWarnings = '--suppress-warnings';
   static const String terse = '--terse';
   static const String testMode = '--test-mode';
-  static const String experimentalInferrer = '--experimental-inferrer';
   static const String trustPrimitives = '--trust-primitives';
   static const String trustTypeAnnotations = '--trust-type-annotations';
   static const String trustJSInteropTypeAnnotations =

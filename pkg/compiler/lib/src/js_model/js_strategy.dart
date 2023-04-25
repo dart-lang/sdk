@@ -23,9 +23,6 @@ import '../io/kernel_source_information.dart'
 import '../io/source_information.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
-import '../inferrer_experimental/types.dart' as experimentalInferrer;
-import '../inferrer_experimental/type_graph_inferrer.dart'
-    as experimentalInferrer;
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_impact.dart';
@@ -410,15 +407,6 @@ class JsBackendStrategy {
       GlobalLocalsMap globalLocalsMap,
       InferredDataBuilder inferredDataBuilder) {
     return TypeGraphInferrer(
-        _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
-  }
-
-  /// Creates the [TypesInferrer] used by this strategy.
-  experimentalInferrer.TypesInferrer createExperimentalTypesInferrer(
-      covariant JClosedWorld closedWorld,
-      GlobalLocalsMap globalLocalsMap,
-      InferredDataBuilder inferredDataBuilder) {
-    return experimentalInferrer.TypeGraphInferrer(
         _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
