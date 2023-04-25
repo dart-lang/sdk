@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef SourceLocation = core::int;
+abstract class FieldRef extends core::Object {
+  synthetic constructor •() → self::FieldRef
+    : super core::Object::•()
+    ;
+  abstract get location() → core::int;
+}
+abstract class FuncRef extends core::Object {
+  synthetic constructor •() → self::FuncRef
+    : super core::Object::•()
+    ;
+  abstract get location() → core::int;
+}
+abstract class ClassRef extends core::Object {
+  synthetic constructor •() → self::ClassRef
+    : super core::Object::•()
+    ;
+  abstract get location() → core::int;
+}
+static method foo(core::Object object) → dynamic {
+  final core::int? sourceLocation = block {
+    core::int? #t1;
+    final synthesized core::Object #0#0 = object;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    #L1:
+    {
+      {
+        final hoisted core::int location;
+        if(#0#0 is{ForNonNullableByDefault} self::FieldRef && (let final core::int #t2 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t3 = #0#2#isSet = true in #0#2 = #0#0{self::FieldRef}.{self::FieldRef::location}{core::int} in true) || #0#0 is{ForNonNullableByDefault} self::FuncRef && (let final core::int #t4 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t5 = #0#2#isSet = true in #0#2 = #0#0{self::FuncRef}.{self::FuncRef::location}{core::int} in true) || #0#0 is{ForNonNullableByDefault} self::ClassRef && (let final core::int #t6 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t7 = #0#2#isSet = true in #0#2 = #0#0{self::ClassRef}.{self::ClassRef::location}{core::int} in true)) {
+          #t1 = location;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = null;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+}

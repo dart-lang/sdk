@@ -2,6 +2,14 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/patterns/issue51971_2.dart:6:27: Error: Read of a non-const variable is not a constant expression.
+//   if (x1 case int a1 && < a1 || int a1) { // Error.
+//                           ^
+//
+// pkg/front_end/testcases/patterns/issue51971_2.dart:8:44: Error: Read of a non-const variable is not a constant expression.
+//   } else if (x1 case int a1 || int a1 && < a1) { // Error.
+//                                            ^
+//
 // pkg/front_end/testcases/patterns/issue51971_2.dart:27:22: Error: Read of a non-const variable is not a constant expression.
 //     case int a3 && < a3: // Error.
 //                      ^
@@ -29,15 +37,17 @@ import "dart:collection" as col;
 
 static method test1(dynamic x1) → dynamic {
   {
-    hoisted dynamic a1;
+    hoisted core::int a1;
     final synthesized dynamic #0#0 = x1;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = a1 = #0#0 in true) && #0#0.{core::num::<}(#C1){(core::num) → core::bool} || #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a1 = #0#0 in true)) {
+    final const synthesized core::int #0#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = a1 = #0#0{core::int} in true) && #0#0.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} || #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a1 = #0#0{core::int} in true)) {
       return a1;
     }
     else {
-      hoisted dynamic a1;
+      hoisted core::int a1;
       final synthesized dynamic #1#0 = x1;
-      if(#1#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = a1 = #1#0 in true) || #1#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = a1 = #1#0 in true) && #1#0.{core::num::<}(#C1){(core::num) → core::bool}) {
+      final const synthesized core::int #1#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
+      if(#1#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = a1 = #1#0{core::int} in true) || #1#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = a1 = #1#0{core::int} in true) && #1#0.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
         return a1;
       }
       else {
@@ -149,7 +159,7 @@ static method test6(dynamic x6) → dynamic {
       final synthesized dynamic #0#0 = x6 as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t14 = i6 = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t15 = n6 = #0#7{core::int} in true))))
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t14 = i6 = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t15 = n6 = #0#7{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t16 = i6;
@@ -166,7 +176,7 @@ static method test7(dynamic x7) → dynamic {
       final synthesized dynamic #0#0 = x7 as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
       late final synthesized dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t18 = i7 = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t19 = n7 = #0#7{core::int} in true))))
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t18 = i7 = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t19 = n7 = #0#7{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t20 = i7;
@@ -180,6 +190,5 @@ static method test7(dynamic x7) → dynamic {
 }
 
 constants  {
-  #C1 = 1
-  #C2 = 2
+  #C1 = 2
 }

@@ -348,7 +348,7 @@ class KernelTarget extends TargetImplementation {
         "Needed precompilations have already been computed.");
     _hasComputedNeededPrecompilations = true;
     if (loader.roots.isEmpty) return null;
-    return withCrashReporting<NeededPrecompilations?>(() async {
+    return await withCrashReporting<NeededPrecompilations?>(() async {
       benchmarker?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
       await loader.buildOutlines();
 
@@ -403,7 +403,7 @@ class KernelTarget extends TargetImplementation {
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.roots.isEmpty) return new BuildResult();
-    return withCrashReporting<BuildResult>(() async {
+    return await withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
         NeededPrecompilations? neededPrecompilations =
             await computeNeededPrecompilations();
@@ -586,7 +586,7 @@ class KernelTarget extends TargetImplementation {
     if (loader.roots.isEmpty) {
       return new BuildResult(macroApplications: macroApplications);
     }
-    return withCrashReporting<BuildResult>(() async {
+    return await withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
 
       if (macroApplications != null) {
