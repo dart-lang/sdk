@@ -103,12 +103,12 @@ class TypeMemberContributor extends DartCompletionContributor {
     required RecordType type,
     required Set<String> excludedFields,
   }) {
-    type.positionalFields.forEachIndexed((index, field) {
+    for (final (index, field) in type.positionalFields.indexed) {
       builder.suggestRecordField(
         field: field,
         name: '\$${index + 1}',
       );
-    });
+    }
 
     for (final field in type.namedFields) {
       if (!excludedFields.contains(field.name)) {
