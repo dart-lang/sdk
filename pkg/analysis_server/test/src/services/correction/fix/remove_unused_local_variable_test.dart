@@ -158,6 +158,150 @@ class RemoveUnusedLocalVariableTest_DeclaredVariablePattern
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
 
+  Future<void> test_logicalAndPattern_typed_left() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case B y && A()) {
+  }
+}
+
+class A {}
+class B {}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case B _ && A()) {
+  }
+}
+
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_typed_left_final() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case final B y && A()) {
+  }
+}
+
+class A {}
+class B {}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case B _ && A()) {
+  }
+}
+
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_typed_right() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case A() && B y) {
+  }
+}
+
+class A {}
+class B {}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case A() && B _) {
+  }
+}
+
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_typed_right_final() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case A() && final B y) {
+  }
+}
+
+class A {}
+class B {}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case A() && B _) {
+  }
+}
+
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_untyped_left() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case var y && int()) {
+  }
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case int()) {
+  }
+}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_untyped_left_final() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case final y && int()) {
+  }
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case int()) {
+  }
+}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_untyped_right() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case int() && var y) {
+  }
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case int()) {
+  }
+}
+''');
+  }
+
+  Future<void> test_logicalAndPattern_untyped_right_final() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  if (x case int() && final y) {
+  }
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  if (x case int()) {
+  }
+}
+''');
+  }
+
   Future<void> test_objectPattern_declarationStatement_multi_first() async {
     await resolveTestCode(r'''
 void f(A a) {
@@ -330,6 +474,21 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void> test_recordPattern_named_declaration() async {
+    await resolveTestCode(r'''
+void f(({int foo, int bar}) x) {
+  var (:foo, :bar) = x;
+  bar;
+}
+''');
+    await assertHasFix(r'''
+void f(({int foo, int bar}) x) {
+  var (foo: _, :bar) = x;
+  bar;
+}
+''');
+  }
+
   Future<void> test_recordPattern_named_guardedPattern() async {
     await resolveTestCode(r'''
 void f(Object? x) {
@@ -339,6 +498,21 @@ void f(Object? x) {
     await assertHasFix(r'''
 void f(Object? x) {
   if (x case (foo: int _)) {}
+}
+''');
+  }
+
+  Future<void> test_recordPattern_positional_declaration() async {
+    await resolveTestCode(r'''
+void f(Object? x) {
+  var (foo, bar) = (0, 1);
+  bar;
+}
+''');
+    await assertHasFix(r'''
+void f(Object? x) {
+  var (_, bar) = (0, 1);
+  bar;
 }
 ''');
   }

@@ -41,6 +41,80 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void> test_noDefault_hasWhen() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+    case int() when x > 0:
+      0;
+    case double():
+      1;
+  }
+}
+''');
+    await assertHasAssistAt('switch', '''
+void f(Object? x) {
+  if (x case int() when x > 0) {
+    0;
+  } else if (x case double()) {
+    1;
+  }
+}
+''');
+  }
+
+  Future<void> test_noStatements() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+  }
+}
+''');
+    await assertHasAssistAt('switch', '''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else if (x case double()) {
+  }
+}
+''');
+  }
+
+  Future<void> test_sharedBody() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+    case int():
+    case double():
+      0;
+  }
+}
+''');
+    await assertHasAssistAt('switch', '''
+void f(Object? x) {
+  if (x case int() || double()) {
+    0;
+  }
+}
+''');
+  }
+
+  Future<void> test_sharedBody_hasWhen() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+    case int() when x > 0:
+    case double():
+      0;
+  }
+}
+''');
+    await assertNoAssistAt('switch');
+  }
+
   Future<void> test_withDefault() async {
     await resolveTestCode('''
 void f(Object? x) {
@@ -65,5 +139,20 @@ void f(Object? x) {
   }
 }
 ''');
+  }
+
+  Future<void> test_withDefault_shared() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+    default:
+      1;
+  }
+}
+''');
+    await assertNoAssistAt('switch');
   }
 }

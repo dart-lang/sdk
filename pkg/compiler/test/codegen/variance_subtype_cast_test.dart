@@ -115,7 +115,8 @@ main() {
       return compile(test,
           entry: 'foo',
           check: checkerForAbsentPresent(test),
-          enableVariance: true);
+          enableVariance: true,
+          soundNullSafety: true);
     }
 
     await check(LEGACY_COV_CAST);

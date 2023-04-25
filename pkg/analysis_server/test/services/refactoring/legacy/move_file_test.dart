@@ -184,7 +184,7 @@ import 'package:test/new_name.dart';
   Future<void> test_file_imported_with_relative_uri_down() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 import 'test.dart';
 ''');
     await analyzeTestPackageFiles();
@@ -204,7 +204,7 @@ import '22/new_name.dart';
     // https://github.com/dart-lang/sdk/issues/45593
     testFile = convertPath('/home/test/bin/aaa.dart');
     var pathB = convertPath('/home/test/bin/bbb.dart');
-    addSource(pathB, '');
+    newFile(pathB, '');
     await resolveTestCode("import 'bbb.dart';");
     await analyzeTestPackageFiles();
 
@@ -218,7 +218,7 @@ import '22/new_name.dart';
   Future<void> test_file_imported_with_relative_uri_sideways() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/sub/folder/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 import 'sub/folder/test.dart';
 ''');
     await analyzeTestPackageFiles();
@@ -235,7 +235,7 @@ import '../new/folder/name/new_name.dart';
   Future<void> test_file_imported_with_relative_uri_up() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 import '22/test.dart';
 ''');
     await analyzeTestPackageFiles();
@@ -251,7 +251,7 @@ import 'new_name.dart';
 
   Future<void> test_file_moveOutOfLib() async {
     var binMainPath = convertPath('/home/test/bin/main.dart');
-    addSource(binMainPath, '''
+    newFile(binMainPath, '''
 import 'package:test/test.dart';
 
 void f() {
@@ -281,11 +281,11 @@ void f() {
     var pathA = convertPath('/home/test/000/1111/a.dart');
     var pathB = convertPath('/home/test/000/b.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
-    addSource(pathB, '''
+    newFile(pathB, '''
 library lib;
 part '1111/22/test.dart';
 ''');
@@ -309,7 +309,7 @@ part '1111/22/new_name.dart';
   Future<void> test_file_referenced_by_part() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
@@ -334,10 +334,10 @@ part '22/new_name.dart';
     final pathC = convertPath('/home/test/lib/old/nested/c.dart');
     final pathD = convertPath('/home/test/lib/old/nested/d.dart');
     testFile = convertPath('/home/test/lib/test.dart');
-    addSource(pathA, '');
-    addSource(pathB, '');
-    addSource(pathC, '');
-    addSource(pathD, '');
+    newFile(pathA, '');
+    newFile(pathB, '');
+    newFile(pathC, '');
+    newFile(pathD, '');
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 import 'old/a.dart';
@@ -371,7 +371,7 @@ import 'package:test/new/nested/d.dart';
   Future<void> test_folder_siblingFiles() async {
     testFile = convertPath('/home/test/lib/old/a.dart');
     final pathB = convertPath('/home/test/lib/old/b.dart');
-    addSource(pathB, '');
+    newFile(pathB, '');
     await resolveTestCode('''
 import 'a.dart';
 ''');
@@ -414,7 +414,7 @@ import 'a.dart';
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
@@ -441,7 +441,7 @@ part of '../../a.dart';
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 part of 'test.dart';
 ''');
     await resolveTestCode('''
@@ -464,7 +464,7 @@ part '../a.dart';
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 part of 'test.dart';
 ''');
     await resolveTestCode('''
@@ -485,7 +485,7 @@ part of 'test2.dart';
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 part 'test.dart';
 ''');
     addTestSource('''
@@ -510,7 +510,7 @@ part of '../a.dart';
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    newFile(pathA, '''
 part 'test.dart';
 ''');
     addTestSource('''

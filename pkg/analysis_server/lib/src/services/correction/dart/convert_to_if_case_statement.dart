@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -18,6 +19,10 @@ class ConvertToIfCaseStatement extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (!libraryElement.featureSet.isEnabled(Feature.patterns)) {
+      return;
+    }
+
     final ifStatement = node;
     if (ifStatement is! IfStatement) {
       return;

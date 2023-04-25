@@ -94,6 +94,21 @@ class A {
     await assertNoAssistAt('if');
   }
 
+  Future<void> test_isType_language219() async {
+    await resolveTestCode('''
+// @dart = 2.19
+void f(A a) {
+  var y = a.x;
+  if (y is List<int>) {}
+}
+
+class A {
+  Object? x;
+}
+''');
+    await assertNoAssistAt('if');
+  }
+
   Future<void> test_isType_previousStatement_absent() async {
     await resolveTestCode('''
 void f(Object? x) {

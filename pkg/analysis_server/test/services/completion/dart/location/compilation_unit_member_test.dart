@@ -698,6 +698,54 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterLibraryDirective_beforeEnd() async {
+    await computeSuggestions('''
+library foo;^
+''');
+    assertResponse(r'''
+suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  export '';
+    kind: keyword
+    selection: 8
+  extension
+    kind: keyword
+  final
+    kind: keyword
+  import '';
+    kind: keyword
+    selection: 8
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
+  part '';
+    kind: keyword
+    selection: 6
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterLibraryDirective_prefix() async {
     await computeSuggestions('''
 library a;

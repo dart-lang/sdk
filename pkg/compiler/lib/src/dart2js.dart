@@ -1227,9 +1227,15 @@ void help() {
 Compile Dart to JavaScript.
 
 Usage: dart compile js [arguments] <dart entry point>
-  -h, --help      Print this usage information (add -v for information about all options).
+  -h, --help      Print this usage information.
+  -h -v           Show detailed information about all options.
   -o, --output    Write the output to <file name>.
   -O<0,1,2,3,4>   Set the compiler optimization level (defaults to -O1).
+     -O0          No optimizations (only meant for debugging the compiler).
+     -O1          Default (includes whole program analyses and inlining).
+     -O2          Safe production-oriented optimizations (like minification).
+     -O3          Potentially unsafe optimizations (see -h -v for details).
+     -O4          More agressive unsafe optimizations (see -h -v for details).
   ''');
 }
 
@@ -1291,8 +1297,8 @@ Usage: dart compile js [arguments] <dart entry point>
 
   --omit-late-names
     Do not include names of late variables in error messages. This allows
-    dart2js to generate smaller code by removing late variable names from the
-    generated JavaScript.
+    the compiler to generate smaller code by removing late variable names from
+    the generated JavaScript.
 
   --native-null-assertions
     Add assertions to web library APIs to ensure that non-nullable APIs do not
@@ -1304,7 +1310,7 @@ Usage: dart compile js [arguments] <dart entry point>
     performance of the generated code for deployment.
 
     -O0
-       Disables all optimizations. Equivalent to calling dart2js with these
+       Disables all optimizations. Equivalent to calling the compiler with these
        extra flags:
         --disable-inlining
         --disable-type-inference
@@ -1315,7 +1321,7 @@ Usage: dart compile js [arguments] <dart entry point>
        to disable them, they will be added here as well.
 
     -O1
-       Enables default optimizations. Equivalent to calling dart2js with no
+       Enables default optimizations. Equivalent to calling the compiler with no
        extra flags.
 
     -O2
@@ -1323,7 +1329,7 @@ Usage: dart compile js [arguments] <dart entry point>
        for all programs. It however changes the string representation of types,
        which will no longer be consistent with the Dart VM or DDC.
 
-       Equivalent to calling dart2js with these extra flags:
+       Equivalent to calling the compiler with these extra flags:
         --minify
         --lax-runtime-type-to-string
         --omit-late-names
@@ -1337,7 +1343,7 @@ Usage: dart compile js [arguments] <dart entry point>
        without it, and ensure that no subtype of `Error` (such as `TypeError`)
        is ever thrown.
 
-       Equivalent to calling dart2js with these extra flags:
+       Equivalent to calling the compiler with these extra flags:
          -O2
          --omit-implicit-checks
 
@@ -1347,7 +1353,7 @@ Usage: dart compile js [arguments] <dart entry point>
        are more susceptible to variations in input data. To use this option we
        recommend to pay special attention to test edge cases in user input.
 
-       Equivalent to calling dart2js with these extra flags:
+       Equivalent to calling the compiler with these extra flags:
          -O3
          --trust-primitives
 
@@ -1390,7 +1396,7 @@ be removed in a future version:
     Throw an exception if a compile-time error is detected.
 
   --libraries-spec=<file>
-    A .json file containing the libraries specification for dart2js.
+    A .json file containing the SDK libraries specification.
 
   --allow-mock-compilation
     Do not generate a call to main if either of the following

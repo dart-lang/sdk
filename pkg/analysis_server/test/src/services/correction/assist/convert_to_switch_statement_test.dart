@@ -138,6 +138,20 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void> test_chain_expression2_language219() async {
+    await resolveTestCode('''
+// @dart = 2.19
+void f(Object? x) {
+  if (x is int) {
+    0;
+  } else if (x is double) {
+    1;
+  }
+}
+''');
+    await assertNoAssistAt('if');
+  }
+
   Future<void> test_single_case_thenBlock() async {
     await resolveTestCode('''
 void f(Object? x) {

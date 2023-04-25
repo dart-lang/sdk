@@ -12,6 +12,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
+import 'common/metrics.dart';
 import 'io/source_file.dart';
 
 abstract class SourceFileByteReader {
@@ -215,6 +216,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
         return 'Hint: $message';
       case api.Diagnostic.CRASH:
         return 'Internal Error: $message';
+      case api.Diagnostic.CONTEXT:
       case api.Diagnostic.INFO:
       case api.Diagnostic.VERBOSE_INFO:
         return 'Info: $message';
@@ -255,6 +257,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else if (kind == api.Diagnostic.CRASH) {
       color = colors.red;
     } else if (kind == api.Diagnostic.INFO) {
+      color = colors.green;
+    } else if (kind == api.Diagnostic.CONTEXT) {
       if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
       if (lastKind == api.Diagnostic.HINT && !showHints) return;
       color = colors.green;
@@ -622,5 +626,20 @@ class MultiRootInputProvider extends SourceFileProvider {
         await readBytesFromUri(resolvedUri, inputKind);
     _mappedUris[uri] = resolvedUri;
     return result;
+  }
+}
+
+class DataReadMetrics extends MetricsBase {
+  @override
+  String get namespace => 'input';
+  CountMetric inputBytes = CountMetric('inputBytes');
+
+  void addDataRead(api.CompilerInput input) {
+    if (input is SourceFileProvider) {
+      inputBytes.add(input.bytesRead);
+      if (primary.isEmpty) {
+        primary = [inputBytes];
+      }
+    }
   }
 }

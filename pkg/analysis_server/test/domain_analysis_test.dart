@@ -1160,6 +1160,24 @@ analyzer:
     assertHasErrors(path);
   }
 
+  Future<void> test_setRoots_notDartFile_fixDataYaml_empty() async {
+    var path = '$testPackageLibPath/fix_data.yaml';
+    newFile(path, '');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    assertNoErrors(path);
+  }
+
+  Future<void> test_setRoots_notDartFile_fixDataYaml_onlyComments() async {
+    var path = '$testPackageLibPath/fix_data.yaml';
+    newFile(path, '# one\n#two');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    assertNoErrors(path);
+  }
+
   Future<void> test_setRoots_notDartFile_pubspec_excluded() async {
     deleteTestPackageAnalysisOptionsFile();
     var a_path = '$testPackageLibPath/a.dart';

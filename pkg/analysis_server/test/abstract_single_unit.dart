@@ -30,16 +30,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late FindNode findNode;
   late FindElement findElement;
 
-  @override
-  void addSource(String path, String content) {
-    content = normalizeSource(content);
-    super.addSource(path, content);
-  }
-
   void addTestSource(String code) {
     code = normalizeSource(code);
     testCode = code;
-    addSource(testFile, code);
+    newFile(testFile, code);
   }
 
   int findEnd(String search) {

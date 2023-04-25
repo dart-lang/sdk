@@ -105,7 +105,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, _completionOffset) +
         content.substring(_completionOffset + 1);
-    addSource(testFile, content);
+    newFile(testFile, content);
   }
 
   /// A variant of [addTestSource] that can be invoked more than once,
@@ -117,7 +117,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, _completionOffset) +
         content.substring(_completionOffset + 1);
-    addSource(testFile, content);
+    newFile(testFile, content);
     driverFor(testFile).changeFile(testFile);
   }
 
@@ -647,7 +647,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   void resolveSource(String path, String content) {
-    addSource(path, content);
+    newFile(path, content);
   }
 
   @override
