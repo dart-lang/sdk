@@ -691,7 +691,7 @@ class ProcessedOptions {
 
     // Check for $cwd/.dart_tool/package_config.json
     Uri? candidate = await checkInDir(dir);
-    if (candidate != null) return createPackagesFromFile(candidate);
+    if (candidate != null) return await createPackagesFromFile(candidate);
 
     // Check for cwd(/..)+/.dart_tool/package_config.json
     Uri parentDir = dir.resolve('..');
@@ -702,7 +702,7 @@ class ProcessedOptions {
       parentDir = dir.resolve('..');
     }
 
-    if (candidate != null) return createPackagesFromFile(candidate);
+    if (candidate != null) return await createPackagesFromFile(candidate);
     return PackageConfig.empty;
   }
 
