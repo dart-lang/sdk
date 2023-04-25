@@ -1262,7 +1262,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _checkForSwitchExpressionNotAssignable(node);
+    checkForUseOfVoidResult(node.expression);
     _checkForCaseBlocksNotTerminated(node);
     _checkForMissingEnumConstantInSwitch(node);
     super.visitSwitchStatement(node);
@@ -4504,19 +4504,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           [name.name]);
     }
-  }
-
-  /// Check that the type of the expression in the given 'switch' [statement] is
-  /// assignable to the type of the 'case' members.
-  ///
-  /// See [CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
-  void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
-    // For NNBD we verify runtime types of values, and subtyping.
-    if (_isNonNullableByDefault) {
-      return;
-    }
-
-    checkForUseOfVoidResult(statement.expression);
   }
 
   void _checkForThrowOfInvalidType(ThrowExpression node) {
