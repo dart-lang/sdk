@@ -1373,7 +1373,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     ObjectAccessTarget target =
         objectAccessDescriptor.findNonExtensionTarget(this);
-    if (instrumented &&
+    if (instrumentation != null &&
+        instrumented &&
         receiverBound != const DynamicType() &&
         (target.isInstanceMember || target.isObjectMember)) {
       instrumentation?.record(uriForInstrumentation, fileOffset, 'target',
