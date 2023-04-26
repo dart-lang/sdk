@@ -429,6 +429,20 @@ class LegacyAnalysisServer extends AnalysisServer {
     return _onAnalysisStartedController.stream;
   }
 
+  @override
+  OpenUriNotificationSender? get openUriNotificationSender {
+    if (!clientCapabilities.requests.contains('openUrlRequest')) {
+      return null;
+    }
+
+    return (Uri uri) async {
+      final requestId = '${nextServerRequestId++}';
+      await sendRequest(
+        ServerOpenUrlRequestParams('$uri').toRequest(requestId),
+      );
+    };
+  }
+
   RefactoringManager? get refactoringManager {
     var refactoringManager = _refactoringManager;
     if (refactoringManager == null) {
@@ -444,10 +458,6 @@ class LegacyAnalysisServer extends AnalysisServer {
   String get sdkPath {
     return sdkManager.defaultSdkDirectory;
   }
-
-  @override
-  bool get supportsOpenUriNotification =>
-      clientCapabilities.requests.contains('openUrlRequest');
 
   @override
   bool get supportsShowMessageRequest =>
@@ -590,15 +600,6 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
-  }
-
-  @override
-  Future<void> sendOpenUriNotification(Uri uri) {
-    assert(supportsOpenUriNotification);
-    var requestId = (nextServerRequestId++).toString();
-    var request =
-        ServerOpenUrlRequestParams(uri.toString()).toRequest(requestId);
-    return sendRequest(request);
   }
 
   /// Send the given [request] to the client.
