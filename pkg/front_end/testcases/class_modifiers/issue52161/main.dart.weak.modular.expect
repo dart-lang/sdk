@@ -1,0 +1,161 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:14:31: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// base class DirectA implements A /* Error */ {}
+//                               ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:16:33: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// base class IndirectA implements BaseA /* Error */ {}
+//                                 ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib1.dart:5:12: Context: The type 'BaseA' is a subtype of 'A', and 'A' is defined here.
+// base class A {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:18:50: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// base class IndirectBaseA extends Base implements BaseA /* Error */ {}
+//                                                  ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib1.dart:5:12: Context: The type 'BaseA' is a subtype of 'A', and 'A' is defined here.
+// base class A {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:20:34: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// base class IndirectA2 implements BaseA2 /* Error */ {}
+//                                  ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib1.dart:5:12: Context: The type 'BaseA2' is a subtype of 'A', and 'A' is defined here.
+// base class A {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:22:51: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// base class IndirectBaseA2 extends Base implements BaseA2 /* Error */ {}
+//                                                   ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib1.dart:5:12: Context: The type 'BaseA2' is a subtype of 'A', and 'A' is defined here.
+// base class A {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:28:31: Error: The class 'B' can't be implemented outside of its library because it's a base class.
+// base class DirectB implements B /* Error */ {}
+//                               ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:30:33: Error: The class 'B' can't be implemented outside of its library because it's a base class.
+// base class IndirectB implements BaseB /* Error */ {}
+//                                 ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib2.dart:5:12: Context: The type 'BaseB' is a subtype of 'B', and 'B' is defined here.
+// base class B {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:32:34: Error: The class 'B' can't be implemented outside of its library because it's a base class.
+// base class IndirectB2 implements BaseB2 /* Error */ {}
+//                                  ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib2.dart:5:12: Context: The type 'BaseB2' is a subtype of 'B', and 'B' is defined here.
+// base class B {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:34:50: Error: The class 'B' can't be implemented outside of its library because it's a base class.
+// base class IndirectBaseB extends Base implements BaseB /* Error */ {}
+//                                                  ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib2.dart:5:12: Context: The type 'BaseB' is a subtype of 'B', and 'B' is defined here.
+// base class B {}
+//            ^
+//
+// pkg/front_end/testcases/class_modifiers/issue52161/main.dart:36:51: Error: The class 'B' can't be implemented outside of its library because it's a base class.
+// base class IndirectBaseB2 extends Base implements BaseB2 /* Error */ {}
+//                                                   ^
+// pkg/front_end/testcases/class_modifiers/issue52161/main_lib2.dart:5:12: Context: The type 'BaseB2' is a subtype of 'B', and 'B' is defined here.
+// base class B {}
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib1.dart" as mai;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+base class Base extends core::Object {
+  synthetic constructor •() → self::Base
+    : super core::Object::•()
+    ;
+}
+base class BaseA extends mai::A {
+  synthetic constructor •() → self::BaseA
+    : super mai::A::•()
+    ;
+}
+base class BaseA2 extends self::BaseA {
+  synthetic constructor •() → self::BaseA2
+    : super self::BaseA::•()
+    ;
+}
+base class DirectA extends core::Object implements mai::A {
+  synthetic constructor •() → self::DirectA
+    : super core::Object::•()
+    ;
+}
+base class IndirectA extends core::Object implements self::BaseA {
+  synthetic constructor •() → self::IndirectA
+    : super core::Object::•()
+    ;
+}
+base class IndirectBaseA extends self::Base implements self::BaseA {
+  synthetic constructor •() → self::IndirectBaseA
+    : super self::Base::•()
+    ;
+}
+base class IndirectA2 extends core::Object implements self::BaseA2 {
+  synthetic constructor •() → self::IndirectA2
+    : super core::Object::•()
+    ;
+}
+base class IndirectBaseA2 extends self::Base implements self::BaseA2 {
+  synthetic constructor •() → self::IndirectBaseA2
+    : super self::Base::•()
+    ;
+}
+base class BaseB extends mai2::B {
+  synthetic constructor •() → self::BaseB
+    : super mai2::B::•()
+    ;
+}
+base class BaseB2 extends self::BaseB {
+  synthetic constructor •() → self::BaseB2
+    : super self::BaseB::•()
+    ;
+}
+base class DirectB extends core::Object implements mai2::B {
+  synthetic constructor •() → self::DirectB
+    : super core::Object::•()
+    ;
+}
+base class IndirectB extends core::Object implements self::BaseB {
+  synthetic constructor •() → self::IndirectB
+    : super core::Object::•()
+    ;
+}
+base class IndirectB2 extends core::Object implements self::BaseB2 {
+  synthetic constructor •() → self::IndirectB2
+    : super core::Object::•()
+    ;
+}
+base class IndirectBaseB extends self::Base implements self::BaseB {
+  synthetic constructor •() → self::IndirectBaseB
+    : super self::Base::•()
+    ;
+}
+base class IndirectBaseB2 extends self::Base implements self::BaseB2 {
+  synthetic constructor •() → self::IndirectBaseB2
+    : super self::Base::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+base class A extends core::Object {
+  synthetic constructor •() → mai::A
+    : super core::Object::•()
+    ;
+}
