@@ -1114,10 +1114,36 @@ suggestions
 mixin MethodBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterLeftBrace_beforeRightBrace() async {
     await computeSuggestions('''
-class A { foo() {^}}
+class F0 { var f1; f2() {} }
+class E0 extends F0 { var e1; e2() {} }
+class I0 { int i1; i2() {} }
+class M0 { var m1; int m2() {} }
+class A0 extends E0 implements I0 with M0 {a() {^}}
 ''');
+    // Part of the purpose of this test is to ensure that none of the top-level
+    // names are duplicated.
     assertResponse(r'''
 suggestions
+  A0
+    kind: class
+  A0
+    kind: constructorInvocation
+  E0
+    kind: class
+  E0
+    kind: constructorInvocation
+  F0
+    kind: class
+  F0
+    kind: constructorInvocation
+  I0
+    kind: class
+  I0
+    kind: constructorInvocation
+  M0
+    kind: class
+  M0
+    kind: constructorInvocation
   assert
     kind: keyword
   const
@@ -1126,14 +1152,30 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  e1
+    kind: field
+  e2
+    kind: methodInvocation
+  f1
+    kind: field
+  f2
+    kind: methodInvocation
   final
     kind: keyword
   for
     kind: keyword
+  i1
+    kind: field
+  i2
+    kind: methodInvocation
   if
     kind: keyword
   late
     kind: keyword
+  m1
+    kind: field
+  m2
+    kind: methodInvocation
   return
     kind: keyword
   super

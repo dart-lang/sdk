@@ -96,6 +96,8 @@ class CompletionResponsePrinter {
         return 'extension';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
+      } else if (elementKind == ElementKind.FUNCTION) {
+        return 'function';
       } else if (elementKind == ElementKind.GETTER) {
         return 'getter';
       } else if (elementKind == ElementKind.LIBRARY) {
