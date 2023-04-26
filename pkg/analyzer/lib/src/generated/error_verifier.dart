@@ -1262,7 +1262,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _checkForSwitchExpressionNotAssignable(node);
+    checkForUseOfVoidResult(node.expression);
     _checkForCaseBlocksNotTerminated(node);
     _checkForMissingEnumConstantInSwitch(node);
     super.visitSwitchStatement(node);
@@ -1748,24 +1748,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType interface in implementsClause.interfaces) {
       final interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        final interfaceElement = interfaceType.element;
-        if (interfaceElement is ClassOrMixinElementImpl &&
-            interfaceElement.isBase &&
-            interfaceElement.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(interfaceElement.library)) {
-          // Should this be combined with _checkForImplementsClauseErrorCodes
-          // to avoid double errors if implementing `int`.
-          if (interfaceElement is ClassElementImpl &&
-              !interfaceElement.isSealed) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                interface,
-                [interfaceElement.name]);
-          } else if (interfaceElement is MixinElement) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                interface,
-                [interfaceElement.name]);
+        final implementedInterfaces = [
+          interfaceType,
+          ...interfaceType.element.allSupertypes,
+        ].map((e) => e.element).toList();
+        for (final interfaceElement in implementedInterfaces) {
+          if (interfaceElement is ClassOrMixinElementImpl &&
+              interfaceElement.isBase &&
+              interfaceElement.library != _currentLibrary &&
+              !_mayIgnoreClassModifiers(interfaceElement.library)) {
+            // Should this be combined with _checkForImplementsClauseErrorCodes
+            // to avoid double errors if implementing `int`.
+            if (interfaceElement is ClassElementImpl &&
+                !interfaceElement.isSealed) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  interface,
+                  [interfaceElement.name]);
+            } else if (interfaceElement is MixinElement) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  interface,
+                  [interfaceElement.name]);
+            }
+            break;
           }
         }
       }
@@ -4504,19 +4512,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           [name.name]);
     }
-  }
-
-  /// Check that the type of the expression in the given 'switch' [statement] is
-  /// assignable to the type of the 'case' members.
-  ///
-  /// See [CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
-  void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
-    // For NNBD we verify runtime types of values, and subtyping.
-    if (_isNonNullableByDefault) {
-      return;
-    }
-
-    checkForUseOfVoidResult(statement.expression);
   }
 
   void _checkForThrowOfInvalidType(ThrowExpression node) {

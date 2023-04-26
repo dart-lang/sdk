@@ -233,9 +233,7 @@ import 'dart:math' show ^;
 import 'dart:io';
 ''');
 
-    result.assertResolvedNodes([
-      "import 'dart:math' show ;",
-    ]);
+    _assertWholeUnitResolved(result);
   }
 
   test_importDirective_uri() async {
@@ -245,9 +243,7 @@ import 'dart:ma^'
 import 'dart:io';
 ''');
 
-    result.assertResolvedNodes([
-      "import 'dart:ma';",
-    ]);
+    _assertWholeUnitResolved(result);
   }
 
   test_mixin_methodDeclaration_body() async {
