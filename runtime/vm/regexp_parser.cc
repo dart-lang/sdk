@@ -217,6 +217,14 @@ bool RegExpBuilder::NeedsDesugaringForUnicode(RegExpCharacterClass* cc) {
   if (ignore_case()) return true;
   ZoneGrowableArray<CharacterRange>* ranges = cc->ranges();
   CharacterRange::Canonicalize(ranges);
+
+  if (cc->is_negated()) {
+    auto negated_ranges =
+        new (Z) ZoneGrowableArray<CharacterRange>(ranges->length());
+    CharacterRange::Negate(ranges, negated_ranges);
+    ranges = negated_ranges;
+  }
+
   for (int i = ranges->length() - 1; i >= 0; i--) {
     uint32_t from = ranges->At(i).from();
     uint32_t to = ranges->At(i).to();
