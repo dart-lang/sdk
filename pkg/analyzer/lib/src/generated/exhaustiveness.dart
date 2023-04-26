@@ -62,7 +62,7 @@ class AnalyzerEnumOperations
 }
 
 class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
-    ClassElement, EnumElement, FieldElement, DartObject> {
+    InterfaceElement, EnumElement, FieldElement, DartObject> {
   final TypeSystemImpl typeSystem;
 
   AnalyzerExhaustivenessCache(this.typeSystem)
@@ -73,18 +73,18 @@ class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
 }
 
 class AnalyzerSealedClassOperations
-    implements SealedClassOperations<DartType, ClassElement> {
+    implements SealedClassOperations<DartType, InterfaceElement> {
   final TypeSystemImpl _typeSystem;
 
   AnalyzerSealedClassOperations(this._typeSystem);
 
   @override
-  List<ClassElement> getDirectSubclasses(ClassElement sealedClass) {
-    List<ClassElement> subclasses = [];
+  List<InterfaceElement> getDirectSubclasses(InterfaceElement sealedClass) {
+    List<InterfaceElement> subclasses = [];
     LibraryElement library = sealedClass.library;
     outer:
     for (Element declaration in library.topLevelElements) {
-      if (declaration != sealedClass && declaration is ClassElement) {
+      if (declaration != sealedClass && declaration is InterfaceElement) {
         bool checkType(InterfaceType? type) {
           if (type?.element == sealedClass) {
             subclasses.add(declaration);
@@ -122,7 +122,7 @@ class AnalyzerSealedClassOperations
 
   @override
   DartType? getSubclassAsInstanceOf(
-      ClassElement subClass, covariant InterfaceType sealedClassType) {
+      InterfaceElement subClass, covariant InterfaceType sealedClassType) {
     InterfaceType thisType = subClass.thisType;
     InterfaceType asSealedClass =
         thisType.asInstanceOf(sealedClassType.element)!;
