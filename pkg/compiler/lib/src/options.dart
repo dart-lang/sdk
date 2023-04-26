@@ -694,7 +694,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
-      ..experimentalInferrer = _hasOption(options, Flags.experimentalInferrer)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)

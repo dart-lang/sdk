@@ -13,6 +13,7 @@ mixin _MixinOnObject {}
 /// It is an error if SealedClass is extended.
 
 // Simple extension.
+
 class SimpleExtend extends SealedClass {}
 //                         ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -39,6 +40,7 @@ sealed class SealedExtend extends SealedClass {}
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 // Extending via an anonymous mixin class.
+
 class SimpleExtendWith extends SealedClass with _MixinOnObject {}
 //                             ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -65,6 +67,7 @@ sealed class SealedExtendWith extends SealedClass with _MixinOnObject {}
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 // Extending via an anonymous mixin application class.
+
 class SimpleExtendApplication = SealedClass with _MixinOnObject;
 //                              ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -94,6 +97,7 @@ sealed class SealedExtendApplication = SealedClass with _MixinOnObject;
 /// final or sealed.
 
 // Simple implementation.
+
 class SimpleImplement implements SealedClass {}
 //                               ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -120,6 +124,7 @@ sealed class SealedImplement implements SealedClass {}
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 // Implementing with a mixin class.
+
 mixin class SimpleMixinClassImplement implements SealedClass {}
 //                                               ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -131,6 +136,7 @@ base mixin class BaseMixinClassImplement implements SealedClass {}
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 // Implementing with a mixin application class.
+
 class SimpleImplementApplication = Object
     with _MixinOnObject
     implements SealedClass;
@@ -167,6 +173,7 @@ sealed class SealedImplementApplication = Object
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
 
 // Implementing with a mixin.
+
 mixin SimpleMixinImplement implements SealedClass {}
 //                                    ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY

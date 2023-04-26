@@ -37,12 +37,6 @@ import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'inferrer_experimental/trivial.dart' as experimentalInferrer
-    show TrivialAbstractValueStrategy;
-import 'inferrer_experimental/types.dart' as experimentalInferrer
-    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
-    show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'io/source_information.dart';
 import 'ir/annotations.dart';
@@ -119,8 +113,6 @@ class Compiler {
   fe.InitializedCompilerState? initializedCompilerState;
   bool forceSerializationForTesting = false;
   late final GlobalTypeInferenceTask globalInference;
-  late final experimentalInferrer.GlobalTypeInferenceTask
-      experimentalGlobalInference;
   late final CodegenWorldBuilder _codegenWorldBuilder;
 
   late AbstractValueStrategy abstractValueStrategy;
@@ -159,13 +151,9 @@ class Compiler {
     options.validate();
     environment = Environment(options.environment);
 
-    abstractValueStrategy = options.experimentalInferrer
-        ? (options.useTrivialAbstractValueDomain
-            ? const experimentalInferrer.TrivialAbstractValueStrategy()
-            : const experimentalInferrer.TypeMaskStrategy())
-        : (options.useTrivialAbstractValueDomain
-            ? const TrivialAbstractValueStrategy()
-            : const TypeMaskStrategy());
+    abstractValueStrategy = options.useTrivialAbstractValueDomain
+        ? const TrivialAbstractValueStrategy()
+        : const TypeMaskStrategy();
     if (options.experimentalWrapped || options.testMode) {
       abstractValueStrategy =
           WrappedAbstractValueStrategy(abstractValueStrategy);
@@ -198,8 +186,6 @@ class Compiler {
       loadKernelTask = GenericTask('kernel loader', measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
-      experimentalGlobalInference =
-          experimentalInferrer.GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       dumpInfoTask = DumpInfoTask(this),
       selfTask,
@@ -515,18 +501,6 @@ class Compiler {
   bool get shouldStopAfterModularAnalysis =>
       compilationFailed || options.writeModularAnalysisUri != null;
 
-  experimentalInferrer.GlobalTypeInferenceResults
-      performExperimentalGlobalTypeInference(JClosedWorld closedWorld) {
-    final mainFunction = closedWorld.elementEnvironment.mainFunction!;
-    reporter.log('Performing experimental global type inference');
-    GlobalLocalsMap globalLocalsMap =
-        GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
-    InferredDataBuilder inferredDataBuilder =
-        InferredDataBuilderImpl(closedWorld.annotationsData);
-    return experimentalGlobalInference.runGlobalTypeInference(
-        mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
-  }
-
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction!;
@@ -671,13 +645,8 @@ class Compiler {
     JClosedWorld closedWorld = closedWorldAndIndices.data!;
     DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
     if (options.readDataUri == null) {
-      if (options.experimentalInferrer) {
-        globalTypeInferenceResults = DataAndIndices(
-            performExperimentalGlobalTypeInference(closedWorld), null);
-      } else {
-        globalTypeInferenceResults =
-            DataAndIndices(performGlobalTypeInference(closedWorld), null);
-      }
+      globalTypeInferenceResults =
+          DataAndIndices(performGlobalTypeInference(closedWorld), null);
       if (options.writeDataUri != null) {
         serializationTask.serializeGlobalTypeInference(
             globalTypeInferenceResults.data!, closedWorldAndIndices.indices!);
