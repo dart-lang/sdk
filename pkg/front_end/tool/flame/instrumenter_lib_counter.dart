@@ -8,7 +8,7 @@ Stopwatch stopwatch = new Stopwatch();
 
 Uint32List counts = new Uint32List(0);
 
-void initialize(int count) {
+void initialize(int count, bool reportCandidates) {
   counts = new Uint32List(count);
   stopwatch.start();
 }
@@ -21,7 +21,7 @@ void enter(int i) {
 @pragma("vm:prefer-inline")
 void exit(int i) {}
 
-void report(List<String> names, bool reportCandidates) {
+void report(List<String> names) {
   List<NameWithCount> data = [];
   for (int i = 0; i < counts.length; i++) {
     int count = counts[i];
