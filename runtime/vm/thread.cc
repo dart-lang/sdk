@@ -412,6 +412,22 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   return true;
 }
 
+static bool ShouldSuspend(bool isolate_shutdown, Thread* thread) {
+  // Must destroy thread.
+  if (isolate_shutdown) return false;
+
+  // Must retain thread.
+  if (thread->HasActiveState() || thread->OwnsSafepoint()) return true;
+
+  // Could do either. When there are few isolates suspend to avoid work
+  // entering and leaving. When there are many isolate, destroy the thread to
+  // avoid the root set growing too big.
+  const intptr_t kMaxSuspendedThreads = 20;
+  auto group = thread->isolate_group();
+  return group->thread_registry()->active_isolates_count() <
+         kMaxSuspendedThreads;
+}
+
 void Thread::ExitIsolate(bool isolate_shutdown) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
@@ -438,11 +454,8 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   // makes entering/exiting quite fast as it mainly boils down to safepoint
   // transitions. Though any operation that walks over all active threads will
   // see this thread as well (e.g. safepoint operations).
-  //
-  // We could safely use `suspend = !HasActiveState()` here instead and may
-  // consider doing so e.g. if the number of isolates is very large.
-  const bool suspend = !isolate_shutdown;
-  if (suspend) {
+  const bool is_nested_exit = thread->top_exit_frame_info() != 0;
+  if (ShouldSuspend(isolate_shutdown, thread)) {
     const auto tag =
         isolate->is_runnable() ? VMTag::kIdleTagId : VMTag::kLoadWaitTagId;
     SuspendThreadInternal(thread, tag);
@@ -462,7 +475,6 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
 
   // To let VM's thread pool (if we run on it) know that this thread is
   // occupying a mutator again (decreases its max size).
-  const bool is_nested_exit = thread->top_exit_frame_info() != 0;
   ASSERT(!(isolate_shutdown && is_nested_exit));
   group->DecreaseMutatorCount(isolate, is_nested_exit);
 }

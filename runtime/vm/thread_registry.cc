@@ -110,6 +110,7 @@ void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   thread->next_ = active_list_;
   active_list_ = thread;
+  active_isolates_count_.fetch_add(1);
 }
 
 void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
@@ -124,6 +125,7 @@ void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
       } else {
         prev->next_ = current->next_;
       }
+      active_isolates_count_.fetch_sub(1);
       break;
     }
     prev = current;
