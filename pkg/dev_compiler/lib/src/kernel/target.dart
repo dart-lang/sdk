@@ -102,6 +102,7 @@ class DevCompilerTarget extends Target {
         'dart:js_interop',
         'dart:math',
         'dart:svg',
+        'dart:typed_data',
         'dart:web_audio',
         'dart:web_gl',
         'dart:_foreign_helper',

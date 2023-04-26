@@ -133,7 +133,9 @@ void _doTransformsOnKernelLoad(Component? component) {
   // containing a stub definition is invalidated, and then reloaded, because
   // we need to keep existing references to that stub valid. Here, we have the
   // whole program, and therefore do not need it.
-  StaticInteropClassEraser(ir.CoreTypes(component), null)
+  ir.CoreTypes coreTypes = ir.CoreTypes(component);
+  StaticInteropClassEraser(coreTypes, null,
+          additionalCoreLibraries: {'_js_types', 'js_interop'})
       .visitComponent(component);
 }
 
