@@ -829,6 +829,8 @@ abstract interface class Cookie {
 
   /// Whether the cookie is available from other sites.
   ///
+  /// This value is `null` if the SameSite attribute is not present.
+  ///
   /// See [SameSite] for more information.
   SameSite? sameSite;
 
