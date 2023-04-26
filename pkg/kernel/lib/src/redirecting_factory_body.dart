@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,11 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'body_builder.dart' show EnsureLoaded;
+abstract class EnsureLoaded {
+  void ensureLoaded(Member? member);
+
+  bool isLoaded(Member? member);
+}
 
 /// Name of variable used to wrap expression by the VMs FFI Finalizable
 /// transformation.

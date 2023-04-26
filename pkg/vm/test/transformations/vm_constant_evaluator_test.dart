@@ -34,7 +34,8 @@ runTestCase(Uri source, TargetOS os) async {
       VMConstantEvaluator.create(target, component, os, NnbdMode.Strong);
   final enableAsserts = false;
   component = transformComponent(component, enableAsserts, evaluator);
-  verifyComponent(component);
+  verifyComponent(
+      target, VerificationStage.afterGlobalTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
   final postfix = '.${os.name}';

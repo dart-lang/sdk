@@ -44,7 +44,7 @@ import '../identifiers.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/redirecting_factory_body.dart'
+import 'package:kernel/src/redirecting_factory_body.dart'
     show RedirectingFactoryBody, redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;

@@ -119,6 +119,7 @@ import 'package:kernel/target/targets.dart'
 
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
+import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -367,7 +368,9 @@ class FastaContext extends ChainContext with MatchContext {
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
           const Print(),
-          new Verify(compileMode)
+          new Verify(compileMode == CompileMode.full
+              ? VerificationStage.afterConstantEvaluation
+              : VerificationStage.outline)
         ] {
     String prefix;
     String infix;
@@ -407,7 +410,7 @@ class FastaContext extends ChainContext with MatchContext {
     switch (compileMode) {
       case CompileMode.full:
         steps.add(const Transform());
-        steps.add(const Verify(CompileMode.full));
+        steps.add(const Verify(VerificationStage.afterModularTransformations));
         steps.add(const StressConstantEvaluatorStep());
         if (!ignoreExpectations) {
           steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
@@ -2486,9 +2489,9 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 }
 
 class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
-  final CompileMode compileMode;
+  final VerificationStage stage;
 
-  const Verify(this.compileMode);
+  const Verify(this.stage);
 
   @override
   String get name => "verify";
@@ -2518,8 +2521,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
         result.options, (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
-          component, result.options.target,
-          isOutline: compileMode == CompileMode.outline, skipPlatform: true);
+          result.options.target, stage, component,
+          skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
         return pass(result);

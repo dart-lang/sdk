@@ -33,7 +33,8 @@ runTestCase(Uri source) async {
       target, component, /* targetOS = */ null, NnbdMode.Strong);
   component =
       transformComponent(component, /* enableAsserts = */ false, evaluator);
-  verifyComponent(component);
+  verifyComponent(
+      target, VerificationStage.afterGlobalTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 

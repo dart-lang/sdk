@@ -15,6 +15,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
 import '../../api_prototype/experimental_flags.dart'
@@ -1057,9 +1058,9 @@ class KernelTarget extends TargetImplementation {
         isConst: isConst,
         reference: constructorReference,
         fileUri: cls.fileUri)
-      // TODO(johnniwinther): Should we add file offsets to synthesized
+      ..fileOffset = cls.fileOffset
+      // TODO(johnniwinther): Should we add file end offset to synthesized
       //  constructors?
-      //..fileOffset = cls.fileOffset
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
@@ -1622,7 +1623,8 @@ class KernelTarget extends TargetImplementation {
 
   void verify() {
     // TODO(ahe): How to handle errors.
-    verifyComponent(component!, context.options.target,
+    verifyComponent(context.options.target,
+        VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),

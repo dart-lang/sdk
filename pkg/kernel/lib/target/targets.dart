@@ -8,6 +8,7 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../reference_from_index.dart';
+import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
 final List<String> targetNames = targets.keys.toList();
@@ -538,6 +539,9 @@ abstract class Target {
   Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
 
   ConstantsBackend get constantsBackend;
+
+  /// Object that defines how AST nodes are verified for this [Target].
+  Verification get verification => const Verification();
 
   /// Returns an [DartLibrarySupport] the defines which, if any, of the
   /// `dart:` libraries supported in the platform, that should not be

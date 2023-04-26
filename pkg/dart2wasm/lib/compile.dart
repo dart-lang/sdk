@@ -103,8 +103,8 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
       useRapidTypeAnalysis: false);
 
   assert(() {
-    verifyComponent(component,
-        afterConst: true, constantsAreAlwaysInlined: true);
+    verifyComponent(
+        target, VerificationStage.afterGlobalTransformations, component);
     return true;
   }());
 

@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/src/redirecting_factory_body.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -19,7 +20,6 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/redirecting_factory_body.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'factor_type.dart';

@@ -538,6 +538,9 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
+  // TODO(johnniwinther): Enable verification.
+  //verifyComponent(c.options.target,
+  //    VerificationStage.afterModularTransformations, result.component!);
   await writeComponentToFile(result.component!, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
