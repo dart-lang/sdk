@@ -735,53 +735,50 @@ abstract interface class ContentType implements HeaderValue {
   String? get charset;
 }
 
-/// Value of [Cookie.sameSite], which defines whether an HTTP cookie is
-/// available from other sites.
+/// Cookie cross-site availability configuration.
+///
+/// The value of [Cookie.sameSite], which defines whether an
+/// HTTP cookie is available from other sites or not.
+///
+/// Has three possible values: [lax], [strict] and [none].
 final class SameSite {
-  /// The [Cookie] will generally not be sent on cross-site requests, unless
-  /// the user is navigated to the original site. This is the default value.
-  static const lax = SameSite._internal(0);
+  /// Default value, cookie with this value will generally not be sent on
+  /// cross-site requests, unless the user is navigated to the original site.
+  static const lax = SameSite._("lax", "Lax");
 
-  /// This [Cookie] will never be sent on cross-site requests.
-  static const strict = SameSite._internal(1);
+  /// This cookie will never be sent on cross-site requests.
+  static const strict = SameSite._("strict", "Strict");
 
-  /// The [Cookie] will be sent in all requests.
-  ///
-  /// [Cookie.secure] must also be set to `true`, otherwise the [none] value
-  /// will have no effect.
-  static const none = SameSite._internal(2);
+  /// this cookie will be sent in all requests. [Cookie.secure] must also be
+  /// set to true, otherwise the `none` value will have no effect.
+  static const none = SameSite._("none", "None");
 
-  static List<SameSite> get values => const <SameSite>[
-    lax,
-    strict,
-    none,
-  ];
+  static const List<SameSite> values = [lax, strict, none];
+
+  final String name;
+  final String _lowerCaseName;
+
+  const SameSite._(this.name, this._lowerCaseName);
 
   static SameSite _byName(String name) {
-    final index = _names.indexWhere(
-            (value) => value.toLowerCase() == name.toLowerCase());
-
-    if (index >= 0 && index < _names.length) {
-      return SameSite._internal(index);
-    } else {
-      throw HttpException('SameSite value should be one of Lax, Strict or None.');
+    for (var value in values) {
+      if (_equalIgnoreCase(name, value.name)) return value;
     }
+    throw HttpException('SameSite value should be one of Lax, Strict or None.');
   }
 
-  String getName() => _names[_value];
-
-  final int _value;
-  static const List<String> _names = ["Lax", "Strict", "None"];
-  const SameSite._internal(this._value);
-
-  @override
-  String toString() => "SameSite=${getName()}";
-
-  @override
-  bool operator ==(Object other) => other is SameSite && _value == other._value;
+  static bool _equalIgnoreCase(String text, String lowerCaseAsciiTarget) {
+    var length = lowerCaseAsciiTarget.length;
+    if (length != text.length) return false;
+    var delta = 0;
+    for (var i = 0; i < length; i++) {
+      delta |= text.codeUnitAt(i) ^ lowerCaseAsciiTarget.codeUnitAt(i);
+    }
+    return (delta & ~0x20) == 0;
+  }
 
   @override
-  int get hashCode => Object.hash(_value, getName());
+  String toString() => "SameSite=$name";
 }
 
 /// Representation of a cookie. For cookies received by the server as Cookie
@@ -830,8 +827,7 @@ abstract interface class Cookie {
   /// available to client side scripts.
   bool httpOnly = false;
 
-  /// Whether the cookie is available from other sites. This value is null if
-  /// the SameSite attribute is not present.
+  /// Whether the cookie is available from other sites.
   ///
   /// See [SameSite] for more information.
   SameSite? sameSite;

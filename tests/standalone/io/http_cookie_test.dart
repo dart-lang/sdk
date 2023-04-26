@@ -119,6 +119,14 @@ void testCookieSameSite() {
       "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
           "Path=/; SameSite=Lax");
   Expect.equals(cookie2.sameSite, SameSite.lax);
+  Cookie cookie3 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite=LAX");
+  Expect.equals(cookie3.sameSite, SameSite.lax);
+  Cookie cookie4 = Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+          "Path=/; SameSite= Lax");
+  Expect.equals(cookie4.sameSite, SameSite.lax);
   Expect.throws<HttpException>(() => Cookie.fromSetCookieValue(
       "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
           "Path=/; SameSite=Relax"),
