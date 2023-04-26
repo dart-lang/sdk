@@ -1253,6 +1253,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    checkForUseOfVoidResult(node.expression);
+    super.visitSwitchExpression(node);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    checkForUseOfVoidResult(node.expression);
+    super.visitSwitchExpressionCase(node);
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
