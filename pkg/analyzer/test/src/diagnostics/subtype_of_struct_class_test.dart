@@ -58,6 +58,8 @@ final class AbiSpecificInteger4 implements AbiSpecificInteger1 {
   const AbiSpecificInteger4();
 }
 ''', [
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 216,
+          19),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 216, 19),
     ]);
   }
@@ -69,8 +71,9 @@ final class S extends Struct {}
 final class C implements S {}
 ''', [
       error(FfiCode.EMPTY_STRUCT, 31, 1),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 76, 1,
-          messageContains: ["class 'C'", "implement 'S'"]),
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 76,
+          1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 76, 1),
     ]);
   }
 
@@ -83,6 +86,8 @@ final class S extends Struct {}
 import 'lib1.dart' as lib1;
 class C implements lib1.S {}
 ''', [
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 47,
+          6),
       error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 47,
           6),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 47, 6),
@@ -96,6 +101,8 @@ final class S extends Union {}
 final class C implements S {}
 ''', [
       error(FfiCode.EMPTY_STRUCT, 31, 1),
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 75,
+          1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 75, 1),
     ]);
   }

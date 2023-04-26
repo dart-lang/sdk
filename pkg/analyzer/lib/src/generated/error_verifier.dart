@@ -1748,24 +1748,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType interface in implementsClause.interfaces) {
       final interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        final interfaceElement = interfaceType.element;
-        if (interfaceElement is ClassOrMixinElementImpl &&
-            interfaceElement.isBase &&
-            interfaceElement.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(interfaceElement.library)) {
-          // Should this be combined with _checkForImplementsClauseErrorCodes
-          // to avoid double errors if implementing `int`.
-          if (interfaceElement is ClassElementImpl &&
-              !interfaceElement.isSealed) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                interface,
-                [interfaceElement.name]);
-          } else if (interfaceElement is MixinElement) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                interface,
-                [interfaceElement.name]);
+        final implementedInterfaces = [
+          interfaceType,
+          ...interfaceType.element.allSupertypes,
+        ].map((e) => e.element).toList();
+        for (final interfaceElement in implementedInterfaces) {
+          if (interfaceElement is ClassOrMixinElementImpl &&
+              interfaceElement.isBase &&
+              interfaceElement.library != _currentLibrary &&
+              !_mayIgnoreClassModifiers(interfaceElement.library)) {
+            // Should this be combined with _checkForImplementsClauseErrorCodes
+            // to avoid double errors if implementing `int`.
+            if (interfaceElement is ClassElementImpl &&
+                !interfaceElement.isSealed) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  interface,
+                  [interfaceElement.name]);
+            } else if (interfaceElement is MixinElement) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                  interface,
+                  [interfaceElement.name]);
+            }
+            break;
           }
         }
       }
