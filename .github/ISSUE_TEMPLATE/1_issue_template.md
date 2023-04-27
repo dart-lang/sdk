@@ -33,10 +33,7 @@ In your issue, please include:
 Missing some or all of the above might make the issue take longer or be
 impossible to act on.
 
-If you simply have a question, consider starting with Stack Overflow:
+If you simply have a question, please consider using the listed Dart
+developer communities on the following page:
 
-https://stackoverflow.com/questions/tagged/dart
-
-For a real-time response, consider our Gitter channel:
-
-https://gitter.im/dart-lang/sdk
+https://dart.dev/community#join-the-conversation
