@@ -205,6 +205,98 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_objectPattern_explicitName_variablePattern_typed() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(test: int y)) {
+    y;
+  }
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(test: int y)) {
+    y;
+  }
+}
+
+class A {
+  int get test => null;
+}
+''');
+  }
+
+  Future<void> test_objectPattern_explicitName_variablePattern_untyped() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(test: var y)) {
+    y;
+  }
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(test: var y)) {
+    y;
+  }
+}
+
+class A {
+  Object? get test => null;
+}
+''');
+  }
+
+  Future<void> test_objectPattern_explicitName_wildcardPattern() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(test: int _)) {}
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(test: int _)) {}
+}
+
+class A {
+  int get test => null;
+}
+''');
+  }
+
+  Future<void> test_objectPattern_implicitName_variablePattern() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(:int test)) {
+    test;
+  }
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(:int test)) {
+    test;
+  }
+}
+
+class A {
+  int get test => null;
+}
+''');
+  }
+
   Future<void> test_override() async {
     await resolveTestCode('''
 extension E on String {
