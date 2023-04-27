@@ -106,6 +106,8 @@ class _AwaitVisitor extends RecursiveAstVisitor {
 }
 
 class _Visitor extends SimpleAstVisitor {
+  static const mountedName = 'mounted';
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -238,7 +240,7 @@ class _Visitor extends SimpleAstVisitor {
           check = check.identifier;
         }
         if (check is SimpleIdentifier) {
-          return check.name == 'mounted';
+          return check.name == mountedName;
         }
         if (check is PrefixExpression) {
           // (condition || !mounted)
@@ -298,6 +300,11 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.identifier.name == mountedName) {
+      // Accessing `context.mounted` does not count as a "use" of a
+      // `BuildContext` which needs to be guarded by a mounted check.
+      return;
+    }
     // Getter access.
     if (isBuildContext(node.prefix.staticType, skipNullable: true)) {
       check(node);
