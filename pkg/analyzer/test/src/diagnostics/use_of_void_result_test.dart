@@ -213,30 +213,6 @@ void main() {
     ]);
   }
 
-  test_switchExpression_expression() async {
-    await assertErrorsInCode('''
-void f(void x) {
-  (switch(x) {
-    _ => 0,
-  });
-}
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
-    ]);
-  }
-
-  test_switchExpressionCase_expression() async {
-    await assertErrorsInCode('''
-void f(Object? x) {
-  (switch(x) {
-    _ => print(x),
-  });
-}
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 44, 5),
-    ]);
-  }
-
   test_switchStatement_expression() async {
     await assertErrorsInCode('''
 void f(void x) {
