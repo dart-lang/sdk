@@ -329,6 +329,10 @@ abstract class TypeInferenceEngine {
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
+  final FunctionType unknownFunctionNonNullable =
+      new FunctionType(const [], const DynamicType(), Nullability.nonNullable);
+  final FunctionType unknownFunctionLegacy =
+      new FunctionType(const [], const DynamicType(), Nullability.legacy);
 
   TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
@@ -345,11 +349,28 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, false, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(
+          this,
+          uri,
+          false,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy);
     }
-    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        false,
+        thisType,
+        library,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!,
+        unknownFunctionNonNullable,
+        unknownFunctionLegacy);
   }
 
   @override
@@ -364,11 +385,28 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, true, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(
+          this,
+          uri,
+          true,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy);
     }
-    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        true,
+        thisType,
+        library,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!,
+        unknownFunctionNonNullable,
+        unknownFunctionLegacy);
   }
 }
 
