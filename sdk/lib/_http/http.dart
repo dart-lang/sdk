@@ -746,11 +746,13 @@ final class SameSite {
   /// cross-site requests, unless the user is navigated to the original site.
   static const lax = SameSite._("Lax");
 
-  /// This cookie will never be sent on cross-site requests.
+  /// Cookie with this value will never be sent on cross-site requests.
   static const strict = SameSite._("Strict");
 
-  /// this cookie will be sent in all requests. [Cookie.secure] must also be
-  /// set to true, otherwise the `none` value will have no effect.
+  /// Cookie with this value will be sent in all requests.
+  ///
+  /// [Cookie.secure] must also be set to true, otherwise the `none` value
+  /// will have no effect.
   static const none = SameSite._("None");
 
   static const List<SameSite> values = [lax, strict, none];
