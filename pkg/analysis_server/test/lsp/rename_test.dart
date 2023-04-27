@@ -27,6 +27,26 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_class_typeParameter_atDeclaration() async {
+    const content = '''
+class A<[[T^]]> {
+  final List<T> values = [];
+}
+''';
+
+    return _test_prepare(content, 'T');
+  }
+
+  Future<void> test_prepare_class_typeParameter_atReference() async {
+    const content = '''
+class A<T> {
+  final List<[[T^]]> values = [];
+}
+''';
+
+    return _test_prepare(content, 'T');
+  }
+
   Future<void> test_prepare_classNewKeyword() async {
     const content = '''
     class MyClass {}
@@ -375,6 +395,22 @@ void f(List<int> values) {
       },
       {'renameFilesWithClasses': 'always'},
     );
+  }
+
+  Future<void> test_rename_class_typeParameter_atDeclaration() {
+    const content = '''
+class A<[[T^]]> {
+  final List<T> values = [];
+}
+''';
+
+    const expectedContent = '''
+class A<U> {
+  final List<U> values = [];
+}
+''';
+
+    return _test_rename_withDocumentChanges(content, 'U', expectedContent);
   }
 
   Future<void> test_rename_classNewKeyword() {

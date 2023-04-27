@@ -1086,6 +1086,12 @@ void f(A a) {
 ''', 'test();');
   }
 
+  Future<void> test_rename_hasElement_typeParameter_class() {
+    return assertHasRenameRefactoring('''
+class A<T> {}
+''', 'T> {}');
+  }
+
   Future<void> test_rename_noElement() async {
     addTestFile('''
 void f() {
@@ -1682,6 +1688,36 @@ void f() {
     });
   }
 
+  Future<void> test_class_typeParameter_atDeclaration() {
+    addTestFile('''
+class A<Test> {
+  void foo(Test a) {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test> {', 'NewName');
+    }, '''
+class A<NewName> {
+  void foo(NewName a) {}
+}
+''');
+  }
+
+  Future<void> test_class_typeParameter_atReference() {
+    addTestFile('''
+class A<Test> {
+  final List<Test> values = [];
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test> values', 'NewName');
+    }, '''
+class A<NewName> {
+  final List<NewName> values = [];
+}
+''');
+  }
+
   Future<void> test_class_validateOnly() {
     addTestFile('''
 class Test {}
@@ -2031,6 +2067,23 @@ enum E {
     );
   }
 
+  Future<void> test_enum_typeParameter_atDeclaration() {
+    addTestFile('''
+enum E2<Test> {
+  v<int>();
+  void foo(Test a) {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test> {', 'NewName');
+    }, '''
+enum E2<NewName> {
+  v<int>();
+  void foo(NewName a) {}
+}
+''');
+  }
+
   Future<void> test_extension_atDeclaration() {
     addTestFile('''
 extension Test on int {
@@ -2087,6 +2140,21 @@ void f() {
         expect(renameFeedback.length, 4);
       },
     );
+  }
+
+  Future<void> test_extension_typeParameter_atDeclaration() {
+    addTestFile('''
+extension E<Test> on int {
+  void foo(Test a) {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test> on', 'NewName');
+    }, '''
+extension E<NewName> on int {
+  void foo(NewName a) {}
+}
+''');
   }
 
   Future<void> test_feedback() {
@@ -2324,6 +2392,21 @@ void f() {
       assertResultProblemsError(
           problems, "Duplicate local variable 'newName'.");
     });
+  }
+
+  Future<void> test_mixin_typeParameter_atDeclaration() {
+    addTestFile('''
+mixin M<Test> {
+  final List<Test> values = [];
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test> {', 'NewName');
+    }, '''
+mixin M<NewName> {
+  final List<NewName> values = [];
+}
+''');
   }
 
   Future<void> test_parameter_onDefaultParameter() {
