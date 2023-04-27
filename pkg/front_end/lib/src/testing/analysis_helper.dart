@@ -9,11 +9,11 @@ import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/redirecting_factory_body.dart';
 import 'package:kernel/type_environment.dart';
 
 typedef PerformAnalysisFunction = void Function(

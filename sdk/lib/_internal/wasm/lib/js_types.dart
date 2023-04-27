@@ -11,11 +11,13 @@ library _js_types;
 import 'dart:_js_annotations';
 
 /// Note that the semantics of JS types on Wasm backends are slightly different
-/// from the JS backends as we use static interop, and thus [JSValue], to
-/// implement all of the other JS types, whereas the JS backends conflate Dart
-/// types and JS types.  Because we're not sure exactly where things will end
-/// up, we're moving gradually towards consistent semantics across all web
-/// backends. A gradual path to consistent semantics might look something like:
+/// from the JS backends. They all use `@staticInterop` currently, but Wasm
+/// erases to [JSValue], while the JS backends erase each JS type to its
+/// respective Dart type.
+///
+/// Because we're not sure exactly where things will end up, we're moving
+/// gradually towards consistent semantics across all web backends. A gradual
+/// path to consistent semantics might look something like:
 /// 1) Launch MVP with JS backends conflating Dart types and JS types, and Wasm
 ///    backends implementing JS types with boxes. On Wasm backends, users will
 ///    have to explicitly coerce Dart types to JS types, possibly with some

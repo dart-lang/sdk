@@ -117,8 +117,9 @@ import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 import 'internal_ast.dart';
 import 'kernel_variable_builder.dart';
 import 'load_library_builder.dart';
-import 'redirecting_factory_body.dart'
+import 'package:kernel/src/redirecting_factory_body.dart'
     show
+        EnsureLoaded,
         RedirectingFactoryBody,
         RedirectionTarget,
         getRedirectingFactoryBody,
@@ -9664,12 +9665,6 @@ class BodyBuilder extends StackListenerImpl
     push(
         forest.createPatternAssignment(equals.charOffset, pattern, expression));
   }
-}
-
-abstract class EnsureLoaded {
-  void ensureLoaded(Member? member);
-
-  bool isLoaded(Member? member);
 }
 
 class Operator {

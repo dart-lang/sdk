@@ -286,8 +286,6 @@ abstract class GeneratedContent {
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
       print('  $executable $generateScript ${args.join(" ")}');
       fail('Error codes need to be generated');
-    } else {
-      print('All generated files up to date.');
     }
   }
 

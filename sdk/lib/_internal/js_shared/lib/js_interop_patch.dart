@@ -21,12 +21,13 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
 /// [JSExportedDartFunction] <-> [Function]
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  Function get toDart => this;
+  Function get toDart => this as Function;
 }
 
 extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction get toJS => allowInterop(this);
+  JSExportedDartFunction get toJS =>
+      allowInterop(this) as JSExportedDartFunction;
 }
 
 /// [JSExportedDartObject] <-> [Object]
@@ -37,7 +38,7 @@ extension JSExportedDartObjectToObject on JSExportedDartObject {
 
 extension ObjectToJSExportedDartObject on Object {
   @patch
-  JSExportedDartObject get toJS => this;
+  JSExportedDartObject get toJS => this as JSExportedDartObject;
 }
 
 /// [JSPromise] -> [Future<JSAny?>].
@@ -49,122 +50,122 @@ extension JSPromiseToFuture on JSPromise {
 /// [JSArrayBuffer] <-> [ByteBuffer]
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   @patch
-  ByteBuffer get toDart => this;
+  ByteBuffer get toDart => this as ByteBuffer;
 }
 
 extension ByteBufferToJSArrayBuffer on ByteBuffer {
   @patch
-  JSArrayBuffer get toJS => this;
+  JSArrayBuffer get toJS => this as JSArrayBuffer;
 }
 
 /// [JSDataView] <-> [ByteData]
 extension JSDataViewToByteData on JSDataView {
   @patch
-  ByteData get toDart => this;
+  ByteData get toDart => this as ByteData;
 }
 
 extension ByteDataToJSDataView on ByteData {
   @patch
-  JSDataView get toJS => this;
+  JSDataView get toJS => this as JSDataView;
 }
 
 /// [JSInt8Array] <-> [Int8List]
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
-  Int8List get toDart => this;
+  Int8List get toDart => this as Int8List;
 }
 
 extension Int8ListToJSInt8Array on Int8List {
   @patch
-  JSInt8Array get toJS => this;
+  JSInt8Array get toJS => this as JSInt8Array;
 }
 
 /// [JSUint8Array] <-> [Uint8List]
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
-  Uint8List get toDart => this;
+  Uint8List get toDart => this as Uint8List;
 }
 
 extension Uint8ListToJSUint8Array on Uint8List {
   @patch
-  JSUint8Array get toJS => this;
+  JSUint8Array get toJS => this as JSUint8Array;
 }
 
 /// [JSUint8ClampedArray] <-> [Uint8ClampedList]
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
-  Uint8ClampedList get toDart => this;
+  Uint8ClampedList get toDart => this as Uint8ClampedList;
 }
 
 extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
   @patch
-  JSUint8ClampedArray get toJS => this;
+  JSUint8ClampedArray get toJS => this as JSUint8ClampedArray;
 }
 
 /// [JSInt16Array] <-> [Int16List]
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
-  Int16List get toDart => this;
+  Int16List get toDart => this as Int16List;
 }
 
 extension Int16ListToJSInt16Array on Int16List {
   @patch
-  JSInt16Array get toJS => this;
+  JSInt16Array get toJS => this as JSInt16Array;
 }
 
 /// [JSUint16Array] <-> [Uint16List]
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
-  Uint16List get toDart => this;
+  Uint16List get toDart => this as Uint16List;
 }
 
 extension Uint16ListToJSInt16Array on Uint16List {
   @patch
-  JSUint16Array get toJS => this;
+  JSUint16Array get toJS => this as JSUint16Array;
 }
 
 /// [JSInt32Array] <-> [Int32List]
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
-  Int32List get toDart => this;
+  Int32List get toDart => this as Int32List;
 }
 
 extension Int32ListToJSInt32Array on Int32List {
   @patch
-  JSInt32Array get toJS => this;
+  JSInt32Array get toJS => this as JSInt32Array;
 }
 
 /// [JSUint32Array] <-> [Uint32List]
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
-  Uint32List get toDart => this;
+  Uint32List get toDart => this as Uint32List;
 }
 
 extension Uint32ListToJSUint32Array on Uint32List {
   @patch
-  JSUint32Array get toJS => this;
+  JSUint32Array get toJS => this as JSUint32Array;
 }
 
 /// [JSFloat32Array] <-> [Float32List]
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
-  Float32List get toDart => this;
+  Float32List get toDart => this as Float32List;
 }
 
 extension Float32ListToJSFloat32Array on Float32List {
   @patch
-  JSFloat32Array get toJS => this;
+  JSFloat32Array get toJS => this as JSFloat32Array;
 }
 
 /// [JSFloat64Array] <-> [Float64List]
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
-  Float64List get toDart => this;
+  Float64List get toDart => this as Float64List;
 }
 
 extension Float64ListToJSFloat64Array on Float64List {
   @patch
-  JSFloat64Array get toJS => this;
+  JSFloat64Array get toJS => this as JSFloat64Array;
 }
 
 /// [JSArray] <-> [List]
@@ -175,38 +176,38 @@ extension JSArrayToList on JSArray {
 
 extension ListToJSArray on List<JSAny?> {
   @patch
-  JSArray get toJS => this;
+  JSArray get toJS => this as JSArray;
 }
 
 /// [JSNumber] <-> [double]
 extension JSNumberToDouble on JSNumber {
   @patch
-  double get toDart => this;
+  double get toDart => this as double;
 }
 
 extension DoubleToJSNumber on double {
   @patch
-  JSNumber get toJS => this;
+  JSNumber get toJS => this as JSNumber;
 }
 
 /// [JSBoolean] <-> [bool]
 extension JSBooleanToBool on JSBoolean {
   @patch
-  bool get toDart => this;
+  bool get toDart => this as bool;
 }
 
 extension BoolToJSBoolean on bool {
   @patch
-  JSBoolean get toJS => this;
+  JSBoolean get toJS => this as JSBoolean;
 }
 
 /// [JSString] <-> [String]
 extension JSStringToString on JSString {
   @patch
-  String get toDart => this;
+  String get toDart => this as String;
 }
 
 extension StringToJSString on String {
   @patch
-  JSString get toJS => this;
+  JSString get toJS => this as JSString;
 }

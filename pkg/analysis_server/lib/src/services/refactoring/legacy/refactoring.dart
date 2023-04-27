@@ -488,6 +488,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {
       nameNode = node.token;
+    } else if (node is TypeParameter) {
+      nameNode = node.name;
     } else if (node is VariableDeclaration) {
       nameNode = node.name;
     }

@@ -321,13 +321,13 @@ class SsaBuilderTask extends CompilerTask {
   final SourceInformationStrategy _sourceInformationFactory;
   late SsaBuilder _builder;
 
-  final SsaMetrics _metrics;
+  final SsaMetrics _ssaMetrics;
 
   @override
-  Metrics get metrics => _metrics;
+  Metrics metrics = Metrics.none();
 
   SsaBuilderTask(super.measurer, this._backendStrategy,
-      this._sourceInformationFactory, this._metrics);
+      this._sourceInformationFactory, this._ssaMetrics);
 
   @override
   String get name => 'SSA builder';
@@ -335,6 +335,7 @@ class SsaBuilderTask extends CompilerTask {
   void onCodegenStart() {
     _builder =
         _backendStrategy.createSsaBuilder(this, _sourceInformationFactory);
+    metrics = _ssaMetrics;
   }
 
   /// Creates the [HGraph] for [member] or returns `null` if no code is needed

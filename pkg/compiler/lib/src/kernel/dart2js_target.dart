@@ -112,7 +112,8 @@ class Dart2jsTarget extends Target {
         'dart:_late_helper',
         'dart:js',
         'dart:js_interop',
-        'dart:js_util'
+        'dart:js_util',
+        'dart:typed_data',
       ];
 
   @override

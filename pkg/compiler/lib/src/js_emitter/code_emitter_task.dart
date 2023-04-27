@@ -50,8 +50,10 @@ class CodeEmitterTask extends CompilerTask {
   /// See [neededClasses] but for class types.
   late final Set<ClassEntity> neededClassTypes;
 
+  _EmitterMetrics? _emitterMetrics;
+  _EmitterMetrics get emitterMetrics => _emitterMetrics ??= _EmitterMetrics();
   @override
-  final _EmitterMetrics metrics = _EmitterMetrics();
+  Metrics get metrics => _emitterMetrics ?? Metrics.none();
 
   CodeEmitterTask(this._compiler, this._generateSourceMap)
       : super(_compiler.measurer);

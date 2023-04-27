@@ -24,18 +24,16 @@ class OpenUriTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_assertsSupported() async {
-    final testUri = Uri.parse("https://example.org");
     await initialize(); // no support
 
-    expect(() => server.sendOpenUriNotification(testUri),
-        throwsA(TypeMatcher<AssertionError>()));
+    expect(server.openUriNotificationSender, isNull);
   }
 
   Future<void> test_openUri() async {
     await initializeWithUriSupport();
 
     final notificationFuture = openUriNotifications.first;
-    server.sendOpenUriNotification(exampleUri);
+    server.openUriNotificationSender!.call(exampleUri);
     final notification = await notificationFuture;
 
     expect(notification.uri, exampleUri);

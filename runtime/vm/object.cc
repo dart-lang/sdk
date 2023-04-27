@@ -10168,7 +10168,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       param_type = closure_signature.ParameterTypeAt(i);
       param_type = param_type.UpdateParentFunctionType(num_type_args, kAllFree,
                                                        Heap::kOld);
-      if (!param_type.IsInstantiated()) {
+      if (!param_type.IsInstantiated(kCurrentClass)) {
         param_type = param_type.InstantiateFrom(
             instantiator_type_args, Object::null_type_arguments(),
             kNoneFree /* avoid truncating parent type args */, Heap::kOld);

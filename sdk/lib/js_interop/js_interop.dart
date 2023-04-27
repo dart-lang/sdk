@@ -43,6 +43,19 @@ class ObjectLiteral {
   const ObjectLiteral();
 }
 
+/// The JS types users should use to write their external APIs.
+///
+/// These are meant to separate the Dart and JS type hierarchies statically.
+///
+/// **WARNING**:
+/// For now, the runtime semantics between backends may differ and may not be
+/// intuitive e.g. casting to [JSString] may give you inconsistent and
+/// surprising results depending on the value. It is preferred to always use the
+/// conversion functions e.g. `toJS` and `toDart`. The only runtime semantics
+/// stability we can guarantee is if a value actually is the JS type you are
+/// type-checking with/casting to e.g. `obj as JSString` will continue to work
+/// if `obj` actually is a JavaScript string.
+
 /// The overall top type in the JS types hierarchy.
 typedef JSAny = js_types.JSAny;
 

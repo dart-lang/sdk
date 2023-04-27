@@ -1420,6 +1420,9 @@ void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
 
   IG->ForEachIsolate([](Isolate* isolate) {
     auto thread = isolate->mutator_thread();
+    if (thread == nullptr) {
+      return;
+    }
     StackFrameIterator it(ValidationPolicy::kDontValidateFrames, thread,
                           StackFrameIterator::kAllowCrossThreadIteration);
 
@@ -1996,6 +1999,9 @@ void ProgramReloadContext::ResetUnoptimizedICsOnStack() {
   CallSiteResetter resetter(zone);
 
   IG->ForEachIsolate([&](Isolate* isolate) {
+    if (isolate->mutator_thread() == nullptr) {
+      return;
+    }
     DartFrameIterator iterator(isolate->mutator_thread(),
                                StackFrameIterator::kAllowCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();

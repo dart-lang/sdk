@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' show max, min;
 
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
+    show transformJSTypesForJSCompilers;
 import 'package:collection/collection.dart'
     show IterableExtension, IterableNullableExtension;
 import 'package:front_end/src/api_unstable/ddc.dart';
@@ -3231,8 +3233,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? getLocalClassName(c)
         : _emitJsNameWithoutGlobal(c);
     if (jsName != null) {
-      typeRep = runtimeCall('packageJSType(#, #)',
-          [js.escapedString(jsName), js.boolean(isStaticInteropType(c))]);
+      if (isDartJSTypesType(c)) {
+        typeRep = visitInterfaceType(
+            transformJSTypesForJSCompilers(_coreTypes, type));
+      } else {
+        typeRep = runtimeCall('packageJSType(#, #)',
+            [js.escapedString(jsName), js.boolean(isStaticInteropType(c))]);
+      }
     }
 
     if (typeRep != null) {

@@ -4,6 +4,8 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/redirecting_factory_body.dart'
+    show getRedirectingFactoryBody, RedirectingFactoryBody;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -18,8 +20,6 @@ import '../dill/dill_member_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/redirecting_factory_body.dart'
-    show getRedirectingFactoryBody, RedirectingFactoryBody;
 import '../messages.dart'
     show
         messageConstFactoryRedirectionToNonConst,

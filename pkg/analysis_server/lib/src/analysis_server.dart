@@ -67,6 +67,9 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
+/// The function for sending `openUri` request to the client.
+typedef OpenUriNotificationSender = FutureOr<void> Function(Uri uri);
+
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
 abstract class AnalysisServer {
@@ -289,8 +292,9 @@ abstract class AnalysisServer {
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
 
-  /// Whether or not the client supports openUri requests/notifications.
-  bool get supportsOpenUriNotification;
+  /// Returns the function that can send `openUri` request to the client.
+  /// Returns `null` is the client does not support it.
+  OpenUriNotificationSender? get openUriNotificationSender;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
@@ -679,9 +683,6 @@ abstract class AnalysisServer {
     }
     return null;
   }
-
-  /// Sends a notification/request to the client asking it to open [uri].
-  FutureOr<void> sendOpenUriNotification(Uri uri);
 
   /// Sends an error notification to the user.
   void sendServerErrorNotification(

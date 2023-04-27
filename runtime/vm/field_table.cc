@@ -118,7 +118,7 @@ void FieldTable::Grow(intptr_t new_capacity) {
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
   reinterpret_cast<AcqRelAtomic<ObjectPtr*>*>(&table_)->store(new_table);
-  if (isolate_ != nullptr) {
+  if (isolate_ != nullptr && isolate_->mutator_thread() != nullptr) {
     isolate_->mutator_thread()->field_table_values_ = table_;
   }
 }
