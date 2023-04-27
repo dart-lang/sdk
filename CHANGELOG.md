@@ -10,17 +10,145 @@
 
 ### Language
 
-- **Breaking Change** [#50902][]: Report a compile-time error for a `continue` statement
-  having an invalid target.
+Dart 3.0 adds the following features. To use them, set your package's [SDK
+constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
-  As per 18.15 of the language spec, it is a compile-time error for a `continue`
-  label to have a target which is not a loop (`for`, `do` and `while` statements)
-  or a `switch` member.
+[language version]: https://dart.dev/guides/language/evolution
 
-  Breakage is mitigated by changing the code to have the `continue` label properly
-  target a valid labeled statement.
+- **[Records]**: Records are anonymous immutable data structures that let you
+  aggregate multiple values together, similar to [tuples][] in other languages.
+  With records, you can return multiple values from a function, create composite
+  map keys, or use them any other place where you want to bundle a couple of
+  objects together.
 
+  For example, using a record to return two values:
+
+  ```dart
+  (double x, double y) geoLocation(String name) {
+    if (name == 'Nairobi') {
+      return (-1.2921, 36.8219);
+    } else {
+      ...
+    }
+  }
+  ```
+
+- **[Pattern matching]**: Expressions build values out of smaller pieces.
+  Conversely, patterns are an expressive tool for decomposing values back into
+  their constituent parts. Patterns can call getters on an object, access
+  elements from a list, pull fields out of a record, etc. For example, we can
+  destructure the record from the previous example like so:
+
+  ```dart
+  var (lat, long) = geoLocation('Nairobi');
+  print('Nairobi is at $lat, $long.');
+  ```
+
+  Patterns can also be used in [switch cases]. There, you can destructure values
+  and also test them to see if they have a certain type or value:
+
+  ```dart
+  switch (object) {
+    case [int a]:
+      print('A list with a single integer element $a');
+    case ('name', _):
+      print('A two-element record whose first field is "name".');
+    default: print('Some other object.');
+  }
+  ```
+
+  Also, as you can see, non-empty switch cases no longer need `break;`
+  statements.
+
+  **Breaking change**: Dart 3.0 interprets [switch cases] as patterns instead of
+  constant expressions. Most constant expressions found in switch cases are
+  valid patterns with the same meaning (named constants, literals, etc.). You
+  may need to tweak a few constant expressions to make them valid. This only
+  affects libraries that have upgraded to language version 3.0.
+
+- **[Switch expressions]**: Switch expressions allow you to use patterns and
+  multi-way branching in contexts where a statement isn't allowed:
+
+  ```dart
+  return TextButton(
+    onPressed: _goPrevious,
+    child: Text(switch (page) {
+      0 => 'Exit story',
+      1 => 'First page',
+      _ when page == _lastPage => 'Start over',
+      _ => 'Previous page',
+    }),
+  );
+  ```
+
+- **[If-case statements and elements]**: A new if construct that matches a value
+  against a pattern and executes the then or else branch depending on whether
+  the pattern matches:
+
+  ```dart
+  if (json case ['user', var name]) {
+    print('Got user message for user $name.');
+  }
+  ```
+
+  There is also a corresponding [if-case element] that can be used in collection
+  literals.
+
+- **[Sealed classes]**: When you mark a type `sealed`, the compiler ensures that
+  switches on values of that type [exhaustively cover] every subtype. This
+  enables you to program in an [algebraic datatype][] style with the
+  compile-time safety you expect:
+
+  ```dart
+  sealed class Amigo {}
+  class Lucky extends Amigo {}
+  class Dusty extends Amigo {}
+  class Ned extends Amigo {}
+
+  String lastName(Amigo amigo) =>
+      switch (amigo) {
+        case Lucky _ => 'Day';
+        case Ned _   => 'Nederlander';
+      }
+  ```
+
+  In this last example, the compiler reports an error that the switch doesn't
+  cover the subclass `Dusty`.
+
+- **[Class modifiers]**: New modifiers `final`, `interface`, `base`, and `mixin`
+  on `class` and `mixin` declarations let you control how the type can be used.
+  By default, Dart is flexible in that a single class declaration can be used as
+  an interface, a superclass, or even a mixin. This flexibility can make it
+  harder to evolve an API over time without breaking users. We mostly keep the
+  current flexible defaults, but these new modifiers give you finer-grained
+  control over how the type can be used.
+
+  **Breaking change:** Class declarations from libraries that have been upgraded
+  to Dart 3.0 can no longer be used as mixins by default. If you want the class
+  to be usable as both a class and a mixin, mark it [`mixin class`][mixin
+  class]. If you want it to be used only as a mixin, make it a `mixin`
+  declaration. If you haven't upgraded a class to Dart 3.0, you can still use it
+  as a mixin.
+
+- **Breaking Change** [#50902][]: Dart reports a compile-time error if a
+  `continue` statement targets a [label] that is not a loop (`for`, `do` and
+  `while` statements) or a `switch` member. Fix this by changing the `continue`
+  to target a valid labeled statement.
+
+[records]: https://dart.dev/language/records
+[tuples]: https://en.wikipedia.org/wiki/Tuple
+[pattern matching]: https://dart.dev/language/patterns
+[switch cases]: https://dart.dev/language/branches#switch
+[switch expressions]: https://dart.dev/language/branches#switch-expressions
+[if-case statements and elements]: https://dart.dev/language/branches#if-case
+[if-case element]: https://dart.dev/language/collections#control-flow-operators
+[sealed classes]: https://dart.dev/language/class-modifiers#sealed
+[exhaustively cover]: https://dart.dev/language/branches#exhaustiveness-checking
+[algebraic datatype]: https://en.wikipedia.org/wiki/Algebraic_data_type
+[class modifiers]: https://dart.dev/language/class-modifiers
+[mixin class]: https://dart.dev/language/mixins#class-mixin-or-mixin-class
 [#50902]: https://github.com/dart-lang/sdk/issues/50902
+[label]: https://dart.dev/language/branches#switch
 
 ### Libraries
 
