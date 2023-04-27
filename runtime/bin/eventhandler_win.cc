@@ -33,6 +33,14 @@ namespace bin {
 static constexpr int kBufferSize = 64 * 1024;
 static constexpr int kStdOverlappedBufferSize = 16 * 1024;
 static constexpr int kMaxUDPPackageLength = 64 * 1024;
+// For AcceptEx there needs to be buffer storage for address
+// information for two addresses (local and remote address). The
+// AcceptEx documentation says: "This value must be at least 16
+// bytes more than the maximum address length for the transport
+// protocol in use."
+static constexpr int kAcceptExAddressAdditionalBytes = 16;
+static constexpr int kAcceptExAddressStorageSize =
+    sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
 
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
@@ -459,23 +467,17 @@ bool ListenSocket::LoadGetAcceptExSockaddrs() {
   // Load the LoadGetAcceptExSockaddrs function into memory using WSAIoctl.
   GUID guid_load_accept_ex_sockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
   DWORD bytes;
-  int status = WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guid_load_accept_ex_sockaddrs, sizeof(guid_load_accept_ex_sockaddrs), &GetAcceptExSockaddrs_,
-                        sizeof(GetAcceptExSockaddrs_), &bytes, NULL, NULL);
+  int status =
+      WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+               &guid_load_accept_ex_sockaddrs,
+               sizeof(guid_load_accept_ex_sockaddrs), &GetAcceptExSockaddrs_,
+               sizeof(GetAcceptExSockaddrs_), &bytes, nullptr, nullptr);
   return (status != SOCKET_ERROR);
 }
 
 bool ListenSocket::IssueAccept() {
   MonitorLocker ml(&monitor_);
 
-  // For AcceptEx there needs to be buffer storage for address
-  // information for two addresses (local and remote address). The
-  // AcceptEx documentation says: "This value must be at least 16
-  // bytes more than the maximum address length for the transport
-  // protocol in use."
-  const int kAcceptExAddressAdditionalBytes = 16;
-  const int kAcceptExAddressStorageSize =
-      sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
   OverlappedBuffer* buffer =
       OverlappedBuffer::AllocateAcceptBuffer(2 * kAcceptExAddressStorageSize);
   DWORD received;
@@ -508,21 +510,20 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
     int rc = setsockopt(buffer->client(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
-      LPSOCKADDR local_addr = 0;
-      int local_addr_length = 0;
-      LPSOCKADDR remote_addr = 0;
-      int remote_addr_length = 0;
-      static const int kAcceptExAddressAdditionalBytes = 16;
-      static const int kAcceptExAddressStorageSize =
-          sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
-      GetAcceptExSockaddrs_(buffer->GetBufferStart(), 0, kAcceptExAddressStorageSize,
+      LPSOCKADDR local_addr;
+      int local_addr_length;
+      LPSOCKADDR remote_addr;
+      int remote_addr_length;
+      GetAcceptExSockaddrs_(
+          buffer->GetBufferStart(), 0, kAcceptExAddressStorageSize,
           kAcceptExAddressStorageSize, &local_addr, &local_addr_length,
           &remote_addr, &remote_addr_length);
       RawAddr* remote_addr_ = new RawAddr;
       memcpy(remote_addr_, remote_addr, remote_addr_length);
 
       // Insert the accepted socket into the list.
-      ClientSocket* client_socket = new ClientSocket(buffer->client(), remote_addr_);
+      ClientSocket* client_socket =
+          new ClientSocket(buffer->client(), remote_addr_);
       client_socket->mark_connected();
       client_socket->CreateCompletionPort(completion_port);
       if (accepted_head_ == nullptr) {
@@ -625,10 +626,12 @@ void ListenSocket::EnsureInitialized(
     ASSERT(event_handler_ == nullptr);
     event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
-    LoadAcceptEx();
+    bool isLoaded = LoadAcceptEx();
+    ASSERT(isLoaded);
   }
-  if (GetAcceptExSockaddrs_ == NULL) {
-    LoadGetAcceptExSockaddrs();
+  if (GetAcceptExSockaddrs_ == nullptr) {
+    bool isLoaded = LoadGetAcceptExSockaddrs();
+    ASSERT(isLoaded);
   }
 }
 
