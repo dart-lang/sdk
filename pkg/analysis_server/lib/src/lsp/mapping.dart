@@ -27,7 +27,6 @@ import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:collection/collection.dart';
 
 const languageSourceName = 'dart';
@@ -638,20 +637,16 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
 
 lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
     plugin.AnalysisErrorSeverity severity) {
-  switch (severity) {
-    case plugin.AnalysisErrorSeverity.ERROR:
-      return lsp.DiagnosticSeverity.Error;
-    case plugin.AnalysisErrorSeverity.WARNING:
-      return lsp.DiagnosticSeverity.Warning;
-    case plugin.AnalysisErrorSeverity.INFO:
-      return lsp.DiagnosticSeverity.Information;
+  return switch (severity) {
+    plugin.AnalysisErrorSeverity.ERROR => lsp.DiagnosticSeverity.Error,
+    plugin.AnalysisErrorSeverity.WARNING => lsp.DiagnosticSeverity.Warning,
+    plugin.AnalysisErrorSeverity.INFO => lsp.DiagnosticSeverity.Information,
     // Note: LSP also supports "Hint", but they won't render in things like the
     // VS Code errors list as they're apparently intended to communicate
     // non-visible diagnostics back (for example, if you wanted to grey out
     // unreachable code without producing an item in the error list).
-    default:
-      throw 'Unknown AnalysisErrorSeverity: $severity';
-  }
+    _ => throw 'Unknown AnalysisErrorSeverity: $severity'
+  };
 }
 
 /// Converts a numeric relevance to a sortable string.
@@ -965,8 +960,8 @@ lsp.CompletionItem toCompletionItem(
     selectionOffset: suggestion.selectionOffset,
     selectionLength: suggestion.selectionLength,
   );
-  final insertText = insertTextInfo.first;
-  final insertTextFormat = insertTextInfo.last;
+  final insertText = insertTextInfo.text;
+  final insertTextFormat = insertTextInfo.format;
   final isMultilineCompletion = insertText.contains('\n');
 
   final rawDoc = includeDocumentation == DocumentationPreference.full
@@ -1425,7 +1420,7 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-Pair<String, lsp.InsertTextFormat> _buildInsertText({
+({String text, lsp.InsertTextFormat format}) _buildInsertText({
   required bool supportsSnippets,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
@@ -1481,7 +1476,7 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
     }
   }
 
-  return Pair(insertText, insertTextFormat);
+  return (text: insertText, format: insertTextFormat);
 }
 
 String _errorCode(server.ErrorCode code) => code.name.toLowerCase();

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -30,32 +31,41 @@ class RemoveUnusedElement extends _RemoveUnused {
   Future<void> compute(ChangeBuilder builder) async {
     final sourceRanges = <SourceRange>[];
 
-    final referencedNode = node;
-    if (referencedNode is ClassDeclaration ||
-        referencedNode is EnumDeclaration ||
-        referencedNode is FunctionDeclaration ||
-        referencedNode is FunctionTypeAlias ||
-        referencedNode is MethodDeclaration ||
-        referencedNode is VariableDeclaration) {
-      final element = referencedNode is Declaration
-          ? referencedNode.declaredElement!
-          : (referencedNode as NamedCompilationUnitMember).declaredElement!;
+    final node = this.node;
+
+    if (node is ConstructorDeclaration) {
+      await _constructorDeclaration(
+        builder: builder,
+        node: node,
+      );
+      return;
+    }
+
+    if (node is ClassDeclaration ||
+        node is EnumDeclaration ||
+        node is FunctionDeclaration ||
+        node is FunctionTypeAlias ||
+        node is MethodDeclaration ||
+        node is VariableDeclaration) {
+      final element = node is Declaration
+          ? node.declaredElement!
+          : (node as NamedCompilationUnitMember).declaredElement!;
       final references = _findAllReferences(unit, element);
       // todo (pq): consider filtering for references that are limited to within the class.
       if (references.isEmpty) {
-        var parent = referencedNode.parent;
+        var parent = node.parent;
         var grandParent = parent?.parent;
         SourceRange sourceRange;
-        if (referencedNode is VariableDeclaration &&
+        if (node is VariableDeclaration &&
             parent is VariableDeclarationList &&
             grandParent != null) {
           if (parent.variables.length == 1) {
             sourceRange = utils.getLinesRange(range.node(grandParent));
           } else {
-            sourceRange = range.nodeInList(parent.variables, referencedNode);
+            sourceRange = range.nodeInList(parent.variables, node);
           }
         } else {
-          sourceRange = utils.getLinesRange(range.node(referencedNode));
+          sourceRange = utils.getLinesRange(range.node(node));
         }
         sourceRanges.add(sourceRange);
       }
@@ -65,6 +75,27 @@ class RemoveUnusedElement extends _RemoveUnused {
       for (var sourceRange in sourceRanges) {
         builder.addDeletion(sourceRange);
       }
+    });
+  }
+
+  Future<void> _constructorDeclaration({
+    required ChangeBuilder builder,
+    required ConstructorDeclaration node,
+  }) async {
+    final NodeList<ClassMember> members;
+    switch (node.parent) {
+      case ClassDeclaration classDeclaration:
+        members = classDeclaration.members;
+      case EnumDeclaration enumDeclaration:
+        members = enumDeclaration.members;
+      case _:
+        return;
+    }
+
+    final nodeRange = range.nodeInList(members, node);
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addDeletion(nodeRange);
     });
   }
 }

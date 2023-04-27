@@ -90,6 +90,21 @@ class C implements B {}
     ]);
   }
 
+  test_class_outside_viaExtends() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+base class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+base class B extends A {}
+base class C implements B {}
+''', [
+      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 67,
+          1),
+    ]);
+  }
+
   test_class_outside_viaTypedef_inside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base class Foo {}

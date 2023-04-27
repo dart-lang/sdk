@@ -116,7 +116,7 @@ class TestOptions {
 runTestCase(Uri source, List<String>? experimentalFlags) async {
   final Target target = new VmTarget(new TargetFlags());
   final Component component = await compileTestCaseToKernelProgram(source,
-      experimentalFlags: experimentalFlags);
+      target: target, experimentalFlags: experimentalFlags);
   final Library library = component.mainMethod!.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 

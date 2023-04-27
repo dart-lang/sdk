@@ -2833,7 +2833,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   HeapProfileSampler& heap_sampler = thread->heap_sampler();
   if (heap_sampler.HasOutstandingSample()) {
     thread->IncrementNoCallbackScopeDepth();
-    void* data = heap_sampler.InvokeCallbackForLastSample();
+    void* data = heap_sampler.InvokeCallbackForLastSample(cls_id);
     heap->SetHeapSamplingData(raw_obj, data);
     thread->DecrementNoCallbackScopeDepth();
   }
@@ -10168,7 +10168,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       param_type = closure_signature.ParameterTypeAt(i);
       param_type = param_type.UpdateParentFunctionType(num_type_args, kAllFree,
                                                        Heap::kOld);
-      if (!param_type.IsInstantiated()) {
+      if (!param_type.IsInstantiated(kCurrentClass)) {
         param_type = param_type.InstantiateFrom(
             instantiator_type_args, Object::null_type_arguments(),
             kNoneFree /* avoid truncating parent type args */, Heap::kOld);

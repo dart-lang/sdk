@@ -274,6 +274,8 @@ class SocketBase : public AllStatic {
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
 
+  static bool IsValidAddress(const char* address);
+
   // Convert address from byte representation to human readable string.
   static bool RawAddrToString(RawAddr* addr, char* str);
   static bool FormatNumericAddress(const RawAddr& addr, char* address, int len);

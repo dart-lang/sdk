@@ -461,6 +461,9 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   @override
   final Member member;
 
+  DartType? _cachedGetterType;
+  InferenceVisitorBase? _cachedGetterTypeBase;
+
   /// Creates an access to the instance [member].
   InstanceAccessTarget.nonNullable(this.receiverType, this.member)
       : super.internal(ObjectAccessTargetKind.instanceMember);
@@ -479,16 +482,18 @@ class InstanceAccessTarget extends ObjectAccessTarget {
 
   @override
   FunctionType getFunctionType(InferenceVisitorBase base) {
-    return _getFunctionType(
-        base,
-        base.getGetterTypeForMemberTarget(member, receiverType,
-            isSuper: isSuperMember));
+    return _getFunctionType(base, getGetterType(base));
   }
 
   @override
   DartType getGetterType(InferenceVisitorBase base) {
-    return base.getGetterTypeForMemberTarget(member, receiverType,
+    if (_cachedGetterType != null && identical(_cachedGetterTypeBase, base)) {
+      return _cachedGetterType!;
+    }
+    _cachedGetterType = base.getGetterTypeForMemberTarget(member, receiverType,
         isSuper: isSuperMember);
+    _cachedGetterTypeBase = base;
+    return _cachedGetterType!;
   }
 
   @override
@@ -536,10 +541,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getIndexKeyType(InferenceVisitorBase base) {
-    FunctionType functionType = _getFunctionType(
-        base,
-        base.getGetterTypeForMemberTarget(member, receiverType,
-            isSuper: isSuperMember));
+    FunctionType functionType = _getFunctionType(base, getGetterType(base));
     if (functionType.positionalParameters.length >= 1) {
       return functionType.positionalParameters[0];
     }
@@ -548,10 +550,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getIndexSetValueType(InferenceVisitorBase base) {
-    FunctionType functionType = _getFunctionType(
-        base,
-        base.getGetterTypeForMemberTarget(member, receiverType,
-            isSuper: isSuperMember));
+    FunctionType functionType = _getFunctionType(base, getGetterType(base));
     if (functionType.positionalParameters.length >= 2) {
       return functionType.positionalParameters[1];
     }
@@ -560,19 +559,13 @@ class InstanceAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getReturnType(InferenceVisitorBase base) {
-    FunctionType functionType = _getFunctionType(
-        base,
-        base.getGetterTypeForMemberTarget(member, receiverType,
-            isSuper: isSuperMember));
+    FunctionType functionType = _getFunctionType(base, getGetterType(base));
     return functionType.returnType;
   }
 
   @override
   DartType getBinaryOperandType(InferenceVisitorBase base) {
-    FunctionType functionType = _getFunctionType(
-        base,
-        base.getGetterTypeForMemberTarget(member, receiverType,
-            isSuper: isSuperMember));
+    FunctionType functionType = _getFunctionType(base, getGetterType(base));
     if (functionType.positionalParameters.isNotEmpty) {
       return functionType.positionalParameters.first;
     }

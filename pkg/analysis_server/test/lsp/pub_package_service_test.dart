@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:collection/collection.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -252,13 +251,13 @@ class PubCommandTest with ResourceProviderMixin {
         (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
     final result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(2));
-    result.forEachIndexed((index, package) {
+    for (final (index, package) in result.indexed) {
       expect(package.packageName, equals(index == 0 ? 'foo' : 'bar'));
       expect(package.currentVersion, equals('1.0.0'));
       expect(package.upgradableVersion, equals('2.0.0'));
       expect(package.resolvableVersion, equals('3.0.0'));
       expect(package.latestVersion, equals('4.0.0'));
-    });
+    }
   }
 }
 

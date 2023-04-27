@@ -56,7 +56,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             (new Typedef(name, null,
                 typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
                     _typeVariables),
-                fileUri: parent.library.fileUri,
+                fileUri: parent.fileUri,
                 reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
         super(metadata, name, parent, charOffset);

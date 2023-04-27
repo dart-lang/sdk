@@ -4600,8 +4600,9 @@ class ThisAccessGenerator extends Generator {
     Constructor? constructor =
         _helper.lookupConstructor(name, isSuper: isSuper);
     if (constructor == null) {
-      String fullName =
-          _helper.constructorNameForDiagnostics(name.text, isSuper: isSuper);
+      String fullName = isSuper
+          ? _helper.superConstructorNameForDiagnostics(name.text)
+          : _helper.constructorNameForDiagnostics(name.text);
       LocatedMessage message = (isSuper
               ? templateSuperclassHasNoConstructor
               : templateConstructorNotFound)
@@ -4609,8 +4610,9 @@ class ThisAccessGenerator extends Generator {
           .withLocation(_uri, fileOffset, lengthForToken(token));
       return _helper.buildInvalidInitializer(
           _helper.buildUnresolvedError(
-              _helper.constructorNameForDiagnostics(name.text,
-                  isSuper: isSuper),
+              isSuper
+                  ? _helper.superConstructorNameForDiagnostics(name.text)
+                  : _helper.constructorNameForDiagnostics(name.text),
               offset,
               arguments: arguments,
               isSuper: isSuper,

@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on core::int {
+  get getter = self::_extension#0|get#getter;
+  method method = self::_extension#0|method;
+  tearoff method = self::_extension#0|get#method;
+  set setter = self::_extension#0|set#setter;
+}
+static field core::int getter;
+static field core::int setter;
+static method _extension#0|get#getter(lowered final core::int #this) → dynamic
+  ;
+static method _extension#0|set#setter(lowered final core::int #this, dynamic _) → void
+  ;
+static method _extension#0|method(lowered final core::int #this) → dynamic
+  ;
+static method _extension#0|get#method(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::_extension#0|method(#this);

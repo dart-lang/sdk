@@ -13,6 +13,7 @@ mixin _MixinOnObject {}
 /// It is an error if FinalClass is extended.
 
 // Simple extension.
+
 class SimpleExtend extends FinalClass {}
 //                         ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -39,6 +40,7 @@ sealed class SealedExtend extends FinalClass {}
 // [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
 
 // Extending via an anonymous mixin class.
+
 class SimpleExtendWith extends FinalClass with _MixinOnObject {}
 //                             ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -65,6 +67,7 @@ sealed class SealedExtendWith extends FinalClass with _MixinOnObject {}
 // [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
 
 // Extending via an anonymous mixin application class.
+
 class SimpleExtendApplication = FinalClass with _MixinOnObject;
 //                              ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -94,6 +97,7 @@ sealed class SealedExtendApplication = FinalClass with _MixinOnObject;
 /// final or sealed.
 
 // Simple implementation.
+
 class SimpleImplement implements FinalClass {}
 //                               ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -120,6 +124,7 @@ sealed class SealedImplement implements FinalClass {}
 // [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
 
 // Implementing with a mixin class.
+
 mixin class SimpleMixinClassImplement implements FinalClass {}
 //                                               ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -131,6 +136,7 @@ base mixin class BaseMixinClassImplement implements FinalClass {}
 // [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
 
 // Implementing with a mixin application class.
+
 class SimpleImplementApplication = Object
     with _MixinOnObject
     implements FinalClass;
@@ -167,6 +173,7 @@ sealed class SealedImplementApplication = Object
 // [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
 
 // Implementing with a mixin.
+
 mixin SimpleMixinImplement implements FinalClass {}
 //                                    ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY

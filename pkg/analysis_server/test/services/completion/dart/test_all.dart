@@ -6,7 +6,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'closure_contributor_test.dart' as closure_contributor;
-import 'combinator_contributor_test.dart' as combinator_test;
 import 'completion_manager_test.dart' as completion_manager;
 import 'declaration/test_all.dart' as declaration;
 import 'extension_member_contributor_test.dart' as extension_member_contributor;
@@ -29,7 +28,6 @@ void main() {
   defineReflectiveSuite(() {
     arglist_test.main();
     closure_contributor.main();
-    combinator_test.main();
     completion_manager.main();
     declaration.main();
     extension_member_contributor.main();

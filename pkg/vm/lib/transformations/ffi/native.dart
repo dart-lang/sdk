@@ -505,13 +505,6 @@ class FfiNativeTransformer extends FfiTransformer {
 
     final parent = node.parent;
 
-    var fileUri = currentLibrary.fileUri;
-    if (parent is Class) {
-      fileUri = parent.fileUri;
-    } else if (parent is Library) {
-      fileUri = parent.fileUri;
-    }
-
     // static final _myMethod$FfiNative$Ptr = ..
     final resolvedField = _createResolvedFfiNativeField(
       '${node.name.text}\$${node.kind.name}',
@@ -521,7 +514,7 @@ class FfiNativeTransformer extends FfiTransformer {
       wrappedDartFunctionType,
       ffiFunctionType,
       node.fileOffset,
-      fileUri,
+      node.fileUri,
     );
 
     // Add field to the parent the FfiNative function belongs to.

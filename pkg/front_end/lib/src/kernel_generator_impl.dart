@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/verifier.dart' show VerificationStage;
 
 import 'api_prototype/file_system.dart' show FileSystem;
 import 'api_prototype/front_end.dart' show CompilerOptions, CompilerResult;
@@ -145,8 +146,8 @@ Future<CompilerResult> _buildInternal(
   List<int>? summary = null;
   if (buildSummary) {
     if (options.verify) {
-      for (LocatedMessage error
-          in verifyComponent(summaryComponent, options.target)) {
+      for (LocatedMessage error in verifyComponent(
+          options.target, VerificationStage.outline, summaryComponent)) {
         options.report(error, Severity.error);
       }
     }

@@ -10507,30 +10507,29 @@ TEST_CASE(DartAPI_UserTags) {
 #endif  // !PRODUCT
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+
+static void* last_allocation_context = nullptr;
+static const char* last_allocation_cls = nullptr;
+static intptr_t heap_samples = 0;
+static const char* expected_allocation_cls = nullptr;
+static bool found_allocation = false;
+
 static void* HeapSamplingCreate(Dart_Isolate isolate,
                                 Dart_IsolateGroup isolate_group,
+                                const char* cls_name,
                                 intptr_t heap_size) {
-  return strdup("test data");
+  last_allocation_cls = cls_name;
+  return strdup(cls_name);
 }
 
 static void HeapSamplingDelete(void* data) {
   free(data);
 }
 
-static void* last_allocation_context = nullptr;
-static const char* last_allocation_cls = nullptr;
-static void* last_allocation_data = nullptr;
-static intptr_t heap_samples = 0;
-static const char* expected_allocation_cls = nullptr;
-static bool found_allocation = false;
-
 void HeapSamplingReport(void* context,
-                        const char* cls_name,
                         void* data) {
   last_allocation_context = context;
-  last_allocation_cls = cls_name;
-  last_allocation_data = data;
-  if (strcmp(cls_name, expected_allocation_cls) == 0) {
+  if (strcmp(reinterpret_cast<char*>(data), expected_allocation_cls) == 0) {
     found_allocation = true;
   }
   heap_samples++;
@@ -10542,7 +10541,6 @@ void ResetHeapSamplingState(const char* expected_cls = nullptr) {
   found_allocation = false;
   last_allocation_context = nullptr;
   last_allocation_cls = nullptr;
-  last_allocation_data = nullptr;
 }
 
 // Threads won't pick up heap sampling profiler state changes until they
@@ -10596,7 +10594,6 @@ TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
   EXPECT(heap_samples < 100000);
   EXPECT(last_allocation_context == context);
   EXPECT(found_allocation);
-  EXPECT_STREQ(reinterpret_cast<char*>(last_allocation_data), "test data");
   Dart_EnterIsolate(isolate);
 }
 

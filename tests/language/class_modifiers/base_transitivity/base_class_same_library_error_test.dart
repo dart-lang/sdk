@@ -16,6 +16,7 @@ mixin _MixinOnObject {}
 /// final or sealed.
 
 // Simple extension.
+
 class SimpleExtend extends BaseClass {}
 //    ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -27,9 +28,11 @@ interface class InterfaceExtend extends BaseClass {}
 // [cfe] The type 'InterfaceExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Extending with a sealed class (valid, used to check the errors below).
+
 sealed class SealedExtend extends BaseClass {}
 
 // Extending through a sealed class.
+
 class SimpleSealedExtendExtend extends SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -41,6 +44,7 @@ interface class InterfaceSealedExtendExtend extends SealedExtend {}
 // [cfe] The type 'InterfaceSealedExtendExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing through a sealed class.
+
 class SimpleSealedExtendImplement implements SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -62,12 +66,14 @@ mixin MixinSealedExtendImplement implements SealedExtend {}
 // [cfe] The type 'MixinSealedExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Using a sealed class as an `on` type
+
 mixin MixinSealedExtendOn on SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'MixinSealedExtendOn' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Extending via an anonymous mixin class.
+
 class SimpleExtendWith extends BaseClass with _MixinOnObject {}
 //    ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -79,6 +85,7 @@ interface class InterfaceExtendWith extends BaseClass with _MixinOnObject {}
 // [cfe] The type 'InterfaceExtendWith' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Extending via an anonymous mixin application class.
+
 class SimpleExtendApplication = BaseClass with _MixinOnObject;
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -92,6 +99,7 @@ interface class InterfaceExtendApplication = BaseClass with _MixinOnObject;
 /// final or sealed.
 
 // Simple implementation.
+
 class SimpleImplement implements BaseClass {}
 //    ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -103,9 +111,11 @@ interface class InterfaceImplement implements BaseClass {}
 // [cfe] The type 'InterfaceImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing with a sealed class (valid, used for tests below).
+
 sealed class SealedImplement implements BaseClass {}
 
 // Extending through a sealed class.
+
 class SimpleSealedImplementExtend extends SealedImplement {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -117,6 +127,7 @@ interface class InterfaceSealedImplementExtend extends SealedImplement {}
 // [cfe] The type 'InterfaceSealedImplementExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing through a sealed class.
+
 class SimpleSealedImplementImplement implements SealedImplement {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -128,15 +139,18 @@ interface class InterfaceSealedImplementImplement implements SealedImplement {}
 // [cfe] The type 'InterfaceSealedImplementImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing with a mixin class.
+
 mixin class SimpleMixinClassImplement implements BaseClass {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinClassImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing with a base mixin class (valid, used for tests below)
+
 base mixin class BaseMixinClassImplement implements BaseClass {}
 
 // Implementing by applying a mixin class.
+
 class SimpleMixinClassImplementApplied extends Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -152,6 +166,7 @@ interface class InterfaceMixinClassImplementApplied extends Object
         BaseMixinClassImplement {}
 
 // Implementing with a mixin application class.
+
 interface class InterfaceImplementApplication = Object
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -170,15 +185,18 @@ class SimpleImplementApplication = Object
         BaseClass;
 
 // Implementing with a mixin.
+
 mixin SimpleMixinImplement implements BaseClass {}
 //    ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing with a base mixin (valid, used for tests below)
+
 base mixin BaseMixinImplement implements BaseClass {}
 
 // Implementing by applying a mixin.
+
 class SimpleMixinImplementApplied extends Object with BaseMixinImplement {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED

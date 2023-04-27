@@ -112,7 +112,8 @@ class Dart2jsTarget extends Target {
         'dart:_late_helper',
         'dart:js',
         'dart:js_interop',
-        'dart:js_util'
+        'dart:js_util',
+        'dart:typed_data',
       ];
 
   @override
@@ -289,6 +290,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:js',
     'dart:js_interop',
     'dart:js_util',
+    'dart:js_interop_unsafe',
     'dart:math',
     'dart:svg',
     'dart:typed_data',
@@ -323,6 +325,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:isolate',
     'dart:js',
     'dart:js_interop',
+    'dart:js_interop_unsafe',
     'dart:js_util',
     'dart:math',
     'dart:typed_data',

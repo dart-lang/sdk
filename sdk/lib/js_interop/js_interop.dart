@@ -43,6 +43,19 @@ class ObjectLiteral {
   const ObjectLiteral();
 }
 
+/// The JS types users should use to write their external APIs.
+///
+/// These are meant to separate the Dart and JS type hierarchies statically.
+///
+/// **WARNING**:
+/// For now, the runtime semantics between backends may differ and may not be
+/// intuitive e.g. casting to [JSString] may give you inconsistent and
+/// surprising results depending on the value. It is preferred to always use the
+/// conversion functions e.g. `toJS` and `toDart`. The only runtime semantics
+/// stability we can guarantee is if a value actually is the JS type you are
+/// type-checking with/casting to e.g. `obj as JSString` will continue to work
+/// if `obj` actually is a JavaScript string.
+
 /// The overall top type in the JS types hierarchy.
 typedef JSAny = js_types.JSAny;
 
@@ -58,6 +71,7 @@ typedef JSAny = js_types.JSAny;
 // sealed classes feature.
 // TODO(joshualitt): Do we need to seal any other JS types on JS backends? We
 // probably want to seal all JS types on Wasm backends.
+// TODO(joshualitt): Add a [JSObject] constructor.
 typedef JSObject = js_types.JSObject;
 
 /// The type of all JS functions, [JSFunction] <: [JSObject].
@@ -113,6 +127,9 @@ typedef JSBoolean = js_types.JSBoolean;
 /// The type of JS strings, [JSString] <: [JSAny].
 typedef JSString = js_types.JSString;
 
+/// A getter to retrieve the Global [JSObject].
+external JSObject get globalJSObject;
+
 /// `JSUndefined` and `JSNull` are actual reified types on some backends, but
 /// not others. Instead, users should use nullable types for any type that could
 /// contain `JSUndefined` or `JSNull`. However, instead of trying to determine
@@ -127,6 +144,24 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   external bool get isNull;
   bool get isUndefinedOrNull => isUndefined || isNull;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
+  external JSBoolean typeofEquals(JSString typeString);
+
+  /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
+  /// and converts it to a Dart based object. Only JS primitives, arrays, or
+  /// 'map' like JS objects are supported.
+  external Object? dartify();
+}
+
+/// Utility extensions for [Object?].
+extension NullableObjectUtilExtension on Object? {
+  /// Recursively converts a JSON-like collection, or Dart primitive to a
+  /// JavaScript compatible representation.
+  external JSAny? jsify();
+}
+
+/// Utility extensions for [JSObject].
+extension JSObjectUtilExtension on JSObject {
+  external JSBoolean instanceof(JSFunction constructor);
 }
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,

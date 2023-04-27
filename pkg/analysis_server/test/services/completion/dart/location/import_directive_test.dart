@@ -13,16 +13,70 @@ void main() {
   });
 }
 
+mixin HideClauseTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterComma_beforeSemicolon() async {
+    allowedIdentifiers = {'pi'};
+    await computeSuggestions('''
+import "dart:math" hide pi, ^;
+''');
+    // The purpose of this test is to ensure that `pi` is not suggested.
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_afterHide_beforeSemicolon() async {
+    newFile('$testPackageLibPath/ab.dart', '''
+library libAB;
+part "ab_part.dart";
+class A0 {}
+class B0 {}
+''');
+    newFile('$testPackageLibPath/ab_part.dart', '''
+part of libAB;
+var T1;
+P0 F1() => new P0();
+class P0 {}
+''');
+    newFile('$testPackageLibPath/cd.dart', '''
+class C0 {}
+class D0 {}
+''');
+    await computeSuggestions('''
+import "ab.dart" hide ^;
+import "cd.dart";
+class F0 {}
+''');
+    // Part of the purpose of this test is to ensure that we don't suggest names
+    // from other imports ('C0' and 'D0') or locally defined names ('F0').
+    // TODO(scheglov) It might be also interesting what happens when we have
+    // just a getter, just a setter, a pair of a getter and a setter.
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  B0
+    kind: class
+  F1
+    kind: function
+  P0
+    kind: class
+  T1
+    kind: topLevelVariable
+''');
+  }
+}
+
 @reflectiveTest
 class ImportDirectiveTest1 extends AbstractCompletionDriverTest
-    with ImportDirectiveTestCases {
+    with HideClauseTestCases, ImportDirectiveTestCases, ShowClauseTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ImportDirectiveTest2 extends AbstractCompletionDriverTest
-    with ImportDirectiveTestCases {
+    with HideClauseTestCases, ImportDirectiveTestCases, ShowClauseTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -329,6 +383,118 @@ suggestions
     kind: keyword
   deferred as
     kind: keyword
+''');
+  }
+}
+
+mixin ShowClauseTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterComma_beforeSemicolon() async {
+    await computeSuggestions('''
+import "dart:math" show pi, ^;
+''');
+    // The purpose of this test is to ensure that `pi` is not suggested.
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_afterShow_beforeSemicolon() async {
+    newFile('$testPackageLibPath/ab.dart', '''
+library libAB;
+part "ab_part.dart";
+class A0 {}
+class B0 {}
+class _A1 {}
+void f(_A1 a) {}
+''');
+    newFile('$testPackageLibPath/ab_part.dart', '''
+part of libAB;
+var T1;
+P1 F1() => new P1();
+typedef P1 F2(int blat);
+class C1 = Object with M;
+class P1 {}
+mixin M {}
+''');
+    newFile('$testPackageLibPath/cd.dart', '''
+class C0 {}
+class D0 {}
+''');
+    await computeSuggestions('''
+import "ab.dart" show ^;
+import "cd.dart";
+class G0 {}
+''');
+    // Part of the purpose of this test is to ensure that we don't suggest names
+    // from other imports ('C0' and 'D0') or locally defined names ('G0').
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  B0
+    kind: class
+  C1
+    kind: class
+  F1
+    kind: function
+  F2
+    kind: typeAlias
+  P1
+    kind: class
+  T1
+    kind: topLevelVariable
+''');
+  }
+
+  Future<void> test_afterShow_beforeSemicolon_math() async {
+    allowedIdentifiers = {'pi'};
+    await computeSuggestions('''
+import "dart:math" show ^;
+''');
+    assertResponse(r'''
+suggestions
+  pi
+    kind: topLevelVariable
+''');
+  }
+
+  Future<void> test_afterShow_beforeSemicolon_recursiveExport() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0 {}
+''');
+    newFile('$testPackageLibPath/b.dart', '''
+export 'a.dart';
+export 'b.dart';
+class B0 {}
+''');
+    await computeSuggestions('''
+import "b.dart" show ^;
+''');
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  B0
+    kind: class
+''');
+  }
+
+  Future<void> test_afterShow_beforeSemicolon_withRestrictedExport() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0 {}
+class B0 {}
+''');
+    newFile('$testPackageLibPath/b.dart', '''
+export 'a.dart' show A0;
+''');
+    await computeSuggestions('''
+import 'b.dart' show ^;
+''');
+    // The purpose of this test is to ensure that `B0` is not suggested.
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
 ''');
   }
 }

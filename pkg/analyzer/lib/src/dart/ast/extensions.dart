@@ -124,6 +124,20 @@ extension DartPatternExtension on DartPattern {
     }
     return type;
   }
+
+  DartType? get requiredType {
+    final self = this;
+    if (self is DeclaredVariablePattern) {
+      return self.type?.typeOrThrow;
+    } else if (self is ListPattern) {
+      return self.requiredType;
+    } else if (self is MapPattern) {
+      return self.requiredType;
+    } else if (self is WildcardPattern) {
+      return self.type?.typeOrThrow;
+    }
+    return null;
+  }
 }
 
 extension ExpressionExtension on Expression {

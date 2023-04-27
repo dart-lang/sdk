@@ -37,6 +37,23 @@ base class Bar implements Foo {}
     ]);
   }
 
+  test_class_outside_viaExtends() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+base mixin A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+sealed class B extends Object with A {}
+class C implements B {}
+''', [
+      error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 77, 1,
+          contextMessages: [message('/home/test/lib/a.dart', 11, 1)]),
+    ]);
+  }
+
   test_class_outside_viaTypedef_inside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base mixin Foo {}

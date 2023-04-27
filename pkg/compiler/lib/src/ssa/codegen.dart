@@ -54,7 +54,8 @@ abstract class CodegenPhase {
 class SsaCodeGeneratorTask extends CompilerTask {
   final CompilerOptions _options;
   final SourceInformationStrategy sourceInformationStrategy;
-  final _CodegenMetrics _metrics = _CodegenMetrics();
+  _CodegenMetrics? _codegenMetrics;
+  _CodegenMetrics get codegenMetrics => _codegenMetrics ??= _CodegenMetrics();
 
   SsaCodeGeneratorTask(
       Measurer super.measurer, this._options, this.sourceInformationStrategy);
@@ -63,7 +64,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String get name => 'SSA code generator';
 
   @override
-  Metrics get metrics => _metrics;
+  Metrics get metrics => _codegenMetrics ?? Metrics.none();
 
   js.Fun buildJavaScriptFunction(bool needsAsyncRewrite, FunctionEntity element,
       List<js.Parameter> parameters, js.Block body) {
@@ -124,7 +125,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
-          _metrics,
+          codegenMetrics,
           emitter,
           codegen.rtiSubstitutions,
           codegen.rtiRecipeEncoder,
@@ -154,7 +155,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
-          _metrics,
+          codegenMetrics,
           emitter,
           codegen.rtiSubstitutions,
           codegen.rtiRecipeEncoder,

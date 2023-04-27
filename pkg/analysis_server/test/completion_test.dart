@@ -27,9 +27,6 @@ class CompletionTestBuilder {
     buildCompletionTests();
     buildOtherTests();
     buildLibraryTests();
-    var testCount = expectedPassCount + expectedFailCount;
-    print(
-        'Total $testCount tests, of which $expectedFailCount are expected to fail.');
   }
 
   void buildCommentSnippetTests() {

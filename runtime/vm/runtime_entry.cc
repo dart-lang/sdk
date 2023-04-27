@@ -3307,6 +3307,9 @@ void DeoptimizeFunctionsOnStack() {
     isolate_group->ForEachIsolate(
         [&](Isolate* isolate) {
           auto mutator_thread = isolate->mutator_thread();
+          if (mutator_thread == nullptr) {
+            return;
+          }
           DartFrameIterator iterator(
               mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
           StackFrame* frame = iterator.NextFrame();
@@ -3332,6 +3335,9 @@ static void DeoptimizeLastDartFrameIfOptimized() {
   auto isolate_group = thread->isolate_group();
   isolate_group->RunWithStoppedMutators([&]() {
     auto mutator_thread = isolate->mutator_thread();
+    if (mutator_thread == nullptr) {
+      return;
+    }
     DartFrameIterator iterator(mutator_thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();

@@ -1,0 +1,9 @@
+class B extends A with M {
+  B();
+}
+
+f(A a) {}
+main() {}
+mixin M {}
+
+sealed class A {}

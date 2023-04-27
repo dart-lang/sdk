@@ -107,6 +107,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     Request request,
     RequestHandler<TArg, TResp> handler,
     TArg Function(Map<String, Object?>) fromJson,
+    Completer<Response> completer,
   ) async {
     try {
       final args = request.arguments != null
@@ -130,7 +131,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
           command: request.command,
           body: responseBody,
         );
-        _channel.sendResponse(response);
+        completer.complete(response);
       }
 
       await handler(request, args, sendResponse);
@@ -145,7 +146,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         message: e is DebugAdapterException ? e.message : '$e',
         body: '$s',
       );
-      _channel.sendResponse(response);
+      completer.complete(response);
     }
   }
 
@@ -270,7 +271,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// Handles incoming messages from the client editor.
   void _handleIncomingMessage(ProtocolMessage message) {
     if (message is Request) {
-      _handleIncomingRequest(message);
+      handleIncomingRequest(message).then(_channel.sendResponse);
     } else if (message is Response) {
       _handleIncomingResponse(message);
     } else {
@@ -279,80 +280,152 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   }
 
   /// Handles an incoming request, calling the appropriate method to handle it.
-  void _handleIncomingRequest(Request request) {
+  Future<Response> handleIncomingRequest(Request request) {
+    final completer = Completer<Response>();
+
     if (request.command == 'initialize') {
-      handle(request, initializeRequest, InitializeRequestArguments.fromJson);
+      handle(
+        request,
+        initializeRequest,
+        InitializeRequestArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'launch') {
-      handle(request, _withVoidResponse(launchRequest), parseLaunchArgs);
+      handle(
+        request,
+        _withVoidResponse(launchRequest),
+        parseLaunchArgs,
+        completer,
+      );
     } else if (request.command == 'attach') {
-      handle(request, _withVoidResponse(attachRequest), parseAttachArgs);
+      handle(
+        request,
+        _withVoidResponse(attachRequest),
+        parseAttachArgs,
+        completer,
+      );
     } else if (request.command == 'restart') {
       handle(
         request,
         _withVoidResponse(restartRequest),
         _allowNullArg(RestartArguments.fromJson),
+        completer,
       );
     } else if (request.command == 'terminate') {
       handle(
         request,
         _withVoidResponse(terminateRequest),
         _allowNullArg(TerminateArguments.fromJson),
+        completer,
       );
     } else if (request.command == 'disconnect') {
       handle(
         request,
         _withVoidResponse(disconnectRequest),
         _allowNullArg(DisconnectArguments.fromJson),
+        completer,
       );
     } else if (request.command == 'configurationDone') {
       handle(
         request,
         _withVoidResponse(configurationDoneRequest),
         _allowNullArg(ConfigurationDoneArguments.fromJson),
+        completer,
       );
     } else if (request.command == 'setBreakpoints') {
-      handle(request, setBreakpointsRequest, SetBreakpointsArguments.fromJson);
+      handle(
+        request,
+        setBreakpointsRequest,
+        SetBreakpointsArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'setExceptionBreakpoints') {
       handle(
         request,
         setExceptionBreakpointsRequest,
         SetExceptionBreakpointsArguments.fromJson,
+        completer,
       );
     } else if (request.command == 'continue') {
-      handle(request, continueRequest, ContinueArguments.fromJson);
+      handle(
+        request,
+        continueRequest,
+        ContinueArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'next') {
-      handle(request, _withVoidResponse(nextRequest), NextArguments.fromJson);
+      handle(
+        request,
+        _withVoidResponse(nextRequest),
+        NextArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'stepIn') {
       handle(
         request,
         _withVoidResponse(stepInRequest),
         StepInArguments.fromJson,
+        completer,
       );
     } else if (request.command == 'stepOut') {
       handle(
         request,
         _withVoidResponse(stepOutRequest),
         StepOutArguments.fromJson,
+        completer,
       );
     } else if (request.command == 'threads') {
-      handle(request, threadsRequest, _voidArgs);
+      handle(
+        request,
+        threadsRequest,
+        _voidArgs,
+        completer,
+      );
     } else if (request.command == 'stackTrace') {
-      handle(request, stackTraceRequest, StackTraceArguments.fromJson);
+      handle(
+        request,
+        stackTraceRequest,
+        StackTraceArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'source') {
-      handle(request, sourceRequest, SourceArguments.fromJson);
+      handle(
+        request,
+        sourceRequest,
+        SourceArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'scopes') {
-      handle(request, scopesRequest, ScopesArguments.fromJson);
+      handle(
+        request,
+        scopesRequest,
+        ScopesArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'variables') {
-      handle(request, variablesRequest, VariablesArguments.fromJson);
+      handle(
+        request,
+        variablesRequest,
+        VariablesArguments.fromJson,
+        completer,
+      );
     } else if (request.command == 'evaluate') {
-      handle(request, evaluateRequest, EvaluateArguments.fromJson);
+      handle(
+        request,
+        evaluateRequest,
+        EvaluateArguments.fromJson,
+        completer,
+      );
     } else {
       handle(
         request,
         customRequest,
         _allowNullArg(RawRequestArguments.fromJson),
+        completer,
       );
     }
+
+    return completer.future;
   }
 
   void _handleIncomingResponse(Response response) {

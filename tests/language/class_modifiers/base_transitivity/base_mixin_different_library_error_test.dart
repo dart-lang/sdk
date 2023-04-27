@@ -14,6 +14,7 @@ mixin _MixinOnObject {}
 /// final or sealed.
 
 // Simple implementation.
+
 class SimpleImplement implements BaseMixin {}
 //    ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -46,6 +47,7 @@ sealed class SealedImplement implements BaseMixin {}
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 // Implementing with a mixin class.
+
 mixin class SimpleMixinClassImplement implements BaseMixin {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -60,6 +62,7 @@ base mixin class BaseMixinClassImplement implements BaseMixin {}
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 // Implementing with a mixin application class.
+
 class SimpleImplementApplication = Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -106,6 +109,7 @@ sealed class SealedImplementApplication = Object
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 // Implementing with a mixin.
+
 mixin SimpleMixinImplement implements BaseMixin {}
 //    ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -181,50 +185,154 @@ interface class InterfaceMixinClassApplyBaseSimple extends Object
         BaseMixin,
         _MixinOnObject {}
 
+// Base class produced from a base mixin (valid, used for tests below).
+
+base class BaseMixinApply extends Object with BaseMixin {}
+
+// Implementing through a base class.
+
+class SimpleBaseMixinApplyImplement implements BaseMixinApply {}
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The type 'SimpleBaseMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinApply' is 'base'.
+//                                             ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+base class BaseBaseMixinApplyImplement implements BaseMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+interface class InterfaceBaseMixinApplyImplement
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The type 'InterfaceBaseMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinApply' is 'base'.
+    implements
+        BaseMixinApply {}
+//      ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+final class FinalBaseMixinApplyImplement implements BaseMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                  ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+sealed class SealedBaseMixinApplyImplement implements BaseMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                    ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+base mixin class BaseMixinClassBaseMixinApplyImplement
+    implements BaseMixinApply {}
+// ^
+// [cfe] unspecified
+//             ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+base mixin BaseMixinBaseMixinApplyImplement implements BaseMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                     ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+// final class produced from a base mixin (valid, used for tests below)
+
+final class FinalMixinApply extends Object with BaseMixin {}
+
+// Implementing through a base class.
+
+class SimpleFinalMixinApplyImplement implements FinalMixinApply {}
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The type 'SimpleFinalMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalMixinApply' is 'final'.
+//                                              ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+base class BaseFinalMixinApplyImplement implements FinalMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                 ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+interface class InterfaceFinalMixinApplyImplement
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The type 'InterfaceFinalMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalMixinApply' is 'final'.
+    implements
+        FinalMixinApply {}
+//      ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+final class FinalFinalMixinApplyImplement implements FinalMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                   ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+sealed class SealedFinalMixinApplyImplement implements FinalMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                     ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+base mixin class BaseMixinClassFinalMixinApplyImplement
+    implements FinalMixinApply {}
+// ^
+// [cfe] unspecified
+//             ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
+base mixin BaseMixinFinalMixinApplyImplement implements FinalMixinApply {}
+// ^
+// [cfe] unspecified
+//                                                      ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+
 // Sealed class produced from a base mixin (valid, used for tests below)
-sealed class SealedMixinClassApply extends Object with BaseMixin {}
+
+sealed class SealedMixinApply extends Object with BaseMixin {}
 
 // Implementing through a sealed class.
-class SimpleSealedMixinClassApplyImplement implements SealedMixinClassApply {}
-//                                                    ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
 
-base class BaseSealedMixinClassApplyImplement
-    implements SealedMixinClassApply {}
-//             ^^^^^^^^^^^^^^^^^^^^^
+class SimpleSealedMixinApplyImplement implements SealedMixinApply {}
+//                                               ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
-interface class InterfaceSealedMixinClassApplyImplement
-    implements SealedMixinClassApply {}
-//             ^^^^^^^^^^^^^^^^^^^^^
+base class BaseSealedMixinApplyImplement implements SealedMixinApply {}
+//                                                  ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
-final class FinalSealedMixinClassApplyImplement
-    implements SealedMixinClassApply {}
-//             ^^^^^^^^^^^^^^^^^^^^^
+interface class InterfaceSealedMixinApplyImplement
+    implements SealedMixinApply {}
+//             ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
-sealed class SealedSealedMixinClassApplyImplement
-    implements SealedMixinClassApply {}
-//             ^^^^^^^^^^^^^^^^^^^^^
+final class FinalSealedMixinApplyImplement implements SealedMixinApply {}
+//                                                    ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
-base mixin class BaseMixinClassSealedMixinClassApplyImplement
-    implements SealedMixinClassApply {}
-//             ^^^^^^^^^^^^^^^^^^^^^
+sealed class SealedSealedMixinApplyImplement implements SealedMixinApply {}
+//                                                      ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
-base mixin BaseMixinSealedMixinClassApplyImplement
-    implements SealedMixinClassApply {}
-//             ^^^^^^^^^^^^^^^^^^^^^
+base mixin class BaseMixinClassSealedMixinApplyImplement
+    implements SealedMixinApply {}
+//             ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
+
+base mixin BaseMixinSealedMixinApplyImplement implements SealedMixinApply {}
+//                                                       ^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 /// It is an error to use BaseMixin as a mixin application, if the result
 /// is not base, final or sealed.
@@ -272,46 +380,48 @@ interface class InterfaceMixinClassApplicationBaseSimple extends Object
         _MixinOnObject {}
 
 // Sealed class produced from a base mixin (valid, used for tests below).
+
 sealed class SealedMixinApplication = Object with BaseMixin;
 
 // Implementing through a sealed class.
+
 class SimpleSealedMixinApplicationImplement implements SealedMixinApplication {}
 //                                                     ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 base class BaseSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 interface class InterfaceSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 final class FinalSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 sealed class SealedSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 base mixin class BaseMixinClassSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 base mixin BaseMixinSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseMixin' can't be implemented outside of its library because it's a base class.
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.

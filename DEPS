@@ -133,7 +133,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "6c9bc10cf2dc6496b2ce863c8d614aa0781abf90", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "8e8b36e3792701b50cbcafc77a615dce97cc98b4",
+  "dartdoc_rev": "d01ddc58600c0d2edbbd953d2074996c36604cfc",
   "ffi_rev": "04fa38ab45cb2957f9059e03031b53906c2c4385",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",
   "fixnum_rev": "92ec336bbd0d03e02be0208483bdfaf68b4b6b7c",
@@ -150,7 +150,7 @@ vars = {
   "markdown_rev": "5f98aea7e51cb1508d335e23edb2141d5102ce29",
   "matcher_rev": "cb6b68c603d2c57a51bbddfff08fa211bba7dcd3",
   "mime_rev": "2d8496df6a6e851816610c3f99eae0d9663f54c4",
-  "mockito_rev": "28e8eda2ef16f2e9c5e2e8fef48a834afd33ce44",
+  "mockito_rev": "f851e1754f0af41b1731bd81803d05988482d61b",
   "native_rev": "9350cb71d44635f2ecb3a876f570045526e02543", # disable rev_sdk_deps.dart
   "package_config_rev": "7e09db12e968482ef81e309de3ce233463b4cd7e",
   "path_rev": "23e33194c4073c0fdd818a70dd944afd5ad206e6",
@@ -168,7 +168,7 @@ vars = {
   "string_scanner_rev": "f7a656fdaaab069fc6f8c9d34d3205ce6100dfb1",
   "sync_http_rev": "660ad8713b7c0bde9b980c1bece39968e700d019",
   "term_glyph_rev": "b1105016d7b178d27032ec112af53227e1e5e50b",
-  "test_rev": "7fab0792d346025c2782b758819bf3449e3b5a8b",
+  "test_rev": "c9a3138895fd1c535706829ea71611dc99d806fc",
   "test_descriptor_rev": "aa11162f55a93fc6cefc927c5189b5f74decb957",
   "test_process_rev": "946bc27abd9726c4dadb9afae7c56f55df5945ed",
   "test_reflective_loader_rev": "a85a930ad3736f93b96f6cc104d3576c1ae19e0e",
@@ -179,7 +179,7 @@ vars = {
   "watcher_rev": "00aa79b0ff5562c9dafb0525891e2e69c51be06d",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "b28bae62886edc090d3317edd197c4c3b121cd3a",
-  "webdev_rev": "8b42c9506e1ea695bb2b90bd24aa8d78dc4dd104",
+  "webdev_rev": "12f22857d509832e0e80616d937088992f565e6b",
   "webdriver_rev": "562aa06353d513586b806ce1c9655dac3971879f",
   "webkit_inspection_protocol_rev": "8401098ace995e4dcd9855a2741c2dacccaa780b",
   "yaml_rev": "56dfaf4fb021ac1c0f1a469e7c8e71ea4f7add2f",

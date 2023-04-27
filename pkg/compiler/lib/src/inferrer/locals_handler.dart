@@ -472,7 +472,7 @@ class LocalsHandler {
     VariableScope merged = tryBlock != null
         ? VariableScope.tryBlock(tryBlock, parent: _locals)
         : VariableScope(parent: _locals);
-    Set<Local> seenLocals = Setlet<Local>();
+    Map<Local, int> seenLocals = {};
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       final common = _locals.commonParent(handler._locals);
@@ -491,11 +491,12 @@ class LocalsHandler {
         final myType = merged[local];
         if (myType == null) return;
         TypeInformation newType;
-        if (!seenLocals.contains(local)) {
+        final seenCount =
+            seenLocals.update(local, (v) => v + 1, ifAbsent: () => 1);
+        if (seenCount == 1) {
           newType = inferrer.types.allocatePhi(
               merged.tryBlock, local, otherType,
               isTry: merged.isTry);
-          seenLocals.add(local);
         } else {
           newType = inferrer.types.addPhiInput(
               local, myType as PhiElementTypeInformation, otherType);
@@ -505,17 +506,17 @@ class LocalsHandler {
         }
       });
     }
-    // If we want to keep own locals, we merge [seenLocals] from [this] into
-    // [merged] to update the Phi nodes with original values.
-    if (keepOwnLocals) {
-      for (Local variable in seenLocals) {
+    seenLocals.forEach((variable, seenCount) {
+      // If we want to keep own locals or if some branches do not update a seen
+      // local we merge the original type from [this] into [merged].
+      if (seenCount < handlers.length || keepOwnLocals) {
         final originalType = _locals[variable];
         if (originalType != null) {
           merged[variable] = inferrer.types.addPhiInput(variable,
               merged[variable] as PhiElementTypeInformation, originalType);
         }
       }
-    }
+    });
     // Clean up Phi nodes with single input and store back result into
     // actual locals handler.
     merged.forEachLocalUntilScope(merged,

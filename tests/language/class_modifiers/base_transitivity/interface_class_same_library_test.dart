@@ -13,6 +13,7 @@ mixin _MixinOnObject {}
 /// InterfaceClass can be extended.
 
 // Simple extension.
+
 class SimpleExtend extends InterfaceClass {}
 
 base class BaseExtend extends InterfaceClass {}
@@ -22,9 +23,11 @@ interface class InterfaceExtend extends InterfaceClass {}
 final class FinalExtend extends InterfaceClass {}
 
 // Extending with a sealed class.
+
 sealed class SealedExtend extends InterfaceClass {}
 
 // Extending through a sealed class.
+
 class SimpleSealedExtendExtend extends SealedExtend {}
 
 base class BaseSealedExtendExtend extends SealedExtend {}
@@ -36,6 +39,7 @@ final class FinalSealedExtendExtend extends SealedExtend {}
 sealed class SealedSealedExtendExtend extends SealedExtend {}
 
 // Implementing through a sealed class.
+
 class SimpleSealedExtendImplement implements SealedExtend {}
 
 base class BaseSealedExtendImplement implements SealedExtend {}
@@ -55,11 +59,13 @@ mixin MixinSealedExtendImplement implements SealedExtend {}
 base mixin BaseMixinSealedExtendImplement implements SealedExtend {}
 
 // Using a sealed class as an `on` type
+
 mixin MixinSealedExtendOn on SealedExtend {}
 
 base mixin BaseMixinSealedExtendOn on SealedExtend {}
 
 // Extending via an anonymous mixin class.
+
 class SimpleExtendWith extends InterfaceClass with _MixinOnObject {}
 
 base class BaseExtendWith extends InterfaceClass with _MixinOnObject {}
@@ -72,6 +78,7 @@ final class FinalExtendWith extends InterfaceClass with _MixinOnObject {}
 sealed class SealedExtendWith extends InterfaceClass with _MixinOnObject {}
 
 // Extending via an anonymous mixin application class.
+
 class SimpleExtendApplication = InterfaceClass with _MixinOnObject;
 
 interface class InterfaceExtendApplication = InterfaceClass with _MixinOnObject;
@@ -85,6 +92,7 @@ sealed class SealedExtendApplication = InterfaceClass with _MixinOnObject;
 /// InterfaceClass can be implemented.
 
 // Simple implementation.
+
 class SimpleImplement implements InterfaceClass {}
 
 base class BaseImplement implements InterfaceClass {}
@@ -94,9 +102,11 @@ interface class InterfaceImplement implements InterfaceClass {}
 final class FinalImplement implements InterfaceClass {}
 
 // Implementing with a sealed class.
+
 sealed class SealedImplement implements InterfaceClass {}
 
 // Extending through a sealed class.
+
 class SimpleSealedImplementExtend extends SealedImplement {}
 
 base class BaseSealedImplementExtend extends SealedImplement {}
@@ -108,6 +118,7 @@ final class FinalSealedImplementExtend extends SealedImplement {}
 sealed class SealedSealedImplementExtend extends SealedImplement {}
 
 // Implementing through a sealed class.
+
 class SimpleSealedImplementImplement implements SealedImplement {}
 
 base class BaseSealedImplementImplement implements SealedImplement {}
@@ -119,11 +130,13 @@ final class FinalSealedImplementImplement implements SealedImplement {}
 sealed class SealedSealedImplementImplement implements SealedImplement {}
 
 // Implementing with a mixin class.
+
 mixin class SimpleMixinClassImplement implements InterfaceClass {}
 
 base mixin class BaseMixinClassImplement implements InterfaceClass {}
 
 // Implementing by applying a mixin class.
+
 class SimpleMixinClassImplementApplied extends Object
     with SimpleMixinClassImplement {}
 
@@ -140,6 +153,7 @@ sealed class SealedMixinClassImplementApplied extends Object
     with SimpleMixinClassImplement {}
 
 // Implementing with a mixin application class.
+
 class SimpleImplementApplication = Object
     with _MixinOnObject
     implements InterfaceClass;
@@ -161,11 +175,13 @@ sealed class SealedImplementApplication = Object
     implements InterfaceClass;
 
 // Implementing with a mixin.
+
 mixin SimpleMixinImplement implements InterfaceClass {}
 
 base mixin BaseMixinImplement implements InterfaceClass {}
 
 // Implementing by applying a mixin.
+
 class SimpleMixinImplementApplied extends Object with SimpleMixinImplement {}
 
 base class BaseMixinImplementApplied extends Object with SimpleMixinImplement {}
