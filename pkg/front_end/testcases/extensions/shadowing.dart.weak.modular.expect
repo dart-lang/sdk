@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/shadowing.dart:13:5: Error: Setter not found: 'getter'.
+//     getter = getter;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/extensions/shadowing.dart:14:14: Error: Getter not found: 'setter'.
+//     setter = setter;
+//              ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on core::int {
+  get getter = self::_extension#0|get#getter;
+  method method = self::_extension#0|method;
+  tearoff method = self::_extension#0|get#method;
+  set setter = self::_extension#0|set#setter;
+}
+static field core::int getter = 42;
+static field core::int setter = 42;
+static method _extension#0|get#getter(lowered final core::int #this) → dynamic
+  return 42;
+static method _extension#0|set#setter(lowered final core::int #this, dynamic _) → void {}
+static method _extension#0|method(lowered final core::int #this) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/shadowing.dart:13:5: Error: Setter not found: 'getter'.
+    getter = getter;
+    ^^^^^^";
+  self::_extension#0|set#setter(#this, invalid-expression "pkg/front_end/testcases/extensions/shadowing.dart:14:14: Error: Getter not found: 'setter'.
+    setter = setter;
+             ^^^^^^");
+}
+static method _extension#0|get#method(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::_extension#0|method(#this);

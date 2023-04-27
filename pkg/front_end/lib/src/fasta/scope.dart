@@ -855,7 +855,7 @@ class AccessErrorBuilder extends ProblemBuilder {
       : super(name, builder, charOffset, fileUri);
 
   @override
-  Builder get parent => builder;
+  Builder? get parent => builder.parent;
 
   @override
   bool get isFinal => builder.isFinal;

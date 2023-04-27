@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/missing_super_mixin_constructor.dart:12:3: Error: The superclass, 'Super', has no unnamed constructor that takes no arguments.
+//   Class();
+//   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor named() → self::Super
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _Class&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor named() → self::_Class&Super&Mixin
+    : super self::Super::named()
+    ;
+}
+class Class extends self::_Class&Super&Mixin {
+  constructor •() → self::Class
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/missing_super_mixin_constructor.dart:12:3: Error: The superclass, 'Super', has no unnamed constructor that takes no arguments.
+  Class();
+  ^^^^^"
+    ;
+}
