@@ -2564,12 +2564,12 @@ class LocalState {
 
   LocalState mergeAfterBreaks(InferrerEngine inferrer, List<LocalState> states,
       {bool keepOwnLocals = true}) {
-    bool allBranchesAbort = true;
+    bool allBranchesReturnOrThrow = true;
     for (LocalState state in states) {
-      allBranchesAbort = allBranchesAbort && state.seenReturnOrThrow;
+      allBranchesReturnOrThrow &= state.seenReturnOrThrow;
     }
 
-    keepOwnLocals = keepOwnLocals && !seenReturnOrThrow;
+    keepOwnLocals &= !seenReturnOrThrow;
 
     LocalsHandler locals = _locals.mergeAfterBreaks(
         inferrer,
@@ -2577,7 +2577,7 @@ class LocalState {
             .where((LocalState state) => !state.seenReturnOrThrow)
             .map((LocalState state) => state._locals),
         keepOwnLocals: keepOwnLocals);
-    seenReturnOrThrow = allBranchesAbort && !keepOwnLocals;
+    seenReturnOrThrow = allBranchesReturnOrThrow && !keepOwnLocals;
     return LocalState.internal(locals, _fields, _tryBlock,
         seenReturnOrThrow: seenReturnOrThrow,
         seenBreakOrContinue: seenBreakOrContinue);

@@ -5,9 +5,7 @@
 /*member: getInt:[exact=JSUInt31]*/
 int get getInt => 42;
 
-// TODO(http://dartbug.com/52170): Return type should include int. The return
-// within the loop can and will be invoked with local = 3.
-/*member: foo:Value([null|exact=JSString], value: "hello")*/
+/*member: foo:Union(null, [exact=JSString], [exact=JSUInt31])*/
 foo() {
   dynamic local = 3;
   for (int i = 0;
