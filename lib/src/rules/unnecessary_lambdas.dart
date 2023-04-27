@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
@@ -29,17 +30,6 @@ names.forEach(print);
 ```
 
 ''';
-
-bool _containsNullAwareInvocationInChain(AstNode? node) =>
-    node != null &&
-    ((node is PropertyAccess &&
-            (node.isNullAware ||
-                _containsNullAwareInvocationInChain(node.target))) ||
-        (node is MethodInvocation &&
-            (node.isNullAware ||
-                _containsNullAwareInvocationInChain(node.target))) ||
-        (node is IndexExpression &&
-            _containsNullAwareInvocationInChain(node.target)));
 
 Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
@@ -257,7 +247,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
 
       var checker = _FinalExpressionChecker(parameters);
-      if (!_containsNullAwareInvocationInChain(node) &&
+      if (!node.containsNullAwareInvocationInChain() &&
           checker.isFinalNode(node.target) &&
           checker.isFinalElement(node.methodName.staticElement) &&
           node.typeArguments == null) {

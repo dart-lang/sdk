@@ -37,6 +37,14 @@ void f(List<String>? people) {
 ''');
   }
 
+  test_functionExpression_nullAwareChain() async {
+    await assertNoDiagnostics(r'''
+void f(Map<String, int>? people) {
+  people?.keys.forEach((person) => print('$person!'));
+}
+''');
+  }
+
   test_functionExpression_targetDoesNotHaveMethodChain() async {
     await assertDiagnostics(r'''
 void f(List<List<String>> people) {
