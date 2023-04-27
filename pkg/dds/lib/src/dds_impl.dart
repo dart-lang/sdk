@@ -23,6 +23,7 @@ import 'binary_compatible_peer.dart';
 import 'client.dart';
 import 'client_manager.dart';
 import 'constants.dart';
+import 'dap_handler.dart';
 import 'devtools/handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
@@ -68,6 +69,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     _isolateManager = IsolateManager(this);
     _streamManager = StreamManager(this);
     _packageUriConverter = PackageUriConverter(this);
+    _dapHandler = DapHandler(this);
     _authCode = _authCodesEnabled ? _makeAuthToken() : '';
   }
 
@@ -485,6 +487,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   UriConverter? uriConverter;
   PackageUriConverter get packageUriConverter => _packageUriConverter;
   late PackageUriConverter _packageUriConverter;
+
+  DapHandler get dapHandler => _dapHandler;
+  late DapHandler _dapHandler;
 
   ClientManager get clientManager => _clientManager;
   late ClientManager _clientManager;

@@ -114,7 +114,7 @@ class ByteStreamServerChannel {
 
   void _sendParseError(String data) {
     // TODO(dantup): Review LSP implementation of this when consolidating classes.
-    throw DebugAdapterException('Message does not confirm to DAP spec: $data');
+    throw DebugAdapterException('Message does not conform to DAP spec: $data');
   }
 
   /// Send [bytes] to [_output].
