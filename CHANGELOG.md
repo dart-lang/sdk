@@ -1,3 +1,11 @@
+## 3.1.0
+
+### Language
+
+### Libraries
+
+### Tools
+
 ## 3.0.0
 
 ### Language
@@ -94,7 +102,7 @@
     * `Expando`
     * `WeakReference`
     * `Finalizer`
-    
+
     The `MapEntry` value class is restricted to enable later optimizations.
     The remaining classes are tightly coupled to the platform and not
     intended to be subclassed or implemented.
