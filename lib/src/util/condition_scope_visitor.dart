@@ -215,7 +215,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
-    var elseScope = _visitElseStatement(node.elseStatement, node.condition);
+    var elseScope = _visitElseStatement(node.elseStatement, node.expression);
     _visitIfStatement(node);
     if (elseScope != null) {
       _propagateUndefinedExpressions(elseScope);
@@ -229,10 +229,10 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
       return;
     }
     if (addFalseCondition) {
-      _addFalseCondition(node.condition);
+      _addFalseCondition(node.expression);
     }
     if (addTrueCondition) {
-      _addTrueCondition(node.condition);
+      _addTrueCondition(node.expression);
     }
   }
 
@@ -391,9 +391,9 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   void _visitIfStatement(IfStatement node) {
     _addScope();
-    node.condition.accept(this);
-    visitCondition(node.condition);
-    _addTrueCondition(node.condition);
+    node.expression.accept(this);
+    visitCondition(node.expression);
+    _addTrueCondition(node.expression);
     node.thenStatement.accept(this);
     _propagateUndefinedExpressions(_removeLastScope());
   }

@@ -133,8 +133,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is ParenthesizedExpression ||
         parent is InterpolationExpression ||
         (parent is ArgumentList && parent.arguments.length == 1) ||
-        (parent is IfStatement && node == parent.condition) ||
-        (parent is IfElement && node == parent.condition) ||
+        (parent is IfStatement && node == parent.expression) ||
+        (parent is IfElement && node == parent.expression) ||
         (parent is WhileStatement && node == parent.condition) ||
         (parent is DoStatement && node == parent.condition) ||
         (parent is SwitchStatement && node == parent.expression) ||

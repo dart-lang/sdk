@@ -183,7 +183,7 @@ class _Visitor extends SimpleAstVisitor {
         }
       } else if (parent is IfStatement) {
         // Only check the actual statement(s), not the IF condition
-        if (child is Statement && parent.condition.hasAwait) {
+        if (child is Statement && parent.expression.hasAwait) {
           rule.reportLint(node);
         }
 
@@ -203,7 +203,7 @@ class _Visitor extends SimpleAstVisitor {
     // their own mounted checks.  The cost of this generality is the possibility
     // of false negatives.
     if (statement is IfStatement) {
-      var condition = statement.condition;
+      var condition = statement.expression;
 
       Expression check;
       if (condition is PrefixExpression) {
@@ -328,7 +328,7 @@ extension on Statement {
   bool get isAsync {
     var self = this;
     if (self is IfStatement) {
-      if (self.condition.hasAwait) return true;
+      if (self.expression.hasAwait) return true;
       if (self.thenStatement.terminatesControl) {
         var elseStatement = self.elseStatement;
         if (elseStatement == null || elseStatement.terminatesControl) {

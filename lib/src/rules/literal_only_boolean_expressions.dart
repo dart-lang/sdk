@@ -160,7 +160,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (_onlyLiterals(node.condition)) {
+    if (_onlyLiterals(node.expression)) {
       rule.reportLint(node);
     }
   }

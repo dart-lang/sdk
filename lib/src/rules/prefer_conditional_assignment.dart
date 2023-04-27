@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.elseStatement != null) {
       return;
     }
-    var expressionInCondition = _getExpressionCondition(node.condition);
+    var expressionInCondition = _getExpressionCondition(node.expression);
     if (expressionInCondition != null &&
         _checkStatement(node.thenStatement, expressionInCondition)) {
       rule.reportLint(node);

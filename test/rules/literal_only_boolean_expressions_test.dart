@@ -44,6 +44,7 @@ void f() {
   }
 }
 ''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 7),
       lint(43, 9),
     ]);
   }

@@ -133,7 +133,7 @@ void switchConstClass() {
   }
 }
 ''', [
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 239, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 239, 4),
     ]);
   }
 
@@ -158,7 +158,7 @@ void switchEnum() {
 }
 ''', [
       // No lint.
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 144, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 144, 4),
     ]);
   }
 
@@ -179,8 +179,8 @@ void switchInt() {
 }
 ''', [
       // No lint.
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 95, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 107, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 95, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 107, 4),
     ]);
   }
 
@@ -201,9 +201,9 @@ void switchString() {
 }
 ''', [
       // No lint.
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 115, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 115, 4),
       error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 122, 1),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 131, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 131, 4),
       error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 153, 1),
     ]);
   }

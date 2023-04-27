@@ -261,9 +261,6 @@ base class D = C with M;
     ]);
   }
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/sdk/issues/51891',
-      reason: 'class type aliases cannot be annotated')
   test_classTypeAlias_classBase_classFinal_reopened() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';

@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor {
     while (node != null) {
       var parent = node.parent;
       if (parent is IfStatement && node == parent.thenStatement) {
-        var condition = parent.condition;
+        var condition = parent.expression;
         if (condition is SimpleIdentifier &&
             isKDebugMode(condition.staticElement)) {
           return true;

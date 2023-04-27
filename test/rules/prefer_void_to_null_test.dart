@@ -29,13 +29,15 @@ void f(int a) {
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_castPattern() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case var _ as Null:
   }
 }
-''');
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 49, 4),
+    ]);
   }
 
   test_localVariable() async {

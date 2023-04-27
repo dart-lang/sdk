@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    var condition = node.condition;
+    var condition = node.expression;
     if (condition is BinaryExpression &&
         condition.operator.type == TokenType.BANG_EQ &&
         condition.rightOperand is NullLiteral &&

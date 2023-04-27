@@ -75,8 +75,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitIfStatement(IfStatement node) {
     var elseStatement = node.elseStatement;
     if (elseStatement is IfStatement) {
-      var ifCondition = node.condition;
-      var elseCondition = elseStatement.condition;
+      var ifCondition = node.expression;
+      var elseCondition = elseStatement.expression;
       if (ifCondition is IsExpression && elseCondition is IsExpression) {
         var typeProvider = context.typeProvider;
         var ifExpression = ifCondition.expression;
