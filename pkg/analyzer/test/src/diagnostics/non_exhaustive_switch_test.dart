@@ -239,6 +239,26 @@ void f(E x) {
     );
   }
 
+  test_alwaysExhaustive_enum_cannotCompute() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1(v2), v2(v1);
+  const E(Object f);
+}
+
+void f(E x) {
+  switch (x) {
+    case E.v1:
+    case E.v2:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 2),
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 19, 2),
+    ]);
+  }
+
   test_alwaysExhaustive_Null_hasError() async {
     await assertErrorsInCode(r'''
 void f(Null x) {

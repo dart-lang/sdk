@@ -56,8 +56,8 @@ class AnalyzerEnumOperations
   }
 
   @override
-  DartObject getEnumElementValue(FieldElement enumField) {
-    return enumField.computeConstantValue()!;
+  DartObject? getEnumElementValue(FieldElement enumField) {
+    return enumField.computeConstantValue();
   }
 }
 
