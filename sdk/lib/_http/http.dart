@@ -744,21 +744,20 @@ abstract interface class ContentType implements HeaderValue {
 final class SameSite {
   /// Default value, cookie with this value will generally not be sent on
   /// cross-site requests, unless the user is navigated to the original site.
-  static const lax = SameSite._("lax", "Lax");
+  static const lax = SameSite._("Lax");
 
   /// This cookie will never be sent on cross-site requests.
-  static const strict = SameSite._("strict", "Strict");
+  static const strict = SameSite._("Strict");
 
   /// this cookie will be sent in all requests. [Cookie.secure] must also be
   /// set to true, otherwise the `none` value will have no effect.
-  static const none = SameSite._("none", "None");
+  static const none = SameSite._("None");
 
   static const List<SameSite> values = [lax, strict, none];
 
   final String name;
-  final String _lowerCaseName;
 
-  const SameSite._(this.name, this._lowerCaseName);
+  const SameSite._(this.name);
 
   static SameSite _byName(String name) {
     for (var value in values) {

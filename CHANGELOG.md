@@ -5,8 +5,8 @@
 #### `dart:io`
 
 - **Breaking change** [#51486][]:
-  - Added class `SameSite`.
   - Added `sameSite` to the `Cookie` class.
+  - Added class `SameSite`.
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 
