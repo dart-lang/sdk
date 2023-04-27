@@ -52,6 +52,10 @@ bool _hasMethodChaining(MethodInvocation node) {
   return false;
 }
 
+bool _isInsideCascade(AstNode node) =>
+    node.thisOrAncestorMatching((n) => n is Statement || n is CascadeExpression)
+        is CascadeExpression;
+
 bool _isNonNullableIterable(DartType? type) =>
     type != null &&
     type.nullabilitySuffix == NullabilitySuffix.none &&
@@ -95,7 +99,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.argumentList.arguments.first is FunctionExpression &&
         _isNonNullableIterable(target.staticType) &&
         !node.containsNullAwareInvocationInChain() &&
-        !_hasMethodChaining(node)) {
+        !_hasMethodChaining(node) &&
+        !_isInsideCascade(node)) {
       rule.reportLint(node.function);
     }
   }

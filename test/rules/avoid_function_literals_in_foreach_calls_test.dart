@@ -18,8 +18,6 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRuleTest {
   @override
   String get lintRule => 'avoid_function_literals_in_foreach_calls';
 
-  // TODO(srawlins): Test chaining with cascades.
-
   test_expectedIdentifier() async {
     await assertDiagnostics(r'''
 void f(dynamic iter) => iter?.forEach(...);
@@ -65,6 +63,44 @@ void f(List<String> people) {
       .forEach((person) => print('$person!'));
 }
 ''');
+  }
+
+  test_functionExpression_targetHasCascade() async {
+    await assertNoDiagnostics(r'''
+void f(List<List<List<String>>> lists) {
+  final lists2 = lists..first.forEach((list) {
+    list.add('y');
+  });
+}
+''');
+  }
+
+  test_functionExpression_targetHasCascadeAndNullAssert() async {
+    await assertNoDiagnostics(r'''
+class C {
+  List<String>? items;
+}
+
+void f(C obj) {
+  final result = obj..items!.forEach((s) {
+    print(s);
+  });
+}
+''');
+  }
+
+  test_functionExpression_targetInIrrelevantNestedCascade() async {
+    await assertDiagnostics(r'''
+void f(List<List<List<String>>> lists) {
+  final lists2 = lists..forEach((list) {
+    list.forEach((item) {
+      print(item);
+    });
+  });
+}
+''', [
+      lint(91, 7),
+    ]);
   }
 
   test_functionExpressionWithBlockBody() async {
