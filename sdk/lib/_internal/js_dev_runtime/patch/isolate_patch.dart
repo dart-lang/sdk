@@ -33,8 +33,7 @@ class Isolate {
           {bool paused = false,
           bool errorsAreFatal = true,
           SendPort? onExit,
-          SendPort? onError,
-          String? debugName}) =>
+          SendPort? onError}) =>
       _unsupported();
 
   @patch

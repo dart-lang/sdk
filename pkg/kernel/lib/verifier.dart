@@ -349,10 +349,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitLibrary(Library node) {
+    // Issue(http://dartbug.com/32530)
+    // 'dart:test' is used in the unit tests and isn't an actual part of the
+    // platform.
     if (skipPlatform &&
         node.importUri.isScheme('dart') &&
-        // 'dart:test' is used in the unit tests and isn't an actual part of the
-        // platform so we don't skip its verification.
         node.importUri.path != 'test') {
       return;
     }

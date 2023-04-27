@@ -1035,9 +1035,6 @@ class TargetWrapper extends Target {
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
     return _target.updateEnvironmentDefines(map);
   }
-
-  @override
-  Verification get verification => _target.verification;
 }
 
 class TestTargetWrapper extends TargetWrapper with TestTargetMixin {
