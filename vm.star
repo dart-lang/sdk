@@ -415,12 +415,12 @@ _extra_builder("vm-ffi-android-debug-arm64c", category = "vm|ffi|d64")
 _extra_builder("vm-ffi-android-release-arm64c", category = "vm|ffi|r64")
 _extra_builder("vm-ffi-android-product-arm64c", category = "vm|ffi|p64")
 _extra_builder(
-    "vm-precomp-ffi-qemu-linux-release-arm",
+    "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
     dimensions = focal,
 )
 _extra_builder(
-    "vm-precomp-ffi-qemu-linux-release-riscv64",
+    "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
     dimensions = focal,
 )
