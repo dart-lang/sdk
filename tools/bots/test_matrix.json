@@ -362,6 +362,12 @@
     "flutter-frontend": {
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
     },
+    "vm-ffi-unit-test-temp": {
+      "__comment__": "Preventing conflict until old builder removed",
+      "options": {
+        "builder-tag": "ffi-temp"
+      }
+    },
     "vm-ffi-unit-test": {
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options.",
       "options": {
@@ -717,12 +723,24 @@
         "nnbd": "strong"
       }
     },
+    "vm-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
+      "options": {
+        "use-qemu": true,
+        "nnbd": "strong"
+      }
+    },
     "dartk-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true,
         "vm-options": [
           "--no-sound-null-safety"
         ]
+      }
+    },
+    "vm-aot-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
+      "options": {
+        "use-qemu": true,
+        "nnbd": "strong"
       }
     },
     "dartkp-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
@@ -1053,7 +1071,7 @@
         {
           "name": "vm ffi unit tests",
           "arguments": [
-            "-nvm-ffi-unit-test",
+            "-nvm-ffi-unit-test-temp",
             "ffi_unit"
           ]
         },
@@ -1129,6 +1147,106 @@
           "name": "vm ffi tests",
           "arguments": [
             "-ndartkp-linux-${mode}-riscv64-qemu",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-qemu-linux-release-arm"
+      ],
+      "meta": {
+        "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
+      },
+      "steps": [
+        {
+          "name": "build run_ffi_unit_tests",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=x64",
+            "--mode=debug",
+            "run_ffi_unit_tests"
+          ]
+        },
+        {
+          "name": "vm ffi unit tests",
+          "arguments": [
+            "-nvm-ffi-unit-test",
+            "ffi_unit"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--use-qemu",
+            "dart_precompiled_runtime",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simarm_x64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "vm unit tests",
+          "arguments": [
+            "-nvm-linux-${mode}-arm-qemu",
+            "vm/cc"
+          ]
+        },
+        {
+          "name": "vm aot ffi tests",
+          "arguments": [
+            "-nvm-aot-linux-${mode}-arm-qemu",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-qemu-linux-release-riscv64"
+      ],
+      "meta": {
+        "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "--no-goma",
+            "--use-qemu",
+            "dart_precompiled_runtime",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simriscv64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "vm unit tests",
+          "arguments": [
+            "-nvm-linux-${mode}-riscv64-qemu",
+            "vm/cc"
+          ]
+        },
+        {
+          "name": "vm aot ffi tests",
+          "arguments": [
+            "-nvm-aot-linux-${mode}-riscv64-qemu",
             "ffi"
           ]
         }
