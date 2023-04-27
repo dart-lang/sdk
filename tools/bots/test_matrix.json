@@ -717,23 +717,16 @@
         "nnbd": "strong"
       }
     },
-    "dartk-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
+    "vm-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong"
       }
     },
-    "dartkp-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
+    "vm-aot-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
+        "nnbd": "strong"
       }
     },
     "vm-appjit-(linux|mac|win)-(debug|product|release)-(x64|arm64)": {
@@ -1035,7 +1028,7 @@
     },
     {
       "builders": [
-        "vm-precomp-ffi-qemu-linux-release-arm"
+        "vm-ffi-qemu-linux-release-arm"
       ],
       "meta": {
         "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
@@ -1077,14 +1070,14 @@
         {
           "name": "vm unit tests",
           "arguments": [
-            "-ndartk-linux-${mode}-arm-qemu",
+            "-nvm-linux-${mode}-arm-qemu",
             "vm/cc"
           ]
         },
         {
-          "name": "vm ffi tests",
+          "name": "vm aot ffi tests",
           "arguments": [
-            "-ndartkp-linux-${mode}-arm-qemu",
+            "-nvm-aot-linux-${mode}-arm-qemu",
             "ffi"
           ]
         }
@@ -1092,7 +1085,7 @@
     },
     {
       "builders": [
-        "vm-precomp-ffi-qemu-linux-release-riscv64"
+        "vm-ffi-qemu-linux-release-riscv64"
       ],
       "meta": {
         "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
@@ -1105,7 +1098,6 @@
             "--no-clang",
             "--no-goma",
             "--use-qemu",
-            "--use-mallinfo2",
             "dart_precompiled_runtime",
             "runtime"
           ]
@@ -1121,14 +1113,14 @@
         {
           "name": "vm unit tests",
           "arguments": [
-            "-ndartk-linux-${mode}-riscv64-qemu",
+            "-nvm-linux-${mode}-riscv64-qemu",
             "vm/cc"
           ]
         },
         {
-          "name": "vm ffi tests",
+          "name": "vm aot ffi tests",
           "arguments": [
-            "-ndartkp-linux-${mode}-riscv64-qemu",
+            "-nvm-aot-linux-${mode}-riscv64-qemu",
             "ffi"
           ]
         }

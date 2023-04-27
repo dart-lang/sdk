@@ -53,7 +53,8 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 
 import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 
-import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/fasta/kernel/body_builder.dart'
+    show BodyBuilder, BodyBuilderContext;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
@@ -122,7 +123,8 @@ Future<void> main() async {
 
     BodyBuilder helper = new BodyBuilder(
         libraryBuilder: libraryBuilder,
-        isDeclarationInstanceMember: false,
+        context: new BodyBuilderContext(libraryBuilder, null, libraryBuilder,
+            isDeclarationInstanceMember: false),
         uri: uri,
         enclosingScope: new Scope.immutable(kind: ScopeKind.functionBody),
         member: libraryBuilder,

@@ -17,8 +17,6 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-import 'package:front_end/src/fasta/kernel/benchmarker.dart'
-    show BenchmarkSubdivides, Benchmarker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -44,7 +42,9 @@ import '../fasta_codes.dart'
         templateInternalProblemNotFound;
 import '../identifiers.dart' show QualifiedName;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
-import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
+import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
+import '../kernel/body_builder.dart'
+    show BodyBuilder, BodyBuilderContext, FormalParameters;
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
 import '../scope.dart';
@@ -810,13 +810,14 @@ class DietListener extends StackListenerImpl {
       ConstantContext constantContext) {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
+        context: new BodyBuilderContext(
+            libraryBuilder, currentDeclaration, builder,
+            isDeclarationInstanceMember: isDeclarationInstanceMember),
         member: builder,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
         coreTypes: coreTypes,
-        declarationBuilder: currentDeclaration,
-        isDeclarationInstanceMember: isDeclarationInstanceMember,
         thisVariable: thisVariable,
         thisTypeParameters: thisTypeParameters,
         uri: uri,
