@@ -284,7 +284,11 @@ class TestConfiguration {
       // Use MSVC from Depot Tools instead. When using clang from DEPS, we still
       // need to pass the right INCLUDE / LIB environment variables. So we might
       // as well use the MSVC instead.
-      final windowsSdk = Uri.directory(windowsSdkPath!);
+      final windowsSdkPath_ = windowsSdkPath;
+      if (windowsSdkPath_ == null) {
+        return <String, String>{};
+      }
+      final windowsSdk = Uri.directory(windowsSdkPath_);
       final vsPath = windowsSdk.resolve('../../');
       final msvcPaths = vsPath.resolve('VC/Tools/MSVC/');
       final msvcPath = Directory.fromUri(msvcPaths)
