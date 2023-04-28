@@ -114,14 +114,6 @@ void TypeTestingStubNamer::MakeNameAssemblerSafe(BaseTextBuffer* buffer) {
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
-  auto isolate_group = IsolateGroup::Current();
-
-  if (type.IsTypeRef()) {
-    return isolate_group->use_strict_null_safety_checks()
-               ? StubCode::DefaultTypeTest().ptr()
-               : StubCode::DefaultNullableTypeTest().ptr();
-  }
-
   // During bootstrapping we have no access to stubs yet, so we'll just return
   // `null` and patch these later in `Object::FinishInit()`.
   if (!StubCode::HasBeenInitialized()) {
@@ -181,7 +173,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
-  if (type.IsTypeRef() || type.IsTypeParameter()) {
+  if (type.IsTypeParameter()) {
     return TypeTestingStubGenerator::DefaultCodeForType(
         type, /*lazy_specialize=*/false);
   }
@@ -1054,26 +1046,6 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
   return !type_argument_checks.is_empty();
 }
 
-// Unwraps TypeRef in [type_reg] and loads class id of the unwrapped type to
-// [class_id_reg].
-//
-// [type_reg] must contain an AbstractType. Unwrapped TypeRef is written
-// back to [type_reg]. [class_id_reg] must be distinct from [type_reg].
-static void UnwrapTypeRefAndLoadClassId(compiler::Assembler* assembler,
-                                        Register type_reg,
-                                        Register class_id_reg) {
-  ASSERT(class_id_reg != type_reg);
-  compiler::Label done;
-  // TypeRefs never wrap other TypeRefs, so we only need to unwrap once.
-  __ LoadClassId(class_id_reg, type_reg);
-  __ CompareImmediate(class_id_reg, kTypeRefCid);
-  __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
-  __ LoadCompressedFieldFromOffset(type_reg, type_reg,
-                                   compiler::target::TypeRef::type_offset());
-  __ LoadClassId(class_id_reg, type_reg);
-  __ Bind(&done);
-}
-
 void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
@@ -1115,8 +1087,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
 
   __ Comment("Checking instantiated type parameter for possible top types");
   compiler::Label check_subtype_type_class_ids;
-  UnwrapTypeRefAndLoadClassId(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
-                              TTSInternalRegs::kScratchReg);
+  __ LoadClassId(TTSInternalRegs::kScratchReg,
+                 TTSInternalRegs::kSuperTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
   __ BranchIf(NOT_EQUAL, &check_subtype_type_class_ids);
   __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
@@ -1148,8 +1120,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   __ Bind(&check_subtype_type_class_ids);
   __ Comment("Checking instance type argument for possible bottom types");
   // Nothing else to check for non-Types, so fall back to the slow stub.
-  UnwrapTypeRefAndLoadClassId(assembler, TTSInternalRegs::kSubTypeArgumentReg,
-                              TTSInternalRegs::kScratchReg);
+  __ LoadClassId(TTSInternalRegs::kScratchReg,
+                 TTSInternalRegs::kSubTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
   __ BranchIf(NOT_EQUAL, check_failed);
   __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
@@ -1203,8 +1175,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       TTSInternalRegs::kInstanceTypeArgumentsReg,
       compiler::target::TypeArguments::type_at_offset(
           type_param_value_offset_i));
-  UnwrapTypeRefAndLoadClassId(assembler, TTSInternalRegs::kSubTypeArgumentReg,
-                              TTSInternalRegs::kScratchReg);
+  __ LoadClassId(TTSInternalRegs::kScratchReg,
+                 TTSInternalRegs::kSubTypeArgumentReg);
   if (type.IsObjectType() || type.IsDartFunctionType() ||
       type.IsDartRecordType()) {
     __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
@@ -1537,12 +1509,8 @@ void TypeUsageInfo::AddTypeToSet(TypeSet* set, const AbstractType* type) {
 }
 
 bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
-  const AbstractType* dereferenced_type = &type;
-  if (type.IsTypeRef()) {
-    dereferenced_type = &AbstractType::Handle(TypeRef::Cast(type).type());
-  }
-  if (dereferenced_type->IsFinalized()) {
-    return assert_assignable_types_.HasKey(dereferenced_type);
+  if (type.IsFinalized()) {
+    return assert_assignable_types_.HasKey(&type);
   }
   return false;
 }

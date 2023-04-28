@@ -364,7 +364,7 @@ TypeArgumentsPtr ClassFinalizer::FinalizeTypeArguments(
     }
   }
   if (finalization >= kCanonicalize) {
-    return type_args.Canonicalize(Thread::Current(), nullptr);
+    return type_args.Canonicalize(Thread::Current());
   }
   return type_args.ptr();
 }
@@ -375,29 +375,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
     // Ensure type is canonical if canonicalization is requested.
     if ((finalization >= kCanonicalize) && !type.IsCanonical() &&
         !type.IsBeingFinalized()) {
-      return type.Canonicalize(Thread::Current(), nullptr);
+      return type.Canonicalize(Thread::Current());
     }
     return type.ptr();
   }
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-
-  if (type.IsTypeRef()) {
-    if (type.IsBeingFinalized()) {
-      // The referenced type will be finalized later by the code that set the
-      // is_being_finalized mark bit.
-      return type.ptr();
-    }
-    type.SetIsBeingFinalized();
-    AbstractType& ref_type =
-        AbstractType::Handle(zone, TypeRef::Cast(type).type());
-    ref_type = FinalizeType(ref_type, finalization);
-    ASSERT(ref_type.IsFinalized());
-    TypeRef::Cast(type).set_type(ref_type);
-    ASSERT(type.IsFinalized());
-    return type.ptr();
-  }
 
   ASSERT(!type.IsBeingFinalized());
 
@@ -411,11 +395,12 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
 
   if (type.IsTypeParameter()) {
     const TypeParameter& type_parameter = TypeParameter::Cast(type);
-    const Class& parameterized_class =
-        Class::Handle(zone, type_parameter.parameterized_class());
     // The base and index of a function type parameter are eagerly calculated
     // upon loading and do not require adjustment here.
-    if (!parameterized_class.IsNull()) {
+    if (type_parameter.IsClassTypeParameter()) {
+      const Class& parameterized_class =
+          Class::Cast(Object::Handle(zone, type_parameter.owner()));
+      ASSERT(!parameterized_class.IsNull());
       // The index must reflect the position of this type parameter in the type
       // arguments vector of its parameterized class. The offset to add is the
       // number of type arguments in the super type, which is equal to the
@@ -431,17 +416,17 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       type_parameter.set_base(offset);  // Informative, but not needed.
       type_parameter.set_index(index);
 
-      // Remove the reference to the parameterized class.
-      type_parameter.set_parameterized_class_id(kClassCid);
+      if (AbstractType::Handle(zone, type_parameter.bound())
+              .IsNullableObjectType()) {
+        // Remove the reference to the parameterized class to
+        // canonicalize common class type parameters
+        // with 'Object?' bound and same indices to the same
+        // instances.
+        type_parameter.set_owner(Object::null_object());
+      }
     }
 
     type_parameter.SetIsFinalized();
-    AbstractType& upper_bound = AbstractType::Handle(zone);
-    upper_bound = type_parameter.bound();
-    if (!upper_bound.IsBeingFinalized()) {
-      upper_bound = FinalizeType(upper_bound, kFinalize);
-      type_parameter.set_bound(upper_bound);
-    }
 
     if (FLAG_trace_type_finalization) {
       THR_Print("Done finalizing type parameter at index %" Pd "\n",
@@ -449,7 +434,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
     }
 
     if (finalization >= kCanonicalize) {
-      return type_parameter.Canonicalize(thread, nullptr);
+      return type_parameter.Canonicalize(thread);
     }
     return type_parameter.ptr();
   }
@@ -497,12 +482,12 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       THR_Print("Canonicalizing type '%s'\n",
                 String::Handle(zone, type.Name()).ToCString());
       AbstractType& canonical_type =
-          AbstractType::Handle(zone, type.Canonicalize(thread, nullptr));
+          AbstractType::Handle(zone, type.Canonicalize(thread));
       THR_Print("Done canonicalizing type '%s'\n",
                 String::Handle(zone, canonical_type.Name()).ToCString());
       return canonical_type.ptr();
     }
-    return type.Canonicalize(thread, nullptr);
+    return type.Canonicalize(thread);
   } else {
     return type.ptr();
   }
@@ -540,7 +525,7 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(
   signature.SetIsFinalized();
 
   if (finalization >= kCanonicalize) {
-    return signature.Canonicalize(Thread::Current(), nullptr);
+    return signature.Canonicalize(Thread::Current());
   }
   return signature.ptr();
 }
@@ -568,7 +553,7 @@ AbstractTypePtr ClassFinalizer::FinalizeRecordType(
   record.SetIsFinalized();
 
   if (finalization >= kCanonicalize) {
-    return record.Canonicalize(Thread::Current(), nullptr);
+    return record.Canonicalize(Thread::Current());
   }
   return record.ptr();
 }
@@ -1198,9 +1183,9 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // The following instances use cids for the computation of canonical hash codes
 // indirectly:
 //
-//    * TypeRefPtr (due to UntaggedTypeRef::type_->type_class_id)
 //    * TypePtr (due to type arguments)
 //    * FunctionTypePtr (due to the result and parameter types)
+//    * RecordTypePtr (due to field types)
 //    * TypeArgumentsPtr (due to type references)
 //    * InstancePtr (due to instance fields)
 //    * ArrayPtr (due to type arguments & array entries)
@@ -1214,11 +1199,6 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //    * UntaggedTypeArguments::hash_
 //    * InstancePtr (weak table)
 //    * ArrayPtr (weak table)
-//
-// No caching of canonical hash codes (i.e. it gets re-computed every time)
-// happens for:
-//
-//    * TypeRefPtr (computed via UntaggedTypeRef::type_->type_class_id)
 //
 // Usages of canonical hash codes are:
 //
@@ -1293,8 +1273,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
-    // Two recursive types with different topology (and hashes) may be equal.
-    ASSERT(!present || type.IsRecursive());
+    ASSERT(!present);
   }
   object_store->set_canonical_types(types_table.Release());
 
@@ -1314,8 +1293,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < function_types.Length(); i++) {
     function_type ^= function_types.At(i);
     bool present = function_types_table.Insert(function_type);
-    // Two recursive types with different topology (and hashes) may be equal.
-    ASSERT(!present || function_type.IsRecursive());
+    ASSERT(!present);
   }
   object_store->set_canonical_function_types(function_types_table.Release());
 
@@ -1335,8 +1313,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < record_types.Length(); i++) {
     record_type ^= record_types.At(i);
     bool present = record_types_table.Insert(record_type);
-    // Two recursive types with different topology (and hashes) may be equal.
-    ASSERT(!present || record_type.IsRecursive());
+    ASSERT(!present);
   }
   object_store->set_canonical_record_types(record_types_table.Release());
 
@@ -1356,8 +1333,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeparams.Length(); i++) {
     typeparam ^= typeparams.At(i);
     bool present = typeparams_table.Insert(typeparam);
-    // Two recursive types with different topology (and hashes) may be equal.
-    ASSERT(!present || typeparam.IsRecursive());
+    ASSERT(!present);
   }
   object_store->set_canonical_type_parameters(typeparams_table.Release());
 
@@ -1381,8 +1357,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);
-    // Two recursive types with different topology (and hashes) may be equal.
-    ASSERT(!present || typearg.IsRecursive());
+    ASSERT(!present);
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());
 }

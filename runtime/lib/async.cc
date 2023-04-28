@@ -48,7 +48,7 @@ DEFINE_NATIVE_ENTRY(SuspendState_instantiateClosureWithFutureTypeArgument,
   }
   auto& type_args = TypeArguments::Handle(zone, type.arguments());
   ASSERT(type_args.IsNull() || type_args.Length() == 1);
-  type_args = type_args.Canonicalize(thread, nullptr);
+  type_args = type_args.Canonicalize(thread);
 
   ASSERT(closure.delayed_type_arguments() ==
          Object::empty_type_arguments().ptr());

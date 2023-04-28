@@ -201,7 +201,6 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kTypeParameters_flags:
     case Slot::Kind::kTypeParameters_bounds:
     case Slot::Kind::kTypeParameters_defaults:
-    case Slot::Kind::kTypeParameter_bound:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
     case Slot::Kind::kWeakProperty_key:

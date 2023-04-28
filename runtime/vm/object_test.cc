@@ -275,8 +275,8 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   OS::PrintErr("2: %s\n", type_arguments2.ToCString());
   EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
-  type_arguments1.Canonicalize(thread, nullptr);
-  type_arguments3 ^= type_arguments2.Canonicalize(thread, nullptr);
+  type_arguments1.Canonicalize(thread);
+  type_arguments3 ^= type_arguments2.Canonicalize(thread);
   EXPECT_EQ(type_arguments1.ptr(), type_arguments3.ptr());
 }
 
@@ -7660,14 +7660,13 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
       Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
   auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nullable.SetTypeAt(0, function_type_nullable);
-  tav_function_nullable = tav_function_nullable.Canonicalize(thread, nullptr);
+  tav_function_nullable = tav_function_nullable.Canonicalize(thread);
   auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_legacy.SetTypeAt(0, function_type_legacy);
-  tav_function_legacy = tav_function_legacy.Canonicalize(thread, nullptr);
+  tav_function_legacy = tav_function_legacy.Canonicalize(thread);
   auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
-  tav_function_nonnullable =
-      tav_function_nonnullable.Canonicalize(thread, nullptr);
+  tav_function_nonnullable = tav_function_nonnullable.Canonicalize(thread);
 
   auto& future_or_function_type_nullable =
       Type::Handle(Type::New(future_or_class, tav_function_nullable));
@@ -7772,18 +7771,18 @@ TEST_CASE(Class_GetInstantiationOf) {
         TypeParameter::CheckedHandle(zone, decl_type_args_a1.TypeAt(1));
     auto& tav_a1_y = TypeArguments::Handle(TypeArguments::New(1));
     tav_a1_y.SetTypeAt(0, type_arg_a1_y);
-    tav_a1_y = tav_a1_y.Canonicalize(thread, nullptr);
+    tav_a1_y = tav_a1_y.Canonicalize(thread);
     auto& type_list_a1_y = Type::CheckedHandle(
         zone, decl_type_list.InstantiateFrom(tav_a1_y, null_tav, kAllFree,
                                              Heap::kNew));
-    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread, nullptr);
+    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread);
     auto& tav_list_a1_y = TypeArguments::Handle(TypeArguments::New(1));
     tav_list_a1_y.SetTypeAt(0, type_list_a1_y);
-    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread, nullptr);
+    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread);
     auto& type_b_list_a1_y = Type::CheckedHandle(
         zone, decl_type_b.InstantiateFrom(tav_list_a1_y, null_tav, kAllFree,
                                           Heap::kNew));
-    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread, nullptr);
+    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread);
 
     const auto& inst_b_a1 =
         Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
@@ -7800,18 +7799,18 @@ TEST_CASE(Class_GetInstantiationOf) {
         TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(0));
     auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
     tav_a2_x.SetTypeAt(0, type_arg_a2_x);
-    tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);
+    tav_a2_x = tav_a2_x.Canonicalize(thread);
     auto& type_list_a2_x = Type::CheckedHandle(
         zone, decl_type_list.InstantiateFrom(tav_a2_x, null_tav, kAllFree,
                                              Heap::kNew));
-    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread, nullptr);
+    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread);
     auto& tav_list_a2_x = TypeArguments::Handle(TypeArguments::New(1));
     tav_list_a2_x.SetTypeAt(0, type_list_a2_x);
-    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread, nullptr);
+    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread);
     auto& type_b_list_a2_x = Type::CheckedHandle(
         zone, decl_type_b.InstantiateFrom(tav_list_a2_x, null_tav, kAllFree,
                                           Heap::kNew));
-    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread, nullptr);
+    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread);
 
     const auto& inst_b_a2 =
         Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));

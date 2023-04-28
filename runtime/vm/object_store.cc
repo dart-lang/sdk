@@ -510,7 +510,7 @@ void ObjectStore::LazyInitAsyncMembers() {
     type_args.SetTypeAt(0, type);
     type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize(thread, nullptr);
+    type ^= type.Canonicalize(thread);
     non_nullable_future_never_type_.store(type.ptr());
 
     type = null_type();
@@ -519,7 +519,7 @@ void ObjectStore::LazyInitAsyncMembers() {
     type_args.SetTypeAt(0, type);
     type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize(thread, nullptr);
+    type ^= type.Canonicalize(thread);
     nullable_future_null_type_.store(type.ptr());
 
     type = cls.RareType();

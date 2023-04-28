@@ -743,13 +743,6 @@ class RecordType : public AllStatic {
   FINAL_CLASS();
 };
 
-class TypeRef : public AllStatic {
- public:
-  static word type_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
 class Nullability : public AllStatic {
  public:
   static const uint8_t kNullable;
@@ -977,7 +970,6 @@ class Bool : public AllStatic {
 
 class TypeParameter : public AllStatic {
  public:
-  static word bound_offset();
   static word InstanceSize();
   FINAL_CLASS();
   static word parameterized_class_id_offset();

@@ -83,7 +83,6 @@
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \
   V(TypeParameters)                                                            \
-  V(TypeRef)                                                                   \
   V(TypedDataBase)                                                             \
   V(UnhandledException)                                                        \
   V(UnlinkedCall)                                                              \

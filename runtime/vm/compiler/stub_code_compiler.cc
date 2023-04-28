@@ -586,10 +586,6 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
   __ LoadClassId(InstantiateTypeABI::kScratchReg,
                  InstantiateTypeABI::kResultTypeReg);
 
-  // Handle/unwrap TypeRefs in runtime.
-  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeRefCid);
-  __ BranchIf(EQUAL, &runtime_call);
-
   switch (nullability) {
     case Nullability::kNonNullable:
       __ Ret();
@@ -689,15 +685,6 @@ static void EnsureIsTypeOrFunctionTypeOrTypeParameter(Assembler* assembler,
   __ CompareImmediate(scratch_reg, kFunctionTypeCid);
   __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
               compiler::Assembler::kNearJump);
-  // Type references show up in F-bounded polymorphism, which is limited
-  // to classes. Thus, TypeRefs only appear in places like class type
-  // arguments or the bounds of uninstantiated class type parameters.
-  //
-  // Since this stub is currently used only by the dynamic versions of
-  // AssertSubtype and AssertAssignable, where kDstType is either the bound of
-  // a function type parameter or the type of a function parameter
-  // (respectively), we should never see a TypeRef here. This check is here
-  // in case this changes and we need to update this stub.
   __ Stop("not a type or function type or type parameter");
   __ Bind(&is_type_param_or_type_or_function_type);
 #endif

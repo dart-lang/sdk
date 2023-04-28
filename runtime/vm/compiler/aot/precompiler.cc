@@ -1161,8 +1161,14 @@ void Precompiler::AddType(const AbstractType& abstype) {
     if (typeparams_to_retain_.HasKey(&param)) return;
     typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
-    auto& bound = AbstractType::Handle(Z, param.bound());
-    AddType(bound);
+    Object& owner = Object::Handle(Z, param.owner());
+    if (owner.IsClass()) {
+      AddTypesOf(Class::Cast(owner));
+    } else if (owner.IsFunctionType()) {
+      AddType(FunctionType::Cast(owner));
+    } else {
+      RELEASE_ASSERT(owner.IsNull());
+    }
     return;
   }
 
@@ -1193,10 +1199,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AddTypesOf(cls);
     const TypeArguments& vector = TypeArguments::Handle(Z, type.arguments());
     AddTypeArguments(vector);
-  } else if (abstype.IsTypeRef()) {
-    AbstractType& type = AbstractType::Handle(Z);
-    type = TypeRef::Cast(abstype).type();
-    AddType(type);
   } else if (abstype.IsRecordType()) {
     const auto& rec = RecordType::Cast(abstype);
     AbstractType& type = AbstractType::Handle(Z);
@@ -2404,8 +2406,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
       void VisitObject(ObjectPtr obj) override {
         if (obj->GetClassId() == kTypeCid ||
             obj->GetClassId() == kFunctionTypeCid ||
-            obj->GetClassId() == kRecordTypeCid ||
-            obj->GetClassId() == kTypeRefCid) {
+            obj->GetClassId() == kRecordTypeCid) {
           type_ ^= obj;
           types_->Add(type_);
         }

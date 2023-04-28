@@ -190,7 +190,7 @@ static void FinalizeAndCanonicalize(AbstractType* type) {
 }
 
 static void CanonicalizeTAV(TypeArguments* tav) {
-  *tav = tav->Canonicalize(Thread::Current(), nullptr);
+  *tav = tav->Canonicalize(Thread::Current());
 }
 
 struct TTSTestCase {

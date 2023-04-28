@@ -2571,7 +2571,7 @@ DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
   }
   const AbstractType& type =
       AbstractType::Handle(Instance::Cast(obj).GetType(Heap::kNew));
-  return Api::NewHandle(T, type.Canonicalize(T, nullptr));
+  return Api::NewHandle(T, type.Canonicalize(T));
 }
 
 DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {

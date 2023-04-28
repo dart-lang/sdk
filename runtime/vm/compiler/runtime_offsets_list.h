@@ -385,8 +385,6 @@
   FIELD(TypeParameters, flags_offset)                                          \
   FIELD(TypeParameters, bounds_offset)                                         \
   FIELD(TypeParameters, defaults_offset)                                       \
-  FIELD(TypeParameter, bound_offset)                                           \
-  FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, typed_data_offset)                                      \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
@@ -478,7 +476,6 @@
   SIZEOF(Type, InstanceSize, UntaggedType)                                     \
   SIZEOF(TypeParameter, InstanceSize, UntaggedTypeParameter)                   \
   SIZEOF(TypeParameters, InstanceSize, UntaggedTypeParameters)                 \
-  SIZEOF(TypeRef, InstanceSize, UntaggedTypeRef)                               \
   SIZEOF(TypedData, HeaderSize, UntaggedTypedData)                             \
   SIZEOF(TypedDataBase, InstanceSize, UntaggedTypedDataBase)                   \
   SIZEOF(TypedDataView, InstanceSize, UntaggedTypedDataView)                   \

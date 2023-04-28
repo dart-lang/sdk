@@ -1027,9 +1027,6 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
     auto& constant_super_type = AbstractType::Handle(
         Z, AbstractType::Cast(super_type()->BoundConstant()).ptr());
 
-    ASSERT(!constant_super_type.IsTypeRef());
-    ASSERT(!constant_sub_type.IsTypeRef());
-
     if (AbstractType::InstantiateAndTestSubtype(
             &constant_sub_type, &constant_super_type,
             constant_instantiator_type_args, constant_function_type_args)) {
@@ -3025,10 +3022,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
       // Failed instantiation in dead code.
       return this;
     }
-    if (new_dst_type.IsTypeRef()) {
-      new_dst_type = TypeRef::Cast(new_dst_type).type();
-    }
-    new_dst_type = new_dst_type.Canonicalize(Thread::Current(), nullptr);
+    new_dst_type = new_dst_type.Canonicalize(Thread::Current());
 
     // Successfully instantiated destination type: update the type attached
     // to this instruction and set type arguments to null because we no

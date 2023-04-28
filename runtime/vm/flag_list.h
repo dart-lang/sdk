@@ -220,6 +220,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(trace_strong_mode_types, bool, false,                                      \
     "Trace optimizations based on strong mode types.")                         \
   D(trace_type_checks, bool, false, "Trace runtime type checks.")              \
+  D(trace_type_checks_verbose, bool, false,                                    \
+    "Enable verbose trace of runtime type checks.")                            \
   D(trace_patching, bool, false, "Trace patching of code.")                    \
   D(trace_optimized_ic_calls, bool, false,                                     \
     "Trace IC calls in optimized code.")                                       \

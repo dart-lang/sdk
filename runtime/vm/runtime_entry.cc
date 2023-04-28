@@ -562,11 +562,6 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
          function_type_arguments.IsInstantiated());
   type = type.InstantiateFrom(instantiator_type_arguments,
                               function_type_arguments, kAllFree, Heap::kOld);
-  if (type.IsTypeRef()) {
-    type = TypeRef::Cast(type).type();
-    ASSERT(!type.IsTypeRef());
-    ASSERT(type.IsCanonical());
-  }
   ASSERT(!type.IsNull() && type.IsInstantiated());
   arguments.SetReturn(type);
 }
@@ -642,19 +637,12 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
       AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
 
-  if (supertype.IsTypeRef()) {
-    supertype = TypeRef::Cast(supertype).type();
-  }
-  ASSERT(!supertype.IsNull() && !supertype.IsTypeRef());
+  ASSERT(!supertype.IsNull());
+  ASSERT(!subtype.IsNull());
 
   // Now that AssertSubtype may be checking types only available at runtime,
   // we can't guarantee the supertype isn't the top type.
   if (supertype.IsTopTypeForSubtyping()) return;
-
-  if (subtype.IsTypeRef()) {
-    subtype = TypeRef::Cast(subtype).type();
-  }
-  ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
 
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(

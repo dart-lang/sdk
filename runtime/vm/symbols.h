@@ -379,7 +379,6 @@ class ObjectPointerVisitor;
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
-  V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \

@@ -67,6 +67,7 @@ class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
 class ObjectGraphCopier;
+class FunctionTypeMapping;
 class NativeArguments;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
@@ -984,9 +985,6 @@ class PassiveObject : public Object {
   DISALLOW_COPY_AND_ASSIGN(PassiveObject);
 };
 
-typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
-typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
-
 // A URIs array contains triplets of strings.
 // The first string in the triplet is a type name (usually a class).
 // The second string in the triplet is the URI of the type.
@@ -1485,12 +1483,13 @@ class Class : public Object {
 
   // Returns true if the type specified by cls, type_arguments, and nullability
   // is a subtype of the other type.
-  static bool IsSubtypeOf(const Class& cls,
-                          const TypeArguments& type_arguments,
-                          Nullability nullability,
-                          const AbstractType& other,
-                          Heap::Space space,
-                          TrailPtr trail = nullptr);
+  static bool IsSubtypeOf(
+      const Class& cls,
+      const TypeArguments& type_arguments,
+      Nullability nullability,
+      const AbstractType& other,
+      Heap::Space space,
+      FunctionTypeMapping* function_type_equivalence = nullptr);
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -2887,9 +2886,9 @@ class Function : public Object {
   // Note that function type parameters declared by this function do not make
   // its signature uninstantiated, only type parameters declared by parent
   // generic functions or class type parameters.
-  bool HasInstantiatedSignature(Genericity genericity = kAny,
-                                intptr_t num_free_fun_type_params = kAllFree,
-                                TrailPtr trail = nullptr) const;
+  bool HasInstantiatedSignature(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
 
   bool IsPrivate() const;
 
@@ -8148,14 +8147,10 @@ class TypeArguments : public Instance {
     return IsDynamicTypes(true, 0, len);
   }
 
-  // Return true if this vector contains a TypeRef.
-  bool IsRecursive(TrailPtr trail = nullptr) const;
-
   // Return true if this vector contains a non-nullable type.
   bool RequireConstCanonicalTypeErasure(Zone* zone,
                                         intptr_t from_index,
-                                        intptr_t len,
-                                        TrailPtr trail = nullptr) const;
+                                        intptr_t len) const;
 
   TypeArgumentsPtr Prepend(Zone* zone,
                            const TypeArguments& other,
@@ -8172,31 +8167,32 @@ class TypeArguments : public Instance {
                                  TypeEquality::kCanonical);
   }
 
-  bool IsEquivalent(const TypeArguments& other,
-                    TypeEquality kind,
-                    TrailPtr trail = nullptr) const {
+  bool IsEquivalent(
+      const TypeArguments& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const {
     // Make a null vector a vector of dynamic as long as the other vector.
     return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
-                                 kind, trail);
+                                 kind, function_type_equivalence);
   }
-  bool IsSubvectorEquivalent(const TypeArguments& other,
-                             intptr_t from_index,
-                             intptr_t len,
-                             TypeEquality kind,
-                             TrailPtr trail = nullptr) const;
+  bool IsSubvectorEquivalent(
+      const TypeArguments& other,
+      intptr_t from_index,
+      intptr_t len,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
   // Check if the vector is instantiated (it must not be null).
   bool IsInstantiated(Genericity genericity = kAny,
-                      intptr_t num_free_fun_type_params = kAllFree,
-                      TrailPtr trail = nullptr) const {
+                      intptr_t num_free_fun_type_params = kAllFree) const {
     return IsSubvectorInstantiated(0, Length(), genericity,
-                                   num_free_fun_type_params, trail);
+                                   num_free_fun_type_params);
   }
-  bool IsSubvectorInstantiated(intptr_t from_index,
-                               intptr_t len,
-                               Genericity genericity = kAny,
-                               intptr_t num_free_fun_type_params = kAllFree,
-                               TrailPtr trail = nullptr) const;
+  bool IsSubvectorInstantiated(
+      intptr_t from_index,
+      intptr_t len,
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
   bool IsUninstantiatedIdentity() const;
 
   // Determine whether this uninstantiated type argument vector can share its
@@ -8218,11 +8214,11 @@ class TypeArguments : public Instance {
 
   // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
-    return Canonicalize(thread, nullptr);
+    return Canonicalize(thread);
   }
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  TypeArgumentsPtr Canonicalize(Thread* thread, TrailPtr trail = nullptr) const;
+  TypeArgumentsPtr Canonicalize(Thread* thread) const;
 
   // Shrinks flattened instance type arguments to ordinary type arguments.
   TypeArgumentsPtr FromInstanceTypeArguments(Thread* thread,
@@ -8252,16 +8248,16 @@ class TypeArguments : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr,
+      FunctionTypeMapping* function_type_mapping = nullptr,
       intptr_t num_parent_type_args_adjustment = 0) const;
 
   // Update number of parent function type arguments for
   // all elements of this vector.
-  TypeArgumentsPtr UpdateParentFunctionType(
+  TypeArgumentsPtr UpdateFunctionTypes(
       intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
+      FunctionTypeMapping* function_type_mapping) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -8574,9 +8570,9 @@ class AbstractType : public Instance {
   virtual classid_t type_class_id() const;
   virtual ClassPtr type_class() const;
   virtual TypeArgumentsPtr arguments() const;
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
+  virtual bool IsInstantiated(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
@@ -8584,12 +8580,11 @@ class AbstractType : public Instance {
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other, TypeEquality::kCanonical);
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   // Instantiate this type using the given type argument vectors.
   //
@@ -8607,30 +8602,32 @@ class AbstractType : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr,
+      FunctionTypeMapping* function_type_mapping = nullptr,
       intptr_t num_parent_type_args_adjustment = 0) const;
 
   // Update number of parent function type arguments for the
   // nested function types and their type parameters.
   //
   // This adjustment is needed when nesting one generic function type
-  // inside another.
+  // inside another. It is also needed when function type is copied
+  // and owners of type parameters need to be adjusted.
+  //
   // Number of parent function type arguments is adjusted by
   // [num_parent_type_args_adjustment].
   // Type parameters up to [num_free_fun_type_params] are not adjusted.
-  virtual AbstractTypePtr UpdateParentFunctionType(
+  virtual AbstractTypePtr UpdateFunctionTypes(
       intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
+      FunctionTypeMapping* function_type_mapping) const;
 
   // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
-    return Canonicalize(thread, nullptr);
+    return Canonicalize(thread);
   }
 
   // Return the canonical version of this type.
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if abstract type is canonical.
@@ -8639,25 +8636,6 @@ class AbstractType : public Instance {
     return false;
   }
 #endif  // DEBUG
-
-  // Return the object associated with the receiver in the trail or
-  // AbstractType::null() if the receiver is not contained in the trail.
-  AbstractTypePtr OnlyBuddyInTrail(TrailPtr trail) const;
-
-  // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
-  // the trail. The receiver may only be added once with its only buddy.
-  void AddOnlyBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
-
-  // Return true if the receiver is contained in the trail.
-  // Otherwise, if the trail is null, allocate a trail, then add the receiver to
-  // the trail and return false.
-  bool TestAndAddToTrail(TrailPtr* trail) const;
-
-  // Return true if the pair <receiver, buddy> is contained in the trail.
-  // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
-  // buddy> to the trail and return false.
-  // The receiver may be added several times, each time with a different buddy.
-  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   // Add the pair <name, uri> to the list, if not already present.
   static void AddURI(URIs* uris, const String& name, const String& uri);
@@ -8695,9 +8673,6 @@ class AbstractType : public Instance {
   // type.
   StringPtr ClassName() const;
 
-  // Check if this type is a still uninitialized TypeRef.
-  bool IsNullTypeRef() const;
-
   // Check if this type represents the 'dynamic' type.
   bool IsDynamicType() const { return type_class_id() == kDynamicCid; }
 
@@ -8715,6 +8690,11 @@ class AbstractType : public Instance {
 
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
+
+  // Check if this type represents the 'Object?' type.
+  bool IsNullableObjectType() const {
+    return IsObjectType() && (nullability() == Nullability::kNullable);
+  }
 
   // Check if this type represents a top type for subtyping,
   // assignability and 'as' type tests.
@@ -8796,9 +8776,10 @@ class AbstractType : public Instance {
   bool IsTypeClassAllowedBySpawnUri() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other,
-                   Heap::Space space,
-                   TrailPtr trail = nullptr) const;
+  bool IsSubtypeOf(
+      const AbstractType& other,
+      Heap::Space space,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
   // Returns true iff subtype is a subtype of supertype, false otherwise or if
   // an error occurred.
@@ -8849,10 +8830,11 @@ class AbstractType : public Instance {
  private:
   // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
   // Returns false if other type is not a FutureOr.
-  bool IsSubtypeOfFutureOr(Zone* zone,
-                           const AbstractType& other,
-                           Heap::Space space,
-                           TrailPtr trail = nullptr) const;
+  bool IsSubtypeOfFutureOr(
+      Zone* zone,
+      const AbstractType& other,
+      Heap::Space space,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
  protected:
   bool IsNullabilityEquivalent(Thread* thread,
@@ -8871,7 +8853,6 @@ class AbstractType : public Instance {
   friend class Class;
   friend class Function;
   friend class TypeArguments;
-  friend class TypeRef;
 };
 
 // A Type consists of a class, possibly parameterized with type
@@ -8898,15 +8879,14 @@ class Type : public AbstractType {
   TypeArgumentsPtr GetInstanceTypeArguments(Thread* thread,
                                             bool canonicalize = true) const;
 
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
+  virtual bool IsInstantiated(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   // Return true if this type can be used as the declaration type of cls after
   // canonicalization (passed-in cls must match type_class()).
@@ -8917,16 +8897,16 @@ class Type : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr,
+      FunctionTypeMapping* function_type_mapping = nullptr,
       intptr_t num_parent_type_args_adjustment = 0) const;
 
-  virtual AbstractTypePtr UpdateParentFunctionType(
+  virtual AbstractTypePtr UpdateFunctionTypes(
       intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
+      FunctionTypeMapping* function_type_mapping) const;
 
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread) const;
 #if defined(DEBUG)
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -9050,31 +9030,30 @@ class FunctionType : public AbstractType {
   virtual bool HasTypeClass() const { return false; }
   FunctionTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
+  virtual bool IsInstantiated(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr,
+      FunctionTypeMapping* function_type_mapping = nullptr,
       intptr_t num_parent_type_args_adjustment = 0) const;
 
-  virtual AbstractTypePtr UpdateParentFunctionType(
+  virtual AbstractTypePtr UpdateFunctionTypes(
       intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
+      FunctionTypeMapping* function_type_mapping) const;
 
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread) const;
 #if defined(DEBUG)
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -9086,7 +9065,10 @@ class FunctionType : public AbstractType {
   virtual uword Hash() const;
   uword ComputeHash() const;
 
-  bool IsSubtypeOf(const FunctionType& other, Heap::Space space) const;
+  bool IsSubtypeOf(
+      const FunctionType& other,
+      Heap::Space space,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
   static intptr_t NumParentTypeArgumentsOf(FunctionTypePtr ptr) {
     return ptr->untag()
@@ -9261,9 +9243,10 @@ class FunctionType : public AbstractType {
   // Returns true if this function type has the same number of type parameters
   // with equal bounds as the other function type. Type parameter names and
   // parameter names (unless optional named) are ignored.
-  bool HasSameTypeParametersAndBounds(const FunctionType& other,
-                                      TypeEquality kind,
-                                      TrailPtr trail = nullptr) const;
+  bool HasSameTypeParametersAndBounds(
+      const FunctionType& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
   // Return true if this function type declares type parameters.
   static bool IsGeneric(FunctionTypePtr ptr) {
@@ -9277,10 +9260,12 @@ class FunctionType : public AbstractType {
   // Returns true if the type of the formal parameter at the given position in
   // this function type is contravariant with the type of the other formal
   // parameter at the given position in the other function type.
-  bool IsContravariantParameter(intptr_t parameter_position,
-                                const FunctionType& other,
-                                intptr_t other_parameter_position,
-                                Heap::Space space) const;
+  bool IsContravariantParameter(
+      intptr_t parameter_position,
+      const FunctionType& other,
+      intptr_t other_parameter_position,
+      Heap::Space space,
+      FunctionTypeMapping* function_type_equivalence) const;
 
   // Returns the index in the parameter names array of the corresponding flag
   // for the given parameter index. Also returns (via flag_mask) the
@@ -9304,6 +9289,8 @@ class FunctionType : public AbstractType {
                              Nullability nullability = Nullability::kLegacy,
                              Heap::Space space = Heap::kOld);
 
+  static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
+
  private:
   void SetHash(intptr_t value) const;
 
@@ -9313,76 +9300,6 @@ class FunctionType : public AbstractType {
   friend class Class;
   friend class ClearTypeHashVisitor;
   friend class Function;
-};
-
-// A TypeRef is used to break cycles in the representation of recursive types.
-// Its only field is the recursive AbstractType it refers to, which can
-// temporarily be null during finalization.
-// Note that the cycle always involves type arguments.
-class TypeRef : public AbstractType {
- public:
-  static intptr_t type_offset() { return OFFSET_OF(UntaggedTypeRef, type_); }
-
-  virtual bool HasTypeClass() const {
-    return (type() != AbstractType::null()) &&
-           AbstractType::Handle(type()).HasTypeClass();
-  }
-  AbstractTypePtr type() const { return untag()->type(); }
-  void set_type(const AbstractType& value) const;
-  virtual classid_t type_class_id() const {
-    return AbstractType::Handle(type()).type_class_id();
-  }
-  virtual ClassPtr type_class() const {
-    return AbstractType::Handle(type()).type_class();
-  }
-  virtual TypeArgumentsPtr arguments() const {
-    return AbstractType::Handle(type()).arguments();
-  }
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const { return true; }
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr InstantiateFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      intptr_t num_free_fun_type_params,
-      Heap::Space space,
-      TrailPtr trail = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
-
-  virtual AbstractTypePtr UpdateParentFunctionType(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
-      Heap::Space space,
-      TrailPtr trail = nullptr) const;
-
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
-#if defined(DEBUG)
-  // Check if typeref is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-  virtual void EnumerateURIs(URIs* uris) const;
-  virtual void PrintName(NameVisibility visibility,
-                         BaseTextBuffer* printer) const;
-
-  virtual uword Hash() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedTypeRef));
-  }
-
-  static TypeRefPtr New(const AbstractType& type);
-
- private:
-  static TypeRefPtr New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeRef, AbstractType);
-  friend class Class;
 };
 
 // A TypeParameter represents a type parameter of a parameterized class.
@@ -9402,7 +9319,6 @@ class TypeParameter : public AbstractType {
   virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
   void set_parameterized_class_id(classid_t value) const;
-  ClassPtr parameterized_class() const;
   bool IsClassTypeParameter() const {
     return parameterized_class_id() != kFunctionCid;
   }
@@ -9422,22 +9338,19 @@ class TypeParameter : public AbstractType {
     return OFFSET_OF(UntaggedTypeParameter, index_);
   }
 
-  AbstractTypePtr bound() const { return untag()->bound(); }
-  void set_bound(const AbstractType& value) const;
-  static intptr_t bound_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, bound_);
-  }
+  ObjectPtr owner() const { return untag()->owner(); }
+  void set_owner(const Object& value) const;
 
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(
-      Zone* zone,
-      TrailPtr trail = nullptr) const {
+  AbstractTypePtr bound() const;
+
+  virtual bool IsInstantiated(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const {
     return IsNonNullable();
   }
   virtual AbstractTypePtr InstantiateFrom(
@@ -9445,16 +9358,16 @@ class TypeParameter : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr,
+      FunctionTypeMapping* function_type_mapping = nullptr,
       intptr_t num_parent_type_args_adjustment = 0) const;
 
-  virtual AbstractTypePtr UpdateParentFunctionType(
+  virtual AbstractTypePtr UpdateFunctionTypes(
       intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
+      FunctionTypeMapping* function_type_mapping) const;
 
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -9486,19 +9399,15 @@ class TypeParameter : public AbstractType {
     return RoundedAllocationSize(sizeof(UntaggedTypeParameter));
   }
 
-  // 'parameterized_class' is null for a function type parameter.
-  static TypeParameterPtr New(const Class& parameterized_class,
+  // 'owner' is a Class or FunctionType.
+  static TypeParameterPtr New(const Object& owner,
                               intptr_t base,
                               intptr_t index,
-                              const AbstractType& bound,
                               Nullability nullability);
 
  private:
   uword ComputeHash() const;
   void SetHash(intptr_t value) const;
-
-  void set_parameterized_class(const Class& value) const;
-  void set_name(const String& value) const;
 
   static TypeParameterPtr New();
 
@@ -9842,8 +9751,6 @@ class String : public Instance {
     ASSERT(Smi::New(0) == nullptr);
     return GetCachedHash(ptr()) != 0;
   }
-
-  bool IsRecursive() const { return false; }  // Required by HashSet templates.
 
   static intptr_t hash_offset() {
 #if defined(HASH_IN_OBJECT_HEADER)
@@ -11149,31 +11056,30 @@ class RecordType : public AbstractType {
   virtual bool HasTypeClass() const { return false; }
   RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
+  virtual bool IsInstantiated(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr,
+      FunctionTypeMapping* function_type_mapping = nullptr,
       intptr_t num_parent_type_args_adjustment = 0) const;
 
-  virtual AbstractTypePtr UpdateParentFunctionType(
+  virtual AbstractTypePtr UpdateFunctionTypes(
       intptr_t num_parent_type_args_adjustment,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
+      FunctionTypeMapping* function_type_mapping) const;
 
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread) const;
 #if defined(DEBUG)
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -11185,7 +11091,10 @@ class RecordType : public AbstractType {
   virtual uword Hash() const;
   uword ComputeHash() const;
 
-  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
+  bool IsSubtypeOf(
+      const RecordType& other,
+      Heap::Space space,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
   RecordShape shape() const { return RecordShape(untag()->shape()); }
 
@@ -13200,7 +13109,7 @@ inline intptr_t RecordType::NumFields() const {
 }
 
 inline uword TypeParameter::Hash() const {
-  ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
+  ASSERT(IsFinalized());
   intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
     return result;

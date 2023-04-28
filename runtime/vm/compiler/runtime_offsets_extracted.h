@@ -570,8 +570,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 8;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     16;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 20;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     12;
@@ -680,7 +678,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 20;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 12;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 20;
@@ -1257,8 +1254,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 24;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     32;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 40;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -1369,7 +1364,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 48;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 56;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 40;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 40;
@@ -1937,8 +1931,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 8;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     16;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 20;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     12;
@@ -2047,7 +2039,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 20;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 12;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 20;
@@ -2624,8 +2615,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 24;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     32;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 40;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -2737,7 +2726,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 48;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 56;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 40;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 40;
@@ -3312,8 +3300,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     20;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -3424,7 +3410,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 24;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 32;
@@ -3999,8 +3984,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     20;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -4112,7 +4095,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 24;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 32;
@@ -4680,8 +4662,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 8;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     16;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 20;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     12;
@@ -4792,7 +4772,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 20;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 12;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 20;
@@ -5369,8 +5348,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 24;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     32;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 40;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -5482,7 +5459,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 48;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 56;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 40;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 40;
@@ -6044,8 +6020,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 8;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     16;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 20;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     12;
@@ -6154,7 +6128,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 20;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 12;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 20;
@@ -6723,8 +6696,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 24;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     32;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 40;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -6835,7 +6806,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 48;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 56;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 40;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 40;
@@ -7395,8 +7365,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 8;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     16;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 20;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     12;
@@ -7505,7 +7473,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 20;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 12;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 20;
@@ -8074,8 +8041,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 24;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     32;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 40;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -8187,7 +8152,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 48;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 56;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 40;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 40;
@@ -8754,8 +8718,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     20;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -8866,7 +8828,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 24;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 32;
@@ -9433,8 +9394,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     20;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 28;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 20;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -9546,7 +9505,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 24;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 32;
@@ -10106,8 +10064,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 8;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 12;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     16;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 20;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     12;
@@ -10218,7 +10174,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 32;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 20;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 12;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 20;
@@ -10787,8 +10742,6 @@ static constexpr dart::compiler::target::word TypeParameters_flags_offset = 16;
 static constexpr dart::compiler::target::word TypeParameters_bounds_offset = 24;
 static constexpr dart::compiler::target::word TypeParameters_defaults_offset =
     32;
-static constexpr dart::compiler::target::word TypeParameter_bound_offset = 40;
-static constexpr dart::compiler::target::word TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_typed_data_offset =
     24;
@@ -10900,7 +10853,6 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Type_InstanceSize = 48;
 static constexpr dart::compiler::target::word TypeParameter_InstanceSize = 56;
 static constexpr dart::compiler::target::word TypeParameters_InstanceSize = 40;
-static constexpr dart::compiler::target::word TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word TypedDataBase_InstanceSize = 24;
 static constexpr dart::compiler::target::word TypedDataView_InstanceSize = 40;
@@ -11529,9 +11481,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     12;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    20;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
 static constexpr dart::compiler::target::word
@@ -11655,7 +11604,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     20;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     12;
@@ -12288,9 +12236,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     24;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    40;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -12416,7 +12361,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     56;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -13052,9 +12996,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     24;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    40;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -13181,7 +13122,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     56;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -13815,9 +13755,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     16;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 20;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    28;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
 static constexpr dart::compiler::target::word
@@ -13943,7 +13880,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     40;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -14577,9 +14513,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     16;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 20;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    28;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
 static constexpr dart::compiler::target::word
@@ -14706,7 +14639,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     40;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -15336,9 +15268,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     12;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    20;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
 static constexpr dart::compiler::target::word
@@ -15464,7 +15393,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     20;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     12;
@@ -16097,9 +16025,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     24;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    40;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -16226,7 +16151,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     56;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -16849,9 +16773,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     12;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    20;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
 static constexpr dart::compiler::target::word
@@ -16975,7 +16896,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     20;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     12;
@@ -17599,9 +17519,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     24;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    40;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -17727,7 +17644,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     56;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -18354,9 +18270,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     24;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    40;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -18483,7 +18396,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     56;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -19108,9 +19020,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     16;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 20;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    28;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
 static constexpr dart::compiler::target::word
@@ -19236,7 +19145,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     40;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -19861,9 +19769,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     16;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 20;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    28;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     20;
 static constexpr dart::compiler::target::word
@@ -19990,7 +19895,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     40;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
@@ -20611,9 +20515,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     12;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 16;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    20;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 16;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
 static constexpr dart::compiler::target::word
@@ -20739,7 +20640,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     20;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     12;
@@ -21363,9 +21263,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameters_bounds_offset =
     24;
 static constexpr dart::compiler::target::word
     AOT_TypeParameters_defaults_offset = 32;
-static constexpr dart::compiler::target::word AOT_TypeParameter_bound_offset =
-    40;
-static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -21492,7 +21389,6 @@ static constexpr dart::compiler::target::word AOT_TypeParameter_InstanceSize =
     56;
 static constexpr dart::compiler::target::word AOT_TypeParameters_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_TypeRef_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_TypedData_HeaderSize = 24;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
     24;
