@@ -1973,7 +1973,6 @@
     "../../../tests/language/number/int_test.dart",
     "../../../tests/language/number/numbers_test.dart",
     "../../../tests/language/number/syntax_test.dart",
-    "../../../tests/language/number/web_int_literals_runtime_test.dart",
     "../../../tests/language/operator/and_operation_on_non_integer_operand_test.dart",
     "../../../tests/language/operator/arithmetic_canonicalization_test.dart",
     "../../../tests/language/operator/arithmetic_int64_test.dart",

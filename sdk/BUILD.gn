@@ -90,6 +90,7 @@ declare_args() {
 # ......isolate/
 # ......js/
 # ......js_interop/
+# ......js_interop_unsafe/
 # ......js_util/
 # ......math/
 # ......mirrors/
@@ -160,6 +161,7 @@ _full_sdk_libraries = [
   "isolate",
   "js",
   "js_interop",
+  "js_interop_unsafe",
   "js_util",
   "math",
   "mirrors",

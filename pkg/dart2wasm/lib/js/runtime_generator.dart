@@ -29,7 +29,12 @@ JSMethods _performJSInteropTransformations(
   final staticInteropClassEraser = StaticInteropClassEraser(coreTypes, null,
       eraseStaticInteropType: (staticInteropType) =>
           InterfaceType(jsValueClass, staticInteropType.declaredNullability),
-      additionalCoreLibraries: {'_js_helper', '_js_types', 'js_interop'});
+      additionalCoreLibraries: {
+        '_js_helper',
+        '_js_types',
+        'js_interop',
+        'js_interop_unsafe'
+      });
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }

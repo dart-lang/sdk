@@ -71,6 +71,7 @@ typedef JSAny = js_types.JSAny;
 // sealed classes feature.
 // TODO(joshualitt): Do we need to seal any other JS types on JS backends? We
 // probably want to seal all JS types on Wasm backends.
+// TODO(joshualitt): Add a [JSObject] constructor.
 typedef JSObject = js_types.JSObject;
 
 /// The type of all JS functions, [JSFunction] <: [JSObject].
@@ -126,6 +127,9 @@ typedef JSBoolean = js_types.JSBoolean;
 /// The type of JS strings, [JSString] <: [JSAny].
 typedef JSString = js_types.JSString;
 
+/// A getter to retrieve the Global [JSObject].
+external JSObject get globalJSObject;
+
 /// `JSUndefined` and `JSNull` are actual reified types on some backends, but
 /// not others. Instead, users should use nullable types for any type that could
 /// contain `JSUndefined` or `JSNull`. However, instead of trying to determine
@@ -140,6 +144,24 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   external bool get isNull;
   bool get isUndefinedOrNull => isUndefined || isNull;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
+  external JSBoolean typeofEquals(JSString typeString);
+
+  /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
+  /// and converts it to a Dart based object. Only JS primitives, arrays, or
+  /// 'map' like JS objects are supported.
+  external Object? dartify();
+}
+
+/// Utility extensions for [Object?].
+extension NullableObjectUtilExtension on Object? {
+  /// Recursively converts a JSON-like collection, or Dart primitive to a
+  /// JavaScript compatible representation.
+  external JSAny? jsify();
+}
+
+/// Utility extensions for [JSObject].
+extension JSObjectUtilExtension on JSObject {
+  external JSBoolean instanceof(JSFunction constructor);
 }
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,

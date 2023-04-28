@@ -5,17 +5,41 @@
 import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
-import 'dart:js_util';
+import 'dart:js_util' as js_util;
 import 'dart:typed_data';
+
+@patch
+JSObject get globalJSObject => js_util.globalThis as JSObject;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
 /// TODO(joshualitt): Remove conflation of null and undefined after migration.
 extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
-  bool get isUndefined => this == null || typeofEquals(this, 'undefined');
+  bool get isUndefined =>
+      this == null || js_util.typeofEquals(this, 'undefined');
 
   @patch
   bool get isNull => this == null || JS('bool', '# === null', this);
+
+  @patch
+  JSBoolean typeofEquals(JSString typeString) =>
+      JS('bool', 'typeof # === #', this, typeString);
+
+  @patch
+  Object? dartify() => js_util.dartify(this);
+}
+
+/// Utility extensions for [Object?].
+extension NullableObjectUtilExtension on Object? {
+  @patch
+  JSAny? jsify() => js_util.jsify(this) as JSAny?;
+}
+
+/// Utility extensions for [JSObject].
+extension JSObjectUtilExtension on JSObject {
+  @patch
+  JSBoolean instanceof(JSFunction constructor) =>
+      JS('bool', '# instanceof #', this, constructor);
 }
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -27,7 +51,7 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
 extension FunctionToJSExportedDartFunction on Function {
   @patch
   JSExportedDartFunction get toJS =>
-      allowInterop(this) as JSExportedDartFunction;
+      js_util.allowInterop(this) as JSExportedDartFunction;
 }
 
 /// [JSExportedDartObject] <-> [Object]
@@ -44,7 +68,7 @@ extension ObjectToJSExportedDartObject on Object {
 /// [JSPromise] -> [Future<JSAny?>].
 extension JSPromiseToFuture on JSPromise {
   @patch
-  Future<JSAny?> get toDart => promiseToFuture<JSAny?>(this);
+  Future<JSAny?> get toDart => js_util.promiseToFuture<JSAny?>(this);
 }
 
 /// [JSArrayBuffer] <-> [ByteBuffer]

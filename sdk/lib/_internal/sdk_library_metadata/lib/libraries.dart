@@ -134,6 +134,12 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
+  'js_interop_unsafe': const LibraryInfo(
+    'js_interop_unsafe/js_interop_unsafe.dart',
+    categories: 'Client',
+    maturity: Maturity.EXPERIMENTAL,
+    platforms: DART2JS_PLATFORM,
+  ),
   'js_util': const LibraryInfo(
     'js_util/js_util.dart',
     categories: 'Client',

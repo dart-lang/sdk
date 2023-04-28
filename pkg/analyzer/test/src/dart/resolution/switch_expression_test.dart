@@ -15,6 +15,62 @@ main() {
 
 @reflectiveTest
 class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
+  test_case_expression_void() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch(x) {
+    0 => 0,
+    _ => g(),
+  });
+}
+
+void g() {}
+''');
+
+    final node = findNode.singleSwitchExpression;
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression: IntegerLiteral
+            literal: 0
+            staticType: int
+          matchedValueType: Object?
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+          matchedValueType: Object?
+      arrow: =>
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+  rightBracket: }
+  staticType: void
+''');
+  }
+
   test_cases_empty() async {
     await assertErrorsInCode(r'''
 final a = switch (0) {};
@@ -80,6 +136,43 @@ SwitchExpression
         staticType: int
         typeArgumentTypes
           int
+  rightBracket: }
+  staticType: int
+''');
+  }
+
+  test_expression_void() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  (switch(x) {
+    _ => 0,
+  });
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
+    ]);
+
+    final node = findNode.singleSwitchExpression;
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: void
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+          matchedValueType: void
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
   rightBracket: }
   staticType: int
 ''');

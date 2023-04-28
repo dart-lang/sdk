@@ -17,7 +17,7 @@ abstract class EnumOperations<Type extends Object, EnumClass extends Object,
   /// Returns the value defined by the [enumElement]. The encoding is specific
   /// the implementation of this interface but must ensure constant value
   /// identity.
-  EnumElementValue getEnumElementValue(EnumElement enumElement);
+  EnumElementValue? getEnumElementValue(EnumElement enumElement);
 
   /// Returns the declared name of the [enumElement].
   String getEnumElementName(EnumElement enumElement);
@@ -57,14 +57,16 @@ class EnumInfo<Type extends Object, EnumClass extends Object,
     Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>> elements =
         {};
     for (EnumElement element in _enumOperations.getEnumElements(_enumClass)) {
-      EnumElementValue value = _enumOperations.getEnumElementValue(element);
-      elements[value] = new EnumElementStaticType<Type, EnumElement>(
-          _typeOperations,
-          _fieldLookup,
-          _enumOperations.getEnumElementType(element),
-          new IdentityRestriction<EnumElement>(element),
-          _enumOperations.getEnumElementName(element),
-          element);
+      EnumElementValue? value = _enumOperations.getEnumElementValue(element);
+      if (value != null) {
+        elements[value] = new EnumElementStaticType<Type, EnumElement>(
+            _typeOperations,
+            _fieldLookup,
+            _enumOperations.getEnumElementType(element),
+            new IdentityRestriction<EnumElement>(element),
+            _enumOperations.getEnumElementName(element),
+            element);
+      }
     }
     return elements;
   }

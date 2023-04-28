@@ -73,6 +73,7 @@ class WasmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js',
         'dart:js_util',
         'dart:_wasm',

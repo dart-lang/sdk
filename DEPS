@@ -133,7 +133,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "6c9bc10cf2dc6496b2ce863c8d614aa0781abf90", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "8e8b36e3792701b50cbcafc77a615dce97cc98b4",
+  "dartdoc_rev": "d01ddc58600c0d2edbbd953d2074996c36604cfc",
   "ffi_rev": "04fa38ab45cb2957f9059e03031b53906c2c4385",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",
   "fixnum_rev": "92ec336bbd0d03e02be0208483bdfaf68b4b6b7c",
