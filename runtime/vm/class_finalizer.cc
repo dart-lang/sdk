@@ -314,20 +314,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeTypeParameters(Zone* zone,
-                                            const Class& cls,
-                                            const FunctionType& signature,
+                                            const TypeParameters& type_params,
                                             FinalizationKind finalization) {
-  if (FLAG_trace_type_finalization) {
-    THR_Print(
-        "%s type parameters of %s '%s'\n",
-        finalization == kFinalize ? "Finalizing" : "Canonicalizing",
-        !cls.IsNull() ? "class" : "signature",
-        String::Handle(zone, !cls.IsNull() ? cls.Name() : signature.Name())
-            .ToCString());
-  }
-  const TypeParameters& type_params =
-      TypeParameters::Handle(zone, !cls.IsNull() ? cls.type_parameters()
-                                                 : signature.type_parameters());
   if (!type_params.IsNull()) {
     TypeArguments& type_args = TypeArguments::Handle(zone);
 
@@ -347,21 +335,14 @@ TypeArgumentsPtr ClassFinalizer::FinalizeTypeArguments(
     Zone* zone,
     const TypeArguments& type_args,
     FinalizationKind finalization) {
-  if (type_args.IsNull()) return TypeArguments::null();
+  if (type_args.IsNull()) {
+    return TypeArguments::null();
+  }
   ASSERT(type_args.ptr() != Object::empty_type_arguments().ptr());
-  const intptr_t len = type_args.Length();
   AbstractType& type = AbstractType::Handle(zone);
-  AbstractType& finalized_type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < len; i++) {
+  for (intptr_t i = 0, n = type_args.Length(); i < n; ++i) {
     type = type_args.TypeAt(i);
-    if (type.IsBeingFinalized()) {
-      ASSERT(finalization < kCanonicalize);
-      continue;
-    }
-    finalized_type = FinalizeType(type, kFinalize);
-    if (type.ptr() != finalized_type.ptr()) {
-      type_args.SetTypeAt(i, finalized_type);
-    }
+    FinalizeType(type, kFinalize);
   }
   if (finalization >= kCanonicalize) {
     return type_args.Canonicalize(Thread::Current());
@@ -372,9 +353,7 @@ TypeArgumentsPtr ClassFinalizer::FinalizeTypeArguments(
 AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
                                              FinalizationKind finalization) {
   if (type.IsFinalized()) {
-    // Ensure type is canonical if canonicalization is requested.
-    if ((finalization >= kCanonicalize) && !type.IsCanonical() &&
-        !type.IsBeingFinalized()) {
+    if ((finalization >= kCanonicalize) && !type.IsCanonical()) {
       return type.Canonicalize(Thread::Current());
     }
     return type.ptr();
@@ -383,17 +362,19 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  ASSERT(!type.IsBeingFinalized());
-
-  // Mark the type as being finalized in order to detect self reference.
-  type.SetIsBeingFinalized();
-
   if (FLAG_trace_type_finalization) {
-    THR_Print("Finalizing type '%s'\n",
-              String::Handle(zone, type.Name()).ToCString());
+    THR_Print("Finalizing type '%s'\n", type.ToCString());
   }
 
-  if (type.IsTypeParameter()) {
+  if (type.IsType()) {
+    const auto& t = Type::Cast(type);
+    const auto& type_args = TypeArguments::Handle(zone, t.arguments());
+    ASSERT(type_args.IsNull() ||
+           type_args.Length() ==
+               Class::Handle(zone, t.type_class()).NumTypeParameters(thread));
+    FinalizeTypeArguments(zone, type_args, kFinalize);
+
+  } else if (type.IsTypeParameter()) {
     const TypeParameter& type_parameter = TypeParameter::Cast(type);
     // The base and index of a function type parameter are eagerly calculated
     // upon loading and do not require adjustment here.
@@ -425,137 +406,37 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
         type_parameter.set_parameterized_class_id(kIllegalCid);
       }
     }
+  } else if (type.IsFunctionType()) {
+    const auto& signature = FunctionType::Cast(type);
+    FinalizeTypeParameters(
+        zone, TypeParameters::Handle(zone, signature.type_parameters()),
+        kFinalize);
 
-    type_parameter.SetIsFinalized();
+    AbstractType& type = AbstractType::Handle(zone);
+    type = signature.result_type();
+    FinalizeType(type, kFinalize);
 
-    if (FLAG_trace_type_finalization) {
-      THR_Print("Done finalizing type parameter at index %" Pd "\n",
-                type_parameter.index());
+    for (intptr_t i = 0, n = signature.NumParameters(); i < n; ++i) {
+      type = signature.ParameterTypeAt(i);
+      FinalizeType(type, kFinalize);
     }
 
-    if (finalization >= kCanonicalize) {
-      return type_parameter.Canonicalize(thread);
+  } else if (type.IsRecordType()) {
+    const auto& record = RecordType::Cast(type);
+    AbstractType& type = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = record.NumFields(); i < n; ++i) {
+      type = record.FieldTypeAt(i);
+      FinalizeType(type, kFinalize);
     }
-    return type_parameter.ptr();
   }
 
-  // If the type is a function type, we also need to finalize the types in its
-  // signature, i.e. finalize the result type and parameter types of the
-  // signature function of this function type.
-  if (type.IsFunctionType()) {
-    return FinalizeSignature(zone, FunctionType::Cast(type), finalization);
-  }
-
-  if (type.IsRecordType()) {
-    return FinalizeRecordType(zone, RecordType::Cast(type), finalization);
-  }
-
-  // At this point, we can only have a Type.
-  ASSERT(type.IsType());
-
-  TypeArguments& type_args =
-      TypeArguments::Handle(zone, Type::Cast(type).arguments());
-  ASSERT(type_args.IsNull() ||
-         type_args.Length() ==
-             Class::Handle(zone, type.type_class()).NumTypeParameters(thread));
-
-  type_args = FinalizeTypeArguments(zone, type_args, finalization);
-  Type::Cast(type).set_arguments(type_args);
-
-  // Self referencing types may get finalized indirectly.
-  if (!type.IsFinalized()) {
-    if (FLAG_trace_type_finalization) {
-      THR_Print("Marking type '%s' as finalized\n",
-                String::Handle(zone, type.Name()).ToCString());
-    }
-    // Mark the type as finalized.
-    type.SetIsFinalized();
-  }
-
-  if (FLAG_trace_type_finalization) {
-    THR_Print("Done finalizing type '%s': %s\n",
-              String::Handle(zone, type.Name()).ToCString(), type.ToCString());
-  }
+  type.SetIsFinalized();
 
   if (finalization >= kCanonicalize) {
-    if (FLAG_trace_type_finalization) {
-      THR_Print("Canonicalizing type '%s'\n",
-                String::Handle(zone, type.Name()).ToCString());
-      AbstractType& canonical_type =
-          AbstractType::Handle(zone, type.Canonicalize(thread));
-      THR_Print("Done canonicalizing type '%s'\n",
-                String::Handle(zone, canonical_type.Name()).ToCString());
-      return canonical_type.ptr();
-    }
     return type.Canonicalize(thread);
   } else {
     return type.ptr();
   }
-}
-
-AbstractTypePtr ClassFinalizer::FinalizeSignature(
-    Zone* zone,
-    const FunctionType& signature,
-    FinalizationKind finalization) {
-  // Finalize signature type parameter upper bounds and default args.
-  FinalizeTypeParameters(zone, Object::null_class(), signature, finalization);
-
-  AbstractType& type = AbstractType::Handle(zone);
-  AbstractType& finalized_type = AbstractType::Handle(zone);
-  // Finalize result type.
-  type = signature.result_type();
-  finalized_type = FinalizeType(type, kFinalize);
-  if (finalized_type.ptr() != type.ptr()) {
-    signature.set_result_type(finalized_type);
-  }
-  // Finalize formal parameter types.
-  const intptr_t num_parameters = signature.NumParameters();
-  for (intptr_t i = 0; i < num_parameters; i++) {
-    type = signature.ParameterTypeAt(i);
-    finalized_type = FinalizeType(type, kFinalize);
-    if (type.ptr() != finalized_type.ptr()) {
-      signature.SetParameterTypeAt(i, finalized_type);
-    }
-  }
-
-  if (FLAG_trace_type_finalization) {
-    THR_Print("Marking function type '%s' as finalized\n",
-              String::Handle(zone, signature.Name()).ToCString());
-  }
-  signature.SetIsFinalized();
-
-  if (finalization >= kCanonicalize) {
-    return signature.Canonicalize(Thread::Current());
-  }
-  return signature.ptr();
-}
-
-AbstractTypePtr ClassFinalizer::FinalizeRecordType(
-    Zone* zone,
-    const RecordType& record,
-    FinalizationKind finalization) {
-  AbstractType& type = AbstractType::Handle(zone);
-  AbstractType& finalized_type = AbstractType::Handle(zone);
-  // Finalize record field types.
-  const intptr_t num_fields = record.NumFields();
-  for (intptr_t i = 0; i < num_fields; ++i) {
-    type = record.FieldTypeAt(i);
-    finalized_type = FinalizeType(type, kFinalize);
-    if (type.ptr() != finalized_type.ptr()) {
-      record.SetFieldTypeAt(i, finalized_type);
-    }
-  }
-
-  if (FLAG_trace_type_finalization) {
-    THR_Print("Marking record type '%s' as finalized\n",
-              String::Handle(zone, record.Name()).ToCString());
-  }
-  record.SetIsFinalized();
-
-  if (finalization >= kCanonicalize) {
-    return record.Canonicalize(Thread::Current());
-  }
-  return record.ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -697,8 +578,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     FinalizeTypesInClass(super_class);
   }
   // Finalize type parameters before finalizing the super type.
-  FinalizeTypeParameters(zone, cls, Object::null_function_type(),
-                         kCanonicalize);
+  FinalizeTypeParameters(
+      zone, TypeParameters::Handle(zone, cls.type_parameters()), kCanonicalize);
   ASSERT(super_class.ptr() == cls.SuperClass());  // Not modified.
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
   // Finalize super type.

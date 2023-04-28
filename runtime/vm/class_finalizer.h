@@ -82,22 +82,9 @@ class ClassFinalizer : public AllStatic {
       const TypeArguments& type_args,
       FinalizationKind finalization = kCanonicalize);
 
-  // Finalize the types in the signature and the signature itself.
-  static AbstractTypePtr FinalizeSignature(
-      Zone* zone,
-      const FunctionType& signature,
-      FinalizationKind finalization = kCanonicalize);
-
-  static AbstractTypePtr FinalizeRecordType(
-      Zone* zone,
-      const RecordType& record,
-      FinalizationKind finalization = kCanonicalize);
-
-  static void FinalizeTypeParameters(
-      Zone* zone,
-      const Class& cls,
-      const FunctionType& signature,
-      FinalizationKind finalization = kCanonicalize);
+  static void FinalizeTypeParameters(Zone* zone,
+                                     const TypeParameters& type_params,
+                                     FinalizationKind finalization);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void FinalizeMemberTypes(const Class& cls);

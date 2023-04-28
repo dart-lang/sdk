@@ -9479,7 +9479,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     Heap::Space space,
     FunctionTypeMapping* function_type_mapping,
     intptr_t num_parent_type_args_adjustment) const {
-  ASSERT(IsFinalized() || IsBeingFinalized());
+  ASSERT(IsFinalized());
   Zone* zone = Thread::Current()->zone();
   const intptr_t num_parent_type_args = NumParentTypeArguments();
   bool delete_type_parameters = false;
@@ -9586,13 +9586,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     ASSERT(sig.IsInstantiated(kFunctions));
   }
 
-  if (IsFinalized()) {
-    sig.SetIsFinalized();
-  } else {
-    if (IsBeingFinalized()) {
-      sig.SetIsBeingFinalized();
-    }
-  }
+  sig.SetIsFinalized();
 
   // Canonicalization is not part of instantiation.
   return sig.ptr();
@@ -21042,11 +21036,6 @@ void AbstractType::SetIsFinalized() const {
                      : UntaggedAbstractType::kFinalizedUninstantiated);
 }
 
-void AbstractType::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(UntaggedAbstractType::kBeingFinalized);
-}
-
 void AbstractType::set_flags(uint32_t value) const {
   untag()->set_flags(value);
 }
@@ -21850,7 +21839,7 @@ AbstractTypePtr Type::InstantiateFrom(
     FunctionTypeMapping* function_type_mapping,
     intptr_t num_parent_type_args_adjustment) const {
   Zone* zone = Thread::Current()->zone();
-  ASSERT(IsFinalized() || IsBeingFinalized());
+  ASSERT(IsFinalized());
   ASSERT(!IsInstantiated());
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time or
@@ -21871,13 +21860,7 @@ AbstractTypePtr Type::InstantiateFrom(
   // with different instantiators. Allocate a new instantiated version of it.
   const Type& instantiated_type =
       Type::Handle(zone, Type::New(cls, type_arguments, nullability(), space));
-  if (IsFinalized()) {
-    instantiated_type.SetIsFinalized();
-  } else {
-    if (IsBeingFinalized()) {
-      instantiated_type.SetIsBeingFinalized();
-    }
-  }
+  instantiated_type.SetIsFinalized();
   // Canonicalization is not part of instantiation.
   return instantiated_type.NormalizeFutureOrType(space);
 }
@@ -22781,7 +22764,7 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
     }
   } else {
     ASSERT(IsClassTypeParameter());
-    ASSERT(IsFinalized() || IsBeingFinalized());
+    ASSERT(IsFinalized());
     if (instantiator_type_arguments.IsNull()) {
       return Type::DynamicType();
     }
@@ -27896,7 +27879,7 @@ AbstractTypePtr RecordType::InstantiateFrom(
     Heap::Space space,
     FunctionTypeMapping* function_type_mapping,
     intptr_t num_parent_type_args_adjustment) const {
-  ASSERT(IsFinalized() || IsBeingFinalized());
+  ASSERT(IsFinalized());
   Zone* zone = Thread::Current()->zone();
 
   const intptr_t num_fields = NumFields();
@@ -27923,13 +27906,7 @@ AbstractTypePtr RecordType::InstantiateFrom(
   const auto& rec = RecordType::Handle(
       zone, RecordType::New(shape(), new_field_types, nullability(), space));
 
-  if (IsFinalized()) {
-    rec.SetIsFinalized();
-  } else {
-    if (IsBeingFinalized()) {
-      rec.SetIsBeingFinalized();
-    }
-  }
+  rec.SetIsFinalized();
 
   // Canonicalization is not part of instantiation.
   return rec.ptr();

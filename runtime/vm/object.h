@@ -8535,10 +8535,6 @@ class AbstractType : public Instance {
            (state == UntaggedAbstractType::kFinalizedUninstantiated);
   }
   void SetIsFinalized() const;
-  bool IsBeingFinalized() const {
-    return type_state() == UntaggedAbstractType::kBeingFinalized;
-  }
-  void SetIsBeingFinalized() const;
 
   Nullability nullability() const {
     return static_cast<Nullability>(
