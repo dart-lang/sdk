@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method printBugsSwitch(core::int n) → void
+  return block {
+    void #t1;
+    final synthesized core::int #0#0 = n;
+    #L1:
+    {
+      {
+        if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+          #t1 = core::print("no bugs");
+          break #L1;
+        }
+      }
+      {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+          #t1 = core::print("one bug");
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = core::print("${n} bugs");
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method printBugsConditional(core::int n) → void
+  return n =={core::num::==}{(core::Object) → core::bool} 0 ?{void} core::print("no bugs") : n =={core::num::==}{(core::Object) → core::bool} 1 ?{void} core::print("one bug") : core::print("${n} bugs");
+static method main() → dynamic {
+  self::printBugsSwitch(0);
+  self::printBugsSwitch(1);
+  self::printBugsSwitch(2);
+  self::printBugsConditional(0);
+  self::printBugsConditional(1);
+  self::printBugsConditional(2);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

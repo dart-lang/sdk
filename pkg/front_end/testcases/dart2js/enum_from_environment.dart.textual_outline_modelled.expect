@@ -1,0 +1,17 @@
+String method(A a) {}
+
+class B {
+  const B(this.value);
+  final int value;
+  static const B a = const B(const int.fromEnvironment('a'));
+  static const B b = const B(const int.fromEnvironment('b'));
+}
+
+enum A {
+  a(B.a),
+  b(B.b),
+  ;
+
+  final B value;
+  const A(this.value);
+}

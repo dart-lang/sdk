@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method printBugsSwitch(core::int n) → void
+  ;
+static method printBugsConditional(core::int n) → void
+  ;
+static method main() → dynamic
+  ;
