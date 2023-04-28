@@ -98,8 +98,7 @@ class OverrideContributor extends DartCompletionContributor {
         //  }
         // Parses as a variable list where `m` is the type and `String` is a
         // variable.
-        var name = type.name;
-        return name is SimpleIdentifier ? _Target(fields, name.token) : null;
+        return type.importPrefix == null ? _Target(fields, type.name2) : null;
       }
     }
     return null;

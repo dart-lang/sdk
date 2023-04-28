@@ -126,25 +126,17 @@ class ReplacedBy extends Change<_Data> {
         }
       }
     } else if (node is ConstructorName) {
-      var typeName = node.type.name;
-      SimpleIdentifier classNameNode;
-      if (typeName is SimpleIdentifier) {
-        classNameNode = typeName;
-      } else if (typeName is PrefixedIdentifier) {
-        classNameNode = typeName.identifier;
-      } else {
-        return null;
-      }
+      var classNameToken = node.type.name2;
       var constructorNameNode = node.name;
       var constructorName = constructorNameNode?.name ?? '';
       var components = fix.element.components;
       if (components.length == 2 &&
           constructorName == components[0] &&
-          classNameNode.name == components[1]) {
+          classNameToken.lexeme == components[1]) {
         if (constructorNameNode != null) {
-          return _Data(range.startEnd(classNameNode, constructorNameNode));
+          return _Data(range.startEnd(classNameToken, constructorNameNode));
         }
-        return _Data(range.node(classNameNode));
+        return _Data(range.token(classNameToken));
       }
     }
     return null;

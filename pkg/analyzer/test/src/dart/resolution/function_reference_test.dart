@@ -36,10 +36,8 @@ FunctionReference
     expression: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -54,10 +52,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -82,10 +78,8 @@ FunctionReference
     expression: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -100,10 +94,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -130,10 +122,8 @@ FunctionReference
   function: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: null
       period: .
       name: SimpleIdentifier
@@ -146,10 +136,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -171,18 +159,12 @@ FunctionReference
   function: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
-        name: PrefixedIdentifier
-          prefix: SimpleIdentifier
-            token: a
-            staticElement: self::@prefix::a
-            staticType: null
+        importPrefix: ImportPrefixReference
+          name: a
           period: .
-          identifier: SimpleIdentifier
-            token: Future
-            staticElement: dart:async::@class::Future
-            staticType: null
-          staticElement: dart:async::@class::Future
-          staticType: null
+          element: self::@prefix::a
+        name: Future
+        element: dart:async::@class::Future
         type: null
       period: .
       name: SimpleIdentifier
@@ -195,10 +177,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -227,10 +207,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -259,10 +237,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -305,10 +281,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -342,10 +316,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -390,10 +362,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -423,10 +393,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -467,10 +435,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -522,10 +488,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -556,10 +520,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -598,10 +560,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -655,10 +615,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -698,10 +656,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -756,10 +712,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -810,10 +764,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -844,10 +796,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -879,10 +829,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -916,10 +864,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -958,10 +904,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -1001,10 +945,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(String)
@@ -1038,10 +980,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: void Function(String)
@@ -1083,10 +1023,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1132,10 +1070,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1161,10 +1097,8 @@ ImplicitCallReference
   expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1175,10 +1109,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: self::@class::C::@method::call
@@ -1220,10 +1152,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: self::@class::C::@method::call
@@ -1256,16 +1186,12 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticElement: self::@extension::E::@method::call
@@ -1319,10 +1245,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: package:test/a.dart::@class::C::@method::call
@@ -1366,10 +1290,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: package:test/a.dart::@class::C::@method::call
@@ -1399,10 +1321,8 @@ ImplicitCallReference
   expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1413,10 +1333,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: self::@class::C::@method::call
@@ -1447,10 +1365,8 @@ ImplicitCallReference
   expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1461,10 +1377,8 @@ ImplicitCallReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: self::@class::C::@method::call
@@ -1501,10 +1415,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1535,10 +1447,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1570,10 +1480,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1614,10 +1522,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: dynamic
@@ -1659,10 +1565,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: dynamic
@@ -1691,10 +1595,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1736,10 +1638,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1788,10 +1688,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1834,10 +1732,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1883,10 +1779,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: double
-          staticElement: dart:core::@class::double
-          staticType: null
+        name: double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   staticType: dynamic
@@ -1936,10 +1830,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1988,20 +1880,16 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: Exactly
-          staticElement: self::@typeAlias::Exactly
-          staticType: null
+        name: Exactly
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
+        element: self::@typeAlias::Exactly
         type: int Function(int)
           alias: self::@typeAlias::Exactly
             typeArguments
@@ -2053,10 +1941,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2094,10 +1980,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2135,10 +2019,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2172,10 +2054,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2215,10 +2095,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2255,10 +2133,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2298,10 +2174,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2351,10 +2225,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2404,10 +2276,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2441,10 +2311,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2481,10 +2349,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2518,10 +2384,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2571,20 +2435,16 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: Exactly
-          staticElement: self::@typeAlias::Exactly
-          staticType: null
+        name: Exactly
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
+        element: self::@typeAlias::Exactly
         type: int Function(int)
           alias: self::@typeAlias::Exactly
             typeArguments
@@ -2623,10 +2483,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2660,10 +2518,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2694,10 +2550,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2756,10 +2610,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2786,10 +2638,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2830,10 +2680,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2877,10 +2725,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2908,10 +2754,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -2936,10 +2780,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2969,10 +2811,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3001,10 +2841,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3036,10 +2874,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function()
@@ -3105,10 +2941,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3195,10 +3029,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3236,10 +3068,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3288,10 +3118,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3340,10 +3168,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3393,10 +3219,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3436,10 +3260,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3473,10 +3295,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -3511,16 +3331,12 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic)
@@ -3549,10 +3365,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3592,10 +3406,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3638,10 +3450,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3677,10 +3487,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3706,10 +3514,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3742,10 +3548,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3785,10 +3589,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3837,10 +3639,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3874,10 +3674,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3911,10 +3709,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3940,10 +3736,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -3981,10 +3775,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -4021,10 +3813,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: dynamic
@@ -4055,10 +3845,8 @@ FunctionReference
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
-          name: SimpleIdentifier
-            token: dynamic
-            staticElement: dynamic@-1
-            staticType: null
+          name: dynamic
+          element: dynamic@-1
           type: dynamic
         staticType: dynamic
       rightParenthesis: )
@@ -4066,10 +3854,8 @@ FunctionReference
     asOperator: as
     type: GenericFunctionType
       returnType: NamedType
-        name: SimpleIdentifier
-          token: void
-          staticElement: <null>
-          staticType: null
+        name: void
+        element: <null>
         type: void
       functionKeyword: Function
       typeParameters: TypeParameterList
@@ -4083,10 +3869,8 @@ FunctionReference
         leftParenthesis: (
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@89
-              staticType: null
+            name: T
+            element: T@89
             type: T
           declaredElement: @-1
             type: T
@@ -4267,10 +4051,8 @@ C<int> Function(int) foo() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: C
-        staticElement: self::@class::C
-        staticType: null
+      name: C
+      element: self::@class::C
       type: null
     period: .
     name: SimpleIdentifier
@@ -4305,10 +4087,8 @@ FunctionReference
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@37
-            staticType: null
+          name: T
+          element: T@37
           type: T
         name: a
         declaredElement: @36::@parameter::a
@@ -4648,10 +4428,8 @@ FunctionReference
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)

@@ -426,8 +426,8 @@ class D {}
 class E {}
 ''');
     expect(nodes, hasLength(2));
-    expect((nodes[0] as NamedType).name.toSource(), 'C');
-    expect((nodes[1] as NamedType).name.toSource(), 'D');
+    expect((nodes[0] as NamedType).name2.lexeme, 'C');
+    expect((nodes[1] as NamedType).name2.lexeme, 'D');
   }
 
   Future<void> test_importDirective_combinators() async {

@@ -312,28 +312,30 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that the given [identifier] was referenced
   /// before it was declared.
   AnalysisError referencedBeforeDeclaration(
-      Source source, Identifier identifier,
-      {Element? element}) {
-    String name = identifier.name;
-    Element staticElement = element ?? identifier.staticElement!;
+    Source source, {
+    required Token nameToken,
+    required Element element,
+  }) {
+    String name = nameToken.lexeme;
     List<DiagnosticMessage>? contextMessages;
-    int declarationOffset = staticElement.nameOffset;
+    int declarationOffset = element.nameOffset;
     if (declarationOffset >= 0) {
       contextMessages = [
         DiagnosticMessageImpl(
             filePath: source.fullName,
             message: "The declaration of '$name' is here.",
             offset: declarationOffset,
-            length: staticElement.nameLength,
+            length: element.nameLength,
             url: null)
       ];
     }
     return AnalysisError(
-        source,
-        identifier.offset,
-        identifier.length,
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-        [name],
-        contextMessages ?? const []);
+      source,
+      nameToken.offset,
+      nameToken.length,
+      CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+      [name],
+      contextMessages ?? const [],
+    );
   }
 }

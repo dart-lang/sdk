@@ -161,10 +161,8 @@ Annotation
       InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
-            name: SimpleIdentifier
-              token: A
-              staticElement: self::@class::A
-              staticType: null
+            name: A
+            element: self::@class::A
             type: A
           staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -1046,10 +1044,8 @@ Annotation
         keyword: const
         constructorName: ConstructorName
           type: NamedType
-            name: SimpleIdentifier
-              token: C
-              staticElement: self::@class::C
-              staticType: null
+            name: C
+            element: self::@class::C
             type: C
           staticElement: self::@class::C::@constructor::new
         argumentList: ArgumentList
@@ -1387,10 +1383,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -1443,10 +1437,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1804,10 +1796,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1853,7 +1843,7 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').name.staticElement!;
+    var classC = findNode.namedType('C c').element!;
     var annotation = classC.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1883,7 +1873,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').element!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1912,7 +1902,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').element!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -2292,10 +2282,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2361,10 +2349,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2460,10 +2446,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2526,10 +2510,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2678,10 +2660,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2736,10 +2716,8 @@ Annotation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList

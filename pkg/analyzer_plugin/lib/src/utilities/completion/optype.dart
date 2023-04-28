@@ -224,7 +224,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (name != null) {
         constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName.type.name.staticElement;
+        var classElem = parent.constructorName.type.element;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -1141,12 +1141,40 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    final nameToken = node.name2;
+    if (identical(entity, nameToken) ||
+        // In addition to the standard case,
+        // handle the exceptional case where the parser considers the would-be
+        // identifier to be a keyword and inserts a synthetic identifier
+        (nameToken.isSynthetic &&
+            identical(entity, node.findPrevious(nameToken)))) {
+      // final importPrefix = node.importPrefix;
+      // if (importPrefix != null && node.prefix.isSynthetic) {
+      //   // If the access has no target (empty string)
+      //   // then don't suggest anything
+      //   return;
+      // }
+      optype.isPrefixed = true;
+      if (node.parent is ConstructorName) {
+        optype.includeConstructorSuggestions = true;
+      } else if (node.parent is Annotation) {
+        optype.includeConstructorSuggestions = true;
+      } else {
+        optype.completionLocation = 'PropertyAccess_propertyName';
+        optype.includeReturnValueSuggestions =
+            node.parent is ArgumentList || node.parent is ExpressionStatement;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions =
+            node.parent is ExpressionStatement;
+      }
+    }
+
     // The entity won't be the first child entity (node.name), since
     // CompletionTarget would have chosen an edge higher in the parse tree. So
     // it must be node.typeArguments, meaning that the cursor is between the
     // type name and the "<" that starts the type arguments. In this case,
     // we have no completions to offer.
-    assert(identical(entity, node.typeArguments));
+    // assert(identical(entity, node.typeArguments));
   }
 
   @override

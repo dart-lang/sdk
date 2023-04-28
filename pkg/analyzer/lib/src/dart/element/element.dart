@@ -4489,6 +4489,15 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     );
   }
 
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) named type [node].
+  bool shouldIgnoreUndefinedNamedType(NamedType node) {
+    return shouldIgnoreUndefined(
+      prefix: node.importPrefix?.name.lexeme,
+      name: node.name2.lexeme,
+    );
+  }
+
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
     if (isNonNullableByDefault) return element;

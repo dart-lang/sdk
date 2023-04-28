@@ -187,10 +187,8 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@24
-          staticType: null
+        name: T
+        element: T@24
         type: T
       name: a
       declaredElement: @23::@parameter::a
@@ -203,10 +201,8 @@ FunctionExpression
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@24
-              staticType: null
+            name: T
+            element: T@24
             type: T
         rightBracket: >
       leftBracket: [

@@ -660,14 +660,15 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
         if (elementKind == protocol.ElementKind.CLASS) {
           var constructorName = node.parent?.parent;
           if (constructorName is ConstructorName) {
-            var instanceCreationExpression = constructorName.parent;
-            if (instanceCreationExpression is InstanceCreationExpression &&
-                constructorName.type.name == node) {
-              if (instanceCreationExpression.keyword != null ||
-                  constructorName.name == null) {
-                elementKind = protocol.ElementKind.CONSTRUCTOR;
-              }
-            }
+            // TODO(scheglov) Commented out, probably does not work now.
+            // var instanceCreationExpression = constructorName.parent;
+            // if (instanceCreationExpression is InstanceCreationExpression &&
+            //     constructorName.type.name == node) {
+            //   if (instanceCreationExpression.keyword != null ||
+            //       constructorName.name == null) {
+            //     elementKind = protocol.ElementKind.CONSTRUCTOR;
+            //   }
+            // }
           }
         }
       }

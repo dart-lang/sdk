@@ -67,10 +67,8 @@ ConstructorDeclaration
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: a
-          staticElement: self::@class::a
-          staticType: null
+        name: a
+        element: self::@class::a
         type: a
       name: a
       declaredElement: self::@class::B::@constructor::new::@parameter::a
@@ -117,10 +115,8 @@ ConstructorDeclaration
   separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -160,20 +156,16 @@ ConstructorDeclaration
   separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: U
-              staticElement: U@53
-              staticType: null
+            name: U
+            element: U@53
             type: U
         rightBracket: >
+      element: self::@class::A
       type: A<U>
     period: .
     name: SimpleIdentifier
@@ -219,10 +211,8 @@ ConstructorDeclaration
   separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -264,10 +254,8 @@ ConstructorDeclaration
   separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: self::@class::A::@constructor::new
   body: EmptyFunctionBody
@@ -304,20 +292,16 @@ ConstructorDeclaration
   separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: U
-              staticElement: U@47
-              staticType: null
+            name: U
+            element: U@47
             type: U
         rightBracket: >
+      element: self::@class::A
       type: A<U>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -358,10 +342,8 @@ ConstructorDeclaration
   separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: <null>
   body: EmptyFunctionBody

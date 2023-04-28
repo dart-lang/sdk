@@ -124,10 +124,8 @@ IfElement
         elements
           DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@56
@@ -200,10 +198,8 @@ IfElement
     guardedPattern: GuardedPattern
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@42
@@ -296,10 +292,8 @@ IfElement
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
-              name: SimpleIdentifier
-                token: A
-                staticElement: self::@class::A
-                staticType: null
+              name: A
+              element: self::@class::A
               type: A
             staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList

@@ -33,7 +33,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type.name.staticElement;
+    var classElement = node.constructorName.type.element;
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
@@ -302,7 +302,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.name.staticElement)) {
+    if (_isMissingTypeArguments(node, type, node.element)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression ||
           unwrappedParent is CastPattern ||
@@ -552,8 +552,11 @@ class TypeArgumentsVerifier {
       NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
     for (TypeAnnotation type in arguments) {
       if (type is NamedType && type.type is TypeParameterType) {
-        _errorReporter
-            .reportErrorForNode(errorCode, type, [type.name.toSource()]);
+        _errorReporter.reportErrorForNode(
+          errorCode,
+          type,
+          [type.name2.lexeme],
+        );
       }
     }
   }

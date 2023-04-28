@@ -494,10 +494,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void _checkForConstWithTypeParameters(
       TypeAnnotation type, ErrorCode errorCode) {
     if (type is NamedType) {
-      Identifier name = type.name;
       // Should not be a type parameter.
-      if (name.staticElement is TypeParameterElement) {
-        _errorReporter.reportErrorForNode(errorCode, name);
+      if (type.element is TypeParameterElement) {
+        _errorReporter.reportErrorForNode(errorCode, type);
       }
       // Check type arguments.
       var typeArguments = type.typeArguments;

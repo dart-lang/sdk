@@ -257,9 +257,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         keyword: null,
         constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
-            name: astFactory.simpleIdentifier(
-              StringToken(TokenType.STRING, element.name, -1),
-            ),
+            importPrefix: null,
+            name2: StringToken(TokenType.STRING, element.name, -1),
             typeArguments: constant.arguments?.typeArguments,
             question: null,
           ),
@@ -327,19 +326,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         initializer: initializer,
       );
       valuesTypeNode = NamedTypeImpl(
-        name: astFactory.simpleIdentifier(
-          StringToken(TokenType.STRING, 'List', -1),
-        ),
+        importPrefix: null,
+        name2: StringToken(TokenType.STRING, 'List', -1),
         typeArguments: TypeArgumentListImpl(
           leftBracket: Tokens.lt(),
           arguments: [
             NamedTypeImpl(
-              name: astFactory.simpleIdentifier(
-                StringToken(TokenType.STRING, element.name, -1),
-              )..staticElement = element,
+              importPrefix: null,
+              name2: StringToken(TokenType.STRING, element.name, -1),
               typeArguments: null,
               question: null,
-            )
+            )..element = element,
           ],
           rightBracket: Tokens.gt(),
         ),

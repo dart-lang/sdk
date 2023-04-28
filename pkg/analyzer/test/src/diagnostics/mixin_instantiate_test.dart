@@ -36,10 +36,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
     period: .
     name: SimpleIdentifier
@@ -65,9 +63,26 @@ main() {
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
     ]);
 
-    var creation = findNode.instanceCreation('M.named();');
-    var m = findElement.mixin('M');
-    assertElement(creation.constructorName.type.name, m);
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: M
+      element: self::@mixin::M
+      type: M
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: M
+''');
   }
 
   test_unnamedConstructor() async {
@@ -87,10 +102,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
     staticElement: <null>
   argumentList: ArgumentList

@@ -3411,13 +3411,6 @@ void main() {C.^ print("something");}''');
     assertSuggestGetter('length', 'int');
   }
 
-  Future<void> test_PrefixedIdentifier_trailingStmt_functionTypeAlias() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('typedef String g(); f() {g.^ int y = 0;}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
   Future<void> test_PrefixedIdentifier_trailingStmt_getter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('String get g => "one"; f() {g.^ int y = 0;}');

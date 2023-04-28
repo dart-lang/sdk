@@ -29,16 +29,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
 ''');
   }
@@ -58,16 +54,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A
         alias: self::@typeAlias::B
 ''');
@@ -100,16 +92,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
 ''');
   }
@@ -131,16 +119,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A
         alias: self::@typeAlias::B
 ''');

@@ -40,28 +40,22 @@ ClassTypeAlias
   name: X
   equals: =
   superclass: NamedType
-    name: SimpleIdentifier
-      token: A
-      staticElement: self::@class::A
-      staticType: null
+    name: A
+    element: self::@class::A
     type: A
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: B
-          staticElement: self::@class::B
-          staticType: null
+        name: B
+        element: self::@class::B
         type: B
   implementsClause: ImplementsClause
     implementsKeyword: implements
     interfaces
       NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
   semicolon: ;
   declaredElement: self::@class::X

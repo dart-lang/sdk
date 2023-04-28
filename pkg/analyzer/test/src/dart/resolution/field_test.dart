@@ -32,10 +32,8 @@ FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType
-      name: SimpleIdentifier
-        token: Object
-        staticElement: dart:core::@class::Object
-        staticType: null
+      name: Object
+      element: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -63,10 +61,8 @@ FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType
-      name: SimpleIdentifier
-        token: Object
-        staticElement: dart:core::@class::Object
-        staticType: null
+      name: Object
+      element: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -97,10 +93,8 @@ FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -132,10 +126,8 @@ FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -167,10 +159,8 @@ FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -314,10 +304,8 @@ FieldDeclaration
             leftBracket: <
             arguments
               NamedType
-                name: SimpleIdentifier
-                  token: T
-                  staticElement: T@8
-                  staticType: null
+                name: T
+                element: T@8
                 type: T
             rightBracket: >
           leftBracket: [

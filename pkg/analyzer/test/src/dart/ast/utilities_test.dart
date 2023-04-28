@@ -31,37 +31,34 @@ class NodeLocator2Test extends _SharedNodeLocatorTests {
   }
 
   void test_onlyStartOffset() {
-    String code = ' int vv; ';
-    //             012345678
+    String code = ' f() {} ';
+    //             01234567
     CompilationUnit unit = parseCompilationUnit(code);
-    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
-    VariableDeclarationList variableList = declaration.variables;
-    Identifier typeName = (variableList.type as NamedType).name;
+    final function = unit.declarations.single as FunctionDeclaration;
+    final expression = function.functionExpression;
+    final body = expression.body as BlockFunctionBody;
     expect(NodeLocator2(0).searchWithin(unit), same(unit));
-    expect(NodeLocator2(1).searchWithin(unit), same(typeName));
-    expect(NodeLocator2(2).searchWithin(unit), same(typeName));
-    expect(NodeLocator2(3).searchWithin(unit), same(typeName));
-    expect(NodeLocator2(4).searchWithin(unit), same(variableList));
-    expect(NodeLocator2(7).searchWithin(unit), same(declaration));
-    expect(NodeLocator2(8).searchWithin(unit), same(unit));
-    expect(NodeLocator2(9).searchWithin(unit), isNull);
+    expect(NodeLocator2(1).searchWithin(unit), same(function));
+    expect(NodeLocator2(2).searchWithin(unit), same(function));
+    expect(NodeLocator2(3).searchWithin(unit), same(expression.parameters));
+    expect(NodeLocator2(4).searchWithin(unit), same(expression));
+    expect(NodeLocator2(5).searchWithin(unit), same(body.block));
+    expect(NodeLocator2(6).searchWithin(unit), same(body.block));
+    expect(NodeLocator2(7).searchWithin(unit), same(unit));
     expect(NodeLocator2(100).searchWithin(unit), isNull);
   }
 
   void test_startEndOffset() {
-    String code = ' int vv; ';
-    //             012345678
+    String code = ' f() {} ';
+    //             01234567
     CompilationUnit unit = parseCompilationUnit(code);
-    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
-    VariableDeclarationList variableList = declaration.variables;
-    Identifier typeName = (variableList.type as NamedType).name;
+    final function = unit.declarations.single as FunctionDeclaration;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
-    expect(NodeLocator2(1, 2).searchWithin(unit), same(typeName));
-    expect(NodeLocator2(1, 3).searchWithin(unit), same(typeName));
-    expect(NodeLocator2(1, 4).searchWithin(unit), same(variableList));
-    expect(NodeLocator2(5, 7).searchWithin(unit), same(declaration));
-    expect(NodeLocator2(5, 8).searchWithin(unit), same(unit));
+    expect(NodeLocator2(1, 2).searchWithin(unit), same(function));
+    expect(NodeLocator2(1, 3).searchWithin(unit), same(function));
+    expect(NodeLocator2(1, 4).searchWithin(unit), same(function));
+    expect(NodeLocator2(5, 7).searchWithin(unit), same(unit));
     expect(NodeLocator2(5, 100).searchWithin(unit), isNull);
     expect(NodeLocator2(100, 200).searchWithin(unit), isNull);
   }

@@ -1299,9 +1299,7 @@ int x = E(^);
     addTestSource('class A {a(b.^ f) { }}');
     await assertOpType(
         completionLocation: 'PropertyAccess_propertyName',
-        constructors: true,
         prefixed: true,
-        returnValue: true,
         typeNames: true);
   }
 
@@ -1310,9 +1308,7 @@ int x = E(^);
     addTestSource('class A {a(b.z^ f) { }}');
     await assertOpType(
         completionLocation: 'PropertyAccess_propertyName',
-        constructors: true,
         prefixed: true,
-        returnValue: true,
         typeNames: true);
   }
 
@@ -1321,9 +1317,7 @@ int x = E(^);
     addTestSource('class A {a(b.^) { }}');
     await assertOpType(
         completionLocation: 'PropertyAccess_propertyName',
-        constructors: true,
         prefixed: true,
-        returnValue: true,
         typeNames: true);
   }
 

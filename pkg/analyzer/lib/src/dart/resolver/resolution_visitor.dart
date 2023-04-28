@@ -1582,9 +1582,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     // If the type is not an InterfaceType, then visitNamedType() sets the type
     // to be a DynamicTypeImpl
-    Identifier name = namedType.name;
-    if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {
-      _errorReporter.reportErrorForNode(errorCode, name);
+    if (!_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
+      final firstToken = namedType.importPrefix?.name ?? namedType.name2;
+      final offset = firstToken.offset;
+      final length = namedType.name2.end - offset;
+      _errorReporter.reportErrorForOffset(errorCode, offset, length);
     }
   }
 

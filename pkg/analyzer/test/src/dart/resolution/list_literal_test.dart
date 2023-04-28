@@ -29,10 +29,8 @@ ListLiteral
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -57,16 +55,12 @@ ListLiteral
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: double
-          staticElement: dart:core::@class::double
-          staticType: null
+        name: double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   leftBracket: [

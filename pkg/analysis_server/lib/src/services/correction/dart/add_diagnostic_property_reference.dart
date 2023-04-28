@@ -171,7 +171,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
           final type = parameter.type;
           final identifier = parameter.name;
           if (type is NamedType && identifier != null) {
-            if (type.name.name == 'DiagnosticPropertiesBuilder') {
+            if (type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
               propertiesBuilderName = identifier.lexeme;
               break;
             }

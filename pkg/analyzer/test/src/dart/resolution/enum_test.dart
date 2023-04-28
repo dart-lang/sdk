@@ -46,20 +46,16 @@ enum E {
     assertResolvedNodeText(node, r'''
 GenericFunctionType
   returnType: NamedType
-    name: SimpleIdentifier
-      token: void
-      staticElement: <null>
-      staticType: null
+    name: void
+    element: <null>
     type: void
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: double
-          staticElement: dart:core::@class::double
-          staticType: null
+        name: double
+        element: dart:core::@class::double
         type: double
       declaredElement: @-1
         type: double
@@ -158,10 +154,8 @@ EnumConstantDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: double
-            staticElement: dart:core::@class::double
-            staticType: null
+          name: double
+          element: dart:core::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -361,10 +355,8 @@ enum E<T> {
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@7
-      staticType: null
+    name: T
+    element: T@7
     type: T
   propertyKeyword: get
   name: foo
@@ -408,10 +400,8 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: I
-        staticElement: self::@class::I
-        staticType: null
+      name: I
+      element: self::@class::I
       type: I
 ''');
   }
@@ -441,30 +431,24 @@ enum E<T> {
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@7
-          staticType: null
+        name: T
+        element: T@7
         type: T
       name: t
       declaredElement: self::@enum::E::@method::foo::@parameter::t
         type: T
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: U
-          staticElement: U@27
-          staticType: null
+        name: U
+        element: U@27
         type: U
       name: u
       declaredElement: self::@enum::E::@method::foo::@parameter::u
@@ -493,10 +477,8 @@ enum E {
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: String
-      staticElement: dart:core::@class::String
-      staticType: null
+    name: String
+    element: dart:core::@class::String
     type: String
   name: toString
   parameters: FormalParameterList
@@ -526,10 +508,8 @@ WithClause
   withKeyword: with
   mixinTypes
     NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
 ''');
   }
@@ -549,26 +529,20 @@ WithClause
   withKeyword: with
   mixinTypes
     NamedType
-      name: SimpleIdentifier
-        token: M1
-        staticElement: self::@mixin::M1
-        staticType: null
+      name: M1
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@mixin::M1
       type: M1<int>
     NamedType
-      name: SimpleIdentifier
-        token: M2
-        staticElement: self::@mixin::M2
-        staticType: null
+      name: M2
+      element: self::@mixin::M2
       type: M2<int>
 ''');
   }
@@ -590,10 +564,8 @@ MethodDeclaration
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@7
-          staticType: null
+        name: T
+        element: T@7
         type: T
       name: a
       declaredElement: self::@enum::E::@setter::foo::@parameter::a

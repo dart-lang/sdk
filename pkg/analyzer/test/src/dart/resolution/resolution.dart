@@ -460,7 +460,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is PropertyAccess) {
       return node.propertyName.staticElement;
     } else if (node is NamedType) {
-      return node.name.staticElement;
+      return node.element;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }

@@ -331,25 +331,20 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    var typeIdentifier = node.name;
-
     Element? element;
-    if (typeIdentifier is PrefixedIdentifierImpl) {
-      var prefix = typeIdentifier.prefix;
-      var prefixName = prefix.name;
-      var prefixElement = scope.lookup(prefixName).getter;
-      prefix.staticElement = prefixElement;
+    final importPrefix = node.importPrefix;
+    if (importPrefix != null) {
+      final prefixToken = importPrefix.name;
+      final prefixName = prefixToken.lexeme;
+      final prefixElement = scope.lookup(prefixName).getter;
+      importPrefix.element = prefixElement;
 
       if (prefixElement is PrefixElement) {
-        var nameNode = typeIdentifier.identifier;
-        var name = nameNode.name;
-
+        final name = node.name2.lexeme;
         element = prefixElement.scope.lookup(name).getter;
-        nameNode.staticElement = element;
       }
     } else {
-      var nameNode = typeIdentifier as SimpleIdentifierImpl;
-      var name = nameNode.name;
+      final name = node.name2.lexeme;
 
       if (name == 'void') {
         node.type = VoidTypeImpl.instance;
@@ -357,8 +352,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       }
 
       element = scope.lookup(name).getter;
-      nameNode.staticElement = element;
     }
+    node.element = element;
 
     node.typeArguments?.accept(this);
 

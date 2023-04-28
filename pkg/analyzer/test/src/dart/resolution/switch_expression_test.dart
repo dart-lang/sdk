@@ -204,10 +204,8 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: ObjectPattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -301,10 +299,8 @@ SwitchExpressionCase
       expression: InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
-            name: SimpleIdentifier
-              token: A
-              staticElement: self::@class::A
-              staticType: null
+            name: A
+            element: self::@class::A
             type: A
           staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -525,10 +521,8 @@ SwitchExpression
             leftBracket: <
             arguments
               NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -605,10 +599,8 @@ SwitchExpression
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@58
@@ -687,10 +679,8 @@ SwitchExpression
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@44

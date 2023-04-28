@@ -86,7 +86,7 @@ class InvocationInferenceHelper {
     ConstructorElement? rawElement;
 
     var typeName = constructorName.type;
-    var typeElement = typeName.name.staticElement;
+    var typeElement = typeName.element;
     if (typeElement is InterfaceElement) {
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;

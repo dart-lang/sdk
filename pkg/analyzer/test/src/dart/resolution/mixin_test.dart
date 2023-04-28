@@ -28,10 +28,8 @@ WithClause
   withKeyword: with
   mixinTypes
     NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
 ''');
   }
@@ -48,10 +46,8 @@ WithClause
   withKeyword: with
   mixinTypes
     NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
 ''');
   }
@@ -142,10 +138,8 @@ FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType
-      name: SimpleIdentifier
-        token: T
-        staticElement: T@8
-        staticType: null
+      name: T
+      element: T@8
       type: T
     variables
       VariableDeclaration
@@ -167,10 +161,8 @@ mixin M {
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -199,16 +191,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@class::B
-        staticType: null
+      name: B
+      element: self::@class::B
       type: B
 ''');
   }
@@ -278,10 +266,8 @@ mixin M {
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: void
-      staticElement: <null>
-      staticType: null
+    name: void
+    element: <null>
     type: void
   name: foo
   parameters: FormalParameterList
@@ -341,16 +327,12 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@class::B
-        staticType: null
+      name: B
+      element: self::@class::B
       type: B
 ''');
   }
@@ -392,10 +374,8 @@ mixin M {
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: void
-      staticElement: <null>
-      staticType: null
+    name: void
+    element: <null>
     type: void
   propertyKeyword: set
   name: foo
@@ -403,10 +383,8 @@ MethodDeclaration
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: _
       declaredElement: self::@mixin::M::@setter::foo::@parameter::_

@@ -27,10 +27,8 @@ class A extends dynamic {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: dynamic
-      staticElement: dynamic@-1
-      staticType: null
+    name: dynamic
+    element: dynamic@-1
     type: dynamic
 ''');
   }
@@ -48,10 +46,8 @@ class A extends E {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: E
-      staticElement: self::@enum::E
-      staticType: null
+    name: E
+    element: self::@enum::E
     type: E
 ''');
   }
@@ -69,10 +65,8 @@ class A extends M {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: M
-      staticElement: self::@mixin::M
-      staticType: null
+    name: M
+    element: self::@mixin::M
     type: M
 ''');
   }
@@ -90,10 +84,8 @@ class A extends v {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: v
-      staticElement: self::@getter::v
-      staticType: null
+    name: v
+    element: self::@getter::v
     type: dynamic
 ''');
   }
@@ -111,20 +103,16 @@ class A extends v<int> {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: v
-      staticElement: self::@getter::v
-      staticType: null
+    name: v
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@getter::v
     type: dynamic
 ''');
   }
@@ -141,10 +129,8 @@ class A extends Never {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Never
-      staticElement: Never@-1
-      staticType: null
+    name: Never
+    element: Never@-1
     type: Never
 ''');
   }
@@ -161,10 +147,8 @@ class C extends A {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: SimpleIdentifier
-      token: A
-      staticElement: <null>
-      staticType: null
+    name: A
+    element: <null>
     type: dynamic
 ''');
   }
@@ -183,18 +167,12 @@ class C extends p.A {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: A
-        staticElement: <null>
-        staticType: null
-      staticElement: <null>
-      staticType: null
+      element: self::@prefix::p
+    name: A
+    element: <null>
     type: dynamic
 ''');
   }
@@ -291,18 +269,12 @@ class C extends p.A {}
 ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: A
-        staticElement: <null>
-        staticType: null
-      staticElement: <null>
-      staticType: null
+      element: self::@prefix::p
+    name: A
+    element: <null>
     type: dynamic
 ''');
   }

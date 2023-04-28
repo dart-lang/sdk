@@ -362,22 +362,20 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // add regions
-    var typeName = node.type;
+    var namedType = node.type;
     // [prefix].ClassName
     {
-      var name = typeName.name;
-      var className = name;
-      if (name is PrefixedIdentifier) {
-        name.prefix.accept(this);
-        className = name.identifier;
+      final importPrefix = namedType.importPrefix;
+      if (importPrefix != null) {
+        computer._addRegionForToken(importPrefix.name, importPrefix.element);
       }
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
-          node.name != null ? className.staticElement : element;
-      computer._addRegionForNode(className, classNameTargetElement);
+          node.name != null ? namedType.element : element;
+      computer._addRegionForToken(namedType.name2, classNameTargetElement);
     }
     // <TypeA, TypeB>
-    typeName.typeArguments?.accept(this);
+    namedType.typeArguments?.accept(this);
     // optional "name"
     if (node.name != null) {
       computer._addRegionForNode(node.name, element);

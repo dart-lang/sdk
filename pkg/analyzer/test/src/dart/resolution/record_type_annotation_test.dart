@@ -28,17 +28,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -59,17 +55,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -91,17 +83,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -123,17 +111,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -155,27 +139,21 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   namedFields: RecordTypeAnnotationNamedFields
     leftBracket: {
     fields
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: bool
-            staticElement: dart:core::@class::bool
-            staticType: null
+          name: bool
+          element: dart:core::@class::bool
           type: bool
         name: f3
     rightBracket: }
@@ -201,18 +179,14 @@ RecordTypeAnnotation
     fields
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: f1
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
         name: f2
     rightBracket: }
@@ -236,17 +210,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -265,17 +235,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -294,17 +260,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   question: ?
@@ -324,17 +286,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -356,17 +314,13 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)

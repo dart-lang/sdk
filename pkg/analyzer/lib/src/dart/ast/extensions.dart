@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -216,6 +217,35 @@ extension IdentifierExtension on Identifier {
   }
 }
 
+extension IdentifierImplExtension on IdentifierImpl {
+  NamedTypeImpl toNamedType({
+    required TypeArgumentListImpl? typeArguments,
+    Token? question,
+  }) {
+    final self = this;
+    if (self is PrefixedIdentifierImpl) {
+      return NamedTypeImpl(
+        importPrefix: ImportPrefixReferenceImpl(
+          name: self.prefix.token,
+          period: self.period,
+        )..element = self.prefix.staticElement,
+        name2: self.identifier.token,
+        typeArguments: typeArguments,
+        question: question,
+      )..element = self.identifier.staticElement;
+    } else if (self is SimpleIdentifierImpl) {
+      return NamedTypeImpl(
+        importPrefix: null,
+        name2: self.token,
+        typeArguments: typeArguments,
+        question: question,
+      )..element = self.staticElement;
+    } else {
+      throw UnimplementedError('(${self.runtimeType}) $self');
+    }
+  }
+}
+
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
@@ -226,6 +256,17 @@ extension IndexExpressionExtension on IndexExpression {
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
+  }
+}
+
+extension NamedTypeExtension on NamedType {
+  String get qualifiedName {
+    final importPrefix = this.importPrefix;
+    if (importPrefix != null) {
+      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+    } else {
+      return name2.lexeme;
+    }
   }
 }
 

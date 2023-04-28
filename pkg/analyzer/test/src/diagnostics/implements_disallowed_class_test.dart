@@ -288,10 +288,8 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
 ''');
   }

@@ -1790,7 +1790,7 @@ class _File {
             returnType: _getTypeAnnotationString(functionType.returnType),
             typeParameters: functionType.typeParameters?.toSource(),
           );
-        } else if (type is NamedType && type.name.name.isNotEmpty) {
+        } else if (type is NamedType && type.name2.lexeme.isNotEmpty) {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.TYPE_ALIAS,

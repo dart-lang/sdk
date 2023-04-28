@@ -63,7 +63,7 @@ class FunctionReferenceResolver {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
           [
-            function.constructorName.type.name.toSource(),
+            function.constructorName.type.qualifiedName,
             function.constructorName.name!.name
           ],
         );
@@ -818,13 +818,11 @@ class FunctionReferenceResolver {
     // This involves a fair amount of resolution, as [name] may be a prefixed
     // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
     // and this could be done for nodes like this via [AstRewriter].
-    var typeName = NamedTypeImpl(
-      name: name,
+    var typeName = name.toNamedType(
       typeArguments: node.typeArguments,
       question: null,
     );
     typeName.type = instantiatedType;
-    typeName.name.staticType = instantiatedType;
     var typeLiteral = TypeLiteralImpl(
       typeName: typeName,
     );

@@ -61,6 +61,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1591,8 +1592,7 @@ class AstBuilder extends StackListener {
     var typeNameIdentifier = pop() as IdentifierImpl;
     push(
       ConstructorNameImpl(
-        type: NamedTypeImpl(
-          name: typeNameIdentifier,
+        type: typeNameIdentifier.toNamedType(
           typeArguments: typeArguments,
           question: null,
         ),
@@ -2779,9 +2779,11 @@ class AstBuilder extends StackListener {
       var nameToken = parser.rewriter.replaceNextTokensWithSyntheticToken(
           beginToken.previous!, count, TokenType.IDENTIFIER);
       superclass = NamedTypeImpl(
-          name: SimpleIdentifierImpl(nameToken),
-          typeArguments: null,
-          question: null);
+        importPrefix: null,
+        name2: nameToken,
+        typeArguments: null,
+        question: null,
+      );
     }
     var mixinKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
@@ -4992,21 +4994,30 @@ class AstBuilder extends StackListener {
 
     var arguments = pop() as _ObjectPatternFields;
     var typeArguments = pop() as TypeArgumentListImpl?;
-    var firstIdentifier = SimpleIdentifierImpl(firstIdentifierToken);
-    var typeName = dot == null
-        ? firstIdentifier
-        : PrefixedIdentifierImpl(
-            prefix: firstIdentifier,
-            period: dot,
-            identifier: SimpleIdentifierImpl(secondIdentifierToken!),
-          );
+
+    NamedTypeImpl namedType;
+    if (dot != null && secondIdentifierToken != null) {
+      namedType = NamedTypeImpl(
+        importPrefix: ImportPrefixReferenceImpl(
+          name: firstIdentifierToken,
+          period: dot,
+        ),
+        name2: secondIdentifierToken,
+        typeArguments: typeArguments,
+        question: null,
+      );
+    } else {
+      namedType = NamedTypeImpl(
+        importPrefix: null,
+        name2: firstIdentifierToken,
+        typeArguments: typeArguments,
+        question: null,
+      );
+    }
+
     push(
       ObjectPatternImpl(
-        type: NamedTypeImpl(
-          name: typeName,
-          typeArguments: typeArguments,
-          question: null,
-        ),
+        type: namedType,
         leftParenthesis: arguments.leftParenthesis,
         fields: arguments.fields,
         rightParenthesis: arguments.rightParenthesis,
@@ -5412,19 +5423,18 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token? questionMark) {
+  void handleType(Token beginToken, Token? question) {
     debugEvent("Type");
     if (!enableNonNullable) {
-      reportErrorIfNullableType(questionMark);
+      reportErrorIfNullableType(question);
     }
 
     var arguments = pop() as TypeArgumentListImpl?;
     var name = pop() as IdentifierImpl;
     push(
-      NamedTypeImpl(
-        name: name,
+      name.toNamedType(
         typeArguments: arguments,
-        question: questionMark,
+        question: question,
       ),
     );
   }

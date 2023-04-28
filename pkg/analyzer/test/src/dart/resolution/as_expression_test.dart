@@ -33,10 +33,8 @@ AsExpression
     staticType: num
   asOperator: as
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   staticType: int
 ''');
@@ -59,10 +57,8 @@ AsExpression
     staticType: num
   asOperator: as
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   staticType: int
 ''');
@@ -87,10 +83,8 @@ AsExpression
     staticType: A<T>
   asOperator: as
   type: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@8
-      staticType: null
+    name: T
+    element: T@8
     type: T
   staticType: T
 ''');
@@ -131,10 +125,8 @@ AsExpression
     staticType: int
   asOperator: as
   type: NamedType
-    name: SimpleIdentifier
-      token: double
-      staticElement: dart:core::@class::double
-      staticType: null
+    name: double
+    element: dart:core::@class::double
     type: double
   staticType: double
 ''');

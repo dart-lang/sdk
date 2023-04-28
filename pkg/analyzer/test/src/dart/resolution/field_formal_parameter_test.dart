@@ -26,10 +26,8 @@ class A {
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
-    name: SimpleIdentifier
-      token: void
-      staticElement: <null>
-      staticType: null
+    name: void
+    element: <null>
     type: void
   thisKeyword: this
   period: .
@@ -38,10 +36,8 @@ FieldFormalParameter
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: self::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -66,10 +62,8 @@ class A {
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
-    name: SimpleIdentifier
-      token: U
-      staticElement: U@45
-      staticType: null
+    name: U
+    element: U@45
     type: U
   thisKeyword: this
   period: .
@@ -85,10 +79,8 @@ FieldFormalParameter
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: U
-          staticElement: U@45
-          staticType: null
+        name: U
+        element: U@45
         type: U
       name: a
       declaredElement: self::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -111,10 +103,8 @@ class A<V> {
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@54
-      staticType: null
+    name: T
+    element: T@54
     type: T
   thisKeyword: this
   period: .
@@ -133,20 +123,16 @@ FieldFormalParameter
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: U
-          staticElement: U@57
-          staticType: null
+        name: U
+        element: U@57
         type: U
       name: a
       declaredElement: self::@class::A::@constructor::new::@parameter::f::@parameter::a
         type: U
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: V
-          staticElement: V@8
-          staticType: null
+        name: V
+        element: V@8
         type: V
       name: b
       declaredElement: self::@class::A::@constructor::new::@parameter::f::@parameter::b
@@ -188,10 +174,8 @@ class A {
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   thisKeyword: this
   period: .

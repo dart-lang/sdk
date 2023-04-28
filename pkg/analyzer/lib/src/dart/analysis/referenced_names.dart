@@ -20,12 +20,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
 
   void addSubtypedName(NamedType? type) {
     if (type != null) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        subtypedNames.add(name.name);
-      } else if (name is PrefixedIdentifier) {
-        subtypedNames.add(name.identifier.name);
-      }
+      subtypedNames.add(type.name2.lexeme);
     }
   }
 

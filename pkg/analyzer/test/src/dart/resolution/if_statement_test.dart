@@ -71,10 +71,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -86,10 +84,8 @@ IfStatement
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@47
@@ -156,10 +152,8 @@ IfStatement
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
         leftBracket: [
@@ -238,10 +232,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -254,10 +246,8 @@ IfStatement
             DeclaredVariablePattern
               keyword: final
               type: NamedType
-                name: SimpleIdentifier
-                  token: int
-                  staticElement: dart:core::@class::int
-                  staticType: null
+                name: int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredElement: isFinal a@53
@@ -323,10 +313,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -338,10 +326,8 @@ IfStatement
           elements
             DeclaredVariablePattern
               type: NamedType
-                name: SimpleIdentifier
-                  token: double
-                  staticElement: dart:core::@class::double
-                  staticType: null
+                name: double
+                element: dart:core::@class::double
                 type: double
               name: a
               declaredElement: a@50
@@ -408,10 +394,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -487,10 +471,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -499,10 +481,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@46
@@ -570,10 +550,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -582,10 +560,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@46
@@ -595,10 +571,8 @@ IfStatement
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@55
@@ -661,10 +635,8 @@ IfStatement
         leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -680,10 +652,8 @@ IfStatement
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@51
@@ -753,10 +723,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@42
@@ -832,10 +800,8 @@ IfStatement
           operator: ||
           rightOperand: DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@42
@@ -845,10 +811,8 @@ IfStatement
         operator: ||
         rightOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@51
@@ -924,10 +888,8 @@ IfStatement
         elements
           DeclaredVariablePattern
             type: NamedType
-              name: SimpleIdentifier
-                token: int
-                staticElement: dart:core::@class::int
-                staticType: null
+              name: int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@51
@@ -1016,10 +978,8 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: bool
-              staticElement: dart:core::@class::bool
-              staticType: null
+            name: bool
+            element: dart:core::@class::bool
             type: bool
           name: a
           declaredElement: a@51
@@ -1091,10 +1051,8 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@37
@@ -1195,10 +1153,8 @@ IfStatement
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
-              name: SimpleIdentifier
-                token: A
-                staticElement: self::@class::A
-                staticType: null
+              name: A
+              element: self::@class::A
               type: A
             staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList

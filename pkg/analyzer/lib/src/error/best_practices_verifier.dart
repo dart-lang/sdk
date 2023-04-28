@@ -35,6 +35,7 @@ import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
@@ -624,15 +625,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var question = node.question;
     if (question != null) {
-      var name = node.name.name;
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
       if ((type is InterfaceType && type.element == _nullType.element ||
-              (type.isDynamic && name == 'dynamic')) &&
+              (type.isDynamic && node.name2.lexeme == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
-            WarningCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+          WarningCode.UNNECESSARY_QUESTION_MARK,
+          question,
+          [node.qualifiedName],
+        );
       }
     }
     super.visitNamedType(node);
@@ -751,7 +754,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // `is dynamic` or `is! dynamic`
     if (rightType.isDynamic) {
-      var rightTypeStr = rightNode is NamedType ? rightNode.name.name : null;
+      var rightTypeStr = rightNode.ifTypeOrNull<NamedType>()?.qualifiedName;
       if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
         report();
         return true;
@@ -1136,7 +1139,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type.name.name;
+      String fullConstructorName = constructorName.type.qualifiedName;
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }

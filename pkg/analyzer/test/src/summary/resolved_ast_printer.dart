@@ -785,6 +785,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _writeln('ImportPrefixReference');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+    });
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _writeln('IndexExpression');
     _withIndent(() {
@@ -1003,6 +1012,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NamedType');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
       _writeType('type', node.type);
     });
   }

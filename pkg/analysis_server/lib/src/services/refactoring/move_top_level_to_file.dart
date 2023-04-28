@@ -506,7 +506,7 @@ extension on CompilationUnitMember {
   /// Gets all sealed [ClassElement]s that are superclasses of this member.
   Iterable<ClassElement> get sealedSuperclassElements {
     return superclasses
-        .map((type) => type?.name.staticElement)
+        .map((type) => type?.element)
         .whereType<ClassElement>()
         .where((element) => element.isSealed);
   }

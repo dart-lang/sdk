@@ -7286,6 +7286,42 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 }
 
+class ImportPrefixReferenceImpl extends AstNodeImpl
+    implements ImportPrefixReference {
+  @override
+  final Token name;
+
+  @override
+  final Token period;
+
+  @override
+  Element? element;
+
+  ImportPrefixReferenceImpl({
+    required this.name,
+    required this.period,
+  });
+
+  @override
+  Token get beginToken => name;
+
+  @override
+  Token get endToken => period;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('period', period);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitImportPrefixReference(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {}
+}
+
 /// An index expression.
 ///
 ///    indexExpression ::=
@@ -9333,12 +9369,21 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
-  /// The name of the type.
-  IdentifierImpl _name;
+  /// Cache results of `name` invocation. There is existing code that uses it,
+  /// and relies on the fact that the same result is returned every time.
+  static final _nameCache = Expando<IdentifierImpl>();
 
-  /// The type arguments associated with the type, or `null` if there are no
-  /// type arguments.
-  TypeArgumentListImpl? _typeArguments;
+  @override
+  final ImportPrefixReferenceImpl? importPrefix;
+
+  @override
+  final Token name2;
+
+  @override
+  Element? element;
+
+  @override
+  TypeArgumentListImpl? typeArguments;
 
   @override
   final Token? question;
@@ -9351,50 +9396,67 @@ class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// Initialize a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments.
   NamedTypeImpl({
-    required IdentifierImpl name,
-    required TypeArgumentListImpl? typeArguments,
+    required this.importPrefix,
+    required this.name2,
+    required this.typeArguments,
     required this.question,
-  })  : _name = name,
-        _typeArguments = typeArguments {
-    _becomeParentOf(_name);
-    _becomeParentOf(_typeArguments);
+  }) {
+    _becomeParentOf(importPrefix);
+    _becomeParentOf(typeArguments);
   }
 
   @override
-  Token get beginToken => _name.beginToken;
+  Token get beginToken => importPrefix?.beginToken ?? name2;
 
   @override
-  Token get endToken => question ?? _typeArguments?.endToken ?? _name.endToken;
+  Token get endToken => question ?? typeArguments?.endToken ?? name2;
 
   @override
   bool get isDeferred {
-    Identifier identifier = name;
-    if (identifier is! PrefixedIdentifier) {
-      return false;
+    final importPrefixElement = importPrefix?.element;
+    if (importPrefixElement is PrefixElement) {
+      final imports = importPrefixElement.imports;
+      if (imports.length != 1) {
+        return false;
+      }
+      return imports[0].prefix is DeferredImportElementPrefix;
     }
-    return identifier.isDeferred;
+    return false;
   }
 
   @override
-  bool get isSynthetic => _name.isSynthetic && _typeArguments == null;
+  bool get isSynthetic => name2.isSynthetic && typeArguments == null;
 
+  @Deprecated('Use importPrefix, name2, and element instead')
   @override
-  IdentifierImpl get name => _name;
+  IdentifierImpl get name {
+    var result = _nameCache[this];
+    if (result != null) {
+      return result;
+    }
 
-  set name(IdentifierImpl identifier) {
-    _name = _becomeParentOf(identifier);
-  }
+    final importPrefix = this.importPrefix;
+    if (importPrefix != null) {
+      result = PrefixedIdentifierImpl(
+        prefix: SimpleIdentifierImpl(importPrefix.name)
+          ..staticElement = importPrefix.element,
+        period: importPrefix.period,
+        identifier: SimpleIdentifierImpl(name2)..staticElement = element,
+      ).._parent = this;
+    } else {
+      result = SimpleIdentifierImpl(name2)
+        .._parent = this
+        ..staticElement = element;
+    }
 
-  @override
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
-
-  set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _nameCache[this] = result;
+    return result;
   }
 
   @override
   ChildEntities get _childEntities => ChildEntities()
-    ..addNode('name', name)
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name2)
     ..addNode('typeArguments', typeArguments)
     ..addToken('question', question);
 
@@ -9403,8 +9465,11 @@ class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _name.accept(visitor);
-    _typeArguments?.accept(visitor);
+    importPrefix?.accept(visitor);
+    // TODO(scheglov) Remove when removing `name`.
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
+    typeArguments?.accept(visitor);
   }
 }
 
@@ -13623,9 +13688,15 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
   Token get endToken => _typeName.endToken;
 
   @override
-  Precedence get precedence => _typeName.typeArguments == null
-      ? _typeName.name.precedence
-      : Precedence.postfix;
+  Precedence get precedence {
+    if (_typeName.typeArguments != null) {
+      return Precedence.postfix;
+    } else if (_typeName.importPrefix != null) {
+      return Precedence.postfix;
+    } else {
+      return Precedence.primary;
+    }
+  }
 
   @override
   NamedTypeImpl get type => _typeName;

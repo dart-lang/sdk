@@ -267,10 +267,8 @@ CascadeExpression
   target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -316,10 +314,8 @@ CascadeExpression
   target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1393,10 +1389,8 @@ PropertyAccess
   target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1416,10 +1410,8 @@ PropertyAccess
   target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A*
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1455,10 +1447,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1490,10 +1480,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A*
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1544,10 +1532,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1579,10 +1565,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A*
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1961,10 +1945,8 @@ PropertyAccess
   target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1984,10 +1966,8 @@ PropertyAccess
   target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: A
-          staticElement: self::@class::A
-          staticType: null
+        name: A
+        element: self::@class::A
         type: A*
       staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -2026,10 +2006,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -2061,10 +2039,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A*
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -2117,10 +2093,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -2152,10 +2126,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A*
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList

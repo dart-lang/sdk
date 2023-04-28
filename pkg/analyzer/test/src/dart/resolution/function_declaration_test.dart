@@ -31,20 +31,16 @@ Stream<int> f() async* {
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: Stream
-      staticElement: dart:async::@class::Stream
-      staticType: null
+    name: Stream
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -85,20 +81,16 @@ Stream<int> f() async* => 0;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: Stream
-      staticElement: dart:async::@class::Stream
-      staticType: null
+    name: Stream
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -166,10 +158,8 @@ int get foo(double a) => 0;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -178,10 +168,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: double
-            staticElement: dart:core::@class::double
-            staticType: null
+          name: double
+          element: dart:core::@class::double
           type: double
         name: a
         declaredElement: self::@getter::foo::@parameter::a
@@ -214,20 +202,16 @@ Iterable<int> f() sync* {
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: Iterable
-      staticElement: dart:core::@class::Iterable
-      staticType: null
+    name: Iterable
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -266,20 +250,16 @@ Iterable<int> f() sync* => 0;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: Iterable
-      staticElement: dart:core::@class::Iterable
-      staticType: null
+    name: Iterable
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression

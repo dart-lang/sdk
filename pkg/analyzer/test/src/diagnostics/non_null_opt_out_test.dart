@@ -343,10 +343,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: package:test/a.dart::@class::A
-            staticType: null
+          name: A
+          element: package:test/a.dart::@class::A
           type: A*
         staticElement: ConstructorMember
           base: package:test/a.dart::@class::A::@constructor::new
@@ -403,10 +401,8 @@ AssignmentExpression
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: package:test/a.dart::@class::A
-            staticType: null
+          name: A
+          element: package:test/a.dart::@class::A
           type: A*
         staticElement: ConstructorMember
           base: package:test/a.dart::@class::A::@constructor::new

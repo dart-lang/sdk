@@ -341,11 +341,9 @@ ClassDeclaration
     implementsKeyword: implements @8
     interfaces
       NamedType
-        name: SimpleIdentifier
-          token: A @19
+        name: A @19
       NamedType
-        name: SimpleIdentifier
-          token: B @34
+        name: B @34
   leftBracket: { @36
   rightBracket: } @37
 ''',
@@ -535,11 +533,9 @@ ClassDeclaration
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: A
+        name: A
       NamedType
-        name: SimpleIdentifier
-          token: B
+        name: B
   leftBracket: {
   rightBracket: }
 ''');
@@ -564,14 +560,12 @@ ClassTypeAlias
   equals: =
   macroKeyword: macro
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object
+    name: Object
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -595,14 +589,12 @@ ClassTypeAlias
   equals: =
   mixinKeyword: mixin
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object
+    name: Object
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -620,14 +612,12 @@ ClassTypeAlias
   name: C
   equals: =
   superclass: NamedType
-    name: SimpleIdentifier
-      token: identifier <synthetic>
+    name: identifier <synthetic>
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -651,14 +641,12 @@ ClassTypeAlias
   equals: =
   baseKeyword: base
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object
+    name: Object
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -682,14 +670,12 @@ ClassTypeAlias
   equals: =
   finalKeyword: final
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object
+    name: Object
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -712,23 +698,19 @@ ClassTypeAlias
   name: C @6
   equals: = @8
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object @10
+    name: Object @10
   withClause: WithClause
     withKeyword: with @17
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M @22
+        name: M @22
   implementsClause: ImplementsClause
     implementsKeyword: implements @24
     interfaces
       NamedType
-        name: SimpleIdentifier
-          token: A @35
+        name: A @35
       NamedType
-        name: SimpleIdentifier
-          token: B @50
+        name: B @50
   semicolon: ; @51
 ''',
         withOffsets: true);
@@ -753,14 +735,12 @@ ClassTypeAlias
   equals: =
   interfaceKeyword: interface
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object
+    name: Object
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -784,14 +764,12 @@ ClassTypeAlias
   equals: =
   sealedKeyword: sealed
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object
+    name: Object
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: M
+        name: M
   semicolon: ;
 ''');
   }
@@ -813,17 +791,14 @@ ClassTypeAlias
   name: C @6
   equals: = @8
   superclass: NamedType
-    name: SimpleIdentifier
-      token: Object @10
+    name: Object @10
   withClause: WithClause
     withKeyword: with @17
     mixinTypes
       NamedType
-        name: SimpleIdentifier
-          token: A @22
+        name: A @22
       NamedType
-        name: SimpleIdentifier
-          token: B @37
+        name: B @37
   semicolon: ; @38
 ''',
         withOffsets: true);
@@ -1046,8 +1021,7 @@ EnumConstantDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
+          name: int
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
@@ -1081,8 +1055,7 @@ EnumConstantDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
+          name: int
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
@@ -1114,8 +1087,7 @@ EnumConstantDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
+          name: int
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -1248,12 +1220,10 @@ ExtensionDeclaration
     positionalFields
       RecordTypeAnnotationPositionalField
         type: NamedType
-          name: SimpleIdentifier
-            token: int @16
+          name: int @16
       RecordTypeAnnotationPositionalField
         type: NamedType
-          name: SimpleIdentifier
-            token: int @21
+          name: int @21
     rightParenthesis: ) @24
   leftBracket: { @26
   rightBracket: } @27
@@ -1396,17 +1366,14 @@ MixinDeclaration
     onKeyword: on @19
     superclassConstraints
       NamedType
-        name: SimpleIdentifier
-          token: C @22
+        name: C @22
   implementsClause: ImplementsClause
     implementsKeyword: implements @24
     interfaces
       NamedType
-        name: SimpleIdentifier
-          token: A @35
+        name: A @35
       NamedType
-        name: SimpleIdentifier
-          token: B @50
+        name: B @50
   leftBracket: { @52
   rightBracket: } @53
 ''',
@@ -1450,11 +1417,9 @@ MixinDeclaration
     onKeyword: on @8
     superclassConstraints
       NamedType
-        name: SimpleIdentifier
-          token: A @11
+        name: A @11
       NamedType
-        name: SimpleIdentifier
-          token: B @26
+        name: B @26
   leftBracket: { @28
   rightBracket: } @29
 ''',
@@ -1590,24 +1555,20 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: bool
+        name: bool
   namedFields: RecordTypeAnnotationNamedFields
     leftBracket: {
     fields
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: int
+          name: int
         name: a
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: bool
+          name: bool
         name: b
     rightBracket: }
   rightParenthesis: )
@@ -1629,13 +1590,11 @@ RecordTypeAnnotation
     fields
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: int
+          name: int
         name: a
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: bool
+          name: bool
         name: b
     rightBracket: }
   rightParenthesis: )
@@ -1657,13 +1616,11 @@ RecordTypeAnnotation
     fields
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: int
+          name: int
         name: a
       RecordTypeAnnotationNamedField
         type: NamedType
-          name: SimpleIdentifier
-            token: bool
+          name: bool
         name: b
     rightBracket: }
   rightParenthesis: )
@@ -1683,12 +1640,10 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: bool
+        name: bool
   rightParenthesis: )
   question: ?
 ''');
@@ -1707,12 +1662,10 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: bool
+        name: bool
   rightParenthesis: )
 ''');
   }
@@ -1733,8 +1686,7 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
   rightParenthesis: )
 ''');
   }
@@ -1752,8 +1704,7 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
   rightParenthesis: )
 ''');
   }
@@ -1771,12 +1722,10 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: bool
+        name: bool
   rightParenthesis: )
 ''');
   }
@@ -1794,12 +1743,10 @@ RecordTypeAnnotation
   positionalFields
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: int
+        name: int
     RecordTypeAnnotationPositionalField
       type: NamedType
-        name: SimpleIdentifier
-          token: T
+        name: T
   rightParenthesis: )
 ''');
   }
