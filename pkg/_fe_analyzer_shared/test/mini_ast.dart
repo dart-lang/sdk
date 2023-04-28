@@ -3066,6 +3066,15 @@ class _MiniAstErrors
   }
 
   @override
+  void emptyMapPattern({
+    required Pattern pattern,
+  }) {
+    _recordError('emptyMapPattern', {
+      'pattern': pattern,
+    });
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required covariant PatternVariableJoin variable,
     required Var component,
@@ -3233,15 +3242,6 @@ class _MiniAstErrors
     if (!_accumulatedErrors.add(errorText)) {
       fail('Same error reported twice: $errorText');
     }
-  }
-
-  @override
-  void emptyMapPattern({
-    required Pattern pattern,
-  }) {
-    _recordError('emptyMapPattern', {
-      'pattern': pattern,
-    });
   }
 }
 
@@ -3917,6 +3917,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   Type resolveObjectPatternPropertyGet({
+    required Pattern objectPattern,
     required Type receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {

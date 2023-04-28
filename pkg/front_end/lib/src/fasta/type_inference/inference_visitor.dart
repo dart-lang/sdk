@@ -11066,6 +11066,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   DartType resolveObjectPatternPropertyGet({
+    required Pattern objectPattern,
     required DartType receiverType,
     required shared.RecordPatternField<TreeNode, Pattern> field,
   }) {

@@ -355,7 +355,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
 #### `dart:js_util`
 
-- Added several helper functions to access more JavaScript operator, like
+- Added several helper functions to access more JavaScript operators, like
   `delete` and the `typeof` functionality.
 - `jsify` is now permissive and has inverse semantics to `dartify`.
 - `jsify` and `dartify` both handle types they understand natively more
