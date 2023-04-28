@@ -1,0 +1,7 @@
+switch (n) {}
+void printBugsSwitch(int n) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+main() {}
+void printBugsConditional(int n) => n == 0 ? print('no bugs') : n == 1 ? print('one bug') : print('$n bugs');

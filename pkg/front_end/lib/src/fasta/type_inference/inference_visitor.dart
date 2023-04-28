@@ -9392,7 +9392,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         parent is RelationalPattern && parent.expression == node;
 
     ExpressionInferenceResult expressionResult =
-        inferExpression(node, context).stopShorting();
+        // TODO(johnniwinther): Handle [isVoidAllowed] through
+        //  [dispatchExpression].
+        inferExpression(node, context, isVoidAllowed: true).stopShorting();
 
     if (needsCoercion) {
       expressionResult =
