@@ -6699,9 +6699,8 @@ uword TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
 uword TypeArguments::ComputeHash() const {
   if (IsNull()) return kAllDynamicHash;
   const uword result = HashForRange(0, Length());
-  if (result != 0) {
-    SetHash(result);
-  }
+  ASSERT(result != 0);
+  SetHash(result);
   return result;
 }
 
@@ -22491,13 +22490,11 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread) const {
       if (!type_args.IsCanonical()) {
         type_args = type_args.Canonicalize(thread);
         type_params.set_bounds(type_args);
-        new_sig.SetHash(0);
       }
       type_args = type_params.defaults();
       if (!type_args.IsCanonical()) {
         type_args = type_args.Canonicalize(thread);
         type_params.set_defaults(type_args);
-        new_sig.SetHash(0);
       }
     }
     AbstractType& type = AbstractType::Handle(zone);
@@ -22505,7 +22502,6 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread) const {
     if (!type.IsCanonical()) {
       type = type.Canonicalize(thread);
       new_sig.set_result_type(type);
-      new_sig.SetHash(0);
     }
     ASSERT(Array::Handle(zone, new_sig.parameter_types()).IsOld());
     ASSERT(Array::Handle(zone, new_sig.named_parameter_names()).IsOld());
@@ -22515,7 +22511,6 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread) const {
       if (!type.IsCanonical()) {
         type = type.Canonicalize(thread);
         new_sig.SetParameterTypeAt(i, type);
-        new_sig.SetHash(0);
       }
     }
     // Check to see if the function type got added to canonical table
@@ -27838,7 +27833,6 @@ AbstractTypePtr RecordType::Canonicalize(Thread* thread) const {
       if (!type.IsCanonical()) {
         type = type.Canonicalize(thread);
         SetFieldTypeAt(i, type);
-        SetHash(0);
       }
     }
     // Check to see if the record type got added to canonical table as part
