@@ -1,5 +1,0 @@
-library /*isNonNullableByDefault*/;
-import self as self;
-
-static method test(dynamic x) → dynamic
-  ;
