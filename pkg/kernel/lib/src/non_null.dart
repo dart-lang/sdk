@@ -7,6 +7,16 @@ import '../type_algebra.dart';
 
 /// Returns the type defined as `NonNull(type)` in the nnbd specification.
 DartType computeNonNull(DartType type) {
+  if (type.nullability == Nullability.nonNullable) {
+    // The visitor below always returns null when the input type is already
+    // nullable, subsequently returning the input type.
+    // When compiling "compile.dart" this is exactly what happens ~42% of the
+    // time. Here we short-circuit the visit.
+    // Note that some use [declaredNullability] instead of [nullability], but
+    // that [nullability] is only nonNullable if [declaredNullability] is too.
+    assert(type.accept(const _NonNullVisitor()) == null);
+    return type;
+  }
   return type.accept(const _NonNullVisitor()) ?? type;
 }
 
