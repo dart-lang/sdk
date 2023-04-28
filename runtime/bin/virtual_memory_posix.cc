@@ -12,6 +12,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
+#include <sys/prctl.h>
+#endif
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 
@@ -56,6 +60,19 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
   if (address == MAP_FAILED) {
     return nullptr;
   }
+
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
+  // PR_SET_VMA was only added to mainline Linux in 5.17, and some versions of
+  // the Android NDK have incorrect headers, so we manually define it if absent.
+#if !defined(PR_SET_VMA)
+#define PR_SET_VMA 0x53564d41
+#endif
+#if !defined(PR_SET_VMA_ANON_NAME)
+#define PR_SET_VMA_ANON_NAME 0
+#endif
+  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, name);
+#endif
+
   return new VirtualMemory(address, size);
 }
 
