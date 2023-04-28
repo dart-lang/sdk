@@ -1618,6 +1618,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType resolveObjectPatternPropertyGet({
+    required covariant ObjectPatternImpl objectPattern,
     required DartType receiverType,
     required covariant SharedPatternField field,
   }) {
@@ -1632,7 +1633,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       receiver: null,
       receiverType: receiverType,
       name: nameToken.lexeme,
-      propertyErrorEntity: nameToken,
+      propertyErrorEntity: objectPattern.type,
       nameErrorEntity: nameToken,
     );
 

@@ -787,6 +787,47 @@ ObjectPattern
 ''');
   }
 
+  test_typeAlias_nullable() async {
+    await assertErrorsInCode(r'''
+typedef A = int?;
+
+void f(x) {
+  switch (x) {
+    case A(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          55, 1),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@typeAlias::A
+      staticType: null
+    type: int?
+      alias: self::@typeAlias::A
+  leftParenthesis: (
+  fields
+    PatternField
+      name: PatternFieldName
+        name: foo
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        matchedValueType: dynamic
+      element: <null>
+  rightParenthesis: )
+  matchedValueType: dynamic
+''');
+  }
+
   test_typedef_dynamic_hasName_unresolved() async {
     await assertErrorsInCode(r'''
 typedef A = dynamic;
