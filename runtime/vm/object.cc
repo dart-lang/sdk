@@ -22598,7 +22598,8 @@ bool TypeParameter::IsEquivalent(
     TypeEquality kind,
     FunctionTypeMapping* function_type_equivalence) const {
   TRACE_TYPE_CHECKS_VERBOSE("  TypeParameter::IsEquivalent(%s, %s, kind %d)\n",
-                            ToCString(), other.ToCString(), kind);
+                            ToCString(), other.ToCString(),
+                            static_cast<int>(kind));
   if (ptr() == other.ptr()) {
     TRACE_TYPE_CHECKS_VERBOSE("   - result: true (same types)\n");
     return true;
