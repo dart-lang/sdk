@@ -156,7 +156,8 @@ class Heap {
                    intptr_t max_old_gen_words);
 
   // Verify that all pointers in the heap point to the heap.
-  bool Verify(MarkExpectation mark_expectation = kForbidMarked);
+  bool Verify(const char* msg,
+              MarkExpectation mark_expectation = kForbidMarked);
 
   // Print heap sizes.
   void PrintSizes() const;
@@ -360,7 +361,8 @@ class Heap {
 
   // Like Verify, but does not wait for concurrent sweeper, so caller must
   // ensure thread-safety.
-  bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked);
+  bool VerifyGC(const char* msg,
+                MarkExpectation mark_expectation = kForbidMarked);
 
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread, GCType type, GCReason reason);

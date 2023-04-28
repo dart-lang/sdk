@@ -817,21 +817,23 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
 
 class CollectStoreBufferVisitor : public ObjectPointerVisitor {
  public:
-  explicit CollectStoreBufferVisitor(ObjectSet* in_store_buffer)
+  CollectStoreBufferVisitor(ObjectSet* in_store_buffer, const char* msg)
       : ObjectPointerVisitor(IsolateGroup::Current()),
-        in_store_buffer_(in_store_buffer) {}
+        in_store_buffer_(in_store_buffer),
+        msg_(msg) {}
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
-      RELEASE_ASSERT(raw_obj->untag()->IsRemembered());
-      RELEASE_ASSERT(raw_obj->IsOldObject());
+      RELEASE_ASSERT_WITH_MSG(raw_obj->untag()->IsRemembered(), msg_);
+      RELEASE_ASSERT_WITH_MSG(raw_obj->IsOldObject(), msg_);
 
-      RELEASE_ASSERT(!raw_obj->untag()->IsCardRemembered());
+      RELEASE_ASSERT_WITH_MSG(!raw_obj->untag()->IsCardRemembered(), msg_);
       if (raw_obj.GetClassId() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(raw_obj.untag())->length());
-        RELEASE_ASSERT(!Array::UseCardMarkingForAllocation(length));
+        RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
+                                msg_);
       }
       in_store_buffer_->Add(raw_obj);
     }
@@ -847,29 +849,34 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
 
  private:
   ObjectSet* const in_store_buffer_;
+  const char* msg_;
 };
 
 class CheckStoreBufferVisitor : public ObjectVisitor,
                                 public ObjectPointerVisitor {
  public:
-  CheckStoreBufferVisitor(ObjectSet* in_store_buffer, const SemiSpace* to)
+  CheckStoreBufferVisitor(ObjectSet* in_store_buffer,
+                          const SemiSpace* to,
+                          const char* msg)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         in_store_buffer_(in_store_buffer),
-        to_(to) {}
+        to_(to),
+        msg_(msg) {}
 
   void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsPseudoObject()) return;
-    RELEASE_ASSERT(raw_obj->IsOldObject());
+    RELEASE_ASSERT_WITH_MSG(raw_obj->IsOldObject(), msg_);
 
-    RELEASE_ASSERT(raw_obj->untag()->IsRemembered() ==
-                   in_store_buffer_->Contains(raw_obj));
+    RELEASE_ASSERT_WITH_MSG(
+        raw_obj->untag()->IsRemembered() == in_store_buffer_->Contains(raw_obj),
+        msg_);
 
     visiting_ = raw_obj;
     is_remembered_ = raw_obj->untag()->IsRemembered();
     is_card_remembered_ = raw_obj->untag()->IsCardRemembered();
     if (is_card_remembered_) {
-      RELEASE_ASSERT(!is_remembered_);
+      RELEASE_ASSERT_WITH_MSG(!is_remembered_, msg_);
     }
     raw_obj->untag()->VisitPointers(this);
   }
@@ -881,24 +888,25 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
             FATAL(
-                "Old object %#" Px " references new object %#" Px
+                "%s: Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
           }
         } else if (!is_remembered_) {
-          FATAL("Old object %#" Px " references new object %#" Px
+          FATAL("%s: Old object %#" Px " references new object %#" Px
                 ", but it is "
                 "not in any store buffer. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
         }
-        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(raw_obj)),
+                                msg_);
       }
     }
   }
@@ -913,24 +921,25 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
             FATAL(
-                "Old object %#" Px " references new object %#" Px
+                "%s: Old object %#" Px " references new object %#" Px
                 ", but the "
                 "slot's card is not remembered. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
           }
         } else if (!is_remembered_) {
-          FATAL("Old object %#" Px " references new object %#" Px
+          FATAL("%s: Old object %#" Px " references new object %#" Px
                 ", but it is "
                 "not in any store buffer. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
-                ptr);
+                msg_, static_cast<uword>(visiting_),
+                static_cast<uword>(raw_obj), ptr);
         }
-        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(raw_obj)),
+                                msg_);
       }
     }
   }
@@ -942,9 +951,11 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   ObjectPtr visiting_;
   bool is_remembered_;
   bool is_card_remembered_;
+  const char* msg_;
 };
 
-void Scavenger::VerifyStoreBuffers() {
+void Scavenger::VerifyStoreBuffers(const char* msg) {
+  ASSERT(msg != nullptr);
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -953,12 +964,12 @@ void Scavenger::VerifyStoreBuffers() {
   heap_->AddRegionsToObjectSet(in_store_buffer);
 
   {
-    CollectStoreBufferVisitor visitor(in_store_buffer);
+    CollectStoreBufferVisitor visitor(in_store_buffer, msg);
     heap_->isolate_group()->store_buffer()->VisitObjectPointers(&visitor);
   }
 
   {
-    CheckStoreBufferVisitor visitor(in_store_buffer, to_);
+    CheckStoreBufferVisitor visitor(in_store_buffer, to_, msg);
     heap_->old_space()->VisitObjects(&visitor);
   }
 }
@@ -969,10 +980,8 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   heap_->isolate_group()->ReleaseStoreBuffers();
 
   if (FLAG_verify_store_buffer) {
-    OS::PrintErr("Verifying remembered set before Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
-    VerifyStoreBuffers();
-    OS::PrintErr(" done.\n");
+    VerifyStoreBuffers("Verifying remembered set before Scavenge");
   }
 
   // Need to stash the old remembered set before any worker begins adding to the
@@ -1066,10 +1075,8 @@ void Scavenger::Epilogue(SemiSpace* from) {
     // are very rare.
     heap_->isolate_group()->ReleaseStoreBuffers();
 
-    OS::PrintErr("Verifying remembered set after Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
-    VerifyStoreBuffers();
-    OS::PrintErr(" done.\n");
+    VerifyStoreBuffers("Verifying remembered set after Scavenge");
   }
 
   delete from;
@@ -1706,10 +1713,9 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(thread);
-    heap_->VerifyGC(thread->is_marking() ? kAllowMarked : kForbidMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying before Scavenge",
+                    thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
 
   // Prepare for a scavenge.
@@ -1772,10 +1778,9 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   Epilogue(from);
 
   if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after Scavenge...");
     heap_->WaitForSweeperTasksAtSafepoint(thread);
-    heap_->VerifyGC(thread->is_marking() ? kAllowMarked : kForbidMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying after Scavenge...",
+                    thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
 
   // Done scavenging. Reset the marker.

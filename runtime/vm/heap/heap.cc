@@ -759,21 +759,22 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
   return allocated_set;
 }
 
-bool Heap::Verify(MarkExpectation mark_expectation) {
+bool Heap::Verify(const char* msg, MarkExpectation mark_expectation) {
   if (FLAG_disable_heap_verification) {
     return true;
   }
   HeapIterationScope heap_iteration_scope(Thread::Current());
-  return VerifyGC(mark_expectation);
+  return VerifyGC(msg, mark_expectation);
 }
 
-bool Heap::VerifyGC(MarkExpectation mark_expectation) {
+bool Heap::VerifyGC(const char* msg, MarkExpectation mark_expectation) {
+  ASSERT(msg != nullptr);
   auto thread = Thread::Current();
   StackZone stack_zone(thread);
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
-  VerifyPointersVisitor visitor(isolate_group(), allocated_set);
+  VerifyPointersVisitor visitor(isolate_group(), allocated_set, msg);
   VisitObjectPointers(&visitor);
 
   // Only returning a value so that Heap::Validate can be called from an ASSERT.

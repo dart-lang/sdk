@@ -993,9 +993,8 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   }
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before marking...");
-    heap_->VerifyGC(phase() == kDone ? kForbidMarked : kAllowMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying before marking",
+                    phase() == kDone ? kForbidMarked : kAllowMarked);
   }
 
   // Make code pages writable.
@@ -1033,9 +1032,7 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   }
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before sweeping...");
-    heap_->VerifyGC(kAllowMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying before sweeping", kAllowMarked);
   }
 
   {
@@ -1092,9 +1089,7 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   }
 
   if (FLAG_verify_after_gc && can_verify) {
-    OS::PrintErr("Verifying after sweeping...");
-    heap_->VerifyGC(kForbidMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying after sweeping", kForbidMarked);
   }
 
   TryReserveForOOM();
@@ -1205,9 +1200,7 @@ void PageSpace::Compact(Thread* thread) {
   compactor.Compact(pages_, &freelists_[kDataFreelist], &pages_lock_);
 
   if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after compacting...");
-    heap_->VerifyGC(kForbidMarked);
-    OS::PrintErr(" done.\n");
+    heap_->VerifyGC("Verifying after compacting", kForbidMarked);
   }
 }
 

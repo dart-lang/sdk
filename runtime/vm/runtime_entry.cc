@@ -108,8 +108,8 @@ DECLARE_FLAG(bool, reload_every_back_off);
 void VerifyOnTransition() {
   Thread* thread = Thread::Current();
   TransitionGeneratedToVM transition(thread);
-  VerifyPointersVisitor::VerifyPointers();
-  thread->isolate_group()->heap()->Verify();
+  VerifyPointersVisitor::VerifyPointers("VerifyOnTransition");
+  thread->isolate_group()->heap()->Verify("VerifyOnTransition");
 }
 #endif
 

@@ -276,7 +276,7 @@ class Scavenger {
   void MournWeakHandles();
   void Epilogue(SemiSpace* from);
 
-  void VerifyStoreBuffers();
+  void VerifyStoreBuffers(const char* msg);
 
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();

@@ -474,7 +474,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
       Object::FinalizeVMIsolate(vm_isolate_->group());
     }
 #if defined(DEBUG)
-    vm_isolate_group()->heap()->Verify(kRequireMarked);
+    vm_isolate_group()->heap()->Verify("Dart::DartInit", kRequireMarked);
 #endif
   }
   // Allocate the "persistent" scoped handles for the predefined API
@@ -988,7 +988,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   Object::VerifyBuiltinVtables();
   if (T->isolate()->origin_id() == 0) {
-    DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+    DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
   }
 
 #if defined(DART_PRECOMPILED_RUNTIME)

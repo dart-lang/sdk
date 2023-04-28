@@ -309,7 +309,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
     OS::PrintErr("VerifyBootstrapClasses END.\n");
   }
-  IsolateGroup::Current()->heap()->Verify();
+  IsolateGroup::Current()->heap()->Verify("VerifyBootstrapClasses END");
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -1051,7 +1051,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
   }
 
 #if defined(DEBUG)
-  IG->heap()->Verify();
+  IG->heap()->Verify("RemapClassIds");
 #endif
 }
 

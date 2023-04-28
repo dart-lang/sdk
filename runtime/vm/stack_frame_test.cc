@@ -23,7 +23,7 @@ ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
                               StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(!iterator.HasNextFrame());
   EXPECT(iterator.NextFrame() == nullptr);
-  VerifyPointersVisitor::VerifyPointers();
+  VerifyPointersVisitor::VerifyPointers("EmptyStackFrameIterationTest");
 }
 
 // Unit test for empty dart stack frame iteration.
@@ -31,7 +31,7 @@ ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
   DartFrameIterator iterator(Thread::Current(),
                              StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(iterator.NextFrame() == nullptr);
-  VerifyPointersVisitor::VerifyPointers();
+  VerifyPointersVisitor::VerifyPointers("EmptyDartStackFrameIterationTest");
 }
 
 #define FUNCTION_NAME(name) StackFrame_##name
@@ -62,7 +62,7 @@ void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != nullptr) {
     count += 1;  // Count the frame.
   }
-  VerifyPointersVisitor::VerifyPointers();
+  VerifyPointersVisitor::VerifyPointers("StackFrame_frameCount_Test");
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
 
@@ -74,7 +74,7 @@ void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != nullptr) {
     count += 1;  // Count the dart frame.
   }
-  VerifyPointersVisitor::VerifyPointers();
+  VerifyPointersVisitor::VerifyPointers("StackFrame_dartFrameCount_Test");
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }

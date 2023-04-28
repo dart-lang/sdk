@@ -8808,7 +8808,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 #if defined(DEBUG)
   isolate_group->ValidateClassTable();
   if (isolate_group != Dart::vm_isolate()->group()) {
-    isolate_group->heap()->Verify();
+    isolate_group->heap()->Verify("Deserializer::Deserialize");
   }
 #endif
 

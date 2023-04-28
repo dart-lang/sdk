@@ -43,9 +43,14 @@ class VerifyObjectVisitor : public ObjectVisitor {
 // the pointers visited are contained in the isolate heap.
 class VerifyPointersVisitor : public ObjectPointerVisitor {
  public:
-  explicit VerifyPointersVisitor(IsolateGroup* isolate_group,
-                                 ObjectSet* allocated_set)
-      : ObjectPointerVisitor(isolate_group), allocated_set_(allocated_set) {}
+  VerifyPointersVisitor(IsolateGroup* isolate_group,
+                        ObjectSet* allocated_set,
+                        const char* msg)
+      : ObjectPointerVisitor(isolate_group),
+        allocated_set_(allocated_set),
+        msg_(msg) {
+    ASSERT(msg_ != nullptr);
+  }
 
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override;
 #if defined(DART_COMPRESSED_POINTERS)
@@ -54,10 +59,12 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
                                CompressedObjectPtr* last) override;
 #endif
 
-  static void VerifyPointers(MarkExpectation mark_expectation = kForbidMarked);
+  static void VerifyPointers(const char* msg,
+                             MarkExpectation mark_expectation = kForbidMarked);
 
  private:
   ObjectSet* allocated_set_;
+  const char* msg_;
 
   DISALLOW_COPY_AND_ASSIGN(VerifyPointersVisitor);
 };
