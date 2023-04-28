@@ -4,6 +4,3 @@
 
 [ $runtime != vm ]
 *: SkipByDesign # Native assets is a VM-only feature.
-
-[ $system != linux && $system != macos ]
-*: Skip # Non-Linux not yet implemented upstream.

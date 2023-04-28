@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:smith/configuration.dart';
@@ -276,6 +277,59 @@ class TestConfiguration {
       // Ignore errors here. If win_sdk is not found, stack trace dumping
       // for timeouts won't work.
     }
+  }();
+
+  late final Map<String, String> nativeCompilerEnvironmentVariables = () {
+    if (Platform.isWindows) {
+      // Use MSVC from Depot Tools instead. When using clang from DEPS, we still
+      // need to pass the right INCLUDE / LIB environment variables. So we might
+      // as well use the MSVC instead.
+      final windowsSdk = Uri.directory(windowsSdkPath!);
+      final vsPath = windowsSdk.resolve('../../');
+      final msvcPaths = vsPath.resolve('VC/Tools/MSVC/');
+      final msvcPath = Directory.fromUri(msvcPaths)
+          .listSync()
+          .firstWhere((element) => element.path != '.' && element.path != '..')
+          .uri;
+      const targetFolderName = {
+        Abi.windowsX64: 'x64',
+        Abi.windowsIA32: 'ia32',
+      };
+      const envScriptArgument = {
+        Abi.windowsX64: '/x64',
+        Abi.windowsIA32: '/x86',
+      };
+      final binDir =
+          msvcPath.resolve('bin/Hostx64/${targetFolderName[Abi.current()]!}/');
+      final toolchainEnvScript = windowsSdk.resolve('bin/SetEnv.cmd');
+      return {
+        'AR': binDir.resolve('lib.exe').toFilePath(),
+        'CC': binDir.resolve('cl.exe').toFilePath(),
+        'LD': binDir.resolve('link.exe').toFilePath(),
+        'ToolchainEnvScript': toolchainEnvScript.toFilePath(),
+        'ToolchainEnvScriptArguments': envScriptArgument[Abi.current()]!,
+      };
+    }
+
+    if (Platform.isMacOS) {
+      // Use XCode instead, it has the right sysroot by default.
+      return <String, String>{};
+    }
+
+    assert(Platform.isLinux);
+    // Keep consistent with DEPS.
+    const clangHostFolderName = {
+      Abi.linuxArm64: 'linux-arm64',
+      Abi.linuxX64: 'linux-x64',
+    };
+    final hostFolderName = clangHostFolderName[Abi.current()]!;
+    final clangBin =
+        Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
+    return {
+      'AR': clangBin.resolve('llvm-ar').toFilePath(),
+      'CC': clangBin.resolve('clang').toFilePath(),
+      'LD': clangBin.resolve('ld.lld').toFilePath(),
+    };
   }();
 
   /// Gets the local file path to the browser executable for this configuration.
