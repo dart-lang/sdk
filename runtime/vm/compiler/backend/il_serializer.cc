@@ -1534,7 +1534,8 @@ void FlowGraphSerializer::WriteEnclosingTypes(
     const auto& tp = TypeParameter::Cast(obj);
     if (tp.IsFunctionTypeParameter() &&
         (tp.index() < num_free_fun_type_params)) {
-      const auto& owner = FunctionType::Cast(Object::Handle(Z, tp.owner()));
+      const auto& owner =
+          FunctionType::Handle(Z, tp.parameterized_function_type());
       if (!IsWritten(owner)) {
         Write<bool>(true);
         Write<const Object&>(owner);
@@ -1792,9 +1793,13 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       Write<intptr_t>(tp.base());
       Write<intptr_t>(tp.index());
       Write<int8_t>(static_cast<int8_t>(tp.nullability()));
-      Write<classid_t>(tp.parameterized_class_id());
       if (tp.IsFunctionTypeParameter()) {
-        Write<const Object&>(Object::Handle(Z, tp.owner()));
+        Write<bool>(true);
+        Write<const FunctionType&>(
+            FunctionType::Handle(Z, tp.parameterized_function_type()));
+      } else {
+        Write<bool>(false);
+        Write<const Class&>(Class::Handle(Z, tp.parameterized_class()));
       }
       break;
     }
@@ -2073,15 +2078,14 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       const intptr_t base = Read<intptr_t>();
       const intptr_t index = Read<intptr_t>();
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
-      const classid_t parameterized_class_id = Read<classid_t>();
-      const Object& owner =
-          (parameterized_class_id == kObjectCid)
-              ? Object::null_object()
-              : ((parameterized_class_id == kFunctionCid)
-                     ? Read<const Object&>()
-                     : Class::Handle(Z, GetClassById(parameterized_class_id)));
+      const Object* owner = nullptr;
+      if (Read<bool>()) {
+        owner = &Read<const FunctionType&>();
+      } else {
+        owner = &Read<const Class&>();
+      }
       auto& tp = TypeParameter::ZoneHandle(
-          Z, TypeParameter::New(owner, base, index, nullability));
+          Z, TypeParameter::New(*owner, base, index, nullability));
       SetObjectAt(object_index, tp);
       tp.SetIsFinalized();
       tp ^= tp.Canonicalize(thread());

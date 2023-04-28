@@ -901,12 +901,11 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     };
 
     Label function_type_param;
-    __ LoadFieldFromOffset(
-        kScratchReg, kCurrentTypeReg,
-        target::TypeParameter::parameterized_class_id_offset(),
-        kUnsignedFourBytes);
-    __ CompareImmediate(kScratchReg, kFunctionCid);
-    __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
+    __ LoadFieldFromOffset(kScratchReg, kCurrentTypeReg,
+                           target::AbstractType::flags_offset(), kUnsignedByte);
+    __ BranchIfBit(kScratchReg,
+                   target::UntaggedTypeParameter::kIsFunctionTypeParameterBit,
+                   NOT_ZERO, &function_type_param, Assembler::kNearJump);
     handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
     __ Bind(&function_type_param);
 #if defined(TARGET_ARCH_IA32)
@@ -1015,10 +1014,10 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
 
   Label function_type_param;
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::TypeParameter::parameterized_class_id_offset(),
-                         kUnsignedFourBytes);
-  __ CompareImmediate(TypeTestABI::kScratchReg, kFunctionCid);
-  __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
+                         target::AbstractType::flags_offset(), kUnsignedByte);
+  __ BranchIfBit(TypeTestABI::kScratchReg,
+                 target::UntaggedTypeParameter::kIsFunctionTypeParameterBit,
+                 NOT_ZERO, &function_type_param, Assembler::kNearJump);
   handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
   __ Bind(&function_type_param);
   handle_case(TypeTestABI::kFunctionTypeArgumentsReg);

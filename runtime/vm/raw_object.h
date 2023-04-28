@@ -2764,14 +2764,19 @@ class UntaggedRecordType : public UntaggedAbstractType {
 };
 
 class UntaggedTypeParameter : public UntaggedAbstractType {
+ public:
+  static constexpr intptr_t kIsFunctionTypeParameterBit =
+      TypeStateBits::kNextBit;
+  using IsFunctionTypeParameter =
+      BitField<uint32_t, bool, kIsFunctionTypeParameterBit, 1>;
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  // Class or FunctionType.
+  // FunctionType or Smi (class id).
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
   VISIT_TO(owner)
-  ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
   uint16_t base_;   // Number of enclosing function type parameters.
   uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
 

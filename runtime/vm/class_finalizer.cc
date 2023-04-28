@@ -398,8 +398,8 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
     // The base and index of a function type parameter are eagerly calculated
     // upon loading and do not require adjustment here.
     if (type_parameter.IsClassTypeParameter()) {
-      const Class& parameterized_class =
-          Class::Cast(Object::Handle(zone, type_parameter.owner()));
+      const Class& parameterized_class = Class::Cast(
+          Object::Handle(zone, type_parameter.parameterized_class()));
       ASSERT(!parameterized_class.IsNull());
       // The index must reflect the position of this type parameter in the type
       // arguments vector of its parameterized class. The offset to add is the
@@ -422,7 +422,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
         // canonicalize common class type parameters
         // with 'Object?' bound and same indices to the same
         // instances.
-        type_parameter.set_owner(Object::null_object());
+        type_parameter.set_parameterized_class_id(kIllegalCid);
       }
     }
 
@@ -1117,8 +1117,11 @@ class CidRewriteVisitor : public ObjectVisitor {
       field->untag()->is_nullable_ = Map(field->untag()->is_nullable_);
     } else if (obj->IsTypeParameter()) {
       TypeParameterPtr param = TypeParameter::RawCast(obj);
-      param->untag()->parameterized_class_id_ =
-          Map(param->untag()->parameterized_class_id_);
+      if (!UntaggedTypeParameter::IsFunctionTypeParameter::decode(
+              param->untag()->flags())) {
+        param->untag()->set_owner(
+            Smi::New(Map(Smi::Value(Smi::RawCast(param->untag()->owner())))));
+      }
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
       type->untag()->set_type_class_id(Map(type->untag()->type_class_id()));
@@ -1178,7 +1181,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // computation of canonical hash codes:
 //
 //    * TypePtr (due to UntaggedType::type_class_id)
-//    * TypeParameterPtr (due to UntaggedTypeParameter::parameterized_class_id_)
+//    * TypeParameterPtr (due to UntaggedTypeParameter::owner_)
 //
 // The following instances use cids for the computation of canonical hash codes
 // indirectly:

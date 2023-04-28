@@ -445,6 +445,11 @@ class UntaggedType : public AllStatic {
   static const word kTypeClassIdShift;
 };
 
+class UntaggedTypeParameter : public AllStatic {
+ public:
+  static const word kIsFunctionTypeParameterBit;
+};
+
 class Object : public AllStatic {
  public:
   // Offset of the tags word.
@@ -972,7 +977,6 @@ class TypeParameter : public AllStatic {
  public:
   static word InstanceSize();
   FINAL_CLASS();
-  static word parameterized_class_id_offset();
   static word index_offset();
 };
 

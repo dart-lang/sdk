@@ -374,7 +374,6 @@
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
-  FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
   FIELD(TypeArguments, hash_offset)                                            \
   FIELD(TypeArguments, instantiations_offset)                                  \

@@ -6430,8 +6430,8 @@ class FunctionTypeMapping : public ValueObject {
 
   TypeParameterPtr MapTypeParameter(const TypeParameter& type_param) const {
     ASSERT(type_param.IsFunctionTypeParameter());
-    const FunctionType* new_owner =
-        Find(Object::Handle(zone_, type_param.owner()));
+    const FunctionType* new_owner = Find(
+        FunctionType::Handle(zone_, type_param.parameterized_function_type()));
     if (new_owner != nullptr) {
       return new_owner->TypeParameterAt(type_param.index() - type_param.base(),
                                         type_param.nullability());
@@ -6441,15 +6441,15 @@ class FunctionTypeMapping : public ValueObject {
 
   bool ContainsOwnersOfTypeParameters(const TypeParameter& p1,
                                       const TypeParameter& p2) const {
-    auto& from = Object::Handle(zone_, p1.owner());
+    auto& from = FunctionType::Handle(zone_, p1.parameterized_function_type());
     const FunctionType* to = Find(from);
     if (to != nullptr) {
-      return to->ptr() == p2.owner();
+      return to->ptr() == p2.parameterized_function_type();
     }
-    from = p2.owner();
+    from = p2.parameterized_function_type();
     to = Find(from);
     if (to != nullptr) {
-      return to->ptr() == p1.owner();
+      return to->ptr() == p1.parameterized_function_type();
     }
     return false;
   }
@@ -22639,7 +22639,8 @@ bool TypeParameter::IsEquivalent(
           "   - result: false (other is not a function type parameter)\n");
       return false;
     }
-    if ((owner() != other_type_param.owner()) &&
+    if ((parameterized_function_type() !=
+         other_type_param.parameterized_function_type()) &&
         ((function_type_equivalence == nullptr) ||
          !function_type_equivalence->ContainsOwnersOfTypeParameters(
              *this, other_type_param))) {
@@ -22673,20 +22674,36 @@ bool TypeParameter::IsEquivalent(
 }
 
 void TypeParameter::set_owner(const Object& value) const {
-  ASSERT(value.IsNull() || value.IsClass() || value.IsFunctionType());
+  ASSERT((IsFunctionTypeParameter() && value.IsFunctionType()) ||
+         (IsClassTypeParameter() && value.IsSmi()));
   untag()->set_owner(value.ptr());
-  set_parameterized_class_id(
-      value.IsNull()
-          ? kObjectCid
-          : (value.IsClass() ? Class::Cast(value).id() : kFunctionCid));
-}
-
-void TypeParameter::set_parameterized_class_id(classid_t value) const {
-  StoreNonPointer(&untag()->parameterized_class_id_, value);
 }
 
 classid_t TypeParameter::parameterized_class_id() const {
-  return untag()->parameterized_class_id_;
+  if (IsClassTypeParameter()) {
+    return Smi::Value(Smi::RawCast(untag()->owner()));
+  } else {
+    return kFunctionCid;
+  }
+}
+void TypeParameter::set_parameterized_class_id(classid_t value) const {
+  ASSERT(IsClassTypeParameter());
+  untag()->set_owner(Smi::New(value));
+}
+
+ClassPtr TypeParameter::parameterized_class() const {
+  if (IsClassTypeParameter()) {
+    const classid_t cid = parameterized_class_id();
+    if (cid != kIllegalCid) {
+      return IsolateGroup::Current()->class_table()->At(cid);
+    }
+  }
+  return Class::null();
+}
+
+FunctionTypePtr TypeParameter::parameterized_function_type() const {
+  ASSERT(IsFunctionTypeParameter());
+  return FunctionType::RawCast(untag()->owner());
 }
 
 void TypeParameter::set_base(intptr_t value) const {
@@ -22702,14 +22719,20 @@ void TypeParameter::set_index(intptr_t value) const {
 }
 
 AbstractTypePtr TypeParameter::bound() const {
-  const auto& owner = Object::Handle(this->owner());
-  if (owner.IsNull()) {
-    return IsolateGroup::Current()->object_store()->nullable_object_type();
+  if (IsFunctionTypeParameter()) {
+    const auto& owner = FunctionType::Handle(parameterized_function_type());
+    const auto& type_parameters =
+        TypeParameters::Handle(owner.type_parameters());
+    return type_parameters.BoundAt(index() - base());
+  } else {
+    const auto& owner = Class::Handle(parameterized_class());
+    if (owner.IsNull()) {
+      return IsolateGroup::Current()->object_store()->nullable_object_type();
+    }
+    const auto& type_parameters =
+        TypeParameters::Handle(owner.type_parameters());
+    return type_parameters.BoundAt(index() - base());
   }
-  const auto& type_parameters = TypeParameters::Handle(
-      owner.IsClass() ? Class::Cast(owner).type_parameters()
-                      : FunctionType::Cast(owner).type_parameters());
-  return type_parameters.BoundAt(index() - base());
 }
 
 AbstractTypePtr TypeParameter::GetFromTypeArguments(
@@ -22822,7 +22845,9 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread) const {
   Zone* zone = thread->zone();
   if (IsCanonical()) {
 #ifdef DEBUG
-    ASSERT(Object::Handle(zone, owner()).IsOld());
+    if (IsFunctionTypeParameter()) {
+      ASSERT(FunctionType::Handle(zone, parameterized_function_type()).IsOld());
+    }
 #endif
     return this->ptr();
   }
@@ -22908,13 +22933,21 @@ TypeParameterPtr TypeParameter::New(const Object& owner,
                                     intptr_t index,
                                     Nullability nullability) {
   ASSERT(owner.IsNull() || owner.IsClass() || owner.IsFunctionType());
+  const bool is_function_type_parameter = owner.IsFunctionType();
+  const uint32_t flags = UntaggedTypeParameter::IsFunctionTypeParameter::encode(
+      is_function_type_parameter);
   Zone* Z = Thread::Current()->zone();
   const TypeParameter& result = TypeParameter::Handle(Z, TypeParameter::New());
-  result.set_owner(owner);
+  result.set_flags(flags);
+  if (is_function_type_parameter) {
+    result.set_owner(owner);
+  } else {
+    result.set_parameterized_class_id(owner.IsNull() ? kIllegalCid
+                                                     : Class::Cast(owner).id());
+  }
   result.set_base(base);
   result.set_index(index);
   result.SetHash(0);
-  result.set_flags(0);
   result.set_nullability(nullability);
   result.set_type_state(UntaggedAbstractType::kAllocated);
 

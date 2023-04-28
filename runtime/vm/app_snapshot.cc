@@ -4475,7 +4475,6 @@ class TypeParameterSerializationCluster
   void WriteTypeParameter(Serializer* s, TypeParameterPtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    s->Write<int32_t>(type->untag()->parameterized_class_id_);
     s->Write<uint16_t>(type->untag()->base_);
     s->Write<uint16_t>(type->untag()->index_);
     ASSERT(Utils::IsUint(8, type->untag()->flags()));
@@ -4509,7 +4508,6 @@ class TypeParameterDeserializationCluster
                                      TypeParameter::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->parameterized_class_id_ = d.Read<int32_t>();
       type->untag()->base_ = d.Read<uint16_t>();
       type->untag()->index_ = d.Read<uint16_t>();
       type->untag()->set_flags(d.Read<uint8_t>());

@@ -1161,13 +1161,10 @@ void Precompiler::AddType(const AbstractType& abstype) {
     if (typeparams_to_retain_.HasKey(&param)) return;
     typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
-    Object& owner = Object::Handle(Z, param.owner());
-    if (owner.IsClass()) {
-      AddTypesOf(Class::Cast(owner));
-    } else if (owner.IsFunctionType()) {
-      AddType(FunctionType::Cast(owner));
+    if (param.IsClassTypeParameter()) {
+      AddTypesOf(Class::Handle(Z, param.parameterized_class()));
     } else {
-      RELEASE_ASSERT(owner.IsNull());
+      AddType(FunctionType::Handle(Z, param.parameterized_function_type()));
     }
     return;
   }

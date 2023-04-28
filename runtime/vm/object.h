@@ -9317,18 +9317,12 @@ class TypeParameter : public AbstractType {
   TypeParameterPtr ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
-  classid_t parameterized_class_id() const;
-  void set_parameterized_class_id(classid_t value) const;
-  bool IsClassTypeParameter() const {
-    return parameterized_class_id() != kFunctionCid;
-  }
-  bool IsFunctionTypeParameter() const {
-    return parameterized_class_id() == kFunctionCid;
-  }
 
-  static intptr_t parameterized_class_id_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, parameterized_class_id_);
+  bool IsFunctionTypeParameter() const {
+    return UntaggedTypeParameter::IsFunctionTypeParameter::decode(
+        untag()->flags());
   }
+  bool IsClassTypeParameter() const { return !IsFunctionTypeParameter(); }
 
   intptr_t base() const { return untag()->base_; }
   void set_base(intptr_t value) const;
@@ -9338,8 +9332,10 @@ class TypeParameter : public AbstractType {
     return OFFSET_OF(UntaggedTypeParameter, index_);
   }
 
-  ObjectPtr owner() const { return untag()->owner(); }
-  void set_owner(const Object& value) const;
+  classid_t parameterized_class_id() const;
+  void set_parameterized_class_id(classid_t value) const;
+  ClassPtr parameterized_class() const;
+  FunctionTypePtr parameterized_function_type() const;
 
   AbstractTypePtr bound() const;
 
@@ -9408,6 +9404,8 @@ class TypeParameter : public AbstractType {
  private:
   uword ComputeHash() const;
   void SetHash(intptr_t value) const;
+
+  void set_owner(const Object& value) const;
 
   static TypeParameterPtr New();
 
