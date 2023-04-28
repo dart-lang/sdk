@@ -228,7 +228,7 @@ class PropertyElementResolver with ScopeHelpers {
     final scopeLookupResult = node.scopeLookupResult!;
     reportDeprecatedExportUse(
       scopeLookupResult: scopeLookupResult,
-      node: node,
+      nameToken: node.token,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -451,13 +451,13 @@ class PropertyElementResolver with ScopeHelpers {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
           propertyName,
-          [propertyName.name, target.type.name.name],
+          [propertyName.name, target.type.qualifiedName],
         );
       } else {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
           propertyName,
-          [propertyName.name, target.type.name.name],
+          [propertyName.name, target.type.qualifiedName],
         );
       }
       return PropertyElementResolverResult();
@@ -732,7 +732,7 @@ class PropertyElementResolver with ScopeHelpers {
     var lookupResult = target.scope.lookup(identifier.name);
     reportDeprecatedExportUse(
       scopeLookupResult: lookupResult,
-      node: identifier,
+      nameToken: identifier.token,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );

@@ -51,7 +51,7 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type.name.staticElement;
+      var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
         final aliasedType = enclosingElement.aliasedType;
         enclosingElement =

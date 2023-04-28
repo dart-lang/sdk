@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -275,6 +276,13 @@ class CompletionTarget {
         return node.realTarget;
       } else if (node.isCascaded && node.operator!.offset + 1 == offset) {
         return node.realTarget;
+      }
+    }
+    if (node is NamedType) {
+      final importPrefix = node.importPrefix;
+      if (importPrefix != null && identical(node.name2, entity)) {
+        return SimpleIdentifierImpl(importPrefix.name)
+          ..staticElement = importPrefix.element;
       }
     }
     if (node is PropertyAccess) {

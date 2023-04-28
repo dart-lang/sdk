@@ -718,6 +718,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    sink.write(node.name.lexeme);
+    sink.write('.');
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
       _visitToken(node.period);
@@ -908,7 +914,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _visitNode(node.name);
+    _visitNode(node.importPrefix);
+    _visitToken(node.name2);
     _visitNode(node.typeArguments);
     if (node.question != null) {
       sink.write('?');

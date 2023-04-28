@@ -76,10 +76,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   type: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@62
-      staticType: null
+    name: T
+    element: T@62
     type: T
   superKeyword: super
   period: .
@@ -95,10 +93,8 @@ SuperFormalParameter
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: b
       declaredElement: self::@class::B::@constructor::new::@parameter::a::@parameter::b

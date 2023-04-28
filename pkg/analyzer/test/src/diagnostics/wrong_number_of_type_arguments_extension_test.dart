@@ -40,10 +40,8 @@ ExtensionOverride
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -84,10 +82,8 @@ ExtensionOverride
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -131,16 +127,12 @@ ExtensionOverride
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

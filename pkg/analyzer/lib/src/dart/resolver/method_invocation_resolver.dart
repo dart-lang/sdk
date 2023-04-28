@@ -182,7 +182,7 @@ class MethodInvocationResolver with ScopeHelpers {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
         nameNode,
-        [name, receiver.type.name.name],
+        [name, receiver.type.qualifiedName],
       );
       _setDynamicResolution(node,
           whyNotPromotedList: whyNotPromotedList, contextType: contextType);
@@ -553,7 +553,7 @@ class MethodInvocationResolver with ScopeHelpers {
     final scopeLookupResult = nameNode.scopeLookupResult!;
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
-      node: nameNode,
+      nameToken: nameNode.token,
     );
 
     var element = scopeLookupResult.getter;
@@ -644,7 +644,7 @@ class MethodInvocationResolver with ScopeHelpers {
     final scopeLookupResult = prefix.scope.lookup(name);
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
-      node: nameNode,
+      nameToken: nameNode.token,
     );
 
     var element = scopeLookupResult.getter;

@@ -31,18 +31,12 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: math
-          staticElement: self::@prefix::math
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: math
         period: .
-        identifier: SimpleIdentifier
-          token: Random
-          staticElement: dart:math::@class::Random
-          staticType: null
-        staticElement: dart:math::@class::Random
-        staticType: null
+        element: self::@prefix::math
+      name: Random
+      element: dart:math::@class::Random
       type: Random
 ''');
   }

@@ -1882,20 +1882,6 @@ void f() {
     );
   }
 
-  void test_typeName() {
-    var findNode = _parseStringToFindNode(r'''
-void f(List<int> a, Set<double> b) {}
-''');
-    _assertReplacementForChildren<NamedType>(
-      destination: findNode.namedType('List<int>'),
-      source: findNode.namedType('Set<double>'),
-      childAccessors: [
-        (node) => node.name,
-        (node) => node.typeArguments!,
-      ],
-    );
-  }
-
   void test_typeParameter() {
     var findNode = _parseStringToFindNode(r'''
 class A<T extends int, U extends double> {}

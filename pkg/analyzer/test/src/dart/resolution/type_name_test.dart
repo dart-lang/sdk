@@ -33,20 +33,16 @@ class B extends A<int> {}
     final node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@class::A
   type: A<int>
 ''');
   }
@@ -63,20 +59,16 @@ class B extends A<int> {}
     final node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@class::A
   type: A<dynamic, dynamic>
 ''');
   }
@@ -93,26 +85,20 @@ class B extends A<int, String> {}
     final node = findNode.namedType('A<int, String>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
+  element: self::@class::A
   type: A<dynamic>
 ''');
   }
@@ -128,20 +114,16 @@ class A<T> extends T<int> {}
     final node = findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: T
-    staticElement: T@8
-    staticType: null
+  name: T
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: T@8
   type: T
 ''');
   }
@@ -156,28 +138,20 @@ void f(async.Future<int> a) {}
     final node = findNode.namedType('async.Future');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: async
-      staticElement: self::@prefix::async
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: async
     period: .
-    identifier: SimpleIdentifier
-      token: Future
-      staticElement: dart:async::@class::Future
-      staticType: null
-    staticElement: dart:async::@class::Future
-    staticType: null
+    element: self::@prefix::async
+  name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: dart:async::@class::Future
   type: Future<int>
 ''');
   }
@@ -194,28 +168,20 @@ void f(math.Unresolved<int> a) {}
     final node = findNode.namedType('math.Unresolved');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: math
-      staticElement: self::@prefix::math
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: math
     period: .
-    identifier: SimpleIdentifier
-      token: Unresolved
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: self::@prefix::math
+  name: Unresolved
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: <null>
   type: dynamic
 ''');
   }
@@ -235,28 +201,20 @@ void f() {
     final node = findNode.namedType('async.Future');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: async
-      staticElement: self::@prefix::async
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: async
     period: .
-    identifier: SimpleIdentifier
-      token: Future
-      staticElement: dart:async::@class::Future
-      staticType: null
-    staticElement: dart:async::@class::Future
-    staticType: null
+    element: self::@prefix::async
+  name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: dart:async::@class::Future
   type: Future<int>
 ''');
   }
@@ -273,20 +231,16 @@ void f(prefix<int> a) {}
     final node = findNode.namedType('prefix<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: prefix
-    staticElement: self::@prefix::prefix
-    staticType: null
+  name: prefix
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@prefix::prefix
   type: dynamic
 ''');
   }
@@ -303,20 +257,16 @@ void T() {}
     final node = findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: T
-    staticElement: self::@function::T
-    staticType: null
+  name: T
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@function::T
   type: dynamic
 ''');
   }
@@ -331,28 +281,20 @@ void f<T>(T.name<int> a) {}
     final node = findNode.namedType('T.name<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: T
-      staticElement: T@7
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: T
     period: .
-    identifier: SimpleIdentifier
-      token: name
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: T@7
+  name: name
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: <null>
   type: dynamic
 ''');
   }
@@ -373,10 +315,8 @@ f(A a) {}
     final node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
+  element: package:test/a.dart::@class::A
   type: A*
 ''');
   }
@@ -397,10 +337,8 @@ f(A a) {}
     final node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
+  element: package:test/a.dart::@class::A
   type: A<num*>*
 ''');
   }
@@ -421,10 +359,8 @@ f(A a) {}
     final node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
+  element: package:test/a.dart::@class::A
   type: A<dynamic>*
 ''');
   }
@@ -445,20 +381,16 @@ f(A<int> a) {}
     final node = findNode.namedType('A<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
+  element: package:test/a.dart::@class::A
   type: A<int*>*
 ''');
   }
@@ -479,10 +411,8 @@ f(F a) {}
     final node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
+  element: package:test/a.dart::@typeAlias::F
   type: int* Function(bool*)*
     alias: package:test/a.dart::@typeAlias::F
 ''');
@@ -504,10 +434,8 @@ f(F a) {}
     final node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
+  element: package:test/a.dart::@typeAlias::F
   type: dynamic Function(bool*)*
     alias: package:test/a.dart::@typeAlias::F
       typeArguments
@@ -531,10 +459,8 @@ f(F a) {}
     final node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
+  element: package:test/a.dart::@typeAlias::F
   type: num* Function(bool*)*
     alias: package:test/a.dart::@typeAlias::F
       typeArguments
@@ -558,20 +484,16 @@ f(F<int> a) {}
     final node = findNode.namedType('F<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
+  element: package:test/a.dart::@typeAlias::F
   type: int* Function(bool*)*
     alias: package:test/a.dart::@typeAlias::F
       typeArguments
@@ -597,10 +519,8 @@ f(A a) {}
     final node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
+  element: package:test/a.dart::@class::A
   type: A
 ''');
   }
@@ -623,10 +543,8 @@ f(A a) {}
     final node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
+  element: package:test/a.dart::@class::A
   type: A<num*>
 ''');
   }
@@ -649,10 +567,8 @@ f(A a) {}
     final node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
+  element: package:test/a.dart::@class::A
   type: A<dynamic>
 ''');
   }
@@ -675,20 +591,16 @@ f(A<int> a) {}
     final node = findNode.namedType('A<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: package:test/a.dart::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: package:test/a.dart::@class::A
   type: A<int>
 ''');
   }
@@ -711,10 +623,8 @@ f(F a) {}
     final node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
+  element: package:test/a.dart::@typeAlias::F
   type: int* Function()
     alias: package:test/a.dart::@typeAlias::F
 ''');
@@ -738,10 +648,8 @@ f(F a) {}
     final node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
+  element: package:test/a.dart::@typeAlias::F
   type: num* Function()
     alias: package:test/a.dart::@typeAlias::F
       typeArguments
@@ -767,10 +675,8 @@ f(F a) {}
     final node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
+  element: package:test/a.dart::@typeAlias::F
   type: dynamic Function()
     alias: package:test/a.dart::@typeAlias::F
       typeArguments
@@ -796,20 +702,16 @@ f(F<int> a) {}
     final node = findNode.namedType('F<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: package:test/a.dart::@typeAlias::F
-    staticType: null
+  name: F
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: package:test/a.dart::@typeAlias::F
   type: int* Function()
     alias: package:test/a.dart::@typeAlias::F
       typeArguments
@@ -831,20 +733,16 @@ void f() {
     final node = findNode.namedType('X<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -863,10 +761,8 @@ void f() {
     final node = findNode.namedType('X()');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
+  element: self::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -885,20 +781,16 @@ void f() {
     final node = findNode.namedType('X<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -912,20 +804,16 @@ void f(X<String> a, X<String?> b) {}
     final node1 = findNode.namedType('X<String>');
     assertResolvedNodeText(node1, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
+  element: self::@typeAlias::X
   type: Map<int, String>
     alias: self::@typeAlias::X
       typeArguments
@@ -935,21 +823,17 @@ NamedType
     final node2 = findNode.namedType('X<String?>');
     assertResolvedNodeText(node2, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
         question: ?
+        element: dart:core::@class::String
         type: String?
     rightBracket: >
+  element: self::@typeAlias::X
   type: Map<int, String?>
     alias: self::@typeAlias::X
       typeArguments
@@ -971,20 +855,16 @@ void f(X<String> a) {}
     final node = findNode.namedType('X<String>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: package:test/a.dart::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String*
     rightBracket: >
+  element: package:test/a.dart::@typeAlias::X
   type: Map<int*, String*>*
     alias: package:test/a.dart::@typeAlias::X
       typeArguments
@@ -1001,20 +881,16 @@ void f(X<int> a, X<int?> b) {}
     final node1 = findNode.namedType('X<int>');
     assertResolvedNodeText(node1, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@typeAlias::X
   type: List<int?>
     alias: self::@typeAlias::X
       typeArguments
@@ -1024,21 +900,17 @@ NamedType
     final node2 = findNode.namedType('X<int?>');
     assertResolvedNodeText(node2, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
         question: ?
+        element: dart:core::@class::int
         type: int?
     rightBracket: >
+  element: self::@typeAlias::X
   type: List<int?>
     alias: self::@typeAlias::X
       typeArguments
@@ -1060,20 +932,16 @@ void f(X<int> a) {}
     final node = findNode.namedType('X<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: package:test/a.dart::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
+  element: package:test/a.dart::@typeAlias::X
   type: List<int*>*
     alias: package:test/a.dart::@typeAlias::X
       typeArguments
@@ -1090,21 +958,17 @@ void f(X a, X? b) {}
     final node1 = findNode.namedType('X a');
     assertResolvedNodeText(node1, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
+  element: self::@typeAlias::X
   type: Never
 ''');
 
     final node2 = findNode.namedType('X? b');
     assertResolvedNodeText(node2, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   question: ?
+  element: self::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1123,10 +987,8 @@ void f(X a) {}
     final node = findNode.namedType('X a');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: package:test/a.dart::@typeAlias::X
-    staticType: null
+  name: X
+  element: package:test/a.dart::@typeAlias::X
   type: Null*
 ''');
   }
@@ -1140,21 +1002,17 @@ void f(X a, X? b) {}
     final node1 = findNode.namedType('X a');
     assertResolvedNodeText(node1, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
+  element: self::@typeAlias::X
   type: Never?
 ''');
 
     final node2 = findNode.namedType('X? b');
     assertResolvedNodeText(node2, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   question: ?
+  element: self::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1168,20 +1026,16 @@ void f(X<int> a) {}
     final node = findNode.namedType('X<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@typeAlias::X
   type: int?
     alias: self::@typeAlias::X
       typeArguments
@@ -1198,20 +1052,16 @@ X<String> f() => {};
     final node = findNode.namedType('X<String>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: X
-    staticElement: self::@typeAlias::X
-    staticType: null
+  name: X
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
+  element: self::@typeAlias::X
   type: Map<int, String>
     alias: self::@typeAlias::X
       typeArguments
@@ -1228,10 +1078,8 @@ Nothing f() {}
     final node = findNode.namedType('Nothing f()');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: Nothing
-    staticElement: self::@typeAlias::Nothing
-    staticType: null
+  name: Nothing
+  element: self::@typeAlias::Nothing
   type: void
 ''');
   }
@@ -1246,20 +1094,16 @@ void f(Unresolved<int> a) {}
     final node = findNode.namedType('Unresolved');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: Unresolved
-    staticElement: <null>
-    staticType: null
+  name: Unresolved
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: <null>
   type: dynamic
 ''');
   }
@@ -1274,28 +1118,20 @@ void f(unresolved.List<int> a) {}
     final node = findNode.namedType('unresolved.List');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: unresolved
-      staticElement: <null>
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: unresolved
     period: .
-    identifier: SimpleIdentifier
-      token: List
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: <null>
+  name: List
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: <null>
   type: dynamic
 ''');
   }
@@ -1317,19 +1153,15 @@ f(A a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A*
 ''');
     }
@@ -1346,19 +1178,15 @@ f(A a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A<num>
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A<num*>*
 ''');
     }
@@ -1375,19 +1203,15 @@ f(A a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A<dynamic>
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A<dynamic>*
 ''');
     }
@@ -1404,39 +1228,31 @@ f(A<int> a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@class::A
   type: A<int>
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
+  element: self::@class::A
   type: A<int*>*
 ''');
     }
@@ -1452,10 +1268,8 @@ dynamic a;
     final node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: dynamic@-1
-    staticType: null
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
   }
@@ -1470,18 +1284,12 @@ myCore.dynamic a;
     final node = findNode.namedType('myCore.dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: myCore
-      staticElement: self::@prefix::myCore
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: myCore
     period: .
-    identifier: SimpleIdentifier
-      token: dynamic
-      staticElement: dynamic@-1
-      staticType: null
-    staticElement: dynamic@-1
-    staticType: null
+    element: self::@prefix::myCore
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
   }
@@ -1498,10 +1306,8 @@ dynamic a;
     final node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: <null>
-    staticType: null
+  name: dynamic
+  element: <null>
   type: dynamic
 ''');
   }
@@ -1514,10 +1320,8 @@ dynamic a;
     final node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: dynamic
-    staticElement: dynamic@-1
-    staticType: null
+  name: dynamic
+  element: dynamic@-1
   type: dynamic
 ''');
   }
@@ -1533,20 +1337,16 @@ f(F a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
+  element: self::@typeAlias::F
   type: int Function()
     alias: self::@typeAlias::F
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
+  element: self::@typeAlias::F
   type: int* Function()*
     alias: self::@typeAlias::F
 ''');
@@ -1564,10 +1364,8 @@ f(F a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
+  element: self::@typeAlias::F
   type: num Function()
     alias: self::@typeAlias::F
       typeArguments
@@ -1576,10 +1374,8 @@ NamedType
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
+  element: self::@typeAlias::F
   type: num* Function()*
     alias: self::@typeAlias::F
       typeArguments
@@ -1599,10 +1395,8 @@ f(F a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
+  element: self::@typeAlias::F
   type: dynamic Function()
     alias: self::@typeAlias::F
       typeArguments
@@ -1611,10 +1405,8 @@ NamedType
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
+  element: self::@typeAlias::F
   type: dynamic Function()*
     alias: self::@typeAlias::F
       typeArguments
@@ -1634,20 +1426,16 @@ f(F<int> a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@typeAlias::F
   type: int Function()
     alias: self::@typeAlias::F
       typeArguments
@@ -1656,20 +1444,16 @@ NamedType
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: F
-    staticElement: self::@typeAlias::F
-    staticType: null
+  name: F
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
+  element: self::@typeAlias::F
   type: int* Function()*
     alias: self::@typeAlias::F
       typeArguments
@@ -1693,35 +1477,23 @@ main() {
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: math
-      staticElement: self::@prefix::math
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: math
     period: .
-    identifier: SimpleIdentifier
-      token: A
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: self::@prefix::math
+  name: A
+  element: <null>
   type: dynamic
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: math
-      staticElement: self::@prefix::math
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: math
     period: .
-    identifier: SimpleIdentifier
-      token: A
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: self::@prefix::math
+  name: A
+  element: <null>
   type: dynamic
 ''');
     }
@@ -1740,19 +1512,15 @@ main() {
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: self::@class::A
-    staticType: null
+  name: A
+  element: self::@class::A
   type: A*
 ''');
     }
@@ -1771,19 +1539,15 @@ main() {
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: <null>
-    staticType: null
+  name: A
+  element: <null>
   type: dynamic
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: A
-    staticElement: <null>
-    staticType: null
+  name: A
+  element: <null>
   type: dynamic
 ''');
     }
@@ -1802,35 +1566,23 @@ void f() {
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: int
     period: .
-    identifier: SimpleIdentifier
-      token: double
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: dart:core::@class::int
+  name: double
+  element: <null>
   type: dynamic
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: int
     period: .
-    identifier: SimpleIdentifier
-      token: double
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: dart:core::@class::int
+  name: double
+  element: <null>
   type: dynamic
 ''');
     }
@@ -1849,35 +1601,23 @@ void f() {
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: int
     period: .
-    identifier: SimpleIdentifier
-      token: double
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: dart:core::@class::int
+  name: double
+  element: <null>
   type: dynamic
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: int
     period: .
-    identifier: SimpleIdentifier
-      token: double
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
+    element: dart:core::@class::int
+  name: double
+  element: <null>
   type: dynamic
 ''');
     }
@@ -1892,19 +1632,15 @@ f(Never a) {}
     if (isNullSafetyEnabled) {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: Never
-    staticElement: Never@-1
-    staticType: null
+  name: Never
+  element: Never@-1
   type: Never
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: Never
-    staticElement: Never@-1
-    staticType: null
+  name: Never
+  element: Never@-1
   type: Null*
 ''');
     }

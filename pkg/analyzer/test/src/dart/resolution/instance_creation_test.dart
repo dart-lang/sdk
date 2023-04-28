@@ -42,10 +42,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -83,10 +81,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -139,10 +135,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -184,20 +178,16 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -232,10 +222,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<int>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -268,20 +256,16 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: A<int>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -309,10 +293,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -349,10 +331,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -385,10 +365,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -427,10 +405,8 @@ void f<S>(S s) {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<S>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -462,20 +438,16 @@ final foo = Map<int>();
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Map
-        staticElement: dart:core::@class::Map
-        staticType: null
+      name: Map
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: dart:core::@class::Map
       type: Map<dynamic, dynamic>
     staticElement: ConstructorMember
       base: dart:core::@class::Map::@constructor::new
@@ -508,10 +480,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Foo
-        staticElement: self::@class::Foo
-        staticType: null
+      name: Foo
+      element: self::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -527,10 +497,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -561,10 +529,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Foo
-        staticElement: self::@class::Foo
-        staticType: null
+      name: Foo
+      element: self::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -580,10 +546,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -617,18 +581,12 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: Foo
-          staticElement: package:test/a.dart::@class::Foo
-          staticType: null
-        staticElement: package:test/a.dart::@class::Foo
-        staticType: null
+        element: self::@prefix::p
+      name: Foo
+      element: package:test/a.dart::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -644,10 +602,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -676,10 +632,8 @@ main() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Foo
-        staticElement: self::@class::Foo
-        staticType: null
+      name: Foo
+      element: self::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -695,10 +649,8 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -730,28 +682,20 @@ main() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: Foo
-          staticElement: package:test/a.dart::@class::Foo
-          staticType: null
-        staticElement: package:test/a.dart::@class::Foo
-        staticType: null
+        element: self::@prefix::p
+      name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::Foo
       type: Foo<int>
     period: .
     name: SimpleIdentifier
@@ -788,10 +732,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: prefix
-        staticElement: self::@prefix::prefix
-        staticType: null
+      name: prefix
+      element: self::@prefix::prefix
       type: dynamic
     staticElement: <null>
   argumentList: ArgumentList
@@ -827,18 +769,12 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -879,28 +815,20 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -947,28 +875,20 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: A<int>
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::new
@@ -1008,18 +928,12 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     staticElement: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -1056,18 +970,12 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1105,18 +1013,12 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: Foo
-          staticElement: <null>
-          staticType: null
-        staticElement: <null>
-        staticType: null
+        element: self::@prefix::prefix
+      name: Foo
+      element: <null>
       type: dynamic
     period: .
     name: SimpleIdentifier
@@ -1162,10 +1064,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: X
-        staticElement: self::@class::X
-        staticType: null
+      name: X
+      element: self::@class::X
       type: X
     staticElement: self::@class::X::@constructor::new
   argumentList: ArgumentList
@@ -1260,10 +1160,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1307,10 +1205,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int, String>
     period: .
     name: SimpleIdentifier
@@ -1356,10 +1252,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -1396,10 +1290,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<int, String>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -1440,10 +1332,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<String>
     period: .
     name: SimpleIdentifier
@@ -1489,10 +1379,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@typeAlias::B
-        staticType: null
+      name: B
+      element: self::@typeAlias::B
       type: A<String>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -1528,10 +1416,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     staticElement: self::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -1563,10 +1449,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1603,10 +1487,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1642,10 +1524,8 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: Unresolved
-        staticElement: <null>
-        staticType: null
+      name: Unresolved
+      element: <null>
       type: dynamic
     staticElement: <null>
   argumentList: ArgumentList
@@ -1676,18 +1556,12 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: Unresolved
-          staticElement: <null>
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: Unresolved
         period: .
-        identifier: SimpleIdentifier
-          token: named
-          staticElement: <null>
-          staticType: null
-        staticElement: <null>
-        staticType: null
+        element: <null>
+      name: named
+      element: <null>
       type: dynamic
     staticElement: <null>
   argumentList: ArgumentList
@@ -1718,18 +1592,12 @@ InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: unresolved
-          staticElement: <null>
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: unresolved
         period: .
-        identifier: SimpleIdentifier
-          token: Foo
-          staticElement: <null>
-          staticType: null
-        staticElement: <null>
-        staticType: null
+        element: <null>
+      name: Foo
+      element: <null>
       type: dynamic
     period: .
     name: SimpleIdentifier

@@ -24,30 +24,24 @@ void f<V>(T p<T, U>(U a, V b)) {}
     assertResolvedNodeText(node, r'''
 FunctionTypedFormalParameter
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@14
-      staticType: null
+    name: T
+    element: T@14
     type: T
   name: p
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: U
-          staticElement: U@17
-          staticType: null
+        name: U
+        element: U@17
         type: U
       name: a
       declaredElement: self::@function::f::@parameter::p::@parameter::a
         type: U
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: V
-          staticElement: V@7
-          staticType: null
+        name: V
+        element: V@7
         type: V
       name: b
       declaredElement: self::@function::f::@parameter::p::@parameter::b
@@ -67,20 +61,16 @@ void f(void p(int a)) {}
     assertResolvedNodeText(node, r'''
 FunctionTypedFormalParameter
   returnType: NamedType
-    name: SimpleIdentifier
-      token: void
-      staticElement: <null>
-      staticType: null
+    name: void
+    element: <null>
     type: void
   name: p
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: self::@function::f::@parameter::p::@parameter::a

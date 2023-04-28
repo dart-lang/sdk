@@ -34,10 +34,8 @@ IsExpression
     staticType: A<T>
   isOperator: is
   type: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@8
-      staticType: null
+    name: T
+    element: T@8
     type: T
   staticType: bool
 ''');
@@ -78,10 +76,8 @@ IsExpression
     staticType: int
   isOperator: is
   type: NamedType
-    name: SimpleIdentifier
-      token: double
-      staticElement: dart:core::@class::double
-      staticType: null
+    name: double
+    element: dart:core::@class::double
     type: double
   staticType: bool
 ''');
@@ -103,10 +99,8 @@ IsExpression
     staticType: Object?
   isOperator: is
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   staticType: bool
 ''');
@@ -129,10 +123,8 @@ IsExpression
   isOperator: is
   notOperator: !
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   staticType: bool
 ''');

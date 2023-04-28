@@ -434,7 +434,7 @@ class _MixinInference {
     List<TypeParameterElement>? typeParameters;
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
-    final mixinElement = mixinNode.name.staticElement;
+    final mixinElement = mixinNode.element;
     if (mixinElement is InterfaceElement) {
       typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {

@@ -359,6 +359,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _writeByte(Tag.ImportPrefixReference);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeElement(node.element);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _writeByte(Tag.IndexExpression);
     _writeByte(
@@ -523,9 +530,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
-    _writeNode(node.name);
+    _writeOptionalNode(node.importPrefix);
+    _writeStringReference(node.name2.lexeme);
     _writeOptionalNode(node.typeArguments);
 
+    _sink.writeElement(node.element);
     _sink.writeType(node.type);
   }
 

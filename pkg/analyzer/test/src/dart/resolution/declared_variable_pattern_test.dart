@@ -53,10 +53,8 @@ void f(x) {
 DeclaredVariablePattern
   keyword: final
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   name: y
   declaredElement: isFinal y@46
@@ -152,10 +150,8 @@ void f() {
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   leftParenthesis: (
   fields
@@ -234,10 +230,8 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   name: y
   declaredElement: y@40
@@ -419,10 +413,8 @@ CastPattern
     matchedValueType: int
   asToken: as
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   matchedValueType: num
 ''');

@@ -34,18 +34,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/lib1.dart::@class::A
-          staticType: null
-        staticElement: package:test/lib1.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
+      element: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -70,18 +64,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: B
-          staticElement: package:test/lib1.dart::@typeAlias::B
-          staticType: null
-        staticElement: package:test/lib1.dart::@typeAlias::B
-        staticType: null
+        element: self::@prefix::a
+      name: B
+      element: package:test/lib1.dart::@typeAlias::B
       type: A
         alias: package:test/lib1.dart::@typeAlias::B
 ''');
@@ -108,18 +96,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/lib1.dart::@class::A
-          staticType: null
-        staticElement: package:test/lib1.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
+      element: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -138,18 +120,12 @@ ImplementsClause
   implementsKeyword: implements
   interfaces
     NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: math
-          staticElement: self::@prefix::math
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: math
         period: .
-        identifier: SimpleIdentifier
-          token: Random
-          staticElement: dart:math::@class::Random
-          staticType: null
-        staticElement: dart:math::@class::Random
-        staticType: null
+        element: self::@prefix::math
+      name: Random
+      element: dart:math::@class::Random
       type: Random
 ''');
   }

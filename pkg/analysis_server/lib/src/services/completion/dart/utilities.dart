@@ -8,6 +8,7 @@ library;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -246,7 +247,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   // If the type is unresolved, use the declared type.
   if (type.isDynamic) {
     if (declaredType is NamedType) {
-      return declaredType.name.name;
+      return declaredType.qualifiedName;
     }
     return DYNAMIC;
   }

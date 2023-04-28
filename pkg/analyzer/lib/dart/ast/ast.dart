@@ -522,6 +522,8 @@ abstract class AstVisitor<R> {
 
   R? visitImportDirective(ImportDirective node);
 
+  R? visitImportPrefixReference(ImportPrefixReference node);
+
   R? visitIndexExpression(IndexExpression node);
 
   R? visitInstanceCreationExpression(InstanceCreationExpression node);
@@ -3166,6 +3168,21 @@ abstract class ImportDirective implements NamespaceDirective {
   SimpleIdentifier? get prefix;
 }
 
+/// Reference to an import prefix name.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ImportPrefixReference implements AstNode {
+  /// The element to which [name] is resolved. Usually a [PrefixElement], but
+  /// can be anything in invalid code.
+  Element? get element;
+
+  /// The name of the referenced import prefix.
+  Token get name;
+
+  /// The `.` that separates [name] from the following identifier.
+  Token get period;
+}
+
 /// An index expression.
 ///
 ///    indexExpression ::=
@@ -3927,10 +3944,18 @@ abstract class NamedExpression implements Expression {
 /// A named type, which can optionally include type arguments.
 ///
 ///    namedType ::=
-///        [Identifier] typeArguments?
+///        [ImportPrefixReference]? name typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class NamedType implements TypeAnnotation {
+  /// The element of [name2] considering [importPrefix] for example a
+  /// [ClassElement], or [TypeAliasElement]. Can be `null` if [name2] cannot
+  /// be resolved, or there is no element for the type name, e.g. for `void`.
+  Element? get element;
+
+  /// The optional import prefix before [name2].
+  ImportPrefixReference? get importPrefix;
+
   /// Return `true` if this type is a deferred type.
   ///
   /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
@@ -3938,7 +3963,11 @@ abstract class NamedType implements TypeAnnotation {
   bool get isDeferred;
 
   /// Return the name of the type.
+  @Deprecated('Use importPrefix, name2, and element instead')
   Identifier get name;
+
+  /// Return the name of the type.
+  Token get name2;
 
   /// Return the type arguments associated with the type, or `null` if there are
   /// no type arguments.

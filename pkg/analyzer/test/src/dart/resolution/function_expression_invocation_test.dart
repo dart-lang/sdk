@@ -37,10 +37,8 @@ FunctionExpressionInvocation
         staticType: dynamic Function()*
       asOperator: as
       type: NamedType
-        name: SimpleIdentifier
-          token: dynamic
-          staticElement: dynamic@-1
-          staticType: null
+        name: dynamic
+        element: dynamic@-1
         type: dynamic
       staticType: dynamic
     rightParenthesis: )
@@ -78,10 +76,8 @@ FunctionExpressionInvocation
         staticType: dynamic Function()*
       asOperator: as
       type: NamedType
-        name: SimpleIdentifier
-          token: dynamic
-          staticElement: dynamic@-1
-          staticType: null
+        name: dynamic
+        element: dynamic@-1
         type: dynamic
       staticType: dynamic
     rightParenthesis: )
@@ -90,16 +86,12 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool*
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
   argumentList: ArgumentList
@@ -256,10 +248,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -404,10 +394,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -561,10 +549,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -612,10 +598,8 @@ FunctionExpressionInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

@@ -1709,10 +1709,8 @@ AssignmentExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: B
-            staticElement: self::@class::B
-            staticType: null
+          name: B
+          element: self::@class::B
           type: B
         staticElement: self::@class::B::@constructor::new
       argumentList: ArgumentList
@@ -3599,10 +3597,8 @@ AssignmentExpression
   rightHandSide: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -4203,10 +4199,8 @@ AssignmentExpression
   rightHandSide: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
+        element: self::@class::C
         type: C
       staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList

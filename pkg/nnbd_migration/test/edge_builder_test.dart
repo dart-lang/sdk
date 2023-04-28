@@ -8149,8 +8149,7 @@ void f<R extends Object, T extends Foo<R>>(T t) {
 import 'dart:math';
 void f(Point<int> x) {}
 ''');
-    var pointClass =
-        findNode.namedType('Point').name.staticElement as ClassElement;
+    var pointClass = findNode.namedType('Point').element as ClassElement;
     var pointBound =
         variables.decoratedTypeParameterBound(pointClass.typeParameters[0])!;
     _assertType(pointBound.type!, 'num');

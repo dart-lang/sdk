@@ -30,10 +30,8 @@ void f() {
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
-      name: SimpleIdentifier
-        token: T
-        staticElement: T@17
-        staticType: null
+      name: T
+      element: T@17
       type: T
     name: g
     functionExpression: FunctionExpression
@@ -51,20 +49,16 @@ FunctionDeclarationStatement
         leftParenthesis: (
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@17
-              staticType: null
+            name: T
+            element: T@17
             type: T
           name: a
           declaredElement: g@15::@parameter::a
             type: T
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: U
-              staticElement: U@20
-              staticType: null
+            name: U
+            element: U@20
             type: U
           name: b
           declaredElement: g@15::@parameter::b
@@ -99,10 +93,8 @@ void f() {
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
-      name: SimpleIdentifier
-        token: void
-        staticElement: <null>
-        staticType: null
+      name: void
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -113,10 +105,8 @@ FunctionDeclarationStatement
             name: T
             extendsKeyword: extends
             bound: NamedType
-              name: SimpleIdentifier
-                token: U
-                staticElement: U@33
-                staticType: null
+              name: U
+              element: U@33
               type: U
             declaredElement: T@20
           TypeParameter
@@ -126,10 +116,8 @@ FunctionDeclarationStatement
             name: V
             extendsKeyword: extends
             bound: NamedType
-              name: SimpleIdentifier
-                token: U
-                staticElement: U@33
-                staticType: null
+              name: U
+              element: U@33
               type: U
             declaredElement: V@36
         rightBracket: >
@@ -137,30 +125,24 @@ FunctionDeclarationStatement
         leftParenthesis: (
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@20
-              staticType: null
+            name: T
+            element: T@20
             type: T
           name: x
           declaredElement: g@18::@parameter::x
             type: T
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: U
-              staticElement: U@33
-              staticType: null
+            name: U
+            element: U@33
             type: U
           name: y
           declaredElement: g@18::@parameter::y
             type: U
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: V
-              staticElement: V@36
-              staticType: null
+            name: V
+            element: V@36
             type: V
           name: z
           declaredElement: g@18::@parameter::z
@@ -192,10 +174,8 @@ void f() {
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
-      name: SimpleIdentifier
-        token: void
-        staticElement: <null>
-        staticType: null
+      name: void
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -212,11 +192,9 @@ FunctionDeclarationStatement
         parameter: DefaultFormalParameter
           parameter: SimpleFormalParameter
             type: NamedType
-              name: SimpleIdentifier
-                token: T
-                staticElement: T@20
-                staticType: null
+              name: T
               question: ?
+              element: T@20
               type: T?
             name: a
             declaredElement: g@18::@parameter::a
@@ -251,10 +229,8 @@ void f() {
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
-      name: SimpleIdentifier
-        token: void
-        staticElement: <null>
-        staticType: null
+      name: void
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -271,11 +247,9 @@ FunctionDeclarationStatement
         parameter: DefaultFormalParameter
           parameter: SimpleFormalParameter
             type: NamedType
-              name: SimpleIdentifier
-                token: T
-                staticElement: T@20
-                staticType: null
+              name: T
               question: ?
+              element: T@20
               type: T?
             name: a
             declaredElement: g@18::@parameter::a
@@ -310,10 +284,8 @@ void f() {
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
-      name: SimpleIdentifier
-        token: void
-        staticElement: <null>
-        staticType: null
+      name: void
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -331,11 +303,9 @@ FunctionDeclarationStatement
           parameter: SimpleFormalParameter
             requiredKeyword: required
             type: NamedType
-              name: SimpleIdentifier
-                token: T
-                staticElement: T@20
-                staticType: null
+              name: T
               question: ?
+              element: T@20
               type: T?
             name: a
             declaredElement: g@18::@parameter::a
@@ -370,10 +340,8 @@ void f() {
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
-      name: SimpleIdentifier
-        token: void
-        staticElement: <null>
-        staticType: null
+      name: void
+      element: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -388,10 +356,8 @@ FunctionDeclarationStatement
         leftParenthesis: (
         parameter: SimpleFormalParameter
           type: NamedType
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@20
-              staticType: null
+            name: T
+            element: T@20
             type: T
           name: a
           declaredElement: g@18::@parameter::a

@@ -47,7 +47,7 @@ class DartTypeArgumentsSignatureComputer {
     final parent = argumentList.parent;
     Element? element;
     if (parent is NamedType) {
-      element = ElementLocator.locate(parent.name);
+      element = parent.element;
     } else if (parent is MethodInvocation) {
       element = ElementLocator.locate(parent.methodName);
     }

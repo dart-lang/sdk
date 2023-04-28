@@ -44,10 +44,8 @@ ForStatement
   forLoopParts: ForEachPartsWithDeclaration
     loopVariable: DeclaredIdentifier
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: v
       declaredElement: v@56
@@ -162,10 +160,8 @@ ForStatement
   forLoopParts: ForEachPartsWithDeclaration
     loopVariable: DeclaredIdentifier
       type: NamedType
-        name: SimpleIdentifier
-          token: dynamic
-          staticElement: dynamic@-1
-          staticType: null
+        name: dynamic
+        element: dynamic@-1
         type: dynamic
       name: v
       declaredElement: v@42
@@ -672,10 +668,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@27
@@ -811,10 +805,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@38
@@ -1001,10 +993,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@39
@@ -1157,10 +1147,8 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@52

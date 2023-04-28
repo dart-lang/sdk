@@ -549,18 +549,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record a relation between a super [namedType] and its [Element].
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
-    Identifier name = namedType.name;
-    Element? element = name.staticElement;
-    bool isQualified;
-    SimpleIdentifier relNode;
-    if (name is PrefixedIdentifier) {
-      isQualified = true;
-      relNode = name.identifier;
-    } else {
-      isQualified = false;
-      relNode = name as SimpleIdentifier;
-    }
-    recordRelation(element, kind, relNode, isQualified);
+    final isQualified = namedType.importPrefix != null;
+    final element = namedType.element;
+    recordRelation(element, kind, namedType.name2, isQualified);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -1009,7 +1000,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     void addSupertype(NamedType? type) {
-      var element = type?.name.staticElement;
+      var element = type?.element;
       if (element is InterfaceElement) {
         String id = getInterfaceElementId(element);
         supertypes.add(id);

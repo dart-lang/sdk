@@ -831,6 +831,13 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool? visitImportPrefixReference(ImportPrefixReference node) {
+    final other = _other as ImportPrefixReference;
+    return isEqualTokens(node.name, other.name) &&
+        isEqualTokens(node.period, other.period);
+  }
+
+  @override
   bool visitIndexExpression(IndexExpression node) {
     IndexExpression other = _other as IndexExpression;
     return isEqualNodes(node.target, other.target) &&
@@ -1032,7 +1039,8 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool? visitNamedType(NamedType node) {
     NamedType other = _other as NamedType;
-    return isEqualNodes(node.name, other.name) &&
+    return isEqualNodes(node.importPrefix, other.importPrefix) &&
+        isEqualTokens(node.name2, other.name2) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.question, other.question);
   }
@@ -2968,18 +2976,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool? visitNamedType(covariant NamedTypeImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as IdentifierImpl;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);

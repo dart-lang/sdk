@@ -1494,7 +1494,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       _typeNameNesting++;
       var typeArguments = node.typeArguments?.arguments;
-      var element = node.name.staticElement;
+      var element = node.element;
       if (element is TypeAliasElement) {
         var aliasedElement =
             element.aliasedElement as GenericFunctionTypeElement;

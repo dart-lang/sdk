@@ -276,6 +276,17 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 }
 
+extension NamedTypeExtension on NamedType {
+  String get qualifiedName {
+    final importPrefix = this.importPrefix;
+    if (importPrefix != null) {
+      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+    } else {
+      return name2.lexeme;
+    }
+  }
+}
+
 extension StatementExtension on Statement {
   List<Statement> get selfOrBlockStatements {
     final self = this;

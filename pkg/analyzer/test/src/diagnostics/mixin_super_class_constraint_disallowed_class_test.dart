@@ -37,10 +37,8 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: Enum
-        staticElement: dart:core::@class::Enum
-        staticType: null
+      name: Enum
+      element: dart:core::@class::Enum
       type: Enum
 ''');
   }
@@ -59,10 +57,8 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
 ''');
   }

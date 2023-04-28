@@ -492,6 +492,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _runSubscriptions(node, registry._forImportPrefixReference);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _runSubscriptions(node, registry._forIndexExpression);
     node.visitChildren(this);
@@ -1144,6 +1150,8 @@ class NodeLintRegistry {
   final List<_Subscription<ImplicitCallReference>> _forImplicitCallReference =
       [];
   final List<_Subscription<ImportDirective>> _forImportDirective = [];
+  final List<_Subscription<ImportPrefixReference>> _forImportPrefixReference =
+      [];
   final List<_Subscription<IndexExpression>> _forIndexExpression = [];
   final List<_Subscription<InstanceCreationExpression>>
       _forInstanceCreationExpression = [];
@@ -1599,6 +1607,11 @@ class NodeLintRegistry {
 
   void addImportDirective(LintRule linter, AstVisitor visitor) {
     _forImportDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addImportPrefixReference(LintRule linter, AstVisitor visitor) {
+    _forImportPrefixReference
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addIndexExpression(LintRule linter, AstVisitor visitor) {

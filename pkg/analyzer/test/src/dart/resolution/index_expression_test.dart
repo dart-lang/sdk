@@ -386,10 +386,8 @@ IndexExpression
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
-              name: SimpleIdentifier
-                token: A
-                staticElement: self::@class::A
-                staticType: null
+              name: A
+              element: self::@class::A
               type: A
             staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -780,10 +778,8 @@ AssignmentExpression
           expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
-                name: SimpleIdentifier
-                  token: A
-                  staticElement: self::@class::A
-                  staticType: null
+                name: A
+                element: self::@class::A
                 type: A
               staticElement: self::@class::A::@constructor::new
             argumentList: ArgumentList

@@ -2604,10 +2604,8 @@ MethodInvocation
           staticType: dynamic
         asOperator: as
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         parameter: ParameterMember
           base: root::@parameter::s
@@ -2666,10 +2664,8 @@ MethodInvocation
           staticType: dynamic
         asOperator: as
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num*
         parameter: ParameterMember
           base: root::@parameter::s
@@ -4143,10 +4139,8 @@ void main() {
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -4161,10 +4155,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -4186,10 +4178,8 @@ FunctionDeclaration
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T*
   name: f
   functionExpression: FunctionExpression
@@ -4204,10 +4194,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -4239,10 +4227,8 @@ FunctionDeclaration
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -4253,10 +4239,8 @@ FunctionDeclaration
           name: T
           extendsKeyword: extends
           bound: NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num
           declaredElement: T@4
       rightBracket: >
@@ -4264,10 +4248,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -4289,10 +4271,8 @@ FunctionDeclaration
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T*
   name: f
   functionExpression: FunctionExpression
@@ -4303,10 +4283,8 @@ FunctionDeclaration
           name: T
           extendsKeyword: extends
           bound: NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num*
           declaredElement: T@4
       rightBracket: >
@@ -4314,10 +4292,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -4364,20 +4340,16 @@ class C<E> {
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@26
-      staticType: null
+    name: T
+    element: T@26
     type: T
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@26
-          staticType: null
+        name: T
+        element: T@26
         type: T
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
@@ -4397,20 +4369,16 @@ MethodDeclaration
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@26
-      staticType: null
+    name: T
+    element: T@26
     type: T*
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@26
-          staticType: null
+        name: T
+        element: T@26
         type: T*
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
@@ -5172,20 +5140,16 @@ MethodInvocation
     keyword: new
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: S
-                staticElement: S@19
-                staticType: null
+              name: S
+              element: S@19
               type: S
           rightBracket: >
+        element: self::@class::C
         type: C<S>
       staticElement: ConstructorMember
         base: self::@class::C::@constructor::new
@@ -5205,10 +5169,8 @@ MethodInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -5233,20 +5195,16 @@ MethodInvocation
     keyword: new
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: S
-                staticElement: S@19
-                staticType: null
+              name: S
+              element: S@19
               type: S*
           rightBracket: >
+        element: self::@class::C
         type: C<S*>*
       staticElement: ConstructorMember
         base: self::@class::C::@constructor::new
@@ -5266,10 +5224,8 @@ MethodInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
   argumentList: ArgumentList
@@ -5327,20 +5283,16 @@ MethodInvocation
     keyword: new
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: S
-                staticElement: S@19
-                staticType: null
+              name: S
+              element: S@19
               type: S
           rightBracket: >
+        element: self::@class::C
         type: C<S>
       staticElement: ConstructorMember
         base: self::@class::C::@constructor::new
@@ -5360,10 +5312,8 @@ MethodInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -5388,20 +5338,16 @@ MethodInvocation
     keyword: new
     constructorName: ConstructorName
       type: NamedType
-        name: SimpleIdentifier
-          token: C
-          staticElement: self::@class::C
-          staticType: null
+        name: C
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
             NamedType
-              name: SimpleIdentifier
-                token: S
-                staticElement: S@19
-                staticType: null
+              name: S
+              element: S@19
               type: S*
           rightBracket: >
+        element: self::@class::C
         type: C<S*>*
       staticElement: ConstructorMember
         base: self::@class::C::@constructor::new
@@ -5421,10 +5367,8 @@ MethodInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int*
     rightBracket: >
   argumentList: ArgumentList
@@ -5506,20 +5450,16 @@ class D extends C {
       assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@61
-      staticType: null
+    name: T
+    element: T@61
     type: T
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@61
-          staticType: null
+        name: T
+        element: T@61
         type: T
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
@@ -5538,20 +5478,16 @@ MethodDeclaration
       assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@61
-      staticType: null
+    name: T
+    element: T@61
     type: T*
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@61
-          staticType: null
+        name: T
+        element: T@61
         type: T*
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y

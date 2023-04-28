@@ -879,7 +879,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
-      var typeNameElement = typeNode.name.staticElement;
+      var typeNameElement = typeNode.element;
       if (typeNameElement is InterfaceElement) {
         var typeParameters = typeNameElement.typeParameters;
         if (typeParameters.isNotEmpty) {
@@ -2380,8 +2380,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           );
         }
       } else {
-        var typeName = constructorName.type.name;
-        if (typeName.staticElement is EnumElementImpl) {
+        if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
             errorReporter.reportErrorForNode(
@@ -3990,8 +3989,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     String? name;
     if (nameNode is InstanceCreationExpression) {
       var constructorName = nameNode.constructorName;
-      name =
-          constructorName.name?.name ?? '${constructorName.type.name.name}.new';
+      name = constructorName.name?.name ??
+          '${constructorName.type.name2.lexeme}.new';
     } else if (nameNode is RedirectingConstructorInvocation) {
       name = nameNode.constructorName?.name;
       if (name == null) {

@@ -77,10 +77,8 @@ main() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@class::B
-        staticType: null
+      name: B
+      element: self::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: self::@class::B::@constructor::new

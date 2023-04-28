@@ -650,10 +650,8 @@ MethodInvocation
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -703,10 +701,8 @@ MethodInvocation
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num*
       rightBracket: >
     argumentList: ArgumentList
@@ -795,10 +791,8 @@ AssignmentExpression
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num
         rightBracket: >
       argumentList: ArgumentList
@@ -849,10 +843,8 @@ AssignmentExpression
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num*
         rightBracket: >
       argumentList: ArgumentList

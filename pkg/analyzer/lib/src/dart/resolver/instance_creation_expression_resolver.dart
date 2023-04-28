@@ -85,20 +85,8 @@ class InstanceCreationExpressionResolver {
       InstanceCreationExpressionImpl node,
       TypeArgumentListImpl typeNameTypeArguments,
       {required DartType? contextType}) {
-    var typeNameName = node.constructorName.type.name;
-    if (typeNameName is SimpleIdentifierImpl) {
-      // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
-      // [MethodInvocation].
-      _resolveInstanceCreationExpression(node, contextType: contextType);
-      return;
-    } else if (typeNameName is PrefixedIdentifierImpl) {
-      // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
-      // [MethodInvocation].
-      _resolveInstanceCreationExpression(node, contextType: contextType);
-    } else {
-      assert(
-          false, 'Unexpected typeNameName type: ${typeNameName.runtimeType}');
-      _resolveInstanceCreationExpression(node, contextType: contextType);
-    }
+    // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
+    // [MethodInvocation].
+    _resolveInstanceCreationExpression(node, contextType: contextType);
   }
 }

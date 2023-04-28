@@ -37,10 +37,8 @@ foo() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -74,10 +72,8 @@ foo() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -113,10 +109,8 @@ foo() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -147,10 +141,8 @@ A<String> Function() bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -180,10 +172,8 @@ A<int> Function() bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -213,10 +203,8 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -244,10 +232,8 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -273,10 +259,8 @@ const a1 = A.new;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -304,10 +288,8 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -335,10 +317,8 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -369,18 +349,12 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: TA
-          staticElement: package:test/a.dart::@typeAlias::TA
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::TA
-        staticType: null
+        element: self::@prefix::a
+      name: TA
+      element: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -411,18 +385,12 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: TA
-          staticElement: package:test/a.dart::@typeAlias::TA
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::TA
-        staticType: null
+        element: self::@prefix::a
+      name: TA
+      element: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -452,18 +420,12 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -493,18 +455,12 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -531,10 +487,8 @@ const a = TA.new;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -563,10 +517,8 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -593,10 +545,8 @@ const a = TA.new;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -629,10 +579,8 @@ bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -667,26 +615,20 @@ const a = TA<int, String>.foo;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -717,20 +659,16 @@ const x = TA<int>.foo;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -763,26 +701,20 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -813,10 +745,8 @@ const a = TA.foo;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -845,20 +775,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -906,20 +832,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -954,20 +876,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: TA
-        staticElement: self::@typeAlias::TA
-        staticType: null
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: self::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -997,20 +915,16 @@ const a = A<int>.new;
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1042,20 +956,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1129,20 +1039,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1178,20 +1084,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1226,20 +1128,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1269,20 +1167,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1310,20 +1204,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1355,20 +1245,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1400,20 +1286,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1447,20 +1329,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1495,28 +1373,20 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: TA
-          staticElement: package:test/a.dart::@typeAlias::TA
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::TA
-        staticType: null
+        element: self::@prefix::a
+      name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -1550,28 +1420,20 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1608,28 +1470,20 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1663,28 +1517,20 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-          staticElement: self::@prefix::a
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: a
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::a
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1722,20 +1568,16 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1765,10 +1607,8 @@ void bar() {
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: null
     period: .
     name: SimpleIdentifier

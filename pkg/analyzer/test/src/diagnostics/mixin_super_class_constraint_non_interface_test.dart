@@ -31,10 +31,8 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: dynamic
-        staticElement: dynamic@-1
-        staticType: null
+      name: dynamic
+      element: dynamic@-1
       type: dynamic
 ''');
   }
@@ -54,10 +52,8 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: E
-        staticElement: self::@enum::E
-        staticType: null
+      name: E
+      element: self::@enum::E
       type: E
 ''');
   }
@@ -76,10 +72,8 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: Never
-        staticElement: Never@-1
-        staticType: null
+      name: Never
+      element: Never@-1
       type: Never
 ''');
   }
@@ -99,10 +93,8 @@ OnClause
   onKeyword: on
   superclassConstraints
     NamedType
-      name: SimpleIdentifier
-        token: void
-        staticElement: <null>
-        staticType: null
+      name: void
+      element: <null>
       type: void
 ''');
   }

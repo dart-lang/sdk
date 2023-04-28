@@ -31,20 +31,16 @@ void<int> f() {}
     final node = findNode.namedType('void<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: void
-    staticElement: <null>
-    staticType: null
+  name: void
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: <null>
   type: void
 ''');
   }
