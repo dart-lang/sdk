@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];
+  final field self::B value;
+  enum-element static const field self::A a = const self::A::•(0, "a", self::B::a);
+  enum-element static const field self::A b = const self::A::•(1, "b", self::B::b);
+  const constructor •(core::int #index, core::String #name, self::B value) → self::A
+    : self::A::value = value, super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "A.${this.{core::_Enum::_name}{core::String}}";
+  static method _#new#tearOff(core::int #index, core::String #name, self::B value) → self::A
+    return new self::A::•(#index, #name, value);
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  final field core::int value;
+  static const field self::B a = const self::B::•(const core::int::fromEnvironment("a"));
+  static const field self::B b = const self::B::•(const core::int::fromEnvironment("b"));
+  const constructor •(core::int value) → self::B
+    : self::B::value = value, super core::Object::•()
+    ;
+  static method _#new#tearOff(core::int value) → self::B
+    return new self::B::•(value);
+}
+static method method(self::A a) → core::String
+  ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///enum_from_environment.dart:5:6 -> ListConstant(const <A*>[const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"}, const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"}])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///enum_from_environment.dart:5:6 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///enum_from_environment.dart:5:6 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:6:3 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///enum_from_environment.dart:6:7 -> InstanceConstant(const B{B.value: 0.0})
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:7:3 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///enum_from_environment.dart:7:7 -> InstanceConstant(const B{B.value: 0.0})
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:20:28 -> InstanceConstant(const B{B.value: 0.0})
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:20:36 -> DoubleConstant(0.0)
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:21:28 -> InstanceConstant(const B{B.value: 0.0})
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:21:36 -> DoubleConstant(0.0)
+Extra constant evaluation: evaluated: 24, effectively constant: 11

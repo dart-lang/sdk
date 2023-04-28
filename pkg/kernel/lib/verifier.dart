@@ -800,7 +800,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);
-    if (constantsAreAlwaysInlined && afterConst && node.variable.isConst) {
+    if (constantsAreAlwaysInlined &&
+        afterConst &&
+        node.variable.isConst &&
+        !inUnevaluatedConstant) {
       problem(node, "VariableGet of const variable '${node.variable}'.");
     }
     exitTreeNode(node);
@@ -930,7 +933,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Constant ConstructorInvocation fo '${node.target}' that"
           " isn't const.");
     }
-    if (afterConst && node.isConst) {
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Invocation of const constructor '${node.target}'.");
     }
     exitTreeNode(node);
@@ -959,7 +962,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     enterTreeNode(node);
     visitChildren(node);
-    if (afterConst && node.isConst) {
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Constant list literal.");
     }
     exitTreeNode(node);
@@ -969,7 +972,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitSetLiteral(SetLiteral node) {
     enterTreeNode(node);
     visitChildren(node);
-    if (afterConst && node.isConst) {
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Constant set literal.");
     }
     exitTreeNode(node);
@@ -979,7 +982,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitMapLiteral(MapLiteral node) {
     enterTreeNode(node);
     visitChildren(node);
-    if (afterConst && node.isConst) {
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Constant map literal.");
     }
     exitTreeNode(node);
@@ -988,7 +991,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
     enterTreeNode(node);
-    if (afterConst) {
+    if (afterConst && !inUnevaluatedConstant) {
       problem(node, "Symbol literal.");
     }
     exitTreeNode(node);
