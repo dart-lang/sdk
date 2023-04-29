@@ -1993,9 +1993,6 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
       type_param = dart_function.TypeParameterAt(i);
     }
     ASSERT(type_param.IsFinalized());
-    if (bound.IsTypeRef()) {
-      bound = TypeRef::Cast(bound).type();
-    }
     check_bounds +=
         AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
   }
@@ -4313,7 +4310,7 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress() {
   // do not appear in the type arguments to a any Pointer classes in an FFI
   // signature.
   ASSERT(args.IsNull() || args.IsInstantiated());
-  args = args.Canonicalize(thread_, nullptr);
+  args = args.Canonicalize(thread_);
 
   Fragment code;
   code += Constant(args);

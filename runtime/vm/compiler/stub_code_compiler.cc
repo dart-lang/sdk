@@ -586,10 +586,6 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
   __ LoadClassId(InstantiateTypeABI::kScratchReg,
                  InstantiateTypeABI::kResultTypeReg);
 
-  // Handle/unwrap TypeRefs in runtime.
-  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeRefCid);
-  __ BranchIf(EQUAL, &runtime_call);
-
   switch (nullability) {
     case Nullability::kNonNullable:
       __ Ret();
@@ -689,15 +685,6 @@ static void EnsureIsTypeOrFunctionTypeOrTypeParameter(Assembler* assembler,
   __ CompareImmediate(scratch_reg, kFunctionTypeCid);
   __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
               compiler::Assembler::kNearJump);
-  // Type references show up in F-bounded polymorphism, which is limited
-  // to classes. Thus, TypeRefs only appear in places like class type
-  // arguments or the bounds of uninstantiated class type parameters.
-  //
-  // Since this stub is currently used only by the dynamic versions of
-  // AssertSubtype and AssertAssignable, where kDstType is either the bound of
-  // a function type parameter or the type of a function parameter
-  // (respectively), we should never see a TypeRef here. This check is here
-  // in case this changes and we need to update this stub.
   __ Stop("not a type or function type or type parameter");
   __ Bind(&is_type_param_or_type_or_function_type);
 #endif
@@ -914,12 +901,11 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     };
 
     Label function_type_param;
-    __ LoadFieldFromOffset(
-        kScratchReg, kCurrentTypeReg,
-        target::TypeParameter::parameterized_class_id_offset(),
-        kUnsignedFourBytes);
-    __ CompareImmediate(kScratchReg, kFunctionCid);
-    __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
+    __ LoadFieldFromOffset(kScratchReg, kCurrentTypeReg,
+                           target::AbstractType::flags_offset(), kUnsignedByte);
+    __ BranchIfBit(kScratchReg,
+                   target::UntaggedTypeParameter::kIsFunctionTypeParameterBit,
+                   NOT_ZERO, &function_type_param, Assembler::kNearJump);
     handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
     __ Bind(&function_type_param);
 #if defined(TARGET_ARCH_IA32)
@@ -1028,10 +1014,10 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
 
   Label function_type_param;
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::TypeParameter::parameterized_class_id_offset(),
-                         kUnsignedFourBytes);
-  __ CompareImmediate(TypeTestABI::kScratchReg, kFunctionCid);
-  __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
+                         target::AbstractType::flags_offset(), kUnsignedByte);
+  __ BranchIfBit(TypeTestABI::kScratchReg,
+                 target::UntaggedTypeParameter::kIsFunctionTypeParameterBit,
+                 NOT_ZERO, &function_type_param, Assembler::kNearJump);
   handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
   __ Bind(&function_type_param);
   handle_case(TypeTestABI::kFunctionTypeArgumentsReg);

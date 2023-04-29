@@ -2570,7 +2570,7 @@ class @Field extends @Object {
   // The declared type of this field.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   @Instance declaredType;
 
   // Is this field const?
@@ -2607,7 +2607,7 @@ class Field extends Object {
   // The declared type of this field.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   @Instance declaredType;
 
   // Is this field const?
@@ -3151,22 +3151,19 @@ class Instance extends Object {
   //   TypeParameter
   int parameterIndex [optional];
 
-  // The type bounded by a BoundedType instance
-  // - or -
-  // the referent of a TypeRef instance.
+  // The type bounded by a BoundedType instance.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   //
   // Provided for instance kinds:
   //   BoundedType
-  //   TypeRef
   @Instance targetType [optional];
 
   // The bound of a TypeParameter or BoundedType.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   //
   // Provided for instance kinds:
   //   BoundedType
@@ -3284,9 +3281,6 @@ enum InstanceKind {
 
   // An instance of the Dart class TypeParameter.
   TypeParameter,
-
-  // An instance of the Dart class TypeRef.
-  TypeRef,
 
   // An instance of the Dart class FunctionType.
   FunctionType,
@@ -4369,7 +4363,7 @@ class TypeArguments extends Object {
   // A list of types.
   //
   // The value will always be one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   @Instance[] types;
 }
 ```

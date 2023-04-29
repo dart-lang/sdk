@@ -92,7 +92,7 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
         zone,
         Type::New(cls, type_arguments, Nullability::kNonNullable, Heap::kNew));
     type.SetIsFinalized();
-    return type.Canonicalize(thread, nullptr);
+    return type.Canonicalize(thread);
   }
 
   return instance.GetType(Heap::kNew);
@@ -462,7 +462,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
         extracted_type_args.SetTypeAt(i, type_arg);
       }
       extracted_type_args =
-          extracted_type_args.Canonicalize(thread, nullptr);  // Can be null.
+          extracted_type_args.Canonicalize(thread);  // Can be null.
     }
   }
   // Call the closure 'extract'.

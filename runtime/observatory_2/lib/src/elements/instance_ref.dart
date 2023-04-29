@@ -125,7 +125,6 @@ class InstanceRefElement extends CustomElement implements Renderable {
         ];
       case M.InstanceKind.type:
       case M.InstanceKind.functionType:
-      case M.InstanceKind.typeRef:
       case M.InstanceKind.typeParameter:
       case M.InstanceKind.recordType:
         return [

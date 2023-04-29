@@ -562,14 +562,8 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
         element ^= ptr;
         intptr_t entry = -1;
         const bool present = table.FindKeyOrDeletedOrUnused(element, &entry);
-        if (!present) {
-          table.InsertKey(entry, element);
-        } else {
-          // Two recursive types with different topology (and hashes)
-          // may be equal.
-          ASSERT(element.IsRecursive());
-          objects_[num_occupied++] = ptr;
-        }
+        ASSERT(!present);
+        table.InsertKey(entry, element);
       } else {
         objects_[num_occupied++] = ptr;
       }
@@ -901,7 +895,7 @@ class TypeArgumentsDeserializationCluster
       TypeArguments& type_arg = TypeArguments::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type_arg ^= refs.At(i);
-        type_arg = type_arg.Canonicalize(d->thread(), nullptr);
+        type_arg = type_arg.Canonicalize(d->thread());
         refs.SetAt(i, type_arg);
       }
     }
@@ -4186,7 +4180,7 @@ class TypeDeserializationCluster
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
+        type = type.Canonicalize(d->thread());
         refs.SetAt(i, type);
       }
     }
@@ -4302,7 +4296,7 @@ class FunctionTypeDeserializationCluster
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
+        type = type.Canonicalize(d->thread());
         refs.SetAt(i, type);
       }
     }
@@ -4413,7 +4407,7 @@ class RecordTypeDeserializationCluster
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
+        type = type.Canonicalize(d->thread());
         refs.SetAt(i, type);
       }
     }
@@ -4431,97 +4425,6 @@ class RecordTypeDeserializationCluster
         type ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type);
         type.InitializeTypeTestingStubNonAtomic(stub);
-      }
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class TypeRefSerializationCluster : public SerializationCluster {
- public:
-  TypeRefSerializationCluster()
-      : SerializationCluster("TypeRef",
-                             kTypeRefCid,
-                             compiler::target::TypeRef::InstanceSize()) {}
-  ~TypeRefSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    TypeRefPtr type = TypeRef::RawCast(object);
-    objects_.Add(type);
-    PushFromTo(type);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      TypeRefPtr type = objects_[i];
-      s->AssignRef(type);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      TypeRefPtr type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-    }
-  }
-
- private:
-  GrowableArray<TypeRefPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class TypeRefDeserializationCluster : public DeserializationCluster {
- public:
-  TypeRefDeserializationCluster() : DeserializationCluster("TypeRef") {}
-  ~TypeRefDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    ReadAllocFixedSize(d, TypeRef::InstanceSize());
-  }
-
-  void ReadFill(Deserializer* d_, bool primary) {
-    Deserializer::Local d(d_);
-
-    const bool mark_canonical = primary && is_canonical();
-    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      TypeRefPtr type = static_cast<TypeRefPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(type, kTypeRefCid, TypeRef::InstanceSize(),
-                                     mark_canonical);
-      d.ReadFromTo(type);
-    }
-  }
-
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (!primary && is_canonical()) {
-      AbstractType& type = AbstractType::Handle(d->zone());
-      for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
-        type ^= refs.At(i);
-        type = type.Canonicalize(d->thread(), nullptr);
-        refs.SetAt(i, type);
-      }
-    }
-
-    TypeRef& type_ref = TypeRef::Handle(d->zone());
-    AbstractType& type = AbstractType::Handle(d->zone());
-    Code& stub = Code::Handle(d->zone());
-    const bool includes_code = Snapshot::IncludesCode(d->kind());
-
-    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      type_ref ^= refs.At(id);
-
-      // Refresh finalization state and nullability.
-      type = type_ref.type();
-      type_ref.set_type(type);
-
-      if (includes_code) {
-        type_ref.UpdateTypeTestingStubEntryPoint();
-      } else {
-        stub = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
-        type_ref.InitializeTypeTestingStubNonAtomic(stub);
       }
     }
   }
@@ -4572,7 +4475,6 @@ class TypeParameterSerializationCluster
   void WriteTypeParameter(Serializer* s, TypeParameterPtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    s->Write<int32_t>(type->untag()->parameterized_class_id_);
     s->Write<uint16_t>(type->untag()->base_);
     s->Write<uint16_t>(type->untag()->index_);
     ASSERT(Utils::IsUint(8, type->untag()->flags()));
@@ -4606,7 +4508,6 @@ class TypeParameterDeserializationCluster
                                      TypeParameter::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(type);
-      type->untag()->parameterized_class_id_ = d.Read<int32_t>();
       type->untag()->base_ = d.Read<uint16_t>();
       type->untag()->index_ = d.Read<uint16_t>();
       type->untag()->set_flags(d.Read<uint8_t>());
@@ -4623,7 +4524,7 @@ class TypeParameterDeserializationCluster
       TypeParameter& type_param = TypeParameter::Handle(d->zone());
       for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
         type_param ^= refs.At(i);
-        type_param ^= type_param.Canonicalize(d->thread(), nullptr);
+        type_param ^= type_param.Canonicalize(d->thread());
         refs.SetAt(i, type_param);
       }
     }
@@ -7263,8 +7164,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kRecordTypeCid:
       return new (Z) RecordTypeSerializationCluster(
           is_canonical, cluster_represents_canonical_set);
-    case kTypeRefCid:
-      return new (Z) TypeRefSerializationCluster();
     case kTypeParameterCid:
       return new (Z) TypeParameterSerializationCluster(
           is_canonical, cluster_represents_canonical_set);
@@ -8442,9 +8341,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kRecordTypeCid:
       return new (Z)
           RecordTypeDeserializationCluster(is_canonical, !is_non_root_unit_);
-    case kTypeRefCid:
-      ASSERT(!is_canonical);
-      return new (Z) TypeRefDeserializationCluster();
     case kTypeParameterCid:
       return new (Z)
           TypeParameterDeserializationCluster(is_canonical, !is_non_root_unit_);

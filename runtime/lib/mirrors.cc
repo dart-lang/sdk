@@ -302,12 +302,6 @@ static InstancePtr CreateClassMirror(const Class& cls,
                                      const AbstractType& type,
                                      const Bool& is_declaration,
                                      const Instance& owner_mirror) {
-  if (type.IsTypeRef()) {
-    AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
-    ASSERT(!ref_type.IsTypeRef());
-    ASSERT(ref_type.IsCanonical());
-    return CreateClassMirror(cls, ref_type, is_declaration, owner_mirror);
-  }
   ASSERT(!cls.IsDynamicClass());
   ASSERT(!cls.IsVoidClass());
   ASSERT(!cls.IsNeverClass());
@@ -518,12 +512,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 0, 2) {
 }
 
 static InstancePtr CreateTypeMirror(const AbstractType& type) {
-  if (type.IsTypeRef()) {
-    AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
-    ASSERT(!ref_type.IsTypeRef());
-    ASSERT(ref_type.IsCanonical());
-    return CreateTypeMirror(ref_type);
-  }
   ASSERT(type.IsFinalized());
   ASSERT(type.IsCanonical());
 
@@ -557,7 +545,7 @@ static InstancePtr CreateTypeMirror(const AbstractType& type) {
     if (!type.IsNullType()) {
       Type& legacy_type = Type::Handle(
           Type::Cast(type).ToNullability(Nullability::kLegacy, Heap::kOld));
-      legacy_type ^= legacy_type.Canonicalize(Thread::Current(), nullptr);
+      legacy_type ^= legacy_type.Canonicalize(Thread::Current());
       return CreateClassMirror(cls, legacy_type, Bool::False(),
                                Object::null_instance());
     }
@@ -567,7 +555,7 @@ static InstancePtr CreateTypeMirror(const AbstractType& type) {
     TypeParameter& legacy_type =
         TypeParameter::Handle(TypeParameter::Cast(type).ToNullability(
             Nullability::kLegacy, Heap::kOld));
-    legacy_type ^= legacy_type.Canonicalize(Thread::Current(), nullptr);
+    legacy_type ^= legacy_type.Canonicalize(Thread::Current());
     return CreateTypeVariableMirror(legacy_type, Object::null_instance());
   }
   UNREACHABLE();
@@ -628,7 +616,7 @@ static AbstractTypePtr InstantiateType(const AbstractType& type,
   Thread* thread = Thread::Current();
 
   if (type.IsInstantiated()) {
-    return type.Canonicalize(thread, nullptr);
+    return type.Canonicalize(thread);
   }
   TypeArguments& instantiator_type_args = TypeArguments::Handle();
   if (!instantiator.IsNull() && instantiator.IsType()) {
@@ -646,7 +634,7 @@ static AbstractTypePtr InstantiateType(const AbstractType& type,
       instantiator_type_args, Object::null_type_arguments(), kAllFree,
       Heap::kOld));
   ASSERT(result.IsFinalized());
-  return result.Canonicalize(thread, nullptr);
+  return result.Canonicalize(thread);
 }
 
 DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0, 0) {
@@ -915,7 +903,7 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 0, 1) {
   ASSERT(!sig.IsNull());
   AbstractType& type = AbstractType::Handle(sig.result_type());
   // Signatures of function types are instantiated, but not canonical.
-  return type.Canonicalize(thread, nullptr);
+  return type.Canonicalize(thread);
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 0, 1) {
@@ -1265,7 +1253,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 0, 1) {
   const AbstractType& type = AbstractType::Handle(instance.GetType(Heap::kNew));
   // The static type of null is specified to be the bottom type, however, the
   // runtime type of null is the Null type, which we correctly return here.
-  return type.Canonicalize(thread, nullptr);
+  return type.Canonicalize(thread);
 }
 
 DEFINE_NATIVE_ENTRY(ClosureMirror_function, 0, 1) {
@@ -1551,8 +1539,8 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 0, 2) {
   // We handle constructors in Dart code.
   ASSERT(!func.IsGenerativeConstructor());
   AbstractType& type = AbstractType::Handle(func.result_type());
-  type = type.Canonicalize(
-      thread, nullptr);  // Instantiated signatures are not canonical.
+  type =
+      type.Canonicalize(thread);  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 
@@ -1642,8 +1630,8 @@ DEFINE_NATIVE_ENTRY(ParameterMirror_type, 0, 3) {
       FunctionType::Handle(ref.GetFunctionTypeReferent());
   AbstractType& type = AbstractType::Handle(signature.ParameterTypeAt(
       signature.num_implicit_parameters() + pos.Value()));
-  type = type.Canonicalize(
-      thread, nullptr);  // Instantiated signatures are not canonical.
+  type =
+      type.Canonicalize(thread);  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 

@@ -142,11 +142,9 @@ namespace dart {
   F(FunctionType, parameter_types_)                                            \
   F(FunctionType, named_parameter_names_)                                      \
   F(FunctionType, type_parameters_)                                            \
-  F(TypeRef, type_test_stub_)                                                  \
-  F(TypeRef, type_)                                                            \
   F(TypeParameter, type_test_stub_)                                            \
   F(TypeParameter, hash_)                                                      \
-  F(TypeParameter, bound_)                                                     \
+  F(TypeParameter, owner_)                                                     \
   F(TypeParameters, names_)                                                    \
   F(TypeParameters, flags_)                                                    \
   F(TypeParameters, bounds_)                                                   \

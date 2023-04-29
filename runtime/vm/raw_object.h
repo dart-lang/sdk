@@ -2651,7 +2651,6 @@ class UntaggedAbstractType : public UntaggedInstance {
  public:
   enum TypeState {
     kAllocated,                // Initial state.
-    kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
@@ -2763,24 +2762,20 @@ class UntaggedRecordType : public UntaggedAbstractType {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class UntaggedTypeRef : public UntaggedAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
-
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, type)  // The referenced type.
-  VISIT_TO(type)
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
 class UntaggedTypeParameter : public UntaggedAbstractType {
+ public:
+  static constexpr intptr_t kIsFunctionTypeParameterBit =
+      TypeStateBits::kNextBit;
+  using IsFunctionTypeParameter =
+      BitField<uint32_t, bool, kIsFunctionTypeParameterBit, 1>;
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  // ObjectType if no explicit bound specified.
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
-  VISIT_TO(bound)
-  ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
+  // FunctionType or Smi (class id).
+  COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
+  VISIT_TO(owner)
   uint16_t base_;   // Number of enclosing function type parameters.
   uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
 

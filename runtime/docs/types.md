@@ -27,7 +27,8 @@ A parameter type in the signature can be either a `Type`, a `FunctionType`, or a
 
 ## AbstractType
 
-The VM declares the class `AbstractType` as a placeholder to store a concrete type. The following classes extend `AbstractType`: `Type`, `FunctionType`, `TypeParameter`, and `TypeRef`. The latter one, `TypeRef` is used to break cycles in recursive type graphs. More on it later. `AbstractType` declares several virtual methods that may be overridden by concrete types. See its declaration in [object.h](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.h).
+The VM declares the class `AbstractType` as a placeholder to store a concrete type. The following classes extend `AbstractType`: `Type`, `FunctionType`, `TypeParameter`, and `RecordType`.
+`AbstractType` declares several virtual methods that may be overridden by concrete types. See its declaration in [object.h](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.h).
 
 ## TypeArguments
 
@@ -123,14 +124,14 @@ The *function type arguments* are the concatenation of the type argument vectors
 A `TypeParameter` object specifies whether it is declared by a class (it is then a *class type parameter*) or by a function (it is then a *function type parameter*), thereby selecting the vector to use for its instantiation. The index value then identifies the type argument from that specific vector to be used to substitute the type parameter. To complete the instantiation, a normalization step is applied after the substitution.
 
 The virtual method to instantiate an `AbstractType` is declared as follows:
-```dart
+```c++
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
-
+      FunctionTypeMapping* function_type_mapping = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
 ```
 Note how both instantiators explained above are passed in, `instantiator_type_arguments` and `function_type_arguments`. Note also that an integer `num_free_fun_type_params` is provided. Its value indicates how many type arguments in the `function_type_arguments` vector are considered to be free variables and are therefore available to substitute type parameters with an index below this value. Type parameters with an index equal or above that value remain uninstantiated.
 Here is an example:
@@ -143,27 +144,20 @@ class C<T> {
 ```
 Although method `foo` is not generic, it takes a generic function `bar<B>()` as argument and its function type refers to class type parameter `T` and function type parameter `B`. When instantiating the function type of `foo` for a particular value of `T`, the function type parameter `B` must remain uninstantiated, because only `T` is a free variable in this function type. An instantiation in the context of `C<int>` would yield `int foo(bar<B>(int t, B b))`. In this case, the `InstantiateFrom` method would be called with `num_free_fun_type_params = 0`, as no function type parameters are free in this example.
 
-## Trail
-
-Another argument passed to the `InstantiateFrom` method above is `trail`. The trail prevents infinite recursion when traversing cyclic type graphs. When building type graphs, the VM makes sure that back references to the graph creating a cycle are represented by a `TypeRef` object. During graph traversal, when a `TypeRef` node is encountered, the implementation checks that the `TypeRef` is not already in the trail, in which case a repeated traversal of the same cycle is avoided. If not yet present, the `TypeRef` node is inserted in the trail, and the trail is passed down to recursive traversal calls.
-
-There are different type graph traversal methods in the VM performing various operations. Each one of these traversals requires a trail to avoid divergence. Some take a single type graph as input, such as type instantiation and type instantiation check (whether a type is instantiated), but others take two type graphs as input, such as subtype test (whether a type is a subtype of another type) and type equivalence (whether two types are equivalent).
-
-The traversals that take two type graphs as input use the trail differently. When a `TypeRef` is encountered on the left hand side, it is inserted in the trail in association with the right hand side type node being currently traversed. The implementation calls the right hand side type node the `buddy` of the `TypeRef` node. The trail consists of pairs of nodes. The implementation checks that a particular pair is already present before inserting it.
-
 ## Type Equivalence
 
 The same virtual method `IsEquivalent` of `AbstractType` is used to traverse a pair of type graphs and decide whether they are canonically equal, syntactically equal, or equal in the context of subtype tests:
-```dart
+```c++
 enum class TypeEquality {
   kCanonical = 0,
   kSyntactical = 1,
   kInSubtypeTest = 2,
 };
 
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 ```
 Instead of implementing three different traversals, the kind of type equality is passed as an argument to a single traversal method.
 
@@ -178,8 +172,7 @@ As a last step of finalization, types and type argument vectors get canonicalize
 ## Canonicalization and Hash
 
 The VM keeps global tables of canonical types and type arguments. Canonicalizing a type or a type argument vector consists in a table look up using a hash code to find a candidate, and then comparing the type with the candidate using the `IsEquivalent` method mentioned above (passing `kind = kCanonical`).
-
-It is therefore imperative that two canonically equal types share the same hash code. `TypeRef` objects pose a problem in this regard. Namely, the hash of a `TypeRef` node cannot depend on the hash of the referenced type graph, otherwise, the hash code would depend on the location in the cycle where hash computation started and ended. Instead, the hash of a `TypeRef` node can only depend on information obtainable by “peeking” at the referenced type node, but not at the whole referenced type graph. See the comments in the [implementation](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.cc) of `TypeRef::Hash()` for details.
+It is therefore imperative that two canonically equal types share the same hash code.
 
 ## Cached Instantiations of TypeArguments
 

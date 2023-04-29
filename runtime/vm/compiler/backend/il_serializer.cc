@@ -1425,7 +1425,7 @@ void FlowGraphSerializer::WriteTrait<const Object&>::Write(
   ASSERT(cid != kIllegalCid);
   // Do not write objects repeatedly.
   const intptr_t object_id = s->heap()->GetObjectId(x.ptr());
-  if (object_id != 0) {
+  if (object_id > 0) {
     const intptr_t object_index = object_id - 1;
     s->Write<intptr_t>(kIllegalCid);
     s->Write<intptr_t>(object_index);
@@ -1456,6 +1456,110 @@ void FlowGraphDeserializer::SetObjectAt(intptr_t object_index,
                                         const Object& object) {
   objects_.EnsureLength(object_index + 1, &Object::null_object());
   objects_[object_index] = &object;
+}
+
+bool FlowGraphSerializer::IsWritten(const Object& obj) {
+  const intptr_t object_id = heap()->GetObjectId(obj.ptr());
+  return (object_id != 0);
+}
+
+bool FlowGraphSerializer::HasEnclosingTypes(const Object& obj) {
+  if (num_free_fun_type_params_ == 0) return false;
+  if (obj.IsAbstractType()) {
+    return !AbstractType::Cast(obj).IsInstantiated(kFunctions,
+                                                   num_free_fun_type_params_);
+  } else if (obj.IsTypeArguments()) {
+    return !TypeArguments::Cast(obj).IsInstantiated(kFunctions,
+                                                    num_free_fun_type_params_);
+  } else {
+    UNREACHABLE();
+  }
+}
+
+bool FlowGraphSerializer::WriteObjectWithEnclosingTypes(const Object& obj) {
+  if (HasEnclosingTypes(obj)) {
+    Write<bool>(true);
+    // Reset assigned object id so it could be written
+    // while writing enclosing types.
+    heap()->SetObjectId(obj.ptr(), -1);
+    WriteEnclosingTypes(obj, num_free_fun_type_params_);
+    Write<bool>(false);
+    // Can write any type parameters after all enclosing types are written.
+    const intptr_t saved_num_free_fun_type_params = num_free_fun_type_params_;
+    num_free_fun_type_params_ = 0;
+    Write<const Object&>(obj);
+    num_free_fun_type_params_ = saved_num_free_fun_type_params;
+    return true;
+  } else {
+    Write<bool>(false);
+    return false;
+  }
+}
+
+void FlowGraphSerializer::WriteEnclosingTypes(
+    const Object& obj,
+    intptr_t num_free_fun_type_params) {
+  if (obj.IsType()) {
+    const auto& type = Type::Cast(obj);
+    if (type.arguments() != TypeArguments::null()) {
+      const auto& type_args = TypeArguments::Handle(Z, type.arguments());
+      WriteEnclosingTypes(type_args, num_free_fun_type_params);
+    }
+  } else if (obj.IsRecordType()) {
+    const auto& rec = RecordType::Cast(obj);
+    auto& elem = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
+      elem = rec.FieldTypeAt(i);
+      WriteEnclosingTypes(elem, num_free_fun_type_params);
+    }
+  } else if (obj.IsFunctionType()) {
+    const auto& sig = FunctionType::Cast(obj);
+    const intptr_t num_parent_type_args = sig.NumParentTypeArguments();
+    if (num_free_fun_type_params > num_parent_type_args) {
+      num_free_fun_type_params = num_parent_type_args;
+    }
+    AbstractType& elem = AbstractType::Handle(Z, sig.result_type());
+    WriteEnclosingTypes(elem, num_free_fun_type_params);
+    for (intptr_t i = 0, n = sig.NumParameters(); i < n; ++i) {
+      elem = sig.ParameterTypeAt(i);
+      WriteEnclosingTypes(elem, num_free_fun_type_params);
+    }
+    if (sig.IsGeneric()) {
+      const TypeParameters& type_params =
+          TypeParameters::Handle(Z, sig.type_parameters());
+      WriteEnclosingTypes(TypeArguments::Handle(Z, type_params.bounds()),
+                          num_free_fun_type_params);
+    }
+  } else if (obj.IsTypeParameter()) {
+    const auto& tp = TypeParameter::Cast(obj);
+    if (tp.IsFunctionTypeParameter() &&
+        (tp.index() < num_free_fun_type_params)) {
+      const auto& owner =
+          FunctionType::Handle(Z, tp.parameterized_function_type());
+      if (!IsWritten(owner)) {
+        Write<bool>(true);
+        Write<const Object&>(owner);
+      }
+    }
+  } else if (obj.IsTypeArguments()) {
+    const auto& type_args = TypeArguments::Cast(obj);
+    auto& elem = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = type_args.Length(); i < n; ++i) {
+      elem = type_args.TypeAt(i);
+      WriteEnclosingTypes(elem, num_free_fun_type_params);
+    }
+  }
+}
+
+const Object& FlowGraphDeserializer::ReadObjectWithEnclosingTypes() {
+  if (Read<bool>()) {
+    while (Read<bool>()) {
+      Read<const Object&>();
+    }
+    return Read<const Object&>();
+  } else {
+    return Object::null_object();
+  }
 }
 
 void FlowGraphSerializer::WriteObjectImpl(const Object& x,
@@ -1519,24 +1623,23 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kFunctionTypeCid: {
       const auto& type = FunctionType::Cast(x);
       ASSERT(type.IsFinalized());
-      TypeScope type_scope(this, type.IsRecursive());
+      if (WriteObjectWithEnclosingTypes(type)) {
+        break;
+      }
+      const intptr_t saved_num_free_fun_type_params = num_free_fun_type_params_;
+      const intptr_t num_parent_type_args = type.NumParentTypeArguments();
+      if (num_free_fun_type_params_ > num_parent_type_args) {
+        num_free_fun_type_params_ = num_parent_type_args;
+      }
       Write<int8_t>(static_cast<int8_t>(type.nullability()));
       Write<uint32_t>(type.packed_parameter_counts());
       Write<uint16_t>(type.packed_type_parameter_counts());
       Write<const TypeParameters&>(
           TypeParameters::Handle(Z, type.type_parameters()));
-      AbstractType& t = AbstractType::Handle(Z, type.result_type());
-      Write<const AbstractType&>(t);
-      // Do not write parameter types as Array to avoid eager canonicalization
-      // when reading.
-      const Array& param_types = Array::Handle(Z, type.parameter_types());
-      ASSERT(param_types.Length() == type.NumParameters());
-      for (intptr_t i = 0, n = type.NumParameters(); i < n; ++i) {
-        t ^= param_types.At(i);
-        Write<const AbstractType&>(t);
-      }
+      Write<const AbstractType&>(AbstractType::Handle(Z, type.result_type()));
+      Write<const Array&>(Array::Handle(Z, type.parameter_types()));
       Write<const Array&>(Array::Handle(Z, type.named_parameter_names()));
-      Write<bool>(type_scope.CanBeCanonicalized());
+      num_free_fun_type_params_ = saved_num_free_fun_type_params;
       break;
     }
     case kICDataCid: {
@@ -1618,11 +1721,12 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kRecordTypeCid: {
       const auto& rec = RecordType::Cast(x);
       ASSERT(rec.IsFinalized());
-      TypeScope type_scope(this, rec.IsRecursive());
+      if (WriteObjectWithEnclosingTypes(rec)) {
+        break;
+      }
       Write<int8_t>(static_cast<int8_t>(rec.nullability()));
       Write<RecordShape>(rec.shape());
       Write<const Array&>(Array::Handle(Z, rec.field_types()));
-      Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     case kSentinelCid:
@@ -1653,21 +1757,24 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kTypeCid: {
       const auto& type = Type::Cast(x);
       ASSERT(type.IsFinalized());
+      if (WriteObjectWithEnclosingTypes(type)) {
+        break;
+      }
       const auto& cls = Class::Handle(Z, type.type_class());
-      TypeScope type_scope(this, type.IsRecursive() && cls.IsGeneric());
       Write<int8_t>(static_cast<int8_t>(type.nullability()));
       Write<classid_t>(type.type_class_id());
       if (cls.IsGeneric()) {
         const auto& type_args = TypeArguments::Handle(Z, type.arguments());
         Write<const TypeArguments&>(type_args);
       }
-      Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     case kTypeArgumentsCid: {
       const auto& type_args = TypeArguments::Cast(x);
       ASSERT(type_args.IsFinalized());
-      TypeScope type_scope(this, type_args.IsRecursive());
+      if (WriteObjectWithEnclosingTypes(type_args)) {
+        break;
+      }
       const intptr_t len = type_args.Length();
       Write<intptr_t>(len);
       auto& type = AbstractType::Handle(Z);
@@ -1675,19 +1782,25 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
         type = type_args.TypeAt(i);
         Write<const AbstractType&>(type);
       }
-      Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     case kTypeParameterCid: {
       const auto& tp = TypeParameter::Cast(x);
       ASSERT(tp.IsFinalized());
-      TypeScope type_scope(this, tp.IsRecursive());
-      Write<classid_t>(tp.parameterized_class_id());
+      if (WriteObjectWithEnclosingTypes(tp)) {
+        break;
+      }
       Write<intptr_t>(tp.base());
       Write<intptr_t>(tp.index());
       Write<int8_t>(static_cast<int8_t>(tp.nullability()));
-      Write<const AbstractType&>(AbstractType::Handle(Z, tp.bound()));
-      Write<bool>(type_scope.CanBeCanonicalized());
+      if (tp.IsFunctionTypeParameter()) {
+        Write<bool>(true);
+        Write<const FunctionType&>(
+            FunctionType::Handle(Z, tp.parameterized_function_type()));
+      } else {
+        Write<bool>(false);
+        Write<const Class&>(Class::Handle(Z, tp.parameterized_class()));
+      }
       break;
     }
     case kTypeParametersCid: {
@@ -1696,14 +1809,6 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       Write<const Array&>(Array::Handle(Z, tps.flags()));
       Write<const TypeArguments&>(TypeArguments::Handle(Z, tps.bounds()));
       Write<const TypeArguments&>(TypeArguments::Handle(Z, tps.defaults()));
-      break;
-    }
-    case kTypeRefCid: {
-      const auto& tr = TypeRef::Cast(x);
-      ASSERT(tr.IsFinalized());
-      TypeScope type_scope(this, tr.IsRecursive());
-      Write<const AbstractType&>(AbstractType::Handle(Z, tr.type()));
-      Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     default: {
@@ -1793,6 +1898,10 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
     case kFunctionCid:
       return Read<const Function&>();
     case kFunctionTypeCid: {
+      const auto& enc_type = ReadObjectWithEnclosingTypes();
+      if (!enc_type.IsNull()) {
+        return enc_type;
+      }
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
       auto& result =
           FunctionType::ZoneHandle(Z, FunctionType::New(0, nullability));
@@ -1801,15 +1910,10 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       result.set_packed_type_parameter_counts(Read<uint16_t>());
       result.SetTypeParameters(Read<const TypeParameters&>());
       result.set_result_type(Read<const AbstractType&>());
-      const Array& param_types =
-          Array::Handle(Z, Array::New(result.NumParameters(), Heap::kOld));
-      for (intptr_t i = 0, n = result.NumParameters(); i < n; ++i) {
-        param_types.SetAt(i, Read<const AbstractType&>());
-      }
-      result.set_parameter_types(param_types);
+      result.set_parameter_types(Read<const Array&>());
       result.set_named_parameter_names(Read<const Array&>());
       result.SetIsFinalized();
-      result ^= MaybeCanonicalize(result, object_index, Read<bool>());
+      result ^= result.Canonicalize(thread());
       return result;
     }
     case kICDataCid: {
@@ -1897,13 +2001,17 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       return record;
     }
     case kRecordTypeCid: {
+      const auto& enc_type = ReadObjectWithEnclosingTypes();
+      if (!enc_type.IsNull()) {
+        return enc_type;
+      }
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
       const RecordShape shape = Read<RecordShape>();
       const Array& field_types = Read<const Array&>();
       RecordType& rec = RecordType::ZoneHandle(
           Z, RecordType::New(shape, field_types, nullability));
       rec.SetIsFinalized();
-      rec ^= MaybeCanonicalize(rec, object_index, Read<bool>());
+      rec ^= rec.Canonicalize(thread());
       return rec;
     }
     case kSentinelCid:
@@ -1927,6 +2035,10 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       return String::ZoneHandle(Z, Symbols::FromUTF16(thread(), utf16, length));
     }
     case kTypeCid: {
+      const auto& enc_type = ReadObjectWithEnclosingTypes();
+      if (!enc_type.IsNull()) {
+        return enc_type;
+      }
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
       const classid_t type_class_id = Read<classid_t>();
       const auto& cls = Class::Handle(Z, GetClassById(type_class_id));
@@ -1941,37 +2053,42 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
         result = cls.DeclarationType();
         result = result.ToNullability(nullability, Heap::kOld);
       }
-      result ^= MaybeCanonicalize(result, object_index, Read<bool>());
+      result ^= result.Canonicalize(thread());
       return result;
     }
     case kTypeArgumentsCid: {
+      const auto& enc_type_args = ReadObjectWithEnclosingTypes();
+      if (!enc_type_args.IsNull()) {
+        return enc_type_args;
+      }
       const intptr_t len = Read<intptr_t>();
       auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(len));
       SetObjectAt(object_index, type_args);
       for (intptr_t i = 0; i < len; ++i) {
         type_args.SetTypeAt(i, Read<const AbstractType&>());
       }
-      type_args ^= MaybeCanonicalize(type_args, object_index, Read<bool>());
+      type_args ^= type_args.Canonicalize(thread());
       return type_args;
     }
     case kTypeParameterCid: {
-      const classid_t parameterized_class_id = Read<classid_t>();
+      const auto& enc_type = ReadObjectWithEnclosingTypes();
+      if (!enc_type.IsNull()) {
+        return enc_type;
+      }
       const intptr_t base = Read<intptr_t>();
       const intptr_t index = Read<intptr_t>();
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
-      const auto& parameterized_class =
-          Class::Handle(Z, (parameterized_class_id == kFunctionCid)
-                               ? Class::null()
-                               : GetClassById(parameterized_class_id));
+      const Object* owner = nullptr;
+      if (Read<bool>()) {
+        owner = &Read<const FunctionType&>();
+      } else {
+        owner = &Read<const Class&>();
+      }
       auto& tp = TypeParameter::ZoneHandle(
-          Z, TypeParameter::New(parameterized_class, base, index,
-                                /*bound=*/Object::null_abstract_type(),
-                                nullability));
+          Z, TypeParameter::New(*owner, base, index, nullability));
       SetObjectAt(object_index, tp);
-      const auto& bound = Read<const AbstractType&>();
-      tp.set_bound(bound);
       tp.SetIsFinalized();
-      tp ^= MaybeCanonicalize(tp, object_index, Read<bool>());
+      tp ^= tp.Canonicalize(thread());
       return tp;
     }
     case kTypeParametersCid: {
@@ -1981,16 +2098,6 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       tps.set_bounds(Read<const TypeArguments&>());
       tps.set_defaults(Read<const TypeArguments&>());
       return tps;
-    }
-    case kTypeRefCid: {
-      auto& tr =
-          TypeRef::ZoneHandle(Z, TypeRef::New(Object::null_abstract_type()));
-      SetObjectAt(object_index, tr);
-      const auto& type = Read<const AbstractType&>();
-      ASSERT(!type.IsNull());
-      tr.set_type(type);
-      tr ^= MaybeCanonicalize(tr, object_index, Read<bool>());
-      return tr;
     }
     default:
       if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid)) {
@@ -2022,29 +2129,6 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
   }
   UNIMPLEMENTED();
   return Object::null_object();
-}
-
-InstancePtr FlowGraphDeserializer::MaybeCanonicalize(
-    const Instance& obj,
-    intptr_t object_index,
-    bool can_be_canonicalized) {
-  if (can_be_canonicalized) {
-    intptr_t remaining = 0;
-    for (intptr_t idx : pending_canonicalization_) {
-      if (idx < object_index) {
-        pending_canonicalization_[remaining++] = idx;
-      } else {
-        objects_[idx] = &Instance::ZoneHandle(
-            Z, Instance::Cast(*objects_[idx]).Canonicalize(thread()));
-      }
-    }
-    pending_canonicalization_.TruncateTo(remaining);
-    return obj.Canonicalize(thread());
-  } else {
-    ASSERT(objects_[object_index]->ptr() == obj.ptr());
-    pending_canonicalization_.Add(object_index);
-    return obj.ptr();
-  }
 }
 
 #define HANDLES_SERIALIZABLE_AS_OBJECT(V)                                      \

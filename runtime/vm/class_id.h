@@ -75,7 +75,6 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(Type)                                                                      \
   V(FunctionType)                                                              \
   V(RecordType)                                                                \
-  V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
   V(FinalizerBase)                                                             \
   V(Finalizer)                                                                 \

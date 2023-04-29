@@ -251,9 +251,6 @@ class InstanceViewElement extends CustomElement implements Renderable {
     if (_instance.parameterIndex != null) {
       members.add(member('parameter index', '${_instance.parameterIndex}'));
     }
-    if (_instance.targetType != null) {
-      members.add(member('target type', _instance.targetType));
-    }
     if (_instance.bound != null) {
       members.add(member('bound', _instance.bound));
     }

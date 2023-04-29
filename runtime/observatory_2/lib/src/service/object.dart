@@ -2793,8 +2793,6 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.functionType;
     case 'TypeParameter':
       return M.InstanceKind.typeParameter;
-    case 'TypeRef':
-      return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
     case 'Record':
@@ -2867,7 +2865,6 @@ class Instance extends HeapObject implements M.Instance {
   Class parameterizedClass;
   TypeArguments typeArguments;
   int parameterIndex;
-  Instance targetType;
   Instance bound;
 
   Iterable<BoundField> fields;
@@ -3065,7 +3062,6 @@ class Instance extends HeapObject implements M.Instance {
     parameterizedClass = map['parameterizedClass'];
     typeArguments = map['typeArguments'];
     parameterIndex = map['parameterIndex'];
-    targetType = map['targetType'];
     bound = map['bound'];
 
     referent = map['mirrorReferent'];
