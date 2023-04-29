@@ -1036,7 +1036,7 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
       ObjectPtr obj = *ptr;
       if (obj->IsHeapObject() && obj->IsOldObject() &&
           !obj->untag()->IsMarked()) {
-        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
+        FATAL("Verifying after marking: Not marked: *0x%" Px " = 0x%" Px "\n",
               reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
@@ -1050,7 +1050,7 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
       ObjectPtr obj = ptr->Decompress(heap_base);
       if (obj->IsHeapObject() && obj->IsOldObject() &&
           !obj->untag()->IsMarked()) {
-        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
+        FATAL("Verifying after marking: Not marked: *0x%" Px " = 0x%" Px "\n",
               reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
@@ -1148,10 +1148,8 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
   // Separate from verify_after_gc because that verification interferes with
   // concurrent marking.
   if (FLAG_verify_after_marking) {
-    OS::PrintErr("Verifying after marking...");
     VerifyAfterMarkingVisitor visitor;
     heap_->VisitObjects(&visitor);
-    OS::PrintErr(" done.\n");
   }
 
   Epilogue();

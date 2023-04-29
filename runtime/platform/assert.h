@@ -314,6 +314,13 @@ void Expect::Null(const T p) {
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
 
+#define RELEASE_ASSERT_WITH_MSG(cond, msg)                                     \
+  do {                                                                         \
+    if (!(cond)) {                                                             \
+      dart::Assert(__FILE__, __LINE__).Fail("%s: expected: %s", msg, #cond);   \
+    }                                                                          \
+  } while (false)
+
 #define COMPILE_ASSERT(expr) static_assert(expr, "")
 
 #if defined(TESTING)
