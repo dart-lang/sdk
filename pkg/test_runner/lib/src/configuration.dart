@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:native_assets_cli/native_assets_cli.dart' show CCompilerConfig;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
@@ -280,6 +281,14 @@ class TestConfiguration {
   }();
 
   late final Map<String, String> nativeCompilerEnvironmentVariables = () {
+    String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
+    final arKey = unparseKey(CCompilerConfig.arConfigKeyFull);
+    final ccKey = unparseKey(CCompilerConfig.ccConfigKeyFull);
+    final ldKey = unparseKey(CCompilerConfig.ldConfigKeyFull);
+    final envScriptKey = unparseKey(CCompilerConfig.envScriptConfigKeyFull);
+    final envScriptArgsKey =
+        unparseKey(CCompilerConfig.envScriptArgsConfigKeyFull);
+
     if (Platform.isWindows) {
       // Use MSVC from Depot Tools instead. When using clang from DEPS, we still
       // need to pass the right INCLUDE / LIB environment variables. So we might
@@ -307,11 +316,11 @@ class TestConfiguration {
           msvcPath.resolve('bin/Hostx64/${targetFolderName[Abi.current()]!}/');
       final toolchainEnvScript = windowsSdk.resolve('bin/SetEnv.cmd');
       return {
-        'AR': binDir.resolve('lib.exe').toFilePath(),
-        'CC': binDir.resolve('cl.exe').toFilePath(),
-        'LD': binDir.resolve('link.exe').toFilePath(),
-        'ToolchainEnvScript': toolchainEnvScript.toFilePath(),
-        'ToolchainEnvScriptArguments': envScriptArgument[Abi.current()]!,
+        arKey: binDir.resolve('lib.exe').toFilePath(),
+        ccKey: binDir.resolve('cl.exe').toFilePath(),
+        ldKey: binDir.resolve('link.exe').toFilePath(),
+        envScriptKey: toolchainEnvScript.toFilePath(),
+        envScriptArgsKey: envScriptArgument[Abi.current()]!,
       };
     }
 
@@ -330,9 +339,9 @@ class TestConfiguration {
     final clangBin =
         Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
     return {
-      'AR': clangBin.resolve('llvm-ar').toFilePath(),
-      'CC': clangBin.resolve('clang').toFilePath(),
-      'LD': clangBin.resolve('ld.lld').toFilePath(),
+      arKey: clangBin.resolve('llvm-ar').toFilePath(),
+      ccKey: clangBin.resolve('clang').toFilePath(),
+      ldKey: clangBin.resolve('ld.lld').toFilePath(),
     };
   }();
 

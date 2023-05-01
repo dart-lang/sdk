@@ -44,9 +44,9 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
-  # cipd package used to run Dart scripts in the build and test infrastructure.
-  # Contact dart-engprod@ if you need a checked-in SDK roll.
-  "sdk_tag": "version:3.0.0-417.2.beta",
+  # cipd package used to run Dart scripts in the build and test infrastructure,
+  # which is automatically built on the release commits.
+  "sdk_tag": "git_revision:d2b8bf9c2ec1bd479dfd255ae70a62aa723df931",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
@@ -151,7 +151,7 @@ vars = {
   "matcher_rev": "cb6b68c603d2c57a51bbddfff08fa211bba7dcd3",
   "mime_rev": "2d8496df6a6e851816610c3f99eae0d9663f54c4",
   "mockito_rev": "f851e1754f0af41b1731bd81803d05988482d61b",
-  "native_rev": "5d5db9e1c019512752b5d4d222eb1ae572b8d33c", # disable rev_sdk_deps.dart
+  "native_rev": "a72037604f66190ad0123863774111014546e37c", # disable rev_sdk_deps.dart
   "package_config_rev": "7e09db12e968482ef81e309de3ce233463b4cd7e",
   "path_rev": "23e33194c4073c0fdd818a70dd944afd5ad206e6",
   "pool_rev": "650e5d3eff10529c65ef45b5fcb4bca270c7ea8f",
@@ -218,7 +218,7 @@ deps = {
            "@" + Var("benchmarks_internal_rev"),
     "condition": "checkout_benchmarks_internal",
   },
-  Var("dart_root") + "/tools/sdks": {
+  Var("dart_root") + "/tools/sdks/dart-sdk": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
           "version": Var("sdk_tag"),

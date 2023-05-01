@@ -9773,7 +9773,6 @@ TEST_CASE(DartAPI_TimelineDuration) {
                      Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9795,7 +9794,6 @@ TEST_CASE(DartAPI_TimelineBegin) {
                      nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9816,7 +9814,6 @@ TEST_CASE(DartAPI_TimelineEnd) {
                      nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9836,7 +9833,6 @@ TEST_CASE(DartAPI_TimelineInstant) {
                      0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9856,7 +9852,6 @@ TEST_CASE(DartAPI_TimelineAsyncDisabled) {
                      Dart_Timeline_Event_Async_Begin, 0, nullptr, nullptr);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
@@ -9875,7 +9870,6 @@ TEST_CASE(DartAPI_TimelineAsync) {
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9885,6 +9879,72 @@ TEST_CASE(DartAPI_TimelineAsync) {
   EXPECT_SUBSTRING("\"ts\":1000", json);
   EXPECT_SUBSTRING("\"id\":\"63\"", json);  // Hex for some reason.
 }
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+TEST_CASE(DartAPI_TimelineAsyncInstantRace) {
+  struct ReportAsyncEventArguments {
+    Monitor& synchronization_monitor;
+    ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
+  };
+
+  Monitor synchronization_monitor;
+  ReportAsyncEventArguments report_async_event_1_arguments{
+      synchronization_monitor};
+  ReportAsyncEventArguments report_async_event_2_arguments{
+      synchronization_monitor};
+  TimelineEventRecorder& recorder = *Timeline::recorder();
+  JSONStream js;
+  TimelineEventFilter filter;
+
+  // Grab embedder stream.
+  TimelineStream* stream = Timeline::GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Try concurrently writing async events and reading from the async track
+  // metadata map. It is not possible to assert anything about the outcome,
+  // because of scheduling uncertainty. This test is just used to ensure that
+  // TSAN checks the async track metadata map code.
+  OSThread::Start(
+      "ReportAsyncEvent1",
+      [](uword arguments_ptr) {
+        ReportAsyncEventArguments& arguments =
+            *reinterpret_cast<ReportAsyncEventArguments*>(arguments_ptr);
+        Dart_TimelineEvent("async1", /*timestamp0=*/0, /*async_id=*/1,
+                           Dart_Timeline_Event_Async_Instant,
+                           /*argument_count=*/0, nullptr, nullptr);
+        MonitorLocker ml(&arguments.synchronization_monitor);
+        arguments.join_id =
+            OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
+      },
+      reinterpret_cast<uword>(&report_async_event_1_arguments));
+  OSThread::Start(
+      "ReportAsyncEvent2",
+      [](uword arguments_ptr) {
+        ReportAsyncEventArguments& arguments =
+            *reinterpret_cast<ReportAsyncEventArguments*>(arguments_ptr);
+        Dart_TimelineEvent("async2", /*timestamp0=*/0, /*async_id=*/2,
+                           Dart_Timeline_Event_Async_Instant,
+                           /*argument_count=*/0, nullptr, nullptr);
+        MonitorLocker ml(&arguments.synchronization_monitor);
+        arguments.join_id =
+            OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
+      },
+      reinterpret_cast<uword>(&report_async_event_2_arguments));
+  recorder.PrintPerfettoTimeline(&js, filter);
+
+  MonitorLocker ml(&synchronization_monitor);
+  while (report_async_event_1_arguments.join_id ==
+             OSThread::kInvalidThreadJoinId ||
+         report_async_event_2_arguments.join_id ==
+             OSThread::kInvalidThreadJoinId) {
+    ml.Wait();
+  }
+  OSThread::Join(report_async_event_1_arguments.join_id);
+  OSThread::Join(report_async_event_2_arguments.join_id);
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 TEST_CASE(DartAPI_TimelineClock) {
   int64_t micros1 = Dart_TimelineGetMicros();

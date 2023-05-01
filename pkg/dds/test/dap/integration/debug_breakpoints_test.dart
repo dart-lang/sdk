@@ -261,6 +261,24 @@ void main(List<String> args) async {
       ], eagerError: true);
     });
 
+    test('ignores resume request for an exited isolate', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(isolateSpawningProgram);
+
+      // Run the script and wait for the isolate to exit.
+      final threadExitFuture =
+          client.threadEvents.where((event) => event.reason == 'exited').first;
+      await Future.wait([
+        threadExitFuture,
+        client.initialize(),
+        client.launch(testFile.path),
+      ], eagerError: true);
+      final exitedThreadId = (await threadExitFuture).threadId;
+
+      // Try to resume the already-exited thread. It should not fail.
+      await client.continue_(exitedThreadId);
+    });
+
     test(
         'stops at a line breakpoint and can step over (next) an async boundary',
         () async {

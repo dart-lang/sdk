@@ -116,8 +116,6 @@ class TimelineStream {
 
   // Records an event. Will return |nullptr| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
-  // NOTE: It is not allowed to call StartEvent again without completing
-  // the first event.
   TimelineEvent* StartEvent();
 
   static intptr_t enabled_offset() {
@@ -835,12 +833,15 @@ class TimelineEventFilter : public ValueObject {
 
   virtual ~TimelineEventFilter();
 
-  virtual bool IncludeBlock(TimelineEventBlock* block) const {
+  bool IncludeBlock(TimelineEventBlock* block) const {
     if (block == nullptr) {
       return false;
     }
-    // Not empty and not in use.
-    return !block->IsEmpty() && !block->in_use();
+    // Check that the block is not in use and not empty. |!block->in_use()| must
+    // be checked first because we are only holding |lock_|. Holding |lock_|
+    // makes it safe to call |in_use()| on any block, but only makes it safe to
+    // call |IsEmpty()| on blocks that are not in use.
+    return !block->in_use() && !block->IsEmpty();
   }
 
   virtual bool IncludeEvent(TimelineEvent* event) const {
@@ -864,14 +865,6 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
   explicit IsolateTimelineEventFilter(Dart_Port isolate_id,
                                       int64_t time_origin_micros = -1,
                                       int64_t time_extent_micros = -1);
-
-  bool IncludeBlock(TimelineEventBlock* block) const final {
-    if (block == nullptr) {
-      return false;
-    }
-    // Not empty, not in use, and isolate match.
-    return !block->IsEmpty() && !block->in_use();
-  }
 
   bool IncludeEvent(TimelineEvent* event) const final {
     return event->IsValid() && (event->isolate_id() == isolate_id_);
@@ -964,8 +957,9 @@ class TimelineEventRecorder : public MallocAllocated {
 
  private:
   static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
-  SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
+  SimpleHashMap track_uuid_to_track_metadata_;
+  Mutex async_track_uuid_to_track_metadata_lock_;
   SimpleHashMap async_track_uuid_to_track_metadata_;
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   // We allocate one heap-buffered packet as a class member, because it lets us

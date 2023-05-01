@@ -1254,15 +1254,19 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
 TimelineEventRecorder::TimelineEventRecorder()
     : time_low_micros_(0),
       time_high_micros_(0),
+      track_uuid_to_track_metadata_lock_(),
       track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
-      track_uuid_to_track_metadata_lock_(),
+      async_track_uuid_to_track_metadata_lock_(),
       async_track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
 
 TimelineEventRecorder::~TimelineEventRecorder() {
+  // We do not need to lock the following section, because at this point
+  // |RecorderSynchronizationLock| must have been put in a state that prevents
+  // the metadata maps from being modified.
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
        entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
     TimelineTrackMetadata* value =
@@ -1302,25 +1306,32 @@ void TimelineEventRecorder::PrintPerfettoMeta(
   perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
   packet_.Reset();
 
-  for (SimpleHashMap::Entry* entry =
-           async_track_uuid_to_track_metadata().Start();
-       entry != nullptr;
-       entry = async_track_uuid_to_track_metadata().Next(entry)) {
-    AsyncTimelineTrackMetadata* value =
-        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
-    value->PopulateTracePacket(packet_.get());
-    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
-    packet_.Reset();
+  {
+    MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
+    for (SimpleHashMap::Entry* entry =
+             async_track_uuid_to_track_metadata_.Start();
+         entry != nullptr;
+         entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+      AsyncTimelineTrackMetadata* value =
+          static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+      value->PopulateTracePacket(packet_.get());
+      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                     &packet_);
+      packet_.Reset();
+    }
   }
 
-  MutexLocker ml(&track_uuid_to_track_metadata_lock_);
-  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
-       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
-    TimelineTrackMetadata* value =
-        static_cast<TimelineTrackMetadata*>(entry->value);
-    value->PopulateTracePacket(packet_.get());
-    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
-    packet_.Reset();
+  {
+    MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+    for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+         entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+      TimelineTrackMetadata* value =
+          static_cast<TimelineTrackMetadata*>(entry->value);
+      value->PopulateTracePacket(packet_.get());
+      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                     &packet_);
+      packet_.Reset();
+    }
   }
 }
 #endif  // defined(SUPPORT_PERFETTO)
@@ -1487,11 +1498,13 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     const intptr_t process_id,
     const intptr_t trace_id,
     const char* thread_name) {
-  if (FLAG_timeline_recorder != nullptr &&
+  if (FLAG_timeline_recorder == nullptr ||
       // There is no way to retrieve track metadata when a callback or systrace
       // recorder is in use, so we don't need to update the map in these cases.
-      strcmp("callback", FLAG_timeline_recorder) != 0 &&
-      strcmp("systrace", FLAG_timeline_recorder) != 0) {
+      strcmp("callback", FLAG_timeline_recorder) == 0 ||
+      strcmp("systrace", FLAG_timeline_recorder) == 0) {
+    return;
+  }
     MutexLocker ml(&track_uuid_to_track_metadata_lock_);
 
     void* key = reinterpret_cast<void*>(trace_id);
@@ -1509,7 +1522,6 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
       ASSERT(process_id == value->pid());
       value->set_track_name(Utils::CreateCStringUniquePtr(
           Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
-    }
   }
 }
 
@@ -1523,6 +1535,8 @@ void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
       strcmp("systrace", FLAG_timeline_recorder) == 0) {
     return;
   }
+  MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
+
   void* key = reinterpret_cast<void*>(event.Id());
   const intptr_t hash = Utils::WordHash(event.Id());
   SimpleHashMap::Entry* entry =
@@ -1574,11 +1588,12 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 void TimelineEventFixedBufferRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
     std::function<void(const TimelineEvent&)> print_impl) {
+  Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
-    // All blocks are empty.
+    // All blocks are in use or empty.
     return;
   }
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
@@ -1683,8 +1698,11 @@ intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block = &blocks_[block_idx];
-    if (block->IsEmpty()) {
-      // Skip empty blocks.
+    if (block->in_use() || block->IsEmpty()) {
+      // Skip in use and empty blocks. |block->in_use()| must be checked first
+      // because we are only holding |lock_|. Holding |lock_| makes it safe to
+      // call |in_use()| on any block, but only makes it safe to call
+      // |IsEmpty()| on blocks that are not in use.
       continue;
     }
     if (block->LowerTimeBound() < earliest_time) {
@@ -2040,6 +2058,9 @@ TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
       this->packet();
   ShutDown();
+  // We do not need to lock the following section, because at this point
+  // |RecorderSynchronizationLock| must have been put in a state that prevents
+  // the metadata maps from being modified.
   for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata().Start();
        entry != nullptr; entry = track_uuid_to_track_metadata().Next(entry)) {
     TimelineTrackMetadata* value =
@@ -2094,6 +2115,7 @@ TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 void TimelineEventEndlessRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
     std::function<void(const TimelineEvent&)> print_impl) {
+  Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;

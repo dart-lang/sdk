@@ -260,7 +260,14 @@ class IsolateManager {
 
     final thread = _threadsByThreadId[threadId];
     if (thread == null) {
-      throw DebugAdapterException('Thread $threadId was not found');
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // Otherwise, this thread has exited and we don't need to do anything.
+        // It's possible another debugger unpaused or we're shutting down and
+        // the VM has terminated it.
+        return;
+      }
     }
 
     // Check this thread hasn't already been resumed by another handler in the
@@ -294,6 +301,12 @@ class IsolateManager {
       thread.hasPendingResume = false;
     }
   }
+
+  /// Checks whether [threadId] is invalid and has never been used.
+  ///
+  /// Returns `false` is [threadId] corresponds to either a live, or previously
+  /// exited thread.
+  bool isInvalidThreadId(int threadId) => threadId >= _nextThreadNumber;
 
   /// Sends an event informing the client that a thread is stopped at entry.
   void sendStoppedOnEntryEvent(int threadId) {
