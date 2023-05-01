@@ -14,7 +14,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show isOneOf, isOneOfOrEof, optional;
+import 'util.dart' show isOneOf, optional;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -363,14 +363,11 @@ TypeInfo computeVariablePatternType(Token token, [bool required = false]) {
         // We've seen `TYPE as` or `TYPE when`.  `as` is a built-in identifier
         // and `when` is a pseudo-keyword, so this *could* be a variable
         // pattern.  Or it could be that TYPE should have been parsed as a
-        // pattern.  It's probably not a variable pattern (since `as` and `when`
-        // are unusual variable names), so we'll only treat it as a variable
-        // pattern if the token following `as` or `when` is something that could
-        // legitimately follow a variable pattern (and hence couldn't introduce
-        // a type).
-        if (!mayFollowVariablePattern(next.next!)) {
-          return noType;
-        }
+        // pattern.  We've decided to resolve the ambiguity by assuming that
+        // TYPE was the pattern, and interpret the `when` or `as` as introducing
+        // a guard or a cast pattern, respectively (see discussion at
+        // https://github.com/dart-lang/sdk/issues/52199).
+        return noType;
       }
     }
   }
@@ -435,24 +432,6 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
       ? typeArg
       : noTypeParamOrArg;
 }
-
-/// Determines whether [token] can validly follow a variable pattern.
-bool mayFollowVariablePattern(Token token) =>
-    isOneOfOrEof(token, _allowedTokensAfterVariablePattern);
-
-const Set<String> _allowedTokensAfterVariablePattern = {
-  ',',
-  ':',
-  '||',
-  '&&',
-  ')',
-  '}',
-  ']',
-  'as',
-  'when',
-  '?',
-  '!'
-};
 
 /// Indicates whether the given [token] is allowed to follow a list of type
 /// arguments used as a selector after an expression.

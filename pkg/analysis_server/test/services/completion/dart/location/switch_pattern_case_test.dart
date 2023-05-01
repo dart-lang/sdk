@@ -203,8 +203,6 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
 ''');
   }
 
@@ -229,8 +227,6 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
 ''');
   }
 
@@ -371,6 +367,16 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
 ''');
   }
 
@@ -386,6 +392,16 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
 ''');
   }
 

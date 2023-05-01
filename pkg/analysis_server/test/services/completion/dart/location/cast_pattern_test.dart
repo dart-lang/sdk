@@ -47,8 +47,6 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
 ''');
   }
 
@@ -72,8 +70,6 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
 ''');
   }
 

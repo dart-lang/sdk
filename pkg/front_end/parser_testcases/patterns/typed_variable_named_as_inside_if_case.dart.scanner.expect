@@ -1,9 +1,0 @@
-test(dynamic x) {
-if (x case int as) {}
-}
-
-
-test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
-if[KeywordToken] ([BeginToken]x[StringToken] case[KeywordToken] int[StringToken] as[KeywordToken])[SimpleToken] {[BeginToken]}[SimpleToken]
-}[SimpleToken]
-[SimpleToken]
