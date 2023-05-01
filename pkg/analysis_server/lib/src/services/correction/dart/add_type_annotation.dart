@@ -59,16 +59,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
 
     if (node is TypedLiteral) {
-      final type = node.staticType;
-      if (type is InterfaceType) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addInsertion(node.offset, (builder) {
-            builder.write('<');
-            builder.writeTypes(type.typeArguments);
-            builder.write('>');
-          });
-        });
-      }
+      await _typedLiteral(builder, node);
       return;
     }
 
@@ -191,6 +182,31 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     await _applyChange(builder, declarationList.keyword, variable.name, type);
+  }
+
+  Future<void> _typedLiteral(ChangeBuilder builder, TypedLiteral node) async {
+    final type = node.staticType;
+    if (type is! InterfaceType) {
+      return;
+    }
+
+    final int offset;
+    switch (node) {
+      case ListLiteral():
+        offset = node.leftBracket.offset;
+      case SetOrMapLiteral():
+        offset = node.leftBracket.offset;
+      default:
+        return;
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(offset, (builder) {
+        builder.write('<');
+        builder.writeTypes(type.typeArguments);
+        builder.write('>');
+      });
+    });
   }
 
   DartType? _typeForVariable(VariableDeclaration variable) {
