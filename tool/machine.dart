@@ -25,8 +25,9 @@ void main(List<String> args) async {
   if (options['sets'] == true) {
     await fetchBadgeInfo();
   }
+  var fixStatusMap = await fetchFixStatusMap();
   var json = getMachineListing(Registry.ruleRegistry,
-      pretty: options['pretty'] == true);
+      fixStatusMap: fixStatusMap, pretty: options['pretty'] == true);
   print(json);
 }
 
