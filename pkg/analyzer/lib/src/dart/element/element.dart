@@ -62,7 +62,8 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin, HasCompletionData, MacroTargetElement
     implements InterfaceElement {
   /// The superclass of the class, or `null` for [Object].
-  InterfaceType? _supertype;
+  @override
+  InterfaceType? supertype;
 
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -188,21 +189,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   set mixins(List<InterfaceType> mixins) {
     _mixins = mixins;
-  }
-
-  @override
-  InterfaceType? get supertype {
-    if (_supertype != null) return _supertype!;
-
-    if (hasModifier(Modifier.DART_CORE_OBJECT)) {
-      return null;
-    }
-
-    return _supertype;
-  }
-
-  set supertype(InterfaceType? supertype) {
-    _supertype = supertype;
   }
 
   @override
