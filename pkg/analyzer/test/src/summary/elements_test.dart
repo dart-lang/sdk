@@ -376,7 +376,7 @@ library
         functions
           f @51
             parameters
-              optionalNamed x @58
+              optionalNamed default x @58
                 type: int
                 constantInitializer
                   PrefixedIdentifier
@@ -423,7 +423,7 @@ library
         functions
           f @61
             parameters
-              optionalNamed x @68
+              optionalNamed default x @68
                 type: int
                 constantInitializer
                   PropertyAccess
@@ -1489,7 +1489,7 @@ library
         constructors
           @17
             parameters
-              optionalNamed final this.x @25
+              optionalNamed default final this.x @25
                 type: int
                 field: self::@class::C::@field::x
         accessors
@@ -1517,7 +1517,7 @@ library
         constructors
           @17
             parameters
-              optionalNamed final this.x @25
+              optionalNamed default final this.x @25
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -1549,7 +1549,7 @@ library
         constructors
           @17
             parameters
-              optionalPositional final this.x @25
+              optionalPositional default final this.x @25
                 type: int
                 field: self::@class::C::@field::x
         accessors
@@ -1577,7 +1577,7 @@ library
         constructors
           @17
             parameters
-              optionalPositional final this.x @25
+              optionalPositional default final this.x @25
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -1786,7 +1786,7 @@ library
         constructors
           const @34
             parameters
-              optionalPositional f @41
+              optionalPositional default f @41
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -2114,7 +2114,7 @@ library
             parameters
               requiredPositional a @24
                 type: dynamic
-              optionalNamed b @32
+              optionalNamed default b @32
                 type: int
       class C @45
         supertype: A
@@ -2318,7 +2318,7 @@ library
             parameters
               requiredPositional a @61
                 type: dynamic
-              optionalNamed b @69
+              optionalNamed default b @69
                 type: int
 ''');
   }
@@ -2499,23 +2499,23 @@ library
         constructors
           @12
             parameters
-              requiredNamed a @28
+              requiredNamed default a @28
                 type: int
-              requiredNamed b @47
+              requiredNamed default b @47
                 type: double
       class B @61
         supertype: A
         constructors
           @77
             parameters
-              optionalNamed o1 @87
+              optionalNamed default o1 @87
                 type: String
-              optionalNamed final super.a @97
+              optionalNamed default final super.a @97
                 type: int
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
-              optionalNamed o2 @107
+              optionalNamed default o2 @107
                 type: String
-              optionalNamed final super.b @117
+              optionalNamed default final super.b @117
                 type: double
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
             superConstructor: self::@class::A::@constructor::new
@@ -2540,14 +2540,14 @@ library
         constructors
           @12
             parameters
-              requiredNamed a @28
+              requiredNamed default a @28
                 type: int
       class B @42
         supertype: A
         constructors
           @58
             parameters
-              optionalNamed final super.b @67
+              optionalNamed default final super.b @67
                 type: dynamic
                 superConstructorParameter: <null>
             superConstructor: self::@class::A::@constructor::new
@@ -2579,7 +2579,7 @@ library
         constructors
           @47
             parameters
-              optionalNamed final super.a @56
+              optionalNamed default final super.a @56
                 type: dynamic
                 superConstructorParameter: <null>
             superConstructor: self::@class::A::@constructor::new
@@ -2613,14 +2613,14 @@ library
         constructors
           @57
             parameters
-              optionalPositional o1 @67
+              optionalPositional default o1 @67
                 type: String
-              optionalPositional final super.a @77
+              optionalPositional default final super.a @77
                 type: int
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
-              optionalPositional o2 @87
+              optionalPositional default o2 @87
                 type: String
-              optionalPositional final super.b @97
+              optionalPositional default final super.b @97
                 type: double
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
             superConstructor: self::@class::A::@constructor::new
@@ -2650,23 +2650,23 @@ library
         constructors
           @12
             parameters
-              requiredNamed a @28
+              requiredNamed default a @28
                 type: int
-              requiredNamed b @47
+              requiredNamed default b @47
                 type: double
       class B @61
         supertype: A
         constructors
           @77
             parameters
-              requiredNamed o1 @101
+              requiredNamed default o1 @101
                 type: String
-              requiredNamed final super.a @124
+              requiredNamed default final super.a @124
                 type: int
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
-              requiredNamed o2 @147
+              requiredNamed default o2 @147
                 type: String
-              requiredNamed final super.b @170
+              requiredNamed default final super.b @170
                 type: double
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
             superConstructor: self::@class::A::@constructor::new
@@ -2860,7 +2860,7 @@ library
         constructors
           @12
             parameters
-              requiredNamed a @28
+              requiredNamed default a @28
                 type: int
       class B @41
         supertype: A
@@ -8281,7 +8281,7 @@ library
         accessors
           set x @19
             parameters
-              optionalNamed a @22
+              optionalNamed default a @22
                 type: dynamic
             returnType: void
 ''');
@@ -8320,7 +8320,7 @@ library
         accessors
           set x @19
             parameters
-              optionalPositional a @22
+              optionalPositional default a @22
                 type: dynamic
             returnType: void
 ''');
@@ -9429,9 +9429,9 @@ library
             parameters
               requiredPositional a @36
                 type: int
-              optionalPositional b @45
+              optionalPositional default b @45
                 type: int?
-              optionalPositional c @52
+              optionalPositional default c @52
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -9443,9 +9443,9 @@ library
             parameters
               requiredPositional a @72
                 type: int
-              optionalNamed b @81
+              optionalNamed default b @81
                 type: int?
-              optionalNamed c @88
+              optionalNamed default c @88
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -9482,9 +9482,9 @@ library
             parameters
               requiredPositional a @-1
                 type: int
-              optionalPositional b @-1
+              optionalPositional default b @-1
                 type: int?
-              optionalPositional c @-1
+              optionalPositional default c @-1
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -9520,9 +9520,9 @@ library
             parameters
               requiredPositional a @-1
                 type: int
-              optionalNamed b @-1
+              optionalNamed default b @-1
                 type: int?
-              optionalNamed c @-1
+              optionalNamed default c @-1
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -10212,7 +10212,7 @@ library
             superConstructor: package:test/a.dart::@class::Base::@constructor::requiredArg
           synthetic positionalArg @-1
             parameters
-              optionalPositional x @-1
+              optionalPositional default x @-1
                 type: bool
                 constantInitializer
                   BooleanLiteral
@@ -10238,7 +10238,7 @@ library
             superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg
           synthetic positionalArg2 @-1
             parameters
-              optionalPositional final x @-1
+              optionalPositional default final x @-1
                 type: bool
                 constantInitializer
                   BooleanLiteral
@@ -10264,7 +10264,7 @@ library
             superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg2
           synthetic namedArg @-1
             parameters
-              optionalNamed x @-1
+              optionalNamed default x @-1
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -10290,7 +10290,7 @@ library
             superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg
           synthetic namedArg2 @-1
             parameters
-              optionalNamed final x @-1
+              optionalNamed default final x @-1
                 type: bool
                 constantInitializer
                   BooleanLiteral
@@ -12163,7 +12163,7 @@ library
         codeOffset: 0
         codeLength: 38
         parameters
-          optionalNamed a @10
+          optionalNamed default a @10
             type: int
             codeOffset: 6
             codeLength: 9
@@ -12171,11 +12171,11 @@ library
               IntegerLiteral
                 literal: 1 @14
                 staticType: int
-          optionalNamed b @21
+          optionalNamed default b @21
             type: int
             codeOffset: 17
             codeLength: 5
-          optionalNamed c @28
+          optionalNamed default c @28
             type: int
             codeOffset: 24
             codeLength: 9
@@ -14042,9 +14042,9 @@ library
                 type: int
               requiredPositional c @45
                 type: int
-              optionalNamed d @56
+              optionalNamed default d @56
                 type: String
-              optionalNamed e @66
+              optionalNamed default e @66
                 type: double
     topLevelVariables
       static const V @79
@@ -15540,7 +15540,7 @@ library
         constructors
           const @29
             parameters
-              optionalNamed final this.x @37
+              optionalNamed default final this.x @37
                 type: dynamic
                 constantInitializer
                   SimpleIdentifier
@@ -15576,7 +15576,7 @@ library
         constructors
           const @29
             parameters
-              optionalNamed final this.x @37
+              optionalNamed default final this.x @37
                 type: dynamic
                 constantInitializer
                   BinaryExpression
@@ -15616,7 +15616,7 @@ library
         constructors
           const @29
             parameters
-              optionalPositional final this.x @37
+              optionalPositional default final this.x @37
                 type: dynamic
                 constantInitializer
                   BinaryExpression
@@ -15658,7 +15658,7 @@ library
             periodOffset: 19
             nameEnd: 30
             parameters
-              optionalPositional p @32
+              optionalPositional default p @32
                 type: dynamic
                 constantInitializer
                   BinaryExpression
@@ -15676,7 +15676,7 @@ library
             periodOffset: 54
             nameEnd: 60
             parameters
-              optionalNamed p @62
+              optionalNamed default p @62
                 type: dynamic
                 constantInitializer
                   BinaryExpression
@@ -15693,7 +15693,7 @@ library
         methods
           methodPositional @81
             parameters
-              optionalPositional p @99
+              optionalPositional default p @99
                 type: dynamic
                 constantInitializer
                   BinaryExpression
@@ -15710,12 +15710,12 @@ library
             returnType: void
           methodPositionalWithoutDefault @121
             parameters
-              optionalPositional p @153
+              optionalPositional default p @153
                 type: dynamic
             returnType: void
           methodNamed @167
             parameters
-              optionalNamed p @180
+              optionalNamed default p @180
                 type: dynamic
                 constantInitializer
                   BinaryExpression
@@ -15732,7 +15732,7 @@ library
             returnType: void
           methodNamedWithoutDefault @201
             parameters
-              optionalNamed p @228
+              optionalNamed default p @228
                 type: dynamic
             returnType: void
 ''');
@@ -19132,7 +19132,7 @@ library
         methods
           abstract X @21
             parameters
-              optionalNamed a @32
+              optionalNamed default a @32
                 type: List<T>
                 constantInitializer
                   ListLiteral
@@ -19164,7 +19164,7 @@ library
         methods
           abstract X @36
             parameters
-              optionalNamed a @47
+              optionalNamed default a @47
                 type: List<T*>*
                 constantInitializer
                   ListLiteral
@@ -19202,7 +19202,7 @@ library
         constructors
           const @82
             parameters
-              optionalNamed final this.f @90
+              optionalNamed default final this.f @90
                 type: void Function(dynamic)
                   alias: self::@typeAlias::F
                     typeArguments
@@ -19271,7 +19271,7 @@ library
         methods
           foo @45
             parameters
-              optionalNamed a @50
+              optionalNamed default a @50
                 type: dynamic
                 constantInitializer
                   InstanceCreationExpression
@@ -19321,17 +19321,6 @@ library
             parameters
               optionalNamed a @11
                 type: dynamic
-                constantInitializer
-                  IsExpression
-                    expression: IntegerLiteral
-                      literal: 0 @14
-                      staticType: int
-                    isOperator: is @16
-                    type: NamedType
-                      name: int @19
-                      element: dart:core::@class::int
-                      type: int
-                    staticType: bool
         returnType: void
 ''');
   }
@@ -19347,7 +19336,7 @@ library
     functions
       f @20
         parameters
-          optionalPositional compare @37
+          optionalPositional default compare @37
             type: int* Function(dynamic, dynamic)*
               alias: dart:core::@typeAlias::Comparator
                 typeArguments
@@ -19383,7 +19372,7 @@ library
     functions
       f @5
         parameters
-          optionalNamed x @28
+          optionalNamed default x @28
             type: ({int f1, bool f2})
             constantInitializer
               RecordLiteral
@@ -19425,7 +19414,7 @@ library
     functions
       f @5
         parameters
-          optionalNamed x @28
+          optionalNamed default x @28
             type: ({int f1, bool f2})
             constantInitializer
               RecordLiteral
@@ -19468,7 +19457,7 @@ library
     functions
       f @5
         parameters
-          optionalNamed x @20
+          optionalNamed default x @20
             type: (int, bool)
             constantInitializer
               RecordLiteral
@@ -19496,7 +19485,7 @@ library
     functions
       f @5
         parameters
-          optionalNamed x @20
+          optionalNamed default x @20
             type: (int, bool)
             constantInitializer
               RecordLiteral
@@ -19538,7 +19527,7 @@ library
             returnType: void
           static g @65
             parameters
-              optionalPositional p @75
+              optionalPositional default p @75
                 type: Object
                 constantInitializer
                   SimpleIdentifier
@@ -19576,7 +19565,7 @@ library
         methods
           foo @50
             parameters
-              optionalPositional b @70
+              optionalPositional default b @70
                 type: B<int, double>
                 constantInitializer
                   InstanceCreationExpression
@@ -19623,7 +19612,7 @@ library
         constructors
           const @49
             parameters
-              optionalPositional b @57
+              optionalPositional default b @57
                 type: B<T>
                 constantInitializer
                   InstanceCreationExpression
@@ -19680,7 +19669,7 @@ library
         constructors
           const @114
             parameters
-              optionalPositional a @122
+              optionalPositional default a @122
                 type: A<T>
                 constantInitializer
                   InstanceCreationExpression
@@ -19738,7 +19727,7 @@ library
         constructors
           const @129
             parameters
-              optionalPositional a @137
+              optionalPositional default a @137
                 type: A<T*>*
                 constantInitializer
                   InstanceCreationExpression
@@ -19785,7 +19774,7 @@ library
         constructors
           const @64
             parameters
-              optionalPositional b @72
+              optionalPositional default b @72
                 type: B<T*>*
                 constantInitializer
                   InstanceCreationExpression
@@ -19828,7 +19817,7 @@ library
           covariant T @37
             defaultType: dynamic
         parameters
-          optionalPositional b @46
+          optionalPositional default b @46
             type: B<T>
             constantInitializer
               InstanceCreationExpression
@@ -19877,7 +19866,7 @@ library
               covariant T @49
                 defaultType: dynamic
             parameters
-              optionalPositional b @58
+              optionalPositional default b @58
                 type: B<T>
                 constantInitializer
                   InstanceCreationExpression
@@ -19931,7 +19920,7 @@ library
               covariant E2 @58
                 defaultType: dynamic
             parameters
-              optionalPositional b @73
+              optionalPositional default b @73
                 type: B<E1, E2>
                 constantInitializer
                   InstanceCreationExpression
@@ -19980,7 +19969,7 @@ library
         methods
           foo @48
             parameters
-              optionalPositional b @58
+              optionalPositional default b @58
                 type: B<T>
                 constantInitializer
                   InstanceCreationExpression
@@ -20324,9 +20313,9 @@ library
         returnType: void
       f @34
         parameters
-          optionalPositional b @41
+          optionalPositional default b @41
             type: int
-          optionalPositional c @51
+          optionalPositional default c @51
             type: double
         returnType: void
 ''');
@@ -21070,7 +21059,7 @@ library
         constructors
           const @37
             parameters
-              optionalNamed final this.x @45
+              optionalNamed default final this.x @45
                 type: int
                 constantInitializer
                   BinaryExpression
@@ -24144,7 +24133,7 @@ library
     functions
       f @5
         parameters
-          optionalNamed final this.a @17
+          optionalNamed default final this.a @17
             type: int
             constantInitializer
               IntegerLiteral
@@ -24197,7 +24186,7 @@ library
     functions
       f @0
         parameters
-          optionalNamed x @3
+          optionalNamed default x @3
             type: dynamic
         returnType: dynamic
 ''');
@@ -24211,7 +24200,7 @@ library
     functions
       f @0
         parameters
-          optionalPositional x @3
+          optionalPositional default x @3
             type: dynamic
         returnType: dynamic
 ''');
@@ -27619,7 +27608,7 @@ library
     functions
       f @0
         parameters
-          optionalNamed g @8
+          optionalNamed default g @8
             type: void Function(int, void Function())
             parameters
               requiredPositional x @14
@@ -28826,7 +28815,7 @@ library
     functions
       foo @34
         parameters
-          optionalPositional p @39
+          optionalPositional default p @39
             type: dynamic
             constantInitializer
               SimpleIdentifier
@@ -28856,7 +28845,7 @@ library
     functions
       foo @17
         parameters
-          optionalPositional p @22
+          optionalPositional default p @22
             type: dynamic
             constantInitializer
               SimpleIdentifier
@@ -28891,7 +28880,7 @@ library
     functions
       foo @0
         parameters
-          optionalPositional p @5
+          optionalPositional default p @5
             type: dynamic
             constantInitializer
               SimpleIdentifier
@@ -32006,7 +31995,7 @@ library
         constructors
           @33
             parameters
-              optionalPositional final this.x @44
+              optionalPositional default final this.x @44
                 type: dynamic
                 metadata
                   Annotation
@@ -32226,7 +32215,7 @@ library
     functions
       f @16
         parameters
-          optionalPositional g @22
+          optionalPositional default g @22
             type: dynamic Function()
             metadata
               Annotation
@@ -33842,7 +33831,7 @@ library
                   staticType: null
                 element: self::@getter::foo
         parameters
-          optionalNamed a @47
+          optionalNamed default a @47
             type: int?
             metadata
               Annotation
@@ -34222,7 +34211,7 @@ library
     functions
       f @16
         parameters
-          optionalPositional x @22
+          optionalPositional default x @22
             type: dynamic
             metadata
               Annotation
@@ -36047,7 +36036,7 @@ library
     functions
       f @5
         parameters
-          requiredNamed f @22
+          requiredNamed default f @22
             type: void Function<U>(int)
             typeParameters
               covariant U @24
@@ -36816,7 +36805,7 @@ library
         methods
           m @17
             parameters
-              optionalNamed covariant a @32
+              optionalNamed default covariant a @32
                 type: A
             returnType: void
 ''');
@@ -36838,7 +36827,7 @@ library
         methods
           m @17
             parameters
-              optionalPositional covariant a @32
+              optionalPositional default covariant a @32
                 type: A
             returnType: void
 ''');
@@ -36929,7 +36918,7 @@ library
         methods
           m @17
             parameters
-              optionalNamed covariant a @32
+              optionalNamed default covariant a @32
                 type: A
             returnType: void
       class B @47
@@ -36940,7 +36929,7 @@ library
         methods
           m @68
             parameters
-              optionalNamed covariant a @73
+              optionalNamed default covariant a @73
                 type: B
             returnType: void
 ''');
@@ -37072,7 +37061,7 @@ library
             periodOffset: 13
             nameEnd: 24
             parameters
-              optionalPositional x @26
+              optionalPositional default x @26
                 type: dynamic
                 constantInitializer
                   IntegerLiteral
@@ -37082,7 +37071,7 @@ library
             periodOffset: 38
             nameEnd: 44
             parameters
-              optionalNamed x @46
+              optionalNamed default x @46
                 type: dynamic
                 constantInitializer
                   IntegerLiteral
@@ -37115,7 +37104,7 @@ library
             periodOffset: 22
             nameEnd: 33
             parameters
-              optionalPositional final this.x @40
+              optionalPositional default final this.x @40
                 type: dynamic
                 constantInitializer
                   IntegerLiteral
@@ -37126,7 +37115,7 @@ library
             periodOffset: 52
             nameEnd: 58
             parameters
-              optionalNamed final this.x @65
+              optionalNamed default final this.x @65
                 type: dynamic
                 constantInitializer
                   IntegerLiteral
@@ -37163,7 +37152,7 @@ library
         methods
           static positional @24
             parameters
-              optionalPositional x @36
+              optionalPositional default x @36
                 type: dynamic
                 constantInitializer
                   IntegerLiteral
@@ -37172,7 +37161,7 @@ library
             returnType: void
           static named @61
             parameters
-              optionalNamed x @68
+              optionalNamed default x @68
                 type: dynamic
                 constantInitializer
                   IntegerLiteral
@@ -37196,7 +37185,7 @@ library
     functions
       positional @5
         parameters
-          optionalPositional x @17
+          optionalPositional default x @17
             type: dynamic
             constantInitializer
               IntegerLiteral
@@ -37205,7 +37194,7 @@ library
         returnType: void
       named @33
         parameters
-          optionalNamed x @40
+          optionalNamed default x @40
             type: dynamic
             constantInitializer
               IntegerLiteral
@@ -38146,7 +38135,7 @@ library
         parameters
           requiredPositional p1 @37
             type: int
-          optionalNamed p2 @67
+          optionalNamed default p2 @67
             type: int?
             sinceSdkVersion: 2.15.0
         returnType: void
@@ -38171,7 +38160,7 @@ library
         parameters
           requiredPositional p1 @37
             type: int
-          optionalPositional p2 @67
+          optionalPositional default p2 @67
             type: int?
             sinceSdkVersion: 2.15.0
         returnType: void
@@ -40778,6 +40767,40 @@ library
         parameters
           requiredPositional _c @-1
             type: dynamic
+        returnType: void
+''');
+  }
+
+  test_typeAlias_formalParameters_optional() async {
+    var library = await buildLibrary(r'''
+typedef A = void Function({int p});
+
+void f(A a) {}
+''');
+    configuration.withFunctionTypeParameters = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: void Function({int p})
+          parameters
+            optionalNamed p @-1
+              type: int
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            optionalNamed p @31
+              type: int
+          returnType: void
+    functions
+      f @42
+        parameters
+          requiredPositional a @46
+            type: void Function({int p})
+              alias: self::@typeAlias::A
+              parameters
+                optionalNamed p @-1
+                  type: int
         returnType: void
 ''');
   }

@@ -3671,7 +3671,7 @@ library
         constructors
           @25
             parameters
-              optionalPositional final this.f @33
+              optionalPositional default final this.f @33
                 type: int
                 constantInitializer
                   SimpleStringLiteral
@@ -5487,7 +5487,7 @@ library
             parameters
               requiredPositional a @55
                 type: int
-              optionalNamed b @59
+              optionalNamed default b @59
                 type: dynamic
             returnType: void
 ''');
@@ -5525,7 +5525,7 @@ library
             parameters
               requiredPositional a @55
                 type: int
-              optionalPositional b @59
+              optionalPositional default b @59
                 type: dynamic
             returnType: void
 ''');
@@ -5954,7 +5954,7 @@ library
             parameters
               requiredPositional a @25
                 type: int
-              optionalNamed b @36
+              optionalNamed default b @36
                 type: double
             returnType: String
       class B @51
@@ -5967,7 +5967,7 @@ library
             parameters
               requiredPositional a @69
                 type: int
-              optionalNamed b @73
+              optionalNamed default b @73
                 type: double
             returnType: String
 ''');
@@ -5994,7 +5994,7 @@ library
             parameters
               requiredPositional a @25
                 type: int
-              optionalPositional b @36
+              optionalPositional default b @36
                 type: double
             returnType: String
       class B @51
@@ -6007,7 +6007,7 @@ library
             parameters
               requiredPositional a @69
                 type: int
-              optionalPositional b @73
+              optionalPositional default b @73
                 type: double
             returnType: String
 ''');
