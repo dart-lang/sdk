@@ -215,7 +215,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         : null;
     Uri? file = location?.file ?? fileUri;
     Uri? uri = file == null ? null : file;
-    listener.reportError(details,
+    String verifierState = 'Target=${target.name}, $stage: ';
+    listener.reportError('$verifierState$details',
         problemUri: uri,
         problemOffset: offset,
         node: node,
@@ -227,9 +228,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (!identical(node.parent, currentParent)) {
       problem(
           node,
-          "Incorrect parent pointer on ${node.runtimeType}:"
-          " expected '${currentParent.runtimeType}',"
-          " but found: '${node.parent.runtimeType}'.",
+          "Incorrect parent pointer on ${node}:"
+          " expected ${currentParent},"
+          " but found: ${node.parent}.",
           context: currentParent);
     }
     TreeNode? oldParent = currentParent;
@@ -349,11 +350,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitLibrary(Library node) {
-    // Issue(http://dartbug.com/32530)
-    // 'dart:test' is used in the unit tests and isn't an actual part of the
-    // platform.
     if (skipPlatform &&
         node.importUri.isScheme('dart') &&
+        // 'dart:test' is used in the unit tests and isn't an actual part of the
+        // platform so we don't skip its verification.
         node.importUri.path != 'test') {
       return;
     }

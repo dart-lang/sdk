@@ -1097,6 +1097,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
           : const <Expression>[]
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
+    setParents(result.annotations, result);
 
     _activeFileUri = activeFileUriSaved;
     return result;
@@ -1119,6 +1120,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
+    setParents(result.annotations, result);
 
     _activeFileUri = activeFileUriSaved;
     return result;
@@ -1159,6 +1161,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
+    setParents(result.annotations, result);
 
     _activeFileUri = activeFileUriSaved;
     return result;
@@ -1182,6 +1185,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[];
+    setParents(result.annotations, result);
 
     _activeFileUri = activeFileUriSaved;
     return result;
