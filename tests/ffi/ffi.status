@@ -68,6 +68,7 @@ vmspecific_regress_37100_test: SkipByDesign # Symbols are not exposed on purpose
 vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_51794_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 
 [ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
