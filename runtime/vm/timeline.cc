@@ -1588,6 +1588,7 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 void TimelineEventFixedBufferRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
     std::function<void(const TimelineEvent&)> print_impl) {
+  Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
@@ -2114,6 +2115,7 @@ TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 void TimelineEventEndlessRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
     std::function<void(const TimelineEvent&)> print_impl) {
+  Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;

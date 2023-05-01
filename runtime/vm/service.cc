@@ -4095,7 +4095,6 @@ inline void GetVMTimelineCommon(GetVMTimelineResponseFormat format,
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != nullptr);
   StackZone zone(thread);
-  Timeline::ReclaimCachedBlocksFromThreads();
   TimelineEventRecorder* timeline_recorder = Timeline::recorder();
   ASSERT(timeline_recorder != nullptr);
   const char* name = timeline_recorder->name();

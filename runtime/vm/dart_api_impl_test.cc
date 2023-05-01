@@ -9773,7 +9773,6 @@ TEST_CASE(DartAPI_TimelineDuration) {
                      Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9795,7 +9794,6 @@ TEST_CASE(DartAPI_TimelineBegin) {
                      nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9816,7 +9814,6 @@ TEST_CASE(DartAPI_TimelineEnd) {
                      nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9836,7 +9833,6 @@ TEST_CASE(DartAPI_TimelineInstant) {
                      0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9856,7 +9852,6 @@ TEST_CASE(DartAPI_TimelineAsyncDisabled) {
                      Dart_Timeline_Event_Async_Begin, 0, nullptr, nullptr);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
@@ -9875,7 +9870,6 @@ TEST_CASE(DartAPI_TimelineAsync) {
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
@@ -9938,7 +9932,6 @@ TEST_CASE(DartAPI_TimelineAsyncInstantRace) {
         ml.Notify();
       },
       reinterpret_cast<uword>(&report_async_event_2_arguments));
-  Timeline::ReclaimCachedBlocksFromThreads();
   recorder.PrintPerfettoTimeline(&js, filter);
 
   MonitorLocker ml(&synchronization_monitor);
