@@ -61,8 +61,49 @@ class B extends A {
 
 @reflectiveTest
 class AvoidInitToNullTest extends LintRuleTest {
+  // todo (pq): mock and add FutureOr examples
+
   @override
   String get lintRule => 'avoid_init_to_null';
+
+  test_fieldFormalParameter_inferredType() async {
+    await assertDiagnostics(r'''
+class C {
+  int? i;
+  C({this.i = null});
+}
+''', [
+      lint(25, 13),
+    ]);
+  }
+
+  test_instanceField_inferredType_final() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final i = null;
+}
+''');
+  }
+
+  test_instanceField_intType_noInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int i;
+  C(): i = 1;
+}
+''');
+  }
+
+  test_instanceField_nullableIntType() async {
+    await assertDiagnostics(r'''
+class C {
+  int? i = null;
+  C(): i = 1;
+}
+''', [
+      lint(17, 8),
+    ]);
+  }
 
   test_invalidAssignment_field() async {
     await assertDiagnostics(r'''
@@ -107,7 +148,111 @@ int i = null;
     ]);
   }
 
-  test_nullable_topLevelVariable() async {
+  test_namedParameter_inferredType() async {
+    await assertDiagnostics(r'''
+foo({p = null}) {}
+''', [
+      lint(5, 8),
+    ]);
+  }
+
+  test_namedParameter_inferredType_defaultValueIsInt() async {
+    await assertNoDiagnostics(r'''
+foo({p = 1}) {}
+''');
+  }
+
+  test_namedParameter_inferredType_noDefaultValue() async {
+    await assertNoDiagnostics(r'''
+foo({p}) {}
+''');
+  }
+
+  test_namedParameter_inferredType_var() async {
+    await assertDiagnostics(r'''
+foo({var p = null}) {}
+''', [
+      lint(5, 12),
+    ]);
+  }
+
+  test_optionalParameter_inferredType() async {
+    await assertDiagnostics(r'''
+foo([p = null]) {}
+''', [
+      lint(5, 8),
+    ]);
+  }
+
+  test_optionalParameter_inferredType_defaultValueIsInt() async {
+    await assertNoDiagnostics(r'''
+foo([p = 1]) {}
+''');
+  }
+
+  test_optionalParameter_inferredType_noDefaultValue() async {
+    await assertNoDiagnostics(r'''
+foo([p]) {}
+''');
+  }
+
+  test_optionalParameter_inferredType_var() async {
+    await assertDiagnostics(r'''
+foo([var p = null]) {}
+''', [
+      lint(5, 12),
+    ]);
+  }
+
+  test_staticConstField_inferredType_final() async {
+    await assertNoDiagnostics(r'''
+class C {
+  static const i = null;
+}
+''');
+  }
+
+  test_topLevelVariable_dynamic() async {
+    await assertDiagnostics(r'''
+dynamic i = null;
+''', [
+      lint(8, 8),
+    ]);
+  }
+
+  test_topLevelVariable_inferredType() async {
+    await assertDiagnostics(r'''
+var i = null;
+''', [
+      lint(4, 8),
+    ]);
+  }
+
+  test_topLevelVariable_inferredType_const() async {
+    await assertNoDiagnostics(r'''
+const i = null;
+''');
+  }
+
+  test_topLevelVariable_inferredType_final() async {
+    await assertNoDiagnostics(r'''
+final i = null;
+''');
+  }
+
+  test_topLevelVariable_inferredType_initializeToInt() async {
+    await assertNoDiagnostics(r'''
+var i = 1;
+''');
+  }
+
+  test_topLevelVariable_inferredType_noInitialization() async {
+    await assertNoDiagnostics(r'''
+var i;
+''');
+  }
+
+  test_topLevelVariable_nullableType() async {
     await assertDiagnostics(r'''
 int? ii = null;
 ''', [
