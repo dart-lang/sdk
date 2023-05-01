@@ -1142,7 +1142,6 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("finishFields");
     assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
     int count = pop() as int;
-    List<SourceFieldBuilder> fields = [];
     for (int i = 0; i < count; i++) {
       assert(checkState(null, [
         ValueKinds.FieldInitializerOrNull,
@@ -1171,7 +1170,6 @@ class BodyBuilder extends StackListenerImpl
       } else {
         continue;
       }
-      fields.add(fieldBuilder);
       if (initializer != null) {
         if (fieldBuilder.hasBodyBeenBuilt) {
           // The initializer was already compiled (e.g., if it appear in the

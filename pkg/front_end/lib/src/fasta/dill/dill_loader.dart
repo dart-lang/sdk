@@ -274,7 +274,6 @@ severity: $severity
       {bool Function(Uri uri)? filter, int byteCount = 0}) {
     List<Library> componentLibraries = component.libraries;
     List<Uri> requestedLibraries = <Uri>[];
-    List<Uri> requestedLibrariesFileUri = <Uri>[];
     for (int i = 0; i < componentLibraries.length; i++) {
       Library library = componentLibraries[i];
       Uri uri = library.importUri;
@@ -282,7 +281,6 @@ severity: $severity
         libraries.add(library);
         registerKnownLibrary(library);
         requestedLibraries.add(uri);
-        requestedLibrariesFileUri.add(library.fileUri);
       }
     }
     List<DillLibraryBuilder> result = <DillLibraryBuilder>[];
