@@ -341,7 +341,7 @@ bool isJsInterop(obj) {
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
 
   // Exclude record types.
-  if (_jsInstanceOf(obj, _RecordImpl)) return false;
+  if (_jsInstanceOf(obj, RecordImpl)) return false;
   return !_jsInstanceOf(obj, Object);
 }
 

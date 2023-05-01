@@ -40,6 +40,7 @@ import 'dart:_js_helper'
         TypeErrorImpl,
         JsLinkedHashMap,
         ImmutableMap,
+        Primitives,
         PrivateSymbol,
         ReifyFunctionTypes,
         NoReifyGeneric,

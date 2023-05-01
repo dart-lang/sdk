@@ -137,7 +137,7 @@ dload(obj, field) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Handle record types by trying to access [f] via convenience getters.
-    if (_jsInstanceOf(obj, _RecordImpl) && f is String) {
+    if (_jsInstanceOf(obj, RecordImpl) && f is String) {
       // It is a compile-time error for record names to clash, so we don't
       // need to check the positionals or named elements in any order.
       var value = JS('', '#.#', obj, f);

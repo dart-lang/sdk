@@ -21,7 +21,7 @@ class Shape {
 }
 
 /// Internal base class for all concrete records.
-final class _RecordImpl implements Record {
+final class RecordImpl implements Record {
   Shape shape;
 
   /// Stores the elements of this record.
@@ -34,13 +34,15 @@ final class _RecordImpl implements Record {
   int? _hashCode;
 
   /// Cache for faster access after the first call of [toString].
+  ///
+  /// NOTE: Does not contain the cached result of the "safe" [_toString] call.
   String? _printed;
 
-  _RecordImpl(this.shape, this.values);
+  RecordImpl(this.shape, this.values);
 
   @override
   bool operator ==(Object? other) {
-    if (!(other is _RecordImpl)) return false;
+    if (!(other is RecordImpl)) return false;
     if (shape != other.shape) return false;
     if (values.length != other.values.length) {
       return false;
@@ -62,25 +64,33 @@ final class _RecordImpl implements Record {
   }
 
   @override
-  String toString() {
-    if (_printed == null) {
-      var buffer = StringBuffer();
-      var posCount = shape.positionals;
-      var count = values.length;
+  String toString() => _toString(false);
 
-      buffer.write('(');
-      for (var i = 0; i < count; i++) {
-        if (i >= posCount) {
-          buffer.write('${shape.named![i - posCount]}');
-          buffer.write(': ');
-        }
-        buffer.write('${values[i]}');
-        if (i < count - 1) buffer.write(', ');
+  /// Returns the string representation of this record.
+  ///
+  /// Will recursively call [toString] on the elements when [safe] is `false`
+  /// or [Primitives.safeToString] when [safe] is `true`.
+  String _toString(bool safe) {
+    if (!safe && _printed != null) return _printed!;
+    var buffer = StringBuffer();
+    var posCount = shape.positionals;
+    var count = values.length;
+
+    if (safe) buffer.write('Record ');
+    buffer.write('(');
+    for (var i = 0; i < count; i++) {
+      if (i >= posCount) {
+        buffer.write('${shape.named![i - posCount]}');
+        buffer.write(': ');
       }
-      buffer.write(')');
-      _printed = buffer.toString();
+      var value = values[i];
+      buffer.write(safe ? Primitives.safeToString(value) : '${value}');
+      if (i < count - 1) buffer.write(', ');
     }
-    return _printed!;
+    buffer.write(')');
+    var result = buffer.toString();
+    if (!safe) _printed = result;
+    return result;
   }
 }
 
@@ -123,7 +133,7 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
   }
 
   Object recordClass =
-      JS('!', 'class _Record extends # {}', JS_CLASS_REF(_RecordImpl));
+      JS('!', 'class _Record extends # {}', JS_CLASS_REF(RecordImpl));
   // Add a 'new' function to be used instead of a constructor
   // (which is disallowed on dart objects).
   Object newRecord = JS(
@@ -173,3 +183,5 @@ Object recordLiteral(@notNull String shapeRecipe, @notNull int positionals,
   var record = registerRecord(shapeRecipe, positionals, named);
   return JS('!', 'new #(#, #)', record, shape, values);
 }
+
+String recordSafeToString(RecordImpl rec) => rec._toString(true);

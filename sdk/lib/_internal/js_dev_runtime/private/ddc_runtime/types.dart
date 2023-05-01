@@ -2360,7 +2360,7 @@ class RecordType extends DartType {
 
   @JSExportName('is')
   bool is_T(obj) {
-    if (obj is _RecordImpl) {
+    if (obj is RecordImpl) {
       var actual = getReifiedType(obj);
       return actual != null && isSubtypeOf(actual, this);
     }
