@@ -161,7 +161,7 @@ class ElementResolver {
     if (type == null) {
       return;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       // Nothing to do.
     } else if (type is InterfaceType) {
       // look up ConstructorElement

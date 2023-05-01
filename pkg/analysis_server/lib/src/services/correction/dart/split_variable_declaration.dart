@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -53,7 +54,7 @@ class SplitVariableDeclaration extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       if (variableList.type == null) {
         final type = variable.declaredElement!.type;
-        if (!type.isDynamic && keyword != null) {
+        if (type is! DynamicType && keyword != null) {
           if (!builder.canWriteType(type)) {
             return;
           }

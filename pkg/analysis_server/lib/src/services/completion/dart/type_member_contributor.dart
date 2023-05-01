@@ -129,7 +129,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     var type = expressionType != null
         ? request.libraryElement.typeSystem.resolveToBound(expressionType)
         : null;
-    if (type == null || type.isDynamic) {
+    if (type == null || type is DynamicType) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.
       if (expression is Identifier) {
@@ -141,7 +141,7 @@ class TypeMemberContributor extends DartCompletionContributor {
         } else if (elem is LocalVariableElement) {
           type = elem.type;
         }
-        if ((type == null || type.isDynamic) &&
+        if ((type == null || type is DynamicType) &&
             expression is SimpleIdentifier) {
           // If the element does not provide a good type, then attempt to get a
           // better type from a local declaration.

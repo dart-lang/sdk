@@ -531,7 +531,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
     var type = node.type!;
     var target = safeTarget.withCodeRef(node);
-    if (type is VoidType || type.isDynamic) {
+    if (type is VoidType || type is DynamicType) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
       _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
@@ -777,7 +777,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedReturnType = DecoratedType.forImplicitType(
             _typeProvider, functionType.returnType, _graph, target);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
-        if (isExternal && functionType.returnType.isDynamic) {
+        if (isExternal && functionType.returnType is DynamicType) {
           _graph.makeNullableUnion(
               decoratedReturnType.node, ExternalDynamicOrigin(source, node));
         }

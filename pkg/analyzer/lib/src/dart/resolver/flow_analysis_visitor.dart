@@ -427,7 +427,7 @@ class TypeSystemOperations
   }
 
   @override
-  bool isDynamic(DartType type) => type.isDynamic;
+  bool isDynamic(DartType type) => type is DynamicType;
 
   @override
   bool isNever(DartType type) {

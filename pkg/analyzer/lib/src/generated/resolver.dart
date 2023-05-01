@@ -629,8 +629,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
-        if (returnTypeBase is VoidType ||
-            returnTypeBase.isDynamic ||
+        if (returnTypeBase is DynamicType ||
+            returnTypeBase is UnknownInferredType ||
+            returnTypeBase is VoidType ||
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
@@ -2214,7 +2215,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.parameters.accept(this);
       node.initializers.accept(this);
       node.redirectedConstructor?.accept(this);
-      node.body.resolve(this, returnType.isDynamic ? null : returnType);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -2957,7 +2958,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
-      node.body.resolve(this, returnType.isDynamic ? null : returnType);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -3653,8 +3654,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         final targetFutureType = instanceOfFuture.typeArguments.first;
         final expectedReturnType = typeProvider.futureOrType(targetFutureType);
         final returnTypeBase = typeSystem.futureOrBase(expectedReturnType);
-        if (returnTypeBase is VoidType ||
-            returnTypeBase.isDynamic ||
+        if (returnTypeBase is DynamicType ||
+            returnTypeBase is UnknownInferredType ||
+            returnTypeBase is VoidType ||
             returnTypeBase.isDartCoreNull) {
           return;
         }

@@ -11,13 +11,13 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TypeNameResolutionTest);
-    defineReflectiveTests(TypeNameResolutionTest_WithoutNullSafety);
+    defineReflectiveTests(NamedTypeResolutionTest);
+    defineReflectiveTests(NamedTypeResolutionTest_WithoutNullSafety);
   });
 }
 
 @reflectiveTest
-class TypeNameResolutionTest extends PubPackageResolutionTest
+class NamedTypeResolutionTest extends PubPackageResolutionTest
     with TypeNameResolutionTestCases {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
@@ -1138,7 +1138,7 @@ NamedType
 }
 
 @reflectiveTest
-class TypeNameResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
+class NamedTypeResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
     with TypeNameResolutionTestCases, WithoutNullSafetyMixin {}
 
 mixin TypeNameResolutionTestCases on PubPackageResolutionTest {

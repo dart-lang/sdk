@@ -173,7 +173,7 @@ class DartUnitHoverComputer {
           staticType = element.type;
         } else if (parent is MethodInvocation && parent.methodName == node) {
           staticType = parent.staticInvokeType;
-          if (staticType != null && staticType.isDynamic) {
+          if (staticType != null && staticType is DynamicType) {
             staticType = null;
           }
         } else if (node is PatternFieldName && parent is PatternField) {

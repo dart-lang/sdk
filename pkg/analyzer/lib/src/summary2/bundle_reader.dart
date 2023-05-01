@@ -1158,6 +1158,7 @@ class LibraryReader {
     }
   }
 
+  /// TODO(scheglov) Deduplicate parameter reading implementation.
   List<ParameterElementImpl> _readParameters(
     ElementImpl enclosingElement,
     Reference enclosingReference,
@@ -1165,6 +1166,7 @@ class LibraryReader {
     var containerRef = enclosingReference.getChild('@parameter');
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
+      var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
       var reference = containerRef.getChild(name);
@@ -1173,7 +1175,7 @@ class LibraryReader {
       var kind = ResolutionReader._formalParameterKind(kindIndex);
 
       ParameterElementImpl element;
-      if (kind.isRequiredPositional) {
+      if (!isDefault) {
         if (isInitializingFormal) {
           element = FieldFormalParameterElementImpl(
             name: name,
@@ -1864,12 +1866,13 @@ class ResolutionReader {
     return readTypedList(() {
       var kindIndex = _reader.readByte();
       var kind = _formalParameterKind(kindIndex);
+      var isDefault = _reader.readBool();
       var hasImplicitType = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var typeParameters = _readTypeParameters(unitElement);
       var type = readRequiredType();
       var name = readStringReference();
-      if (kind.isRequiredPositional) {
+      if (!isDefault) {
         ParameterElementImpl element;
         if (isInitializingFormal) {
           element = FieldFormalParameterElementImpl(

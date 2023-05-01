@@ -544,7 +544,7 @@ class _MatcherBuilder {
       if (type != null) {
         if (type is InterfaceType) {
           return type.element.name;
-        } else if (type.isDynamic) {
+        } else if (type is DynamicType) {
           // The name is likely to be undefined.
           return target.name;
         }

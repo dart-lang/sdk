@@ -71,6 +71,7 @@ import 'metadata_test.dart' as metadata;
 import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
+import 'named_type_test.dart' as named_type;
 import 'namespace_test.dart' as namespace;
 import 'node_text_expectations.dart';
 import 'non_nullable_blaze_workspace_test.dart' as non_nullable_blaze_workspace;
@@ -108,7 +109,6 @@ import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
-import 'type_name_test.dart' as type_name;
 import 'variable_declaration_statement_test.dart'
     as variable_declaration_statement;
 import 'variance_test.dart' as variance_test;
@@ -179,6 +179,7 @@ main() {
     method_declaration.main();
     method_invocation.main();
     mixin_resolution.main();
+    named_type.main();
     namespace.main();
     non_nullable_blaze_workspace.main();
     non_nullable.main();
@@ -213,7 +214,6 @@ main() {
     try_statement.main();
     type_inference.main();
     type_literal.main();
-    type_name.main();
     variable_declaration_statement.main();
     variance_test.main();
     while_statement.main();

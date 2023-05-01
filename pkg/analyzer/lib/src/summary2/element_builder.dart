@@ -952,7 +952,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameter &&
+        _enclosingContext.hasDefaultFormalParameters) {
       element = DefaultParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -1155,7 +1156,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     FormalParameterList? formalParameters,
     TypeParameterList? typeParameters,
   }) {
-    var holder = _EnclosingContext(reference, element);
+    var holder = _EnclosingContext(
+      reference,
+      element,
+      hasDefaultFormalParameters: true,
+    );
     _withEnclosing(holder, () {
       if (formalParameters != null) {
         formalParameters.accept(this);
@@ -1345,10 +1350,17 @@ class _EnclosingContext {
   final List<TypeParameterElementImpl> _typeParameters = [];
   final bool hasConstConstructor;
 
+  /// Not all optional formal parameters can have default values.
+  /// For example, formal parameters of methods can, but formal parameters
+  /// of function types - not. This flag specifies if we should create
+  /// [ParameterElementImpl]s or [DefaultParameterElementImpl]s.
+  final bool hasDefaultFormalParameters;
+
   _EnclosingContext(
     this.reference,
     this.element, {
     this.hasConstConstructor = false,
+    this.hasDefaultFormalParameters = false,
   });
 
   List<ClassElementImpl> get classes {

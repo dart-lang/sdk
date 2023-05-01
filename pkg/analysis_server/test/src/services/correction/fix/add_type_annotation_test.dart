@@ -280,6 +280,19 @@ void f() {
 ''');
   }
 
+  Future<void> test_setOrMapLiteral_map_const() async {
+    await resolveTestCode('''
+void f() {
+  (const {0: true});
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  (const <int, bool>{0: true});
+}
+''');
+  }
+
   Future<void> test_setOrMapLiteral_set() async {
     await resolveTestCode('''
 void f() {
@@ -289,6 +302,19 @@ void f() {
     await assertHasFix(r'''
 void f() {
   (<int>{0, 1, 2});
+}
+''');
+  }
+
+  Future<void> test_setOrMapLiteral_set_const() async {
+    await resolveTestCode('''
+void f() {
+  (const {0, 1, 2});
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  (const <int>{0, 1, 2});
 }
 ''');
   }

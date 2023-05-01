@@ -166,7 +166,7 @@ class FeatureComputer {
     final contextType = node.accept(
       _ContextTypeVisitor(typeProvider, offset),
     );
-    if (contextType == null || contextType.isDynamic) {
+    if (contextType == null || contextType is DynamicType) {
       return null;
     }
     return typeSystem.resolveToBound(contextType);

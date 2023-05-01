@@ -69,7 +69,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) =>
-      type != null && !type.isDynamic
+      type != null && type is! DynamicType
           ? _canWriteType(type, methodBeingCopied: methodBeingCopied)
           : false;
 
@@ -273,7 +273,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.STATIC.lexeme);
       write(' ');
     }
-    if (returnType != null && !returnType.isDynamic) {
+    if (returnType != null && returnType is! DynamicType) {
       if (writeType(returnType, groupName: returnTypeGroupName)) {
         write(' ');
       }
@@ -730,7 +730,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(name);
     }
     write('(');
-    if (parameterType != null && !parameterType.isDynamic) {
+    if (parameterType != null && parameterType is! DynamicType) {
       if (writeType(parameterType, groupName: parameterTypeGroupName)) {
         write(' ');
       }
@@ -753,7 +753,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       ExecutableElement? methodBeingCopied,
       bool required = false}) {
     var wroteType = false;
-    if (type != null && !type.isDynamic) {
+    if (type != null && type is! DynamicType) {
       if (groupName != null) {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
@@ -879,7 +879,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type == null) {
       return false;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       if (required) {
         return true;
       }
@@ -1092,7 +1092,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     // use type
-    if (expectedType != null && !expectedType.isDynamic) {
+    if (expectedType != null && expectedType is! DynamicType) {
       if (expectedType.isDartCoreInt) {
         _addSingleCharacterName(excluded, res, $i);
       } else if (expectedType.isDartCoreDouble) {
@@ -1223,7 +1223,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type == null) {
       return false;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       if (required) {
         write('dynamic');
         return true;
@@ -1360,7 +1360,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       var hasArguments = false;
       var allArgumentsVisible = true;
       for (var argument in typeArguments) {
-        hasArguments = hasArguments || !argument.isDynamic;
+        hasArguments = hasArguments || argument is! DynamicType;
         allArgumentsVisible = allArgumentsVisible &&
             _getVisibleType(argument, methodBeingCopied: methodBeingCopied) !=
                 null;
@@ -1628,7 +1628,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Check whether the type needs to be replaced.
     //
     var type = typeAnnotation?.type;
-    if (type == null || type.isDynamic || type.isDartAsyncFuture) {
+    if (type == null || type is DynamicType || type.isDartAsyncFuture) {
       return;
     }
 
