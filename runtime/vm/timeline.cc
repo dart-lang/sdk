@@ -1592,7 +1592,7 @@ void TimelineEventFixedBufferRecorder::PrintEventsCommon(
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
-    // All blocks are empty.
+    // All blocks are in use or empty.
     return;
   }
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
@@ -1697,8 +1697,11 @@ intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block = &blocks_[block_idx];
-    if (block->IsEmpty()) {
-      // Skip empty blocks.
+    if (block->in_use() || block->IsEmpty()) {
+      // Skip in use and empty blocks. |block->in_use()| must be checked first
+      // because we are only holding |lock_|. Holding |lock_| makes it safe to
+      // call |in_use()| on any block, but only makes it safe to call
+      // |IsEmpty()| on blocks that are not in use.
       continue;
     }
     if (block->LowerTimeBound() < earliest_time) {
