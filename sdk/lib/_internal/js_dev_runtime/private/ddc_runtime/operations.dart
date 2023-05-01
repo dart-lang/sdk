@@ -90,17 +90,22 @@ bindCall(obj, name) {
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
 gbind(f, @rest List<Object> typeArgs) {
-  GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
-  type.checkBounds(typeArgs);
-  // Create a JS wrapper function that will also pass the type arguments.
-  var result =
-      JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
-  // Tag the wrapper with the original function to be used for equality checks.
-  JS('', '#["_originalFn"] = #', result, f);
-  JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    throw 'TODO: Support tearing off generic methods';
+  } else {
+    GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
+    type.checkBounds(typeArgs);
+    // Create a JS wrapper function that will also pass the type arguments.
+    var result =
+        JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
+    // Tag the wrapper with the original function to be used for equality
+    // checks.
+    JS('', '#["_originalFn"] = #', result, f);
+    JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
 
-  // Tag the wrapper with the instantiated function type.
-  return fn(result, type.instantiate(typeArgs));
+    // Tag the wrapper with the instantiated function type.
+    return fn(result, type.instantiate(typeArgs));
+  }
 }
 
 dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field));
@@ -149,7 +154,11 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
+      if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+        throw 'TODO: Support dynamic setter calls';
+      } else {
+        return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
+      }
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
@@ -164,67 +173,71 @@ dput(obj, field, value) {
 ///
 /// Returns `null` if all checks pass.
 String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
-  // Check for too few required arguments.
-  int actualsCount = JS('!', '#.length', actuals);
-  var required = type.args;
-  int requiredCount = JS('!', '#.length', required);
-  if (actualsCount < requiredCount) {
-    return 'Dynamic call with too few arguments. '
-        'Expected: $requiredCount Actual: $actualsCount';
-  }
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    throw 'TODO: Support checking for various argument errors';
+  } else {
+    // Check for too few required arguments.
+    int actualsCount = JS('!', '#.length', actuals);
+    var required = type.args;
+    int requiredCount = JS('!', '#.length', required);
+    if (actualsCount < requiredCount) {
+      return 'Dynamic call with too few arguments. '
+          'Expected: $requiredCount Actual: $actualsCount';
+    }
 
-  // Check for too many postional arguments.
-  var extras = actualsCount - requiredCount;
-  var optionals = type.optionals;
-  if (extras > JS<int>('!', '#.length', optionals)) {
-    return 'Dynamic call with too many arguments. '
-        'Expected: $requiredCount Actual: $actualsCount';
-  }
+    // Check for too many postional arguments.
+    var extras = actualsCount - requiredCount;
+    var optionals = type.optionals;
+    if (extras > JS<int>('!', '#.length', optionals)) {
+      return 'Dynamic call with too many arguments. '
+          'Expected: $requiredCount Actual: $actualsCount';
+    }
 
-  // Check if we have invalid named arguments.
-  Iterable? names;
-  var named = type.named;
-  var requiredNamed = type.requiredNamed;
-  if (namedActuals != null) {
-    names = getOwnPropertyNames(namedActuals);
-    for (var name in names) {
-      if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named,
-          name, requiredNamed, name)) {
-        return "Dynamic call with unexpected named argument '$name'.";
+    // Check if we have invalid named arguments.
+    Iterable? names;
+    var named = type.named;
+    var requiredNamed = type.requiredNamed;
+    if (namedActuals != null) {
+      names = getOwnPropertyNames(namedActuals);
+      for (var name in names) {
+        if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))',
+            named, name, requiredNamed, name)) {
+          return "Dynamic call with unexpected named argument '$name'.";
+        }
       }
     }
-  }
-  // Verify that all required named parameters are provided an argument.
-  Iterable requiredNames = getOwnPropertyNames(requiredNamed);
-  if (requiredNames.isNotEmpty) {
-    var missingRequired = namedActuals == null
-        ? requiredNames
-        : requiredNames.where((name) =>
-            !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
-    if (missingRequired.isNotEmpty) {
-      var error = "Dynamic call with missing required named arguments: "
-          "${missingRequired.join(', ')}.";
-      if (!compileTimeFlag('soundNullSafety')) {
-        _nullWarn(error);
-      } else {
-        return error;
+    // Verify that all required named parameters are provided an argument.
+    Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+    if (requiredNames.isNotEmpty) {
+      var missingRequired = namedActuals == null
+          ? requiredNames
+          : requiredNames.where((name) =>
+              !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
+      if (missingRequired.isNotEmpty) {
+        var error = "Dynamic call with missing required named arguments: "
+            "${missingRequired.join(', ')}.";
+        if (!compileTimeFlag('soundNullSafety')) {
+          _nullWarn(error);
+        } else {
+          return error;
+        }
       }
     }
-  }
-  // Now that we know the signature matches, we can perform type checks.
-  for (var i = 0; i < requiredCount; ++i) {
-    JS('', '#[#].as(#[#])', required, i, actuals, i);
-  }
-  for (var i = 0; i < extras; ++i) {
-    JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
-  }
-  if (names != null) {
-    for (var name in names) {
-      JS('', '(#[#] || #[#]).as(#[#])', named, name, requiredNamed, name,
-          namedActuals, name);
+    // Now that we know the signature matches, we can perform type checks.
+    for (var i = 0; i < requiredCount; ++i) {
+      JS('', '#[#].as(#[#])', required, i, actuals, i);
     }
+    for (var i = 0; i < extras; ++i) {
+      JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
+    }
+    if (names != null) {
+      for (var name in names) {
+        JS('', '(#[#] || #[#]).as(#[#])', named, name, requiredNamed, name,
+            namedActuals, name);
+      }
+    }
+    return null;
   }
-  return null;
 }
 
 _toSymbolName(symbol) => JS('', '''(() => {
@@ -333,31 +346,38 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   }
 
   // Apply type arguments
-  if (_jsInstanceOf(ftype, GenericFunctionType)) {
-    var formalCount = JS<int>('!', '#.formalCount', ftype);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    if (rti.Rti.isGenericFunctionType(JS<rti.Rti>('!', '#', ftype))) {
+      throw 'TODO: Support dynamic calls of functions with generic type '
+          'arguments.';
+    }
+  } else {
+    if (_jsInstanceOf(ftype, GenericFunctionType)) {
+      var formalCount = JS<int>('!', '#.formalCount', ftype);
 
-    if (typeArgs == null) {
-      typeArgs = JS<List>('!', '#.instantiateDefaultBounds()', ftype);
-    } else if (JS<bool>('!', '#.length != #', typeArgs, formalCount)) {
-      return callNSM('Dynamic call with incorrect number of type arguments. ' +
-          'Expected: ' +
-          // Not a String but historically relying on the default JavaScript
-          // behavior.
-          JS<String>('!', '#', formalCount) +
-          ' Actual: ' +
+      if (typeArgs == null) {
+        typeArgs = JS<List>('!', '#.instantiateDefaultBounds()', ftype);
+      } else if (JS<bool>('!', '#.length != #', typeArgs, formalCount)) {
+        return callNSM(
+            'Dynamic call with incorrect number of type arguments. Expected: ' +
+                // Not a String but historically relying on the default
+                // JavaScript behavior.
+                JS<String>('!', '#', formalCount) +
+                ' Actual: ' +
+                // Not a String but historically relying on the default
+                // JavaScript behavior.
+                JS<String>('!', '#.length', typeArgs));
+      } else {
+        JS('', '#.checkBounds(#)', ftype, typeArgs);
+      }
+      ftype = JS('', '#.instantiate(#)', ftype, typeArgs);
+    } else if (typeArgs != null) {
+      return callNSM('Dynamic call with unexpected type arguments. ' +
+          'Expected: 0 Actual: ' +
           // Not a String but historically relying on the default JavaScript
           // behavior.
           JS<String>('!', '#.length', typeArgs));
-    } else {
-      JS('', '#.checkBounds(#)', ftype, typeArgs);
     }
-    ftype = JS('', '#.instantiate(#)', ftype, typeArgs);
-  } else if (typeArgs != null) {
-    return callNSM('Dynamic call with unexpected type arguments. ' +
-        'Expected: 0 Actual: ' +
-        // Not a String but historically relying on the default JavaScript
-        // behavior.
-        JS<String>('!', '#.length', typeArgs));
   }
   var errorMessage = _argumentErrors(
       JS<FunctionType>('!', '#', ftype), JS<List>('!', '#', args), named);

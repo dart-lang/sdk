@@ -1217,36 +1217,40 @@ void checkTypeBound(
 String typeName(type) {
   if (JS<bool>('!', '# === void 0', type)) return 'undefined type';
   if (JS<bool>('!', '# === null', type)) return 'null type';
-  // Non-instance types
-  if (_jsInstanceOf(type, DartType)) {
-    return JS<String>('!', '#.toString()', type);
-  }
-
-  // Instance types
-  var tag = JS('', '#[#]', type, _runtimeType);
-  if (JS<bool>('!', '# === #', tag, Type)) {
-    var name = JS<String>('!', '#.name', type);
-    var args = getGenericArgs(type);
-    if (args == null) return name;
-
-    if (JS<bool>('!', '# == #', getGenericClass(type),
-        getGenericClassStatic<JSArray>())) {
-      name = 'List';
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    throw 'TODO: Support creating type names from new rti types.';
+  } else {
+    // Non-instance types
+    if (_jsInstanceOf(type, DartType)) {
+      return JS<String>('!', '#.toString()', type);
     }
 
-    var result = name + '<';
-    for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
-      if (i > 0) result += ', ';
-      result += typeName(JS('', '#[#]', args, i));
+    // Instance types
+    var tag = JS('', '#[#]', type, _runtimeType);
+    if (JS<bool>('!', '# === #', tag, Type)) {
+      var name = JS<String>('!', '#.name', type);
+      var args = getGenericArgs(type);
+      if (args == null) return name;
+
+      if (JS<bool>('!', '# == #', getGenericClass(type),
+          getGenericClassStatic<JSArray>())) {
+        name = 'List';
+      }
+
+      var result = name + '<';
+      for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
+        if (i > 0) result += ', ';
+        result += typeName(JS('', '#[#]', args, i));
+      }
+      result += '>';
+      return result;
     }
-    result += '>';
-    return result;
+    // Test the JavaScript "truthiness" of `tag`.
+    if (JS<bool>('!', '!!#', tag)) {
+      return 'Not a type: ' + JS<String>('!', '#.name', tag);
+    }
+    return 'JSObject<' + JS<String>('!', '#.name', type) + '>';
   }
-  // Test the JavaScript "truthiness" of `tag`.
-  if (JS<bool>('!', '!!#', tag)) {
-    return 'Not a type: ' + JS<String>('!', '#.name', tag);
-  }
-  return 'JSObject<' + JS<String>('!', '#.name', type) + '>';
 }
 
 /// Returns true if [t1] <: [t2].
