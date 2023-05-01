@@ -510,6 +510,9 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
     int rc = setsockopt(buffer->client(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
+      // getpeername() returns incorrect results when used with a socket that was
+      // accepted using overlapped I/O. AcceptEx includes the remote address in its
+      // result so retrieve it using GetAcceptExSockaddrs and save it.
       LPSOCKADDR local_addr;
       int local_addr_length;
       LPSOCKADDR remote_addr;
@@ -581,7 +584,7 @@ void ListenSocket::DoClose() {
   }
   // To finish resetting the state of the ListenSocket back to what it was
   // before EnsureInitialized was called, we have to reset the AcceptEx_
-  // function pointer.
+  // and GetAcceptExSockaddrs_ function pointer.
   AcceptEx_ = nullptr;
   GetAcceptExSockaddrs_ = nullptr;
 }

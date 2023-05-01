@@ -183,10 +183,12 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw{};
-  RawAddr* praw;
-  if(socket_handle->is_client_socket() &&
-     (praw = reinterpret_cast<ClientSocket*>(fd)->get_remote_addr())) {
-    memcpy(&raw, praw, SocketAddress::GetAddrLength(*praw));    
+  RawAddr* cached_remote_addr;
+  if (socket_handle->is_client_socket() &&
+      (cached_remote_addr =
+           reinterpret_cast<ClientSocket*>(fd)->remote_addr())) {
+    memcpy(&raw, cached_remote_addr,
+           SocketAddress::GetAddrLength(*cached_remote_addr));
   } else {
     socklen_t size = sizeof(raw);
     if (getpeername(socket_handle->socket(), &raw.addr, &size)) {

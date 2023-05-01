@@ -15,8 +15,8 @@
 
 #include "bin/builtin.h"
 #include "bin/reference_counting.h"
-#include "bin/thread.h"
 #include "bin/socket_base.h"
+#include "bin/thread.h"
 
 namespace dart {
 namespace bin {
@@ -420,11 +420,9 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
  private:
   bool LoadAcceptEx();
-
   bool LoadGetAcceptExSockaddrs();
 
   LPFN_ACCEPTEX AcceptEx_;
-
   LPFN_GETACCEPTEXSOCKADDRS GetAcceptExSockaddrs_;
 
   // The number of asynchronous `IssueAccept` operations which haven't completed
@@ -446,13 +444,13 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(intptr_t s, RawAddr* premote_addr = NULL)
+  explicit ClientSocket(intptr_t s, RawAddr* premote_addr = nullptr)
       : DescriptorInfoSingleMixin(s, true),
         DisconnectEx_(nullptr),
         next_(nullptr),
         connected_(false),
         closed_(false),
-        premote_addr_(premote_addr) {
+        remote_addr_(premote_addr) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -463,7 +461,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == nullptr);
     ASSERT(closed_ == true);
-    delete premote_addr_;
+    delete remote_addr_;
   }
 
   void Shutdown(int how);
@@ -488,7 +486,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
 
   void mark_closed() { closed_ = true; }
 
-  RawAddr* const get_remote_addr() const { return premote_addr_;}
+  RawAddr* const remote_addr() const { return remote_addr_; }
 
 #if defined(DEBUG)
   static intptr_t disconnecting() { return disconnecting_; }
@@ -501,7 +499,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   ClientSocket* next_;
   bool connected_;
   bool closed_;
-  RawAddr* premote_addr_;
+  RawAddr* remote_addr_;
 
 #if defined(DEBUG)
   static intptr_t disconnecting_;
