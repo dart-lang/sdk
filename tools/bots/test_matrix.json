@@ -1308,42 +1308,13 @@
     },
     {
       "builders": [
-        "vm-aot-mac-release-arm64"
+        "vm-aot-mac-product-arm64",
+        "vm-aot-mac-product-x64",
+        "vm-aot-mac-release-arm64",
+        "vm-aot-mac-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "build dart (cross x64)",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=simx64",
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-mac-product-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm AOT builders. Without shards because shards are missing XCode."
       },
       "steps": [
         {
