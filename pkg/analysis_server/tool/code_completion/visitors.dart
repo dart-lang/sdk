@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as element;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class ExpectedCompletion {
@@ -773,7 +774,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
     // If the type of the SimpleIdentifier is dynamic, don't include.
     var staticType = node.staticType;
-    if (staticType != null && staticType.isDynamic) {
+    if (staticType != null && staticType is DynamicType) {
       return false;
     }
 

@@ -29,7 +29,7 @@ class AlreadyMigratedCodeDecorator {
   /// TODO(paulberry): do we still need element or can we use target now?
   DecoratedType decorate(
       DartType type, Element element, NullabilityNodeTarget target) {
-    if (type is VoidType || type.isDynamic) {
+    if (type is VoidType || type is DynamicType) {
       var node = NullabilityNode.forAlreadyMigrated(target);
       _graph.makeNullableUnion(
           node, AlwaysNullableTypeOrigin.forElement(element, type is VoidType));

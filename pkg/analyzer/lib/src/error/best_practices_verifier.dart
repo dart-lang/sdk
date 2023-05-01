@@ -629,7 +629,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
       if ((type is InterfaceType && type.element == _nullType.element ||
-              (type.isDynamic && node.name2.lexeme == 'dynamic')) &&
+              (type is DynamicType && node.name2.lexeme == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
           WarningCode.UNNECESSARY_QUESTION_MARK,
@@ -753,7 +753,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // `is dynamic` or `is! dynamic`
-    if (rightType.isDynamic) {
+    if (rightType is DynamicType) {
       var rightTypeStr = rightNode.ifTypeOrNull<NamedType>()?.qualifiedName;
       if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
         report();
@@ -1601,12 +1601,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var rightType = node.type.typeOrThrow;
 
     // `dynamicValue as SomeType` is a valid use case.
-    if (leftType.isDynamic) {
+    if (leftType is DynamicType) {
       return false;
     }
 
     // `x as Unresolved` is already reported as an error.
-    if (rightType.isDynamic) {
+    if (rightType is DynamicType) {
       return false;
     }
 

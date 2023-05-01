@@ -127,7 +127,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    if (type.isDynamic || type is VoidType) {
+    if (type is DynamicType || type is VoidType) {
       return;
     }
 

@@ -211,7 +211,7 @@ String getRequestLineIndent(DartCompletionRequest request) {
 }
 
 String getTypeString(DartType type, {required bool withNullability}) {
-  if (type.isDynamic) {
+  if (type is DynamicType) {
     return '';
   } else {
     return '${type.getDisplayString(withNullability: withNullability)} ';
@@ -245,7 +245,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   }
 
   // If the type is unresolved, use the declared type.
-  if (type.isDynamic) {
+  if (type is DynamicType) {
     if (declaredType is NamedType) {
       return declaredType.qualifiedName;
     }

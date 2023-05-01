@@ -102,7 +102,7 @@ class FunctionReferenceResolver {
       prefixType = prefixElement.variable.type;
     }
 
-    if (prefixType != null && prefixType.isDynamic) {
+    if (prefixType is DynamicType) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
         function,
@@ -520,7 +520,7 @@ class FunctionReferenceResolver {
       return;
     } else {
       var targetType = target.staticType;
-      if (targetType != null && targetType.isDynamic) {
+      if (targetType is DynamicType) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
           node,

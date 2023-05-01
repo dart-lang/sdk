@@ -1,3 +1,6 @@
+## 5.12.0-dev
+* Deprecated `DartType.isDynamic`, use `is DynamicType` instead.
+
 ## 5.11.1
 * Restore previously published `finalKeyword`, `interfaceKeyword` and
   `sealedKeyword` of `MixinElement`. We added them preliminary while

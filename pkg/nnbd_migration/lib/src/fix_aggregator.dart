@@ -120,7 +120,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   String typeFormalToCode(TypeParameterElement formal) {
     var bound = formal.bound;
     if (bound == null ||
-        bound.isDynamic ||
+        bound is DynamicType ||
         (bound.isDartCoreObject &&
             bound.nullabilitySuffix != NullabilitySuffix.none)) {
       return formal.name;

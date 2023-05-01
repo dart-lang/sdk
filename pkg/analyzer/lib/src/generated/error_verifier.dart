@@ -825,7 +825,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!_options.implicitDynamic && node.returnType == null) {
         DartType parameterType = node.declaredElement!.type;
         if (parameterType is FunctionType &&
-            parameterType.returnType.isDynamic) {
+            parameterType.returnType is DynamicType) {
           errorReporter.reportErrorForToken(
               LanguageCode.IMPLICIT_DYNAMIC_RETURN,
               node.name,
@@ -2478,7 +2478,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Use an explicit string instead of [loopType] to remove the "<E>".
     String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
-    if (iterableType.isDynamic && typeSystem.strictCasts) {
+    if (iterableType is DynamicType && typeSystem.strictCasts) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -3003,7 +3003,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_options.implicitDynamic) {
       return;
     }
-    if (variable.hasImplicitType && variable.type.isDynamic) {
+    if (variable.hasImplicitType && variable.type is DynamicType) {
       ErrorCode errorCode;
       if (variable is FieldElement) {
         errorCode = LanguageCode.IMPLICIT_DYNAMIC_FIELD;
@@ -3026,7 +3026,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is PropertyAccessorElement && element.isSetter) {
       return;
     }
-    if (element.hasImplicitReturnType && element.returnType.isDynamic) {
+    if (element.hasImplicitReturnType && element.returnType is DynamicType) {
       errorReporter.reportErrorForToken(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
           functionName, [element.displayName]);
     }
@@ -3041,7 +3041,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType type = node.typeOrThrow;
     if (type is ParameterizedType &&
         type.typeArguments.isNotEmpty &&
-        type.typeArguments.any((t) => t.isDynamic)) {
+        type.typeArguments.any((t) => t is DynamicType)) {
       errorReporter
           .reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
     }

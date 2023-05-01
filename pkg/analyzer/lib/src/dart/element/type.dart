@@ -48,6 +48,7 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   @override
   int get hashCode => 1;
 
+  @Deprecated('Use `is DynamicType` instead')
   @override
   bool get isDynamic => true;
 
@@ -362,7 +363,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return null;
       }
 
-      if (!bound2.isDynamic) {
+      if (bound2 is! DynamicType) {
         pFresh.bound = bound2;
       }
     }
@@ -1247,6 +1248,7 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDartCoreType => false;
 
+  @Deprecated('Use `is DynamicType` instead')
   @override
   bool get isDynamic => false;
 

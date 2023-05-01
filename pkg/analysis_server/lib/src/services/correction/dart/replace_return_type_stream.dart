@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -27,7 +28,7 @@ class ReplaceReturnTypeStream extends CorrectionProducer {
       return;
     }
     var type = typeAnnotation.type;
-    if (type == null || type.isDynamic || type.isDartAsyncStream) {
+    if (type == null || type is DynamicType || type.isDartAsyncStream) {
       return;
     }
     _typeArgument = utils.getNodeText(typeAnnotation);

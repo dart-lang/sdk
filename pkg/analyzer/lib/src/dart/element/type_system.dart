@@ -914,7 +914,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
     if (isNonNullableByDefault) {
-      return fromType.isDynamic;
+      return fromType is DynamicType;
     }
 
     // Don't allow implicit downcasts between function types
@@ -1243,7 +1243,10 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNonNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return false;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNonNullable(type.promotedBound!);
@@ -1284,7 +1287,10 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return true;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNullable(type.promotedBound!);
@@ -1326,7 +1332,10 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isStrictlyNonNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return false;
     } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
@@ -1682,7 +1691,7 @@ class TypeSystemImpl implements TypeSystem {
         return null;
       }
 
-      if (!bound1.isDynamic) {
+      if (bound1 is! DynamicType) {
         freshTypeParameters[i].bound = bound1;
       }
     }

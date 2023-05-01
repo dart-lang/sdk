@@ -223,7 +223,7 @@ class DartUnitHighlightsComputer {
     var element = node.writeOrReadElement;
     if (element is LocalVariableElement) {
       var elementType = element.type;
-      if (elementType.isDynamic) {
+      if (elementType is DynamicType) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
@@ -232,7 +232,7 @@ class DartUnitHighlightsComputer {
     }
     if (element is ParameterElement) {
       var elementType = element.type;
-      if (elementType.isDynamic) {
+      if (elementType is DynamicType) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
             : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
@@ -601,7 +601,7 @@ class DartUnitHighlightsComputer {
 
   static bool _isDynamicExpression(Expression e) {
     var type = e.staticType;
-    return type != null && type.isDynamic;
+    return type != null && type is DynamicType;
   }
 }
 
@@ -1162,7 +1162,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var type = node.type;
     if (type != null) {
-      var isDynamic = type.isDynamic && node.name2.lexeme == 'dynamic';
+      var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
       var isNever = type is NeverType;
       if (isDynamic || isNever) {
         computer._addRegion_token(

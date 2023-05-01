@@ -58,7 +58,7 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
     }
   }
   // use type
-  if (expectedType != null && !expectedType.isDynamic) {
+  if (expectedType != null && expectedType is! DynamicType) {
     if (expectedType.isDartCoreInt) {
       _addSingleCharacterName(excluded, res, 0x69);
     } else if (expectedType.isDartCoreDouble) {
