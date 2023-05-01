@@ -1,3 +1,6 @@
+# 2.7.10
+- [DAP] Isolates that exit immediately after being paused (perhaps by another debugger or due to the app shutting down) will no longer cause a crash.
+
 # 2.7.9
 - [DAP] Configuring and resuming isolates will no longer cause a crash if the isolate exits before the request is processed.
 

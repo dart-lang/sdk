@@ -140,6 +140,21 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A Dart script that uses [Isolate.run] to run a short-lived isolate and has
+/// a `debugger()` call after the isolate completes to ensure the app does not
+/// immediately exit.
+const isolateSpawningProgram = '''
+  import 'dart:developer';
+  import 'dart:isolate';
+
+  Future<void> main() async {
+    await Isolate.run(_compute);
+    debugger();
+  }
+
+  Future<void> _compute() async {}
+''';
+
 /// A simple Dart script that should run with no errors and contains a comment
 /// marker '// BREAKPOINT' on a blank line where a breakpoint should be resolved
 /// to the next line.

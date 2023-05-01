@@ -113,6 +113,10 @@ class DapTestClient {
           BreakpointEventBody.fromJson(event.body as Map<String, Object?>))
       .where((body) => body.reason == 'changed');
 
+  /// Returns a stream of [ThreadEventBody] events.
+  Stream<ThreadEventBody> get threadEvents => events('thread')
+      .map((e) => ThreadEventBody.fromJson(e.body as Map<String, Object?>));
+
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
   Future<Response> attach({
