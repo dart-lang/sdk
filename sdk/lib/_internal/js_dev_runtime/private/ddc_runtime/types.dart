@@ -291,6 +291,9 @@ void _nullWarnOnType(type) {
   bool result = JS('', '#.has(#)', _nullComparisonSet, type);
   if (!result) {
     JS('', '#.add(#)', _nullComparisonSet, type);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+      type = rti.createRuntimeType(JS<rti.Rti>('!', '#', type));
+    }
     _nullWarn("Null is not a subtype of $type.");
   }
 }
@@ -1218,7 +1221,7 @@ String typeName(type) {
   if (JS<bool>('!', '# === void 0', type)) return 'undefined type';
   if (JS<bool>('!', '# === null', type)) return 'null type';
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    throw 'TODO: Support creating type names from new rti types.';
+    return rti.rtiToString(type);
   } else {
     // Non-instance types
     if (_jsInstanceOf(type, DartType)) {

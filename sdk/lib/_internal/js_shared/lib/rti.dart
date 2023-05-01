@@ -178,7 +178,18 @@ class Rti {
 
   Object? _precomputed2;
   Object? _precomputed3;
-  Object? _precomputed4;
+
+  /// If kind == kindFunction, stores an object used for checking function
+  /// parameters in dynamic calls after the first use.
+  ///
+  /// Only used in the calling convention used by DDC.
+  Object? _dynamicCheckData;
+
+  static Object? _getDynamicCheckData(Rti rti) => rti._dynamicCheckData;
+
+  static void _setDynamicCheckData(Rti rti, Object? data) {
+    rti._dynamicCheckData = data;
+  }
 
   // Data value used by some tests.
   @pragma('dart2js:noElision')
@@ -414,6 +425,48 @@ bool pairwiseIsTest(JSArray fieldRtis, JSArray values) {
   }
   return true;
 }
+
+/// Returns information describing the parameters of the function type [rti]
+/// for the purpose of type checking dynamic calls.
+///
+/// This method is only used in the DDC calling convention and the value
+/// returned is a JavaScript object of the shape:
+///
+///   {
+///     requiredPositional: [ Rti1, Rti2, ... ],
+///     optionalPositional: [ Rti1, Rti2, ... ],
+///     requiredNamed:      { name1: Rti1, name2: Rti2, ... },
+///     optionalNamed:      { name1: Rti1, name2: Rti2, ... }
+///   }
+Object getFunctionParametersForDynamicChecks(Object? rti) {
+  var functionRti = _Utils.asRti(rti);
+  var probe = Rti._getDynamicCheckData(functionRti);
+  if (probe != null) return probe;
+  var parameters = Rti._getFunctionParameters(functionRti);
+  var requiredNamed = JS('=Object', '{}');
+  var optionalNamed = JS('=Object', '{}');
+  var allNamed = _FunctionParameters._getNamed(parameters);
+  for (int i = 0; i < allNamed.length; i += 3) {
+    var name = allNamed[i];
+    var required = allNamed[i + 1];
+    var type = allNamed[i + 2];
+    _Utils.objectAssign(required ? requiredNamed : optionalNamed,
+        JS('=Object', '{ #: # }', name, type));
+  }
+  Object parameterInfo = JS(
+      '=Object',
+      '{ requiredPositional: #, optionalPositional: #, '
+          'requiredNamed: #, optionalNamed: # }',
+      _FunctionParameters._getRequiredPositional(parameters),
+      _FunctionParameters._getOptionalPositional(parameters),
+      requiredNamed,
+      optionalNamed);
+  Rti._setDynamicCheckData(functionRti, parameterInfo);
+  return parameterInfo;
+}
+
+bool isGenericFunctionType(Object? rti) =>
+    Rti._getKind(_Utils.asRti(rti)) == Rti.kindGenericFunction;
 
 class _FunctionParameters {
   static _FunctionParameters allocate() => _FunctionParameters();
@@ -1625,6 +1678,16 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
   //
   return '${typeParametersText}(${argumentsText}) => ${returnTypeText}';
 }
+
+/// Returns a human readable version of [rti].
+///
+/// The result only differs from `createRuntimeType(rti).toString()` in that
+/// this version does preserve legacy (*) information that can be printed if the
+/// option is enabled.
+///
+/// Called by the DDC runtime library for type error messages in code that
+/// supports weak null safety features.
+String rtiToString(Object rti) => _rtiToString(_Utils.asRti(rti), null);
 
 String _rtiToString(Rti rti, List<String>? genericContext) {
   int kind = Rti._getKind(rti);
