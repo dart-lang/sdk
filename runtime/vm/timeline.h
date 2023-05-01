@@ -116,8 +116,6 @@ class TimelineStream {
 
   // Records an event. Will return |nullptr| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
-  // NOTE: It is not allowed to call StartEvent again without completing
-  // the first event.
   TimelineEvent* StartEvent();
 
   static intptr_t enabled_offset() {
@@ -964,8 +962,9 @@ class TimelineEventRecorder : public MallocAllocated {
 
  private:
   static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
-  SimpleHashMap track_uuid_to_track_metadata_;
   Mutex track_uuid_to_track_metadata_lock_;
+  SimpleHashMap track_uuid_to_track_metadata_;
+  Mutex async_track_uuid_to_track_metadata_lock_;
   SimpleHashMap async_track_uuid_to_track_metadata_;
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   // We allocate one heap-buffered packet as a class member, because it lets us

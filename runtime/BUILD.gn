@@ -164,6 +164,10 @@ config("dart_config") {
     defines += [ "DART_COMPRESSED_POINTERS" ]
   }
 
+  if (dart_support_perfetto) {
+    defines += [ "SUPPORT_PERFETTO" ]
+  }
+
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       lib_dirs = [ root_out_dir + "/lib" ]
