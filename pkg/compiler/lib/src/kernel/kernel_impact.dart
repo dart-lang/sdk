@@ -174,7 +174,7 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerConstructorNode(ir.Constructor constructor) {
+  void registerExternalConstructorNode(ir.Constructor constructor) {
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
@@ -220,7 +220,7 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerProcedureNode(ir.Procedure procedure) {
+  void registerExternalProcedureNode(ir.Procedure procedure) {
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
