@@ -151,6 +151,10 @@ abstract class CommonElements {
   late final LibraryEntity? dartJsAnnotationsLibrary =
       _env.lookupLibrary(Uris.dart__js_annotations);
 
+  /// The dart:js_interop library.
+  late final LibraryEntity? dartJsInteropLibrary =
+      _env.lookupLibrary(Uris.dart__js_interop);
+
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass =>
       _findClass(typedDataLibrary, 'NativeTypedData');
@@ -1081,11 +1085,19 @@ class KCommonElements extends CommonElements {
   late final ClassEntity? jsAnonymousClass2 =
       _findClassOrNull(dartJsAnnotationsLibrary, '_Anonymous');
 
+  // From dart:js_interop
+
+  late final ClassEntity? jsAnnotationClass3 =
+      _findClassOrNull(dartJsInteropLibrary, 'JS');
+
   /// Returns `true` if [cls] is a @JS() annotation.
   ///
-  /// The class can come from either `package:js` or `dart:_js_annotations`.
+  /// The class can come from either `package:js`, `dart:_js_annotations`, or
+  /// `dart:js_interop`.
   bool isJsAnnotationClass(ClassEntity cls) {
-    return cls == jsAnnotationClass1 || cls == jsAnnotationClass2;
+    return cls == jsAnnotationClass1 ||
+        cls == jsAnnotationClass2 ||
+        cls == jsAnnotationClass3;
   }
 
   /// Returns `true` if [cls] is an @anonymous annotation.

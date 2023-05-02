@@ -1981,8 +1981,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the class used to JS annotate an element.
   static const String _jsClassName = 'JS';
 
-  /// The name of `js` library, used to define JS annotations.
-  static const String _jsLibName = 'js';
+  /// The name of `_js_annotations` library, used to define JS annotations.
+  static const String _jsLibName = '_js_annotations';
 
   /// The name of `meta` library, used to define analysis annotations.
   static const String _metaLibName = 'meta';

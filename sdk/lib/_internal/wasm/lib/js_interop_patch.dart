@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal' show patch;
-import 'dart:_js_helper';
+import 'dart:_js_helper' hide JS;
+import 'dart:_js_helper' as js_helper;
 import 'dart:_wasm';
 import 'dart:async' show Completer;
-import 'dart:js_interop' hide JS;
+import 'dart:js_interop';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
@@ -32,8 +33,9 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   bool get isNull => this == null || this!.toExternRef.isNull;
 
   @patch
-  JSBoolean typeofEquals(JSString type) => _box<JSBoolean>(JS<WasmExternRef?>(
-      '(o, t) => typeof o === t', this?.toExternRef, type.toExternRef));
+  JSBoolean typeofEquals(JSString type) =>
+      _box<JSBoolean>(js_helper.JS<WasmExternRef?>(
+          '(o, t) => typeof o === t', this?.toExternRef, type.toExternRef));
 
   @patch
   Object? dartify() => js_util.dartify(this);
@@ -49,7 +51,7 @@ extension NullableObjectUtilExtension on Object? {
 extension JSObjectUtilExtension on JSObject {
   @patch
   JSBoolean instanceof(JSFunction constructor) =>
-      _box<JSBoolean>(JS<WasmExternRef?>(
+      _box<JSBoolean>(js_helper.JS<WasmExternRef?>(
           '(o, c) => o instanceof c', toExternRef, constructor.toExternRef));
 }
 

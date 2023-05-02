@@ -10,7 +10,6 @@ import 'dart:js_util' show newObject;
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
-import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);
