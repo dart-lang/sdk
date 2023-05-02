@@ -333,18 +333,6 @@ class BodyBuilder extends StackListenerImpl
 
   final bool stringExpectedAfterNative;
 
-  /// Whether to ignore an unresolved reference to `main` within the body of
-  /// `_getMainClosure` when compiling the current library.
-  ///
-  /// This as a temporary workaround. The standalone VM and flutter have
-  /// special logic to resolve `main` in `_getMainClosure`, this flag is used to
-  /// ignore that reference to `main`, but only on libraries where we expect to
-  /// see it (today that is dart:_builtin and dart:ui).
-  ///
-  // TODO(ahe,sigmund): remove when the VM gets rid of the special rule, see
-  // https://github.com/dart-lang/sdk/issues/28989.
-  final bool ignoreMainInGetMainClosure;
-
   // TODO(ahe): Consider renaming [uri] to 'partUri'.
   @override
   final Uri uri;
@@ -527,10 +515,6 @@ class BodyBuilder extends StackListenerImpl
             .enableNative(libraryBuilder.importUri),
         stringExpectedAfterNative = libraryBuilder
             .loader.target.backendTarget.nativeExtensionExpectsString,
-        ignoreMainInGetMainClosure =
-            libraryBuilder.importUri.isScheme('dart') &&
-                (libraryBuilder.importUri.path == "_builtin" ||
-                    libraryBuilder.importUri.path == "ui"),
         needsImplicitSuperInitializer =
             context.needsImplicitSuperInitializer(coreTypes),
         benchmarker = libraryBuilder.loader.target.benchmarker,
@@ -3508,10 +3492,6 @@ class BodyBuilder extends StackListenerImpl
           return new ThisPropertyAccessGenerator(this, token, n,
               thisVariable: thisVariable);
         }
-      } else if (ignoreMainInGetMainClosure &&
-          name == "main" &&
-          member.name == "_getMainClosure") {
-        return forest.createNullLiteral(charOffset);
       } else {
         return new UnresolvedNameGenerator(this, token, n,
             unresolvedReadKind: UnresolvedKind.Unknown);
