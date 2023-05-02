@@ -50,12 +50,12 @@ class SimpleBaseExtendImplement implements BaseExtend {}
 // [cfe] The type 'SimpleBaseExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseExtend' is 'base'.
 //                                         ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseBaseExtendImplement implements BaseExtend {}
-// ^
-// [cfe] unspecified
 //                                            ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceBaseExtendImplement implements BaseExtend {}
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,18 +63,17 @@ interface class InterfaceBaseExtendImplement implements BaseExtend {}
 // [cfe] The type 'InterfaceBaseExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseExtend' is 'base'.
 //                                                      ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalBaseExtendImplement implements BaseExtend {}
-// ^
-// [cfe] unspecified
 //                                              ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedBaseExtendImplement implements BaseExtend {}
-// ^
-// [cfe] unspecified
 //                                                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin class MixinClassBaseExtendImplement implements BaseExtend {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -82,12 +81,12 @@ mixin class MixinClassBaseExtendImplement implements BaseExtend {}
 // [cfe] The type 'MixinClassBaseExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseExtend' is 'base'.
 //                                                   ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassBaseExtendImplement implements BaseExtend {}
-// ^
-// [cfe] unspecified
 //                                                            ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinBaseExtendImplement implements BaseExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -95,12 +94,12 @@ mixin MixinBaseExtendImplement implements BaseExtend {}
 // [cfe] The type 'MixinBaseExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseExtend' is 'base'.
 //                                        ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinBaseExtendImplement implements BaseExtend {}
-// ^
-// [cfe] unspecified
 //                                                 ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinBaseExtendOn on BaseExtend {}
 //    ^^^^^^^^^^^^^^^^^
@@ -138,12 +137,12 @@ class SimpleFinalExtendImplement implements FinalExtend {}
 // [cfe] The type 'SimpleFinalExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalExtend' is 'final'.
 //                                          ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseFinalExtendImplement implements FinalExtend {}
-// ^
-// [cfe] unspecified
 //                                             ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceFinalExtendImplement implements FinalExtend {}
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -151,18 +150,17 @@ interface class InterfaceFinalExtendImplement implements FinalExtend {}
 // [cfe] The type 'InterfaceFinalExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalExtend' is 'final'.
 //                                                       ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalFinalExtendImplement implements FinalExtend {}
-// ^
-// [cfe] unspecified
 //                                               ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedFinalExtendImplement implements FinalExtend {}
-// ^
-// [cfe] unspecified
 //                                                 ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin class MixinClassFinalExtendImplement implements FinalExtend {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -170,12 +168,12 @@ mixin class MixinClassFinalExtendImplement implements FinalExtend {}
 // [cfe] The type 'MixinClassFinalExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalExtend' is 'final'.
 //                                                    ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassFinalExtendImplement implements FinalExtend {}
-// ^
-// [cfe] unspecified
 //                                                             ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinFinalExtendImplement implements FinalExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,12 +181,12 @@ mixin MixinFinalExtendImplement implements FinalExtend {}
 // [cfe] The type 'MixinFinalExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalExtend' is 'final'.
 //                                         ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinFinalExtendImplement implements FinalExtend {}
-// ^
-// [cfe] unspecified
 //                                                  ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinFinalExtendOn on FinalExtend {}
 //    ^^^^^^^^^^^^^^^^^^
@@ -276,12 +274,12 @@ class SimpleBaseMixinOnImplement implements BaseMixinOn {}
 // [cfe] The type 'SimpleBaseMixinOnImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinOn' is 'base'.
 //                                          ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseBaseMixinOnImplement implements BaseMixinOn {}
-// ^
-// [cfe] unspecified
 //                                             ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceBaseMixinOnImplement implements BaseMixinOn {}
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -289,18 +287,17 @@ interface class InterfaceBaseMixinOnImplement implements BaseMixinOn {}
 // [cfe] The type 'InterfaceBaseMixinOnImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinOn' is 'base'.
 //                                                       ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalBaseMixinOnImplement implements BaseMixinOn {}
-// ^
-// [cfe] unspecified
 //                                               ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedBaseMixinOnImplement implements BaseMixinOn {}
-// ^
-// [cfe] unspecified
 //                                                 ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin class MixinClassBaseMixinOnImplement implements BaseMixinOn {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -308,12 +305,12 @@ mixin class MixinClassBaseMixinOnImplement implements BaseMixinOn {}
 // [cfe] The type 'MixinClassBaseMixinOnImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinOn' is 'base'.
 //                                                    ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassBaseMixinOnImplement implements BaseMixinOn {}
-// ^
-// [cfe] unspecified
 //                                                             ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinBaseMixinOnImplement implements BaseMixinOn {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -321,12 +318,12 @@ mixin MixinBaseMixinOnImplement implements BaseMixinOn {}
 // [cfe] The type 'MixinBaseMixinOnImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinOn' is 'base'.
 //                                         ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinBaseMixinOnImplement implements BaseMixinOn {}
-// ^
-// [cfe] unspecified
 //                                                  ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinBaseMixinOnOn on BaseMixinOn {}
 //    ^^^^^^^^^^^^^^^^^^
