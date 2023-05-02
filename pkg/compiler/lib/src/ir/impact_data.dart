@@ -8,7 +8,6 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';
-import '../common/names.dart' show Identifiers, Uris;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
@@ -418,16 +417,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       registerStaticInvocation(node.target, positionArguments, namedArguments,
           typeArguments, getDeferredImport(node));
     }
-    // TODO(sigmund): consider using `_elementMap.getForeignKind` here. We
-    // currently don't use it because when this step is run modularly we try
-    // to keep most operations at the kernel level, otherwise it may triggers
-    // additional unnecessary work.
-    final name = node.target.name.text;
-    if (node.target.enclosingClass == null &&
-        node.target.enclosingLibrary.importUri == Uris.dart__foreign_helper &&
-        getForeignKindFromName(name) != ForeignKind.NONE) {
-      registerForeignStaticInvocationNode(node);
-    }
+    registerStaticInvocationNode(node);
   }
 
   @override
@@ -1001,8 +991,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerForeignStaticInvocationNode(ir.StaticInvocation node) {
-    (_data._foreignStaticInvocationNodes ??= []).add(node);
+  void registerStaticInvocationNode(ir.StaticInvocation node) {
+    (_data._staticInvocationNodes ??= []).add(node);
   }
 
   @override
@@ -1062,7 +1052,7 @@ class ImpactData {
   List<ir.Field>? _fieldNodes;
   List<ir.Procedure>? _procedureNodes;
   List<ir.SwitchStatement>? _switchStatementNodes;
-  List<ir.StaticInvocation>? _foreignStaticInvocationNodes;
+  List<ir.StaticInvocation>? _staticInvocationNodes;
   bool _hasConstSymbolConstructorInvocation = false;
 
   ImpactData();
@@ -1132,8 +1122,7 @@ class ImpactData {
     _fieldNodes = source.readMemberNodesOrNull<ir.Field>();
     _procedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
     _switchStatementNodes = source.readTreeNodesOrNull<ir.SwitchStatement>();
-    _foreignStaticInvocationNodes =
-        source.readTreeNodesOrNull<ir.StaticInvocation>();
+    _staticInvocationNodes = source.readTreeNodesOrNull<ir.StaticInvocation>();
     _hasConstSymbolConstructorInvocation = source.readBool();
     source.end(tag);
   }
@@ -1215,7 +1204,7 @@ class ImpactData {
     sink.writeMemberNodes(_fieldNodes, allowNull: true);
     sink.writeMemberNodes(_procedureNodes, allowNull: true);
     sink.writeTreeNodes(_switchStatementNodes, allowNull: true);
-    sink.writeTreeNodes(_foreignStaticInvocationNodes, allowNull: true);
+    sink.writeTreeNodes(_staticInvocationNodes, allowNull: true);
     sink.writeBool(_hasConstSymbolConstructorInvocation);
 
     sink.end(tag);
@@ -1548,9 +1537,9 @@ class ImpactData {
         registry.registerSwitchStatementNode(data);
       }
     }
-    if (_foreignStaticInvocationNodes != null) {
-      for (ir.StaticInvocation data in _foreignStaticInvocationNodes!) {
-        registry.registerForeignStaticInvocationNode(data);
+    if (_staticInvocationNodes != null) {
+      for (ir.StaticInvocation data in _staticInvocationNodes!) {
+        registry.registerStaticInvocationNode(data);
       }
     }
     if (_hasConstSymbolConstructorInvocation) {

@@ -402,7 +402,7 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerForeignStaticInvocationNode(ir.StaticInvocation node) {
+  void registerStaticInvocationNode(ir.StaticInvocation node) {
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
         registerNativeImpact(elementMap.getNativeBehaviorForJsCall(node));
