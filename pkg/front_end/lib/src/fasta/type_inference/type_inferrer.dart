@@ -152,7 +152,10 @@ class TypeInferrerImpl implements TypeInferrer {
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
             isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
             unpromotablePrivateFieldNames:
-                libraryBuilder.unpromotablePrivateFieldNames);
+                libraryBuilder.unpromotablePrivateFieldNames,
+            typeCacheNonNullable: engine.typeCacheNonNullable,
+            typeCacheNullable: engine.typeCacheNullable,
+            typeCacheLegacy: engine.typeCacheLegacy);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
       [ConstructorDeclaration? constructorDeclaration]) {

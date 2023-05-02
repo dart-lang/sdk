@@ -165,6 +165,13 @@ abstract class TypeInferenceEngine {
 
   final Instrumentation? instrumentation;
 
+  final Map<DartType, DartType> typeCacheNonNullable =
+      new Map<DartType, DartType>.identity();
+  final Map<DartType, DartType> typeCacheNullable =
+      new Map<DartType, DartType>.identity();
+  final Map<DartType, DartType> typeCacheLegacy =
+      new Map<DartType, DartType>.identity();
+
   TypeInferenceEngine(this.instrumentation);
 
   /// Creates a type inferrer for use inside of a method body declared in a file
@@ -461,9 +468,16 @@ class OperationsCfe
   /// non-final field or a concrete getter.
   final Set<String>? unpromotablePrivateFieldNames;
 
+  final Map<DartType, DartType> typeCacheNonNullable;
+  final Map<DartType, DartType> typeCacheNullable;
+  final Map<DartType, DartType> typeCacheLegacy;
+
   OperationsCfe(this.typeEnvironment,
       {required this.isNonNullableByDefault,
-      this.unpromotablePrivateFieldNames});
+      this.unpromotablePrivateFieldNames,
+      required this.typeCacheNonNullable,
+      required this.typeCacheNullable,
+      required this.typeCacheLegacy});
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -516,7 +530,48 @@ class OperationsCfe
 
   @override
   DartType promoteToNonNull(DartType type) {
-    return type.toNonNull();
+    if (type.nullability == Nullability.nonNullable) {
+      return type;
+    }
+    DartType? cached = typeCacheNonNullable[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.toNonNull();
+    typeCacheNonNullable[type] = result;
+    return result;
+  }
+
+  DartType getNullableType(DartType type) {
+    // Note that the [IntersectionType.withDeclaredNullability] is special so
+    // we don't trust it.
+    if (type.declaredNullability == Nullability.nullable &&
+        type is! IntersectionType) {
+      return type;
+    }
+    DartType? cached = typeCacheNullable[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.withDeclaredNullability(Nullability.nullable);
+    typeCacheNullable[type] = result;
+    return result;
+  }
+
+  DartType getLegacyType(DartType type) {
+    // Note that the [IntersectionType.withDeclaredNullability] is special so
+    // we don't trust it.
+    if (type.declaredNullability == Nullability.legacy &&
+        type is! IntersectionType) {
+      return type;
+    }
+    DartType? cached = typeCacheLegacy[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.withDeclaredNullability(Nullability.legacy);
+    typeCacheLegacy[type] = result;
+    return result;
   }
 
   @override

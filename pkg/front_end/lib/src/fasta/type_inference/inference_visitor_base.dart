@@ -182,9 +182,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
-  /// [isAssignable].
-  Operations<VariableDeclaration, DartType> get operations =>
-      _inferrer.operations;
+  /// [isAssignable] and for caching types.
+  OperationsCfe get cfeOperations => _inferrer.operations;
 
   TypeSchemaEnvironment get typeSchemaEnvironment =>
       _inferrer.typeSchemaEnvironment;
@@ -228,7 +227,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (type is NullType || type is NeverType) {
       return const NullType();
     }
-    return type.withDeclaredNullability(libraryBuilder.nullable);
+    if (libraryBuilder.isNonNullableByDefault) {
+      return cfeOperations.getNullableType(type);
+    } else {
+      return cfeOperations.getLegacyType(type);
+    }
   }
 
   Expression createReachabilityError(
@@ -393,7 +396,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   bool isAssignable(DartType contextType, DartType expressionType) =>
-      operations.isAssignableTo(expressionType, contextType);
+      cfeOperations.isAssignableTo(expressionType, contextType);
 
   /// Ensures that [expressionType] is assignable to [contextType].
   ///

@@ -108,7 +108,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Class? mapEntryClass;
 
   @override
-  final Operations<VariableDeclaration, DartType> operations;
+  final OperationsCfe operations;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -4912,7 +4912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     reportNonNullableInNullAwareWarningIfNeeded(
         operandType, "!", node.operand.fileOffset);
     flowAnalysis.nonNullAssert_end(node.operand);
-    DartType nonNullableResultType = operandType.toNonNull();
+    DartType nonNullableResultType = operations.promoteToNonNull(operandType);
     return createNullAwareExpressionInferenceResult(
         nonNullableResultType, node, nullAwareGuards);
   }
@@ -6068,8 +6068,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new InstrumentationValueForMember(equalsTarget.member!));
     }
     DartType rightType = equalsTarget.getBinaryOperandType(this);
-    rightResult = ensureAssignableResult(
-        rightType.withDeclaredNullability(libraryBuilder.nullable), rightResult,
+    if (libraryBuilder.isNonNullableByDefault) {
+      rightType = operations.getNullableType(rightType);
+    } else {
+      rightType = operations.getLegacyType(rightType);
+    }
+    DartType contextType =
+        rightType.withDeclaredNullability(libraryBuilder.nullable);
+    rightResult = ensureAssignableResult(contextType, rightResult,
         errorTemplate: templateArgumentTypeNotAssignable,
         nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
         nullabilityPartErrorTemplate:
