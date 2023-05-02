@@ -102,12 +102,17 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// [handler] must _always_ call [sendResponse], even if the response does not
   /// require a body.
   ///
+  /// [responseWriter] is a function that will be provided the response to be
+  /// sent on the stream. It is critical that this sends the response
+  /// synchronously because additional events may be sent by handlers that must
+  /// come after it.
+  ///
   /// If [handler] throws, its exception will be sent as an error response.
   Future<void> handle<TArg, TResp>(
     Request request,
     RequestHandler<TArg, TResp> handler,
     TArg Function(Map<String, Object?>) fromJson,
-    Completer<Response> completer,
+    void Function(Response) responseWriter,
   ) async {
     try {
       final args = request.arguments != null
@@ -131,7 +136,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
           command: request.command,
           body: responseBody,
         );
-        completer.complete(response);
+        responseWriter(response);
       }
 
       await handler(request, args, sendResponse);
@@ -146,7 +151,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         message: e is DebugAdapterException ? e.message : '$e',
         body: '$s',
       );
-      completer.complete(response);
+      responseWriter(response);
     }
   }
 
@@ -271,7 +276,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// Handles incoming messages from the client editor.
   void _handleIncomingMessage(ProtocolMessage message) {
     if (message is Request) {
-      handleIncomingRequest(message).then(_channel.sendResponse);
+      handleIncomingRequest(message, _channel.sendResponse);
     } else if (message is Response) {
       _handleIncomingResponse(message);
     } else {
@@ -280,152 +285,156 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   }
 
   /// Handles an incoming request, calling the appropriate method to handle it.
-  Future<Response> handleIncomingRequest(Request request) {
-    final completer = Completer<Response>();
-
+  ///
+  /// [responseWriter] is a function that will be provided the response to be
+  /// sent on the stream. It is critical that this sends the response
+  /// synchronously because additional events may be sent by handlers that must
+  /// come after it.
+  void handleIncomingRequest(
+    Request request,
+    void Function(Response) responseWriter,
+  ) {
     if (request.command == 'initialize') {
       handle(
         request,
         initializeRequest,
         InitializeRequestArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'launch') {
       handle(
         request,
         _withVoidResponse(launchRequest),
         parseLaunchArgs,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'attach') {
       handle(
         request,
         _withVoidResponse(attachRequest),
         parseAttachArgs,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'restart') {
       handle(
         request,
         _withVoidResponse(restartRequest),
         _allowNullArg(RestartArguments.fromJson),
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'terminate') {
       handle(
         request,
         _withVoidResponse(terminateRequest),
         _allowNullArg(TerminateArguments.fromJson),
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'disconnect') {
       handle(
         request,
         _withVoidResponse(disconnectRequest),
         _allowNullArg(DisconnectArguments.fromJson),
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'configurationDone') {
       handle(
         request,
         _withVoidResponse(configurationDoneRequest),
         _allowNullArg(ConfigurationDoneArguments.fromJson),
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'setBreakpoints') {
       handle(
         request,
         setBreakpointsRequest,
         SetBreakpointsArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'setExceptionBreakpoints') {
       handle(
         request,
         setExceptionBreakpointsRequest,
         SetExceptionBreakpointsArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'continue') {
       handle(
         request,
         continueRequest,
         ContinueArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'next') {
       handle(
         request,
         _withVoidResponse(nextRequest),
         NextArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'stepIn') {
       handle(
         request,
         _withVoidResponse(stepInRequest),
         StepInArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'stepOut') {
       handle(
         request,
         _withVoidResponse(stepOutRequest),
         StepOutArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'threads') {
       handle(
         request,
         threadsRequest,
         _voidArgs,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'stackTrace') {
       handle(
         request,
         stackTraceRequest,
         StackTraceArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'source') {
       handle(
         request,
         sourceRequest,
         SourceArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'scopes') {
       handle(
         request,
         scopesRequest,
         ScopesArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'variables') {
       handle(
         request,
         variablesRequest,
         VariablesArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else if (request.command == 'evaluate') {
       handle(
         request,
         evaluateRequest,
         EvaluateArguments.fromJson,
-        completer,
+        responseWriter,
       );
     } else {
       handle(
         request,
         customRequest,
         _allowNullArg(RawRequestArguments.fromJson),
-        completer,
+        responseWriter,
       );
     }
-
-    return completer.future;
   }
 
   void _handleIncomingResponse(Response response) {

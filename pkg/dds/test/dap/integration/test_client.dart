@@ -468,7 +468,8 @@ class DapTestClient {
 
   /// Handles an incoming message from the server, completing the relevant request
   /// of raising the appropriate event.
-  Future<void> _handleMessage(message) async {
+  Future<void> _handleMessage(ProtocolMessage message) async {
+    _verifyMessageOrdering(message);
     if (message is Response) {
       final pendingRequest = _pendingRequests.remove(message.requestSeq);
       if (pendingRequest == null) {
@@ -519,6 +520,43 @@ class DapTestClient {
     });
     return future.whenComplete(timer.cancel);
   }
+
+  /// Ensures that protocol messages are received in the correct order where
+  /// ordering matters.
+  void _verifyMessageOrdering(ProtocolMessage message) {
+    if (message is Event) {
+      if (message.event == 'initialized' &&
+          !_receivedResponses.contains('initialize')) {
+        throw StateError(
+          'Adapter sent "initialized" event before the "initialize" request had '
+          'been responded to',
+        );
+      }
+
+      _receivedEvents.add(message.event);
+    } else if (message is Response) {
+      if (message.command == 'initialize' &&
+          _receivedEvents.contains('initialized')) {
+        throw StateError(
+          'Adapter sent a response to an "initialize" request after it had '
+          'already send the "initialized" event',
+        );
+      }
+
+      _receivedResponses.add(message.command);
+    }
+  }
+
+  /// A list of all event names that have been received during this session.
+  ///
+  /// Used by [_verifyMessageOrdering].
+  final _receivedEvents = <String>{};
+
+  /// A list of all request names that have been responded to during this
+  /// session.
+  ///
+  /// Used by [_verifyMessageOrdering].
+  final _receivedResponses = <String>{};
 
   /// Creates a [DapTestClient] that connects the server listening on
   /// [host]:[port].

@@ -631,7 +631,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     logger?.call('Connecting to debugger at $uri');
-    sendConsoleOutput('Connecting to VM Service at $uri\n');
+    sendConsoleOutput('Connecting to VM Service at $uri');
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
@@ -1065,10 +1065,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _hasSentTerminatedEvent = true;
 
     // Always add a leading newline since the last written text might not have
-    // had one. Send directly via sendEvent and not sendOutput to ensure no
-    // async since we're about to terminate.
+    // had one.
     final reason = isDetaching ? 'Detached' : 'Exited';
-    sendEvent(OutputEventBody(output: '\n$reason$exitSuffix.'));
+    sendConsoleOutput('\n$reason$exitSuffix.');
     sendEvent(TerminatedEventBody());
   }
 
@@ -1272,9 +1271,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(ScopesResponseBody(scopes: scopes));
   }
 
-  /// Sends an OutputEvent with a newline to the console.
-  void sendConsoleOutput(String message) {
-    sendOutput('console', '\n$message');
+  /// Sends an OutputEvent with a trailing newline to the console.
+  ///
+  /// This method sends output directly and does not go through [sendOutput]
+  /// because that method is async and queues output. Console output is for
+  /// adapter-level output that does not require this and we want to ensure
+  /// it's sent immediately (for example during shutdown/exit).
+  void sendConsoleOutput(String? message) {
+    sendEvent(OutputEventBody(output: '$message\n'));
   }
 
   /// Sends an OutputEvent (without a newline, since calls to this method

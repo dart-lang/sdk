@@ -105,7 +105,7 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     terminatePids(ProcessSignal.sigterm);
   }
 
-  Future<Response> handleMessage(String message) async {
+  void handleMessage(String message, void Function(Response) responseWriter) {
     final potentialException =
         DebugAdapterException('Message does not conform to DAP spec: $message');
 
@@ -113,10 +113,11 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       final Map<String, Object?> json = jsonDecode(message);
       final type = json['type'] as String;
       if (type == 'request') {
-        return handleIncomingRequest(Request.fromJson(json));
+        handleIncomingRequest(Request.fromJson(json), responseWriter);
         // TODO(helin24): Handle event and response?
+      } else {
+        throw potentialException;
       }
-      throw potentialException;
     } catch (e) {
       throw potentialException;
     }

@@ -422,21 +422,18 @@ class IsolateManager {
         return result;
       } else if (result is vm.ErrorRef) {
         final message = result.message ?? '<error ref>';
-        _adapter.sendOutput(
-          'console',
-          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
+        _adapter.sendConsoleOutput(
+          'Debugger failed to evaluate breakpoint $type "$expression": $message',
         );
       } else if (result is vm.Sentinel) {
         final message = result.valueAsString ?? '<collected>';
-        _adapter.sendOutput(
-          'console',
-          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
+        _adapter.sendConsoleOutput(
+          'Debugger failed to evaluate breakpoint $type "$expression": $message',
         );
       }
     } catch (e) {
-      _adapter.sendOutput(
-        'console',
-        'Debugger failed to evaluate breakpoint $type "$expression": $e\n',
+      _adapter.sendConsoleOutput(
+        'Debugger failed to evaluate breakpoint $type "$expression": $e',
       );
     }
     return null;
@@ -682,7 +679,7 @@ class IsolateManager {
 
     for (final messageResult in results) {
       // TODO(dantup): Format this using other existing code in protocol converter?
-      _adapter.sendOutput('console', '${messageResult?.valueAsString}\n');
+      _adapter.sendConsoleOutput(messageResult?.valueAsString);
     }
   }
 
