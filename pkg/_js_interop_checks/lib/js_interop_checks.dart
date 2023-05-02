@@ -272,9 +272,9 @@ class JsInteropChecks extends RecursiveVisitor {
               node.fileUri);
         }
       }
-      // For non-inline classes, `dart:_js_annotations`'s `@JS` can only be used
+      // For non-inline classes, `dart:js_interop`'s `@JS` can only be used
       // with `@staticInterop`.
-      if (hasJSAnnotationsJSAnnotation(node)) {
+      if (hasDartJSInteropAnnotation(node)) {
         _diagnosticsReporter.report(
             messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
             node.fileOffset,

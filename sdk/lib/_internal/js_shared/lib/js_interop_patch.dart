@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' as foreign_helper;
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
 import 'dart:js_util' as js_util;
@@ -19,11 +19,12 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
       this == null || js_util.typeofEquals(this, 'undefined');
 
   @patch
-  bool get isNull => this == null || JS('bool', '# === null', this);
+  bool get isNull =>
+      this == null || foreign_helper.JS('bool', '# === null', this);
 
   @patch
   JSBoolean typeofEquals(JSString typeString) =>
-      JS('bool', 'typeof # === #', this, typeString);
+      foreign_helper.JS('bool', 'typeof # === #', this, typeString);
 
   @patch
   Object? dartify() => js_util.dartify(this);
@@ -39,7 +40,7 @@ extension NullableObjectUtilExtension on Object? {
 extension JSObjectUtilExtension on JSObject {
   @patch
   JSBoolean instanceof(JSFunction constructor) =>
-      JS('bool', '# instanceof #', this, constructor);
+      foreign_helper.JS('bool', '# instanceof #', this, constructor);
 }
 
 /// [JSExportedDartFunction] <-> [Function]

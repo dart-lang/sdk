@@ -8,7 +8,6 @@ import 'dart:typed_data';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);

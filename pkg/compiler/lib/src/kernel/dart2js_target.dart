@@ -130,7 +130,8 @@ class Dart2jsTarget extends Target {
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       maybeEnableNative(importer) ||
       (importer.isScheme('package') &&
-          importer.path.startsWith('dart2js_runtime_metrics/'));
+          (importer.path.startsWith('dart2js_runtime_metrics/') ||
+              importer.path == 'js/js.dart'));
 
   @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);

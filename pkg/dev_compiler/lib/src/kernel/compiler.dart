@@ -2835,7 +2835,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.LiteralString? _emitJSInteropExternalStaticMemberName(NamedNode n) {
     if (!usesJSInterop(n)) return null;
     if (n is Member && !n.isExternal) return null;
-    var name = _annotationName(n, isPublicJSAnnotation) ?? getTopLevelName(n);
+    var name = _annotationName(n, isJSInteropAnnotation) ?? getTopLevelName(n);
     assert(!name.contains('.'),
         'JS interop checker rejects dotted names on static class members');
     return js.escapedString(name, "'");
@@ -2911,8 +2911,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   String? _jsNameWithoutGlobal(NamedNode n) {
     if (!usesJSInterop(n)) return null;
-    var libraryJSName = _annotationName(getLibrary(n), isPublicJSAnnotation);
-    var jsName = _annotationName(n, isPublicJSAnnotation) ?? getTopLevelName(n);
+    var libraryJSName = _annotationName(getLibrary(n), isJSInteropAnnotation);
+    var jsName =
+        _annotationName(n, isJSInteropAnnotation) ?? getTopLevelName(n);
     return libraryJSName != null ? '$libraryJSName.$jsName' : jsName;
   }
 
