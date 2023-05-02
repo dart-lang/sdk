@@ -763,19 +763,9 @@ final class SameSite {
 
   static SameSite _byName(String name) {
     for (var value in values) {
-      if (_equalIgnoreCase(name, value.name)) return value;
+      if (name.toLowerCase() == value.name.toLowerCase()) return value;
     }
     throw HttpException('SameSite value should be one of Lax, Strict or None.');
-  }
-
-  static bool _equalIgnoreCase(String text, String lowerCaseAsciiTarget) {
-    var length = lowerCaseAsciiTarget.length;
-    if (length != text.length) return false;
-    var delta = 0;
-    for (var i = 0; i < length; i++) {
-      delta |= text.codeUnitAt(i) ^ lowerCaseAsciiTarget.codeUnitAt(i);
-    }
-    return (delta & ~0x20) == 0;
   }
 
   @override
