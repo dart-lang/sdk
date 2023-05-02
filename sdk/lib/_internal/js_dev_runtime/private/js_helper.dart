@@ -184,6 +184,23 @@ class Primitives {
     return delta == 0x20;
   }
 
+  static String stringSafeToString(String str) {
+    return JS<String>('!', 'JSON.stringify(#)', str);
+  }
+
+  static String safeToString(obj) {
+    if (obj == null || obj is num || obj is bool) {
+      return obj.toString();
+    }
+    if (obj is String) {
+      return stringSafeToString(obj);
+    }
+    if (obj is dart.RecordImpl) {
+      return dart.recordSafeToString(obj);
+    }
+    return "Instance of '${dart.typeName(dart.getReifiedType(obj))}'";
+  }
+
   /** `r"$".codeUnitAt(0)` */
   static const int DOLLAR_CHAR_VALUE = 36;
 

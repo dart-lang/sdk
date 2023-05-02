@@ -40,6 +40,7 @@ import 'dart:_js_helper'
         TypeErrorImpl,
         JsLinkedHashMap,
         ImmutableMap,
+        Primitives,
         PrivateSymbol,
         ReifyFunctionTypes,
         NoReifyGeneric,
@@ -51,10 +52,13 @@ import 'dart:_rti' as rti
         createRuntimeType,
         constructorRtiCachePropertyName,
         findType,
+        getFunctionParametersForDynamicChecks,
         instanceType,
         interfaceTypeRecipePropertyName,
+        isGenericFunctionType,
         isSubtype,
-        Rti;
+        Rti,
+        rtiToString;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
@@ -62,6 +66,7 @@ part 'utils.dart';
 part 'classes.dart';
 part 'rtti.dart';
 part 'types.dart';
+part 'records.dart';
 part 'errors.dart';
 part 'operations.dart';
 

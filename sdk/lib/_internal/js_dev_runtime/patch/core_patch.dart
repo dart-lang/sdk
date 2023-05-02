@@ -321,12 +321,12 @@ abstract class num implements Comparable<num> {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
+    return Primitives.safeToString(object);
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    return JS("String", "JSON.stringify(#)", string);
+    return Primitives.stringSafeToString(string);
   }
 
   @patch

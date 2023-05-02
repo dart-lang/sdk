@@ -341,7 +341,7 @@ bool isJsInterop(obj) {
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
 
   // Exclude record types.
-  if (_jsInstanceOf(obj, _RecordImpl)) return false;
+  if (_jsInstanceOf(obj, RecordImpl)) return false;
   return !_jsInstanceOf(obj, Object);
 }
 
@@ -356,6 +356,13 @@ getSetterType(type, name) {
   var setters = getSetters(type);
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
+    // TODO(nshahan): setters object has properties installed on the global
+    // Object that requires some extra validation to ensure they are intended
+    // as setters. ex: dartx.hashCode, dartx._equals, dartx.toString etc.
+    //
+    // There is a value mapped to 'toString' in setters so broken code like this
+    // results in very confusing behavior:
+    // `d.toString = 99;`
     if (type != null) {
       return type;
     }

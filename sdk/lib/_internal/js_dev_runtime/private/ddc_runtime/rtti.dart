@@ -84,7 +84,7 @@ getFunctionType(obj) {
 }
 
 // Compute and cache reified record type.
-RecordType getRecordType(_RecordImpl obj) {
+RecordType getRecordType(RecordImpl obj) {
   var type = JS<RecordType?>('', '#[#]', obj, _runtimeType);
   if (type == null) {
     var shape = obj.shape;
@@ -179,7 +179,7 @@ getReifiedType(obj) {
     switch (JS<String>('!', 'typeof #', obj)) {
       case "object":
         if (obj == null) return JS('', '#', Null);
-        if (_jsInstanceOf(obj, _RecordImpl)) {
+        if (_jsInstanceOf(obj, RecordImpl)) {
           return getRecordType(obj);
         }
         if (_jsInstanceOf(obj, Object)) {

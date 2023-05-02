@@ -28,7 +28,10 @@ class InvocationImpl extends Invocation {
             isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
         positionalArguments = List.unmodifiable(positionalArguments),
         namedArguments = _namedArgsToSymbols(namedArguments),
-        typeArguments = List.unmodifiable(typeArguments.map(wrapType));
+        typeArguments = List.unmodifiable(typeArguments.map(
+            JS_GET_FLAG('NEW_RUNTIME_TYPES')
+                ? (t) => rti.createRuntimeType(JS<rti.Rti>('!', '#', t))
+                : wrapType));
 
   static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
     if (namedArgs == null) return const {};
@@ -81,7 +84,14 @@ bindCall(obj, name) {
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  JS('', '#[#] = #', f, _runtimeType, ftype);
+  JS(
+      '',
+      '#[#] = #',
+      f,
+      JS_GET_FLAG('NEW_RUNTIME_TYPES')
+          ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
+          : _runtimeType,
+      ftype);
   return f;
 }
 
@@ -90,17 +100,22 @@ bindCall(obj, name) {
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
 gbind(f, @rest List<Object> typeArgs) {
-  GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
-  type.checkBounds(typeArgs);
-  // Create a JS wrapper function that will also pass the type arguments.
-  var result =
-      JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
-  // Tag the wrapper with the original function to be used for equality checks.
-  JS('', '#["_originalFn"] = #', result, f);
-  JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    throw 'TODO: Support tearing off generic methods';
+  } else {
+    GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
+    type.checkBounds(typeArgs);
+    // Create a JS wrapper function that will also pass the type arguments.
+    var result =
+        JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
+    // Tag the wrapper with the original function to be used for equality
+    // checks.
+    JS('', '#["_originalFn"] = #', result, f);
+    JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
 
-  // Tag the wrapper with the instantiated function type.
-  return fn(result, type.instantiate(typeArgs));
+    // Tag the wrapper with the instantiated function type.
+    return fn(result, type.instantiate(typeArgs));
+  }
 }
 
 dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field));
@@ -122,7 +137,7 @@ dload(obj, field) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Handle record types by trying to access [f] via convenience getters.
-    if (_jsInstanceOf(obj, _RecordImpl) && f is String) {
+    if (_jsInstanceOf(obj, RecordImpl) && f is String) {
       // It is a compile-time error for record names to clash, so we don't
       // need to check the positionals or named elements in any order.
       var value = JS('', '#.#', obj, f);
@@ -149,7 +164,16 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
+      if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+        return compileTimeFlag('soundNullSafety')
+            // Call the 'as' method directly in sound mode.
+            ? JS('', '#[#] = #.#(#)', obj, f, setterType,
+                JS_GET_NAME(JsGetName.RTI_FIELD_AS), value)
+            // Call `cast` in weak mode to provide optional warnings or errors.
+            : JS('', '#[#] = #', obj, f, cast(value, setterType));
+      } else {
+        return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
+      }
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
@@ -163,68 +187,170 @@ dput(obj, field, value) {
 /// [actuals] and [namedActuals].
 ///
 /// Returns `null` if all checks pass.
-String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
-  // Check for too few required arguments.
-  int actualsCount = JS('!', '#.length', actuals);
-  var required = type.args;
-  int requiredCount = JS('!', '#.length', required);
-  if (actualsCount < requiredCount) {
-    return 'Dynamic call with too few arguments. '
-        'Expected: $requiredCount Actual: $actualsCount';
-  }
-
-  // Check for too many postional arguments.
-  var extras = actualsCount - requiredCount;
-  var optionals = type.optionals;
-  if (extras > JS<int>('!', '#.length', optionals)) {
-    return 'Dynamic call with too many arguments. '
-        'Expected: $requiredCount Actual: $actualsCount';
-  }
-
-  // Check if we have invalid named arguments.
-  Iterable? names;
-  var named = type.named;
-  var requiredNamed = type.requiredNamed;
-  if (namedActuals != null) {
-    names = getOwnPropertyNames(namedActuals);
-    for (var name in names) {
-      if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named,
-          name, requiredNamed, name)) {
-        return "Dynamic call with unexpected named argument '$name'.";
+// TODO(48585): Revise argument types after removing old type representation.
+String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    var functionParameters = rti.getFunctionParametersForDynamicChecks(type);
+    // Check for too few positional arguments.
+    var requiredPositional =
+        JS('!', '#.requiredPositional', functionParameters);
+    var requiredCount = JS<int>('!', '#.length', requiredPositional);
+    var actualsCount = actuals.length;
+    if (actualsCount < requiredCount) {
+      return 'Dynamic call with too few required positional arguments. '
+          'Expected: $requiredCount Actual: $actualsCount';
+    }
+    // Check for too many positional arguments.
+    var extras = actualsCount - requiredCount;
+    var optionalPositional =
+        JS('!', '#.optionalPositional', functionParameters);
+    var optionalPositionalCount = JS<int>('!', '#.length', optionalPositional);
+    if (extras > optionalPositionalCount) {
+      var maxPositionalCount = requiredCount + optionalPositionalCount;
+      var expected = requiredCount == maxPositionalCount
+          ? '$maxPositionalCount'
+          : '$requiredCount - $maxPositionalCount';
+      return 'Dynamic call with too many positional arguments. '
+          'Expected: $expected '
+          'Actual: $actualsCount';
+    }
+    // Check if we have invalid named arguments.
+    Iterable? names;
+    var requiredNamed = JS('!', '#.requiredNamed', functionParameters);
+    var optionalNamed = JS('!', '#.optionalNamed', functionParameters);
+    if (namedActuals != null) {
+      names = getOwnPropertyNames(namedActuals);
+      for (var name in names) {
+        if (!JS<bool>('!', '#.hasOwnProperty(#) || #.hasOwnProperty(#)',
+            requiredNamed, name, optionalNamed, name)) {
+          return "Dynamic call with unexpected named argument '$name'.";
+        }
       }
     }
-  }
-  // Verify that all required named parameters are provided an argument.
-  Iterable requiredNames = getOwnPropertyNames(requiredNamed);
-  if (requiredNames.isNotEmpty) {
-    var missingRequired = namedActuals == null
-        ? requiredNames
-        : requiredNames.where((name) =>
-            !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
-    if (missingRequired.isNotEmpty) {
-      var error = "Dynamic call with missing required named arguments: "
-          "${missingRequired.join(', ')}.";
-      if (!compileTimeFlag('soundNullSafety')) {
-        _nullWarn(error);
-      } else {
-        return error;
+    // Verify that all required named parameters are provided an argument.
+    if (requiredCount > 0) {
+      Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+      var missingRequired = namedActuals == null
+          ? requiredNames
+          : requiredNames.where((name) =>
+              !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
+      if (missingRequired.isNotEmpty) {
+        var argNames = JS<String>('!', '#.join(", ")', missingRequired);
+        var error = "Dynamic call with missing required named arguments: "
+            "$argNames.";
+        if (!compileTimeFlag('soundNullSafety')) {
+          _nullWarn(error);
+        } else {
+          return error;
+        }
       }
     }
-  }
-  // Now that we know the signature matches, we can perform type checks.
-  for (var i = 0; i < requiredCount; ++i) {
-    JS('', '#[#].as(#[#])', required, i, actuals, i);
-  }
-  for (var i = 0; i < extras; ++i) {
-    JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
-  }
-  if (names != null) {
-    for (var name in names) {
-      JS('', '(#[#] || #[#]).as(#[#])', named, name, requiredNamed, name,
-          namedActuals, name);
+    // Now that we know the signature matches, we can perform type checks.
+    if (compileTimeFlag('soundNullSafety')) {
+      // Call the 'as' method directly in sound mode.
+      for (var i = 0; i < requiredCount; ++i) {
+        var requiredRti = JS<rti.Rti>('!', '#[#]', requiredPositional, i);
+        var passedValue = JS('', '#[#]', actuals, i);
+        JS('', '#.#(#)', requiredRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+            passedValue);
+      }
+      for (var i = 0; i < extras; ++i) {
+        var optionalRti = JS<rti.Rti>('!', '#[#]', optionalPositional, i);
+        var passedValue = JS('', '#[#]', actuals, i + requiredCount);
+        JS('', '#.#(#)', optionalRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+            passedValue);
+      }
+      if (names != null) {
+        for (var name in names) {
+          var namedRti = JS<rti.Rti>(
+              '!', '#[#] || #[#]', requiredNamed, name, optionalNamed, name);
+          var passedValue = JS('', '#[#]', namedActuals, name);
+          JS('', '#.#(#)', namedRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+              passedValue);
+        }
+      }
+    } else {
+      // Call `cast` in weak mode to provide optional warnings or errors.
+      for (var i = 0; i < requiredCount; ++i) {
+        cast(JS('', '#[#]', actuals, i), JS('', '#[#]', requiredPositional, i));
+      }
+      for (var i = 0; i < extras; ++i) {
+        cast(JS('', '#[#]', actuals, i + requiredCount),
+            JS('', '#[#]', optionalPositional, i));
+      }
+      if (names != null) {
+        for (var name in names) {
+          cast(JS('', '#[#]', namedActuals, name),
+              JS('', '#[#] || #[#]', requiredNamed, name, optionalNamed, name));
+        }
+      }
     }
+    return null;
+  } else {
+    // Old types, sound and weak null safety follow the same code path.
+    var fType = JS<FunctionType>('!', '#', type);
+    // Check for too few required arguments.
+    int actualsCount = JS('!', '#.length', actuals);
+    var required = fType.args;
+    int requiredCount = JS('!', '#.length', required);
+    if (actualsCount < requiredCount) {
+      return 'Dynamic call with too few arguments. '
+          'Expected: $requiredCount Actual: $actualsCount';
+    }
+
+    // Check for too many postional arguments.
+    var extras = actualsCount - requiredCount;
+    var optionals = fType.optionals;
+    if (extras > JS<int>('!', '#.length', optionals)) {
+      return 'Dynamic call with too many arguments. '
+          'Expected: $requiredCount Actual: $actualsCount';
+    }
+
+    // Check if we have invalid named arguments.
+    Iterable? names;
+    var named = fType.named;
+    var requiredNamed = fType.requiredNamed;
+    if (namedActuals != null) {
+      names = getOwnPropertyNames(namedActuals);
+      for (var name in names) {
+        if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))',
+            named, name, requiredNamed, name)) {
+          return "Dynamic call with unexpected named argument '$name'.";
+        }
+      }
+    }
+    // Verify that all required named parameters are provided an argument.
+    Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+    if (requiredNames.isNotEmpty) {
+      var missingRequired = namedActuals == null
+          ? requiredNames
+          : requiredNames.where((name) =>
+              !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
+      if (missingRequired.isNotEmpty) {
+        var error = "Dynamic call with missing required named arguments: "
+            "${missingRequired.join(', ')}.";
+        if (!compileTimeFlag('soundNullSafety')) {
+          _nullWarn(error);
+        } else {
+          return error;
+        }
+      }
+    }
+    // Now that we know the signature matches, we can perform type checks.
+    for (var i = 0; i < requiredCount; ++i) {
+      JS('', '#[#].as(#[#])', required, i, actuals, i);
+    }
+    for (var i = 0; i < extras; ++i) {
+      JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
+    }
+    if (names != null) {
+      for (var name in names) {
+        JS('', '(#[#] || #[#]).as(#[#])', named, name, requiredNamed, name,
+            namedActuals, name);
+      }
+    }
+    return null;
   }
-  return null;
 }
 
 _toSymbolName(symbol) => JS('', '''(() => {
@@ -275,6 +401,7 @@ Symbol _setterSymbol(name) {
 ///
 /// NOTE: The contents of [args] may be modified before calling [f]. If it
 /// originated outside of the SDK it must be copied first.
+// TODO(48585) Revise argument types after removing old type representation.
 _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   trackCall(obj);
   var originalTarget = JS<bool>('!', '# === void 0', obj) ? f : obj;
@@ -311,7 +438,11 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   // If f is a function, but not a method (no method type)
   // then it should have been a function valued field, so
   // get the type from the function.
-  if (ftype == null) ftype = JS('', '#[#]', f, _runtimeType);
+  if (ftype == null) {
+    ftype = JS_GET_FLAG('NEW_RUNTIME_TYPES')
+        ? JS<rti.Rti?>('', '#[#]', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME))
+        : JS('', '#[#]', f, _runtimeType);
+  }
 
   if (ftype == null) {
     // TODO(leafp): Allow JS objects to go through?
@@ -333,34 +464,40 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   }
 
   // Apply type arguments
-  if (_jsInstanceOf(ftype, GenericFunctionType)) {
-    var formalCount = JS<int>('!', '#.formalCount', ftype);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    if (rti.isGenericFunctionType(ftype)) {
+      throw 'TODO: Support dynamic calls of functions with generic type '
+          'arguments.';
+    }
+  } else {
+    if (_jsInstanceOf(ftype, GenericFunctionType)) {
+      var formalCount = JS<int>('!', '#.formalCount', ftype);
 
-    if (typeArgs == null) {
-      typeArgs = JS<List>('!', '#.instantiateDefaultBounds()', ftype);
-    } else if (JS<bool>('!', '#.length != #', typeArgs, formalCount)) {
-      return callNSM('Dynamic call with incorrect number of type arguments. ' +
-          'Expected: ' +
-          // Not a String but historically relying on the default JavaScript
-          // behavior.
-          JS<String>('!', '#', formalCount) +
-          ' Actual: ' +
+      if (typeArgs == null) {
+        typeArgs = JS<List>('!', '#.instantiateDefaultBounds()', ftype);
+      } else if (JS<bool>('!', '#.length != #', typeArgs, formalCount)) {
+        return callNSM(
+            'Dynamic call with incorrect number of type arguments. Expected: ' +
+                // Not a String but historically relying on the default
+                // JavaScript behavior.
+                JS<String>('!', '#', formalCount) +
+                ' Actual: ' +
+                // Not a String but historically relying on the default
+                // JavaScript behavior.
+                JS<String>('!', '#.length', typeArgs));
+      } else {
+        JS('', '#.checkBounds(#)', ftype, typeArgs);
+      }
+      ftype = JS('', '#.instantiate(#)', ftype, typeArgs);
+    } else if (typeArgs != null) {
+      return callNSM('Dynamic call with unexpected type arguments. ' +
+          'Expected: 0 Actual: ' +
           // Not a String but historically relying on the default JavaScript
           // behavior.
           JS<String>('!', '#.length', typeArgs));
-    } else {
-      JS('', '#.checkBounds(#)', ftype, typeArgs);
     }
-    ftype = JS('', '#.instantiate(#)', ftype, typeArgs);
-  } else if (typeArgs != null) {
-    return callNSM('Dynamic call with unexpected type arguments. ' +
-        'Expected: 0 Actual: ' +
-        // Not a String but historically relying on the default JavaScript
-        // behavior.
-        JS<String>('!', '#.length', typeArgs));
   }
-  var errorMessage = _argumentErrors(
-      JS<FunctionType>('!', '#', ftype), JS<List>('!', '#', args), named);
+  var errorMessage = _argumentErrors(ftype, JS<List>('!', '#', args), named);
   if (errorMessage == null) {
     if (typeArgs != null) args = JS('', '#.concat(#)', typeArgs, args);
     if (named != null) JS('', '#.push(#)', args, named);
@@ -495,13 +632,6 @@ bool instanceOf(obj, type) {
 /// is handled here.
 @JSExportName('as')
 cast(obj, type) {
-  // We hoist the common case where null is checked against another type here
-  // for better performance.
-  if (obj == null && !compileTimeFlag('soundNullSafety')) {
-    // Check the null comparison cache to avoid emitting repeated warnings.
-    _nullWarnOnType(type);
-    return obj;
-  }
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     // When running without sound null safety casts are dispatched here to issue
     // optional warnings/errors when casts pass but would fail with sound null
@@ -517,13 +647,20 @@ cast(obj, type) {
     legacyTypeChecks = true;
     if (result) return obj;
     // Perform the actual cast and allow the error to be thrown if it fails.
-    JS('bool', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), obj);
+    JS('', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), obj);
     // Subtype check passes put would fail with sound null safety.
     var t1 = runtimeType(obj);
     var t2 = rti.createRuntimeType(testRti);
     _nullWarn('$t1 is not a subtype of $t2.');
     return obj;
   } else {
+    // We hoist the common case where null is checked against another type here
+    // for better performance.
+    if (obj == null && !compileTimeFlag('soundNullSafety')) {
+      // Check the null comparison cache to avoid emitting repeated warnings.
+      _nullWarnOnType(type);
+      return obj;
+    }
     var actual = getReifiedType(obj);
     if (isSubtypeOf(actual, type)) return obj;
     return castError(obj, type);
