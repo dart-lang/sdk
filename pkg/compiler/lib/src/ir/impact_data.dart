@@ -319,7 +319,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleConstructor(ir.Constructor node) {
-    if (node.isExternal) registerExternalConstructorNode(node);
+    registerConstructorNode(node);
   }
 
   @override
@@ -334,15 +334,13 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     } else {
       registerNullLiteral();
     }
-    // TODO(sigmund): only save relevant fields (e.g. those for jsinterop
-    // or native types).
     registerFieldNode(field);
   }
 
   @override
   void handleProcedure(ir.Procedure procedure) {
     handleAsyncMarker(procedure.function);
-    if (procedure.isExternal) registerExternalProcedureNode(procedure);
+    registerProcedureNode(procedure);
   }
 
   void _handleConstConstructorInvocation(ir.ConstructorInvocation node) {
@@ -988,8 +986,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerExternalConstructorNode(ir.Constructor node) {
-    (_data._externalConstructorNodes ??= []).add(node);
+  void registerConstructorNode(ir.Constructor node) {
+    (_data._constructorNodes ??= []).add(node);
   }
 
   @override
@@ -998,8 +996,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerExternalProcedureNode(ir.Procedure node) {
-    (_data._externalProcedureNodes ??= []).add(node);
+  void registerProcedureNode(ir.Procedure node) {
+    (_data._procedureNodes ??= []).add(node);
   }
 
   @override
@@ -1060,9 +1058,9 @@ class ImpactData {
   List<_ForInData>? _forInData;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
-  List<ir.Constructor>? _externalConstructorNodes;
+  List<ir.Constructor>? _constructorNodes;
   List<ir.Field>? _fieldNodes;
-  List<ir.Procedure>? _externalProcedureNodes;
+  List<ir.Procedure>? _procedureNodes;
   List<ir.SwitchStatement>? _switchStatementNodes;
   List<ir.StaticInvocation>? _foreignStaticInvocationNodes;
   bool _hasConstSymbolConstructorInvocation = false;
@@ -1130,9 +1128,9 @@ class ImpactData {
     _forInData = source.readListOrNull(() => _ForInData.fromDataSource(source));
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
-    _externalConstructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
+    _constructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
     _fieldNodes = source.readMemberNodesOrNull<ir.Field>();
-    _externalProcedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
+    _procedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
     _switchStatementNodes = source.readTreeNodesOrNull<ir.SwitchStatement>();
     _foreignStaticInvocationNodes =
         source.readTreeNodesOrNull<ir.StaticInvocation>();
@@ -1213,9 +1211,9 @@ class ImpactData {
     sink.writeList(_forInData, (_ForInData o) => o.toDataSink(sink),
         allowNull: true);
 
-    sink.writeMemberNodes(_externalConstructorNodes, allowNull: true);
+    sink.writeMemberNodes(_constructorNodes, allowNull: true);
     sink.writeMemberNodes(_fieldNodes, allowNull: true);
-    sink.writeMemberNodes(_externalProcedureNodes, allowNull: true);
+    sink.writeMemberNodes(_procedureNodes, allowNull: true);
     sink.writeTreeNodes(_switchStatementNodes, allowNull: true);
     sink.writeTreeNodes(_foreignStaticInvocationNodes, allowNull: true);
     sink.writeBool(_hasConstSymbolConstructorInvocation);
@@ -1530,9 +1528,9 @@ class ImpactData {
     }
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
-    if (_externalConstructorNodes != null) {
-      for (ir.Constructor data in _externalConstructorNodes!) {
-        registry.registerExternalConstructorNode(data);
+    if (_constructorNodes != null) {
+      for (ir.Constructor data in _constructorNodes!) {
+        registry.registerConstructorNode(data);
       }
     }
     if (_fieldNodes != null) {
@@ -1540,9 +1538,9 @@ class ImpactData {
         registry.registerFieldNode(data);
       }
     }
-    if (_externalProcedureNodes != null) {
-      for (ir.Procedure data in _externalProcedureNodes!) {
-        registry.registerExternalProcedureNode(data);
+    if (_procedureNodes != null) {
+      for (ir.Procedure data in _procedureNodes!) {
+        registry.registerProcedureNode(data);
       }
     }
     if (_switchStatementNodes != null) {
