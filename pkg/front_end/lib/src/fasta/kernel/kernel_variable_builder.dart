@@ -11,15 +11,15 @@ import '../builder/variable_builder.dart';
 
 class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   @override
-  final Builder parent;
-
-  @override
   final Uri fileUri;
 
   @override
   final VariableDeclaration variable;
 
-  VariableBuilderImpl(this.variable, this.parent, this.fileUri);
+  VariableBuilderImpl(this.variable, this.fileUri);
+
+  @override
+  Builder? get parent => null;
 
   @override
   int get charOffset => variable.fileOffset;

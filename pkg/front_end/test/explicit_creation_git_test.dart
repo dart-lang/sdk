@@ -173,7 +173,6 @@ class DietListenerTest extends DietListener {
         context: new BodyBuilderContext(
             libraryBuilder, currentDeclaration, builder,
             isDeclarationInstanceMember: isDeclarationInstanceMember),
-        member: builder,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
@@ -190,7 +189,6 @@ class BodyBuilderTest extends BodyBuilder {
   @override
   BodyBuilderTest(
       {libraryBuilder,
-      member,
       context,
       enclosingScope,
       formalParameterScope,
@@ -203,7 +201,6 @@ class BodyBuilderTest extends BodyBuilder {
       : super(
             libraryBuilder: libraryBuilder,
             context: context,
-            member: member,
             enclosingScope: enclosingScope,
             formalParameterScope: formalParameterScope,
             hierarchy: hierarchy,

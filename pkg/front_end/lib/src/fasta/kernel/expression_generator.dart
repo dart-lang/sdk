@@ -4973,10 +4973,10 @@ class PropertySelector extends Selector {
 }
 
 class AugmentSuperAccessGenerator extends Generator {
-  final SourceMemberBuilder augmentation;
+  final AugmentSuperTarget augmentSuperTarget;
 
   AugmentSuperAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.augmentation)
+      ExpressionGeneratorHelper helper, Token token, this.augmentSuperTarget)
       : super(helper, token);
 
   @override
@@ -4988,7 +4988,7 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
-    Member? readTarget = augmentation.augmentSuperTarget?.readTarget;
+    Member? readTarget = augmentSuperTarget.readTarget;
     if (readTarget != null) {
       return new AugmentSuperGet(readTarget, fileOffset: fileOffset);
     } else {
@@ -5004,7 +5004,7 @@ class AugmentSuperAccessGenerator extends Generator {
 
   Expression _createWrite(int offset, Expression value,
       {required bool forEffect}) {
-    Member? writeTarget = augmentation.augmentSuperTarget?.writeTarget;
+    Member? writeTarget = augmentSuperTarget.writeTarget;
     if (writeTarget != null) {
       return new AugmentSuperSet(writeTarget, value,
           forEffect: forEffect, fileOffset: fileOffset);
@@ -5082,7 +5082,7 @@ class AugmentSuperAccessGenerator extends Generator {
   Expression_Generator_Initializer doInvocation(
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
-    Member? invokeTarget = augmentation.augmentSuperTarget?.invokeTarget;
+    Member? invokeTarget = augmentSuperTarget.invokeTarget;
     if (invokeTarget != null) {
       return new AugmentSuperInvocation(invokeTarget, arguments,
           fileOffset: fileOffset);
@@ -5094,7 +5094,7 @@ class AugmentSuperAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    sink.write(", augmentation: ");
-    sink.write(augmentation);
+    sink.write(", augmentSuperTarget: ");
+    sink.write(augmentSuperTarget);
   }
 }

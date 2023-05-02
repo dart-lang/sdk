@@ -162,6 +162,8 @@ class BodyBuilderContext {
             ? _declarationBuilder
             : null;
 
+  String? get memberName => _member.name;
+
   Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false}) {
     return (_declarationBuilder as ClassBuilder).lookupInstanceMember(
@@ -198,6 +200,10 @@ class BodyBuilderContext {
     return member.getFormal(name);
   }
 
+  FunctionNode get function {
+    return (_member as SourceFunctionBuilder).function;
+  }
+
   bool get isConstructor {
     return _member is ConstructorDeclaration;
   }
@@ -206,8 +212,20 @@ class BodyBuilderContext {
     return _member.isExternal;
   }
 
+  bool get isExternalFunction {
+    return _member.isExternal;
+  }
+
+  bool get isSetter {
+    return _member.isSetter;
+  }
+
   bool get isConstConstructor {
     return _member.isConst;
+  }
+
+  bool get isFactory {
+    return _member.isFactory;
   }
 
   bool get isNativeMethod {
@@ -308,6 +326,86 @@ class BodyBuilderContext {
   void registerInitializedField(SourceFieldBuilder builder) {
     (_member as ConstructorDeclaration).registerInitializedField(builder);
   }
+
+  VariableDeclaration getFormalParameter(int index) {
+    return (_member as SourceFunctionBuilder).getFormalParameter(index);
+  }
+
+  VariableDeclaration? getTearOffParameter(int index) {
+    return (_member as SourceFunctionBuilder).getTearOffParameter(index);
+  }
+
+  DartType get returnTypeContext {
+    ModifierBuilder member = _member;
+    if (member is SourceProcedureBuilder) {
+      final bool isReturnTypeUndeclared =
+          member.returnType is OmittedTypeBuilder &&
+              member.function.returnType is DynamicType;
+      return isReturnTypeUndeclared && _libraryBuilder.isNonNullableByDefault
+          ? const UnknownType()
+          : member.function.returnType;
+    } else if (member is SourceFactoryBuilder) {
+      return member.function.returnType;
+    } else {
+      assert(member is ConstructorDeclaration);
+      return const DynamicType();
+    }
+  }
+
+  TypeBuilder get returnType => (_member as SourceFunctionBuilder).returnType;
+
+  List<FormalParameterBuilder>? get formals =>
+      (_member as SourceFunctionBuilder).formals;
+
+  Scope computeFormalParameterInitializerScope(Scope parent) {
+    return (_member as SourceFunctionBuilder)
+        .computeFormalParameterInitializerScope(parent);
+  }
+
+  void prepareInitializers() {
+    (_member as ConstructorDeclaration).prepareInitializers();
+  }
+
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult}) {
+    (_member as ConstructorDeclaration)
+        .addInitializer(initializer, helper, inferenceResult: inferenceResult);
+  }
+
+  InitializerInferenceResult inferInitializer(Initializer initializer,
+      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
+    return typeInferrer.inferInitializer(
+        helper, _member as ConstructorDeclaration, initializer);
+  }
+
+  int get charOffset => _member.charOffset;
+
+  AugmentSuperTarget? get augmentSuperTarget {
+    Builder member = _member;
+    if (member is SourceMemberBuilder && member.isAugmentation) {
+      return member.augmentSuperTarget;
+    }
+    return null;
+  }
+
+  void setAsyncModifier(AsyncMarker asyncModifier) {
+    Builder member = _member;
+    if (member is ConstructorDeclaration) {
+      throw new UnsupportedError(
+          "Unexpected member $member in BodyBuilderContext.asyncModifier=");
+    } else if (member is SourceProcedureBuilder) {
+      member.asyncModifier = asyncModifier;
+    } else if (member is SourceFactoryBuilder) {
+      member.asyncModifier = asyncModifier;
+    } else {
+      unhandled("${member.runtimeType}", "finishFunction", member.charOffset,
+          member.fileUri);
+    }
+  }
+
+  void setBody(Statement body) {
+    (_member as SourceFunctionBuilder).body = body;
+  }
 }
 
 class BodyBuilder extends StackListenerImpl
@@ -319,9 +417,6 @@ class BodyBuilder extends StackListenerImpl
   final SourceLibraryBuilder libraryBuilder;
 
   final BodyBuilderContext _context;
-
-  // TODO(johnniwinther): Remove this in favor of [_context].
-  final ModifierBuilder member;
 
   final ClassHierarchy hierarchy;
 
@@ -500,7 +595,6 @@ class BodyBuilder extends StackListenerImpl
   BodyBuilder(
       {required this.libraryBuilder,
       required BodyBuilderContext context,
-      required this.member,
       required this.enclosingScope,
       this.formalParameterScope,
       required this.hierarchy,
@@ -535,7 +629,6 @@ class BodyBuilder extends StackListenerImpl
             libraryBuilder: part,
             context: new BodyBuilderContext(part, declarationBuilder, field,
                 isDeclarationInstanceMember: field.isDeclarationInstanceMember),
-            member: field,
             enclosingScope:
                 declarationBuilder?.scope ?? field.libraryBuilder.scope,
             formalParameterScope: null,
@@ -568,7 +661,6 @@ class BodyBuilder extends StackListenerImpl
             context: new BodyBuilderContext(library, declarationBuilder, member,
                 isDeclarationInstanceMember:
                     member.isDeclarationInstanceMember),
-            member: member,
             enclosingScope: scope,
             formalParameterScope: formalParameterScope,
             hierarchy: library.loader.hierarchy,
@@ -953,7 +1045,7 @@ class BodyBuilder extends StackListenerImpl
       (declaredInCurrentGuard ??= {}).add(variable);
     }
     LocatedMessage? context = scope.declare(
-        variable.name!, new VariableBuilderImpl(variable, member, uri), uri);
+        variable.name!, new VariableBuilderImpl(variable, uri), uri);
     if (context != null) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
@@ -1256,15 +1348,14 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void prepareInitializers() {
-    SourceFunctionBuilder member = this.member as SourceFunctionBuilder;
-    scope = member.computeFormalParameterInitializerScope(scope);
-    if (member is ConstructorDeclaration) {
-      member.prepareInitializers();
-      if (member.formals != null) {
-        for (FormalParameterBuilder formal in member.formals!) {
+    scope = _context.computeFormalParameterInitializerScope(scope);
+    if (_context.isConstructor) {
+      _context.prepareInitializers();
+      if (_context.formals != null) {
+        for (FormalParameterBuilder formal in _context.formals!) {
           if (formal.isInitializingFormal) {
             List<Initializer> initializers;
-            if (member.isExternal) {
+            if (_context.isExternalConstructor) {
               initializers = <Initializer>[
                 buildInvalidInitializer(
                     buildProblem(
@@ -1282,7 +1373,7 @@ class BodyBuilder extends StackListenerImpl
                   formal: formal);
             }
             for (Initializer initializer in initializers) {
-              member.addInitializer(initializer, this, inferenceResult: null);
+              _context.addInitializer(initializer, this, inferenceResult: null);
             }
           }
         }
@@ -1371,22 +1462,6 @@ class BodyBuilder extends StackListenerImpl
     _initializers!.addAll(initializers);
   }
 
-  DartType _computeReturnTypeContext(MemberBuilder member) {
-    if (member is SourceProcedureBuilder) {
-      final bool isReturnTypeUndeclared =
-          member.returnType is OmittedTypeBuilder &&
-              member.function.returnType is DynamicType;
-      return isReturnTypeUndeclared && libraryBuilder.isNonNullableByDefault
-          ? const UnknownType()
-          : member.function.returnType;
-    } else if (member is SourceFactoryBuilder) {
-      return member.function.returnType;
-    } else {
-      assert(member is ConstructorDeclaration);
-      return const DynamicType();
-    }
-  }
-
   List<Object>? createSuperParametersAsArguments(
       List<FormalParameterBuilder> formals) {
     List<Object>? superParametersAsArguments;
@@ -1425,7 +1500,7 @@ class BodyBuilder extends StackListenerImpl
     }
     typeInferrer.assignedVariables.finish();
 
-    final SourceFunctionBuilder builder = member as SourceFunctionBuilder;
+    FunctionNode function = _context.function;
     if (thisVariable != null) {
       typeInferrer.flowAnalysis
           .declare(thisVariable!, thisVariable!.type, initialized: true);
@@ -1450,7 +1525,8 @@ class BodyBuilder extends StackListenerImpl
                   // https://github.com/dart-lang/sdk/issues/32289
                   noLocation);
             }
-            VariableDeclaration originParameter = builder.getFormalParameter(i);
+            VariableDeclaration originParameter =
+                _context.getFormalParameter(i);
             initializer = typeInferrer.inferParameterInitializer(
                 this,
                 initializer!,
@@ -1460,7 +1536,7 @@ class BodyBuilder extends StackListenerImpl
           }
 
           VariableDeclaration? tearOffParameter =
-              builder.getTearOffParameter(i);
+              _context.getTearOffParameter(i);
           if (tearOffParameter != null) {
             Expression tearOffInitializer =
                 _cloner.cloneInContext(initializer!);
@@ -1470,54 +1546,45 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
-    if (builder is ConstructorDeclaration) {
-      finishConstructor(builder, asyncModifier, body,
+
+    if (_context.isConstructor) {
+      finishConstructor(asyncModifier, body,
           superParametersAsArguments: superParametersAsArguments);
-    } else if (builder is SourceProcedureBuilder) {
-      builder.asyncModifier = asyncModifier;
-    } else if (builder is SourceFactoryBuilder) {
-      builder.asyncModifier = asyncModifier;
     } else {
-      unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
-          builder.fileUri);
+      _context.setAsyncModifier(asyncModifier);
     }
 
     InferredFunctionBody? inferredFunctionBody;
     if (body != null) {
-      inferredFunctionBody = typeInferrer.inferFunctionBody(
-          this,
-          builder.charOffset,
-          _computeReturnTypeContext(builder),
-          asyncModifier,
-          body);
+      inferredFunctionBody = typeInferrer.inferFunctionBody(this,
+          _context.charOffset, _context.returnTypeContext, asyncModifier, body);
       body = inferredFunctionBody.body;
-      builder.function.futureValueType = inferredFunctionBody.futureValueType;
+      function.futureValueType = inferredFunctionBody.futureValueType;
       assert(
-          !(builder.function.asyncMarker == AsyncMarker.Async &&
-              builder.function.futureValueType == null),
+          !(function.asyncMarker == AsyncMarker.Async &&
+              function.futureValueType == null),
           "No future value type computed.");
     }
 
-    if (builder.returnType is! OmittedTypeBuilder) {
-      checkAsyncReturnType(asyncModifier, builder.function.returnType,
-          builder.charOffset, builder.name.length);
+    if (_context.returnType is! OmittedTypeBuilder) {
+      checkAsyncReturnType(asyncModifier, function.returnType,
+          _context.charOffset, _context.memberName!.length);
     }
 
-    if (builder.kind == ProcedureKind.Setter) {
+    if (_context.isSetter) {
       if (formals?.parameters == null ||
           formals!.parameters!.length != 1 ||
           formals.parameters!.single.isOptionalPositional) {
-        int charOffset = formals?.charOffset ??
-            body?.fileOffset ??
-            builder.member.fileOffset;
+        int charOffset =
+            formals?.charOffset ?? body?.fileOffset ?? _context.charOffset;
         if (body == null) {
           body = new EmptyStatement()..fileOffset = charOffset;
         }
-        if (builder.formals != null) {
+        if (_context.formals != null) {
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
           List<Statement> statements = <Statement>[];
-          for (FormalParameterBuilder parameter in builder.formals!) {
+          for (FormalParameterBuilder parameter in _context.formals!) {
             statements.add(parameter.variable!);
           }
           statements.add(body);
@@ -1536,13 +1603,11 @@ class BodyBuilder extends StackListenerImpl
     }
     // No-such-method forwarders get their bodies injected during outline
     // building, so we should skip them here.
-    bool isNoSuchMethodForwarder = (builder.function.parent is Procedure &&
-        (builder.function.parent as Procedure).isNoSuchMethodForwarder);
+    bool isNoSuchMethodForwarder = (function.parent is Procedure &&
+        (function.parent as Procedure).isNoSuchMethodForwarder);
     if (body != null) {
-      if (!builder.isExternal && !isNoSuchMethodForwarder) {
-        builder.body = body;
-      } else {
-        builder.body = new Block(<Statement>[
+      if (_context.isExternalFunction || isNoSuchMethodForwarder) {
+        body = new Block(<Statement>[
           new ExpressionStatement(buildProblem(
               fasta.messageExternalMethodWithBody, body.fileOffset, noLength))
             ..fileOffset = body.fileOffset,
@@ -1550,6 +1615,7 @@ class BodyBuilder extends StackListenerImpl
         ])
           ..fileOffset = body.fileOffset;
       }
+      _context.setBody(body);
     }
 
     performBacklogComputations(allowFurtherDelays: false);
@@ -2010,10 +2076,8 @@ class BodyBuilder extends StackListenerImpl
       handleNoInitializers();
     }
     if (doFinishConstructor) {
-      ConstructorDeclaration constructorBuilder =
-          member as ConstructorDeclaration;
-      List<FormalParameterBuilder>? formals = constructorBuilder.formals;
-      finishConstructor(constructorBuilder, AsyncMarker.Sync, null,
+      List<FormalParameterBuilder>? formals = _context.formals;
+      finishConstructor(AsyncMarker.Sync, null,
           superParametersAsArguments: formals != null
               ? createSuperParametersAsArguments(formals)
               : null);
@@ -2060,14 +2124,12 @@ class BodyBuilder extends StackListenerImpl
     return arguments;
   }
 
-  void finishConstructor(ConstructorDeclaration constructorDeclaration,
-      AsyncMarker asyncModifier, Statement? body,
+  void finishConstructor(AsyncMarker asyncModifier, Statement? body,
       {required List<Object /* Expression | NamedExpression */ >?
           superParametersAsArguments}) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
-    assert(constructorDeclaration == this.member);
     assert(() {
       if (superParametersAsArguments == null) {
         return true;
@@ -2106,9 +2168,8 @@ class BodyBuilder extends StackListenerImpl
         "Expected 'superParametersAsArguments' "
         "to be sorted by occurrence in file.");
 
-    Member member = constructorDeclaration.member;
-    FunctionNode function = constructorDeclaration.function;
-    List<FormalParameterBuilder>? formals = constructorDeclaration.formals;
+    FunctionNode function = _context.function;
+    List<FormalParameterBuilder>? formals = _context.formals;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
@@ -2174,17 +2235,17 @@ class BodyBuilder extends StackListenerImpl
         buildProblem(
             fasta.templateIllegalMixinDueToConstructors
                 .withArguments(_context.className),
-            constructorDeclaration.charOffset,
+            _context.charOffset,
             noLength);
       }
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
-        if (constructorDeclaration.classDeclaration.isEnum) {
+        if (_context.isEnumClass) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
               buildProblem(fasta.messageEnumConstructorSuperInitializer,
                   superInitializer.fileOffset, noLength))
-            ..parent = member;
+            ..parent = superInitializer.parent;
         } else if (libraryFeatures.superParameters.isEnabled) {
           ArgumentsImpl arguments = superInitializer.arguments as ArgumentsImpl;
 
@@ -2241,22 +2302,24 @@ class BodyBuilder extends StackListenerImpl
       List<InitializerInferenceResult> inferenceResults =
           new List<InitializerInferenceResult>.generate(
               initializers.length,
-              (index) => typeInferrer.inferInitializer(
-                  this, constructorDeclaration, initializers[index]),
+              (index) => _context.inferInitializer(
+                  initializers[index], this, typeInferrer),
               growable: false);
 
-      if (!constructorDeclaration.isExternal) {
+      if (!_context.isExternalConstructor) {
         for (int i = 0; i < initializers.length; i++) {
-          constructorDeclaration.addInitializer(initializers[i], this,
+          _context.addInitializer(initializers[i], this,
               inferenceResult: inferenceResults[i]);
         }
       }
     }
 
-    List<Initializer> builtInitializers = constructorDeclaration.initializers;
     if (asyncModifier != AsyncMarker.Sync) {
-      builtInitializers.add(buildInvalidInitializer(buildProblem(
-          fasta.messageConstructorNotSync, body!.fileOffset, noLength)));
+      _context.addInitializer(
+          buildInvalidInitializer(buildProblem(
+              fasta.messageConstructorNotSync, body!.fileOffset, noLength)),
+          this,
+          inferenceResult: null);
     }
     if (needsImplicitSuperInitializer) {
       /// >If no superinitializer is provided, an implicit superinitializer
@@ -2297,10 +2360,10 @@ class BodyBuilder extends StackListenerImpl
 
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
-                  constructorDeclaration.charOffset, const <TypeParameter>[]) !=
+                  _context.charOffset, const <TypeParameter>[]) !=
               null) {
         String superclass = _context.superClassName;
-        int length = constructorDeclaration.name.length;
+        int length = _context.memberName!.length;
         if (length == 0) {
           length = _context.className.length;
         }
@@ -2308,37 +2371,34 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(
                 fasta.templateSuperclassHasNoDefaultConstructor
                     .withArguments(superclass),
-                constructorDeclaration.charOffset,
+                _context.charOffset,
                 length),
-            constructorDeclaration.charOffset);
+            _context.charOffset);
       } else {
         initializer = buildSuperInitializer(
-            true, superTarget, arguments, constructorDeclaration.charOffset);
+            true, superTarget, arguments, _context.charOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
-        InitializerInferenceResult inferenceResult = typeInferrer
-            .inferInitializer(this, constructorDeclaration, initializer);
-        constructorDeclaration.addInitializer(initializer, this,
+        InitializerInferenceResult inferenceResult =
+            _context.inferInitializer(initializer, this, typeInferrer);
+        _context.addInitializer(initializer, this,
             inferenceResult: inferenceResult);
       } else {
-        builtInitializers.add(initializer);
+        _context.addInitializer(initializer, this, inferenceResult: null);
       }
     }
-    setParents(builtInitializers, member);
-    if (body == null && !constructorDeclaration.isExternal) {
+    if (body == null && !_context.isExternalConstructor) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
       function.body = new EmptyStatement()..parent = function;
-    } else if (body != null &&
-        _context.isMixinClass &&
-        !constructorDeclaration.isFactory) {
+    } else if (body != null && _context.isMixinClass && !_context.isFactory) {
       // Report an error if a mixin class has a non-factory constructor with a
       // body.
       buildProblem(
           fasta.templateIllegalMixinDueToConstructors
               .withArguments(_context.className),
-          constructorDeclaration.charOffset,
+          _context.charOffset,
           noLength);
     }
   }
@@ -3507,7 +3567,7 @@ class BodyBuilder extends StackListenerImpl
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-          !member.isConstructor &&
+          !_context.isConstructor &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
             this, token, fasta.messageNotAConstantExpression);
@@ -3534,7 +3594,7 @@ class BodyBuilder extends StackListenerImpl
           // "this.field" parameters according to old semantics. Under the new
           // semantics, such parameters introduces a new parameter with that
           // name that should be resolved here.
-          !member.isConstructor) {
+          !_context.isConstructor) {
         addProblem(
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
@@ -7118,13 +7178,11 @@ class BodyBuilder extends StackListenerImpl
   void handleAugmentSuperExpression(
       Token augmentToken, Token superToken, IdentifierContext context) {
     debugEvent("AugmentSuperExpression");
-    if (member is SourceMemberBuilder) {
-      SourceMemberBuilder sourceMemberBuilder = member as SourceMemberBuilder;
-      if (sourceMemberBuilder.isAugmentation) {
-        push(new AugmentSuperAccessGenerator(
-            this, augmentToken, sourceMemberBuilder));
-        return;
-      }
+    AugmentSuperTarget? augmentSuperTarget = _context.augmentSuperTarget;
+    if (augmentSuperTarget != null) {
+      push(new AugmentSuperAccessGenerator(
+          this, augmentToken, augmentSuperTarget));
+      return;
     }
     push(new IncompleteErrorGenerator(
         this, augmentToken, fasta.messageInvalidAugmentSuper));

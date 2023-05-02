@@ -813,7 +813,6 @@ class DietListener extends StackListenerImpl {
         context: new BodyBuilderContext(
             libraryBuilder, currentDeclaration, builder,
             isDeclarationInstanceMember: isDeclarationInstanceMember),
-        member: builder,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
@@ -1034,8 +1033,7 @@ class DietListener extends StackListenerImpl {
       if (defaultConstructorBuilder != null) {
         BodyBuilder bodyBuilder =
             createFunctionListener(defaultConstructorBuilder);
-        bodyBuilder.finishConstructor(
-            defaultConstructorBuilder, AsyncMarker.Sync, new EmptyStatement(),
+        bodyBuilder.finishConstructor(AsyncMarker.Sync, new EmptyStatement(),
             superParametersAsArguments: null);
       }
     }

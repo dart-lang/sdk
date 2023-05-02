@@ -127,7 +127,6 @@ Future<void> main() async {
             isDeclarationInstanceMember: false),
         uri: uri,
         enclosingScope: new Scope.immutable(kind: ScopeKind.functionBody),
-        member: libraryBuilder,
         coreTypes: coreTypes,
         hierarchy: hierarchy,
         typeInferrer:
