@@ -110,7 +110,7 @@ vars = {
   # revision.
 
   "args_rev": "5ac2ba1d93f037c7aee2975703bf071f88597a76",
-  "async_rev": "ce650b0ce8fa95fc13d4744a293f3e9b00266bee",
+  "async_rev": "b9ed21948754001e31e209612b6ef8a5b2ad8e9f",
   "bazel_worker_rev": "d5f88375b41def124aa65be1d4da8a2c9e82e076",
   "benchmark_harness_rev": "e591ec4111be03bd80f890a07d1da50bf248efe4",
   "boolean_selector_rev": "9fd3bae0574e947fc0ddd3cdcf153f951678f172",

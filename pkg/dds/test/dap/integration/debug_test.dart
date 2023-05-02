@@ -37,7 +37,7 @@ main() {
       final vmConnection = outputEvents.first;
       expect(vmConnection.output,
           startsWith('Connecting to VM Service at ws://127.0.0.1:'));
-      expect(vmConnection.category, equals('console'));
+      expect(vmConnection.category, anyOf('console', isNull));
 
       // Expect the normal applications output.
       final output = outputEvents.skip(1).map((e) => e.output).join();

@@ -202,9 +202,8 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final vmServiceInfoFile = args.vmServiceInfoFile;
 
     if ((vmServiceUri == null) == (vmServiceInfoFile == null)) {
-      sendOutput(
-        'console',
-        '\nTo attach, provide exactly one of vmServiceUri/vmServiceInfoFile',
+      sendConsoleOutput(
+        'To attach, provide exactly one of vmServiceUri/vmServiceInfoFile',
       );
       handleSessionTerminate();
       return;
@@ -253,7 +252,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       );
     } catch (e) {
       logger?.call('Client failed to spawn process $e');
-      sendOutput('console', '\nFailed to spawn process: $e');
+      sendConsoleOutput('Failed to spawn process: $e');
       handleSessionTerminate();
     }
 
