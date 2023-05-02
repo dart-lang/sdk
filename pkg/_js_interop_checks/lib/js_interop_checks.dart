@@ -39,7 +39,9 @@ import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show templateJsInteropStrictModeViolation;
+    show
+        templateJsInteropFunctionToJSRequiresStaticType,
+        templateJsInteropStrictModeViolation;
 
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -380,10 +382,16 @@ class JsInteropChecks extends RecursiveVisitor {
 
   void _reportIfNotJSType(
       DartType type, TreeNode node, Name name, Uri? fileUri) {
-    // TODO(joshualitt): For completeness, we should make `JSVoid` a proper
-    // JS type before launch.
+    // TODO(joshualitt): We allow only JS types on external JS interop APIs with
+    // two exceptions: `void` and `Null`. Both of these exceptions exist largely
+    // to support passing Dart functions to JS as callbacks.  Furthermore, both
+    // of these types mean no actual values needs to be returned to JS. That
+    // said, for completeness, we may restrict these two types someday, and
+    // provide JS types equivalents, but likely only if we have implicit
+    // conversions between Dart types and JS types.
     if (!_nonStrictModeIsAllowed &&
         type is! VoidType &&
+        type is! NullType &&
         (type is! InterfaceType || !hasJSInteropAnnotation(type.classNode))) {
       _diagnosticsReporter.report(
           templateJsInteropStrictModeViolation.withArguments(type, true),
@@ -518,9 +526,12 @@ class JsInteropChecks extends RecursiveVisitor {
       final argument = node.arguments.positional.single;
       final functionType = argument.getStaticType(_staticTypeContext);
       if (functionType is! FunctionType) {
-        // TODO(joshualitt): Report an error if `toJS` is called on `Function`
-        // when the static type is not known. Currently this will fail to
-        // compile.
+        _diagnosticsReporter.report(
+            templateJsInteropFunctionToJSRequiresStaticType.withArguments(
+                functionType, true),
+            node.fileOffset,
+            node.name.text.length,
+            node.location?.file);
       } else {
         _reportStaticInvocationIfNotJSType(functionType.returnType, node);
         for (final parameter in functionType.positionalParameters) {

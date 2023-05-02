@@ -5587,6 +5587,10 @@ JsInteropStrictModeForbiddenLibrary:
   problemMessage: "Library '#name' is forbidden when strict mode is enabled."
   correctionMessage: "Remove the import of a forbidden library."
 
+JsInteropFunctionToJSRequiresStaticType:
+  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`."
+  correctionMessage: "Insert an explicit cast to the expected function type."
+
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING

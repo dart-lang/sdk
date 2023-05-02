@@ -631,13 +631,11 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler spe
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
+JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
+JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
 JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeViolation/example: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific

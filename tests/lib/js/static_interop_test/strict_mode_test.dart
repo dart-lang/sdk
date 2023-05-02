@@ -111,4 +111,9 @@ void main() {
   jsFunctionTest(((JSNumber foo) => 4.0).toJS);
   //                                     ^
   // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
+
+  jsFunctionTest(((((JSNumber foo) => 4.0) as dynamic) as Function).toJS);
+  //                                                                ^
+  // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a function type, e.g., `void Function()`.
+
 }

@@ -3819,6 +3819,37 @@ Message _withArgumentsJsInteropExportInvalidTypeArgument(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropFunctionToJSRequiresStaticType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`.""",
+        correctionMessageTemplate:
+            r"""Insert an explicit cast to the expected function type.""",
+        withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropFunctionToJSRequiresStaticType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropFunctionToJSRequiresStaticType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropFunctionToJSRequiresStaticType,
+      problemMessage:
+          """`Function.toJS` requires a statically known function type, but Type '${type}' is not a function type, e.g., `void Function()`.""" +
+              labeler.originMessages,
+      correctionMessage: """Insert an explicit cast to the expected function type.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStaticInteropMockNotStaticInteropType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         problemMessageTemplate:
