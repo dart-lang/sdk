@@ -230,8 +230,8 @@ _extra_builder(
     properties = [no_android, slow_shards],
 )
 _extra_builder(
-    "vm-aot-mac-release-simarm64",
-    category = "vm|aot|ma6",
+    "vm-aot-mac-release-x64",
+    category = "vm|aot|m",
     dimensions = mac,
     properties = slow_shards,
 )
@@ -260,10 +260,10 @@ _nightly_builder(
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-aot-mac-product-x64",
+    "vm-aot-mac-product-arm64",
     category = "vm|aot|product|m",
     channels = ["try"],
-    dimensions = mac,
+    dimensions = [mac, arm64],
 )
 _nightly_builder(
     "vm-aot-win-product-x64",
