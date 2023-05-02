@@ -78,27 +78,27 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleIntLiteral(ir.IntLiteral node) {
-    registerIntLiteral(node.value);
+    registerIntLiteral();
   }
 
   @override
   void handleDoubleLiteral(ir.DoubleLiteral node) {
-    registerDoubleLiteral(node.value);
+    registerDoubleLiteral();
   }
 
   @override
   void handleBoolLiteral(ir.BoolLiteral node) {
-    registerBoolLiteral(node.value);
+    registerBoolLiteral();
   }
 
   @override
   void handleStringLiteral(ir.StringLiteral node) {
-    registerStringLiteral(node.value);
+    registerStringLiteral();
   }
 
   @override
   void handleSymbolLiteral(ir.SymbolLiteral node) {
-    registerSymbolLiteral(node.value);
+    registerSymbolLiteral();
   }
 
   @override
@@ -944,28 +944,28 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSymbolLiteral(String value) {
-    (_data._symbolLiterals ??= {}).add(value);
+  void registerSymbolLiteral() {
+    _registerFeature(_Feature.symbolLiteral);
   }
 
   @override
-  void registerStringLiteral(String value) {
-    (_data._stringLiterals ??= {}).add(value);
+  void registerStringLiteral() {
+    _registerFeature(_Feature.stringLiteral);
   }
 
   @override
-  void registerBoolLiteral(bool value) {
-    (_data._boolLiterals ??= {}).add(value);
+  void registerBoolLiteral() {
+    _registerFeature(_Feature.boolLiteral);
   }
 
   @override
-  void registerDoubleLiteral(double value) {
-    (_data._doubleLiterals ??= {}).add(value);
+  void registerDoubleLiteral() {
+    _registerFeature(_Feature.doubleLiteral);
   }
 
   @override
-  void registerIntLiteral(int value) {
-    (_data._intLiterals ??= {}).add(value);
+  void registerIntLiteral() {
+    _registerFeature(_Feature.intLiteral);
   }
 
   @override
@@ -1044,11 +1044,6 @@ class ImpactData {
   List<_ContainerLiteral>? _listLiterals;
   List<_ContainerLiteral>? _setLiterals;
   List<_RecordLiteral>? _recordLiterals;
-  Set<String>? _symbolLiterals;
-  Set<String>? _stringLiterals;
-  Set<bool>? _boolLiterals;
-  Set<double>? _doubleLiterals;
-  Set<int>? _intLiterals;
   List<_RuntimeTypeUse>? _runtimeTypeUses;
   List<_ForInData>? _forInData;
 
@@ -1118,13 +1113,6 @@ class ImpactData {
         source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
     _recordLiterals =
         source.readListOrNull(() => _RecordLiteral.fromDataSource(source));
-    _symbolLiterals = source.readStrings(emptyAsNull: true)?.toSet();
-    _stringLiterals = source.readStrings(emptyAsNull: true)?.toSet();
-    _boolLiterals = source.readListOrNull(() => source.readBool())?.toSet();
-    _doubleLiterals =
-        source.readListOrNull(() => source.readDoubleValue())?.toSet();
-    _intLiterals =
-        source.readListOrNull(() => source.readIntegerValue())?.toSet();
     _runtimeTypeUses =
         source.readListOrNull(() => _RuntimeTypeUse.fromDataSource(source));
     _forInData = source.readListOrNull(() => _ForInData.fromDataSource(source));
@@ -1207,11 +1195,6 @@ class ImpactData {
         allowNull: true);
     sink.writeList(_recordLiterals, (_RecordLiteral o) => o.toDataSink(sink),
         allowNull: true);
-    sink.writeStrings(_symbolLiterals, allowNull: true);
-    sink.writeStrings(_stringLiterals, allowNull: true);
-    sink.writeList(_boolLiterals, sink.writeBool, allowNull: true);
-    sink.writeList(_doubleLiterals, sink.writeDoubleValue, allowNull: true);
-    sink.writeList(_intLiterals, sink.writeIntegerValue, allowNull: true);
     sink.writeList(_runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeList(_forInData, (_ForInData o) => o.toDataSink(sink),
@@ -1384,6 +1367,21 @@ class ImpactData {
           case _Feature.nullLiteral:
             registry.registerNullLiteral();
             break;
+          case _Feature.symbolLiteral:
+            registry.registerSymbolLiteral();
+            break;
+          case _Feature.stringLiteral:
+            registry.registerStringLiteral();
+            break;
+          case _Feature.boolLiteral:
+            registry.registerBoolLiteral();
+            break;
+          case _Feature.doubleLiteral:
+            registry.registerDoubleLiteral();
+            break;
+          case _Feature.intLiteral:
+            registry.registerIntLiteral();
+            break;
         }
       }
     }
@@ -1498,31 +1496,6 @@ class ImpactData {
     if (_recordLiterals != null) {
       for (_RecordLiteral data in _recordLiterals!) {
         registry.registerRecordLiteral(data.recordType, isConst: data.isConst);
-      }
-    }
-    if (_symbolLiterals != null) {
-      for (String data in _symbolLiterals!) {
-        registry.registerSymbolLiteral(data);
-      }
-    }
-    if (_stringLiterals != null) {
-      for (String data in _stringLiterals!) {
-        registry.registerStringLiteral(data);
-      }
-    }
-    if (_boolLiterals != null) {
-      for (bool data in _boolLiterals!) {
-        registry.registerBoolLiteral(data);
-      }
-    }
-    if (_doubleLiterals != null) {
-      for (double data in _doubleLiterals!) {
-        registry.registerDoubleLiteral(data);
-      }
-    }
-    if (_intLiterals != null) {
-      for (int data in _intLiterals!) {
-        registry.registerIntLiteral(data);
       }
     }
     if (_runtimeTypeUses != null) {
@@ -1912,6 +1885,11 @@ enum _Feature {
   assertWithMessage,
   assertWithoutMessage,
   nullLiteral,
+  stringLiteral,
+  boolLiteral,
+  intLiteral,
+  symbolLiteral,
+  doubleLiteral,
 }
 
 class _TypeUse {

@@ -18,15 +18,15 @@ import 'static_type_cache.dart';
 /// [KernelImpactBuilder] and for serialization through the [ImpactBuilder]
 /// and [ImpactLoader].
 abstract class ImpactRegistry {
-  void registerIntLiteral(int value);
+  void registerIntLiteral();
 
-  void registerDoubleLiteral(double value);
+  void registerDoubleLiteral();
 
-  void registerBoolLiteral(bool value);
+  void registerBoolLiteral();
 
-  void registerStringLiteral(String value);
+  void registerStringLiteral();
 
-  void registerSymbolLiteral(String value);
+  void registerSymbolLiteral();
 
   void registerNullLiteral();
 
@@ -313,27 +313,27 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   @override
   void visitSymbolConstant(ir.SymbolConstant node) {
     // TODO(johnniwinther): Handle the library reference.
-    registry.registerSymbolLiteral(node.name);
+    registry.registerSymbolLiteral();
   }
 
   @override
   void visitStringConstant(ir.StringConstant node) {
-    registry.registerStringLiteral(node.value);
+    registry.registerStringLiteral();
   }
 
   @override
   void visitDoubleConstant(ir.DoubleConstant node) {
-    registry.registerDoubleLiteral(node.value);
+    registry.registerDoubleLiteral();
   }
 
   @override
   void visitIntConstant(ir.IntConstant node) {
-    registry.registerIntLiteral(node.value);
+    registry.registerIntLiteral();
   }
 
   @override
   void visitBoolConstant(ir.BoolConstant node) {
-    registry.registerBoolLiteral(node.value);
+    registry.registerBoolLiteral();
   }
 
   @override
