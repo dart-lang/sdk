@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--dwarf-stack-traces --save-debugging-info=socket_connect_debug.so
+// VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/socket_connect_debug.so
 //
 // Tests stack trace on socket exceptions.
 //
@@ -14,6 +14,7 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:native_stack_traces/native_stack_traces.dart";
+import "package:path/path.dart" as path;
 
 Future<List<String>> findFrames(
     Dwarf dwarf, RegExp re, StackTrace stackTrace) async {
@@ -28,7 +29,9 @@ Future<List<String>> findFrames(
 
 Future<void> main() async {
   asyncStart();
-  final dwarf = Dwarf.fromFile('socket_connect_debug.so')!;
+  final dwarf = Dwarf.fromFile(path.join(
+      Platform.environment['TEST_COMPILATION_DIR']!,
+      'socket_connect_debug.so'))!;
   // Test stacktrace when lookup fails
   try {
     await WebSocket.connect('ws://localhost.tld:0/ws');

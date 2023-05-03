@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf_invisible_functions.so
+// VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/dwarf_invisible_functions.so
 
 import 'dart:io';
 
