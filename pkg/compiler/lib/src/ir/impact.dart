@@ -183,9 +183,9 @@ abstract class ImpactRegistry {
   void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
       ir.DartType? argumentType);
 
-  void registerConstructorNode(ir.Constructor node);
+  void registerExternalConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);
-  void registerProcedureNode(ir.Procedure node);
+  void registerExternalProcedureNode(ir.Procedure node);
   void registerForeignStaticInvocationNode(ir.StaticInvocation node);
   void registerSwitchStatementNode(ir.SwitchStatement node);
   void registerConstSymbolConstructorInvocationNode();
