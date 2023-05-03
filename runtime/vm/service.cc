@@ -52,6 +52,10 @@
 #include "vm/timeline.h"
 #include "vm/version.h"
 
+#if defined(SUPPORT_PERFETTO)
+#include "vm/perfetto_utils.h"
+#endif  // defined(SUPPORT_PERFETTO)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -4087,9 +4091,37 @@ static void GetIsolateMetric(Thread* thread, JSONStream* js) {
   HandleNativeMetric(thread, js, id);
 }
 
-enum GetVMTimelineResponseFormat { JSON = 0, Perfetto = 1 };
+enum TimelineOrSamplesResponseFormat : bool { JSON = false, Perfetto = true };
 
-inline void GetVMTimelineCommon(GetVMTimelineResponseFormat format,
+static void GetCpuSamplesCommon(TimelineOrSamplesResponseFormat format,
+                                Thread* thread,
+                                JSONStream* js) {
+  const int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  const int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  const bool include_code_samples =
+      BoolParameter::Parse(js->LookupParam("_code"), false);
+  if (CheckProfilerDisabled(thread, js)) {
+    return;
+  }
+
+  if (format == TimelineOrSamplesResponseFormat::JSON) {
+    ProfilerService::PrintJSON(js, time_origin_micros, time_extent_micros,
+                               include_code_samples);
+  } else if (format == TimelineOrSamplesResponseFormat::Perfetto) {
+#if defined(SUPPORT_PERFETTO)
+    // This branch will never be reached when SUPPORT_PERFETTO is not defined,
+    // because |GetPerfettoCpuSamples| is not defined when SUPPORT_PERFETTO is
+    // not defined.
+    ProfilerService::PrintPerfetto(js, time_origin_micros, time_extent_micros);
+#else
+    UNREACHABLE();
+#endif  // defined(SUPPORT_PERFETTO)
+  }
+}
+
+inline void GetVMTimelineCommon(TimelineOrSamplesResponseFormat format,
                                 Thread* thread,
                                 JSONStream* js) {
   Isolate* isolate = thread->isolate();
@@ -4130,9 +4162,9 @@ inline void GetVMTimelineCommon(GetVMTimelineResponseFormat format,
   int64_t time_extent_micros =
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
   TimelineEventFilter filter(time_origin_micros, time_extent_micros);
-  if (format == GetVMTimelineResponseFormat::JSON) {
+  if (format == TimelineOrSamplesResponseFormat::JSON) {
     timeline_recorder->PrintJSON(js, &filter);
-  } else if (format == GetVMTimelineResponseFormat::Perfetto) {
+  } else if (format == TimelineOrSamplesResponseFormat::Perfetto) {
 #if defined(SUPPORT_PERFETTO)
     // This branch will never be reached when SUPPORT_PERFETTO is not defined,
     // because |GetPerfettoVMTimeline| is not defined when SUPPORT_PERFETTO is
@@ -4145,15 +4177,12 @@ inline void GetVMTimelineCommon(GetVMTimelineResponseFormat format,
 }
 
 #if defined(SUPPORT_PERFETTO)
-static const MethodParameter* const get_perfetto_vm_timeline_params[] = {
-    NO_ISOLATE_PARAMETER,
-    new Int64Parameter("timeOriginMicros", /*required=*/false),
-    new Int64Parameter("timeExtentMicros", /*required=*/false),
-    nullptr,
-};
+static void GetPerfettoCpuSamples(Thread* thread, JSONStream* js) {
+  GetCpuSamplesCommon(TimelineOrSamplesResponseFormat::Perfetto, thread, js);
+}
 
 static void GetPerfettoVMTimeline(Thread* thread, JSONStream* js) {
-  GetVMTimelineCommon(GetVMTimelineResponseFormat::Perfetto, thread, js);
+  GetVMTimelineCommon(TimelineOrSamplesResponseFormat::Perfetto, thread, js);
 }
 #endif  // defined(SUPPORT_PERFETTO)
 
@@ -4218,13 +4247,13 @@ static void ClearVMTimeline(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* const get_vm_timeline_params[] = {
     NO_ISOLATE_PARAMETER,
-    new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false),
+    new Int64Parameter("timeOriginMicros", /*required=*/false),
+    new Int64Parameter("timeExtentMicros", /*required=*/false),
     nullptr,
 };
 
 static void GetVMTimeline(Thread* thread, JSONStream* js) {
-  GetVMTimelineCommon(GetVMTimelineResponseFormat::JSON, thread, js);
+  GetVMTimelineCommon(TimelineOrSamplesResponseFormat::JSON, thread, js);
 }
 
 static const char* const step_enum_names[] = {
@@ -4366,23 +4395,13 @@ static void GetTagProfile(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* const get_cpu_samples_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false),
+    new Int64Parameter("timeOriginMicros", /*required=*/false),
+    new Int64Parameter("timeExtentMicros", /*required=*/false),
     nullptr,
 };
 
 static void GetCpuSamples(Thread* thread, JSONStream* js) {
-  int64_t time_origin_micros =
-      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
-  int64_t time_extent_micros =
-      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  const bool include_code_samples =
-      BoolParameter::Parse(js->LookupParam("_code"), false);
-  if (CheckProfilerDisabled(thread, js)) {
-    return;
-  }
-  ProfilerService::PrintJSON(js, time_origin_micros, time_extent_micros,
-                             include_code_samples);
+  GetCpuSamplesCommon(TimelineOrSamplesResponseFormat::JSON, thread, js);
 }
 
 static const MethodParameter* const get_allocation_traces_params[] = {
@@ -5796,8 +5815,10 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "getInstancesAsList", GetInstancesAsList,
     get_instances_as_list_params },
 #if defined(SUPPORT_PERFETTO)
+  { "getPerfettoCpuSamples", GetPerfettoCpuSamples,
+    get_cpu_samples_params },
   { "getPerfettoVMTimeline", GetPerfettoVMTimeline,
-    get_perfetto_vm_timeline_params },
+    get_vm_timeline_params },
 #endif  // defined(SUPPORT_PERFETTO)
   { "getPorts", GetPorts,
     get_ports_params },

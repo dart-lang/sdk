@@ -1,0 +1,75 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// NOTE: This is a manually minified version of Perfetto's
+// interned_data.proto.
+
+// IMPORTANT: The coresponding .pbzero.h file must be regenerated after
+// any change is made to this file. This can be done by running
+// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+
+syntax = "proto2";
+
+import "protos/perfetto/trace/track_event/debug_annotation.proto";
+import "protos/perfetto/trace/track_event/track_event.proto";
+import "protos/perfetto/trace/profiling/profile_common.proto";
+
+package perfetto.protos;
+
+// ------------------------------ DATA INTERNING: ------------------------------
+// Interning indexes are built up gradually by adding the entries contained in
+// each TracePacket of the same packet sequence (packets emitted by the same
+// producer and TraceWriter, see |trusted_packet_sequence_id|). Thus, packets
+// can only refer to interned data from other packets in the same sequence.
+//
+// The writer will emit new entries when it encounters new internable values
+// that aren't yet in the index. Data in current and subsequent TracePackets can
+// then refer to the entry by its position (interning ID, abbreviated "iid") in
+// its index. An interning ID with value 0 is considered invalid (not set).
+//
+// Because of the incremental build-up, the interning index will miss data when
+// TracePackets are lost, e.g. because a chunk was overridden in the central
+// ring buffer. To avoid invalidation of the whole trace in such a case, the
+// index is periodically reset (see SEQ_INCREMENTAL_STATE_CLEARED).
+// When packet loss occurs, the reader will only lose interning data up to the
+// next reset.
+// -----------------------------------------------------------------------------
+
+// Message that contains new entries for the interning indices of a packet
+// sequence.
+//
+// The writer will usually emit new entries in the same TracePacket that first
+// refers to them (since the last reset of interning state). They may also be
+// emitted proactively in advance of referring to them in later packets.
+//
+// Next reserved id: 8 (up to 15).
+// Next id: 29.
+message InternedData {
+  // Note: field IDs up to 15 should be used for frequent data only.
+
+  // Paths to executable files.
+  repeated InternedString mapping_paths = 17;
+  // Names of functions used in frames below.
+  repeated InternedString function_names = 5;
+
+  // Executable files mapped into processes.
+  repeated Mapping mappings = 19;
+  // Frames of callstacks of a program.
+  repeated Frame frames = 6;
+  // A callstack of a program.
+  repeated Callstack callstacks = 7;
+}
