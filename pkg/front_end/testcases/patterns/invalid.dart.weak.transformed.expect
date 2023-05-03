@@ -10,9 +10,8 @@ library /*isNonNullableByDefault*/;
 // method(Unresolved o) {
 //        ^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/invalid.dart:13:10: Error: The method '<' isn't defined for the class 'List<Object?>'.
+// pkg/front_end/testcases/patterns/invalid.dart:13:10: Error: The method '<' isn't defined for the class 'List<invalid-type>'.
 //  - 'List' is from 'dart:core'.
-//  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named '<'.
 //     case < 5: // TODO(johnniwinther): Why do we get an error here?
 //          ^
@@ -27,11 +26,10 @@ static method method(invalid-type o) → dynamic {
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
     {
-      lowered hoisted core::List<core::Object?> a#case#0;
+      lowered hoisted core::List<invalid-type> a#case#0;
       lowered hoisted core::Object? a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<core::Object?> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t1 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 || (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && (let final core::List<Never> #t3 = a#case#0 = #0#0.{core::List::sublist}(1, (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t4 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::Object?>} in true) || true || #0#0 is{ForNonNullableByDefault} core::Map<core::Object?, core::Object?> && #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::[]}(#C3){(core::Object?) → core::Object?} || #0#0 is{ForNonNullableByDefault} core::String && #C4 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t5 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) || #0#0 =={core::List::==}{(core::Object) → core::bool} #C4 || invalid-expression "pkg/front_end/testcases/patterns/invalid.dart:13:10: Error: The method '<' isn't defined for the class 'List<Object?>'.
+      if(#0#0 is{ForNonNullableByDefault} core::List<invalid-type> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t1 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 || (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && (let final core::List<Never> #t3 = a#case#0 = #0#0.{core::List::sublist}(1, (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t4 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<invalid-type>} in true) || true || #0#0 is{ForNonNullableByDefault} core::Map<core::Object?, core::Object?> && #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::[]}(#C3){(core::Object?) → core::Object?} || #0#0 is{ForNonNullableByDefault} core::String && #C4 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t5 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) || #0#0 =={core::List::==}{(core::Object) → core::bool} #C4 || invalid-expression "pkg/front_end/testcases/patterns/invalid.dart:13:10: Error: The method '<' isn't defined for the class 'List<invalid-type>'.
  - 'List' is from 'dart:core'.
- - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
     case < 5: // TODO(johnniwinther): Why do we get an error here?
          ^" || #0#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {a: core::Object?})}.$1{core::Object?} && (let final core::Object? #t6 = a#case#1 = #0#0{(core::Object?, {a: core::Object?})}.a{core::Object?} in true)) {

@@ -633,6 +633,9 @@ class OperationsCfe
   bool isDynamic(DartType type) => type is DynamicType;
 
   @override
+  bool isError(DartType type) => type is InvalidType;
+
+  @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
         isNonNullableByDefault: true);

@@ -86,6 +86,11 @@ class DecoratedTypeOperations
   }
 
   @override
+  bool isError(DecoratedType type) {
+    return false;
+  }
+
+  @override
   bool isNever(DecoratedType type) {
     return false;
   }

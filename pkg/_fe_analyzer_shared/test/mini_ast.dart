@@ -901,6 +901,7 @@ class MiniAstOperations
   static final Map<String, Type> _coreDownwardInferenceResults = {
     'bool <: bool': Type('bool'),
     'dynamic <: int': Type('dynamic'),
+    'error <: int': Type('error'),
     'int <: dynamic': Type('int'),
     'int <: num': Type('int'),
     'int <: Object?': Type('int'),
@@ -1044,12 +1045,17 @@ class MiniAstOperations
   bool isAssignableTo(Type fromType, Type toType) {
     if (legacy && isSubtypeOf(toType, fromType)) return true;
     if (fromType.type == 'dynamic') return true;
+    if (fromType.type == 'error') return true;
     return isSubtypeOf(fromType, toType);
   }
 
   @override
   bool isDynamic(Type type) =>
       type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
+
+  @override
+  bool isError(Type type) =>
+      type is PrimaryType && type.name == 'error' && type.args.isEmpty;
 
   @override
   bool isNever(Type type) {
