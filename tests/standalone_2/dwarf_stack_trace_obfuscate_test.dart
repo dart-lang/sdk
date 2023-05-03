@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-/// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf_obfuscate.so --obfuscate
+/// VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/dwarf_obfuscate.so --obfuscate
 
 import 'dart:io';
 
@@ -42,7 +42,8 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile("dwarf_obfuscate.so");
+  final dwarf = Dwarf.fromFile(path.join(
+      Platform.environment['TEST_COMPILATION_DIR'], "dwarf_obfuscate.so"));
 
   await base.checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }
