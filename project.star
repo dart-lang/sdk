@@ -114,7 +114,21 @@ luci.bucket(
                 # For workflows that need to be authorized by Google-internal
                 # approval mechanisms, see b/231131625
                 "dart-eng-tool-proxy@system.gserviceaccount.com",
+            ],
+        ),
+    ],
+)
+
+# Tryjobs specific to the monorepo repo.
+# These should only be triggered by the monorepo coordinator flutter-linux-try.
+luci.bucket(
+    name = "try.monorepo",
+    acls = TRY_ACLS + [
+        acl.entry(
+            acl.BUILDBUCKET_TRIGGERER,
+            users = [
                 # Monorepo builds use a coordinator build to add try builds.
+                # It runs with the try_builder account.
                 accounts.try_builder,
             ],
         ),
