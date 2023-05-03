@@ -8344,7 +8344,10 @@ class Parser {
           reportRecoverableErrorWithToken(
               identifier.next!, codes.templateUnexpectedToken);
         }
-      } else if (awaitToken != null && !inAsync) {
+      }
+    }
+    if (identifier != null || patternKeyword != null) {
+      if (awaitToken != null && !inAsync) {
         // TODO(danrubel): consider reporting the error on awaitToken
         reportRecoverableError(inKeyword, codes.messageAwaitForNotAsync);
       }
