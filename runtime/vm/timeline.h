@@ -780,19 +780,17 @@ class TimelineEventBlock : public MallocAllocated {
   // Attempt to sniff the timestamp from the first event.
   int64_t LowerTimeBound() const;
 
-  // Returns false if |this| violates any of the following invariants:
-  // - events in the block come from one thread.
-  // - events have monotonically increasing timestamps.
-  bool CheckBlock();
-
   // Call Reset on all events and set length to 0.
   void Reset();
 
   // Only safe to access under the recorder's lock.
-  bool in_use() const { return in_use_; }
+  inline bool InUseLocked() const;
 
   // Only safe to access under the recorder's lock.
-  ThreadId thread_id() const { return thread_id_; }
+  inline bool ContainsEventsThatCanBeSerializedLocked() const;
+
+  // Only safe to access under the recorder's lock.
+  inline ThreadId ThreadIdLocked() const;
 
  protected:
 #ifndef PRODUCT
@@ -832,17 +830,6 @@ class TimelineEventFilter : public ValueObject {
                       int64_t time_extent_micros = -1);
 
   virtual ~TimelineEventFilter();
-
-  bool IncludeBlock(TimelineEventBlock* block) const {
-    if (block == nullptr) {
-      return false;
-    }
-    // Check that the block is not in use and not empty. |!block->in_use()| must
-    // be checked first because we are only holding |lock_|. Holding |lock_|
-    // makes it safe to call |in_use()| on any block, but only makes it safe to
-    // call |IsEmpty()| on blocks that are not in use.
-    return !block->in_use() && !block->IsEmpty();
-  }
 
   virtual bool IncludeEvent(TimelineEvent* event) const {
     if (event == nullptr) {
@@ -951,6 +938,7 @@ class TimelineEventRecorder : public MallocAllocated {
   int64_t time_high_micros_;
 
   friend class TimelineEvent;
+  friend class TimelineEventBlock;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
@@ -994,7 +982,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetHeadBlockLocked();
-  intptr_t FindOldestBlockIndex() const;
+  // Only safe to call when holding |lock_|.
+  intptr_t FindOldestBlockIndexLocked() const;
   void Clear();
 
 #ifndef PRODUCT
