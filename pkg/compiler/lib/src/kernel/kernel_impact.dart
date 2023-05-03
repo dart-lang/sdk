@@ -239,27 +239,27 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerIntLiteral(int value) {
+  void registerIntLiteral() {
     registerBackendImpact(_impacts.intLiteral);
   }
 
   @override
-  void registerDoubleLiteral(double value) {
+  void registerDoubleLiteral() {
     registerBackendImpact(_impacts.doubleLiteral);
   }
 
   @override
-  void registerBoolLiteral(bool value) {
+  void registerBoolLiteral() {
     registerBackendImpact(_impacts.boolLiteral);
   }
 
   @override
-  void registerStringLiteral(String value) {
+  void registerStringLiteral() {
     registerBackendImpact(_impacts.stringLiteral);
   }
 
   @override
-  void registerSymbolLiteral(String value) {
+  void registerSymbolLiteral() {
     registerBackendImpact(_impacts.constSymbol);
   }
 
