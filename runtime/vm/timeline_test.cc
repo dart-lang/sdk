@@ -383,15 +383,15 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 TEST_CASE(TimelineTrackMetadataRace) {
   struct ReportMetadataArguments {
     Monitor& synchronization_monitor;
-    TimelineEventRingRecorder& recorder;
+    TimelineEventRecorder& recorder;
     ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
   };
 
   Monitor synchronization_monitor;
-  TimelineEventRingRecorder recorder;
+  TimelineEventRecorder& recorder = *Timeline::recorder();
 
-  // Try concurrently reading from / writing to the metadata map. I don't think
-  // it's possible to assert anything about the outcome, because of scheduling
+  // Try concurrently reading from / writing to the metadata map. It is not
+  // possible to assert anything about the outcome, because of scheduling
   // uncertainty. This test is just used to ensure that TSAN checks the metadata
   // map code.
   JSONStream js;

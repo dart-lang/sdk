@@ -1234,6 +1234,25 @@ void TimelineBeginEndScope::EmitEnd() {
   event->Complete();
 }
 
+bool TimelineEventBlock::InUseLocked() const {
+  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
+  return in_use_;
+}
+
+bool TimelineEventBlock::ContainsEventsThatCanBeSerializedLocked() const {
+  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
+  // Check that the block is not in use and not empty. |!block->in_use()| must
+  // be checked first because we are only holding |lock_|. Holding |lock_|
+  // makes it safe to call |in_use()| on any block, but only makes it safe to
+  // call |IsEmpty()| on blocks that are not in use.
+  return !InUseLocked() && !IsEmpty();
+}
+
+ThreadId TimelineEventBlock::ThreadIdLocked() const {
+  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
+  return thread_id_;
+}
+
 TimelineEventFilter::TimelineEventFilter(int64_t time_origin_micros,
                                          int64_t time_extent_micros)
     : time_origin_micros_(time_origin_micros),
@@ -1591,7 +1610,7 @@ void TimelineEventFixedBufferRecorder::PrintEventsCommon(
   Timeline::ReclaimCachedBlocksFromThreads();
   MutexLocker ml(&lock_);
   ResetTimeTracking();
-  intptr_t block_offset = FindOldestBlockIndex();
+  intptr_t block_offset = FindOldestBlockIndexLocked();
   if (block_offset == -1) {
     // All blocks are in use or empty.
     return;
@@ -1599,7 +1618,7 @@ void TimelineEventFixedBufferRecorder::PrintEventsCommon(
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
         &blocks_[(block_idx + block_offset) % num_blocks_];
-    if (!filter.IncludeBlock(block)) {
+    if (!block->ContainsEventsThatCanBeSerializedLocked()) {
       continue;
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
@@ -1693,16 +1712,14 @@ void TimelineEventFixedBufferRecorder::Clear() {
   }
 }
 
-intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
+intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndexLocked() const {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   int64_t earliest_time = kMaxInt64;
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block = &blocks_[block_idx];
-    if (block->in_use() || block->IsEmpty()) {
-      // Skip in use and empty blocks. |block->in_use()| must be checked first
-      // because we are only holding |lock_|. Holding |lock_| makes it safe to
-      // call |in_use()| on any block, but only makes it safe to call
-      // |IsEmpty()| on blocks that are not in use.
+    if (!block->ContainsEventsThatCanBeSerializedLocked()) {
+      // Skip in use and empty blocks.
       continue;
     }
     if (block->LowerTimeBound() < earliest_time) {
@@ -2120,7 +2137,7 @@ void TimelineEventEndlessRecorder::PrintEventsCommon(
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;
        current = current->next()) {
-    if (!filter.IncludeBlock(current)) {
+    if (!current->ContainsEventsThatCanBeSerializedLocked()) {
       continue;
     }
     intptr_t length = current->length();
@@ -2244,7 +2261,7 @@ TimelineEventBlock::~TimelineEventBlock() {
 
 #ifndef PRODUCT
 void TimelineEventBlock::PrintJSON(JSONStream* js) const {
-  ASSERT(!in_use());
+  ASSERT(!InUseLocked());
   JSONArray events(js);
   for (intptr_t i = 0; i < length(); i++) {
     const TimelineEvent* event = At(i);
@@ -2272,29 +2289,6 @@ int64_t TimelineEventBlock::LowerTimeBound() const {
   }
   ASSERT(length_ > 0);
   return events_[0].TimeOrigin();
-}
-
-bool TimelineEventBlock::CheckBlock() {
-  if (length() == 0) {
-    return true;
-  }
-
-  for (intptr_t i = 0; i < length(); i++) {
-    if (At(i)->thread() != thread_id()) {
-      return false;
-    }
-  }
-
-  // - events have monotonically increasing timestamps.
-  int64_t last_time = LowerTimeBound();
-  for (intptr_t i = 0; i < length(); i++) {
-    if (last_time > At(i)->TimeOrigin()) {
-      return false;
-    }
-    last_time = At(i)->TimeOrigin();
-  }
-
-  return true;
 }
 
 void TimelineEventBlock::Reset() {

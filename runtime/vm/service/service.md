@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.5
+# Dart VM Service Protocol 4.6
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.5_ of the Dart VM Service Protocol. This
+This document describes of _version 4.6_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -50,6 +50,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
   - [getObject](#getobject)
+  - [getPerfettoCpuSamples](#getperfettocpusamples)
+  - [getPerfettoVMTimeline](#getperfettovmtimeline)
   - [getPorts](#getports)
   - [getProcessMemoryUsage](#getprocessmemoryusage)
   - [getRetainingPath](#getretainingpath)
@@ -123,6 +125,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Null](#null)
   - [Object](#object)
   - [Parameter](#parameter)
+  - [PerfettoCpuSamples](#perfettocpusamples)
+  - [PerfettoTimeline](#perfettotimeline)
   - [PortList](#portlist)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
@@ -782,15 +786,27 @@ CpuSamples|Sentinel getCpuSamples(string isolateId,
 ```
 
 The _getCpuSamples_ RPC is used to retrieve samples collected by the CPU
-profiler. Only samples collected in the time range `[timeOriginMicros,
-timeOriginMicros + timeExtentMicros]` will be reported.
+profiler. See [CpuSamples](#cpusamples) for a detailed description of the
+response.
 
-If the profiler is disabled, an [RPC error](#rpc-error) response will be returned.
+The _timeOriginMicros_ parameter is the beginning of the time range used to
+filter samples. It uses the same monotonic clock as dart:developer's
+`Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+[getVMTimelineMicros](#getvmtimelinemicros) for access to this clock through the
+service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to
+filter samples should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only samples from
+the following time range will be returned:
+`(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If the profiler is disabled, an [RPC error](#rpc-error) response will be
+returned.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
-
-See [CpuSamples](#cpusamples).
 
 ### getFlagList
 
@@ -1012,6 +1028,38 @@ Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
 Int32List, Int64List, Float32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
+
+### getPerfettoCpuSamples
+
+```
+PerfettoCpuSamples|Sentinel getPerfettoCpuSamples(string isolateId,
+                                                  int timeOriginMicros [optional],
+                                                  int timeExtentMicros [optional])
+```
+
+The _getPerfettoCpuSamples_ RPC is used to retrieve samples collected by the CPU
+profiler, serialized in Perfetto's proto format. See
+[PerfettoCpuSamples](#perfettocpusamples) for a detailed description of the
+response.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to
+filter samples. It uses the same monotonic clock as dart:developer's
+`Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+[getVMTimelineMicros](#getvmtimelinemicros) for access to this clock through the
+service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to
+filter samples should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only samples from
+the following time range will be returned:
+`(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If the profiler is disabled, an [RPC error](#rpc-error) response will be
+returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 ### getPerfettoVMTimeline
 
@@ -3780,6 +3828,37 @@ A _Parameter_ is a representation of a function parameter.
 
 See [Instance](#instance).
 
+### PerfettoCpuSamples
+
+```
+class PerfettoCpuSamples extends Response {
+  // The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  // The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  // The number of samples returned.
+  int sampleCount;
+
+  // The start of the period of time in which the returned samples were
+  // collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  // The process ID for the VM.
+  int pid;
+
+  // A Base64 string representing the requested samples in Perfetto's proto
+  // format.
+  string samples;
+}
+```
+
+See [getPerfettoCpuSamples](#getperfettocpusamples).
+
 ### PerfettoTimeline
 
 ```
@@ -4579,5 +4658,6 @@ version | comments
 4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
 4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
 4.5 | Added `getPerfettoVMTimeline` RPC.
+4.6 | Added `getPerfettoCpuSamples` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

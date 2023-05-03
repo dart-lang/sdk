@@ -25,6 +25,8 @@
 syntax = "proto2";
 
 import "protos/perfetto/trace/clock_snapshot.proto";
+import "protos/perfetto/trace/interned_data/interned_data.proto";
+import "protos/perfetto/trace/profiling/profile_packet.proto";
 import "protos/perfetto/trace/track_event/track_descriptor.proto";
 import "protos/perfetto/trace/track_event/track_event.proto";
 
@@ -76,6 +78,8 @@ message TracePacket {
 
     // Only used by TrackEvent.
     TrackDescriptor track_descriptor = 60;
+
+    PerfSample perf_sample = 66;
   }
 
   // Service-assigned identifier of the packet sequence this packet belongs to.
@@ -85,4 +89,39 @@ message TracePacket {
   oneof optional_trusted_packet_sequence_id {
     uint32 trusted_packet_sequence_id = 10;
   }
+
+  // Incrementally emitted interned data, valid only on the packet's sequence
+  // (packets with the same |trusted_packet_sequence_id|). The writer will
+  // usually emit new interned data in the same TracePacket that first refers to
+  // it (since the last reset of interning state). It may also be emitted
+  // proactively in advance of referring to them in later packets.
+  optional InternedData interned_data = 12;
+
+  enum SequenceFlags {
+    SEQ_UNSPECIFIED = 0;
+
+    // Set by the writer to indicate that it will re-emit any incremental data
+    // for the packet's sequence before referring to it again. This includes
+    // interned data as well as periodically emitted data like
+    // Process/ThreadDescriptors. This flag only affects the current packet
+    // sequence (see |trusted_packet_sequence_id|).
+    //
+    // When set, this TracePacket and subsequent TracePackets on the same
+    // sequence will not refer to any incremental data emitted before this
+    // TracePacket. For example, previously emitted interned data will be
+    // re-emitted if it is referred to again.
+    //
+    // When the reader detects packet loss (|previous_packet_dropped|), it needs
+    // to skip packets in the sequence until the next one with this flag set, to
+    // ensure intact incremental data.
+    SEQ_INCREMENTAL_STATE_CLEARED = 1;
+
+    // This packet requires incremental state, such as TracePacketDefaults or
+    // InternedData, to be parsed correctly. The trace reader should skip this
+    // packet if incremental state is not valid on this sequence, i.e. if no
+    // packet with the SEQ_INCREMENTAL_STATE_CLEARED flag has been seen on the
+    // current |trusted_packet_sequence_id|.
+    SEQ_NEEDS_INCREMENTAL_STATE = 2;
+  };
+  optional uint32 sequence_flags = 13;
 }

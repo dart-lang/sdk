@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.5.0';
+const String vmServiceVersion = '4.6.0';
 
 /// @optional
 const String optional = 'optional';
@@ -161,6 +161,7 @@ Map<String, Function> _typeFactories = {
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
   'Parameter': Parameter.parse,
+  'PerfettoCpuSamples': PerfettoCpuSamples.parse,
   'PerfettoTimeline': PerfettoTimeline.parse,
   'PortList': PortList.parse,
   'ProfileFunction': ProfileFunction.parse,
@@ -219,6 +220,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getIsolateGroupMemoryUsage': const ['MemoryUsage'],
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj'],
+  'getPerfettoCpuSamples': const ['PerfettoCpuSamples'],
   'getPerfettoVMTimeline': const ['PerfettoTimeline'],
   'getPorts': const ['PortList'],
   'getRetainingPath': const ['RetainingPath'],
@@ -554,15 +556,25 @@ abstract class VmServiceInterface {
   Future<ClassList> getClassList(String isolateId);
 
   /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
-  /// profiler. Only samples collected in the time range `[timeOriginMicros,
-  /// timeOriginMicros + timeExtentMicros]` will be reported.
+  /// profiler. See [CpuSamples] for a detailed description of the response.
+  ///
+  /// The `timeOriginMicros` parameter is the beginning of the time range used
+  /// to filter samples. It uses the same monotonic clock as dart:developer's
+  /// `Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+  /// [VmServiceInterface.getVMTimelineMicros] for access to this clock through
+  /// the service protocol.
+  ///
+  /// The `timeExtentMicros` parameter specifies how large the time range used
+  /// to filter samples should be.
+  ///
+  /// For example, given `timeOriginMicros` and `timeExtentMicros`, only samples
+  /// from the following time range will be returned: `(timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros)`.
   ///
   /// If the profiler is disabled, an [RPCError] response will be returned.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
-  ///
-  /// See [CpuSamples].
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
@@ -775,6 +787,33 @@ abstract class VmServiceInterface {
     int? offset,
     int? count,
   });
+
+  /// The `getPerfettoCpuSamples` RPC is used to retrieve samples collected by
+  /// the CPU profiler, serialized in Perfetto's proto format. See
+  /// [PerfettoCpuSamples] for a detailed description of the response.
+  ///
+  /// The `timeOriginMicros` parameter is the beginning of the time range used
+  /// to filter samples. It uses the same monotonic clock as dart:developer's
+  /// `Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+  /// [VmServiceInterface.getVMTimelineMicros] for access to this clock through
+  /// the service protocol.
+  ///
+  /// The `timeExtentMicros` parameter specifies how large the time range used
+  /// to filter samples should be.
+  ///
+  /// For example, given `timeOriginMicros` and `timeExtentMicros`, only samples
+  /// from the following time range will be returned: `(timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros)`.
+  ///
+  /// If the profiler is disabled, an [RPCError] response will be returned.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<PerfettoCpuSamples> getPerfettoCpuSamples(String isolateId,
+      {int? timeOriginMicros, int? timeExtentMicros});
 
   /// The `getPerfettoVMTimeline` RPC is used to retrieve an object which
   /// contains a VM timeline trace represented in Perfetto's proto format. See
@@ -1594,6 +1633,13 @@ class VmServerConnection {
             count: params['count'],
           );
           break;
+        case 'getPerfettoCpuSamples':
+          response = await _serviceImplementation.getPerfettoCpuSamples(
+            params!['isolateId'],
+            timeOriginMicros: params['timeOriginMicros'],
+            timeExtentMicros: params['timeExtentMicros'],
+          );
+          break;
         case 'getPerfettoVMTimeline':
           response = await _serviceImplementation.getPerfettoVMTimeline(
             timeOriginMicros: params!['timeOriginMicros'],
@@ -2160,6 +2206,15 @@ class VmService implements VmServiceInterface {
         'objectId': objectId,
         if (offset != null) 'offset': offset,
         if (count != null) 'count': count,
+      });
+
+  @override
+  Future<PerfettoCpuSamples> getPerfettoCpuSamples(String isolateId,
+          {int? timeOriginMicros, int? timeExtentMicros}) =>
+      _call('getPerfettoCpuSamples', {
+        'isolateId': isolateId,
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
       });
 
   @override
@@ -7238,6 +7293,80 @@ class Parameter {
   @override
   String toString() =>
       '[Parameter parameterType: $parameterType, fixed: $fixed]';
+}
+
+/// See [VmServiceInterface.getPerfettoCpuSamples].
+class PerfettoCpuSamples extends Response {
+  static PerfettoCpuSamples? parse(Map<String, dynamic>? json) =>
+      json == null ? null : PerfettoCpuSamples._fromJson(json);
+
+  /// The sampling rate for the profiler in microseconds.
+  int? samplePeriod;
+
+  /// The maximum possible stack depth for samples.
+  int? maxStackDepth;
+
+  /// The number of samples returned.
+  int? sampleCount;
+
+  /// The start of the period of time in which the returned samples were
+  /// collected.
+  int? timeOriginMicros;
+
+  /// The duration of time covered by the returned samples.
+  int? timeExtentMicros;
+
+  /// The process ID for the VM.
+  int? pid;
+
+  /// A Base64 string representing the requested samples in Perfetto's proto
+  /// format.
+  String? samples;
+
+  PerfettoCpuSamples({
+    this.samplePeriod,
+    this.maxStackDepth,
+    this.sampleCount,
+    this.timeOriginMicros,
+    this.timeExtentMicros,
+    this.pid,
+    this.samples,
+  });
+
+  PerfettoCpuSamples._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json) {
+    samplePeriod = json['samplePeriod'] ?? -1;
+    maxStackDepth = json['maxStackDepth'] ?? -1;
+    sampleCount = json['sampleCount'] ?? -1;
+    timeOriginMicros = json['timeOriginMicros'] ?? -1;
+    timeExtentMicros = json['timeExtentMicros'] ?? -1;
+    pid = json['pid'] ?? -1;
+    samples = json['samples'] ?? '';
+  }
+
+  @override
+  String get type => 'PerfettoCpuSamples';
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    json['type'] = type;
+    json.addAll({
+      'samplePeriod': samplePeriod ?? -1,
+      'maxStackDepth': maxStackDepth ?? -1,
+      'sampleCount': sampleCount ?? -1,
+      'timeOriginMicros': timeOriginMicros ?? -1,
+      'timeExtentMicros': timeExtentMicros ?? -1,
+      'pid': pid ?? -1,
+      'samples': samples ?? '',
+    });
+    return json;
+  }
+
+  @override
+  String toString() => '[PerfettoCpuSamples ' //
+      'samplePeriod: $samplePeriod, maxStackDepth: $maxStackDepth, ' //
+      'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, samples: $samples]';
 }
 
 /// See [VmServiceInterface.getPerfettoVMTimeline];

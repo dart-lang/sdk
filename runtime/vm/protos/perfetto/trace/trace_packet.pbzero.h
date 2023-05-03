@@ -25,11 +25,46 @@ namespace protos {
 namespace pbzero {
 
 class ClockSnapshot;
+class InternedData;
+class PerfSample;
 class TrackDescriptor;
 class TrackEvent;
 
+namespace perfetto_pbzero_enum_TracePacket {
+enum SequenceFlags : int32_t {
+  SEQ_UNSPECIFIED = 0,
+  SEQ_INCREMENTAL_STATE_CLEARED = 1,
+  SEQ_NEEDS_INCREMENTAL_STATE = 2,
+};
+}  // namespace perfetto_pbzero_enum_TracePacket
+using TracePacket_SequenceFlags =
+    perfetto_pbzero_enum_TracePacket::SequenceFlags;
+
+constexpr TracePacket_SequenceFlags TracePacket_SequenceFlags_MIN =
+    TracePacket_SequenceFlags::SEQ_UNSPECIFIED;
+constexpr TracePacket_SequenceFlags TracePacket_SequenceFlags_MAX =
+    TracePacket_SequenceFlags::SEQ_NEEDS_INCREMENTAL_STATE;
+
+PERFETTO_PROTOZERO_CONSTEXPR14_OR_INLINE
+const char* TracePacket_SequenceFlags_Name(
+    ::perfetto::protos::pbzero::TracePacket_SequenceFlags value) {
+  switch (value) {
+    case ::perfetto::protos::pbzero::TracePacket_SequenceFlags::SEQ_UNSPECIFIED:
+      return "SEQ_UNSPECIFIED";
+
+    case ::perfetto::protos::pbzero::TracePacket_SequenceFlags::
+        SEQ_INCREMENTAL_STATE_CLEARED:
+      return "SEQ_INCREMENTAL_STATE_CLEARED";
+
+    case ::perfetto::protos::pbzero::TracePacket_SequenceFlags::
+        SEQ_NEEDS_INCREMENTAL_STATE:
+      return "SEQ_NEEDS_INCREMENTAL_STATE";
+  }
+  return "PBZERO_UNKNOWN_ENUM_VALUE";
+}
+
 class TracePacket_Decoder : public ::protozero::TypedProtoDecoder<
-                                /*MAX_FIELD_ID=*/60,
+                                /*MAX_FIELD_ID=*/66,
                                 /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   TracePacket_Decoder(const uint8_t* data, size_t len)
@@ -51,8 +86,14 @@ class TracePacket_Decoder : public ::protozero::TypedProtoDecoder<
   ::protozero::ConstBytes track_descriptor() const {
     return at<60>().as_bytes();
   }
+  bool has_perf_sample() const { return at<66>().valid(); }
+  ::protozero::ConstBytes perf_sample() const { return at<66>().as_bytes(); }
   bool has_trusted_packet_sequence_id() const { return at<10>().valid(); }
   uint32_t trusted_packet_sequence_id() const { return at<10>().as_uint32(); }
+  bool has_interned_data() const { return at<12>().valid(); }
+  ::protozero::ConstBytes interned_data() const { return at<12>().as_bytes(); }
+  bool has_sequence_flags() const { return at<13>().valid(); }
+  uint32_t sequence_flags() const { return at<13>().as_uint32(); }
 };
 
 class TracePacket : public ::protozero::Message {
@@ -64,11 +105,24 @@ class TracePacket : public ::protozero::Message {
     kClockSnapshotFieldNumber = 6,
     kTrackEventFieldNumber = 11,
     kTrackDescriptorFieldNumber = 60,
+    kPerfSampleFieldNumber = 66,
     kTrustedPacketSequenceIdFieldNumber = 10,
+    kInternedDataFieldNumber = 12,
+    kSequenceFlagsFieldNumber = 13,
   };
   static constexpr const char* GetName() {
     return ".perfetto.protos.TracePacket";
   }
+
+  using SequenceFlags = ::perfetto::protos::pbzero::TracePacket_SequenceFlags;
+  static inline const char* SequenceFlags_Name(SequenceFlags value) {
+    return ::perfetto::protos::pbzero::TracePacket_SequenceFlags_Name(value);
+  }
+  static const SequenceFlags SEQ_UNSPECIFIED = SequenceFlags::SEQ_UNSPECIFIED;
+  static const SequenceFlags SEQ_INCREMENTAL_STATE_CLEARED =
+      SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED;
+  static const SequenceFlags SEQ_NEEDS_INCREMENTAL_STATE =
+      SequenceFlags::SEQ_NEEDS_INCREMENTAL_STATE;
 
   using FieldMetadata_Timestamp = ::protozero::proto_utils::FieldMetadata<
       8,
@@ -186,6 +240,26 @@ class TracePacket : public ::protozero::Message {
     return BeginNestedMessage<T>(60);
   }
 
+  using FieldMetadata_PerfSample = ::protozero::proto_utils::FieldMetadata<
+      66,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      PerfSample,
+      TracePacket>;
+
+  // Ceci n'est pas une pipe.
+  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
+  // type (and users are expected to use it as such, hence kCamelCase name).
+  // It is declared as a function to keep protozero bindings header-only as
+  // inline constexpr variables are not available until C++17 (while inline
+  // functions are).
+  // TODO(altimin): Use inline variable instead after adopting C++17.
+  static constexpr FieldMetadata_PerfSample kPerfSample() { return {}; }
+  template <typename T = PerfSample>
+  T* set_perf_sample() {
+    return BeginNestedMessage<T>(66);
+  }
+
   using FieldMetadata_TrustedPacketSequenceId =
       ::protozero::proto_utils::FieldMetadata<
           10,
@@ -208,6 +282,51 @@ class TracePacket : public ::protozero::Message {
   void set_trusted_packet_sequence_id(uint32_t value) {
     static constexpr uint32_t field_id =
         FieldMetadata_TrustedPacketSequenceId::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint32>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_InternedData = ::protozero::proto_utils::FieldMetadata<
+      12,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      InternedData,
+      TracePacket>;
+
+  // Ceci n'est pas une pipe.
+  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
+  // type (and users are expected to use it as such, hence kCamelCase name).
+  // It is declared as a function to keep protozero bindings header-only as
+  // inline constexpr variables are not available until C++17 (while inline
+  // functions are).
+  // TODO(altimin): Use inline variable instead after adopting C++17.
+  static constexpr FieldMetadata_InternedData kInternedData() { return {}; }
+  template <typename T = InternedData>
+  T* set_interned_data() {
+    return BeginNestedMessage<T>(12);
+  }
+
+  using FieldMetadata_SequenceFlags = ::protozero::proto_utils::FieldMetadata<
+      13,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint32,
+      uint32_t,
+      TracePacket>;
+
+  // Ceci n'est pas une pipe.
+  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
+  // type (and users are expected to use it as such, hence kCamelCase name).
+  // It is declared as a function to keep protozero bindings header-only as
+  // inline constexpr variables are not available until C++17 (while inline
+  // functions are).
+  // TODO(altimin): Use inline variable instead after adopting C++17.
+  static constexpr FieldMetadata_SequenceFlags kSequenceFlags() { return {}; }
+  void set_sequence_flags(uint32_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_SequenceFlags::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
