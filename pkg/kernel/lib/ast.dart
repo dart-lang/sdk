@@ -13181,7 +13181,7 @@ class IntersectionType extends DartType {
 
   @override
   IntersectionType withDeclaredNullability(Nullability declaredNullability) {
-    if (left.declaredNullability == this.declaredNullability) {
+    if (left.declaredNullability == declaredNullability) {
       return this;
     }
     TypeParameterType newLeft =
