@@ -735,6 +735,43 @@ abstract interface class ContentType implements HeaderValue {
   String? get charset;
 }
 
+/// Cookie cross-site availability configuration.
+///
+/// The value of [Cookie.sameSite], which defines whether an
+/// HTTP cookie is available from other sites or not.
+///
+/// Has three possible values: [lax], [strict] and [none].
+final class SameSite {
+  /// Default value, cookie with this value will generally not be sent on
+  /// cross-site requests, unless the user is navigated to the original site.
+  static const lax = SameSite._("Lax");
+
+  /// Cookie with this value will never be sent on cross-site requests.
+  static const strict = SameSite._("Strict");
+
+  /// Cookie with this value will be sent in all requests.
+  ///
+  /// [Cookie.secure] must also be set to true, otherwise the `none` value
+  /// will have no effect.
+  static const none = SameSite._("None");
+
+  static const List<SameSite> values = [lax, strict, none];
+
+  final String name;
+
+  const SameSite._(this.name);
+
+  static SameSite _byName(String name) {
+    for (var value in values) {
+      if (name.toLowerCase() == value.name.toLowerCase()) return value;
+    }
+    throw HttpException('SameSite value should be one of Lax, Strict or None.');
+  }
+
+  @override
+  String toString() => "SameSite=$name";
+}
+
 /// Representation of a cookie. For cookies received by the server as Cookie
 /// header values only [name] and [value] properties will be set. When building a
 /// cookie for the 'set-cookie' header in the server and when receiving cookies
@@ -780,6 +817,13 @@ abstract interface class Cookie {
   /// Whether the cookie is only sent in the HTTP request and is not made
   /// available to client side scripts.
   bool httpOnly = false;
+
+  /// Whether the cookie is available from other sites.
+  ///
+  /// This value is `null` if the SameSite attribute is not present.
+  ///
+  /// See [SameSite] for more information.
+  SameSite? sameSite;
 
   /// Creates a new cookie setting the name and value.
   ///
