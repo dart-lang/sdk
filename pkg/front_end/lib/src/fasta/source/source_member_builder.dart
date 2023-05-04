@@ -12,6 +12,7 @@ import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/member_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../modifier.dart';
 import '../problems.dart' show unsupported;
@@ -58,6 +59,8 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   void set isConflictingAugmentationMember(bool value);
 
   AugmentSuperTarget? get augmentSuperTarget;
+
+  BodyBuilderContext get bodyBuilderContext;
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -89,7 +92,12 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   AugmentSuperTarget? get augmentSuperTarget {
-    throw new UnimplementedError('$runtimeType.augmentSuperTarget}');
+    throw new UnimplementedError('$runtimeType.augmentSuperTarget');
+  }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext {
+    throw new UnimplementedError('$runtimeType.bodyBuilderContext');
   }
 }
 

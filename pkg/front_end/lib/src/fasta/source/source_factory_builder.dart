@@ -17,6 +17,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
@@ -282,6 +283,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   /// Checks this factory builder if it is for a redirecting factory.
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {}
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new FactoryBodyBuilderContext(this);
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {
@@ -422,7 +427,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
               fileUri, classBuilder.thisType, libraryBuilder, null);
       InferenceHelper helper = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, classBuilder, this, classBuilder.scope, fileUri);
+              libraryBuilder, bodyBuilderContext, classBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -738,4 +743,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
     }
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new RedirectingFactoryBodyBuilderContext(this);
 }

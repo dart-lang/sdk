@@ -40,15 +40,19 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
-import 'package:kernel/transformations/flags.dart';
+import 'package:kernel/src/redirecting_factory_body.dart'
+    show
+        EnsureLoaded,
+        RedirectingFactoryBody,
+        RedirectionTarget,
+        getRedirectingFactoryBody,
+        getRedirectionTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/inline_class_builder.dart';
@@ -56,7 +60,6 @@ import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -88,16 +91,10 @@ import '../modifier.dart'
 import '../names.dart' show emptyName, minusName, plusName;
 import '../problems.dart' show internalProblem, unhandled, unsupported;
 import '../scope.dart';
-import '../source/constructor_declaration.dart';
 import '../source/diet_parser.dart';
-import '../source/source_class_builder.dart';
-import '../source/source_enum_builder.dart';
-import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
-import '../source/source_procedure_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
 import '../source/value_kinds.dart';
@@ -107,6 +104,7 @@ import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart' show UnknownType;
 import '../util/helpers.dart';
+import 'body_builder_context.dart';
 import 'collections.dart';
 import 'constness.dart' show Constness;
 import 'constructor_tearoff_lowering.dart';
@@ -117,13 +115,6 @@ import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 import 'internal_ast.dart';
 import 'kernel_variable_builder.dart';
 import 'load_library_builder.dart';
-import 'package:kernel/src/redirecting_factory_body.dart'
-    show
-        EnsureLoaded,
-        RedirectingFactoryBody,
-        RedirectionTarget,
-        getRedirectingFactoryBody,
-        getRedirectionTarget;
 import 'type_algorithms.dart' show calculateBounds;
 import 'utils.dart';
 
@@ -134,278 +125,6 @@ enum JumpTargetKind {
   Break,
   Continue,
   Goto, // Continue label in switch.
-}
-
-class BodyBuilderContext {
-  final LibraryBuilder _libraryBuilder;
-
-  /// The source class or mixin declaration in which [_member] is declared, if
-  /// any.
-  ///
-  /// If [_member] is a synthesized member for expression evaluation the
-  /// enclosing declaration might be a [DillClassBuilder]. This can be accessed
-  /// through [_declarationBuilder].
-  final SourceClassBuilder? _sourceClassBuilder;
-
-  /// The class, mixin or extension declaration in which [_member] is declared,
-  /// if any.
-  final DeclarationBuilder? _declarationBuilder;
-
-  final ModifierBuilder _member;
-
-  final bool isDeclarationInstanceMember;
-
-  BodyBuilderContext(
-      this._libraryBuilder, this._declarationBuilder, this._member,
-      {required this.isDeclarationInstanceMember})
-      : _sourceClassBuilder = _declarationBuilder is SourceClassBuilder
-            ? _declarationBuilder
-            : null;
-
-  String? get memberName => _member.name;
-
-  Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter = false}) {
-    return (_declarationBuilder as ClassBuilder).lookupInstanceMember(
-        hierarchy, name,
-        isSetter: isSetter, isSuper: true);
-  }
-
-  Constructor? lookupConstructor(Name name) {
-    return _sourceClassBuilder!.lookupConstructor(name, isSuper: false);
-  }
-
-  Constructor? lookupSuperConstructor(Name name) {
-    return _sourceClassBuilder!.lookupConstructor(name, isSuper: true);
-  }
-
-  Builder? lookupLocalMember(String name, {bool required = false}) {
-    if (_declarationBuilder != null) {
-      return _declarationBuilder!.lookupLocalMember(name, required: required);
-    } else {
-      return _libraryBuilder.lookupLocalMember(name, required: required);
-    }
-  }
-
-  bool get isPatchClass => _sourceClassBuilder?.isPatch ?? false;
-
-  Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
-    // The scope of a patched method includes the origin class.
-    return _sourceClassBuilder!.origin
-        .findStaticBuilder(name, charOffset, uri, _libraryBuilder);
-  }
-
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    SourceFunctionBuilder member = this._member as SourceFunctionBuilder;
-    return member.getFormal(name);
-  }
-
-  FunctionNode get function {
-    return (_member as SourceFunctionBuilder).function;
-  }
-
-  bool get isConstructor {
-    return _member is ConstructorDeclaration;
-  }
-
-  bool get isExternalConstructor {
-    return _member.isExternal;
-  }
-
-  bool get isExternalFunction {
-    return _member.isExternal;
-  }
-
-  bool get isSetter {
-    return _member.isSetter;
-  }
-
-  bool get isConstConstructor {
-    return _member.isConst;
-  }
-
-  bool get isFactory {
-    return _member.isFactory;
-  }
-
-  bool get isNativeMethod {
-    return _member.isNative;
-  }
-
-  bool get isDeclarationInstanceContext {
-    return isDeclarationInstanceMember || isConstructor;
-  }
-
-  bool get isRedirectingFactory {
-    return _member is RedirectingFactoryBuilder;
-  }
-
-  String get redirectingFactoryTargetName {
-    RedirectingFactoryBuilder factory = _member as RedirectingFactoryBuilder;
-    return factory.redirectionTarget.fullNameForErrors;
-  }
-
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
-    if (_member.isExtensionMember && _member.isField && !_member.isExternal) {
-      return InstanceTypeVariableAccessState.Invalid;
-    } else if (isDeclarationInstanceContext || _member is DeclarationBuilder) {
-      return InstanceTypeVariableAccessState.Allowed;
-    } else {
-      return InstanceTypeVariableAccessState.Disallowed;
-    }
-  }
-
-  bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
-    return _declarationBuilder is SourceClassBuilder &&
-        coreTypes.objectClass !=
-            (_declarationBuilder as SourceClassBuilder).cls &&
-        !_member.isExternal;
-  }
-
-  void registerSuperCall() {
-    MemberBuilder memberBuilder = _member as MemberBuilder;
-    memberBuilder.member.transformerFlags |= TransformerFlag.superCalls;
-  }
-
-  bool isConstructorCyclic(String name) {
-    return _sourceClassBuilder!.checkConstructorCyclic(_member.name!, name);
-  }
-
-  ConstantContext get constantContext {
-    return _member.isConst
-        ? ConstantContext.inferred
-        : !_member.isStatic &&
-                _sourceClassBuilder != null &&
-                _sourceClassBuilder!.declaresConstConstructor
-            ? ConstantContext.required
-            : ConstantContext.none;
-  }
-
-  bool get isLateField =>
-      _member is SourceFieldBuilder && (_member as SourceFieldBuilder).isLate;
-
-  bool get isAbstractField =>
-      _member is SourceFieldBuilder &&
-      (_member as SourceFieldBuilder).isAbstract;
-
-  bool get isExternalField =>
-      _member is SourceFieldBuilder &&
-      (_member as SourceFieldBuilder).isExternal;
-
-  bool get isMixinClass {
-    return _sourceClassBuilder != null && _sourceClassBuilder!.isMixinClass;
-  }
-
-  bool get isEnumClass {
-    return _sourceClassBuilder is SourceEnumBuilder;
-  }
-
-  String get className {
-    return _sourceClassBuilder!.fullNameForErrors;
-  }
-
-  String get superClassName {
-    if (_sourceClassBuilder!.supertypeBuilder?.declaration
-        is InvalidTypeDeclarationBuilder) {
-      // TODO(johnniwinther): Avoid reporting errors on missing constructors
-      // on invalid super types.
-      return _sourceClassBuilder!.supertypeBuilder!.fullNameForErrors;
-    }
-    Class cls = _sourceClassBuilder!.cls;
-    cls = cls.superclass!;
-    while (cls.isMixinApplication) {
-      cls = cls.superclass!;
-    }
-    return cls.name;
-  }
-
-  DartType substituteFieldType(DartType fieldType) {
-    return (_member as ConstructorDeclaration).substituteFieldType(fieldType);
-  }
-
-  void registerInitializedField(SourceFieldBuilder builder) {
-    (_member as ConstructorDeclaration).registerInitializedField(builder);
-  }
-
-  VariableDeclaration getFormalParameter(int index) {
-    return (_member as SourceFunctionBuilder).getFormalParameter(index);
-  }
-
-  VariableDeclaration? getTearOffParameter(int index) {
-    return (_member as SourceFunctionBuilder).getTearOffParameter(index);
-  }
-
-  DartType get returnTypeContext {
-    ModifierBuilder member = _member;
-    if (member is SourceProcedureBuilder) {
-      final bool isReturnTypeUndeclared =
-          member.returnType is OmittedTypeBuilder &&
-              member.function.returnType is DynamicType;
-      return isReturnTypeUndeclared && _libraryBuilder.isNonNullableByDefault
-          ? const UnknownType()
-          : member.function.returnType;
-    } else if (member is SourceFactoryBuilder) {
-      return member.function.returnType;
-    } else {
-      assert(member is ConstructorDeclaration);
-      return const DynamicType();
-    }
-  }
-
-  TypeBuilder get returnType => (_member as SourceFunctionBuilder).returnType;
-
-  List<FormalParameterBuilder>? get formals =>
-      (_member as SourceFunctionBuilder).formals;
-
-  Scope computeFormalParameterInitializerScope(Scope parent) {
-    return (_member as SourceFunctionBuilder)
-        .computeFormalParameterInitializerScope(parent);
-  }
-
-  void prepareInitializers() {
-    (_member as ConstructorDeclaration).prepareInitializers();
-  }
-
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
-    (_member as ConstructorDeclaration)
-        .addInitializer(initializer, helper, inferenceResult: inferenceResult);
-  }
-
-  InitializerInferenceResult inferInitializer(Initializer initializer,
-      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
-    return typeInferrer.inferInitializer(
-        helper, _member as ConstructorDeclaration, initializer);
-  }
-
-  int get charOffset => _member.charOffset;
-
-  AugmentSuperTarget? get augmentSuperTarget {
-    Builder member = _member;
-    if (member is SourceMemberBuilder && member.isAugmentation) {
-      return member.augmentSuperTarget;
-    }
-    return null;
-  }
-
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    Builder member = _member;
-    if (member is ConstructorDeclaration) {
-      throw new UnsupportedError(
-          "Unexpected member $member in BodyBuilderContext.asyncModifier=");
-    } else if (member is SourceProcedureBuilder) {
-      member.asyncModifier = asyncModifier;
-    } else if (member is SourceFactoryBuilder) {
-      member.asyncModifier = asyncModifier;
-    } else {
-      unhandled("${member.runtimeType}", "finishFunction", member.charOffset,
-          member.fileUri);
-    }
-  }
-
-  void setBody(Statement body) {
-    (_member as SourceFunctionBuilder).body = body;
-  }
 }
 
 class BodyBuilder extends StackListenerImpl
@@ -623,44 +342,29 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
-      DeclarationBuilder? declarationBuilder, TypeInferrer typeInferrer)
+  BodyBuilder.forField(
+      SourceLibraryBuilder libraryBuilder,
+      BodyBuilderContext bodyBuilderContext,
+      Scope enclosingScope,
+      TypeInferrer typeInferrer,
+      Uri uri)
       : this(
-            libraryBuilder: part,
-            context: new BodyBuilderContext(part, declarationBuilder, field,
-                isDeclarationInstanceMember: field.isDeclarationInstanceMember),
-            enclosingScope:
-                declarationBuilder?.scope ?? field.libraryBuilder.scope,
+            libraryBuilder: libraryBuilder,
+            context: bodyBuilderContext,
+            enclosingScope: enclosingScope,
             formalParameterScope: null,
-            hierarchy: part.loader.hierarchy,
-            coreTypes: part.loader.coreTypes,
+            hierarchy: libraryBuilder.loader.hierarchy,
+            coreTypes: libraryBuilder.loader.coreTypes,
             thisVariable: null,
-            uri: field.fileUri!,
+            uri: uri,
             typeInferrer: typeInferrer);
 
-  BodyBuilder.forField(FieldBuilder field, TypeInferrer typeInferrer)
-      : this.withParents(
-            field,
-            field.parent is DeclarationBuilder
-                ? field.parent!.parent as SourceLibraryBuilder
-                : field.parent as SourceLibraryBuilder,
-            field.parent is DeclarationBuilder
-                ? field.parent as DeclarationBuilder
-                : null,
-            typeInferrer);
-
-  BodyBuilder.forOutlineExpression(
-      SourceLibraryBuilder library,
-      DeclarationBuilder? declarationBuilder,
-      ModifierBuilder member,
-      Scope scope,
-      Uri fileUri,
+  BodyBuilder.forOutlineExpression(SourceLibraryBuilder library,
+      BodyBuilderContext bodyBuilderContext, Scope scope, Uri fileUri,
       {Scope? formalParameterScope})
       : this(
             libraryBuilder: library,
-            context: new BodyBuilderContext(library, declarationBuilder, member,
-                isDeclarationInstanceMember:
-                    member.isDeclarationInstanceMember),
+            context: bodyBuilderContext,
             enclosingScope: scope,
             formalParameterScope: formalParameterScope,
             hierarchy: library.loader.hierarchy,
@@ -669,7 +373,7 @@ class BodyBuilder extends StackListenerImpl
             uri: fileUri,
             typeInferrer: library.loader.typeInferenceEngine
                 .createLocalTypeInferrer(
-                    fileUri, declarationBuilder?.thisType, library, null));
+                    fileUri, bodyBuilderContext.thisType, library, null));
 
   JumpTarget createBreakTarget(int charOffset) {
     return createJumpTarget(JumpTargetKind.Break, charOffset);

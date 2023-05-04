@@ -22,6 +22,7 @@ import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
@@ -398,6 +399,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new FieldBodyBuilderContext(this);
+
+  @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
@@ -406,9 +411,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       MetadataBuilder.buildAnnotations(
           annotatable,
           metadata,
+          bodyBuilderContext,
           libraryBuilder,
-          declarationBuilder,
-          this,
           fileUri,
           declarationBuilder?.scope ?? libraryBuilder.scope);
     }
@@ -425,7 +429,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       Scope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, declarationBuilder, this, scope, fileUri);
+              libraryBuilder, bodyBuilderContext, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
