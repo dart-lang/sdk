@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+inline class X /* declaredRepresentationType = core::int */ {
+  constructor • = self::X|;
+  tearoff • = self::X|get#;
+  constructor named = self::X|named;
+  tearoff named = self::X|get#named;
+}
+static method X|() → self::X
+  ;
+static method X|get#() → self::X
+  return self::X|();
+static method X|named() → self::X
+  ;
+static method X|get#named() → self::X
+  return self::X|named();
+static method main() → void
+  ;

@@ -17,6 +17,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -3167,8 +3168,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           usedAsClassFileUri: _uri);
 
       bool isConstructorTearOff = send is PropertySelector &&
-          _helper.libraryFeatures.constructorTearoffs.isEnabled &&
-          declarationBuilder is ClassBuilder;
+              _helper.libraryFeatures.constructorTearoffs.isEnabled &&
+              declarationBuilder is ClassBuilder ||
+          declarationBuilder is InlineClassBuilder;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
           ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
               allowPotentiallyConstantType: isConstructorTearOff))
@@ -3232,19 +3234,21 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
           if (_helper.libraryFeatures.constructorTearoffs.isEnabled &&
-              declarationBuilder is ClassBuilder) {
+                  declarationBuilder is ClassBuilder ||
+              declarationBuilder is InlineClassBuilder) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
                     name.text, nameOffset, _uri, _helper.libraryBuilder);
             Member? tearOff = constructor?.readTarget;
             Expression? tearOffExpression;
             if (tearOff is Constructor) {
-              if (declarationBuilder.isAbstract) {
+              if (declarationBuilder is ClassBuilder &&
+                  declarationBuilder.isAbstract) {
                 return _helper.buildProblem(
                     messageAbstractClassConstructorTearOff,
                     nameOffset,
                     name.text.length);
-              } else if (declarationBuilder.cls.isEnum) {
+              } else if (declarationBuilder.isEnum) {
                 return _helper.buildProblem(messageEnumConstructorTearoff,
                     nameOffset, name.text.length);
               }
@@ -3278,9 +3282,17 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   // fallback, as the error is reported during a check on the
                   // typedef.
                   builtTypeArguments = <DartType>[];
-                  for (TypeParameter typeParameter
-                      in declarationBuilder.cls.typeParameters) {
-                    builtTypeArguments.add(typeParameter.defaultType);
+                  if (declarationBuilder is ClassBuilder) {
+                    for (TypeParameter typeParameter
+                        in declarationBuilder.cls.typeParameters) {
+                      builtTypeArguments.add(typeParameter.defaultType);
+                    }
+                  } else {
+                    declarationBuilder as InlineClassBuilder;
+                    for (TypeParameter typeParameter
+                        in declarationBuilder.inlineClass.typeParameters) {
+                      builtTypeArguments.add(typeParameter.defaultType);
+                    }
                   }
                 } else {
                   builtTypeArguments = unaliasTypes(

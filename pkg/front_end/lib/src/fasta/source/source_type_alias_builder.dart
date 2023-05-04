@@ -187,9 +187,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               .buildAliased(
                   libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
-      if (library is SourceLibraryBuilder) {
-        library.inferredTypes.addAll(result);
-      }
       return result;
     }
 

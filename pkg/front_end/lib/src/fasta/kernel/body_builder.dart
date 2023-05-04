@@ -1260,8 +1260,12 @@ class BodyBuilder extends StackListenerImpl
 
     InferredFunctionBody? inferredFunctionBody;
     if (body != null) {
-      inferredFunctionBody = typeInferrer.inferFunctionBody(this,
-          _context.charOffset, _context.returnTypeContext, asyncModifier, body);
+      inferredFunctionBody = typeInferrer.inferFunctionBody(
+          this,
+          _context.memberCharOffset,
+          _context.returnTypeContext,
+          asyncModifier,
+          body);
       body = inferredFunctionBody.body;
       function.futureValueType = inferredFunctionBody.futureValueType;
       assert(
@@ -1272,15 +1276,16 @@ class BodyBuilder extends StackListenerImpl
 
     if (_context.returnType is! OmittedTypeBuilder) {
       checkAsyncReturnType(asyncModifier, function.returnType,
-          _context.charOffset, _context.memberName!.length);
+          _context.memberCharOffset, _context.memberName.length);
     }
 
     if (_context.isSetter) {
       if (formals?.parameters == null ||
           formals!.parameters!.length != 1 ||
           formals.parameters!.single.isOptionalPositional) {
-        int charOffset =
-            formals?.charOffset ?? body?.fileOffset ?? _context.charOffset;
+        int charOffset = formals?.charOffset ??
+            body?.fileOffset ??
+            _context.memberCharOffset;
         if (body == null) {
           body = new EmptyStatement()..fileOffset = charOffset;
         }
@@ -1939,7 +1944,7 @@ class BodyBuilder extends StackListenerImpl
         buildProblem(
             fasta.templateIllegalMixinDueToConstructors
                 .withArguments(_context.className),
-            _context.charOffset,
+            _context.memberCharOffset,
             noLength);
       }
       if (initializers.last is SuperInitializer) {
@@ -2064,10 +2069,10 @@ class BodyBuilder extends StackListenerImpl
 
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
-                  _context.charOffset, const <TypeParameter>[]) !=
+                  _context.memberCharOffset, const <TypeParameter>[]) !=
               null) {
         String superclass = _context.superClassName;
-        int length = _context.memberName!.length;
+        int length = _context.memberName.length;
         if (length == 0) {
           length = _context.className.length;
         }
@@ -2075,12 +2080,12 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(
                 fasta.templateSuperclassHasNoDefaultConstructor
                     .withArguments(superclass),
-                _context.charOffset,
+                _context.memberCharOffset,
                 length),
-            _context.charOffset);
+            _context.memberCharOffset);
       } else {
         initializer = buildSuperInitializer(
-            true, superTarget, arguments, _context.charOffset);
+            true, superTarget, arguments, _context.memberCharOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult =
@@ -2102,7 +2107,7 @@ class BodyBuilder extends StackListenerImpl
       buildProblem(
           fasta.templateIllegalMixinDueToConstructors
               .withArguments(_context.className),
-          _context.charOffset,
+          _context.memberCharOffset,
           noLength);
     }
   }

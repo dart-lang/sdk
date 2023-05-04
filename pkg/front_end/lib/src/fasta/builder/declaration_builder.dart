@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../messages.dart';
 import '../scope.dart';
@@ -10,6 +11,7 @@ import 'builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
 abstract class DeclarationBuilder implements TypeDeclarationBuilder {
@@ -46,6 +48,9 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
       {bool setter = false, bool required = false});
 
   ConstructorScope get constructorScope;
+
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
