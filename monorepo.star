@@ -39,13 +39,6 @@ luci.console_view(
     header = "console-header.textpb",
 )
 
-dart.try_builder(
-    "monorepo-roller",
-    experiments = {"luci.non_production": 100},
-    recipe = "roller/monorepo",
-    execution_timeout = 30 * time.minute,
-)
-
 dart.ci_sandbox_builder(
     name = "flutter-linux",
     channels = [],
