@@ -31,7 +31,11 @@ class AddExplicitCast extends CorrectionProducer {
       return;
     }
 
-    var fromType = target.typeOrThrow;
+    var fromType = target.staticType;
+    if (fromType == null) {
+      return;
+    }
+
     if (fromType == typeProvider.nullType) {
       // There would only be a diagnostic if the `toType` is not nullable, in
       // which case a cast won't fix the problem.
