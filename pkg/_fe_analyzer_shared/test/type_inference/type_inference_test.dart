@@ -191,7 +191,7 @@ main() {
               expr('Object').asCollectionElement,
             )..errorId = 'FOR')
                 .checkIr('forEach(expr(Object), varPattern(x, '
-                    'matchedType: dynamic, staticType: dynamic), '
+                    'matchedType: error, staticType: error), '
                     'celt(expr(Object)))')
                 .inContextElementType('Object'),
           ], expectedErrors: {
@@ -1686,11 +1686,19 @@ main() {
                       x.pattern(), expr('Object')..errorId = 'EXPRESSION', [])
                     ..errorId = 'FOR')
                   .checkIr('forEach(expr(Object), varPattern(x, '
-                      'matchedType: dynamic, staticType: dynamic), block())'),
+                      'matchedType: error, staticType: error), block())'),
             ], expectedErrors: {
               'patternForInExpressionIsNotIterable(node: FOR, '
                   'expression: EXPRESSION, expressionType: Object)'
             });
+          });
+          test('error', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(x.pattern(), expr('error'), []))
+                  .checkIr('forEach(expr(error), varPattern(x, '
+                      'matchedType: error, staticType: error), block())'),
+            ]);
           });
         });
         group('Refutability:', () {
@@ -1786,7 +1794,7 @@ main() {
                 hasAwait: true,
               )..errorId = 'FOR')
                   .checkIr('forEach(expr(Object), varPattern(x, '
-                      'matchedType: dynamic, staticType: dynamic), block())'),
+                      'matchedType: error, staticType: error), block())'),
             ], expectedErrors: {
               'patternForInExpressionIsNotIterable(node: FOR, '
                   'expression: EXPRESSION, expressionType: Object)'
@@ -1958,7 +1966,7 @@ main() {
         });
       });
 
-      group('Static type', () {
+      group('Static type:', () {
         test('Explicit type arguments', () {
           var x = Var('x');
           h.run([
@@ -2017,6 +2025,25 @@ main() {
                 'expr(Object), varPattern(x, matchedType: dynamic, staticType: '
                 'dynamic)), matchedType: dynamic, requiredType: '
                 'Map<dynamic, dynamic>), variables(x), true, block(), noop)'),
+          ]);
+        });
+
+        test('Matched type is error', () {
+          var x = Var('x');
+          h.run([
+            ifCase(
+              expr('error'),
+              mapPattern([
+                mapPatternEntry(
+                  expr('Object').checkContext('?'),
+                  x.pattern(),
+                ),
+              ]),
+              [],
+            ).checkIr('ifCase(expr(error), mapPattern(mapPatternEntry('
+                'expr(Object), varPattern(x, matchedType: error, staticType: '
+                'error)), matchedType: error, requiredType: '
+                'Map<error, error>), variables(x), true, block(), noop)'),
           ]);
         });
 
@@ -2320,6 +2347,24 @@ main() {
                 'matchedType: dynamic, staticType: dynamic), ...(varPattern(y, '
                 'matchedType: List<dynamic>, staticType: List<dynamic>)), '
                 'matchedType: dynamic, requiredType: List<dynamic>))'),
+          ]);
+        });
+
+        test('Matched type is error', () {
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            match(
+              listPattern([
+                x.pattern(expectInferredType: 'error'),
+                listPatternRestElement(
+                    y.pattern(expectInferredType: 'List<error>')),
+              ]),
+              expr('error'),
+            ).checkIr('match(expr(error), listPattern(varPattern(x, '
+                'matchedType: error, staticType: error), ...(varPattern(y, '
+                'matchedType: List<error>, staticType: List<error>)), '
+                'matchedType: error, requiredType: List<error>))'),
           ]);
         });
 
@@ -2998,6 +3043,23 @@ main() {
           ]);
         });
 
+        test('error type', () {
+          h.run([
+            ifCase(
+              expr('int').checkContext('?'),
+              objectPattern(
+                requiredType: 'error',
+                fields: [
+                  Var('foo').pattern().recordField('foo'),
+                ],
+              ),
+              [],
+            ).checkIr('ifCase(expr(int), objectPattern(varPattern(foo, '
+                'matchedType: error, staticType: error), matchedType: int, '
+                'requiredType: error), variables(foo), true, block(), noop)'),
+          ]);
+        });
+
         test('Never type', () {
           h.run([
             ifCase(
@@ -3080,12 +3142,21 @@ main() {
     });
 
     group('Pattern assignment:', () {
-      test('Static type', () {
-        var x = Var('x');
-        h.run([
-          declare(x, type: 'num'),
-          x.pattern().assign(expr('int')).checkType('int').stmt,
-        ]);
+      group('Static type:', () {
+        test('Matched type is int', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int'),
+            x.pattern().assign(expr('int')).checkType('int').stmt,
+          ]);
+        });
+        test('Matched type is error', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int'),
+            x.pattern().assign(expr('error')).checkType('error').stmt,
+          ]);
+        });
       });
 
       test('RHS context', () {
@@ -3171,6 +3242,26 @@ main() {
                 'matchedType: dynamic, staticType: int), varPattern(b, '
                 'matchedType: dynamic, staticType: dynamic), matchedType: '
                 'dynamic, requiredType: (Object?, Object?)), '
+                'variables(a, b), true, block(), noop)',
+              ),
+            ]);
+          });
+        });
+        group('Match error:', () {
+          test('refutable', () {
+            h.run([
+              ifCase(
+                expr('error').checkContext('?'),
+                recordPattern([
+                  Var('a').pattern(type: 'int').recordField(),
+                  Var('b').pattern().recordField(),
+                ]),
+                [],
+              ).checkIr(
+                'ifCase(expr(error), recordPattern(varPattern(a, '
+                'matchedType: error, staticType: int), varPattern(b, '
+                'matchedType: error, staticType: error), matchedType: '
+                'error, requiredType: (Object?, Object?)), '
                 'variables(a, b), true, block(), noop)',
               ),
             ]);
@@ -3526,6 +3617,15 @@ main() {
             match(x.pattern(type: 'num'), expr('dynamic'))
                 .checkIr('match(expr(dynamic), '
                     'varPattern(x, matchedType: dynamic, staticType: num))'),
+          ]);
+        });
+
+        test('When matched type is error', () {
+          var x = Var('x');
+          h.run([
+            match(x.pattern(type: 'num'), expr('error'))
+                .checkIr('match(expr(error), '
+                    'varPattern(x, matchedType: error, staticType: num))'),
           ]);
         });
 

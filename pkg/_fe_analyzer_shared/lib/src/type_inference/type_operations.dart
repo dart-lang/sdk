@@ -62,6 +62,9 @@ mixin TypeOperations<Type extends Object> {
   /// Returns `true` if [type] is the type `dynamic`.
   bool isDynamic(Type type);
 
+  /// Returns `true` if [type] is the error type.
+  bool isError(Type type);
+
   /// Determines whether the given [type] is equivalent to the `Never` type.
   ///
   /// A type is equivalent to `Never` if it:

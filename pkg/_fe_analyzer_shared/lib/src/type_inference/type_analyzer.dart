@@ -362,6 +362,7 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isDynamic(matchedType) &&
+        !operations.isError(matchedType) &&
         !operations.isSubtypeOf(matchedType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -516,6 +517,7 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isDynamic(matchedType) &&
+        !operations.isError(matchedType) &&
         !operations.isSubtypeOf(matchedType, staticType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -792,6 +794,8 @@ mixin TypeAnalyzer<
         valueType = listElementType;
       } else if (operations.isDynamic(matchedType)) {
         valueType = dynamicType;
+      } else if (operations.isError(matchedType)) {
+        valueType = errorType;
       } else {
         valueType = objectQuestionType;
       }
@@ -1053,6 +1057,10 @@ mixin TypeAnalyzer<
         keyType = dynamicType;
         valueType = dynamicType;
         keyContext = unknownType;
+      } else if (operations.isError(matchedType)) {
+        keyType = errorType;
+        valueType = errorType;
+        keyContext = unknownType;
       } else {
         keyType = objectQuestionType;
         valueType = objectQuestionType;
@@ -1259,6 +1267,7 @@ mixin TypeAnalyzer<
     // treated as having the same type.
     Type? overridePropertyGetType;
     if (operations.isDynamic(requiredType) ||
+        operations.isError(requiredType) ||
         operations.isNever(requiredType)) {
       overridePropertyGetType = requiredType;
     }
@@ -1379,6 +1388,8 @@ mixin TypeAnalyzer<
     if (elementType == null) {
       if (operations.isDynamic(expressionType)) {
         elementType = dynamicType;
+      } else if (operations.isError(expressionType)) {
+        elementType = errorType;
       } else {
         patternForInExpressionIsNotIterableError =
             errors.patternForInExpressionIsNotIterable(
@@ -1386,7 +1397,7 @@ mixin TypeAnalyzer<
           expression: expression,
           expressionType: expressionType,
         );
-        elementType = dynamicType;
+        elementType = errorType;
       }
     }
     flow.patternForIn_afterExpression(elementType);
@@ -1548,6 +1559,8 @@ mixin TypeAnalyzer<
       }
     } else if (operations.isDynamic(matchedType)) {
       dispatchFields(dynamicType);
+    } else if (operations.isError(matchedType)) {
+      dispatchFields(errorType);
     } else {
       dispatchFields(objectQuestionType);
     }
