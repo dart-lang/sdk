@@ -131,7 +131,6 @@ const Map<String, LibraryInfo> libraries = const {
     'js_interop/js_interop.dart',
     categories: 'Client',
     maturity: Maturity.EXPERIMENTAL,
-    documented: false,
     platforms: DART2JS_PLATFORM,
   ),
   'js_interop_unsafe': const LibraryInfo(

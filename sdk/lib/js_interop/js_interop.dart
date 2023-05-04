@@ -6,14 +6,15 @@
 /// interop with JS. The JS type hierarchy is modeled after the actual type
 /// hierarchy in JS, and not the Dart type hierarchy.
 ///
-/// Note: The exact semantics of JS types currently depend on their backend
-/// implementation. JS backends currently support conflating Dart types and JS
-/// types, whereas Wasm backends do not. Over time we will try and unify backend
-/// semantics as much as possible.
+/// Note: The JS types that are exposed through this library are currently
+/// wrapper types that are erased to their runtime types. The runtime types will
+/// differ based on the backend. In general, stick to using conversion functions
+/// that are exposed as extension methods e.g. 'toJS'.
 ///
 /// **WARNING**:
-/// The following types will be sealed in the near future. Do *not* subtype
-/// the types in this library as the subtypes will be broken.
+/// This library is still a work in progress. As such, JS types, allowed syntax,
+/// semantics, and functionality may all change, so avoid using this library in
+/// production.
 ///
 /// {@category Web}
 library dart.js_interop;
