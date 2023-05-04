@@ -8,19 +8,16 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
-import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
+import '../dill/dill_class_builder.dart';
 import '../identifiers.dart' show Identifier;
-import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../source/constructor_declaration.dart';
 import '../source/diet_listener.dart';
@@ -42,375 +39,719 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../type_inference/type_schema.dart' show UnknownType;
 import 'expression_generator_helper.dart';
 
-class BodyBuilderContext {
-  final LibraryBuilder _libraryBuilder;
-
-  /// The source class or mixin declaration in which [_member] is declared, if
-  /// any.
-  ///
-  /// If [_member] is a synthesized member for expression evaluation the
-  /// enclosing declaration might be a [DillClassBuilder]. This can be accessed
-  /// through [_declarationBuilder].
-  final SourceClassBuilder? _sourceClassBuilder;
-
-  /// The class, mixin or extension declaration in which [_member] is declared,
-  /// if any.
-  final DeclarationBuilder? _declarationBuilder;
-
-  final ModifierBuilder _member;
+abstract class BodyBuilderContext {
+  final BodyBuilderDeclarationContext _declarationContext;
 
   final bool isDeclarationInstanceMember;
 
   BodyBuilderContext(
-      this._libraryBuilder, this._declarationBuilder, this._member,
+      LibraryBuilder libraryBuilder, DeclarationBuilder? declarationBuilder,
       {required this.isDeclarationInstanceMember})
-      : _sourceClassBuilder = _declarationBuilder is SourceClassBuilder
-            ? _declarationBuilder
-            : null;
+      : _declarationContext = new BodyBuilderDeclarationContext(
+            libraryBuilder, declarationBuilder);
 
-  String? get memberName => _member.name;
+  String get memberName {
+    throw new UnsupportedError('${runtimeType}.memberName');
+  }
 
   Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false}) {
-    return (_declarationBuilder as ClassBuilder).lookupInstanceMember(
-        hierarchy, name,
-        isSetter: isSetter, isSuper: true);
+    return _declarationContext.lookupSuperMember(hierarchy, name,
+        isSetter: isSetter);
   }
 
   Constructor? lookupConstructor(Name name) {
-    return _sourceClassBuilder!.lookupConstructor(name, isSuper: false);
+    return _declarationContext.lookupConstructor(name);
   }
 
   Constructor? lookupSuperConstructor(Name name) {
-    return _sourceClassBuilder!.lookupConstructor(name, isSuper: true);
+    return _declarationContext.lookupSuperConstructor(name);
   }
 
   Builder? lookupLocalMember(String name, {bool required = false}) {
-    if (_declarationBuilder != null) {
-      return _declarationBuilder!.lookupLocalMember(name, required: required);
-    } else {
-      return _libraryBuilder.lookupLocalMember(name, required: required);
-    }
+    return _declarationContext.lookupLocalMember(name, required: required);
   }
 
-  bool get isPatchClass => _sourceClassBuilder?.isPatch ?? false;
+  bool get isPatchClass => _declarationContext.isPatchClass;
 
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
-    // The scope of a patched method includes the origin class.
-    return _sourceClassBuilder!.origin
-        .findStaticBuilder(name, charOffset, uri, _libraryBuilder);
+    return _declarationContext.lookupStaticOriginMember(name, charOffset, uri);
   }
 
   FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    SourceFunctionBuilder member = this._member as SourceFunctionBuilder;
-    return member.getFormal(name);
+    throw new UnsupportedError('${runtimeType}.getFormalParameterByName');
   }
 
   FunctionNode get function {
-    return (_member as SourceFunctionBuilder).function;
+    throw new UnsupportedError('${runtimeType}.function');
   }
 
-  bool get isConstructor {
-    return _member is ConstructorDeclaration;
-  }
+  bool get isConstructor => false;
 
-  bool get isExternalConstructor {
-    return _member.isExternal;
-  }
+  bool get isExternalConstructor => false;
 
-  bool get isExternalFunction {
-    return _member.isExternal;
-  }
+  bool get isExternalFunction => false;
 
-  bool get isSetter {
-    return _member.isSetter;
-  }
+  bool get isSetter => false;
 
-  bool get isConstConstructor {
-    return _member.isConst;
-  }
+  bool get isConstConstructor => false;
 
-  bool get isFactory {
-    return _member.isFactory;
-  }
+  bool get isFactory => false;
 
-  bool get isNativeMethod {
-    return _member.isNative;
-  }
+  bool get isNativeMethod => false;
 
   bool get isDeclarationInstanceContext {
     return isDeclarationInstanceMember || isConstructor;
   }
 
-  bool get isRedirectingFactory {
-    return _member is RedirectingFactoryBuilder;
-  }
+  bool get isRedirectingFactory => false;
 
   String get redirectingFactoryTargetName {
-    RedirectingFactoryBuilder factory = _member as RedirectingFactoryBuilder;
-    return factory.redirectionTarget.fullNameForErrors;
+    throw new UnsupportedError('${runtimeType}.redirectingFactoryTargetName');
   }
 
   InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
-    if (_member.isExtensionMember && _member.isField && !_member.isExternal) {
-      return InstanceTypeVariableAccessState.Invalid;
-    } else if (isDeclarationInstanceContext || _member is DeclarationBuilder) {
+    if (isDeclarationInstanceContext) {
       return InstanceTypeVariableAccessState.Allowed;
     } else {
       return InstanceTypeVariableAccessState.Disallowed;
     }
   }
 
-  bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
-    return _declarationBuilder is SourceClassBuilder &&
-        coreTypes.objectClass !=
-            (_declarationBuilder as SourceClassBuilder).cls &&
-        !_member.isExternal;
-  }
+  bool needsImplicitSuperInitializer(CoreTypes coreTypes) => false;
 
   void registerSuperCall() {
-    MemberBuilder memberBuilder = _member as MemberBuilder;
-    memberBuilder.member.transformerFlags |= TransformerFlag.superCalls;
+    throw new UnsupportedError('${runtimeType}.registerSuperCall');
   }
 
   bool isConstructorCyclic(String name) {
-    return _sourceClassBuilder!.checkConstructorCyclic(_member.name!, name);
+    throw new UnsupportedError('${runtimeType}.isConstructorCyclic');
   }
 
-  ConstantContext get constantContext {
-    return _member.isConst
-        ? ConstantContext.inferred
-        : !_member.isStatic &&
-                _sourceClassBuilder != null &&
-                _sourceClassBuilder!.declaresConstConstructor
-            ? ConstantContext.required
-            : ConstantContext.none;
+  ConstantContext get constantContext => ConstantContext.none;
+
+  bool get isLateField => false;
+
+  bool get isAbstractField => false;
+
+  bool get isExternalField => false;
+
+  bool get isMixinClass => _declarationContext.isMixinClass;
+
+  bool get isEnumClass => _declarationContext.isEnumClass;
+
+  String get className => _declarationContext.className;
+
+  String get superClassName => _declarationContext.superClassName;
+
+  DartType substituteFieldType(DartType fieldType) {
+    throw new UnsupportedError('${runtimeType}.substituteFieldType');
   }
 
-  bool get isLateField =>
-      _member is SourceFieldBuilder && (_member as SourceFieldBuilder).isLate;
+  void registerInitializedField(SourceFieldBuilder builder) {
+    throw new UnsupportedError('${runtimeType}.registerInitializedField');
+  }
 
-  bool get isAbstractField =>
-      _member is SourceFieldBuilder &&
-      (_member as SourceFieldBuilder).isAbstract;
+  VariableDeclaration getFormalParameter(int index) {
+    throw new UnsupportedError('${runtimeType}.getFormalParameter');
+  }
 
-  bool get isExternalField =>
-      _member is SourceFieldBuilder &&
-      (_member as SourceFieldBuilder).isExternal;
+  VariableDeclaration? getTearOffParameter(int index) {
+    throw new UnsupportedError('${runtimeType}.getTearOffParameter');
+  }
 
+  DartType get returnTypeContext {
+    throw new UnsupportedError('${runtimeType}.returnTypeContext');
+  }
+
+  TypeBuilder get returnType {
+    throw new UnsupportedError('${runtimeType}.returnType');
+  }
+
+  List<FormalParameterBuilder>? get formals {
+    throw new UnsupportedError('${runtimeType}.formals');
+  }
+
+  Scope computeFormalParameterInitializerScope(Scope parent) {
+    throw new UnsupportedError(
+        '${runtimeType}.computeFormalParameterInitializerScope');
+  }
+
+  void prepareInitializers() {
+    throw new UnsupportedError('${runtimeType}.prepareInitializers');
+  }
+
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult}) {
+    throw new UnsupportedError('${runtimeType}.addInitializer');
+  }
+
+  InitializerInferenceResult inferInitializer(Initializer initializer,
+      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
+    throw new UnsupportedError('${runtimeType}.inferInitializer');
+  }
+
+  int get memberCharOffset {
+    throw new UnsupportedError("${runtimeType}.memberCharOffset");
+  }
+
+  AugmentSuperTarget? get augmentSuperTarget {
+    return null;
+  }
+
+  void setAsyncModifier(AsyncMarker asyncModifier) {
+    throw new UnsupportedError("${runtimeType}.setAsyncModifier");
+  }
+
+  void setBody(Statement body) {
+    throw new UnsupportedError("${runtimeType}.setBody");
+  }
+
+  InterfaceType? get thisType => _declarationContext.thisType;
+}
+
+abstract class BodyBuilderDeclarationContext {
+  final LibraryBuilder _libraryBuilder;
+
+  factory BodyBuilderDeclarationContext(
+      LibraryBuilder libraryBuilder, DeclarationBuilder? declarationBuilder) {
+    if (declarationBuilder != null) {
+      if (declarationBuilder is SourceClassBuilder) {
+        return new _SourceClassBodyBuilderDeclarationContext(
+            libraryBuilder, declarationBuilder);
+      } else if (declarationBuilder is DillClassBuilder) {
+        return new _DillClassBodyBuilderDeclarationContext(
+            libraryBuilder, declarationBuilder);
+      } else {
+        return new _DeclarationBodyBuilderDeclarationContext(
+            libraryBuilder, declarationBuilder);
+      }
+    } else {
+      return new _TopLevelBodyBuilderDeclarationContext(libraryBuilder);
+    }
+  }
+
+  BodyBuilderDeclarationContext._(this._libraryBuilder);
+
+  Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
+      {bool isSetter = false}) {
+    throw new UnsupportedError('${runtimeType}.lookupSuperMember');
+  }
+
+  Constructor? lookupConstructor(Name name) {
+    throw new UnsupportedError('${runtimeType}.lookupConstructor');
+  }
+
+  Constructor? lookupSuperConstructor(Name name) {
+    throw new UnsupportedError('${runtimeType}.lookupSuperConstructor');
+  }
+
+  Builder? lookupLocalMember(String name, {bool required = false});
+
+  bool get isPatchClass => false;
+
+  Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
+    throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
+  }
+
+  bool get isMixinClass => false;
+
+  bool get isEnumClass => false;
+
+  String get className {
+    throw new UnsupportedError('${runtimeType}.className');
+  }
+
+  String get superClassName {
+    throw new UnsupportedError('${runtimeType}.superClassName');
+  }
+
+  InterfaceType? get thisType => null;
+
+  bool isConstructorCyclic(String source, String target) {
+    throw new UnsupportedError('${runtimeType}.isConstructorCyclic');
+  }
+
+  bool get declaresConstConstructor => false;
+
+  bool isObjectClass(CoreTypes coreTypes) => false;
+}
+
+mixin _DeclarationBodyBuilderDeclarationContextMixin
+    implements BodyBuilderDeclarationContext {
+  DeclarationBuilder get _declarationBuilder;
+
+  @override
+  Builder? lookupLocalMember(String name, {bool required = false}) {
+    return _declarationBuilder.lookupLocalMember(name, required: required);
+  }
+
+  @override
+  InterfaceType? get thisType => _declarationBuilder.thisType;
+}
+
+class _SourceClassBodyBuilderDeclarationContext
+    extends BodyBuilderDeclarationContext
+    with _DeclarationBodyBuilderDeclarationContextMixin {
+  final SourceClassBuilder _sourceClassBuilder;
+
+  _SourceClassBodyBuilderDeclarationContext(
+      LibraryBuilder libraryBuilder, this._sourceClassBuilder)
+      : super._(libraryBuilder);
+
+  @override
+  DeclarationBuilder get _declarationBuilder => _sourceClassBuilder;
+
+  @override
+  bool isConstructorCyclic(String source, String target) {
+    return _sourceClassBuilder.checkConstructorCyclic(source, target);
+  }
+
+  @override
+  bool get declaresConstConstructor =>
+      _sourceClassBuilder.declaresConstConstructor;
+
+  @override
+  bool isObjectClass(CoreTypes coreTypes) {
+    return coreTypes.objectClass == _sourceClassBuilder.cls;
+  }
+
+  @override
+  Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
+      {bool isSetter = false}) {
+    return _sourceClassBuilder.lookupInstanceMember(hierarchy, name,
+        isSetter: isSetter, isSuper: true);
+  }
+
+  @override
+  Constructor? lookupConstructor(Name name) {
+    return _sourceClassBuilder.lookupConstructor(name, isSuper: false);
+  }
+
+  @override
+  Constructor? lookupSuperConstructor(Name name) {
+    return _sourceClassBuilder.lookupConstructor(name, isSuper: true);
+  }
+
+  @override
+  bool get isPatchClass => _sourceClassBuilder.isPatch;
+
+  @override
+  Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
+    // The scope of a patched method includes the origin class.
+    return _sourceClassBuilder.origin
+        .findStaticBuilder(name, charOffset, uri, _libraryBuilder);
+  }
+
+  @override
   bool get isMixinClass {
-    return _sourceClassBuilder != null && _sourceClassBuilder!.isMixinClass;
+    return _sourceClassBuilder.isMixinClass;
   }
 
+  @override
   bool get isEnumClass {
     return _sourceClassBuilder is SourceEnumBuilder;
   }
 
+  @override
   String get className {
-    return _sourceClassBuilder!.fullNameForErrors;
+    return _sourceClassBuilder.fullNameForErrors;
   }
 
+  @override
   String get superClassName {
-    if (_sourceClassBuilder!.supertypeBuilder?.declaration
+    if (_sourceClassBuilder.supertypeBuilder?.declaration
         is InvalidTypeDeclarationBuilder) {
       // TODO(johnniwinther): Avoid reporting errors on missing constructors
       // on invalid super types.
-      return _sourceClassBuilder!.supertypeBuilder!.fullNameForErrors;
+      return _sourceClassBuilder.supertypeBuilder!.fullNameForErrors;
     }
-    Class cls = _sourceClassBuilder!.cls;
+    Class cls = _sourceClassBuilder.cls;
     cls = cls.superclass!;
     while (cls.isMixinApplication) {
       cls = cls.superclass!;
     }
     return cls.name;
   }
+}
 
-  DartType substituteFieldType(DartType fieldType) {
-    return (_member as ConstructorDeclaration).substituteFieldType(fieldType);
+class _DillClassBodyBuilderDeclarationContext
+    extends BodyBuilderDeclarationContext
+    with _DeclarationBodyBuilderDeclarationContextMixin {
+  @override
+  final DillClassBuilder _declarationBuilder;
+
+  _DillClassBodyBuilderDeclarationContext(
+      LibraryBuilder libraryBuilder, this._declarationBuilder)
+      : super._(libraryBuilder);
+
+  @override
+  Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
+      {bool isSetter = false}) {
+    return _declarationBuilder.lookupInstanceMember(hierarchy, name,
+        isSetter: isSetter, isSuper: true);
   }
+}
 
-  void registerInitializedField(SourceFieldBuilder builder) {
-    (_member as ConstructorDeclaration).registerInitializedField(builder);
+class _DeclarationBodyBuilderDeclarationContext
+    extends BodyBuilderDeclarationContext
+    with _DeclarationBodyBuilderDeclarationContextMixin {
+  @override
+  final DeclarationBuilder _declarationBuilder;
+
+  _DeclarationBodyBuilderDeclarationContext(
+      LibraryBuilder libraryBuilder, this._declarationBuilder)
+      : super._(libraryBuilder);
+}
+
+class _TopLevelBodyBuilderDeclarationContext
+    extends BodyBuilderDeclarationContext {
+  _TopLevelBodyBuilderDeclarationContext(LibraryBuilder libraryBuilder)
+      : super._(libraryBuilder);
+
+  @override
+  Builder? lookupLocalMember(String name, {bool required = false}) {
+    return _libraryBuilder.lookupLocalMember(name, required: required);
   }
-
-  VariableDeclaration getFormalParameter(int index) {
-    return (_member as SourceFunctionBuilder).getFormalParameter(index);
-  }
-
-  VariableDeclaration? getTearOffParameter(int index) {
-    return (_member as SourceFunctionBuilder).getTearOffParameter(index);
-  }
-
-  DartType get returnTypeContext {
-    ModifierBuilder member = _member;
-    if (member is SourceProcedureBuilder) {
-      final bool isReturnTypeUndeclared =
-          member.returnType is OmittedTypeBuilder &&
-              member.function.returnType is DynamicType;
-      return isReturnTypeUndeclared && _libraryBuilder.isNonNullableByDefault
-          ? const UnknownType()
-          : member.function.returnType;
-    } else if (member is SourceFactoryBuilder) {
-      return member.function.returnType;
-    } else {
-      assert(member is ConstructorDeclaration);
-      return const DynamicType();
-    }
-  }
-
-  TypeBuilder get returnType => (_member as SourceFunctionBuilder).returnType;
-
-  List<FormalParameterBuilder>? get formals =>
-      (_member as SourceFunctionBuilder).formals;
-
-  Scope computeFormalParameterInitializerScope(Scope parent) {
-    return (_member as SourceFunctionBuilder)
-        .computeFormalParameterInitializerScope(parent);
-  }
-
-  void prepareInitializers() {
-    (_member as ConstructorDeclaration).prepareInitializers();
-  }
-
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
-    (_member as ConstructorDeclaration)
-        .addInitializer(initializer, helper, inferenceResult: inferenceResult);
-  }
-
-  InitializerInferenceResult inferInitializer(Initializer initializer,
-      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
-    return typeInferrer.inferInitializer(
-        helper, _member as ConstructorDeclaration, initializer);
-  }
-
-  int get charOffset => _member.charOffset;
-
-  AugmentSuperTarget? get augmentSuperTarget {
-    Builder member = _member;
-    if (member is SourceMemberBuilder && member.isAugmentation) {
-      return member.augmentSuperTarget;
-    }
-    return null;
-  }
-
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    Builder member = _member;
-    if (member is ConstructorDeclaration) {
-      throw new UnsupportedError(
-          "Unexpected member $member in BodyBuilderContext.asyncModifier=");
-    } else if (member is SourceProcedureBuilder) {
-      member.asyncModifier = asyncModifier;
-    } else if (member is SourceFactoryBuilder) {
-      member.asyncModifier = asyncModifier;
-    } else {
-      unhandled("${member.runtimeType}", "finishFunction", member.charOffset,
-          member.fileUri);
-    }
-  }
-
-  void setBody(Statement body) {
-    (_member as SourceFunctionBuilder).body = body;
-  }
-
-  InterfaceType? get thisType => _declarationBuilder?.thisType;
 }
 
 class LibraryBodyBuilderContext extends BodyBuilderContext {
-  LibraryBodyBuilderContext(SourceLibraryBuilder sourceLibraryBuilder)
-      : super(sourceLibraryBuilder, null, sourceLibraryBuilder,
-            isDeclarationInstanceMember: false);
+  LibraryBodyBuilderContext(SourceLibraryBuilder libraryBuilder)
+      : super(libraryBuilder, null, isDeclarationInstanceMember: false);
 }
 
-class ClassBodyBuilderContext extends BodyBuilderContext {
+mixin _DeclarationBodyBuilderContext<T extends DeclarationBuilder>
+    implements BodyBuilderContext {
+  @override
+  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+    return InstanceTypeVariableAccessState.Allowed;
+  }
+}
+
+class ClassBodyBuilderContext extends BodyBuilderContext
+    with _DeclarationBodyBuilderContext<SourceClassBuilder> {
   ClassBodyBuilderContext(SourceClassBuilder sourceClassBuilder)
       : super(sourceClassBuilder.libraryBuilder, sourceClassBuilder,
-            sourceClassBuilder,
             isDeclarationInstanceMember: false);
 }
 
-class EnumBodyBuilderContext extends BodyBuilderContext {
+class EnumBodyBuilderContext extends BodyBuilderContext
+    with _DeclarationBodyBuilderContext<SourceEnumBuilder> {
   EnumBodyBuilderContext(SourceEnumBuilder sourceEnumBuilder)
       : super(sourceEnumBuilder.libraryBuilder, sourceEnumBuilder,
-            sourceEnumBuilder,
             isDeclarationInstanceMember: false);
 }
 
-class ExtensionBodyBuilderContext extends BodyBuilderContext {
+class ExtensionBodyBuilderContext extends BodyBuilderContext
+    with _DeclarationBodyBuilderContext<SourceExtensionBuilder> {
   ExtensionBodyBuilderContext(SourceExtensionBuilder sourceExtensionBuilder)
       : super(sourceExtensionBuilder.libraryBuilder, sourceExtensionBuilder,
-            sourceExtensionBuilder,
             isDeclarationInstanceMember: false);
 }
 
-class InlineClassBodyBuilderContext extends BodyBuilderContext {
+class InlineClassBodyBuilderContext extends BodyBuilderContext
+    with _DeclarationBodyBuilderContext<SourceInlineClassBuilder> {
   InlineClassBodyBuilderContext(
       SourceInlineClassBuilder sourceInlineClassBuilder)
       : super(sourceInlineClassBuilder.libraryBuilder, sourceInlineClassBuilder,
-            sourceInlineClassBuilder,
             isDeclarationInstanceMember: false);
 }
 
 class TypedefBodyBuilderContext extends BodyBuilderContext {
   TypedefBodyBuilderContext(SourceTypeAliasBuilder sourceTypeAliasBuilder)
-      : super(
-            sourceTypeAliasBuilder.libraryBuilder, null, sourceTypeAliasBuilder,
+      : super(sourceTypeAliasBuilder.libraryBuilder, null,
             isDeclarationInstanceMember: false);
 }
 
-class FieldBodyBuilderContext extends BodyBuilderContext {
-  FieldBodyBuilderContext(SourceFieldBuilder sourceFieldBuilder)
-      : super(sourceFieldBuilder.libraryBuilder,
-            sourceFieldBuilder.declarationBuilder, sourceFieldBuilder,
-            isDeclarationInstanceMember:
-                sourceFieldBuilder.isDeclarationInstanceMember);
+mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
+    implements BodyBuilderContext {
+  T get _member;
+
+  @override
+  AugmentSuperTarget? get augmentSuperTarget {
+    if (_member.isAugmentation) {
+      return _member.augmentSuperTarget;
+    }
+    return null;
+  }
+
+  @override
+  void registerSuperCall() {
+    _member.member.transformerFlags |= TransformerFlag.superCalls;
+  }
+
+  @override
+  int get memberCharOffset => _member.charOffset;
 }
 
-class ProcedureBodyBuilderContext extends BodyBuilderContext {
-  ProcedureBodyBuilderContext(SourceProcedureBuilder sourceProcedureBuilder)
-      : super(sourceProcedureBuilder.libraryBuilder,
-            sourceProcedureBuilder.declarationBuilder, sourceProcedureBuilder,
-            isDeclarationInstanceMember:
-                sourceProcedureBuilder.isDeclarationInstanceMember);
+class FieldBodyBuilderContext extends BodyBuilderContext
+    with _MemberBodyBuilderContext<SourceFieldBuilder> {
+  @override
+  SourceFieldBuilder _member;
+
+  FieldBodyBuilderContext(this._member)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  bool get isLateField => _member.isLate;
+
+  @override
+  bool get isAbstractField => _member.isAbstract;
+
+  @override
+  bool get isExternalField => _member.isExternal;
+
+  @override
+  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+    if (_member.isExtensionMember && !_member.isExternal) {
+      return InstanceTypeVariableAccessState.Invalid;
+    } else {
+      return super.instanceTypeVariableAccessState;
+    }
+  }
+
+  @override
+  ConstantContext get constantContext {
+    return _member.isConst
+        ? ConstantContext.inferred
+        : !_member.isStatic && _declarationContext.declaresConstConstructor
+            ? ConstantContext.required
+            : ConstantContext.none;
+  }
 }
 
-class ConstructorBodyBuilderContext extends BodyBuilderContext {
-  ConstructorBodyBuilderContext(
-      DeclaredSourceConstructorBuilder sourceConstructorBuilder)
-      : super(
-            sourceConstructorBuilder.libraryBuilder,
-            sourceConstructorBuilder.declarationBuilder,
-            sourceConstructorBuilder,
-            isDeclarationInstanceMember:
-                sourceConstructorBuilder.isDeclarationInstanceMember);
+mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
+    implements BodyBuilderContext {
+  T get _member;
+
+  @override
+  VariableDeclaration getFormalParameter(int index) {
+    return _member.getFormalParameter(index);
+  }
+
+  @override
+  VariableDeclaration? getTearOffParameter(int index) {
+    return _member.getTearOffParameter(index);
+  }
+
+  @override
+  TypeBuilder get returnType => _member.returnType;
+
+  @override
+  void setBody(Statement body) {
+    _member.body = body;
+  }
+
+  @override
+  List<FormalParameterBuilder>? get formals => _member.formals;
+
+  @override
+  Scope computeFormalParameterInitializerScope(Scope parent) {
+    return _member.computeFormalParameterInitializerScope(parent);
+  }
+
+  @override
+  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
+    return _member.getFormal(name);
+  }
+
+  @override
+  String get memberName => _member.name;
+
+  @override
+  FunctionNode get function {
+    return _member.function;
+  }
+
+  @override
+  bool get isFactory {
+    return _member.isFactory;
+  }
+
+  @override
+  bool get isNativeMethod {
+    return _member.isNative;
+  }
+
+  @override
+  bool get isExternalFunction {
+    return _member.isExternal;
+  }
+
+  @override
+  bool get isSetter {
+    return _member.isSetter;
+  }
 }
 
-class InlineClassConstructorBodyBuilderContext extends BodyBuilderContext {
-  InlineClassConstructorBodyBuilderContext(
-      SourceInlineClassConstructorBuilder sourceConstructorBuilder)
-      : super(
-            sourceConstructorBuilder.libraryBuilder,
-            sourceConstructorBuilder.declarationBuilder,
-            sourceConstructorBuilder,
-            isDeclarationInstanceMember:
-                sourceConstructorBuilder.isDeclarationInstanceMember);
+mixin _ProcedureBodyBuilderContextMixin<T extends SourceProcedureBuilder>
+    implements BodyBuilderContext {
+  T get _member;
+
+  @override
+  void setAsyncModifier(AsyncMarker asyncModifier) {
+    _member.asyncModifier = asyncModifier;
+  }
+
+  @override
+  DartType get returnTypeContext {
+    final bool isReturnTypeUndeclared =
+        _member.returnType is OmittedTypeBuilder &&
+            _member.function.returnType is DynamicType;
+    return isReturnTypeUndeclared &&
+            _member.libraryBuilder.isNonNullableByDefault
+        ? const UnknownType()
+        : _member.function.returnType;
+  }
 }
 
-class FactoryBodyBuilderContext extends BodyBuilderContext {
-  FactoryBodyBuilderContext(SourceFactoryBuilder sourceFactoryBuilder)
-      : super(sourceFactoryBuilder.libraryBuilder,
-            sourceFactoryBuilder.declarationBuilder, sourceFactoryBuilder,
-            isDeclarationInstanceMember:
-                sourceFactoryBuilder.isDeclarationInstanceMember);
+class ProcedureBodyBuilderContext extends BodyBuilderContext
+    with
+        _MemberBodyBuilderContext<SourceProcedureBuilder>,
+        _FunctionBodyBuilderContextMixin<SourceProcedureBuilder>,
+        _ProcedureBodyBuilderContextMixin<SourceProcedureBuilder> {
+  @override
+  final SourceProcedureBuilder _member;
+
+  ProcedureBodyBuilderContext(this._member)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 }
 
-class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext {
-  RedirectingFactoryBodyBuilderContext(
-      RedirectingFactoryBuilder sourceFactoryBuilder)
-      : super(sourceFactoryBuilder.libraryBuilder,
-            sourceFactoryBuilder.declarationBuilder, sourceFactoryBuilder,
-            isDeclarationInstanceMember:
-                sourceFactoryBuilder.isDeclarationInstanceMember);
+mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
+    implements BodyBuilderContext {
+  T get _member;
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _member.substituteFieldType(fieldType);
+  }
+
+  @override
+  void registerInitializedField(SourceFieldBuilder builder) {
+    _member.registerInitializedField(builder);
+  }
+
+  @override
+  void prepareInitializers() {
+    _member.prepareInitializers();
+  }
+
+  @override
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult}) {
+    _member.addInitializer(initializer, helper,
+        inferenceResult: inferenceResult);
+  }
+
+  @override
+  InitializerInferenceResult inferInitializer(Initializer initializer,
+      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
+    return typeInferrer.inferInitializer(helper, _member, initializer);
+  }
+
+  @override
+  DartType get returnTypeContext {
+    return const DynamicType();
+  }
+
+  @override
+  bool get isConstructor => true;
+
+  @override
+  bool get isConstConstructor {
+    return _member.isConst;
+  }
+
+  @override
+  bool get isExternalConstructor {
+    return _member.isExternal;
+  }
+
+  @override
+  ConstantContext get constantContext {
+    return isConstConstructor ? ConstantContext.required : ConstantContext.none;
+  }
+}
+
+class ConstructorBodyBuilderContext extends BodyBuilderContext
+    with
+        _FunctionBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
+        _ConstructorBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
+        _MemberBodyBuilderContext<DeclaredSourceConstructorBuilder> {
+  @override
+  final DeclaredSourceConstructorBuilder _member;
+
+  ConstructorBodyBuilderContext(this._member)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  bool isConstructorCyclic(String name) {
+    return _declarationContext.isConstructorCyclic(_member.name, name);
+  }
+
+  @override
+  bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
+    return !_declarationContext.isObjectClass(coreTypes) &&
+        !isExternalConstructor;
+  }
+}
+
+class InlineClassConstructorBodyBuilderContext extends BodyBuilderContext
+    with
+        _FunctionBodyBuilderContextMixin<SourceInlineClassConstructorBuilder>,
+        _ConstructorBodyBuilderContextMixin<
+            SourceInlineClassConstructorBuilder>,
+        _MemberBodyBuilderContext<SourceInlineClassConstructorBuilder> {
+  @override
+  final SourceInlineClassConstructorBuilder _member;
+
+  InlineClassConstructorBodyBuilderContext(this._member)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+}
+
+class FactoryBodyBuilderContext extends BodyBuilderContext
+    with
+        _MemberBodyBuilderContext<SourceFactoryBuilder>,
+        _FunctionBodyBuilderContextMixin<SourceFactoryBuilder> {
+  @override
+  final SourceFactoryBuilder _member;
+
+  FactoryBodyBuilderContext(this._member)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+  @override
+  void setAsyncModifier(AsyncMarker asyncModifier) {
+    _member.asyncModifier = asyncModifier;
+  }
+
+  @override
+  DartType get returnTypeContext {
+    return _member.function.returnType;
+  }
+}
+
+class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
+    with
+        _MemberBodyBuilderContext<RedirectingFactoryBuilder>,
+        _FunctionBodyBuilderContextMixin<RedirectingFactoryBuilder> {
+  @override
+  final RedirectingFactoryBuilder _member;
+
+  RedirectingFactoryBodyBuilderContext(this._member)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  bool get isRedirectingFactory => true;
+
+  @override
+  String get redirectingFactoryTargetName {
+    return _member.redirectionTarget.fullNameForErrors;
+  }
 }
 
 class ParameterBodyBuilderContext extends BodyBuilderContext {
@@ -426,16 +767,19 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
       LibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
       FormalParameterBuilder formalParameterBuilder)
-      : super(libraryBuilder, declarationBuilder, formalParameterBuilder,
+      : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember:
                 formalParameterBuilder.isDeclarationInstanceMember);
 }
 
-class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
+class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
+    with _MemberBodyBuilderContext<SourceProcedureBuilder> {
+  @override
+  final SourceProcedureBuilder _member;
+
   ExpressionCompilerProcedureBodyBuildContext(
-      DietListener listener, SourceProcedureBuilder sourceProcedureBuilder,
+      DietListener listener, this._member,
       {required bool isDeclarationInstanceMember})
       : super(listener.libraryBuilder, listener.currentDeclaration,
-            sourceProcedureBuilder,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
 }
