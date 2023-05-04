@@ -9,7 +9,7 @@ analyzer:
     export_internal_library: ignore
 
 environment:
-  sdk: ">=3.0.0-217.0.dev <4.0.0"
+  sdk: ">=3.1.0-66.0.dev <4.0.0"
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
