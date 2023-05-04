@@ -2960,7 +2960,8 @@ class InstanceKind {
   /// An instance of the Dart class TypeParameter.
   static const String kTypeParameter = 'TypeParameter';
 
-  /// An instance of the Dart class TypeRef.
+  /// An instance of the Dart class TypeRef. Note: this object kind is
+  /// deprecated and will be removed.
   static const String kTypeRef = 'TypeRef';
 
   /// An instance of the Dart class FunctionType.
@@ -4637,8 +4638,8 @@ class FieldRef extends ObjRef {
 
   /// The declared type of this field.
   ///
-  /// The value will always be of one of the kinds: Type, TypeRef,
-  /// TypeParameter, BoundedType.
+  /// The value will always be of one of the kinds: Type, TypeParameter,
+  /// RecordType, FunctionType, BoundedType.
   InstanceRef? declaredType;
 
   /// Is this field const?
@@ -4732,8 +4733,8 @@ class Field extends Obj implements FieldRef {
 
   /// The declared type of this field.
   ///
-  /// The value will always be of one of the kinds: Type, TypeRef,
-  /// TypeParameter, BoundedType.
+  /// The value will always be of one of the kinds: Type, TypeParameter,
+  /// RecordType, FunctionType, BoundedType.
   @override
   InstanceRef? declaredType;
 
@@ -5747,22 +5748,20 @@ class Instance extends Obj implements InstanceRef {
   @optional
   int? parameterIndex;
 
-  /// The type bounded by a BoundedType instance - or - the referent of a
-  /// TypeRef instance.
+  /// The type bounded by a BoundedType instance.
   ///
-  /// The value will always be of one of the kinds: Type, TypeRef,
-  /// TypeParameter, BoundedType.
+  /// The value will always be of one of the kinds: Type, TypeParameter,
+  /// RecordType, FunctionType, BoundedType.
   ///
   /// Provided for instance kinds:
   ///  - BoundedType
-  ///  - TypeRef
   @optional
   InstanceRef? targetType;
 
   /// The bound of a TypeParameter or BoundedType.
   ///
-  /// The value will always be of one of the kinds: Type, TypeRef,
-  /// TypeParameter, BoundedType.
+  /// The value will always be of one of the kinds: Type, TypeParameter,
+  /// RecordType, FunctionType, BoundedType.
   ///
   /// Provided for instance kinds:
   ///  - BoundedType
@@ -8666,8 +8665,8 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
 
   /// A list of types.
   ///
-  /// The value will always be one of the kinds: Type, TypeRef, TypeParameter,
-  /// BoundedType.
+  /// The value will always be one of the kinds: Type, TypeParameter,
+  /// RecordType, FunctionType, BoundedType.
   List<InstanceRef>? types;
 
   TypeArguments({

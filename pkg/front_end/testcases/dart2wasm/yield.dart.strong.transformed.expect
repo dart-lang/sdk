@@ -13,19 +13,19 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
   synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* futureValueType= void */ {
     synthesized asy::Completer<core::bool> #completer = asy::Completer::•<core::bool>();
     #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
-    await #completer.{asy::Completer::future}{() → asy::Future<core::bool>};
+    await #completer.{asy::Completer::future}{asy::Future<core::bool>};
     {
       {
         #controller.{asy::StreamController::add}(1){(core::Object?) → void};
         #completer = asy::Completer::•<core::bool>();
         #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
-        await #completer.{asy::Completer::future}{() → asy::Future<core::bool>};
+        await #completer.{asy::Completer::future}{asy::Future<core::bool>};
       }
       {
         #controller.{asy::StreamController::add}(2){(core::Object?) → void};
         #completer = asy::Completer::•<core::bool>();
         #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
-        await #completer.{asy::Completer::future}{() → asy::Future<core::bool>};
+        await #completer.{asy::Completer::future}{asy::Future<core::bool>};
       }
       {
         synthesized asy::_StreamIterator<core::int> #forIterator = new asy::_StreamIterator::•<core::int>(stream);
@@ -37,7 +37,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
               #controller.{asy::StreamController::add}(#awaitForVar){(core::Object?) → void};
               #completer = asy::Completer::•<core::bool>();
               #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
-              await #completer.{asy::Completer::future}{() → asy::Future<core::bool>};
+              await #completer.{asy::Completer::future}{asy::Future<core::bool>};
             }
           }
         }

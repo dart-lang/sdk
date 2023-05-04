@@ -50,7 +50,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "fc31789eadd5a664fe25e69cb966555e78a65d0d",
+  "co19_rev": "794313da70f2b8c1150ffcbf2fbf8746649ab09f",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "ae846ed2a987a2d2dbe4b9e9c68448a21f91ef5b",
 
@@ -118,9 +118,9 @@ vars = {
   "characters_rev": "2af678348545df00cdcb58711bfdb9f08c79bd77",
   "cli_util_rev": "7234f17b0cfc51cc9b52d53c90f6546ad4d32e23",
   "clock_rev": "6b2004cdcc940f9af4c32211a2b591d8e0abd924",
-  "collection_rev": "26e3e671941ac291a335a1fa7c7936c7ac7617c7",
+  "collection_rev": "bf2752033046a5876c13762d41311b7f6d4f31c9",
   "convert_rev": "855aeac93064014c167ff12e2ce654cc5cf3bddb",
-  "crypto_rev": "77491f53a9e0f8f7640ed1eec51c7cedabd0bae9",
+  "crypto_rev": "c5403c8a69c62e8f899de73892d9e9b12ce965bd",
   "csslib_rev": "44bfbe32ca4a633a51a174b4bc889c64f95792b0",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -157,7 +157,7 @@ vars = {
   "pool_rev": "650e5d3eff10529c65ef45b5fcb4bca270c7ea8f",
   "protobuf_rev": "9d7cf0de83f0ab4ae7010319263214840167f2d8",
   "pub_rev": "a3f8b2fd36ec432450caf907474a02023ef3e44e", # disable rev_sdk_deps.dart
-  "pub_semver_rev": "860e3d825ff7ff9f3422091fe5948f5fd0fb0dcd",
+  "pub_semver_rev": "c3e56d1476c3d6dd0c7c70f740b1c28ad398b91a",
   "shelf_rev": "79e3cee71701b34dd549aa8b95952da6471372a0",
   "source_map_stack_trace_rev": "08a81a81710fe1442a705c5761bccf3280940a9c",
   "source_maps_rev": "f0a85063bd6082a60295d0feb949c228e1bab442",
@@ -172,7 +172,7 @@ vars = {
   "test_descriptor_rev": "aa11162f55a93fc6cefc927c5189b5f74decb957",
   "test_process_rev": "89c4fdc496ba08473459ed32d00372b5069fd4de",
   "test_reflective_loader_rev": "d1b763f6281a46a48e1da6f0a6e8152e3480e8d2",
-  "tools_rev": "b55f0d47a99b1465996aeabc3f272dc653ef0573",
+  "tools_rev": "6c68bcac757ade7bcfb30f7f54e4ad6fb0271bfa",
   "typed_data_rev": "d85363d2efb333afce07ec409a529ec32986e1a2",
   "usage_rev": "929a4e31f0bd4f861dd0e34d4c6f7184c751b569",
   "vector_math_rev": "e3de8da3e7db3b9b4f56a16061e9e480539fb08c",
@@ -182,7 +182,7 @@ vars = {
   "webdev_rev": "12f22857d509832e0e80616d937088992f565e6b",
   "webdriver_rev": "d0f78d004a5ea7bfc8c492639248b0a1b04c1d62",
   "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
-  "yaml_rev": "56dfaf4fb021ac1c0f1a469e7c8e71ea4f7add2f",
+  "yaml_rev": "54e8284b38436a23256fe8f251d04bebfe554054",
   "yaml_edit_rev": "e05282bcc1deac86a49e1a2932bc51dff52d5018",
 
   # Windows deps

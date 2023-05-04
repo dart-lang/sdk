@@ -298,11 +298,9 @@ class _WasmTransformer extends Transformer {
       VariableDeclaration completer, int fileOffset) {
     Procedure completerFuture =
         coreTypes.index.getProcedure('dart:async', 'Completer', 'get:future');
-    FunctionType completerFutureType =
-        Substitution.fromInterfaceType(completerBoolType).substituteType(
-                completerFuture.function
-                    .computeThisFunctionType(Nullability.nonNullable))
-            as FunctionType;
+    // Future<bool>
+    DartType completerFutureType = InterfaceType(coreTypes.futureClass,
+        Nullability.nonNullable, [coreTypes.boolNonNullableRawType]);
     return AwaitExpression(InstanceGet(
         InstanceAccessKind.Instance, VariableGet(completer), Name('future'),
         interfaceTarget: completerFuture, resultType: completerFutureType)
