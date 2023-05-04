@@ -8,11 +8,10 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
-    show ForwardingListener;
-
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
+import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
+    show ForwardingListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthForToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -45,18 +44,14 @@ import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/modifier_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -68,6 +63,7 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../import_chains.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
@@ -76,8 +72,8 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/macro/macro.dart';
 import '../kernel/macro/annotation_parser.dart';
+import '../kernel/macro/macro.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
 import '../problems.dart' show internalProblem;
@@ -86,8 +82,8 @@ import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../uri_offset.dart';
-import '../util/helpers.dart';
 import '../uris.dart';
+import '../util/helpers.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
@@ -786,13 +782,12 @@ severity: $severity
 
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
-      DeclarationBuilder? declarationBuilder,
-      ModifierBuilder member,
+      BodyBuilderContext bodyBuilderContext,
       Scope scope,
       Uri fileUri,
       {Scope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri,
+        library, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);
   }
 
@@ -1312,7 +1307,7 @@ severity: $severity
               "debugExpression in extension $enclosingClassOrExtension");
       }
     }
-    ProcedureBuilder builder = new SourceProcedureBuilder(
+    SourceProcedureBuilder builder = new SourceProcedureBuilder(
         /* metadata = */ null,
         /* modifier flags = */ 0,
         const ImplicitTypeBuilder(),
@@ -1335,8 +1330,10 @@ severity: $severity
             libraryName: libraryBuilder.libraryName))
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
-        builder, dietListener.memberScope,
-        isDeclarationInstanceMember: isClassInstanceMember,
+        new ExpressionCompilerProcedureBodyBuildContext(dietListener, builder,
+            isDeclarationInstanceMember: isClassInstanceMember),
+        builder,
+        dietListener.memberScope,
         thisVariable: extensionThis);
     for (VariableDeclaration variable in parameters.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
@@ -3061,8 +3058,13 @@ severity: $severity
   }
 
   BodyBuilder createBodyBuilderForField(
-      FieldBuilder field, TypeInferrer typeInferrer) {
-    return new BodyBuilder.forField(field, typeInferrer);
+      SourceLibraryBuilder libraryBuilder,
+      BodyBuilderContext bodyBuilderContext,
+      Scope enclosingScope,
+      TypeInferrer typeInferrer,
+      Uri uri) {
+    return new BodyBuilder.forField(
+        libraryBuilder, bodyBuilderContext, enclosingScope, typeInferrer, uri);
   }
 }
 

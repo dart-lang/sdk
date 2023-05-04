@@ -25,6 +25,7 @@ import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
 import '../identifiers.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
@@ -569,7 +570,7 @@ class DeclaredSourceConstructorBuilder
       if (beginInitializers != null) {
         BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(libraryBuilder,
-                declarationBuilder, this, declarationBuilder.scope, fileUri);
+                bodyBuilderContext, declarationBuilder.scope, fileUri);
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }
@@ -748,7 +749,7 @@ class DeclaredSourceConstructorBuilder
       }
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, classBuilder, this, classBuilder.scope, fileUri,
+              libraryBuilder, bodyBuilderContext, classBuilder.scope, fileUri,
               formalParameterScope: formalParameterScope);
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
@@ -918,6 +919,10 @@ class DeclaredSourceConstructorBuilder
     // type variables.
     return fieldType;
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new ConstructorBodyBuilderContext(this);
 }
 
 class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
@@ -1262,6 +1267,10 @@ class SourceInlineClassConstructorBuilder
   DartType substituteFieldType(DartType fieldType) {
     return _substitution.substituteType(fieldType);
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new InlineClassConstructorBodyBuilderContext(this);
 }
 
 class _InitializerToStatementConverter implements InitializerVisitor<void> {

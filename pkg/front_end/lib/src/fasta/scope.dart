@@ -17,6 +17,7 @@ import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'fasta_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
+import 'kernel/body_builder_context.dart';
 import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
@@ -1027,6 +1028,12 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
+  }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext {
+    throw new UnsupportedError(
+        '$runtimeType.bodyBuilderContextForAnnotations}');
   }
 }
 

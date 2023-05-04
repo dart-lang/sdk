@@ -14,6 +14,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../modifier.dart';
 import '../scope.dart' show Scope;
@@ -263,9 +264,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         final DeclarationBuilder declarationBuilder =
             parent!.parent as DeclarationBuilder;
         Scope scope = declarationBuilder.scope;
+        BodyBuilderContext bodyBuilderContext =
+            new ParameterBodyBuilderContext(this);
         BodyBuilder bodyBuilder = library.loader
             .createBodyBuilderForOutlineExpression(
-                library, declarationBuilder, this, scope, fileUri!);
+                library, bodyBuilderContext, scope, fileUri!);
         bodyBuilder.constantContext = ConstantContext.required;
         assert(!initializerWasInferred);
         Expression initializer =

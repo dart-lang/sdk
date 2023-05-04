@@ -29,7 +29,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../crash.dart' show Crash;
@@ -43,8 +42,8 @@ import '../fasta_codes.dart'
 import '../identifiers.dart' show QualifiedName;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
-import '../kernel/body_builder.dart'
-    show BodyBuilder, BodyBuilderContext, FormalParameters;
+import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
+import '../kernel/body_builder_context.dart';
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
 import '../scope.dart';
@@ -60,6 +59,7 @@ import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_type_alias_builder.dart';
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
@@ -324,7 +324,7 @@ class DietListener extends StackListenerImpl {
 
     Builder? typedefBuilder =
         lookupBuilder(typedefKeyword, null, name as String);
-    if (typedefBuilder is TypeAliasBuilder) {
+    if (typedefBuilder is SourceTypeAliasBuilder) {
       TypeBuilder? type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
         List<ParameterBuilder>? formals = type.formals;
@@ -337,7 +337,8 @@ class DietListener extends StackListenerImpl {
               // hood, so we only need the offset of the first annotation.
               Token metadataToken = tokenForOffset(
                   typedefKeyword, endToken, metadata[0].charOffset)!;
-              parseMetadata(typedefBuilder, metadataToken, null)!;
+              parseMetadata(typedefBuilder.bodyBuilderContext, typedefBuilder,
+                  metadataToken, null)!;
             }
           }
         }
@@ -562,7 +563,8 @@ class DietListener extends StackListenerImpl {
     Library libraryNode = libraryBuilder.library;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    parseMetadata(libraryBuilder, metadata, dependency);
+    parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
+        dependency);
   }
 
   @override
@@ -578,7 +580,8 @@ class DietListener extends StackListenerImpl {
     Library libraryNode = libraryBuilder.library;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    parseMetadata(libraryBuilder, metadata, dependency);
+    parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
+        dependency);
   }
 
   @override
@@ -593,7 +596,8 @@ class DietListener extends StackListenerImpl {
       // Don't try to parse metadata into other parts that have nothing to do
       // with the one this keyword is talking about.
       LibraryPart part = libraryNode.parts[partDirectiveIndex++];
-      parseMetadata(libraryBuilder, metadata, part);
+      parseMetadata(
+          libraryBuilder.bodyBuilderContext, libraryBuilder, metadata, part);
     }
   }
 
@@ -767,9 +771,9 @@ class DietListener extends StackListenerImpl {
             : MemberKind.NonStaticMethod);
   }
 
-  BodyBuilder createListener(ModifierBuilder builder, Scope memberScope,
-      {required bool isDeclarationInstanceMember,
-      VariableDeclaration? thisVariable,
+  BodyBuilder createListener(BodyBuilderContext bodyBuilderContext,
+      ModifierBuilder builder, Scope memberScope,
+      {VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       Scope? formalParameterScope,
       InferenceDataForTesting? inferenceDataForTesting}) {
@@ -787,10 +791,9 @@ class DietListener extends StackListenerImpl {
         ? ConstantContext.required
         : ConstantContext.none;
     BodyBuilder result = createListenerInternal(
-        builder,
+        bodyBuilderContext,
         memberScope,
         formalParameterScope,
-        isDeclarationInstanceMember,
         thisVariable,
         thisTypeParameters,
         typeInferrer,
@@ -800,19 +803,16 @@ class DietListener extends StackListenerImpl {
   }
 
   BodyBuilder createListenerInternal(
-      ModifierBuilder builder,
+      BodyBuilderContext bodyBuilderContext,
       Scope memberScope,
       Scope? formalParameterScope,
-      bool isDeclarationInstanceMember,
       VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       TypeInferrer typeInferrer,
       ConstantContext constantContext) {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
-        context: new BodyBuilderContext(
-            libraryBuilder, currentDeclaration, builder,
-            isDeclarationInstanceMember: isDeclarationInstanceMember),
+        context: bodyBuilderContext,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
@@ -833,8 +833,8 @@ class DietListener extends StackListenerImpl {
     assert(typeParameterScope != null);
     // ignore: unnecessary_null_comparison
     assert(formalParameterScope != null);
-    return createListener(builder, typeParameterScope,
-        isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
+    return createListener(
+        builder.bodyBuilderContext, builder, typeParameterScope,
         thisVariable: builder.thisVariable,
         thisTypeParameters: builder.thisTypeParameters,
         formalParameterScope: formalParameterScope,
@@ -880,9 +880,7 @@ class DietListener extends StackListenerImpl {
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
-        createListener(declaration, memberScope,
-            isDeclarationInstanceMember:
-                declaration.isDeclarationInstanceMember,
+        createListener(declaration.bodyBuilderContext, declaration, memberScope,
             inferenceDataForTesting: declaration.dataForTesting?.inferenceData),
         token,
         metadata,
@@ -1160,6 +1158,7 @@ class DietListener extends StackListenerImpl {
       token = parser.parseClassMember(metadata ?? token, null).next!;
     }
     bodyBuilder.finishFields();
+
     bodyBuilder.checkEmpty(token.charOffset);
   }
 
@@ -1272,11 +1271,11 @@ class DietListener extends StackListenerImpl {
 
   /// If the [metadata] is not `null`, return the parsed metadata [Expression]s.
   /// Otherwise, return `null`.
-  List<Expression>? parseMetadata(
+  List<Expression>? parseMetadata(BodyBuilderContext bodyBuilderContext,
       ModifierBuilder builder, Token? metadata, Annotatable? parent) {
     if (metadata != null) {
-      StackListenerImpl listener = createListener(builder, memberScope,
-          isDeclarationInstanceMember: false);
+      StackListenerImpl listener =
+          createListener(bodyBuilderContext, builder, memberScope);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
           allowPatterns: libraryFeatures.patterns.isEnabled);

@@ -46,6 +46,7 @@ import '../fasta_codes.dart'
         templateEnumConstantSameNameAsEnclosing;
 
 import '../kernel/body_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
@@ -655,6 +656,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     return cls;
   }
 
+  @override
+  BodyBuilderContext get bodyBuilderContext => new EnumBodyBuilderContext(this);
+
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
     DartType selfType =
         this.selfType.build(libraryBuilder, TypeUse.enumSelfType);
@@ -717,7 +721,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       // be built via a body builder to detect potential errors.
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, this, this, scope, fileUri);
+              libraryBuilder, bodyBuilderContext, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 
       if (enumConstantInfo.argumentsBeginToken != null) {

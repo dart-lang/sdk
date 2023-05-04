@@ -41,6 +41,7 @@ import '../builder/void_type_declaration_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../identifiers.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
@@ -360,6 +361,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     return false;
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new ClassBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
@@ -371,11 +375,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
-        libraryBuilder, this, null, fileUri, libraryBuilder.scope);
+        bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(libraryBuilder, this, null,
-            classHierarchy, delayedActionPerformers, scope.parent!);
+        typeVariables![i].buildOutlineExpressions(
+            libraryBuilder,
+            bodyBuilderContext,
+            classHierarchy,
+            delayedActionPerformers,
+            scope.parent!);
       }
     }
 

@@ -19,6 +19,7 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
@@ -211,18 +212,20 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         growable: true);
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new TypedefBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(typedef, metadata, libraryBuilder, null,
-        null, fileUri, libraryBuilder.scope);
+    MetadataBuilder.buildAnnotations(typedef, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
             libraryBuilder,
-            null,
-            null,
+            bodyBuilderContext,
             classHierarchy,
             delayedActionPerformers,
             computeTypeParameterScope(libraryBuilder.scope));

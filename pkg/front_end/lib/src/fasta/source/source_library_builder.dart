@@ -65,6 +65,7 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -3283,6 +3284,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return builder;
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new LibraryBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
@@ -3296,7 +3300,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, fileUri, scope);
+        library, metadata, bodyBuilderContext, this, fileUri, scope);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
