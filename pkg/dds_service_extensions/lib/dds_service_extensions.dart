@@ -37,6 +37,25 @@ extension DdsExtension on VmService {
     });
   }
 
+  /// The [getPerfettoVMTimelineWithCpuSamples] RPC functions nearly identically
+  /// to [VmService.getPerfettoVMTimeline], except the `trace` field of the
+  /// [PerfettoTimeline] response returned by this RPC will be a Base64 string
+  /// encoding a Perfetto-format trace that includes not only all timeline
+  /// events in the specified time range, but also all CPU samples from all
+  /// isolates in the specified time range.
+  Future<PerfettoTimeline> getPerfettoVMTimelineWithCpuSamples(
+      {int? timeOriginMicros, int? timeExtentMicros}) async {
+    if (!(await _versionCheck(1, 5))) {
+      throw UnimplementedError(
+          'getPerfettoVMTimelineWithCpuSamples requires DDS version 1.5');
+    }
+    return _callHelper<PerfettoTimeline>('getPerfettoVMTimelineWithCpuSamples',
+        args: {
+          'timeOriginMicros': timeOriginMicros,
+          'timeExtentMicros': timeExtentMicros,
+        });
+  }
+
   /// The [getAvailableCachedCpuSamples] RPC is used to determine which caches of CPU samples
   /// are available. Caches are associated with individual [UserTag] names and are specified
   /// when DDS is started via the `cachedUserTags` parameter.
