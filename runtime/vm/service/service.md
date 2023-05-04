@@ -4662,6 +4662,6 @@ version | comments
 4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
 4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
 4.5 | Added `getPerfettoVMTimeline` RPC.
-4.6 | Added `getPerfettoCpuSamples` RPC.
+4.6 | Added `getPerfettoCpuSamples` RPC. Added a deprecation notice to `InstanceKind.TypeRef`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

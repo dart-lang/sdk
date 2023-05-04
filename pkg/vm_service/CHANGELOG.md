@@ -1,3 +1,8 @@
+## 11.5.0
+- Update to version `4.6` of the spec.
+- Add `getPerfettoCpuSamples` RPC.
+- Add deprecation notice to `InstanceKind.TypeRef`.
+
 ## 11.4.0
 - Update to version `4.5` of the spec.
 - Add `getPerfettoVMTimeline` RPC.
