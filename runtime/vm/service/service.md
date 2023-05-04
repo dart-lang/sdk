@@ -3330,6 +3330,10 @@ enum InstanceKind {
   // An instance of the Dart class TypeParameter.
   TypeParameter,
 
+  // An instance of the Dart class TypeRef.
+  // Note: this object kind is deprecated and will be removed.
+  TypeRef,
+
   // An instance of the Dart class FunctionType.
   FunctionType,
 
