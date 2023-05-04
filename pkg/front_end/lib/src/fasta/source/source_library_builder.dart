@@ -197,11 +197,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
 
-  // List of types inferred in the outline.  Errors in these should be reported
-  // differently than for specified types.
-  // TODO(cstefantsova):  Find a way to mark inferred types.
-  final Set<DartType> inferredTypes = new Set<DartType>.identity();
-
   // While the bounds of type parameters aren't compiled yet, we can't tell the
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
@@ -4250,9 +4245,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeParameter? typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred = inferred ??
-          typeArgumentsInfo?.isInferred(issue.index) ??
-          inferredTypes.contains(argument);
+      bool issueInferred =
+          inferred ?? typeArgumentsInfo?.isInferred(issue.index) ?? false;
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
       if (issue.isGenericTypeAsArgumentIssue) {
@@ -4704,7 +4698,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             "Unexpected declaration ${declaration.runtimeType}");
       }
     }
-    inferredTypes.clear();
     checkPendingBoundsChecks(typeEnvironment);
   }
 

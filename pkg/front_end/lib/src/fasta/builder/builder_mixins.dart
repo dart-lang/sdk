@@ -8,7 +8,6 @@ import 'package:kernel/class_hierarchy.dart';
 import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
-import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'declaration_builder.dart';
 import 'field_builder.dart';
@@ -77,9 +76,6 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
         return typeParameters![i].defaultType!.buildAliased(
             library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
       }, growable: true);
-      if (library is SourceLibraryBuilder) {
-        library.inferredTypes.addAll(result);
-      }
       return result;
     }
 
