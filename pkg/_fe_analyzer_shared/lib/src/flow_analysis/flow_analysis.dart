@@ -1900,9 +1900,6 @@ class FlowModel<Type extends Object> {
   /// [_FlowAnalysisImpl._promotionKeyStore].
   final Map<int, VariableModel<Type> /*!*/ > variableInfo;
 
-  /// The empty map, used to [join] variables.
-  final Map<int, VariableModel<Type>> _emptyVariableMap = {};
-
   /// Creates a state object with the given [reachable] status.  All variables
   /// are assumed to be unpromoted and already assigned, so joining another
   /// state with this one will have no effect on it.
@@ -2493,7 +2490,6 @@ class FlowModel<Type extends Object> {
     TypeOperations<Type> typeOperations,
     FlowModel<Type>? first,
     FlowModel<Type>? second,
-    Map<int, VariableModel<Type>> emptyVariableMap,
   ) {
     if (first == null) return second!;
     if (second == null) return first;
@@ -2511,10 +2507,7 @@ class FlowModel<Type extends Object> {
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable);
     Map<int, VariableModel<Type>> newVariableInfo = FlowModel.joinVariableInfo(
-        typeOperations,
-        first.variableInfo,
-        second.variableInfo,
-        emptyVariableMap);
+        typeOperations, first.variableInfo, second.variableInfo);
 
     return FlowModel._identicalOrNew(
         first, second, newReachable, newVariableInfo);
@@ -2526,13 +2519,13 @@ class FlowModel<Type extends Object> {
     TypeOperations<Type> typeOperations,
     Map<int, VariableModel<Type>> first,
     Map<int, VariableModel<Type>> second,
-    Map<int, VariableModel<Type>> emptyMap,
   ) {
     if (identical(first, second)) return first;
     if (first.isEmpty || second.isEmpty) {
-      return emptyMap;
+      return const {};
     }
 
+    // TODO(jensj): How often is this empty?
     Map<int, VariableModel<Type>> result = <int, VariableModel<Type>>{};
     bool alwaysFirst = true;
     bool alwaysSecond = true;
@@ -2552,7 +2545,7 @@ class FlowModel<Type extends Object> {
 
     if (alwaysFirst) return first;
     if (alwaysSecond && result.length == second.length) return second;
-    if (result.isEmpty) return emptyMap;
+    if (result.isEmpty) return const {};
     return result;
   }
 
@@ -2562,7 +2555,6 @@ class FlowModel<Type extends Object> {
     TypeOperations<Type> typeOperations,
     FlowModel<Type>? first,
     FlowModel<Type>? second,
-    Map<int, VariableModel<Type>> emptyVariableMap,
   ) {
     if (first == null) return second!.unsplit();
     if (second == null) return first.unsplit();
@@ -2580,10 +2572,7 @@ class FlowModel<Type extends Object> {
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable).unsplit();
     Map<int, VariableModel<Type>> newVariableInfo = FlowModel.joinVariableInfo(
-        typeOperations,
-        first.variableInfo,
-        second.variableInfo,
-        emptyVariableMap);
+        typeOperations, first.variableInfo, second.variableInfo);
 
     return FlowModel._identicalOrNew(
         first, second, newReachable, newVariableInfo);
@@ -5153,7 +5142,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
-      FlowModel.join(operations, first, second, _current._emptyVariableMap);
+      FlowModel.join(operations, first, second);
 
   /// Creates a promotion key representing a temporary variable that doesn't
   /// correspond to any variable in the user's source code.  This is used by
@@ -5174,7 +5163,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   FlowModel<Type> _merge(FlowModel<Type> first, FlowModel<Type>? second) =>
-      FlowModel.merge(operations, first, second, _current._emptyVariableMap);
+      FlowModel.merge(operations, first, second);
 
   /// Computes an updated flow model representing the result of a null check
   /// performed by a pattern.  The returned flow model represents what is known
